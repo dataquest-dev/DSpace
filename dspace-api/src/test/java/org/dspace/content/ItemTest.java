@@ -188,29 +188,8 @@ public class ItemTest extends AbstractDSpaceObjectTest {
      */
     @Test
     public void dtqExampleTest() throws Exception {
-        // Find by id
-        // Get ID of item created in init()
-        UUID id = it.getID();
-        // Make sure we can find it via its ID
-        Item found = itemService.find(context, id);
-        assertThat("dtqExampleTest 0", found.getID(), equalTo(id));
-
-        // default discoverable should be true
-        assertThat("dtqExampleTest 1", found.isDiscoverable(), equalTo(true));
-
-        context.turnOffAuthorisationSystem();
-        // set discoverable and update
-        found.setDiscoverable(false);
-        itemService.update(context, found);
-        context.restoreAuthSystemState();
-
-
-        // find by id
-        Item foundAfterUpdate = itemService.find(context, id);
-        assertThat("dtqExampleTest 2", foundAfterUpdate.getID(), equalTo(id));
-
-        // check if discoverable changed
-        assertThat("dtqExampleTest 1", foundAfterUpdate.isDiscoverable(), equalTo(false));
+        // check if it is not null
+        assertThat("dtqExampleTest 0", this.it, notNullValue());
     }
 
     /**

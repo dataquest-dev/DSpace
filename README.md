@@ -127,6 +127,9 @@ run automatically by [GitHub Actions](https://github.com/DSpace/DSpace/actions?q
   # Run all integration tests in a specific test class
   # NOTE: failIfNoTests=false is required to skip tests in other modules
   mvn install -DskipIntegrationTests=false -Dit.test=[full.package.testClassName] -DfailIfNoTests=false
+  
+  # Example:
+  mvn install -DskipIntegrationTests=false -Dit.test=org.dspace.content.ItemIT.java#dtqExampleTest -Dtest.argLine=-Xmx1024m -DfailsafeJacoco=-XX:MaxPermSize=256m
 
   # Run one test method in a specific test class
   mvn install -DskipIntegrationTests=false -Dit.test=[full.package.testClassName]#[testMethodName] -DfailIfNoTests=false
