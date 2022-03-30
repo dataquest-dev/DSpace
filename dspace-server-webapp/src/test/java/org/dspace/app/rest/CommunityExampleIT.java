@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class CommunityExampleTestIT extends AbstractControllerIntegrationTest {
+public class CommunityExampleIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     AuthorizeService authorizeService;
