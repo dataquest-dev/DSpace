@@ -91,6 +91,14 @@ DSpace uses GitHub to track issues:
 By default, in DSpace, Unit Tests and Integration Tests are disabled. However, they are
 run automatically by [GitHub Actions](https://github.com/DSpace/DSpace/actions?query=workflow%3ABuild) for all Pull Requests and code commits.
 
+* Necessary parameters for running every Unit Test command to pass JVM memory flags: `test.argLine`, `surefireJacoco`. Example:
+  ```
+  mvn <ARGS> -Dtest.argLine=-Xmx1024m -DsurefireJacoco=-XX:MaxPermSize=256m
+  ```
+* Necessary parameters for running every Integration Test command to pass JVM memory flags: `test.argLine`, `failsafeJacoco`. Example:
+  ```
+  mvn <ARGS> -Dtest.argLine=-Xmx1024m -DfailsafeJacoco=-XX:MaxPermSize=256m
+  ```
 * How to run both Unit Tests (via `maven-surefire-plugin`) and Integration Tests (via `maven-failsafe-plugin`):
   ```
   mvn install -DskipUnitTests=false -DskipIntegrationTests=false
@@ -104,6 +112,8 @@ run automatically by [GitHub Actions](https://github.com/DSpace/DSpace/actions?q
   # Run all tests in a specific test class
   # NOTE: failIfNoTests=false is required to skip tests in other modules
   mvn test -DskipUnitTests=false -Dtest=[full.package.testClassName] -DfailIfNoTests=false
+  
+  # Example: mvn test -DskipUnitTests=false -Dtest=org.dspace.content.ItemTest.java -DfailIfNoTests=false -Dtest.argLine=-Xmx1024m -DsurefireJacoco=-XX:MaxPermSize=256m
 
   # Run one test method in a specific test class
   mvn test -DskipUnitTests=false -Dtest=[full.package.testClassName]#[testMethodName] -DfailIfNoTests=false
@@ -117,6 +127,9 @@ run automatically by [GitHub Actions](https://github.com/DSpace/DSpace/actions?q
   # Run all integration tests in a specific test class
   # NOTE: failIfNoTests=false is required to skip tests in other modules
   mvn install -DskipIntegrationTests=false -Dit.test=[full.package.testClassName] -DfailIfNoTests=false
+  
+  # Example:
+  mvn install -DskipIntegrationTests=false -Dit.test=org.dspace.content.ItemIT.java#dtqExampleTest -Dtest.argLine=-Xmx1024m -DfailsafeJacoco=-XX:MaxPermSize=256m
 
   # Run one test method in a specific test class
   mvn install -DskipIntegrationTests=false -Dit.test=[full.package.testClassName]#[testMethodName] -DfailIfNoTests=false
