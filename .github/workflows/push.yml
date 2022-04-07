@@ -1,12 +1,10 @@
 # DSpace Continuous Integration/Build via GitHub Actions
 # Concepts borrowed from
 # https://docs.github.com/en/free-pro-team@latest/actions/guides/building-and-testing-java-with-maven
-name: Build on pull_request
+name: Build on push
 
 # Run this Build for all pushes / PRs to current branch
-on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+on: [push]
 
 jobs:
   tests:
