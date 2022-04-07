@@ -18,7 +18,7 @@ For more information, visit http://www.dspace.org/
 DSpace consists of both a Java-based backend and an Angular-based frontend.
 
 * Backend (this codebase) provides a REST API, along with other machine-based interfaces (e.g. OAI-PMH, SWORD, etc)
-  * The REST Contract is at https://github.com/DSpace/RestContract
+ * The REST Contract is at https://github.com/DSpace/RestContract
 * Frontend (https://github.com/DSpace/dspace-angular/) is the User Interface built on the REST API
 
 Prior versions of DSpace (v6.x and below) used two different UIs (XMLUI and JSPUI). Those UIs are no longer supported in v7 (and above).
