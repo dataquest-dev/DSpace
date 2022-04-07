@@ -1,4 +1,4 @@
-
+[![Build](https://github.com/dataquest-dev/DSpace/actions/workflows/build.yml/badge.svg)](https://github.com/dataquest-dev/DSpace/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/dataquest-dev/DSpace/branch/dtq-dev/graph/badge.svg?token=YI6CJNFI2H)](https://codecov.io/gh/dataquest-dev/DSpace)
 
 # DSpace
