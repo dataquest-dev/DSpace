@@ -184,7 +184,7 @@ public class ItemTest extends AbstractDSpaceObjectTest {
     }
 
     /**
-     * Test of find method, of class Item.
+     * Example test of item if is not null.
      */
     @Test
     public void dtqExampleTest() throws Exception {

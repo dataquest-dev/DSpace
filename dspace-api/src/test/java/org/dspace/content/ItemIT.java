@@ -23,6 +23,11 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.junit.Test;
 
+/**
+ * Integration Tests for class Item
+ *
+ * @author milanmajchrak
+ */
 public class ItemIT extends AbstractIntegrationTestWithDatabase {
 
     /**
@@ -57,7 +62,7 @@ public class ItemIT extends AbstractIntegrationTestWithDatabase {
     private AuthorizeService authorizeServiceSpy;
 
     /**
-     * Test of find method, of class Item.
+     * Test of update item and find method.
      */
     @Test
     public void dtqExampleTest() throws Exception {

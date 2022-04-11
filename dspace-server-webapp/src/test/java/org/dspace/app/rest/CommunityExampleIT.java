@@ -25,6 +25,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Integration Tests for class Community
+ *
+ * @author milanmajchrak
+ */
 public class CommunityExampleIT extends AbstractControllerIntegrationTest {
 
     @Autowired
@@ -34,6 +39,13 @@ public class CommunityExampleIT extends AbstractControllerIntegrationTest {
     private CommunityRest comm;
     private String authToken;
 
+    /**
+     * This method will be run before every test as per @Before. It will
+     * initialize resources required for the tests.
+     *
+     * Other methods can be annotated with @Before here or in subclasses
+     * but no execution order is guaranteed
+     */
     @Before
     public void createStructure() throws Exception {
         //We turn off the authorization system in order to create the structure as defined below
@@ -68,6 +80,9 @@ public class CommunityExampleIT extends AbstractControllerIntegrationTest {
                         new MetadataValueRest("Title Text")));
     }
 
+    /**
+     * Test of find the created community.
+     */
     @Test
     public void shouldCreateCommunity() throws Exception {
         AtomicReference<UUID> idRef = new AtomicReference<>();
