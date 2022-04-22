@@ -69,6 +69,11 @@ public class DCInputsReader {
      */
     static final String PAIR_TYPE_NAME = "value-pairs-name";
 
+    /**
+     * @ToDo Change me!
+     */
+    static final String COMPLEX_DEFINITION_REF = "complex-definition-ref";
+
 
     /**
      * Reference to the forms definitions map, computed from the forms
@@ -86,6 +91,11 @@ public class DCInputsReader {
      * form-interleaved, there will be a modest win.
      */
     private DCInputSet lastInputSet = null;
+
+    /**
+     * @ ToDo change me!
+     */
+    private DCInput.ComplexDefinitions complexDefinitions = null;
 
     /**
      * Parse an XML encoded submission forms template file, and create a hashmap
@@ -117,6 +127,7 @@ public class DCInputsReader {
         throws DCInputsReaderException {
         formDefns = new HashMap<String, List<List<Map<String, String>>>>();
         valuePairs = new HashMap<String, List<String>>();
+        complexDefinitions = new DCInput.ComplexDefinitions(valuePairs);
 
         String uri = "file:" + new File(fileName).getAbsolutePath();
 
@@ -217,7 +228,7 @@ public class DCInputsReader {
             throw new DCInputsReaderException("Missing the " + formName + " form");
         }
         lastInputSet = new DCInputSet(formName,
-                                      pages, valuePairs);
+                                      pages, valuePairs, complexDefinitions);
         return lastInputSet;
     }
 
@@ -282,6 +293,8 @@ public class DCInputsReader {
                 foundDefs = true;
             } else if (tagName.equals("form-value-pairs")) {
                 processValuePairs(nd);
+            } else if (tagName.equals("form-complex-definitions")){
+                processComplexDefinitions(nd);
             }
             // Ignore unknown nodes
         }
@@ -337,6 +350,9 @@ public class DCInputsReader {
         }
     }
 
+    private void processComplexDefinitions(Node e) {
+        // @ToDo
+    }
     /**
      * Process parts of a row
      */

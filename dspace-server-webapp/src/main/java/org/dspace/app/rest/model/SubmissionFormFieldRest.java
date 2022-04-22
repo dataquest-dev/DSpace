@@ -13,8 +13,10 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import org.apache.commons.math3.complex.Complex;
 import org.dspace.app.rest.model.submit.SelectableMetadata;
 import org.dspace.app.rest.model.submit.SelectableRelationship;
+import org.dspace.app.util.DCInput;
 import org.dspace.submit.model.LanguageFormField;
 
 /**
@@ -88,6 +90,10 @@ public class SubmissionFormFieldRest {
      */
     private List<String> typeBind;
 
+    /**
+     * @ToDo Change me!
+     */
+    private DCInput.ComplexDefinition complexDefinition;
     /**
      * Getter for {@link #selectableMetadata}
      * 
@@ -285,5 +291,9 @@ public class SubmissionFormFieldRest {
 
     public void setSelectableRelationship(SelectableRelationship selectableRelationship) {
         this.selectableRelationship = selectableRelationship;
+    }
+
+    public void setComplexDefinition(DCInput.ComplexDefinition complexDefinition) {
+        this.complexDefinition = complexDefinition;
     }
 }

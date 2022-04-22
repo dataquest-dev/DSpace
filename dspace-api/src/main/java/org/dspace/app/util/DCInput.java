@@ -7,9 +7,7 @@
  */
 package org.dspace.app.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.annotation.Nullable;
@@ -19,6 +17,7 @@ import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 /**
  * Class representing a line in an input form.
@@ -140,6 +139,11 @@ public class DCInput {
      */
     private List<String> typeBind = null;
 
+    /**
+     * @ToDO change me!
+     */
+    private ComplexDefinition complexDefinition = null;
+
     private boolean isRelationshipField = false;
     private boolean isMetadataField = false;
     private String relationshipType = null;
@@ -166,7 +170,8 @@ public class DCInput {
      * @param fieldMap named field values.
      * @param listMap  value-pairs map, computed from the forms definition XML file
      */
-    public DCInput(Map<String, String> fieldMap, Map<String, List<String>> listMap) {
+    public DCInput(Map<String, String> fieldMap, Map<String, List<String>> listMap,
+                   ComplexDefinitions complexDefinitions) {
         dcElement = fieldMap.get("dc-element");
         dcQualifier = fieldMap.get("dc-qualifier");
 
@@ -200,6 +205,9 @@ public class DCInput {
             || "list".equals(inputType)) {
             valueListName = fieldMap.get("value-pairs-name");
             valueList = listMap.get(valueListName);
+        }
+        if ("complex".equals(inputType)){
+            complexDefinition = complexDefinitions.getByName((fieldMap.get(DCInputsReader.COMPLEX_DEFINITION_REF)));
         }
         hint = fieldMap.get("hint");
         warning = fieldMap.get("required");
@@ -543,6 +551,14 @@ public class DCInput {
         return false;
     }
 
+    public ComplexDefinition getComplexDefinition() {
+         return this.complexDefinition;
+    }
+
+    public void setComplexDefinition(ComplexDefinition complexDefinition) {
+        this.complexDefinition = complexDefinition;
+    }
+
     public boolean validate(String value) {
         if (StringUtils.isNotBlank(value)) {
             try {
@@ -586,5 +602,91 @@ public class DCInput {
      */
     public boolean isMetadataField() {
         return isMetadataField;
+    }
+
+    public static class ComplexDefinitions{
+        private Map<String, ComplexDefinition> definitions = null;
+        private Map<String, List<String>> valuePairs = null;
+
+        ComplexDefinitions(Map<String, List<String>> valuePairs){
+            definitions = new HashMap<String, ComplexDefinition>();
+            this.valuePairs = valuePairs;
+        }
+
+        public ComplexDefinition getByName(String name){
+            return definitions.get(name);
+        }
+
+        public void addDefinition(ComplexDefinition definition) {
+            definitions.put(definition.getName(), definition);
+            definition.setValuePairs(valuePairs);
+        }
+    }
+
+    public static class ComplexDefinition {
+        private Map<String, Map<String, String>> inputs;
+        private String name;
+        private Map<String, List<String>> valuePairs = null;
+
+        public ComplexDefinition(String definitionName) {
+            name = definitionName;
+            inputs = new LinkedHashMap<>();
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void addInput(Map<String, String> attributes) throws SAXException {
+            // these two are a must, check if present
+            String iName = attributes.get("name");
+            String iType = attributes.get("type");
+
+            if (iName == null || iType == null) {
+                throw new SAXException(
+                        "Missing attributes (name or type) on complex definition input");
+            }
+
+            inputs.put(iName,attributes);
+
+        }
+
+        public Map<String, String> getInput(String name){
+            return inputs.get(name);
+        }
+
+        /**
+         * Returns the input names in the same order they were added, usually the same order as input-forms.xml
+         * Use this method only to draw the inputs in the specified order. Usually you would use {@link #getSortedInputNames()}
+         * @return
+         */
+        public Set<String> getInputNames() {
+            return inputs.keySet();
+        }
+
+        /**
+         * Returns the names sorted alphabetically. Use this to add the values in the expected order.
+         * @return
+         */
+        public Set<String> getSortedInputNames() {
+            return new TreeSet<>(inputs.keySet());
+        }
+
+        public int inputsCount() {
+            return getInputNames().size();
+        }
+
+        void setValuePairs(Map<String, List<String>> valuePairs){
+            this.valuePairs = valuePairs;
+        }
+
+        public java.util.List<String> getValuePairsForInput(String name) {
+            String pairsRef = getInput(name).get("pairs");
+            if(valuePairs != null && pairsRef != null){
+                return valuePairs.get(pairsRef);
+            }
+            return null;
+        }
+
     }
 }

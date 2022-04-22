@@ -117,6 +117,28 @@
             </row>
             <row>
                 <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>contact</dc-element>
+                    <dc-qualifier>person</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Contact person</label>
+                    <input-type complex-definition-ref="contact_person">complex</input-type>
+                    <hint>This is contact person hint</hint>
+                    <required></required>
+                </field>
+            </row>
+            <row>
+                <field>
+                <dc-schema>local</dc-schema>
+                <dc-element>sponsor</dc-element>
+                <repeatable>true</repeatable>
+                <label>Funding</label>
+                <input-type complex-definition-ref="funding">complex</input-type>
+                <hint>This is a funding hint</hint>
+            </field>
+            </row>
+            <row>
+                <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>identifier</dc-element>
                     <dc-qualifier>citation</dc-qualifier>
@@ -1924,5 +1946,22 @@
         </value-pairs>
 
     </form-value-pairs>
+
+    <form-complex-definitions>
+    <definition name="contact_person">
+        <input name="1_givenname" type="text" label="input_forms.complex_definitions.contact_person.1_givenname.label" required="true"/>
+        <input name="2_surname" type="text" label="input_forms.complex_definitions.contact_person.2_surname.label" help="input_forms.complex_definitions.contact_person.2_surname.help" required="true"/>
+        <input name="3_email" type="text" label="input_forms.complex_definitions.contact_person.3_email.label" regexp="[^@]+@[^\.@]+\.[^@]+" required="true"/>
+        <input name="4_affiliation" type="text" label="input_forms.complex_definitions.contact_person.4_affiliation.label" autocomplete="solr-publisher_ac" required="true"/>
+    </definition>
+
+    <definition name="funding">
+        <input name="4_type" type="dropdown" label="input_forms.complex_definitions.funding.4_type.label" pairs="metashare_funding" class="openaire-type-map" required="true"/>
+        <input name="2_code" placeholder="input_forms.complex_definitions.funding.2_code.placeholder" type="text" label="input_forms.complex_definitions.funding.2_code.label" class="openaire-code-autocomplete" autocomplete="solr-local.sponsor_ac" required="true"/>
+        <input name="1_orgname" type="text" label="input_forms.complex_definitions.funding.1_orgname.label" required="true"/>
+        <input name="3_projname" type="text" label="input_forms.complex_definitions.funding.3_projname.label" autocomplete="solr-local.sponsor_ac" required="true"/>
+        <input name="5_openaire_id" value="" type="text" readonly="true" label="input_forms.complex_definitions.funding.5_openaire_id.label" placeholder="Filled out automatically..." mapped-to-if-not-default="dc.relation" class="openaire-id"/>
+    </definition>
+</form-complex-definitions>
 
 </input-forms>
