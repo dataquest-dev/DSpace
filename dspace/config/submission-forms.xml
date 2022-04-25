@@ -123,20 +123,20 @@
                     <repeatable>true</repeatable>
                     <label>Contact person</label>
                     <input-type complex-definition-ref="contact_person">complex</input-type>
-                    <hint>This is contact person hint</hint>
+                    <hint>This is contact person</hint>
                     <required></required>
                 </field>
             </row>
-            <row>
-                <field>
-                <dc-schema>local</dc-schema>
-                <dc-element>sponsor</dc-element>
-                <repeatable>true</repeatable>
-                <label>Funding</label>
-                <input-type complex-definition-ref="funding">complex</input-type>
-                <hint>This is a funding hint</hint>
-            </field>
-            </row>
+<!--            <row>-->
+<!--                <field>-->
+<!--                <dc-schema>local</dc-schema>-->
+<!--                <dc-element>sponsor</dc-element>-->
+<!--                <repeatable>true</repeatable>-->
+<!--                <label>Funding</label>-->
+<!--                <input-type complex-definition-ref="funding">complex</input-type>-->
+<!--                <hint>Funding</hint>-->
+<!--            </field>-->
+<!--            </row>-->
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
