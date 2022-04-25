@@ -37,7 +37,8 @@ public class DCInputSet {
      * @param listMap        map
      * @param complexDefinitions
      */
-    public DCInputSet(String formName, List<List<Map<String, String>>> rows, Map<String, List<String>> listMap, DCInput.ComplexDefinitions complexDefinitions) {
+    public DCInputSet(String formName, List<List<Map<String, String>>> rows, Map<String, List<String>> listMap,
+                      DCInput.ComplexDefinitions complexDefinitions) {
         this.formName = formName;
         this.inputs = new DCInput[rows.size()][];
         for (int i = 0; i < inputs.length; i++) {

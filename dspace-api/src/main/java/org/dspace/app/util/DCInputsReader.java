@@ -293,7 +293,7 @@ public class DCInputsReader {
                 foundDefs = true;
             } else if (tagName.equals("form-value-pairs")) {
                 processValuePairs(nd);
-            } else if (tagName.equals("form-complex-definitions")){
+            } else if (tagName.equals("form-complex-definitions")) {
                 processComplexDefinitions(nd);
             }
             // Ignore unknown nodes

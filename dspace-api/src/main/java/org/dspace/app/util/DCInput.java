@@ -7,7 +7,13 @@
  */
 package org.dspace.app.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.annotation.Nullable;
@@ -206,7 +212,7 @@ public class DCInput {
             valueListName = fieldMap.get("value-pairs-name");
             valueList = listMap.get(valueListName);
         }
-        if ("complex".equals(inputType)){
+        if ("complex".equals(inputType)) {
             complexDefinition = complexDefinitions.getByName((fieldMap.get(DCInputsReader.COMPLEX_DEFINITION_REF)));
         }
         hint = fieldMap.get("hint");
@@ -552,7 +558,7 @@ public class DCInput {
     }
 
     public ComplexDefinition getComplexDefinition() {
-         return this.complexDefinition;
+        return this.complexDefinition;
     }
 
     public void setComplexDefinition(ComplexDefinition complexDefinition) {
@@ -604,16 +610,16 @@ public class DCInput {
         return isMetadataField;
     }
 
-    public static class ComplexDefinitions{
+    public static class ComplexDefinitions {
         private Map<String, ComplexDefinition> definitions = null;
         private Map<String, List<String>> valuePairs = null;
 
-        ComplexDefinitions(Map<String, List<String>> valuePairs){
+        ComplexDefinitions(Map<String, List<String>> valuePairs) {
             definitions = new HashMap<String, ComplexDefinition>();
             this.valuePairs = valuePairs;
         }
 
-        public ComplexDefinition getByName(String name){
+        public ComplexDefinition getByName(String name) {
             return definitions.get(name);
         }
 
@@ -651,7 +657,7 @@ public class DCInput {
 
         }
 
-        public Map<String, String> getInput(String name){
+        public Map<String, String> getInput(String name) {
             return inputs.get(name);
         }
 
@@ -676,13 +682,13 @@ public class DCInput {
             return getInputNames().size();
         }
 
-        void setValuePairs(Map<String, List<String>> valuePairs){
+        void setValuePairs(Map<String, List<String>> valuePairs) {
             this.valuePairs = valuePairs;
         }
 
         public java.util.List<String> getValuePairsForInput(String name) {
             String pairsRef = getInput(name).get("pairs");
-            if(valuePairs != null && pairsRef != null){
+            if (valuePairs != null && pairsRef != null) {
                 return valuePairs.get(pairsRef);
             }
             return null;
