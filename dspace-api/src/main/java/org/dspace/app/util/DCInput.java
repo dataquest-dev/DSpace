@@ -16,11 +16,14 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.core.Utils;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -561,14 +564,19 @@ public class DCInput {
         return this.complexDefinition;
     }
 
-    public List<String > getComplexDefinitionList() {
-        List<List<String>> complexDefinitionList = new ArrayList<>();
+    public String getComplexDefinitionJSONString() {
+        String complexDefinitionAsJSONString = "";
 
-//        String definitionName = this.complexDefinition.g
-        String complexDefinition = "";
+        if (this.complexDefinition != null) {
+            JSONObject complexDefinitionJson = new JSONObject(this.complexDefinition.getInputs());
+            complexDefinitionAsJSONString = complexDefinitionJson.toString().replace("=",":");
+//            complexDefinitionAsJSONString = this.complexDefinition.getInputs().keySet().stream()
+//                    .map(key -> key + "=" + this.complexDefinition.getInput(key))
+//                    .collect(Collectors.joining(", ", "{", "}"));
+//            complexDefinitionAsJSONString.replace("=",":");
+        }
 
-        // @TODO complex definition to String
-        return new ArrayList<>();
+        return complexDefinitionAsJSONString;
     }
 
     public void setComplexDefinition(ComplexDefinition complexDefinition) {
@@ -656,11 +664,11 @@ public class DCInput {
         public void addInput(Map<String, String> attributes) throws SAXException {
             // these two are a must, check if present
             String iName = attributes.get("name");
-            String iType = attributes.get("type");
+            String iType = attributes.get("input-type");
 
             if (iName == null || iType == null) {
                 throw new SAXException(
-                        "Missing attributes (name or type) on complex definition input");
+                        "Missing attributes (name or input-type) on complex definition input");
             }
 
             inputs.put(iName,attributes);
@@ -670,6 +678,8 @@ public class DCInput {
         public Map<String, String> getInput(String name) {
             return inputs.get(name);
         }
+
+        public Map<String, Map<String, String>> getInputs() { return this.inputs; }
 
         /**
          * Returns the input names in the same order they were added, usually the same order as input-forms.xml

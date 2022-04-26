@@ -93,7 +93,7 @@ public class SubmissionFormFieldRest {
     /**
      * @ToDo Change me!
      */
-    private List<String> complexDefinition;
+    private String complexDefinition;
     /**
      * Getter for {@link #selectableMetadata}
      * 
@@ -293,11 +293,11 @@ public class SubmissionFormFieldRest {
         this.selectableRelationship = selectableRelationship;
     }
 
-    public void setComplexDefinition(List<String> complexDefinition) {
+    public void setComplexDefinition(String complexDefinition) {
         this.complexDefinition = complexDefinition;
     }
 
-    public List<String> getComplexDefinition() {
+    public String getComplexDefinition() {
         return this.complexDefinition;
     }
 }

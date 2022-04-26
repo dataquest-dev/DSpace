@@ -27,12 +27,12 @@
  <!ELEMENT input-type (#PCDATA)>
 
  <!ELEMENT input (#PCDATA) >
- <!ATTLIST input type CDATA #REQUIRED >
+ <!ATTLIST input input-type CDATA #REQUIRED >
  <!ATTLIST input name CDATA #REQUIRED >
  <!ATTLIST input label CDATA #IMPLIED >
- <!ATTLIST input regexp CDATA #IMPLIED >
+ <!ATTLIST input regex CDATA #IMPLIED >
  <!ATTLIST input pairs CDATA #IMPLIED >
- <!ATTLIST input help CDATA #IMPLIED >
+ <!ATTLIST input hint CDATA #IMPLIED >
  <!ATTLIST input autocomplete CDATA #IMPLIED >
  <!ATTLIST input placeholder CDATA #IMPLIED >
  <!ATTLIST input id CDATA #IMPLIED >
