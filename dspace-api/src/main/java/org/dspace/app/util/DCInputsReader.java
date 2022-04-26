@@ -533,6 +533,16 @@ public class DCInputsReader {
             } else {
                 field.put(PAIR_TYPE_NAME, pairTypeName);
             }
+        } else if(value.equals("complex")){
+            String definitionName = getAttribute(nd, COMPLEX_DEFINITION_REF);
+            if(definitionName == null){
+                throw new SAXException("Form " + formName
+                        + ", field " + field.get("dc-element")
+                        + "." + field.get("dc-qualifier")
+                        + " has no linked definition");
+            } else{
+                field.put(COMPLEX_DEFINITION_REF, definitionName);
+            }
         }
     }
 

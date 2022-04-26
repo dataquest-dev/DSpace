@@ -562,12 +562,13 @@ public class DCInput {
     }
 
     public List<String > getComplexDefinitionList() {
-        ArrayList<String> complexDefinitionList = new ArrayList<>();
+        List<List<String>> complexDefinitionList = new ArrayList<>();
 
+//        String definitionName = this.complexDefinition.g
         String complexDefinition = "";
 
         // @TODO complex definition to String
-        return complexDefinitionList;
+        return new ArrayList<>();
     }
 
     public void setComplexDefinition(ComplexDefinition complexDefinition) {
