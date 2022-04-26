@@ -350,9 +350,53 @@ public class DCInputsReader {
         }
     }
 
-    private void processComplexDefinitions(Node e) {
-        // @ToDo
+    private void processComplexDefinitions(Node e) throws SAXException {
+        NodeList nl = e.getChildNodes();
+        int len = nl.getLength();
+        for (int i = 0; i < len; i++)
+        {
+            Node nd = nl.item(i);
+            String tagName = nd.getNodeName();
 
+            // process each value-pairs set
+            if (tagName.equals("definition"))
+            {
+                String definitionName = getAttribute(nd, "name");
+                if (definitionName == null)
+                {
+                    String errString =
+                            "Missing attribute name for complex definition ";
+                    throw new SAXException(errString);
+                }
+                DCInput.ComplexDefinition definition = new DCInput.ComplexDefinition(definitionName);
+                complexDefinitions.addDefinition(definition);
+                NodeList cl = nd.getChildNodes();
+                int lench = cl.getLength();
+                for (int j = 0; j < lench; j++)
+                {
+                    Node nch = cl.item(j);
+                    String inputName = null;
+                    String inputType = null;
+
+                    if (nch.getNodeName().equals("input"))
+                    {
+                        definition.addInput(attributes2Map(nch.getAttributes()));
+                    }
+                }
+            }
+        }
+    }
+
+    private Map<String, String> attributes2Map(NamedNodeMap attributes) {
+        HashMap<String, String> map = new HashMap<String, String>();
+
+        int attrCount = attributes.getLength();
+        for(int i=0; i<attrCount; i++){
+            Node node = attributes.item(i);
+            map.put(node.getNodeName(), node.getNodeValue());
+        }
+
+        return map;
     }
     /**
      * Process parts of a row
