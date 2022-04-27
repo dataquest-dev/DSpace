@@ -1,4 +1,11 @@
-package sk.dtq.dspace.app.util;
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.app.util;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -12,10 +19,22 @@ import org.dspace.app.util.DCInput;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Unit Tests for class DCInputTest
+ *
+ * @author milanmajchrak
+ */
 public class DCInputTest extends AbstractUnitTest {
 
     private DCInput dcInput;
 
+    /**
+     * This method will be run before every test as per @Before. It will
+     * initialize resources required for the tests.
+     *
+     * Other methods can be annotated with @Before here or in subclasses
+     * but no execution order is guaranteed
+     */
     @Before
     @Override
     public void init() {
@@ -62,12 +81,18 @@ public class DCInputTest extends AbstractUnitTest {
         this.dcInput = new DCInput(fieldMap, null, complexDefinitions);
     }
 
+    /**
+     * Test of constructor, of class DCInput. DCInput should be created with the attribute complexDefinition.
+     */
     @Test
     public void shouldCreateDCInput() {
         assertThat("shouldCreateDCInput 0", this.dcInput, notNullValue());
         assertThat("shouldCreateDCInput 1", this.dcInput.getComplexDefinition(), notNullValue());
     }
 
+    /**
+     * Test of method getComplexDefinitionJSONString(), of class DCInput.
+     */
     @Test
     public void DCInputShouldReturnComplexDefinitionAsJSONString() {
         String complexDefinitionJSONString = "{\"givenname\":{\"name\":\"givenname\",\"input-type\":" +

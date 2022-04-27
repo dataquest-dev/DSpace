@@ -147,7 +147,7 @@ public class DCInput {
     private List<String> typeBind = null;
 
     /**
-     * @ToDO change me!
+     * current complexDefinition from the complexDefinitions
      */
     private ComplexDefinition complexDefinition = null;
 
@@ -176,6 +176,7 @@ public class DCInput {
      *
      * @param fieldMap named field values.
      * @param listMap  value-pairs map, computed from the forms definition XML file
+     * @param complexDefinitions  definition of the complex input - more inputs in one row
      */
     public DCInput(Map<String, String> fieldMap, Map<String, List<String>> listMap,
                    ComplexDefinitions complexDefinitions) {

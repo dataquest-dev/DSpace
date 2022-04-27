@@ -1,4 +1,11 @@
-package sk.dtq.dspace.content;
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.content;
 
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -10,7 +17,7 @@ import org.dspace.content.service.MetadataFieldService;
 import org.junit.Test;
 
 /**
- * Unit Tests for class MetadataFieldTest
+ * Unit Tests for class LocalMetadataTest
  *
  * @author milanmajchrak
  */
