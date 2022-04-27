@@ -13,10 +13,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import org.apache.commons.math3.complex.Complex;
 import org.dspace.app.rest.model.submit.SelectableMetadata;
 import org.dspace.app.rest.model.submit.SelectableRelationship;
-import org.dspace.app.util.DCInput;
 import org.dspace.submit.model.LanguageFormField;
 
 /**

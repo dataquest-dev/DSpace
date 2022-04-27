@@ -1,15 +1,16 @@
 package sk.dtq.dspace.app.util;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.dspace.AbstractUnitTest;
 import org.dspace.app.util.DCInput;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class DCInputTest extends AbstractUnitTest {
 
@@ -19,7 +20,7 @@ public class DCInputTest extends AbstractUnitTest {
     @Override
     public void init() {
         // Field map
-        Map<String, String> fieldMap = new HashMap<String, String>();
+        Map<String, String> fieldMap = new HashMap<>();
         fieldMap.put("dc-qualifier", "person");
         fieldMap.put("dc-element", "contact");
         fieldMap.put("dc-schema", "local");
@@ -34,8 +35,8 @@ public class DCInputTest extends AbstractUnitTest {
         DCInput.ComplexDefinition complexDefinition = new DCInput.ComplexDefinition("contact_person");
 
         // Complex Definition inputs
-        Map<String, String> complexDefinitionInputGivenname = new HashMap<String, String>();
-        Map<String, String> complexDefinitionInputSurname = new HashMap<String, String>();
+        Map<String, String> complexDefinitionInputGivenname = new HashMap<>();
+        Map<String, String> complexDefinitionInputSurname = new HashMap<>();
 
         complexDefinitionInputGivenname.put("name","givenname");
         complexDefinitionInputGivenname.put("input-type","text");
@@ -77,6 +78,5 @@ public class DCInputTest extends AbstractUnitTest {
         assertThat("DCInputShouldReturnComplexDefinitionAsJSONString 0", this.dcInput.getComplexDefinitionJSONString(),
                 equalTo(complexDefinitionJSONString));
     }
-
 
 }

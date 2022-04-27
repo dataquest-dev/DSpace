@@ -353,17 +353,14 @@ public class DCInputsReader {
     private void processComplexDefinitions(Node e) throws SAXException {
         NodeList nl = e.getChildNodes();
         int len = nl.getLength();
-        for (int i = 0; i < len; i++)
-        {
+        for (int i = 0; i < len; i++) {
             Node nd = nl.item(i);
             String tagName = nd.getNodeName();
 
             // process each value-pairs set
-            if (tagName.equals("definition"))
-            {
+            if (tagName.equals("definition")) {
                 String definitionName = getAttribute(nd, "name");
-                if (definitionName == null)
-                {
+                if (definitionName == null) {
                     String errString =
                             "Missing attribute name for complex definition ";
                     throw new SAXException(errString);
@@ -372,14 +369,12 @@ public class DCInputsReader {
                 complexDefinitions.addDefinition(definition);
                 NodeList cl = nd.getChildNodes();
                 int lench = cl.getLength();
-                for (int j = 0; j < lench; j++)
-                {
+                for (int j = 0; j < lench; j++) {
                     Node nch = cl.item(j);
                     String inputName = null;
                     String inputType = null;
 
-                    if (nch.getNodeName().equals("input"))
-                    {
+                    if (nch.getNodeName().equals("input")) {
                         definition.addInput(attributes2Map(nch.getAttributes()));
                     }
                 }
@@ -391,7 +386,7 @@ public class DCInputsReader {
         HashMap<String, String> map = new HashMap<String, String>();
 
         int attrCount = attributes.getLength();
-        for(int i=0; i<attrCount; i++){
+        for (int i = 0; i < attrCount; i++) {
             Node node = attributes.item(i);
             map.put(node.getNodeName(), node.getNodeValue());
         }
@@ -533,14 +528,14 @@ public class DCInputsReader {
             } else {
                 field.put(PAIR_TYPE_NAME, pairTypeName);
             }
-        } else if(value.equals("complex")){
+        } else if (value.equals("complex")) {
             String definitionName = getAttribute(nd, COMPLEX_DEFINITION_REF);
-            if(definitionName == null){
+            if (definitionName == null) {
                 throw new SAXException("Form " + formName
                         + ", field " + field.get("dc-element")
                         + "." + field.get("dc-qualifier")
                         + " has no linked definition");
-            } else{
+            } else {
                 field.put(COMPLEX_DEFINITION_REF, definitionName);
             }
         }

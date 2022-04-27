@@ -16,10 +16,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.core.Utils;
@@ -679,7 +677,9 @@ public class DCInput {
             return inputs.get(name);
         }
 
-        public Map<String, Map<String, String>> getInputs() { return this.inputs; }
+        public Map<String, Map<String, String>> getInputs() {
+            return this.inputs;
+        }
 
         /**
          * Returns the input names in the same order they were added, usually the same order as input-forms.xml
