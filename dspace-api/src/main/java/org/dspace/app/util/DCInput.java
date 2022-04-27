@@ -563,23 +563,19 @@ public class DCInput {
         return this.complexDefinition;
     }
 
+    /**
+     * Convert complex definition HashMap to the JSON string
+     * @return complex definition in the JSON string which will be parsed in the FE
+     */
     public String getComplexDefinitionJSONString() {
         String complexDefinitionAsJSONString = "";
 
         if (this.complexDefinition != null) {
             JSONObject complexDefinitionJson = new JSONObject(this.complexDefinition.getInputs());
             complexDefinitionAsJSONString = complexDefinitionJson.toString().replace("=",":");
-//            complexDefinitionAsJSONString = this.complexDefinition.getInputs().keySet().stream()
-//                    .map(key -> key + "=" + this.complexDefinition.getInput(key))
-//                    .collect(Collectors.joining(", ", "{", "}"));
-//            complexDefinitionAsJSONString.replace("=",":");
         }
 
         return complexDefinitionAsJSONString;
-    }
-
-    public void setComplexDefinition(ComplexDefinition complexDefinition) {
-        this.complexDefinition = complexDefinition;
     }
 
     public boolean validate(String value) {
@@ -627,7 +623,15 @@ public class DCInput {
         return isMetadataField;
     }
 
+    /**
+     * Class representing a Map of the ComplexDefinition object
+     *
+     * @author Milan Majchrak (milan.majchrak at dataquest dot sk)
+     */
     public static class ComplexDefinitions {
+        /**
+         * Map of the ComplexDefiniton object
+         */
         private Map<String, ComplexDefinition> definitions = null;
         private Map<String, List<String>> valuePairs = null;
 
@@ -646,11 +650,24 @@ public class DCInput {
         }
     }
 
+    /**
+     * Class representing a complex input field - multiple lines in input form
+     *
+     * @author Milan Majchrak (milan.majchrak at dataquest dot sk)
+     */
     public static class ComplexDefinition {
+        /**
+         * Input fields in the input form
+         */
         private Map<String, Map<String, String>> inputs;
         private String name;
         private Map<String, List<String>> valuePairs = null;
 
+        /**
+         * Class constructor for creating a ComplexDefinition object
+         *
+         * @param definitionName the name of the complex input type
+         */
         public ComplexDefinition(String definitionName) {
             name = definitionName;
             inputs = new LinkedHashMap<>();
@@ -660,6 +677,11 @@ public class DCInput {
             return name;
         }
 
+        /**
+         * Add input field definition to the complex input field definition
+         * @param attributes of the input field definition e.g., ["name","surname"]
+         * @throws SAXException
+         */
         public void addInput(Map<String, String> attributes) throws SAXException {
             // these two are a must, check if present
             String iName = attributes.get("name");
@@ -671,49 +693,14 @@ public class DCInput {
             }
 
             inputs.put(iName,attributes);
-
-        }
-
-        public Map<String, String> getInput(String name) {
-            return inputs.get(name);
         }
 
         public Map<String, Map<String, String>> getInputs() {
             return this.inputs;
         }
 
-        /**
-         * Returns the input names in the same order they were added, usually the same order as input-forms.xml
-         * Use this method only to draw the inputs in the specified order. Usually you would use {@link #getSortedInputNames()}
-         * @return
-         */
-        public Set<String> getInputNames() {
-            return inputs.keySet();
-        }
-
-        /**
-         * Returns the names sorted alphabetically. Use this to add the values in the expected order.
-         * @return
-         */
-        public Set<String> getSortedInputNames() {
-            return new TreeSet<>(inputs.keySet());
-        }
-
-        public int inputsCount() {
-            return getInputNames().size();
-        }
-
         void setValuePairs(Map<String, List<String>> valuePairs) {
             this.valuePairs = valuePairs;
         }
-
-        public java.util.List<String> getValuePairsForInput(String name) {
-            String pairsRef = getInput(name).get("pairs");
-            if (valuePairs != null && pairsRef != null) {
-                return valuePairs.get(pairsRef);
-            }
-            return null;
-        }
-
     }
 }
