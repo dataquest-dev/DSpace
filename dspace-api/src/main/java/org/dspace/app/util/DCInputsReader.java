@@ -70,7 +70,7 @@ public class DCInputsReader {
     static final String PAIR_TYPE_NAME = "value-pairs-name";
 
     /**
-     * @ToDo Change me!
+     * Keyname for storing the name of the complex input type
      */
     static final String COMPLEX_DEFINITION_REF = "complex-definition-ref";
 
@@ -93,7 +93,7 @@ public class DCInputsReader {
     private DCInputSet lastInputSet = null;
 
     /**
-     * @ ToDo change me!
+     * Processed ComplexDefinition objects from the form definition file
      */
     private DCInput.ComplexDefinitions complexDefinitions = null;
 
@@ -350,6 +350,11 @@ public class DCInputsReader {
         }
     }
 
+    /**
+     * Process the form-complex-definitions section of the form definition file.
+     * Based on the form definition file create a new ComplexDefinition objects
+     * which are added to the ComplexDefinitions object.
+     */
     private void processComplexDefinitions(Node e) throws SAXException {
         NodeList nl = e.getChildNodes();
         int len = nl.getLength();
@@ -382,6 +387,11 @@ public class DCInputsReader {
         }
     }
 
+    /**
+     * Convert Node attributes to the input definition of the ComplexDefinition
+     * @param attributes representing raw data from the XML file
+     * @return input definition (map) of the ComplexDefinition e.g., ["name","surname"]
+     */
     private Map<String, String> attributes2Map(NamedNodeMap attributes) {
         HashMap<String, String> map = new HashMap<String, String>();
 

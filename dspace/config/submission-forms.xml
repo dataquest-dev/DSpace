@@ -128,16 +128,6 @@
                     <required></required>
                 </field>
             </row>
-<!--            <row>-->
-<!--                <field>-->
-<!--                <dc-schema>local</dc-schema>-->
-<!--                <dc-element>sponsor</dc-element>-->
-<!--                <repeatable>true</repeatable>-->
-<!--                <label>Funding</label>-->
-<!--                <input-type complex-definition-ref="funding">complex</input-type>-->
-<!--                <hint>Funding</hint>-->
-<!--            </field>-->
-<!--            </row>-->
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -1955,14 +1945,6 @@
         <input name="email" input-type="text" label="Email" regex="[^@]+@[^\.@]+\.[^@]+" required="true"/>
         <input name="affiliation" input-type="text" label="Affiliation" required="true"/>
     </definition>
-
-<!--    <definition name="funding">-->
-<!--        <input name="4_type" type="dropdown" label="input_forms.complex_definitions.funding.4_type.label" pairs="metashare_funding" class="openaire-type-map" required="true"/>-->
-<!--        <input name="2_code" placeholder="input_forms.complex_definitions.funding.2_code.placeholder" type="text" label="input_forms.complex_definitions.funding.2_code.label" class="openaire-code-autocomplete" autocomplete="solr-local.sponsor_ac" required="true"/>-->
-<!--        <input name="1_orgname" type="text" label="input_forms.complex_definitions.funding.1_orgname.label" required="true"/>-->
-<!--        <input name="3_projname" type="text" label="input_forms.complex_definitions.funding.3_projname.label" autocomplete="solr-local.sponsor_ac" required="true"/>-->
-<!--        <input name="5_openaire_id" value="" type="text" readonly="true" label="input_forms.complex_definitions.funding.5_openaire_id.label" placeholder="Filled out automatically..." mapped-to-if-not-default="dc.relation" class="openaire-id"/>-->
-<!--    </definition>-->
 </form-complex-definitions>
 
 </input-forms>

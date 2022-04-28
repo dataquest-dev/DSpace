@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.dspace.AbstractUnitTest;
-import org.dspace.app.util.DCInput;
 import org.junit.Before;
 import org.junit.Test;
 

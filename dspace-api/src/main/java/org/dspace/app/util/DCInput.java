@@ -636,7 +636,7 @@ public class DCInput {
         private Map<String, List<String>> valuePairs = null;
 
         public ComplexDefinitions(Map<String, List<String>> valuePairs) {
-            definitions = new HashMap<String, ComplexDefinition>();
+            definitions = new HashMap<>();
             this.valuePairs = valuePairs;
         }
 

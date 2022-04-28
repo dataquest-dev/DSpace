@@ -89,7 +89,7 @@ public class SubmissionFormFieldRest {
     private List<String> typeBind;
 
     /**
-     * @ToDo Change me!
+     * ComplexDefinition transformed to the JSON string
      */
     private String complexDefinition;
     /**
