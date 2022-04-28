@@ -47,7 +47,6 @@
  <!ELEMENT name-variants (#PCDATA)>
  <!ELEMENT regex (#PCDATA) >
 
-
  <!ELEMENT form-value-pairs (value-pairs)* >
  <!ELEMENT value-pairs (pair)+ >
 
