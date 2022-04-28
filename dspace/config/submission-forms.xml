@@ -131,7 +131,6 @@
                     <required></required>
                 </field>
             </row>
-
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
