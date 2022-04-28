@@ -51,6 +51,22 @@
         <!-- Form which defines the first page/section of the "traditional" DSpace submission process,
              often used when depositing normal Items (i.e. Items which are not Entities). -->
         <form name="traditionalpageone">
+            <!-- Example row for the complex input type definition.
+                 Uncomment it and the complex input will be showed in the submission UI.
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>contact</dc-element>
+                    <dc-qualifier>person</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Contact person</label>
+                    <style>col-sm-5</style>
+                    <input-type complex-definition-ref="contact_person">complex</input-type>
+                    <hint>This is contact person</hint>
+                    <required></required>
+                </field>
+            </row>
+            -->
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -115,19 +131,7 @@
                     <required></required>
                 </field>
             </row>
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>contact</dc-element>
-                    <dc-qualifier>person</dc-qualifier>
-                    <repeatable>true</repeatable>
-                    <label>Contact person</label>
-                    <style>col-sm-5</style>
-                    <input-type complex-definition-ref="contact_person">complex</input-type>
-                    <hint>This is contact person</hint>
-                    <required></required>
-                </field>
-            </row>
+
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -1938,13 +1942,14 @@
 
     </form-value-pairs>
 
+    <!-- Example of the complex input type definition.
+         To see this input in the submission UI uncomment the example row for the complex input type definition. -->
     <form-complex-definitions>
-    <definition name="contact_person">
-        <input name="givenname" input-type="text" label="Given name" required="true"/>
-        <input name="surname" input-type="text" label="Surname" required="true"/>
-        <input name="email" input-type="text" label="Email" regex="[^@]+@[^\.@]+\.[^@]+" required="true"/>
-        <input name="affiliation" input-type="text" label="Affiliation" required="true"/>
-    </definition>
-</form-complex-definitions>
-
+        <definition name="contact_person">
+            <input name="givenname" input-type="text" label="Given name" required="true"/>
+            <input name="surname" input-type="text" label="Surname" required="true"/>
+            <input name="email" input-type="text" label="Email" regex="[^@]+@[^\.@]+\.[^@]+" required="true"/>
+            <input name="affiliation" input-type="text" label="Affiliation" required="true"/>
+        </definition>
+    </form-complex-definitions>
 </input-forms>
