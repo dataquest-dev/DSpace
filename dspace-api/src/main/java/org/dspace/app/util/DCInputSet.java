@@ -31,8 +31,8 @@ public class DCInputSet {
 
     /**
      * constructor
-     *  @param mandatoryFlags
      * @param formName       form name
+     * @param mandatoryFlags
      * @param rows           the rows
      * @param listMap        map
      * @param complexDefinitions complex input field
