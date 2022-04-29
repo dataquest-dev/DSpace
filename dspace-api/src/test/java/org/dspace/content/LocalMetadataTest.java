@@ -7,8 +7,8 @@
  */
 package org.dspace.content;
 
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.dspace.AbstractUnitTest;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -44,6 +44,16 @@ public class LocalMetadataTest extends AbstractUnitTest {
                 '.');
 
         assertThat("existSponsor 0", field, notNullValue());
-    }
 
+    /**
+     * Test of existing custom metadata field `local.approximateDate.issued`
+     */
+    @Test
+    public void existApproximateData() throws Exception {
+        MetadataField field = metadataFieldService.findByString(context, "local.approximateDate.issued",
+                '.');
+
+        assertThat("existApproximateData 0", field, notNullValue());
+    }
+      
 }
