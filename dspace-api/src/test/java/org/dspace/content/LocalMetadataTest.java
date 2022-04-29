@@ -44,6 +44,7 @@ public class LocalMetadataTest extends AbstractUnitTest {
                 '.');
 
         assertThat("existSponsor 0", field, notNullValue());
+    }
 
     /**
      * Test of existing custom metadata field `local.approximateDate.issued`
