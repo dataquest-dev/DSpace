@@ -56,5 +56,5 @@ public class LocalMetadataTest extends AbstractUnitTest {
 
         assertThat("existApproximateData 0", field, notNullValue());
     }
-      
+
 }
