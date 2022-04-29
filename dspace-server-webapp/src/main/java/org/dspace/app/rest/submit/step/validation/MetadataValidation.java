@@ -114,12 +114,12 @@ public class MetadataValidation extends AbstractValidation {
 
                 List<String> filledInputValues = null;
                 if (("true").equals(complexDefinitionInputValues.get("required"))) {
-                     filledInputValues = new ArrayList<>(Arrays.asList(
-                             mdv.get(0).getValue().split(DCInput.ComplexDefinitions.getSeparator(),-1)));
+                    filledInputValues = new ArrayList<>(Arrays.asList(
+                            mdv.get(0).getValue().split(DCInput.ComplexDefinitions.getSeparator(),-1)));
 
-                     if ("".equals(filledInputValues.get(complexDefinitionIndex))) {
-                         return false;
-                     }
+                    if ("".equals(filledInputValues.get(complexDefinitionIndex))) {
+                        return false;
+                    }
                 }
                 complexDefinitionIndex++;
             }
