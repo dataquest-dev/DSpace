@@ -7,13 +7,12 @@
  */
 package org.dspace.app.util;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.annotation.Nullable;
@@ -564,15 +563,31 @@ public class DCInput {
     }
 
     /**
-     * Convert complex definition HashMap to the JSON string
+     * Convert complex definition HashMap to the ordered JSON string
      * @return complex definition in the JSON string which will be parsed in the FE
      */
     public String getComplexDefinitionJSONString() {
         String complexDefinitionAsJSONString = "";
 
         if (this.complexDefinition != null) {
-            JSONObject complexDefinitionJson = new JSONObject(this.complexDefinition.getInputs());
-            complexDefinitionAsJSONString = complexDefinitionJson.toString().replace("=",":");
+            JSONObject complexDefinitionJson = new JSONObject();
+
+            try {
+                Field changeMap = complexDefinitionJson.getClass().getDeclaredField("map");
+                changeMap.setAccessible(true);
+                // LinkedHashMap - JSON will be ordered
+                changeMap.set(complexDefinitionJson, new LinkedHashMap<>());
+                changeMap.setAccessible(false);
+
+                for (String CDInputName : this.complexDefinition.getInputs().keySet()) {
+                    complexDefinitionJson.put(CDInputName, this.complexDefinition.getInputs().get(CDInputName));
+                }
+
+                complexDefinitionAsJSONString = complexDefinitionJson.toString().replace("=",":");
+
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                log.error("Converting complexDefition to JSON failed!", e.getMessage());
+            }
         }
 
         return complexDefinitionAsJSONString;
@@ -634,6 +649,7 @@ public class DCInput {
          */
         private Map<String, ComplexDefinition> definitions = null;
         private Map<String, List<String>> valuePairs = null;
+        private static final String separator = ";";
 
         public ComplexDefinitions(Map<String, List<String>> valuePairs) {
             definitions = new HashMap<>();
@@ -647,6 +663,10 @@ public class DCInput {
         public void addDefinition(ComplexDefinition definition) {
             definitions.put(definition.getName(), definition);
             definition.setValuePairs(valuePairs);
+        }
+
+        public static String getSeparator() {
+            return separator;
         }
     }
 

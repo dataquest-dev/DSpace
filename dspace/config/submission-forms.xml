@@ -63,10 +63,9 @@
                     <style>col-sm-5</style>
                     <input-type complex-definition-ref="contact_person">complex</input-type>
                     <hint>This is contact person</hint>
-                    <required></required>
+                    <required>Enter the contact person data.</required>
                 </field>
-            </row>
-            -->
+            </row> -->
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -152,7 +151,7 @@
                     <label>Series/Report No.</label>
                     <input-type>series</input-type>
                     <hint>Enter the series and number assigned to this item by your community.</hint>
-                    <required></required>
+                    <required>Yes required</required>
                 </field>
             </row>
             <row>
@@ -1942,13 +1941,13 @@
     </form-value-pairs>
 
     <!-- Example of the complex input type definition.
-         To see this input in the submission UI uncomment the example row for the complex input type definition. -->
+         Uncomment the example row of the complex input type definition to see this input in the submission UI. -->
     <form-complex-definitions>
         <definition name="contact_person">
             <input name="givenname" input-type="text" label="Given name" required="true"/>
             <input name="surname" input-type="text" label="Surname" required="true"/>
             <input name="email" input-type="text" label="Email" regex="[^@]+@[^\.@]+\.[^@]+" required="true"/>
-            <input name="affiliation" input-type="text" label="Affiliation" required="true"/>
+            <input name="affiliation" input-type="text" label="Affiliation"/>
         </definition>
     </form-complex-definitions>
 </input-forms>
