@@ -1,6 +1,6 @@
 ## Welcome to DSpace github page
 
-[REST API](http://localhost:8080/server)
+[REST API](http://dev-5.pc:8080/server/)
 
 The rest is pre-generated.
 
