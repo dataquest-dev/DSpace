@@ -30,4 +30,10 @@
     <scope_note>Date issued used where the point in time is uncertain; eg. a range.</scope_note>
   </dc-type>
 
+  <dc-type>
+    <schema>local</schema>
+    <element>hasCMDI</element>
+    <scope_note>Indicates uploaded cmdi file</scope_note>
+  </dc-type>
+
 </dspace-dc-types>

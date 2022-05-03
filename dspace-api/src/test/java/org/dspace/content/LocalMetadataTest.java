@@ -35,4 +35,15 @@ public class LocalMetadataTest extends AbstractUnitTest {
         assertThat("existApproximateData 0", field, notNullValue());
     }
 
+    /**
+     * Test of existing custom metadata field `local.hasCMDI`
+     */
+    @Test
+    public void existHasCMDI() throws Exception {
+        MetadataField field = metadataFieldService.findByString(context, "local.hasCMDI",
+                '.');
+
+        assertThat("existHasCMDI 0", field, notNullValue());
+    }
+
 }
