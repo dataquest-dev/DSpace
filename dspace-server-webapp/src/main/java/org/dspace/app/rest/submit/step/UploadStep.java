@@ -26,11 +26,7 @@ import org.dspace.app.rest.submit.factory.PatchOperationFactory;
 import org.dspace.app.rest.submit.factory.impl.PatchOperation;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.app.util.SubmissionStepConfig;
-import org.dspace.content.Bitstream;
-import org.dspace.content.BitstreamFormat;
-import org.dspace.content.Bundle;
-import org.dspace.content.InProgressSubmission;
-import org.dspace.content.Item;
+import org.dspace.content.*;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,8 +49,16 @@ public class UploadStep extends AbstractProcessingStep
                               SubmissionStepConfig config) throws Exception {
 
         DataUpload result = new DataUpload();
-        List<Bundle> bundles = itemService.getBundles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME);
-        for (Bundle bundle : bundles) {
+        List<Bundle> bundlesOriginal = itemService.getBundles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME);
+        for (Bundle bundle : bundlesOriginal) {
+            for (Bitstream source : bundle.getBitstreams()) {
+                UploadBitstreamRest b = submissionService.buildUploadBitstream(configurationService, source);
+                result.getFiles().add(b);
+            }
+        }
+
+        List<Bundle> bundlesMetadata = itemService.getBundles(obj.getItem(), Constants.METADATA_BUNDLE_NAME);
+        for (Bundle bundle : bundlesMetadata) {
             for (Bitstream source : bundle.getBitstreams()) {
                 UploadBitstreamRest b = submissionService.buildUploadBitstream(configurationService, source);
                 result.getFiles().add(b);
@@ -99,7 +103,7 @@ public class UploadStep extends AbstractProcessingStep
 
     @Override
     public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig,
-                            InProgressSubmission wsi, MultipartFile file) {
+                                InProgressSubmission wsi, MultipartFile file) {
 
         Bitstream source = null;
         BitstreamFormat bf = null;
@@ -107,13 +111,15 @@ public class UploadStep extends AbstractProcessingStep
         Item item = wsi.getItem();
         List<Bundle> bundles = null;
         try {
+            String bundleName = file.getOriginalFilename().toLowerCase().endsWith(".cmdi") ?
+                    Constants.METADATA_BUNDLE_NAME : Constants.CONTENT_BUNDLE_NAME;
+
             // do we already have a bundle?
-            bundles = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
+            bundles = itemService.getBundles(item, bundleName);
 
             InputStream inputStream = new BufferedInputStream(file.getInputStream());
             if (bundles.size() < 1) {
-                // set bundle's name to ORIGINAL
-                source = itemService.createSingleBitstream(context, inputStream, item, Constants.CONTENT_BUNDLE_NAME);
+                source = itemService.createSingleBitstream(context, inputStream, item, bundleName);
             } else {
                 // we have a bundle already, just add bitstream
                 source = bitstreamService.create(context, bundles.get(0), inputStream);

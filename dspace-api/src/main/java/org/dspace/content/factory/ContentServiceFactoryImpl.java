@@ -30,6 +30,7 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -49,6 +50,8 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private BitstreamFormatService bitstreamFormatService;
     @Autowired(required = true)
     private BitstreamService bitstreamService;
+    @Autowired(required = true)
+    private BitstreamStorageService bitstreamStorageService;
     @Autowired(required = true)
     private BundleService bundleService;
     @Autowired(required = true)
@@ -93,6 +96,10 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
         return dSpaceObjectLegacySupportServices;
     }
 
+    @Override
+    public BitstreamStorageService getBitstreamStorageService() {
+        return bitstreamStorageService;
+    }
     @Override
     public BitstreamFormatService getBitstreamFormatService() {
         return bitstreamFormatService;

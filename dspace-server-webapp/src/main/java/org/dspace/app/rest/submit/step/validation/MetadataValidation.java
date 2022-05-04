@@ -7,24 +7,36 @@
  */
 package org.dspace.app.rest.submit.step.validation;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.repository.WorkspaceItemRestRepository;
 import org.dspace.app.rest.submit.SubmissionService;
+import org.dspace.app.rest.utils.ContextUtil;
+import org.dspace.app.rest.utils.Utils;
 import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
-import org.dspace.content.InProgressSubmission;
-import org.dspace.content.MetadataValue;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.*;
 import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamFormatService;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.storage.bitstore.service.BitstreamStorageService;
 
 /**
  * Execute three validation check on fields validation:
@@ -49,6 +61,10 @@ public class MetadataValidation extends AbstractValidation {
     private ItemService itemService;
 
     private MetadataAuthorityService metadataAuthorityService;
+
+    private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+
+    private BitstreamFormatService bitstreamFormatService = ContentServiceFactory.getInstance().getBitstreamFormatService();
 
     @Override
     public List<ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj,
@@ -95,6 +111,13 @@ public class MetadataValidation extends AbstractValidation {
                         addError(ERROR_VALIDATION_REQUIRED,
                             "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" +
                                 input.getFieldName());
+                    }
+                    if ("local.hasCMDI".equals(fieldName) && !mdv.isEmpty()) {
+                        try {
+                            maintainCMDIFileBundle(obj.getItem(), mdv.get(0));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -145,4 +168,51 @@ public class MetadataValidation extends AbstractValidation {
         this.inputReader = inputReader;
     }
 
+    private void maintainCMDIFileBundle(Item item, MetadataValue mdv) throws SQLException, AuthorizeException, IOException {
+        List<Bundle> bundleMETADATA = itemService.getBundles(item, Constants.METADATA_BUNDLE_NAME);
+        List<Bundle> bundleORIGINAL = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
+
+        String targetBundle = "";
+        List<Bundle> bundleToProcess = null;
+
+        if (!bundleMETADATA.isEmpty() && !"yes".equals(mdv.getValue())) {
+            targetBundle = Constants.CONTENT_BUNDLE_NAME;
+            bundleToProcess = bundleMETADATA;
+        } else if (!bundleORIGINAL.isEmpty() && "yes".equals(mdv.getValue())) {
+            targetBundle = Constants.METADATA_BUNDLE_NAME;
+            bundleToProcess = bundleORIGINAL;
+        }
+
+        for (Bundle bundle : CollectionUtils.emptyIfNull(bundleToProcess)) {
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                if (bitstream.getName().toLowerCase().endsWith(".cmdi")) {
+                    Context context = ContextUtil.obtainCurrentRequestContext();
+
+                    List<Bundle> targetBundles = itemService.getBundles(item, targetBundle);
+                    InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+
+                    // Create a new Bitstream
+                    Bitstream source = null;
+
+                    if (targetBundles.size() < 1) {
+                        source = itemService.createSingleBitstream(context, inputStream, item, targetBundle);
+                    } else {
+                        // we have a bundle already, just add bitstream
+                        source = bitstreamService.create(context, targetBundles.get(0), inputStream);
+                    }
+
+                    source.setName(context, bitstream.getName());
+                    source.setSource(context, bitstream.getSource());
+                    source.setFormat(context, bitstream.getFormat(context));
+
+                    // add the bitstream to the right bundle
+                    bitstreamService.update(context, source);
+                    itemService.update(context, item);
+
+                    // remove the bitstream from the bundle where it shouldn't be
+                    bitstreamService.delete(context, bitstream);
+                }
+            }
+        }
+    }
 }
