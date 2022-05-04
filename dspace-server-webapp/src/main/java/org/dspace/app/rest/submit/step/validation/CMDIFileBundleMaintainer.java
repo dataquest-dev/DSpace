@@ -1,0 +1,83 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.app.rest.submit.step.validation;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+
+public class CMDIFileBundleMaintainer {
+
+    private static BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+    private static ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
+    private CMDIFileBundleMaintainer() {}
+
+    public static void updateCMDIFileBundle(Context context, Item item, MetadataValue mdv)
+            throws SQLException, AuthorizeException,
+            IOException {
+        List<Bundle> bundleMETADATA = itemService.getBundles(item, Constants.METADATA_BUNDLE_NAME);
+        List<Bundle> bundleORIGINAL = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
+
+        String targetBundle = "";
+        List<Bundle> bundleToProcess = null;
+
+        if (!bundleMETADATA.isEmpty() && !"yes".equals(mdv.getValue())) {
+            targetBundle = Constants.CONTENT_BUNDLE_NAME;
+            bundleToProcess = bundleMETADATA;
+        } else if (!bundleORIGINAL.isEmpty() && "yes".equals(mdv.getValue())) {
+            targetBundle = Constants.METADATA_BUNDLE_NAME;
+            bundleToProcess = bundleORIGINAL;
+        }
+
+        for (Bundle bundle : CollectionUtils.emptyIfNull(bundleToProcess)) {
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                // change bundle only for cmdi file
+                if (bitstream.getName().toLowerCase().endsWith(".cmdi")) {
+
+                    List<Bundle> targetBundles = itemService.getBundles(item, targetBundle);
+                    InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+
+                    // Create a new Bitstream
+                    Bitstream source = null;
+
+                    if (targetBundles.size() < 1) {
+                        source = itemService.createSingleBitstream(context, inputStream, item, targetBundle);
+                    } else {
+                        // we have a bundle already, just add bitstream
+                        source = bitstreamService.create(context, targetBundles.get(0), inputStream);
+                    }
+
+                    source.setName(context, bitstream.getName());
+                    source.setSource(context, bitstream.getSource());
+                    source.setFormat(context, bitstream.getFormat(context));
+
+                    // add the bitstream to the right bundle
+                    bitstreamService.update(context, source);
+                    itemService.update(context, item);
+
+                    // remove the bitstream from the bundle where it shouldn't be
+                    bitstreamService.delete(context, bitstream);
+                }
+            }
+        }
+    }
+}
