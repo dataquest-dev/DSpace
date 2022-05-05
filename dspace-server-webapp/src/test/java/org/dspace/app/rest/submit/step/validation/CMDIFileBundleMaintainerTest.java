@@ -7,7 +7,10 @@
  */
 package org.dspace.app.rest.submit.step.validation;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -223,11 +226,6 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
         assertThat("testChangeCmdiFileFromOriginalBundleToMetadataBundle 3",
                 bitstreamMetadataOriginal.size(), is(0));
     }
-
-//  - Pridam CMDI file - nemam zaskrtnute hasCMDI - da ho do metadat a potom ho da do ORGINAL
-//	- pridam CMDI file - mam za CMDI - da ho do METADATA a necha ho tam
-//	- mam pridane CMDI a je v ORIGIN - zaskrtnem hasCMDI - da ho do METADATA
-//	- mam pridane CMDI a je v METADAAT - odskrtnem hasCMDI - da ho do ORIGIN
 
     @Test
     public void testCreatedItem() {

@@ -107,7 +107,7 @@ public class UploadStep extends AbstractProcessingStep
 
     @Override
     public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig,
-                                InProgressSubmission wsi, MultipartFile file) {
+                            InProgressSubmission wsi, MultipartFile file) {
 
         Bitstream source = null;
         BitstreamFormat bf = null;

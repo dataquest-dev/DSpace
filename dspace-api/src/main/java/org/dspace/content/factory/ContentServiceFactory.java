@@ -34,7 +34,6 @@ import org.dspace.content.service.SiteService;
 import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 
 /**
@@ -49,8 +48,6 @@ public abstract class ContentServiceFactory {
 
     public abstract List<DSpaceObjectLegacySupportService<? extends DSpaceObject>>
         getDSpaceObjectLegacySupportServices();
-
-    public abstract BitstreamStorageService getBitstreamStorageService();
 
     public abstract BitstreamFormatService getBitstreamFormatService();
 

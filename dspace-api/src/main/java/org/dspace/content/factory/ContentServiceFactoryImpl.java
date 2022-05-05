@@ -51,8 +51,6 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     @Autowired(required = true)
     private BitstreamService bitstreamService;
     @Autowired(required = true)
-    private BitstreamStorageService bitstreamStorageService;
-    @Autowired(required = true)
     private BundleService bundleService;
     @Autowired(required = true)
     private ItemService itemService;
@@ -96,10 +94,6 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
         return dSpaceObjectLegacySupportServices;
     }
 
-    @Override
-    public BitstreamStorageService getBitstreamStorageService() {
-        return bitstreamStorageService;
-    }
     @Override
     public BitstreamFormatService getBitstreamFormatService() {
         return bitstreamFormatService;
