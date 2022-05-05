@@ -56,7 +56,7 @@ public class CMDIFileBundleMaintainer {
         if (!bundleMETADATA.isEmpty() && mdv.isEmpty()) {
             targetBundle = Constants.CONTENT_BUNDLE_NAME;
             bundleToProcess = bundleMETADATA;
-        } else if (!bundleORIGINAL.isEmpty() && mdv != null && "yes".equals(mdv.get(0).getValue())) {
+        } else if (!bundleORIGINAL.isEmpty() && !mdv.isEmpty() && "yes".equals(mdv.get(0).getValue())) {
             targetBundle = Constants.METADATA_BUNDLE_NAME;
             bundleToProcess = bundleORIGINAL;
         }
