@@ -12,7 +12,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,7 +35,6 @@ import org.dspace.content.*;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.MetadataFieldService;
-import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.MetadataValueService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -47,6 +45,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Test class for the {@link CMDIFileBundleMaintainer}
+ */
 public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
 
     /**
@@ -65,16 +66,18 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
      * MetadataField instance for the tests
      */
     private MetadataField mf;
-    private MetadataSchemaService metadataSchemaService = ContentServiceFactory.getInstance()
-            .getMetadataSchemaService();
+    /**
+     * Collection instance for the tests
+     */
+    private Collection collection;
+    /**
+     * Community instance for the tests
+     */
+    private Community owningCommunity;
     private BitstreamFormatService bitstreamFormatService = ContentServiceFactory.getInstance()
             .getBitstreamFormatService();
     private MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
     private MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
-
-    private Collection collection;
-    private Community owningCommunity;
-
     /**
      * Spy of AuthorizeService to use for tests
      * (initialized / setup in @Before method)
@@ -138,6 +141,9 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
         itemService.update(context, this.it);
     }
 
+    /**
+     * Test of uploading the CMDI file into METADATA bundle
+     */
     @Test
     public void testUploadedCMDIFileIntoMetadataBundle() {
         Bitstream bitstream = this.it.getBundles(Constants.METADATA_BUNDLE_NAME).get(0).getBitstreams().get(0);
@@ -148,6 +154,9 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
                 bitstream, notNullValue());
     }
 
+    /**
+     * Test of size of the ORIGINAL bundle after uploading the CMDI file into the METADATA bundle
+     */
     @Test
     public void testBundleOriginalIsEmpty() {
         List<Bundle> bundlesOriginal = this.it.getBundles(Constants.CONTENT_BUNDLE_NAME);
@@ -155,6 +164,9 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
         assertThat("testBundleOriginalIsEmpty 0", bundlesOriginal.size(), is(0));
     }
 
+    /**
+     * Test of not moving the CMDI file from the METADATA bundle
+     */
     @Test
     public void testDoNothingWhenHasCmdiIsTrueAndCmdiFileIsInMetadataBundle() throws SQLException,
             AuthorizeException, IOException {
@@ -165,6 +177,9 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
                 this.it.getBundles(Constants.METADATA_BUNDLE_NAME).size(), is(1));
     }
 
+    /**
+     * Test of not moving the CMDI file from the ORIGINAL bundle
+     */
     @Test
     public void testDoNothingWhenHasCmdiIsFalseAndCmdiFileIsInOriginalBundle() throws SQLException,
             AuthorizeException, IOException {
@@ -181,6 +196,9 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
                 this.it.getBundles(Constants.CONTENT_BUNDLE_NAME).size(), is(1));
     }
 
+    /**
+     * Test of moving the CMDI file from the METADATA bundle to the ORIGINAL bundle
+     */
     @Test
     public void testChangeCmdiFileFromMetadataBundleToOriginalBundle() throws SQLException,
             AuthorizeException, IOException {
@@ -202,6 +220,9 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
                 bitstreamMetadataOriginal.size(), is(1));
     }
 
+    /**
+     * Test of moving the CMDI file from the ORIGINAL bundle to the METADATA bundle
+     */
     @Test
     public void testChangeCmdiFileFromOriginalBundleToMetadataBundle() throws SQLException,
             AuthorizeException, IOException {
@@ -225,21 +246,6 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
                 bitstreamMetadataBundle.size(), is(1));
         assertThat("testChangeCmdiFileFromOriginalBundleToMetadataBundle 3",
                 bitstreamMetadataOriginal.size(), is(0));
-    }
-
-    @Test
-    public void testCreatedItem() {
-        assertNotNull("testCreatedItem 0", this.it);
-    }
-
-    @Test
-    public void testFoundedMetadataField() {
-        assertNotNull("testFoundedMetadataField 0", this.mf);
-    }
-
-    @Test
-    public void testCreatedMetadataValue() {
-        assertNotNull("testCreatedMetadataValue 0", this.mv);
     }
 
     /**

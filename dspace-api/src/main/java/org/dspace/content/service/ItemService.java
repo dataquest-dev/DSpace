@@ -539,11 +539,11 @@ public interface ItemService
         throws SQLException, AuthorizeException, IOException;
 
     /**
-     * Check the bundle ORIGINAL to see if there are any uploaded files
+     * Check the bundle ORIGINAL and METADATA to see if there are any uploaded files
      *
      * @param item item to check
-     * @return true if there is a bundle named ORIGINAL with one or more
-     * bitstreams inside
+     * @return true if there is a bundle named ORIGINAL or METADATA with one or more
+     * bitstreams inside. The CMDI files are stored in the bundle METADATA.
      * @throws SQLException if database error
      */
     public boolean hasUploadedFiles(Item item) throws SQLException;

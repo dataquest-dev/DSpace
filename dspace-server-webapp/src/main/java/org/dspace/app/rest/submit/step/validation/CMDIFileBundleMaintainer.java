@@ -24,6 +24,11 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
+/**
+ * The class for maintaining CMDI file in the right bundle.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest dot sk)
+ */
 public class CMDIFileBundleMaintainer {
 
     private static BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
@@ -31,6 +36,14 @@ public class CMDIFileBundleMaintainer {
 
     private CMDIFileBundleMaintainer() {}
 
+    /**
+     * If the admin has selected the option to upload the CMDI file, move the CMDI file from the ORIGINAL bundle
+     * to the METADATA bundle and vice versa.
+     *
+     * @param context of the HTTP request or of the Testing context
+     * @param item of the InProgressSubmission object
+     * @param mdv of the 'local.hasCMDI' metadata
+     */
     public static void updateCMDIFileBundle(Context context, Item item, MetadataValue mdv)
             throws SQLException, AuthorizeException,
             IOException {

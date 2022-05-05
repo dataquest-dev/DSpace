@@ -53,16 +53,9 @@ public class UploadStep extends AbstractProcessingStep
                               SubmissionStepConfig config) throws Exception {
 
         DataUpload result = new DataUpload();
-        List<Bundle> bundlesOriginal = itemService.getBundles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME);
-        for (Bundle bundle : bundlesOriginal) {
-            for (Bitstream source : bundle.getBitstreams()) {
-                UploadBitstreamRest b = submissionService.buildUploadBitstream(configurationService, source);
-                result.getFiles().add(b);
-            }
-        }
-
-        List<Bundle> bundlesMetadata = itemService.getBundles(obj.getItem(), Constants.METADATA_BUNDLE_NAME);
-        for (Bundle bundle : bundlesMetadata) {
+        List<Bundle> bundles = itemService.getBundles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME);
+        bundles.addAll(itemService.getBundles(obj.getItem(), Constants.METADATA_BUNDLE_NAME));
+        for (Bundle bundle : bundles) {
             for (Bitstream source : bundle.getBitstreams()) {
                 UploadBitstreamRest b = submissionService.buildUploadBitstream(configurationService, source);
                 result.getFiles().add(b);
@@ -123,6 +116,7 @@ public class UploadStep extends AbstractProcessingStep
 
             InputStream inputStream = new BufferedInputStream(file.getInputStream());
             if (bundles.size() < 1) {
+                // set bundle's name to ORIGINAL or METADATA
                 source = itemService.createSingleBitstream(context, inputStream, item, bundleName);
             } else {
                 // we have a bundle already, just add bitstream
