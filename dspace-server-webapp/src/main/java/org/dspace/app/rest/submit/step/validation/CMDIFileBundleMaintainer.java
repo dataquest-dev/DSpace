@@ -44,7 +44,7 @@ public class CMDIFileBundleMaintainer {
      * @param item of the InProgressSubmission object
      * @param mdv of the 'local.hasCMDI' metadata
      */
-    public static void updateCMDIFileBundle(Context context, Item item, MetadataValue mdv)
+    public static void updateCMDIFileBundle(Context context, Item item, List<MetadataValue> mdv)
             throws SQLException, AuthorizeException,
             IOException {
         List<Bundle> bundleMETADATA = itemService.getBundles(item, Constants.METADATA_BUNDLE_NAME);
@@ -53,10 +53,10 @@ public class CMDIFileBundleMaintainer {
         String targetBundle = "";
         List<Bundle> bundleToProcess = null;
 
-        if (!bundleMETADATA.isEmpty() && !"yes".equals(mdv.getValue())) {
+        if (!bundleMETADATA.isEmpty() && mdv.isEmpty()) {
             targetBundle = Constants.CONTENT_BUNDLE_NAME;
             bundleToProcess = bundleMETADATA;
-        } else if (!bundleORIGINAL.isEmpty() && "yes".equals(mdv.getValue())) {
+        } else if (!bundleORIGINAL.isEmpty() && mdv != null && "yes".equals(mdv.get(0).getValue())) {
             targetBundle = Constants.METADATA_BUNDLE_NAME;
             bundleToProcess = bundleORIGINAL;
         }

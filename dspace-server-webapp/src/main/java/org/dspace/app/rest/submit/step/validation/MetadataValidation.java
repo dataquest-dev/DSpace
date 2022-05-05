@@ -99,10 +99,10 @@ public class MetadataValidation extends AbstractValidation {
                             "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" +
                                 input.getFieldName());
                     }
-                    if ("local.hasCMDI".equals(fieldName) && !mdv.isEmpty()) {
+                    if ("local.hasCMDI".equals(fieldName)) {
                         try {
                             Context context = ContextUtil.obtainCurrentRequestContext();
-                            CMDIFileBundleMaintainer.updateCMDIFileBundle(context, obj.getItem(), mdv.get(0));
+                            CMDIFileBundleMaintainer.updateCMDIFileBundle(context, obj.getItem(), mdv);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

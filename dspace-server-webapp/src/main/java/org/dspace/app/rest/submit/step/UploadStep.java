@@ -108,16 +108,13 @@ public class UploadStep extends AbstractProcessingStep
         Item item = wsi.getItem();
         List<Bundle> bundles = null;
         try {
-            String bundleName = file.getOriginalFilename().toLowerCase().endsWith(".cmdi") ?
-                    Constants.METADATA_BUNDLE_NAME : Constants.CONTENT_BUNDLE_NAME;
-
             // do we already have a bundle?
-            bundles = itemService.getBundles(item, bundleName);
+            bundles = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
 
             InputStream inputStream = new BufferedInputStream(file.getInputStream());
             if (bundles.size() < 1) {
-                // set bundle's name to ORIGINAL or METADATA
-                source = itemService.createSingleBitstream(context, inputStream, item, bundleName);
+                // set bundle's name to ORIGINAL
+                source = itemService.createSingleBitstream(context, inputStream, item, Constants.CONTENT_BUNDLE_NAME);
             } else {
                 // we have a bundle already, just add bitstream
                 source = bitstreamService.create(context, bundles.get(0), inputStream);

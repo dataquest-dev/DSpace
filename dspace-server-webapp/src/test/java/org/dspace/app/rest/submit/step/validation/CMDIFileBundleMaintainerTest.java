@@ -23,6 +23,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -73,6 +74,10 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
      */
     private MetadataValue mv = null;
     /**
+     * List of MetadataValue instances for the tests
+     */
+    private List<MetadataValue> listMv;
+    /**
      * MetadataField instance for the tests
      */
     private MetadataField mf;
@@ -103,6 +108,9 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
         this.it = installItemService.installItem(context, workspaceItem);
         this.mf = metadataFieldService.findByString(context, "local.hasCMDI", '.');
         this.mv = metadataValueService.create(context, it, mf);
+        this.mv.setValue("yes");
+        this.listMv = new ArrayList<>();
+        listMv.add(this.mv);
         this.dspaceObject = it;
         context.restoreAuthSystemState();
 
@@ -180,30 +188,10 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
     @Test
     public void testDoNothingWhenHasCmdiIsTrueAndCmdiFileIsInMetadataBundle() throws SQLException,
             AuthorizeException, IOException {
-        this.mv.setValue("yes");
-        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context,this.it, this.mv);
+        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context,this.it, this.listMv);
 
         assertThat("testDoNothingWhenHasCmdiIsTrueAndCmdiFileIsInMetadataBundle 0",
                 this.it.getBundles(Constants.METADATA_BUNDLE_NAME).size(), is(1));
-    }
-
-    /**
-     * Test of not moving the CMDI file from the ORIGINAL bundle
-     */
-    @Test
-    public void testDoNothingWhenHasCmdiIsFalseAndCmdiFileIsInOriginalBundle() throws SQLException,
-            AuthorizeException, IOException {
-        // add CMDI file to the ORIGINAL bundle
-        this.mv.setValue("no");
-        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context,this.it, this.mv);
-
-        assertThat("testDoNothingWhenHasCmdiIsFalseAndCmdiFileIsInOriginalBundle 0",
-                this.it.getBundles(Constants.CONTENT_BUNDLE_NAME).size(), is(1));
-
-        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context,this.it, this.mv);
-
-        assertThat("testDoNothingWhenHasCmdiIsFalseAndCmdiFileIsInOriginalBundle 1",
-                this.it.getBundles(Constants.CONTENT_BUNDLE_NAME).size(), is(1));
     }
 
     /**
@@ -212,8 +200,9 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
     @Test
     public void testChangeCmdiFileFromMetadataBundleToOriginalBundle() throws SQLException,
             AuthorizeException, IOException {
-        this.mv.setValue("no");
-        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context, this.it, this.mv);
+
+        this.listMv.remove(0);
+        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context, this.it, this.listMv);
 
         List<Bitstream> bitstreamMetadataBundle = this.it.getBundles(Constants.METADATA_BUNDLE_NAME).get(0)
                 .getBitstreams();
@@ -231,17 +220,38 @@ public class CMDIFileBundleMaintainerTest extends AbstractDSpaceObjectTest {
     }
 
     /**
+     * Test of not moving the CMDI file from the ORIGINAL bundle
+     */
+    @Test
+    public void testDoNothingWhenHasCmdiIsFalseAndCmdiFileIsInOriginalBundle() throws SQLException,
+            AuthorizeException, IOException {
+        // add CMDI file to the ORIGINAL bundle
+        this.listMv.remove(0);
+        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context,this.it, this.listMv);
+
+        assertThat("testDoNothingWhenHasCmdiIsFalseAndCmdiFileIsInOriginalBundle 0",
+                this.it.getBundles(Constants.CONTENT_BUNDLE_NAME).size(), is(1));
+
+        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context,this.it, this.listMv);
+
+        assertThat("testDoNothingWhenHasCmdiIsFalseAndCmdiFileIsInOriginalBundle 1",
+                this.it.getBundles(Constants.CONTENT_BUNDLE_NAME).size(), is(1));
+    }
+
+
+
+    /**
      * Test of moving the CMDI file from the ORIGINAL bundle to the METADATA bundle
      */
     @Test
     public void testChangeCmdiFileFromOriginalBundleToMetadataBundle() throws SQLException,
             AuthorizeException, IOException {
         // add CMDI file to the ORIGINAL bundle
-        this.mv.setValue("no");
-        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context, this.it, this.mv);
+        this.listMv.remove(0);
+        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context, this.it, this.listMv);
 
-        this.mv.setValue("yes");
-        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context, this.it, this.mv);
+        this.listMv.add(this.mv);
+        CMDIFileBundleMaintainer.updateCMDIFileBundle(this.context, this.it, this.listMv);
 
         List<Bitstream> bitstreamMetadataBundle = this.it.getBundles(Constants.METADATA_BUNDLE_NAME).get(0)
                 .getBitstreams();
