@@ -52,7 +52,6 @@ public class MetadataValidation extends AbstractValidation {
 
     private MetadataAuthorityService metadataAuthorityService;
 
-
     @Override
     public List<ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj,
                                     SubmissionStepConfig config) throws DCInputsReaderException, SQLException {
