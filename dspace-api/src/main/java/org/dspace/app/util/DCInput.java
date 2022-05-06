@@ -140,6 +140,11 @@ public class DCInput {
      */
     private List<String> typeBind = null;
 
+    /**
+     * suggestion definition for this input field
+     */
+    private List<String> autocomplete = null;
+
     private boolean isRelationshipField = false;
     private boolean isMetadataField = false;
     private String relationshipType = null;
@@ -235,7 +240,15 @@ public class DCInput {
                 externalSources.add(StringUtils.trim(source));
             }
         }
-
+        // parsing of the <type-bind> element (using the colon as split separator)
+        autocomplete = new ArrayList<String>();
+        String autocompleteDef = fieldMap.get("autocomplete");
+        if (autocompleteDef != null && autocompleteDef.trim().length() > 0) {
+            String[] autocompleteList = autocompleteDef.split(",");
+            for (String singleAutocomplete : autocompleteList) {
+                autocomplete.add(singleAutocomplete.trim());
+            }
+        }
     }
 
     /**
@@ -514,6 +527,10 @@ public class DCInput {
 
     public String getRegex() {
         return regex;
+    }
+
+    public List<String> getAutocomplete() {
+        return autocomplete;
     }
 
     public String getFieldName() {

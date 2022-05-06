@@ -43,7 +43,6 @@
                     <label>Description</label>
                     <input-type>textarea</input-type>
                     <hint>Enter a description for the file</hint>
-                    <autocomplete>solr-publisher_ac</autocomplete>
                     <required></required>
                 </field>
             </row>
@@ -61,6 +60,7 @@
                     <label>Author</label>
                     <input-type>onebox</input-type>
                     <hint>Enter the author's name (Family name, Given names).</hint>
+                    <autocomplete>solr-publisher_ac,solr-Nosher_ac</autocomplete>
                     <required></required>
                 </field>
             </row>
