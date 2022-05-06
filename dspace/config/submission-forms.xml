@@ -43,6 +43,7 @@
                     <label>Description</label>
                     <input-type>textarea</input-type>
                     <hint>Enter a description for the file</hint>
+                    <autocomplete>solr-publisher_ac</autocomplete>
                     <required></required>
                 </field>
             </row>
