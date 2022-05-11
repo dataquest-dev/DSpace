@@ -9,7 +9,9 @@ package org.dspace.app.rest.submit.step.validation;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -89,7 +91,8 @@ public class MetadataValidation extends AbstractValidation {
                 for (String fieldName : fieldsName) {
                     List<MetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(), fieldName);
                     validateMetadataValues(mdv, input, config, isAuthorityControlled, fieldKey);
-                    if ((input.isRequired() && mdv.size() == 0) && input.isVisible(DCInput.SUBMISSION_SCOPE)) {
+                    if (input.isRequired() && input.isVisible(DCInput.SUBMISSION_SCOPE) &&
+                            (mdv.size() == 0 || !isValidComplexDefinitionMetadata(input, mdv))) {
                         // since this field is missing add to list of error
                         // fields
                         addError(ERROR_VALIDATION_REQUIRED,
@@ -100,6 +103,28 @@ public class MetadataValidation extends AbstractValidation {
             }
         }
         return getErrors();
+    }
+
+    private boolean isValidComplexDefinitionMetadata(DCInput input, List<MetadataValue> mdv) {
+        if (input.getInputType().equals("complex")) {
+            int complexDefinitionIndex = 0;
+            for (String complexDefinitionInputName : input.getComplexDefinition().getInputs().keySet()) {
+                Map<String, String> complexDefinitionInputValues =
+                        input.getComplexDefinition().getInputs().get(complexDefinitionInputName);
+
+                List<String> filledInputValues = null;
+                if (("true").equals(complexDefinitionInputValues.get("required"))) {
+                    filledInputValues = new ArrayList<>(Arrays.asList(
+                            mdv.get(0).getValue().split(DCInput.ComplexDefinitions.getSeparator(),-1)));
+
+                    if ("".equals(filledInputValues.get(complexDefinitionIndex))) {
+                        return false;
+                    }
+                }
+                complexDefinitionIndex++;
+            }
+        }
+        return true;
     }
 
     private void validateMetadataValues(List<MetadataValue> mdv, DCInput input, SubmissionStepConfig config,
