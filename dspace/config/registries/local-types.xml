@@ -42,4 +42,11 @@
     <element>sponsor</element>
     <scope_note>Sponsor</scope_note>
   </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
+    <element>hasCMDI</element>
+    <scope_note>Indicates uploaded cmdi file</scope_note>
+  </dc-type>
+
 </dspace-dc-types>

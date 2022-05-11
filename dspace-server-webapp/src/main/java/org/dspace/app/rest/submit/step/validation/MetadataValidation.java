@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.repository.WorkspaceItemRestRepository;
 import org.dspace.app.rest.submit.SubmissionService;
+import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
@@ -27,6 +28,7 @@ import org.dspace.content.InProgressSubmission;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Context;
 
 /**
  * Execute three validation check on fields validation:
@@ -98,6 +100,14 @@ public class MetadataValidation extends AbstractValidation {
                         addError(ERROR_VALIDATION_REQUIRED,
                             "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" +
                                 input.getFieldName());
+                    }
+                    if ("local.hasCMDI".equals(fieldName)) {
+                        try {
+                            Context context = ContextUtil.obtainCurrentRequestContext();
+                            CMDIFileBundleMaintainer.updateCMDIFileBundle(context, obj.getItem(), mdv);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
