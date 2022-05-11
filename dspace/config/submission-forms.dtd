@@ -1,14 +1,20 @@
 <!-- DSpace Custom Submit input form definition language -->
 
 
- <!ELEMENT input-forms (form-definitions, form-value-pairs) >
+ <!ELEMENT input-forms (form-definitions, form-value-pairs, form-complex-definitions) >
 
  <!ELEMENT form-definitions (form)+ >
  <!ELEMENT form (row)+ >
+ <!ELEMENT form-complex-definitions (definition)+ >
  <!ELEMENT row (field|relation-field)+ >
  <!ATTLIST form name NMTOKEN #REQUIRED>
 
- <!ELEMENT field (dc-schema, dc-element, dc-qualifier?, language?, repeatable?, label, style?, type-bind?, input-type, hint, required?, regex?, vocabulary?, visibility?, readonly?) >
+ <!ELEMENT field (dc-schema, dc-element, dc-qualifier?, language?, repeatable?, label, style?, type-bind?, input-type, hint, required?, regex?, vocabulary?, visibility?, readonly?, acl?) >
+ <!ELEMENT definition (input*) >
+ <!ATTLIST definition
+         name CDATA #REQUIRED
+         >
+
  <!ELEMENT dc-schema (#PCDATA) >
  <!ELEMENT dc-element (#PCDATA) >
  <!ELEMENT dc-qualifier (#PCDATA) >
