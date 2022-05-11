@@ -19,6 +19,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.MetadataSchemaEnum;
+import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -141,6 +142,11 @@ public class DCInput {
     private String regex = null;
 
     /**
+     * Access Control List - is user allowed for particular ACL action on this input field in given
+     */
+    private ACL acl = null;
+
+    /**
      * allowed document types
      */
     private List<String> typeBind = null;
@@ -223,6 +229,7 @@ public class DCInput {
         readOnly = fieldMap.get("readonly");
         vocabulary = fieldMap.get("vocabulary");
         regex = fieldMap.get("regex");
+        acl = ACL.fromString(fieldMap.get("acl"));
         String closedVocabularyStr = fieldMap.get("closedVocabulary");
         closedVocabulary = "true".equalsIgnoreCase(closedVocabularyStr)
             || "yes".equalsIgnoreCase(closedVocabularyStr);
@@ -549,6 +556,17 @@ public class DCInput {
 
     public List<String> getExternalSources() {
         return externalSources;
+    }
+
+    /**
+     * Is user allowed for particular ACL action on this input field in given Context?
+     *
+     * @param c current Context, load the user data based on the current Context
+     * @param action read/write
+     * @return true if allowed, false otherwise
+     */
+    public boolean isAllowedAction(Context c, int action) {
+        return acl.isAllowedAction(c, action);
     }
 
     public boolean isQualdropValue() {
