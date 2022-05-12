@@ -175,6 +175,20 @@
             </row>
             <row>
                 <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hasCMDI</dc-element>
+                    <repeatable>false</repeatable>
+                    <label>Has CMDI file</label>
+                    <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
+                    <hint>Are you going to upload cmdi file?</hint>
+                    <required></required>
+<!--                    <acl>-->
+<!--                        policy=deny,action=read,grantee-type=user,grantee-id=*-->
+<!--                    </acl>-->
+                </field>
+            </row>
+            <row>
+                <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>language</dc-element>
                     <dc-qualifier>iso</dc-qualifier>
@@ -188,19 +202,19 @@
                     <required></required>
                 </field>
             </row>
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>contact</dc-element>
-                    <dc-qualifier>person</dc-qualifier>
-                    <repeatable>true</repeatable>
-                    <label>Contact person</label>
-                    <style>col-sm-5</style>
-                    <input-type complex-definition-ref="contact_person">complex</input-type>
-                    <hint>This is contact person</hint>
-                    <required>Enter the contact person data.</required>
-                </field>
-            </row>
+<!--            <row>-->
+<!--                <field>-->
+<!--                    <dc-schema>local</dc-schema>-->
+<!--                    <dc-element>contact</dc-element>-->
+<!--                    <dc-qualifier>person</dc-qualifier>-->
+<!--                    <repeatable>true</repeatable>-->
+<!--                    <label>Contact person</label>-->
+<!--                    <style>col-sm-5</style>-->
+<!--                    <input-type complex-definition-ref="contact_person">complex</input-type>-->
+<!--                    <hint>This is contact person</hint>-->
+<!--                    <required>Enter the contact person data.</required>-->
+<!--                </field>-->
+<!--            </row>-->
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -218,7 +232,7 @@
                     <dc-qualifier>editor</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Field with type-bind</label>
-                    <type-bind>Article</type-bind>
+<!--                    <type-bind>Article</type-bind>-->
                     <input-type>onebox</input-type>
                     <hint>Just tell me something.</hint>
                     <required></required>
@@ -231,24 +245,10 @@
                     <dc-qualifier>other</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Row with type-bind</label>
-                    <type-bind>Article</type-bind>
+<!--                    <type-bind>Article</type-bind>-->
                     <input-type>onebox</input-type>
                     <hint>Just tell me something.</hint>
                     <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>hasCMDI</dc-element>
-                    <repeatable>true</repeatable>
-                    <label>Has CMDI file</label>
-                    <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
-                    <hint>Are you going to upload cmdi file?</hint>
-                    <required></required>
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl>
                 </field>
             </row>
         </form>
@@ -1375,6 +1375,10 @@
             <pair>
                 <displayed-value>Yes</displayed-value>
                 <stored-value>yes</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>No</displayed-value>
+                <stored-value>no</stored-value>
             </pair>
         </value-pairs>
         <value-pairs value-pairs-name="common_identifiers" dc-term="identifier">
