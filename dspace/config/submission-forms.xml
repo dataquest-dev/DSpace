@@ -204,10 +204,33 @@
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
-                    <dc-element>title</dc-element>
-                    <dc-qualifier>alternative</dc-qualifier>
+                    <dc-element>contributor</dc-element>
+                    <dc-qualifier>illustrator</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Tell me something</label>
+                    <label>Field without type-bind</label>
+                    <input-type>onebox</input-type>
+                    <hint>Just tell me something.</hint>
+                    <required></required>
+                </field>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>contributor</dc-element>
+                    <dc-qualifier>editor</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Field with type-bind</label>
+                    <type-bind>Article</type-bind>
+                    <input-type>onebox</input-type>
+                    <hint>Just tell me something.</hint>
+                    <required></required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>contributor</dc-element>
+                    <dc-qualifier>other</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Row with type-bind</label>
                     <type-bind>Article</type-bind>
                     <input-type>onebox</input-type>
                     <hint>Just tell me something.</hint>
