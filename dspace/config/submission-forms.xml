@@ -177,14 +177,14 @@
                 <field>
                     <dc-schema>local</dc-schema>
                     <dc-element>hasCMDI</dc-element>
-                    <repeatable>false</repeatable>
+                    <repeatable>true</repeatable>
                     <label>Has CMDI file</label>
                     <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
                     <hint>Are you going to upload cmdi file?</hint>
                     <required></required>
-<!--                    <acl>-->
-<!--                        policy=deny,action=read,grantee-type=user,grantee-id=*-->
-<!--                    </acl>-->
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
                 </field>
             </row>
             <row>
@@ -232,7 +232,7 @@
                     <dc-qualifier>editor</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Field with type-bind</label>
-<!--                    <type-bind>Article</type-bind>-->
+                    <type-bind>Article</type-bind>
                     <input-type>onebox</input-type>
                     <hint>Just tell me something.</hint>
                     <required></required>
@@ -245,7 +245,7 @@
                     <dc-qualifier>other</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Row with type-bind</label>
-<!--                    <type-bind>Article</type-bind>-->
+                    <type-bind>Article</type-bind>
                     <input-type>onebox</input-type>
                     <hint>Just tell me something.</hint>
                     <required></required>
@@ -1375,10 +1375,6 @@
             <pair>
                 <displayed-value>Yes</displayed-value>
                 <stored-value>yes</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>No</displayed-value>
-                <stored-value>no</stored-value>
             </pair>
         </value-pairs>
         <value-pairs value-pairs-name="common_identifiers" dc-term="identifier">
