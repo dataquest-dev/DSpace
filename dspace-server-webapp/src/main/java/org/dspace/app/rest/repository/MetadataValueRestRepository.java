@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.repository;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +36,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This is the repository responsible to manage MetadataValueWrapper Rest object.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Component(MetadataValueWrapperRest.CATEGORY + "." + MetadataValueWrapperRest.NAME)
 public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataValueWrapperRest, Integer> {
 
@@ -49,6 +61,17 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
     @Autowired
     private ItemService itemService;
 
+    /**
+     * Endpoint for the search in the {@link MetadataValue} objects by the metadataField and various values.
+     *
+     * @param schemaName    an exact match of the prefix of the metadata schema (e.g. "dc", "dcterms", "eperson")
+     * @param elementName   an exact match of the field's element (e.g. "contributor", "title")
+     * @param qualifierName an exact match of the field's qualifier (e.g. "author", "alternative")
+     * @param searchValue   searching value in the {@link MetadataValue} object
+     * @param pageable      the pagination options
+     * @return List of {@link MetadataValueWrapperRest} objects representing all {@link MetadataValue} objects
+     * that match the given params
+     */
     @SearchRestMethod(name = "byValue")
     public Page<MetadataValueWrapperRest> findByValue(@Parameter(value = "schema", required = true) String schemaName,
                                                    @Parameter(value = "element", required = true) String elementName,
@@ -126,12 +149,10 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
         MetadataValueWrapper metadataValueWrapper = new MetadataValueWrapper();
         try {
             metadataValueWrapper.setMetadataValue(metadataValueService.find(context, id));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
+        } catch (IOException | SQLException e) {
             e.printStackTrace();
         }
-        if (metadataValueWrapper == null) {
+        if (metadataValueWrapper.getMetadataValue() == null) {
             return null;
         }
         return converter.toRest(metadataValueWrapper, utils.obtainProjection());
