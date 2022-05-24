@@ -4,7 +4,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
-import org.dspace.app.rest.model.MetadataValueWithFieldRest;
+import org.dspace.app.rest.model.MetadataValueWrapper;
+import org.dspace.app.rest.model.MetadataValueWrapperRest;
+import org.dspace.app.rest.model.hateoas.MetadataValueWrapperResource;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
@@ -28,8 +30,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component(MetadataValueWithFieldRest.CATEGORY + "." + MetadataValueWithFieldRest.NAME)
-public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataValueWithFieldRest, Integer> {
+@Component(MetadataValueWrapperRest.CATEGORY + "." + MetadataValueWrapperRest.NAME)
+public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataValueWrapperRest, Integer> {
 
     /**
      * log4j logger
@@ -53,7 +55,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
 
 //    @Override
 //    @PreAuthorize("permitAll()")
-//    public MetadataValueWithFieldRest findOne(Context context, Integer id) {
+//    public MetadataValueWrapperRest findOne(Context context, Integer id) {
 //        MetadataField metadataField = null;
 //        try {
 //            metadataField = metadataFieldService.find(context, id);
@@ -67,14 +69,14 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
 //    }
 
     @SearchRestMethod(name = "byValue")
-    public Page<MetadataValueWithFieldRest> findByFieldName(@Parameter(value = "schema", required = false) String schemaName,
+    public Page<MetadataValueWrapperRest> findByFieldName(@Parameter(value = "schema", required = false) String schemaName,
                                                    @Parameter(value = "element", required = false) String elementName,
                                                    @Parameter(value = "qualifier", required = false) String qualifierName,
                                                    @Parameter(value = "searchValue", required = false) String searchValue,
                                                    Pageable pageable) throws SQLException {
         Context context = obtainContext();
 
-        List<MetadataValue> matchingMetadataValues = new ArrayList<>();
+        List<MetadataValueWrapper> matchingMetadataValues = new ArrayList<>();
 
         String separator = ".";
         String metadataField = StringUtils.isNotBlank(schemaName) ? schemaName + separator: "";
@@ -99,8 +101,12 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
             DiscoverResult searchResult = searchService.search(context, null, discoverQuery);
             for (IndexableObject object : searchResult.getIndexableObjects()) {
                 if (object instanceof IndexableItem) {
-                    matchingMetadataValues.addAll(itemService.getMetadataByMetadataString(
-                            ((IndexableItem) object).getIndexedObject(), metadataField));
+                    // get metadata values of the item
+                    List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
+                            ((IndexableItem) object).getIndexedObject(), metadataField);
+                    // convert metadata values to the wrapper
+                    List<MetadataValueWrapper> metadataValueWrapperList = this.convertMetadataValuesToWrappers(metadataValues);
+                    matchingMetadataValues.addAll(metadataValueWrapperList);
                 }
             }
         } catch (SearchServiceException e) {
@@ -108,7 +114,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
             throw new IllegalArgumentException("Error while searching with Discovery: " + e.getMessage());
         }
 
-        Page<MetadataValueWithFieldRest> resp = converter.toRestPage(matchingMetadataValues, pageable, utils.obtainProjection());
+        Page<MetadataValueWrapperRest> resp = converter.toRestPage(matchingMetadataValues, pageable, utils.obtainProjection());
         return resp;
     }
 
@@ -123,9 +129,19 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
         return discoverQuery;
     }
 
+    private List<MetadataValueWrapper> convertMetadataValuesToWrappers(List<MetadataValue> metadataValueList) {
+        List<MetadataValueWrapper> metadataValueWrapperList = new ArrayList<>();
+        for (MetadataValue metadataValue : metadataValueList) {
+            MetadataValueWrapper metadataValueWrapper = new MetadataValueWrapper();
+            metadataValueWrapper.setMetadataValue(metadataValue);
+            metadataValueWrapperList.add(metadataValueWrapper);
+        }
+        return metadataValueWrapperList;
+    }
+
     @Override
     @PreAuthorize("permitAll()")
-    public MetadataValueWithFieldRest findOne(Context context, Integer id) {
+    public MetadataValueWrapperRest findOne(Context context, Integer id) {
         MetadataValue metadataValue = null;
         try {
             metadataValue = metadataValueService.find(context, id);
@@ -141,12 +157,12 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
     }
 
     @Override
-    public Page<MetadataValueWithFieldRest> findAll(Context context, Pageable pageable) {
-        return converter.toRest(new ArrayList<MetadataValue>(), utils.obtainProjection());
+    public Page<MetadataValueWrapperRest> findAll(Context context, Pageable pageable) {
+        return converter.toRest(new ArrayList<MetadataValueWrapper>(), utils.obtainProjection());
     }
 
     @Override
-    public Class<MetadataValueWithFieldRest> getDomainClass() {
-        return MetadataValueWithFieldRest.class;
+    public Class<MetadataValueWrapperRest> getDomainClass() {
+        return MetadataValueWrapperRest.class;
     }
 }
