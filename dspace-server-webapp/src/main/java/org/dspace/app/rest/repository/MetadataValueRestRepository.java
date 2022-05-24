@@ -6,11 +6,10 @@ import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.model.MetadataValueWrapper;
 import org.dspace.app.rest.model.MetadataValueWrapperRest;
-import org.dspace.app.rest.model.hateoas.MetadataValueWrapperResource;
+import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
-import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.MetadataValueService;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
@@ -42,47 +41,28 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
     MetadataValueService metadataValueService;
 
     @Autowired
+    MetadataFieldService metadataFieldService;
+
+    @Autowired
     private SearchService searchService;
 
     @Autowired
     private ItemService itemService;
 
-    @Autowired
-    MetadataFieldService metadataFieldService;
-
-    @Autowired
-    MetadataSchemaService metadataSchemaService;
-
-//    @Override
-//    @PreAuthorize("permitAll()")
-//    public MetadataValueWrapperRest findOne(Context context, Integer id) {
-//        MetadataField metadataField = null;
-//        try {
-//            metadataField = metadataFieldService.find(context, id);
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e.getMessage(), e);
-//        }
-//        if (metadataField == null) {
-//            return null;
-//        }
-//        return converter.toRest(metadataField, utils.obtainProjection());
-//    }
-
     @SearchRestMethod(name = "byValue")
-    public Page<MetadataValueWrapperRest> findByFieldName(@Parameter(value = "schema", required = false) String schemaName,
-                                                   @Parameter(value = "element", required = false) String elementName,
-                                                   @Parameter(value = "qualifier", required = false) String qualifierName,
-                                                   @Parameter(value = "searchValue", required = false) String searchValue,
-                                                   Pageable pageable) throws SQLException {
+    public Page<MetadataValueWrapperRest> findByValue(@Parameter(value = "schema", required = true) String schemaName,
+                                                   @Parameter(value = "element", required = true) String elementName,
+                                                   @Parameter(value = "qualifier", required = false)
+                                                                  String qualifierName,
+                                                   @Parameter(value = "searchValue", required = false) String
+                                                                  searchValue,
+                                                   Pageable pageable) {
         Context context = obtainContext();
-
-        List<MetadataValueWrapper> matchingMetadataValues = new ArrayList<>();
 
         String separator = ".";
         String metadataField = StringUtils.isNotBlank(schemaName) ? schemaName + separator: "";
         metadataField += StringUtils.isNotBlank(elementName) ? elementName + separator : "";
         metadataField += StringUtils.isNotBlank(qualifierName) ? qualifierName : "";
-
 
         List<String> metadata = List.of(metadataField.split("\\."));
         // metadataField validation
@@ -97,6 +77,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
         DiscoverQuery discoverQuery =
                 this.createDiscoverQuery(metadataField, searchValue, pageable);
 
+        List<MetadataValueWrapper> metadataValueWrappers = new ArrayList<>();
         try {
             DiscoverResult searchResult = searchService.search(context, null, discoverQuery);
             for (IndexableObject object : searchResult.getIndexableObjects()) {
@@ -105,8 +86,9 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
                     List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
                             ((IndexableItem) object).getIndexedObject(), metadataField);
                     // convert metadata values to the wrapper
-                    List<MetadataValueWrapper> metadataValueWrapperList = this.convertMetadataValuesToWrappers(metadataValues);
-                    matchingMetadataValues.addAll(metadataValueWrapperList);
+                    List<MetadataValueWrapper> metadataValueWrapperList =
+                            this.convertMetadataValuesToWrappers(metadataValues);
+                    metadataValueWrappers.addAll(metadataValueWrapperList);
                 }
             }
         } catch (SearchServiceException e) {
@@ -114,8 +96,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
             throw new IllegalArgumentException("Error while searching with Discovery: " + e.getMessage());
         }
 
-        Page<MetadataValueWrapperRest> resp = converter.toRestPage(matchingMetadataValues, pageable, utils.obtainProjection());
-        return resp;
+        return converter.toRestPage(metadataValueWrappers, pageable, utils.obtainProjection());
     }
 
     private DiscoverQuery createDiscoverQuery(String metadataField, String searchValue, Pageable pageable) {
@@ -123,7 +104,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
         discoverQuery.setQuery(metadataField+":"+"*"+searchValue+"*");
         discoverQuery.setStart(Math.toIntExact(pageable.getOffset()));
         discoverQuery.setMaxResults(pageable.getPageSize());
-        // return searching metadata field only
+        // return only metadata field values
         discoverQuery.addSearchField(metadataField);
 
         return discoverQuery;
@@ -142,23 +123,34 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
     @Override
     @PreAuthorize("permitAll()")
     public MetadataValueWrapperRest findOne(Context context, Integer id) {
-        MetadataValue metadataValue = null;
+        MetadataValueWrapper metadataValueWrapper = new MetadataValueWrapper();
         try {
-            metadataValue = metadataValueService.find(context, id);
+            metadataValueWrapper.setMetadataValue(metadataValueService.find(context, id));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        if (metadataValue == null) {
+        if (metadataValueWrapper == null) {
             return null;
         }
-        return converter.toRest(metadataValue, utils.obtainProjection());
+        return converter.toRest(metadataValueWrapper, utils.obtainProjection());
     }
 
     @Override
     public Page<MetadataValueWrapperRest> findAll(Context context, Pageable pageable) {
-        return converter.toRest(new ArrayList<MetadataValueWrapper>(), utils.obtainProjection());
+        List<MetadataValueWrapper> metadataValueWrappers = new ArrayList<>();
+        try {
+            List<MetadataField> metadataFields = metadataFieldService.findAll(context);
+            for (MetadataField metadataField : metadataFields) {
+                metadataValueWrappers.addAll(this.convertMetadataValuesToWrappers(
+                        this.metadataValueService.findByField(context, metadataField)));
+            }
+        } catch (SQLException | IOException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        return converter.toRestPage(metadataValueWrappers, pageable, utils.obtainProjection());
     }
 
     @Override
