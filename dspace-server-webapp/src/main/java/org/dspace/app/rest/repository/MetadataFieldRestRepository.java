@@ -166,8 +166,7 @@ public class MetadataFieldRestRepository extends DSpaceRestRepository<MetadataFi
             }
         }
 
-        Page<MetadataFieldRest> resp = converter.toRestPage(matchingMetadataFields, pageable, utils.obtainProjection());
-        return resp;
+        return converter.toRestPage(matchingMetadataFields, pageable, utils.obtainProjection());
     }
 
     /**
