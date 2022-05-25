@@ -89,11 +89,6 @@ public class SubmissionFormFieldRest {
     private List<String> typeBind;
 
     /**
-     * The list of type bind value
-     */
-    private List<String> autocomplete;
-
-    /**
      * Getter for {@link #selectableMetadata}
      * 
      * @return {@link #selectableMetadata}
@@ -282,14 +277,6 @@ public class SubmissionFormFieldRest {
 
     public void setTypeBind(List<String> typeBind) {
         this.typeBind = typeBind;
-    }
-
-    public List<String> getAutocomplete() {
-        return autocomplete;
-    }
-
-    public void setAutocomplete(List<String> autocomplete) {
-        this.autocomplete = autocomplete;
     }
 
     public SelectableRelationship getSelectableRelationship() {
