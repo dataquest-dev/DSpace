@@ -235,6 +235,7 @@ public class DCInput {
                 externalSources.add(StringUtils.trim(source));
             }
         }
+
     }
 
     /**
