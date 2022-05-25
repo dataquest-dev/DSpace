@@ -7,8 +7,17 @@
  */
 package org.dspace.app.rest.model;
 
+import org.dspace.app.rest.converter.ConverterService;
+import org.dspace.app.rest.projection.Projection;
 import org.dspace.content.MetadataValue;
+import org.dspace.app.rest.converter.MetadataValueWrapperConverter;
 
+/**
+ * Wrapper for a {@link MetadataValue} for use with {@link MetadataValueWrapperConverter},
+ * so it can be invoked properly via calls to {@link ConverterService#toRest(Object, Projection)}.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class MetadataValueWrapper {
 
     MetadataValue metadataValue;

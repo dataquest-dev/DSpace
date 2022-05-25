@@ -58,9 +58,10 @@
                     <dc-qualifier>author</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Author</label>
-                    <input-type>onebox</input-type>
+                    <input-type>autocomplete</input-type>
+                    <!-- Autocomplete example:
+                    <input-type>autocomplete</input-type> -->
                     <hint>Enter the author's name (Family name, Given names).</hint>
-                    <autocomplete>solr-publisher_ac,solr-Nosher_ac</autocomplete>
                     <required></required>
                 </field>
             </row>
@@ -74,6 +75,7 @@
                     <input-type>onebox</input-type>
                     <hint>Enter the main title of the item.</hint>
                     <required>You must enter a main title for this item.</required>
+                    <vocabulary>srsc</vocabulary>
                 </field>
             </row>
             <row>
@@ -197,20 +199,6 @@
                     <repeatable>true</repeatable>
                     <label>Subject Keywords</label>
                     <input-type>tag</input-type>
-                    <hint>Enter appropriate subject keywords or phrases.</hint>
-                    <required></required>
-                    <vocabulary>srsc</vocabulary>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>subject</dc-element>
-                    <dc-qualifier></dc-qualifier>
-                    <!-- An input-type of tag MUST be marked as repeatable -->
-                    <repeatable>true</repeatable>
-                    <label>Subject Keywords</label>
-                    <input-type>autocomplete</input-type>
                     <hint>Enter appropriate subject keywords or phrases.</hint>
                     <required></required>
                     <vocabulary>srsc</vocabulary>
