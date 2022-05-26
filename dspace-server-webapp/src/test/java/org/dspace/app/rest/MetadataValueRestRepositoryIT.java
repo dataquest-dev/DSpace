@@ -14,32 +14,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
-import org.dspace.app.rest.matcher.MetadataFieldMatcher;
 import org.dspace.app.rest.matcher.MetadataValueMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
-import org.dspace.builder.MetadataFieldBuilder;
-import org.dspace.builder.MetadataValueBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataFieldServiceImpl;
-import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
-import org.dspace.content.service.MetadataSchemaService;
-import org.dspace.content.service.MetadataValueService;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class MetadataValueRestRepositoryIT extends AbstractControllerIntegrationTest {
 
@@ -47,27 +37,11 @@ public class MetadataValueRestRepositoryIT extends AbstractControllerIntegration
     private static final String SCHEMA = "dc";
     private static final String ELEMENT = "contributor";
     private static final String QUALIFIER = "author";
-    private static final String SCOPE_NOTE = "test scope_note";
 
-    private static final String ELEMENT_UPDATED = "test element updated";
-    private static final String QUALIFIER_UPDATED = "test qualifier updated";
-    private static final String SCOPE_NOTE_UPDATED = "test scope_note updated";
-
-    private MetadataSchema metadataSchema;
-    private MetadataField metadataField;
     private Item publicItem;
 
     public static final String METADATAVALUES_ENDPOINT = "/api/core/metadatavalues/";
     private static final String SEARCH_BYVALUE_ENDPOINT = METADATAVALUES_ENDPOINT + "search/byValue";
-
-    @Autowired
-    private MetadataSchemaService metadataSchemaService;
-
-    @Autowired
-    private MetadataFieldServiceImpl metadataFieldService;
-
-    @Autowired
-    private MetadataValueService metadataValueService;
 
     @Autowired
     private ItemService itemService;

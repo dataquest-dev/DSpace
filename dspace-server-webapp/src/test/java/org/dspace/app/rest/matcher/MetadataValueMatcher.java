@@ -15,23 +15,14 @@ import org.dspace.content.MetadataValue;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
+/**
+ * Utility class to construct a Matcher for an item
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class MetadataValueMatcher {
 
     private MetadataValueMatcher() { }
-
-    public static Matcher<? super Object> matchMetadataValue() {
-        return allOf(
-                hasJsonPath("$.value", Matchers.not(Matchers.empty())),
-                hasJsonPath("$.language", Matchers.not(Matchers.empty())),
-                hasJsonPath("$.type", is("metadatavalue")),
-                hasJsonPath("$.authority", Matchers.not(Matchers.empty())),
-                hasJsonPath("$.confidence", Matchers.not(Matchers.empty())),
-                hasJsonPath("$.place", Matchers.not(Matchers.empty())),
-                hasJsonPath("$._embedded.field", Matchers.not(Matchers.empty())),
-                hasJsonPath("$._links.field.href", Matchers.containsString("/api/core/metadatavalues")),
-                hasJsonPath("$._links.self.href", Matchers.containsString("/api/core/metadatavalues"))
-        );
-    }
 
     public static Matcher<? super Object> matchMetadataValue(MetadataValue metadataValue) {
         return allOf(

@@ -25,7 +25,6 @@ import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.MetadataFieldBuilder;
 import org.dspace.builder.MetadataSchemaBuilder;
-import org.dspace.builder.MetadataValueBuilder;
 import org.dspace.builder.PoolTaskBuilder;
 import org.dspace.builder.ProcessBuilder;
 import org.dspace.builder.RelationshipBuilder;
@@ -75,7 +74,6 @@ public class AbstractBuilderCleanupUtil {
         map.put(RelationshipTypeBuilder.class.getName(), new ArrayList<>());
         map.put(EntityTypeBuilder.class.getName(), new ArrayList<>());
         map.put(MetadataFieldBuilder.class.getName(), new ArrayList<>());
-        map.put(MetadataValueBuilder.class.getName(), new ArrayList<>());
         map.put(MetadataSchemaBuilder.class.getName(), new ArrayList<>());
         map.put(SiteBuilder.class.getName(), new ArrayList<>());
         map.put(ProcessBuilder.class.getName(), new ArrayList<>());
