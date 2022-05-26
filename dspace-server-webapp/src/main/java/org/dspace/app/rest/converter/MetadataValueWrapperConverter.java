@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 @Component
-public class MetadataValueWrapperConverter implements DSpaceConverter<MetadataValueWrapper, MetadataValueWrapperRest>{
+public class MetadataValueWrapperConverter implements DSpaceConverter<MetadataValueWrapper, MetadataValueWrapperRest> {
 
     @Autowired
     private ConverterService converter;
@@ -35,7 +35,8 @@ public class MetadataValueWrapperConverter implements DSpaceConverter<MetadataVa
         metadataValueWithFieldRest.setAuthority(metadataValueWrapper.getMetadataValue().getAuthority());
         metadataValueWithFieldRest.setConfidence(metadataValueWrapper.getMetadataValue().getConfidence());
         metadataValueWithFieldRest.setPlace(metadataValueWrapper.getMetadataValue().getPlace());
-        metadataValueWithFieldRest.setField(converter.toRest(metadataValueWrapper.getMetadataValue().getMetadataField(), projection));
+        metadataValueWithFieldRest.setField(converter.toRest(metadataValueWrapper.getMetadataValue().getMetadataField(),
+                projection));
         return metadataValueWithFieldRest;
     }
 

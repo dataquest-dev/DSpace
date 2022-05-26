@@ -7,6 +7,11 @@
  */
 package org.dspace.app.rest.repository;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
@@ -30,11 +35,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This is the repository responsible to manage MetadataValueWrapper Rest object.
@@ -83,7 +83,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
         Context context = obtainContext();
 
         String separator = ".";
-        String metadataField = StringUtils.isNotBlank(schemaName) ? schemaName + separator: "";
+        String metadataField = StringUtils.isNotBlank(schemaName) ? schemaName + separator : "";
         metadataField += StringUtils.isNotBlank(elementName) ? elementName + separator : "";
         metadataField += StringUtils.isNotBlank(qualifierName) ? qualifierName : "";
 
@@ -124,7 +124,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
 
     private DiscoverQuery createDiscoverQuery(String metadataField, String searchValue, Pageable pageable) {
         DiscoverQuery discoverQuery = new DiscoverQuery();
-        discoverQuery.setQuery(metadataField+":"+"*"+searchValue+"*");
+        discoverQuery.setQuery(metadataField + ":" + "*" + searchValue + "*");
         discoverQuery.setStart(Math.toIntExact(pageable.getOffset()));
         discoverQuery.setMaxResults(pageable.getPageSize());
         // return only metadata field values

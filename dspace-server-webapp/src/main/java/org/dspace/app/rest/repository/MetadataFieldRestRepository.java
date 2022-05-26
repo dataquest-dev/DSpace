@@ -138,6 +138,7 @@ public class MetadataFieldRestRepository extends DSpaceRestRepository<MetadataFi
 
         List<MetadataField> matchingMetadataFields = new ArrayList<>();
 
+
         if (StringUtils.isBlank(exactName)) {
             // Find matches in Solr Search core
             DiscoverQuery discoverQuery =

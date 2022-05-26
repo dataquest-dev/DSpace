@@ -32,6 +32,7 @@ import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
@@ -88,6 +89,7 @@ public abstract class AbstractBuilder<T, S> {
     static WorkflowItemRoleService workflowItemRoleService;
     static MetadataFieldService metadataFieldService;
     static MetadataSchemaService metadataSchemaService;
+    static MetadataValueService metadataValueService;
     static SiteService siteService;
     static RelationshipService relationshipService;
     static RelationshipTypeService relationshipTypeService;
@@ -137,6 +139,7 @@ public abstract class AbstractBuilder<T, S> {
         versionHistoryService = VersionServiceFactory.getInstance().getVersionHistoryService();
         metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
         metadataSchemaService = ContentServiceFactory.getInstance().getMetadataSchemaService();
+        metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
         siteService = ContentServiceFactory.getInstance().getSiteService();
         relationshipService = ContentServiceFactory.getInstance().getRelationshipService();
         relationshipTypeService = ContentServiceFactory.getInstance().getRelationshipTypeService();
@@ -176,6 +179,7 @@ public abstract class AbstractBuilder<T, S> {
         workflowItemRoleService = null;
         metadataFieldService = null;
         metadataSchemaService = null;
+        metadataValueService = null;
         siteService = null;
         relationshipService = null;
         relationshipTypeService = null;

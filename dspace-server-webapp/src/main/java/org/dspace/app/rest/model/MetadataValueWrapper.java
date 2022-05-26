@@ -8,9 +8,9 @@
 package org.dspace.app.rest.model;
 
 import org.dspace.app.rest.converter.ConverterService;
+import org.dspace.app.rest.converter.MetadataValueWrapperConverter;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.content.MetadataValue;
-import org.dspace.app.rest.converter.MetadataValueWrapperConverter;
 
 /**
  * Wrapper for a {@link MetadataValue} for use with {@link MetadataValueWrapperConverter},
