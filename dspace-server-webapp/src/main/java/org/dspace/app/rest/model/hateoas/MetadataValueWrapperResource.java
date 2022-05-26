@@ -12,10 +12,10 @@ import org.dspace.app.rest.model.hateoas.annotations.RelNameDSpaceResource;
 import org.dspace.app.rest.utils.Utils;
 
 /**
- * MetadataField Rest HAL Resource. The HAL Resource wraps the REST Resource
+ * MetadataValue Rest HAL Resource. The HAL Resource wraps the REST Resource
  * adding support for the links and embedded resources
  *
- * @author Andrea Bollini (andrea.bollini at 4science.it)
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 @RelNameDSpaceResource(MetadataValueWrapperRest.NAME)
 public class MetadataValueWrapperResource extends DSpaceResource<MetadataValueWrapperRest> {
