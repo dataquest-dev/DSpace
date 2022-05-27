@@ -963,10 +963,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     @Override
-    public boolean hasUploadedFiles(Item item) throws SQLException {
-        List<Bundle> bundles = getBundles(item, Constants.CONTENT_BUNDLE_NAME);
-        bundles.addAll(getBundles(item, Constants.METADATA_BUNDLE_NAME));
-
+    public boolean hasUploadedFiles(Item item, String bundleName) throws SQLException {
+        List<Bundle> bundles = getBundles(item, bundleName);
         for (Bundle bundle : bundles) {
             if (CollectionUtils.isNotEmpty(bundle.getBitstreams())) {
                 return true;

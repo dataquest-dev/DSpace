@@ -44,6 +44,8 @@ public class MetadataValidation extends AbstractValidation {
 
     private static final String ERROR_VALIDATION_REGEX = "error.validation.regex";
 
+    private static final String LOCAL_METADATA_HAS_CMDI = "local.hasCMDI";
+
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataValidation.class);
 
     private DCInputsReader inputReader;
@@ -98,7 +100,7 @@ public class MetadataValidation extends AbstractValidation {
                             "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" +
                                 input.getFieldName());
                     }
-                    if ("local.hasCMDI".equals(fieldName)) {
+                    if (LOCAL_METADATA_HAS_CMDI.equals(fieldName)) {
                         try {
                             Context context = ContextUtil.obtainCurrentRequestContext();
                             CMDIFileBundleMaintainer.updateCMDIFileBundle(context, obj.getItem(), mdv);
