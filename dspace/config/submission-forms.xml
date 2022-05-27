@@ -65,17 +65,6 @@
             </row>
             <row>
                 <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>hasCMDI</dc-element>
-                    <repeatable>true</repeatable>
-                    <label>Has CMDI file</label>
-                    <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
-                    <hint>Are you going to upload cmdi file?</hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>title</dc-element>
                     <dc-qualifier></dc-qualifier>
@@ -190,6 +179,17 @@
                         list, please select 'Other'. If the content does not really have a language (for example, if it
                         is a dataset or an image) please select 'N/A'.
                     </hint>
+                    <required></required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hasCMDI</dc-element>
+                    <repeatable>true</repeatable>
+                    <label>Has CMDI file</label>
+                    <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
+                    <hint>Are you going to upload cmdi file?</hint>
                     <required></required>
                 </field>
             </row>

@@ -43,8 +43,8 @@ public class UploadValidation extends AbstractValidation {
         //TODO MANAGE METADATA
 
         UploadConfiguration uploadConfig = uploadConfigurationService.getMap().get(config.getId());
-        if (uploadConfig.isRequired() && (!itemService.hasUploadedFiles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME) ||
-                !itemService.hasUploadedFiles(obj.getItem(), Constants.METADATA_BUNDLE_NAME))) {
+        if (uploadConfig.isRequired() && !itemService.hasUploadedFiles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME) &&
+                !itemService.hasUploadedFiles(obj.getItem(), Constants.METADATA_BUNDLE_NAME)) {
             addError(ERROR_VALIDATION_FILEREQUIRED,
                      "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/"
                          + config.getId());
