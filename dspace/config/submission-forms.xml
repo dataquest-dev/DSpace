@@ -59,8 +59,6 @@
                     <repeatable>true</repeatable>
                     <label>Author</label>
                     <input-type>autocomplete</input-type>
-                    <!-- Autocomplete example:
-                    <input-type>autocomplete</input-type> -->
                     <hint>Enter the author's name (Family name, Given names).</hint>
                     <required></required>
                 </field>
