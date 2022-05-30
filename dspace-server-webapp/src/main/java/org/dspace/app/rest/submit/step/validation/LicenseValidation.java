@@ -8,7 +8,6 @@
 package org.dspace.app.rest.submit.step.validation;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -43,14 +42,13 @@ public class LicenseValidation extends AbstractValidation {
     public List<ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj,
                                     SubmissionStepConfig config) throws DCInputsReaderException, SQLException {
 
-        List<ErrorRest> errors = new ArrayList<>();
         Bitstream bitstream = bitstreamService
             .getBitstreamByName(obj.getItem(), Constants.LICENSE_BUNDLE_NAME, Constants.LICENSE_BITSTREAM_NAME);
         if (bitstream == null) {
-            addError(errors, ERROR_VALIDATION_LICENSEREQUIRED,
+            addError(ERROR_VALIDATION_LICENSEREQUIRED,
                 "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + config.getId());
         }
-        return errors;
+        return getErrors();
     }
 
     public BitstreamService getBitstreamService() {

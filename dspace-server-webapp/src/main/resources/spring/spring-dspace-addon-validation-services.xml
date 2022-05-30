@@ -16,7 +16,6 @@
     <bean name="metadataValidation" class="org.dspace.app.rest.submit.step.validation.MetadataValidation"
           scope="prototype">
         <property name="name" value="submission-form"/>
-        <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
         <property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
         <property name="metadataAuthorityService" ref="org.dspace.content.authority.MetadataAuthorityServiceImpl"/>
     </bean>
@@ -25,9 +24,5 @@
         <property name="name" value="upload"/>
         <property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
         <property name="uploadConfigurationService" ref="uploadConfigurationService"/>
-    </bean>
-
-    <bean name="licenseValidation" class="org.dspace.app.rest.submit.step.validation.LicenseValidation">
-        <property name="name" value="license"/>
     </bean>
 </beans>
