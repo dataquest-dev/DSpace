@@ -1892,6 +1892,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         String authToken = getAuthToken(eperson.getEmail(), password);
 
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                .withSubmitter(eperson)
                 .withTitle("Workspace Item 1")
                 .withIssueDate("2017-10-17")
                 .withSubject("ExtraEntry")
@@ -2004,6 +2005,14 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(jsonPath("$",
                         Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, "Article",
                                 null))));
+
+        // Submit the workspace item to complete the deposit (as there is no workflow configured) and ensure a
+        // successful result with no validation errors
+        getClient(authToken)
+                .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
+                        .content("/api/submission/workspaceitems/" + witem.getID())
+                        .contentType(textUriContentType))
+                .andExpect(status().isCreated());
     }
 
     @Test

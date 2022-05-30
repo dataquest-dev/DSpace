@@ -100,7 +100,8 @@ public class WorkspaceItemMatcher {
                         hasNoJsonPath("$.sections.traditionalpageone['dc.type'][0].value"),
                 // Check series as it appears (for type bind testing)
                 series != null ?
-                        hasJsonPath("$.sections.traditionalpageone['dc.relation.ispartofseries'][0].value", is(series)) :
+                        hasJsonPath("$.sections.traditionalpageone['dc.relation.ispartofseries'][0].value",
+                                is(series)) :
                         hasNoJsonPath("$.sections.traditionalpageone['dc.relation.ispartofseries'][0].value"),
                 matchLinks(witem)
         );
