@@ -376,9 +376,6 @@ public class DCInputsReader {
                 int lench = cl.getLength();
                 for (int j = 0; j < lench; j++) {
                     Node nch = cl.item(j);
-                    String inputName = null;
-                    String inputType = null;
-
                     if (nch.getNodeName().equals("input")) {
                         definition.addInput(attributes2Map(nch.getAttributes()));
                     }

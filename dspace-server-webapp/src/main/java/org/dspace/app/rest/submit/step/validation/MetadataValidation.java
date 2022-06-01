@@ -12,7 +12,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ErrorRest;
@@ -108,16 +111,18 @@ public class MetadataValidation extends AbstractValidation {
     private boolean isValidComplexDefinitionMetadata(DCInput input, List<MetadataValue> mdv) {
         if (input.getInputType().equals("complex")) {
             int complexDefinitionIndex = 0;
-            for (String complexDefinitionInputName : input.getComplexDefinition().getInputs().keySet()) {
+            Map<String, Map<String, String>> complexDefinitionInputs = input.getComplexDefinition().getInputs();
+            for (String complexDefinitionInputName : complexDefinitionInputs.keySet()) {
                 Map<String, String> complexDefinitionInputValues =
-                        input.getComplexDefinition().getInputs().get(complexDefinitionInputName);
+                        complexDefinitionInputs.get(complexDefinitionInputName);
 
                 List<String> filledInputValues = null;
-                if (("true").equals(complexDefinitionInputValues.get("required"))) {
+                String isRequired = complexDefinitionInputValues.get("required");
+                if (StringUtils.equals(BooleanUtils.toStringTrueFalse(true), isRequired)) {
                     filledInputValues = new ArrayList<>(Arrays.asList(
                             mdv.get(0).getValue().split(DCInput.ComplexDefinitions.getSeparator(),-1)));
 
-                    if ("".equals(filledInputValues.get(complexDefinitionIndex))) {
+                    if (StringUtils.isBlank(filledInputValues.get(complexDefinitionIndex))) {
                         return false;
                     }
                 }

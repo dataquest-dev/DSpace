@@ -23,6 +23,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 import org.xml.sax.SAXException;
 
 /**
@@ -146,7 +147,7 @@ public class DCInput {
     private List<String> typeBind = null;
 
     /**
-     * current complexDefinition from the complexDefinitions
+     * for this input type the complex definition is loaded from the all complex definitions
      */
     private ComplexDefinition complexDefinition = null;
 
@@ -570,7 +571,7 @@ public class DCInput {
         String resultJson = "";
         JSONArray complexDefinitionListJSON = null;
 
-        if (this.complexDefinition != null) {
+        if (!ObjectUtils.isEmpty(this.complexDefinition)) {
             List<JSONObject> complexDefinitionJsonList = new ArrayList<>();
             for (String CDInputName : this.complexDefinition.getInputs().keySet()) {
                 JSONObject inputFieldJson = new JSONObject();
