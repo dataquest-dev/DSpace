@@ -94,10 +94,9 @@ public class DCInputTest extends AbstractUnitTest {
      */
     @Test
     public void DCInputShouldReturnComplexDefinitionAsJSONString() {
-        String complexDefinitionJSONString = "{\"givenname\":{\"name\":\"givenname\",\"input-type\":" +
-                "\"text\",\"label\":\"Given name\",\"required\":\"true\"},\"surname\":{" +
-                "\"name\":\"surname\",\"input-type\":\"text\",\"label\":\"Surname\"," +
-                "\"required\":\"true\"}}";
+        String complexDefinitionJSONString = "[{\"givenname\":{\"name\":\"givenname\",\"input-type\":\"text\"," +
+                "\"label\":\"Given name\",\"required\":\"true\"}},{\"surname\":{\"name\":\"surname\"," +
+                "\"input-type\":\"text\",\"label\":\"Surname\",\"required\":\"true\"}}]";
 
         assertThat("DCInputShouldReturnComplexDefinitionAsJSONString 0", this.dcInput.getComplexDefinitionJSONString(),
                 equalTo(complexDefinitionJSONString));
