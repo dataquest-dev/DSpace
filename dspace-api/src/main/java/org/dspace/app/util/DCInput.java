@@ -7,7 +7,6 @@
  */
 package org.dspace.app.util;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -20,6 +19,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.core.Utils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -567,30 +567,22 @@ public class DCInput {
      * @return complex definition in the JSON string which will be parsed in the FE
      */
     public String getComplexDefinitionJSONString() {
-        String complexDefinitionAsJSONString = "";
+        String resultJson = "";
+        JSONArray complexDefinitionListJSON = null;
 
         if (this.complexDefinition != null) {
-            JSONObject complexDefinitionJson = new JSONObject();
-
-            try {
-                Field changeMap = complexDefinitionJson.getClass().getDeclaredField("map");
-                changeMap.setAccessible(true);
-                // LinkedHashMap - JSON will be ordered
-                changeMap.set(complexDefinitionJson, new LinkedHashMap<>());
-                changeMap.setAccessible(false);
-
-                for (String CDInputName : this.complexDefinition.getInputs().keySet()) {
-                    complexDefinitionJson.put(CDInputName, this.complexDefinition.getInputs().get(CDInputName));
-                }
-
-                complexDefinitionAsJSONString = complexDefinitionJson.toString().replace("=",":");
-
-            } catch (IllegalAccessException | NoSuchFieldException e) {
-                log.error("Converting complexDefition to JSON failed!", e.getMessage());
+            List<JSONObject> complexDefinitionJsonList = new ArrayList<>();
+            for (String CDInputName : this.complexDefinition.getInputs().keySet()) {
+                JSONObject inputFieldJson = new JSONObject();
+                Map<String, String> inputField = this.complexDefinition.getInputs().get(CDInputName);
+                inputFieldJson.put(CDInputName, new JSONObject(inputField));
+                complexDefinitionJsonList.add(inputFieldJson);
             }
+            complexDefinitionListJSON = new JSONArray(complexDefinitionJsonList);
+            resultJson = complexDefinitionListJSON.toString();
         }
 
-        return complexDefinitionAsJSONString;
+        return resultJson;
     }
 
     public boolean validate(String value) {

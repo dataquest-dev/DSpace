@@ -52,7 +52,7 @@
              often used when depositing normal Items (i.e. Items which are not Entities). -->
         <form name="traditionalpageone">
             <!-- Example row for the complex input type definition.
-                 Uncomment it and the complex input will be showed in the submission UI.
+                 Uncomment it and the complex input will be showed in the submission UI. -->
             <row>
                 <field>
                     <dc-schema>local</dc-schema>
@@ -65,7 +65,7 @@
                     <hint>This is contact person</hint>
                     <required>Enter the contact person data.</required>
                 </field>
-            </row> -->
+            </row>
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
