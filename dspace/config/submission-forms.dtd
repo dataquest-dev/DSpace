@@ -31,7 +31,7 @@
  <!ATTLIST input name CDATA #REQUIRED >
  <!ATTLIST input label CDATA #IMPLIED >
  <!ATTLIST input regex CDATA #IMPLIED >
- <!ATTLIST input pairs CDATA #IMPLIED >
+ <!ATTLIST input value-pairs-name CDATA #IMPLIED >
  <!ATTLIST input hint CDATA #IMPLIED >
  <!ATTLIST input autocomplete CDATA #IMPLIED >
  <!ATTLIST input placeholder CDATA #IMPLIED >
