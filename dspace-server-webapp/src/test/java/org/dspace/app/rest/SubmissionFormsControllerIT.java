@@ -134,6 +134,40 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
+    public void testDoNotShowAdminInputFielToUser() throws Exception {
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token).perform(get("/api/config/submissionforms/traditionalpageone"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.id", is("traditionalpageone")))
+                .andExpect(jsonPath("$.name", is("traditionalpageone")))
+                .andExpect(jsonPath("$.type", is("submissionform")))
+                .andExpect(jsonPath("$._links.self.href", Matchers
+                        .startsWith(REST_SERVER_URL + "config/submissionforms/traditionalpageone")))
+                .andExpect(jsonPath("$.rows[1].fields", not(contains(
+                        SubmissionFormFieldMatcher.matchFormFieldDefinition("onebox", "Title", null,
+                                "You must enter a main title for this item.", false,
+                                "Enter the main title of the item.", "dc.title")))));
+    }
+
+    @Test
+    public void testShowAdminInputFielToAdmin() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/config/submissionforms/traditionalpageone"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.id", is("traditionalpageone")))
+                .andExpect(jsonPath("$.name", is("traditionalpageone")))
+                .andExpect(jsonPath("$.type", is("submissionform")))
+                .andExpect(jsonPath("$._links.self.href", Matchers
+                        .startsWith(REST_SERVER_URL + "config/submissionforms/traditionalpageone")))
+                .andExpect(jsonPath("$.rows[1].fields", contains(
+                        SubmissionFormFieldMatcher.matchFormFieldDefinition("onebox", "Title", null,
+                                "You must enter a main title for this item.", false,
+                                "Enter the main title of the item.", "dc.title"))));
+    }
+
+    @Test
     public void findTraditionalPageOneWithNewlyCreatedAccountTest() throws Exception {
         String token = getAuthToken(eperson.getEmail(), password);
         getClient(token).perform(get("/api/config/submissionforms/traditionalpageone"))
@@ -147,10 +181,10 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                    .andExpect(jsonPath("$.rows[0].fields", contains(
                         SubmissionFormFieldMatcher.matchFormFieldDefinition("name", "Author", null,
                           null, true,"Add an author", "dc.contributor.author"))))
-                   .andExpect(jsonPath("$.rows[1].fields", contains(
+                   .andExpect(jsonPath("$.rows[1].fields", not(contains(
                         SubmissionFormFieldMatcher.matchFormFieldDefinition("onebox", "Title", null,
                                 "You must enter a main title for this item.", false,
-                                "Enter the main title of the item.", "dc.title"))))
+                                "Enter the main title of the item.", "dc.title")))))
                    .andExpect(jsonPath("$.rows[3].fields",contains(
                                 SubmissionFormFieldMatcher.matchFormFieldDefinition("date", "Date of Issue", null,
                                         "You must enter at least the year.", false,
