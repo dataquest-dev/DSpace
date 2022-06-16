@@ -1365,7 +1365,7 @@
         <value-pairs value-pairs-name="metashare_funding" dc-term="">
             <pair>
                 <displayed-value>N/A</displayed-value>
-                <stored-value/>
+                <stored-value>N/A</stored-value>
             </pair>
             <pair>
                 <displayed-value>EU</displayed-value>
