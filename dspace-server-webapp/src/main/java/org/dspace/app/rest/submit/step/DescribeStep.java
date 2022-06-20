@@ -19,10 +19,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.mchange.lang.IntegerUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.util.Integers;
 import org.apache.logging.log4j.core.util.JsonUtils;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.MetadataValueRest;
@@ -154,10 +158,12 @@ public class DescribeStep extends AbstractProcessingStep {
                 patchOperation.perform(context, currentRequest, source, op);
                 String mappedToIfNotDefault = this.getMappedToIfNotDefault(split[0], inputConfig);
                 // if the complex input field contains `mapped-to-if-not-default` definition
-                // put additional information to the defined metadata
+                // put additional data to the defined metadata from the `mapped-to-if-not-default`
                 if (!StringUtils.isBlank(mappedToIfNotDefault)) {
-                    patchOperation.perform(context, currentRequest, source,
-                            this.getOperationWithChangedMetadataField(op, mappedToIfNotDefault));
+                    Operation newOp = this.getOperationWithChangedMetadataField(op, mappedToIfNotDefault);
+                    if (!ObjectUtils.isEmpty(newOp)) {
+                        patchOperation.perform(context, currentRequest, source, newOp);
+                    }
                 }
             } else {
                 throw new UnprocessableEntityException("The field " + split[0] + " is not present in section "
@@ -199,57 +205,81 @@ public class DescribeStep extends AbstractProcessingStep {
         String[] oldOpPathArray = oldOp.getPath().split("/");
         String[] opPathArray = oldOpPathArray.clone();
 
-        // change the metadata in the end of the path
-        opPathArray[opPathArray.length-1] = mappedToIfNotDefault;
+        // change the metadata (e.g. `local.sponsor`) in the end of the path
+        if (NumberUtils.isCreatable(opPathArray[opPathArray.length-1])) {
+            // e.g. `traditional/section/local.sponsor/0`
+            opPathArray[opPathArray.length-2] = mappedToIfNotDefault;
+        } else {
+            // e.g. `traditional/section/local.sponsor`
+            opPathArray[opPathArray.length-1] = mappedToIfNotDefault;
+        }
 
         // load the value of the input field from the old operation
+        String oldOpValue = "";
+        JsonNode jsonNodeValue = null;
+
         JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) oldOp.getValue();
         Iterator<JsonNode> jsonNodes = jsonValEvaluator.getValueNode().elements();
-        String oldOpValue = "";
+
         for (Iterator<JsonNode> it = jsonNodes; it.hasNext(); ) {
             JsonNode jsonNode = it.next();
-            JsonNode jsonNodeValue = jsonNode.get("value");
-            if (ObjectUtils.isEmpty(jsonNodeValue) || StringUtils.isBlank(jsonNodeValue.asText())) {
-                throw new UnprocessableEntityException("Cannot load JsonNode value from the operation: " +
-                        oldOp.getPath());
+            if (jsonNode instanceof ObjectNode) {
+                jsonNodeValue = jsonNode.get("value");
+            } else {
+                jsonNodeValue = jsonValEvaluator.getValueNode().get("value");
             }
-            oldOpValue = jsonNodeValue.asText();
         }
+
+        if (ObjectUtils.isEmpty(jsonNodeValue) || StringUtils.isBlank(jsonNodeValue.asText())) {
+            throw new UnprocessableEntityException("Cannot load JsonNode value from the operation: " +
+                    oldOp.getPath());
+        }
+        oldOpValue = jsonNodeValue.asText();
 
         // add the value from the old operation to the new operation
         String opValue = "";
-        if (StringUtils.equals("local.sponsor", oldOpPathArray[oldOpPathArray.length-1])) {
-            // for the metadata `local.sponsor` create the value from the old value
+        if (StringUtils.equals("local.sponsor", oldOpPathArray[oldOpPathArray.length-1]) ||
+            StringUtils.equals("local.sponsor", oldOpPathArray[oldOpPathArray.length-2])) {
+            // for the metadata `local.sponsor` change the `info:eu-repo...` value from the old value
 
             // load info:eu-repo* from the jsonNodeValue
+            // the eu info is on the 4th index of the complexInputType
             List<String> complexInputValue = Arrays.asList(oldOpValue.split(";"));
-            if (ObjectUtils.isEmpty(complexInputValue.get(4))) {
+            if (complexInputValue.size() > 3) {
+                String euIdentifier = complexInputValue.get(4);
+                // remove last value from the eu identifier - it should be in the metadata value
+                List<String> euIdentifierSplit = new ArrayList<>(Arrays.asList(euIdentifier.split("/")));
+                if (euIdentifierSplit.size() == 6) {
+                    euIdentifierSplit.remove(5);
+                }
+
+                euIdentifier = String.join("/", euIdentifierSplit);
+                opValue = euIdentifier;
+            } else {
+                // the `local.sponsor` is updating but without `info:eu-repo`. The `dc.relation` must be in the
+                // eu info format.
                 return null;
             }
+        }
 
-            String euIdentifier = complexInputValue.get(4);
-            // remove last value from the eu identifier - it should be in the metadata value
-            List<String> euIdentifierSplit = new ArrayList<>(Arrays.asList(euIdentifier.split("/")));
-            if (euIdentifierSplit.size() == 6) {
-                euIdentifierSplit.remove(5);
-            }
-
-            euIdentifier = String.join("/", euIdentifierSplit);
-            opValue = euIdentifier;
-        } else {
+        // the opValue wasn't updated
+        if (StringUtils.isBlank(opValue)) {
             // just copy old value to the new operation
             opValue = oldOpValue;
         }
-        String opPath = String.join("/", opPathArray);
 
         // create a new operation and add the new value there
         JsonNodeFactory js = new JsonNodeFactory(false);
         ArrayNode an = new ArrayNode(js);
         an.add(js.textNode(opValue));
 
+        ObjectNode on = new ObjectNode(js);
+        on.set("value", js.textNode(opValue));
+
         Operation newOp = null;
+        String opPath = String.join("/", opPathArray);
         if (oldOp.getOp().equals("replace")) {
-            newOp = new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
+            newOp = new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
         } else {
             newOp = new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
         }

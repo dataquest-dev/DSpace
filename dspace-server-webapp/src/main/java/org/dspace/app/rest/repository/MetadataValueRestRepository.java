@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
@@ -61,6 +62,8 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
     @Autowired
     private ItemService itemService;
 
+    private static final String UNDEFINED = "undefined";
+
     /**
      * Endpoint for the search in the {@link MetadataValue} objects by the metadataField and various values.
      *
@@ -84,8 +87,9 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
 
         String separator = ".";
         String metadataField = StringUtils.isNotBlank(schemaName) ? schemaName + separator : "";
-        metadataField += StringUtils.isNotBlank(elementName) ? elementName + separator : "";
-        metadataField += StringUtils.isNotBlank(qualifierName) ? qualifierName : "";
+        metadataField += StringUtils.isNotBlank(elementName) ? elementName : "";
+        metadataField += StringUtils.isNotBlank(qualifierName) && !StringUtils.equals(UNDEFINED, qualifierName) ?
+                separator + qualifierName : "";
 
         List<String> metadata = List.of(metadataField.split("\\."));
         // metadataField validation
