@@ -152,108 +152,18 @@ public class DescribeStep extends AbstractProcessingStep {
             String[] split = patchOperation.getAbsolutePath(op.getPath()).split("/");
             if (inputConfig.isFieldPresent(split[0])) {
                 patchOperation.perform(context, currentRequest, source, op);
-                String mapperToIfNotDefault = this.getMappedToIfNotDefault(split[0], inputConfig);
-                if (!StringUtils.isBlank(mapperToIfNotDefault)) {
+                String mappedToIfNotDefault = this.getMappedToIfNotDefault(split[0], inputConfig);
+                // if the complex input field contains `mapped-to-if-not-default` definition
+                // put additional information to the defined metadata
+                if (!StringUtils.isBlank(mappedToIfNotDefault)) {
                     patchOperation.perform(context, currentRequest, source,
-                            this.getOperationWithChangedMetadataField(op, mapperToIfNotDefault));
+                            this.getOperationWithChangedMetadataField(op, mappedToIfNotDefault));
                 }
             } else {
                 throw new UnprocessableEntityException("The field " + split[0] + " is not present in section "
                                                                                    + inputConfig.getFormName());
             }
         }
-    }
-
-    private Operation getOperationWithChangedMetadataField(Operation oldOp, String mapperToIfNotDefault) {
-        String[] oldOpPathArray = oldOp.getPath().split("/");
-        String[] opPathArray = oldOpPathArray.clone();
-
-        opPathArray[opPathArray.length-1] = mapperToIfNotDefault;
-
-        JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) oldOp.getValue();
-        Iterator<JsonNode> jsonNodes = jsonValEvaluator.getValueNode().elements();
-        String oldOpValue = "";
-        for (Iterator<JsonNode> it = jsonNodes; it.hasNext(); ) {
-            JsonNode jsonNode = it.next();
-            JsonNode jsonNodeValue = jsonNode.get("value");
-            if (ObjectUtils.isEmpty(jsonNodeValue) || StringUtils.isBlank(jsonNodeValue.asText())) {
-                throw new UnprocessableEntityException("Cannot load JsonNode value from the operation: " +
-                        oldOp.getPath());
-            }
-            oldOpValue = jsonNodeValue.asText();
-        }
-
-        String opValue = "";
-        if (StringUtils.equals("local.sponsor", oldOpPathArray[oldOpPathArray.length-1])) {
-            // load info:eu-repo* from the jsonNodeValue
-            List<String> complexInputValue = Arrays.asList(oldOpValue.split(";"));
-            if (ObjectUtils.isEmpty(complexInputValue.get(4))) {
-                return null;
-            }
-
-            String euIdentifier = complexInputValue.get(4);
-            // remove last value from the eu identifier - it should be in the metadata value
-            List<String> euIdentifierSplit = new ArrayList<>(Arrays.asList(euIdentifier.split("/")));
-            if (euIdentifierSplit.size() == 6) {
-                euIdentifierSplit.remove(5);
-            }
-
-            euIdentifier = String.join("/", euIdentifierSplit);
-            opValue = euIdentifier;
-        } else {
-            opValue = oldOpValue;
-        }
-        String opPath = String.join("/", opPathArray);
-
-        JsonNodeFactory js = new JsonNodeFactory(false);
-        ArrayNode an = new ArrayNode(js);
-        an.add(js.textNode(opValue));
-
-        Operation newOp = null;
-        if (oldOp.getOp().equals("replace")) {
-            newOp = new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
-        } else {
-            newOp = new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
-        }
-
-        return newOp;
-    }
-
-    private String loadMappedToIfNotDefaultFromComplex(DCInput.ComplexDefinition complexDefinition) {
-        Map<String, Map<String, String>> inputs = complexDefinition.getInputs();
-        for (String inputName : inputs.keySet()) {
-            Map<String, String> inputDefinition = inputs.get(inputName);
-            for (String inputDefinitionValue : inputDefinition.keySet()) {
-                if (StringUtils.equals(inputDefinitionValue, "mapped-to-if-not-default")) {
-                    return inputDefinition.get(inputDefinitionValue);
-                }
-            }
-        }
-        return null;
-    }
-
-    private String getMappedToIfNotDefault(String inputFieldMetadata, DCInputSet inputConfig) {
-        List<DCInput[]> inputsListOfList = Arrays.asList(inputConfig.getFields());
-        for (DCInput[] inputsList : inputsListOfList) {
-            List<DCInput> inputs = Arrays.asList(inputsList);
-            for (DCInput input : inputs) {
-                if (!StringUtils.equals("complex", input.getInputType())) { break; }
-
-                String[] metadataFieldName = inputFieldMetadata.split("\\.");
-                if (!StringUtils.equals(metadataFieldName[0], input.getSchema()) ||
-                    !StringUtils.equals(metadataFieldName[1], input.getElement()) ||
-                    (metadataFieldName.length > 2 &&
-                        !StringUtils.equals(metadataFieldName[2], input.getQualifier()))) {
-                    break;
-                }
-
-                String mappedToIfNotDefault = this.loadMappedToIfNotDefaultFromComplex(input.getComplexDefinition());
-                if (StringUtils.isNotBlank(mappedToIfNotDefault)) {
-                    return mappedToIfNotDefault;
-                }
-            }
-        }
-        return null;
     }
 
     private List<String> getInputFieldsName(DCInputSet inputConfig, String configId) throws DCInputsReaderException {
@@ -277,5 +187,122 @@ public class DescribeStep extends AbstractProcessingStep {
             }
         }
         return fieldsName;
+    }
+
+    /**
+     *
+     * @param oldOp old operation from the FE
+     * @param mappedToIfNotDefault metadata where will be stored data from FE request
+     * @return a new operation which is created from the old one but the metadata is changed
+     */
+    private Operation getOperationWithChangedMetadataField(Operation oldOp, String mappedToIfNotDefault) {
+        String[] oldOpPathArray = oldOp.getPath().split("/");
+        String[] opPathArray = oldOpPathArray.clone();
+
+        // change the metadata in the end of the path
+        opPathArray[opPathArray.length-1] = mappedToIfNotDefault;
+
+        // load the value of the input field from the old operation
+        JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) oldOp.getValue();
+        Iterator<JsonNode> jsonNodes = jsonValEvaluator.getValueNode().elements();
+        String oldOpValue = "";
+        for (Iterator<JsonNode> it = jsonNodes; it.hasNext(); ) {
+            JsonNode jsonNode = it.next();
+            JsonNode jsonNodeValue = jsonNode.get("value");
+            if (ObjectUtils.isEmpty(jsonNodeValue) || StringUtils.isBlank(jsonNodeValue.asText())) {
+                throw new UnprocessableEntityException("Cannot load JsonNode value from the operation: " +
+                        oldOp.getPath());
+            }
+            oldOpValue = jsonNodeValue.asText();
+        }
+
+        // add the value from the old operation to the new operation
+        String opValue = "";
+        if (StringUtils.equals("local.sponsor", oldOpPathArray[oldOpPathArray.length-1])) {
+            // for the metadata `local.sponsor` create the value from the old value
+
+            // load info:eu-repo* from the jsonNodeValue
+            List<String> complexInputValue = Arrays.asList(oldOpValue.split(";"));
+            if (ObjectUtils.isEmpty(complexInputValue.get(4))) {
+                return null;
+            }
+
+            String euIdentifier = complexInputValue.get(4);
+            // remove last value from the eu identifier - it should be in the metadata value
+            List<String> euIdentifierSplit = new ArrayList<>(Arrays.asList(euIdentifier.split("/")));
+            if (euIdentifierSplit.size() == 6) {
+                euIdentifierSplit.remove(5);
+            }
+
+            euIdentifier = String.join("/", euIdentifierSplit);
+            opValue = euIdentifier;
+        } else {
+            // just copy old value to the new operation
+            opValue = oldOpValue;
+        }
+        String opPath = String.join("/", opPathArray);
+
+        // create a new operation and add the new value there
+        JsonNodeFactory js = new JsonNodeFactory(false);
+        ArrayNode an = new ArrayNode(js);
+        an.add(js.textNode(opValue));
+
+        Operation newOp = null;
+        if (oldOp.getOp().equals("replace")) {
+            newOp = new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
+        } else {
+            newOp = new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
+        }
+
+        return newOp;
+    }
+
+    /**
+     * Load the `mapped-to-if-not-default` from the complex input field definition
+     * @param complexDefinition
+     * @return NULL - the `mapped-to-if-not-default` is not defined OR value - the mapped-to-if-not-default is defined
+     */
+    private String loadMappedToIfNotDefaultFromComplex(DCInput.ComplexDefinition complexDefinition) {
+        Map<String, Map<String, String>> inputs = complexDefinition.getInputs();
+        for (String inputName : inputs.keySet()) {
+            Map<String, String> inputDefinition = inputs.get(inputName);
+            for (String inputDefinitionValue : inputDefinition.keySet()) {
+                if (StringUtils.equals(inputDefinitionValue, "mapped-to-if-not-default")) {
+                    return inputDefinition.get(inputDefinitionValue);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * From the input configuration load the `mapped-to-if-not-default` definition in the complex input field
+     * definitions
+     * @param inputFieldMetadata the metadata where should be stored data from the FE request
+     * @param inputConfig current input fields configuratino
+     * @return NULL - the `mapped-to-if-not-default` is not defined OR value - the mapped-to-if-not-default is defined
+     */
+    private String getMappedToIfNotDefault(String inputFieldMetadata, DCInputSet inputConfig) {
+        List<DCInput[]> inputsListOfList = Arrays.asList(inputConfig.getFields());
+        for (DCInput[] inputsList : inputsListOfList) {
+            List<DCInput> inputs = Arrays.asList(inputsList);
+            for (DCInput input : inputs) {
+                if (!StringUtils.equals("complex", input.getInputType())) { break; }
+
+                String[] metadataFieldName = inputFieldMetadata.split("\\.");
+                if (!StringUtils.equals(metadataFieldName[0], input.getSchema()) ||
+                        !StringUtils.equals(metadataFieldName[1], input.getElement()) ||
+                        (metadataFieldName.length > 2 &&
+                                !StringUtils.equals(metadataFieldName[2], input.getQualifier()))) {
+                    break;
+                }
+
+                String mappedToIfNotDefault = this.loadMappedToIfNotDefaultFromComplex(input.getComplexDefinition());
+                if (StringUtils.isNotBlank(mappedToIfNotDefault)) {
+                    return mappedToIfNotDefault;
+                }
+            }
+        }
+        return null;
     }
 }
