@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.mchange.lang.IntegerUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -160,7 +161,7 @@ public class DescribeStep extends AbstractProcessingStep {
                 // if the complex input field contains `mapped-to-if-not-default` definition
                 // put additional data to the defined metadata from the `mapped-to-if-not-default`
                 if (!StringUtils.isBlank(mappedToIfNotDefault)) {
-                    Operation newOp = this.getOperationWithChangedMetadataField(op, mappedToIfNotDefault);
+                    Operation newOp = this.getOperationWithChangedMetadataField(op, mappedToIfNotDefault, source);
                     if (!ObjectUtils.isEmpty(newOp)) {
                         patchOperation.perform(context, currentRequest, source, newOp);
                     }
@@ -201,7 +202,8 @@ public class DescribeStep extends AbstractProcessingStep {
      * @param mappedToIfNotDefault metadata where will be stored data from FE request
      * @return a new operation which is created from the old one but the metadata is changed
      */
-    private Operation getOperationWithChangedMetadataField(Operation oldOp, String mappedToIfNotDefault) {
+    private Operation getOperationWithChangedMetadataField(Operation oldOp, String mappedToIfNotDefault,
+                                                           InProgressSubmission source) {
         String[] oldOpPathArray = oldOp.getPath().split("/");
         String[] opPathArray = oldOpPathArray.clone();
 
@@ -279,6 +281,10 @@ public class DescribeStep extends AbstractProcessingStep {
         Operation newOp = null;
         String opPath = String.join("/", opPathArray);
         if (oldOp.getOp().equals("replace")) {
+            List<MetadataValue> metadataByMetadataString = itemService.getMetadataByMetadataString(source.getItem(),
+                    mappedToIfNotDefault);
+            if (metadataByMetadataString.isEmpty()) { return null; }
+
             newOp = new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
         } else {
             newOp = new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
