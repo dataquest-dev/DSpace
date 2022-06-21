@@ -245,7 +245,7 @@ public class DescribeStep extends AbstractProcessingStep {
             // load info:eu-repo* from the jsonNodeValue
             // the eu info is on the 4th index of the complexInputType
             List<String> complexInputValue = Arrays.asList(oldOpValue.split(";"));
-            if (complexInputValue.size() > 3) {
+            if (complexInputValue.size() > 4) {
                 String euIdentifier = complexInputValue.get(4);
                 // remove last value from the eu identifier - it should be in the metadata value
                 List<String> euIdentifierSplit = new ArrayList<>(Arrays.asList(euIdentifier.split("/")));
