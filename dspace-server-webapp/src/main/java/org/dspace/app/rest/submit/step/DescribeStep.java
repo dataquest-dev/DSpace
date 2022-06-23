@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,15 +19,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-import com.mchange.lang.IntegerUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.util.Integers;
-import org.apache.logging.log4j.core.util.JsonUtils;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.AddOperation;
@@ -51,7 +45,6 @@ import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.springframework.util.ObjectUtils;
-import org.w3c.dom.Text;
 
 /**
  * Describe step for DSpace Spring Rest. Expose and allow patching of the in progress submission metadata. It is
@@ -207,28 +200,37 @@ public class DescribeStep extends AbstractProcessingStep {
         String[] oldOpPathArray = oldOp.getPath().split("/");
         String[] opPathArray = oldOpPathArray.clone();
 
+        // method could be `Add` or `Replace`
+        boolean isReplaceMethod = false;
+
         // change the metadata (e.g. `local.sponsor`) in the end of the path
-        if (NumberUtils.isCreatable(opPathArray[opPathArray.length-1])) {
+        if (NumberUtils.isCreatable(opPathArray[opPathArray.length - 1])) {
             // e.g. `traditional/section/local.sponsor/0`
-            opPathArray[opPathArray.length-2] = mappedToIfNotDefault;
+            opPathArray[opPathArray.length - 2] = mappedToIfNotDefault;
+            isReplaceMethod = true;
         } else {
             // e.g. `traditional/section/local.sponsor`
-            opPathArray[opPathArray.length-1] = mappedToIfNotDefault;
+            opPathArray[opPathArray.length - 1] = mappedToIfNotDefault;
         }
 
-        // load the value of the input field from the old operation
+        // from the old operation load the value of the input field
         String oldOpValue = "";
         JsonNode jsonNodeValue = null;
 
+        // Operation has a value wrapped in the JsonValueEvaluator
         JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) oldOp.getValue();
         Iterator<JsonNode> jsonNodes = jsonValEvaluator.getValueNode().elements();
 
-        for (Iterator<JsonNode> it = jsonNodes; it.hasNext(); ) {
-            JsonNode jsonNode = it.next();
-            if (jsonNode instanceof ObjectNode) {
-                jsonNodeValue = jsonNode.get("value");
-            } else {
-                jsonNodeValue = jsonValEvaluator.getValueNode().get("value");
+        if (isReplaceMethod) {
+            // replace operation has value wrapped in the ObjectNode
+            jsonNodeValue = jsonValEvaluator.getValueNode().get("value");
+        } else {
+            // add operation has value wrapped in the ArrayNode
+            for (Iterator<JsonNode> it = jsonNodes; it.hasNext(); ) {
+                JsonNode jsonNode = it.next();
+                if (jsonNode instanceof ObjectNode) {
+                    jsonNodeValue = jsonNode.get("value");
+                }
             }
         }
 
@@ -236,12 +238,13 @@ public class DescribeStep extends AbstractProcessingStep {
             throw new UnprocessableEntityException("Cannot load JsonNode value from the operation: " +
                     oldOp.getPath());
         }
+        // get the value from the old operation as a string
         oldOpValue = jsonNodeValue.asText();
 
         // add the value from the old operation to the new operation
         String opValue = "";
-        if (StringUtils.equals("local.sponsor", oldOpPathArray[oldOpPathArray.length-1]) ||
-            StringUtils.equals("local.sponsor", oldOpPathArray[oldOpPathArray.length-2])) {
+        if (StringUtils.equals("local.sponsor", oldOpPathArray[oldOpPathArray.length - 1]) ||
+            StringUtils.equals("local.sponsor", oldOpPathArray[oldOpPathArray.length - 2])) {
             // for the metadata `local.sponsor` change the `info:eu-repo...` value from the old value
 
             // load info:eu-repo* from the jsonNodeValue
@@ -272,25 +275,76 @@ public class DescribeStep extends AbstractProcessingStep {
 
         // create a new operation and add the new value there
         JsonNodeFactory js = new JsonNodeFactory(false);
+        // ArrayNode - Add operation
         ArrayNode an = new ArrayNode(js);
         an.add(js.textNode(opValue));
 
+        // ObjectNode - Replace operation
         ObjectNode on = new ObjectNode(js);
         on.set("value", js.textNode(opValue));
 
         Operation newOp = null;
+        // create a path as a string for the new operation
         String opPath = String.join("/", opPathArray);
-        if (oldOp.getOp().equals("replace")) {
-            List<MetadataValue> metadataByMetadataString = itemService.getMetadataByMetadataString(source.getItem(),
-                    mappedToIfNotDefault);
-            if (metadataByMetadataString.isEmpty()) { return null; }
 
-            newOp = new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
+        // load the actual value from the metadataField which will be updated
+        List<MetadataValue> metadataByMetadataString = itemService.getMetadataByMetadataString(source.getItem(),
+                mappedToIfNotDefault);
+        if (isReplaceMethod) {
+            // cannot replace value to the metadataField which not exist in the Item - the Add operation must be called
+            if (metadataByMetadataString.isEmpty()) {
+                return null;
+            }
+
+            // index of the value in the metadataField. Metadata field could have more values.
+            int index = Integer.parseInt(opPathArray[opPathArray.length - 1]);
+
+            // trying to replace the value of the metadataField in the index which is bigger than
+            // maximum size of values in the updating metadataFields
+            // e.g. there is only one value in the `dc.relation` metadataField and we need to update
+            // `dc.relation` in the index `1` which is second value from the `dc.relation`
+            if (index >= metadataByMetadataString.size()) {
+                // update value in the metadataField but the metadataField is empty - call Add operation
+                if (index == 0) {
+                    // from the path remove index because Add operation doesn't have the index
+                    opPathArray = ArrayUtils.remove(opPathArray, opPathArray.length - 1);
+                    opPath = String.join("/", opPathArray);
+                    return new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
+                } else {
+                    // from the path decrease the metadataField value index to actual size of the metadataField values
+                    opPathArray[opPathArray.length - 1] = String.valueOf(metadataByMetadataString.size() - 1);
+                    opPath =  String.join("/", opPathArray);
+                    return new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
+                }
+            }
+            return new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
         } else {
-            newOp = new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
+//            if (metadataByMetadataString.isEmpty()) {
+//                // new metadata is not there
+//                opPathArray = ArrayUtils.remove(opPathArray, opPathArray.length -1);
+//                String opPathAddOp = String.join("/", opPathArray);
+//                newOp = new AddOperation(opPathAddOp, new JsonValueEvaluator(new ObjectMapper(), an));
+//            } else if (Integer.parseInt(opPathArray[opPathArray.length-1]) > metadataByMetadataString.size()) {
+//                // metadata is not there but is another input field
+//                if (Integer.parseInt(opPathArray[opPathArray.length-1])-1 == 0) {
+//                    // new from 1 to 0
+//                    opPathArray = ArrayUtils.remove(opPathArray, opPathArray.length -1);
+//                    String opPathAddOp = String.join("/", opPathArray);
+//                    newOp = new AddOperation(opPathAddOp, new JsonValueEvaluator(new ObjectMapper(), an));
+//                } else {
+//                    // from 2 to 1
+//                    opPathArray[opPathArray.length-1] = String.valueOf(Integer.parseInt
+//                      (opPathArray[opPathArray.length-1]) - 1);
+//                    opPath =  String.join("/", opPathArray);
+//                    newOp = new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
+//                }
+//            } else {
+//                // new
+//                newOp = new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
+//            }
+            // first new
+            return new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
         }
-
-        return newOp;
     }
 
     /**
@@ -323,7 +377,9 @@ public class DescribeStep extends AbstractProcessingStep {
         for (DCInput[] inputsList : inputsListOfList) {
             List<DCInput> inputs = Arrays.asList(inputsList);
             for (DCInput input : inputs) {
-                if (!StringUtils.equals("complex", input.getInputType())) { break; }
+                if (!StringUtils.equals("complex", input.getInputType())) {
+                    break;
+                }
 
                 String[] metadataFieldName = inputFieldMetadata.split("\\.");
                 if (!StringUtils.equals(metadataFieldName[0], input.getSchema()) ||

@@ -9,6 +9,7 @@ package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
+import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 import static org.hamcrest.Matchers.allOf;
@@ -112,6 +113,11 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     private Group embargoedGroup1;
     private Group embargoedGroup2;
     private Group anonymousGroup;
+
+    private String euSponsor = "EU;Test funding code;Test funding organization;Test funding name;" +
+            "info:eu-repo/grantAgreement/Test funding code";
+    String nonEuSponsor = "No EU;Test funding code;Test funding organization;Test funding name";
+    String relation = "info:eu-repo/grantAgreement/Test funding code";
 
     @Before
     @Override
@@ -3226,7 +3232,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         value.put("value", "newfilename.pdf");
         Map<String, String> valueDesc  = new HashMap<String, String>();
         valueDesc.put("value", "Description");
-        List valueDescs = new ArrayList();
+        List<Map<String, String>> valueDescs = new ArrayList<>();
         valueDescs.add(valueDesc);
         addOpts.add(new AddOperation("/sections/upload/files/0/metadata/dc.title/0", value));
         addOpts.add(new AddOperation("/sections/upload/files/0/metadata/dc.description", valueDescs));
@@ -7189,6 +7195,153 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                              bitstream2, ResourcePolicy.TYPE_CUSTOM, Constants.READ, "embargo")
                               )))
                              .andExpect(jsonPath("$.page.totalElements", is(1)));
+    }
+
+    @Test
+    public void patchAddEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+
+        List<Operation> addTitle = new ArrayList<Operation>();
+        // create a list of values to use in add operation
+        List<Map<String, String>> titleValues = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", euSponsor);
+        titleValues.add(value);
+        addTitle.add(new AddOperation("/sections/traditionalpageone/local.sponsor", titleValues));
+
+        String patchBody = getPatchContent(addTitle);
+
+        // Verify submitter cannot modify metadata via item PATCH. They must use submission forms.
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        euSponsor, relation)));
+    }
+
+    @Test
+    public void patchAddNonEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+
+        List<Operation> addTitle = new ArrayList<Operation>();
+        // create a list of values to use in add operation
+        List<Map<String, String>> titleValues = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", nonEuSponsor);
+        titleValues.add(value);
+        addTitle.add(new AddOperation("/sections/traditionalpageone/local.sponsor", titleValues));
+
+        String patchBody = getPatchContent(addTitle);
+
+        // Verify submitter cannot modify metadata via item PATCH. They must use submission forms.
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        nonEuSponsor, null)));
+    }
+
+    @Test
+    public void patchAddMoreNonEUWithEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+        String secondNonEUSponsor = "2"+nonEuSponsor;
+        String secondEUSponsor = "2"+euSponsor;
+
+        List<Operation> addSponsorOperations = new ArrayList<Operation>();
+
+        // create a list of values to use in add operation
+        List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
+        Map<String, String> firstSponsor = new HashMap<String, String>();
+        firstSponsor.put("value", euSponsor);
+        firstSponsorValues.add(firstSponsor);
+
+        Map<String, String> secondSponsor = new HashMap<String, String>();
+        secondSponsor.put("value", nonEuSponsor);
+
+        Map<String, String> thirdSponsor = new HashMap<String, String>();
+        thirdSponsor.put("value", secondNonEUSponsor);
+
+        Map<String, String> fourthSponsor = new HashMap<String, String>();
+        fourthSponsor.put("value", secondEUSponsor);
+
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor", firstSponsorValues));
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor/1", secondSponsor));
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor/2", thirdSponsor));
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor/3", fourthSponsor));
+
+        String patchBody = getPatchContent(addSponsorOperations);
+
+        // Verify submitter cannot modify metadata via item PATCH. They must use submission forms.
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
+                        is(euSponsor)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
+                        is(nonEuSponsor)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][2].value",
+                        is(secondNonEUSponsor)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][3].value",
+                        is(secondEUSponsor)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
+                        is(relation)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value",
+                        is(relation)));
+    }
+
+    @Test
+    public void patchAddMoreEUWithNonEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+
+        List<Operation> addTitle = new ArrayList<Operation>();
+        // create a list of values to use in add operation
+        List<Map<String, String>> titleValues = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", nonEuSponsor);
+        titleValues.add(value);
+        addTitle.add(new AddOperation("/sections/traditionalpageone/local.sponsor", titleValues));
+
+        String patchBody = getPatchContent(addTitle);
+
+        // Verify submitter cannot modify metadata via item PATCH. They must use submission forms.
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        nonEuSponsor, null)));
+    }
+
+    private WorkspaceItem createSimpleWorkspaceItem() {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                .withName("Collection 1")
+                .build();
+
+        context.setCurrentUser(eperson);
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                .withTitle("Workspace Item 1")
+                .withIssueDate("2017-10-17")
+                .withSubject("ExtraEntry")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        return witem;
     }
 
 }
