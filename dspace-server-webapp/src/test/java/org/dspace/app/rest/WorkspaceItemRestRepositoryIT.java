@@ -9,7 +9,6 @@ package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
-import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 import static org.hamcrest.Matchers.allOf;
@@ -7248,8 +7247,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     @Test
     public void patchAddMoreNonEUWithEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
         WorkspaceItem witem = this.createSimpleWorkspaceItem();
-        String secondNonEUSponsor = "2"+nonEuSponsor;
-        String secondEUSponsor = "2"+euSponsor;
+        String secondNonEUSponsor = "2" + nonEuSponsor;
+        String secondEUSponsor = "2" + euSponsor;
 
         List<Operation> addSponsorOperations = new ArrayList<Operation>();
 
@@ -7298,16 +7297,32 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     @Test
     public void patchAddMoreEUWithNonEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
         WorkspaceItem witem = this.createSimpleWorkspaceItem();
+        String secondNonEUSponsor = "2" + nonEuSponsor;
+        String secondEUSponsor = "2" + euSponsor;
 
-        List<Operation> addTitle = new ArrayList<Operation>();
+        List<Operation> addSponsorOperations = new ArrayList<Operation>();
+
         // create a list of values to use in add operation
-        List<Map<String, String>> titleValues = new ArrayList<Map<String, String>>();
-        Map<String, String> value = new HashMap<String, String>();
-        value.put("value", nonEuSponsor);
-        titleValues.add(value);
-        addTitle.add(new AddOperation("/sections/traditionalpageone/local.sponsor", titleValues));
+        List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
+        Map<String, String> firstSponsor = new HashMap<String, String>();
+        firstSponsor.put("value", nonEuSponsor);
+        firstSponsorValues.add(firstSponsor);
 
-        String patchBody = getPatchContent(addTitle);
+        Map<String, String> secondSponsor = new HashMap<String, String>();
+        secondSponsor.put("value", euSponsor);
+
+        Map<String, String> thirdSponsor = new HashMap<String, String>();
+        thirdSponsor.put("value", secondEUSponsor);
+
+        Map<String, String> fourthSponsor = new HashMap<String, String>();
+        fourthSponsor.put("value", secondNonEUSponsor);
+
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor", firstSponsorValues));
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor/1", secondSponsor));
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor/2", thirdSponsor));
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor/3", fourthSponsor));
+
+        String patchBody = getPatchContent(addSponsorOperations);
 
         // Verify submitter cannot modify metadata via item PATCH. They must use submission forms.
         String tokenEperson = getAuthToken(admin.getEmail(), password);
@@ -7315,9 +7330,324 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
-                        nonEuSponsor, null)));
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
+                        is(nonEuSponsor)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
+                        is(euSponsor)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][2].value",
+                        is(secondEUSponsor)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][3].value",
+                        is(secondNonEUSponsor)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
+                        is(relation)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value",
+                        is(relation)));
     }
+
+    // replace nonEU - should do not have relation
+    @Test
+    public void patchReplaceNonEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+        String updatedSponsor = "updated" + nonEuSponsor;
+
+        List<Operation> addSponsorOperations = new ArrayList<Operation>();
+        List<Operation> replaceSponsorOperations = new ArrayList<Operation>();
+
+        // create a list of values to use in add operation
+        List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
+        Map<String, String> firstSponsor = new HashMap<String, String>();
+        firstSponsor.put("value", nonEuSponsor);
+        firstSponsorValues.add(firstSponsor);
+
+        // creating replace operation
+        Map<String, String> updatedSponsorValue = new HashMap<String, String>();
+        updatedSponsorValue.put("value", updatedSponsor);
+
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor",
+                firstSponsorValues));
+        replaceSponsorOperations.add(new ReplaceOperation("/sections/traditionalpageone/local.sponsor/0",
+                updatedSponsorValue));
+
+        String patchBody = getPatchContent(addSponsorOperations);
+        String updateBody = getPatchContent(replaceSponsorOperations);
+
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        // Add operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        nonEuSponsor, null)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value").doesNotExist());
+
+        // Replace operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        updatedSponsor, null)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value").doesNotExist());
+    }
+
+    // replace EU - should do not have relation
+    @Test
+    public void patchReplaceEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+        String updatedSponsor = "updated" + euSponsor;
+
+        List<Operation> addSponsorOperations = new ArrayList<Operation>();
+        List<Operation> replaceSponsorOperations = new ArrayList<Operation>();
+
+        // create a list of values to use in add operation
+        List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
+        Map<String, String> firstSponsor = new HashMap<String, String>();
+        firstSponsor.put("value", euSponsor);
+        firstSponsorValues.add(firstSponsor);
+
+        // creating replace operation
+        Map<String, String> updatedSponsorValue = new HashMap<String, String>();
+        updatedSponsorValue.put("value", updatedSponsor);
+
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor",
+                firstSponsorValues));
+        replaceSponsorOperations.add(new ReplaceOperation("/sections/traditionalpageone/local.sponsor/0",
+                updatedSponsorValue));
+
+        String patchBody = getPatchContent(addSponsorOperations);
+        String updateBody = getPatchContent(replaceSponsorOperations);
+
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        // Add operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        euSponsor, relation)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
+
+        // Replace operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        updatedSponsor, relation)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
+    }
+
+    // replace non EU to EU - should have relation
+    @Test
+    public void patchReplaceFromNonEUToEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+
+        List<Operation> addSponsorOperations = new ArrayList<Operation>();
+        List<Operation> replaceSponsorOperations = new ArrayList<Operation>();
+
+        // create a list of values to use in add operation
+        List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
+        Map<String, String> firstSponsor = new HashMap<String, String>();
+        firstSponsor.put("value", nonEuSponsor);
+        firstSponsorValues.add(firstSponsor);
+
+        // creating replace operation
+        Map<String, String> updatedSponsorValue = new HashMap<String, String>();
+        updatedSponsorValue.put("value", euSponsor);
+
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor",
+                firstSponsorValues));
+        replaceSponsorOperations.add(new ReplaceOperation("/sections/traditionalpageone/local.sponsor/0",
+                updatedSponsorValue));
+
+        String patchBody = getPatchContent(addSponsorOperations);
+        String updateBody = getPatchContent(replaceSponsorOperations);
+
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        // Add operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        nonEuSponsor, null)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value").doesNotExist());
+
+        // Replace operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        euSponsor, relation)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
+    }
+
+    // replace EU to non EU - should do not have relation
+    @Test
+    public void patchReplaceFromRUToNonEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+
+        List<Operation> addSponsorOperations = new ArrayList<Operation>();
+        List<Operation> replaceSponsorOperations = new ArrayList<Operation>();
+
+        // create a list of values to use in add operation
+        List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
+        Map<String, String> firstSponsor = new HashMap<String, String>();
+        firstSponsor.put("value", euSponsor);
+        firstSponsorValues.add(firstSponsor);
+
+        // creating replace operation
+        Map<String, String> updatedSponsorValue = new HashMap<String, String>();
+        updatedSponsorValue.put("value", nonEuSponsor);
+
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor", firstSponsorValues));
+        replaceSponsorOperations.add(new ReplaceOperation("/sections/traditionalpageone/local.sponsor/0",
+                updatedSponsorValue));
+
+        String patchBody = getPatchContent(addSponsorOperations);
+        String updateBody = getPatchContent(replaceSponsorOperations);
+
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        // Add operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        euSponsor, relation)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
+
+        // Replace operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
+                        nonEuSponsor, null)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
+    }
+
+    // add EU, add nonEU, changee EU to nonEU, change nonEU to EU
+    @Test
+    public void patchAddMoreEUAndNonEUAndReplaceEachOtherOnItemStillInSubmissionTest() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+        String secondEuSponsor = "2" + euSponsor;
+
+        List<Operation> addSponsorOperations = new ArrayList<Operation>();
+        List<Operation> replaceSponsorOperations = new ArrayList<Operation>();
+
+        // create a list of values to use in add operation
+        List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
+        Map<String, String> firstSponsor = new HashMap<String, String>();
+        firstSponsor.put("value", euSponsor);
+        firstSponsorValues.add(firstSponsor);
+
+        Map<String, String> secondSponsor = new HashMap<String, String>();
+        secondSponsor.put("value", nonEuSponsor);
+
+        // creating replace operation
+        Map<String, String> updatedSponsorValue = new HashMap<String, String>();
+        updatedSponsorValue.put("value", secondEuSponsor);
+
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor", firstSponsorValues));
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor/1", secondSponsor));
+        replaceSponsorOperations.add(new ReplaceOperation("/sections/traditionalpageone/local.sponsor/1",
+                updatedSponsorValue));
+
+        String patchBody = getPatchContent(addSponsorOperations);
+        String updateBody = getPatchContent(replaceSponsorOperations);
+
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        // Add operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
+                        is(euSponsor)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
+                        is(nonEuSponsor)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
+                        is(relation)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
+
+        // Replace operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
+                        is(euSponsor)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
+                        is(secondEuSponsor)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
+                        is(relation)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value",
+                        is(relation)));
+    }
+
+    // add EU, add nonEU, changee EU to nonEU, change nonEU to EU
+    @Test
+    public void patchAddMoreNonEUAndEUAndReplaceEachOtherOnItemStillInSubmissionTest() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+        String secondEuSponsor = "2" + euSponsor;
+
+        List<Operation> addSponsorOperations = new ArrayList<Operation>();
+        List<Operation> replaceSponsorOperations = new ArrayList<Operation>();
+
+        // create a list of values to use in add operation
+        List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
+        Map<String, String> firstSponsor = new HashMap<String, String>();
+        firstSponsor.put("value", euSponsor);
+        firstSponsorValues.add(firstSponsor);
+
+        Map<String, String> secondSponsor = new HashMap<String, String>();
+        secondSponsor.put("value", nonEuSponsor);
+
+        // creating replace operation
+        Map<String, String> updatedSponsorValue = new HashMap<String, String>();
+        updatedSponsorValue.put("value", secondEuSponsor);
+
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor", firstSponsorValues));
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor/1", secondSponsor));
+        replaceSponsorOperations.add(new ReplaceOperation("/sections/traditionalpageone/local.sponsor/1",
+                updatedSponsorValue));
+
+        String patchBody = getPatchContent(addSponsorOperations);
+        String updateBody = getPatchContent(replaceSponsorOperations);
+
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        // Add operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
+                        is(euSponsor)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
+                        is(nonEuSponsor)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
+                        is(relation)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
+
+        // Replace operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
+                        is(euSponsor)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
+                        is(secondEuSponsor)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
+                        is(relation)))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value",
+                        is(relation)));
+    }
+
+
 
     private WorkspaceItem createSimpleWorkspaceItem() {
         context.turnOffAuthorisationSystem();

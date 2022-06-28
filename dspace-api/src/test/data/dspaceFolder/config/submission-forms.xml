@@ -51,33 +51,6 @@
    <form name="traditionalpageone">
             <!-- NOTE: this Author <row> is customized from the default submission-forms.xml in order to make it
                  easier to test Entity functionality -->
-            <!-- Example row for the complex input type definition.
-            Uncomment it and the complex input will be showed in the submission UI. -->
-            <row>
-             <field>
-               <dc-schema>local</dc-schema>
-               <dc-element>contact</dc-element>
-               <dc-qualifier>person</dc-qualifier>
-               <repeatable>true</repeatable>
-               <label>Contact person</label>
-               <style>col-sm-5</style>
-               <input-type complex-definition-ref="contact_person">complex</input-type>
-               <hint>This is contact person</hint>
-               <required>Enter the contact person data.</required>
-             </field>
-            </row>
-            <row>
-             <field>
-               <dc-schema>local</dc-schema>
-               <dc-element>sponsor</dc-element>
-               <repeatable>true</repeatable>
-               <label>Funding</label>
-               <style>col-sm-5</style>
-               <input-type complex-definition-ref="funding">complex</input-type>
-               <hint>This is funding</hint>
-               <required>Enter the funding.</required>
-             </field>
-            </row>
             <row>
                 <relation-field>
                     <relationship-type>isAuthorOfPublication</relationship-type>
@@ -207,6 +180,33 @@ it, please enter the types and the actual numbers or codes.</hint>
          <label>Language</label>
          <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
          <hint>Select the language of the main content of the item.  If the language does not appear in the list, please select 'Other'.  If the content does not really have a language (for example, if it is a dataset or an image) please select 'N/A'.</hint>
+         <required></required>
+       </field>
+     </row>
+     <!-- Example row for the complex input type definition.
+            Uncomment it and the complex input will be showed in the submission UI. -->
+     <row>
+       <field>
+         <dc-schema>local</dc-schema>
+         <dc-element>contact</dc-element>
+         <dc-qualifier>person</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Contact person</label>
+         <style>col-sm-5</style>
+         <input-type complex-definition-ref="contact_person">complex</input-type>
+         <hint>This is contact person</hint>
+         <required></required>
+       </field>
+     </row>
+     <row>
+       <field>
+         <dc-schema>local</dc-schema>
+         <dc-element>sponsor</dc-element>
+         <repeatable>true</repeatable>
+         <label>Funding</label>
+         <style>col-sm-5</style>
+         <input-type complex-definition-ref="funding">complex</input-type>
+         <hint>This is funding</hint>
          <required></required>
        </field>
      </row>
