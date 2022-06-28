@@ -26,6 +26,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,13 +39,21 @@ public class MetadataValueRestRepositoryIT extends AbstractControllerIntegration
     private static final String ELEMENT = "contributor";
     private static final String QUALIFIER = "author";
 
+    private static final String SPONSOR_SCHEMA = "local";
+    private static final String SPONSOR_ELEMENT = "sponsor";
+    private static final String SPONSOR_VALUE = WorkspaceItemRestRepositoryIT.EU_SPONSOR;
+
     private Item publicItem;
+    private Item sponsorItem;
 
     public static final String METADATAVALUES_ENDPOINT = "/api/core/metadatavalues/";
     private static final String SEARCH_BYVALUE_ENDPOINT = METADATAVALUES_ENDPOINT + "search/byValue";
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    private MetadataFieldService metadataFieldService;
 
     @Before
     public void setup() throws Exception {
@@ -59,6 +68,13 @@ public class MetadataValueRestRepositoryIT extends AbstractControllerIntegration
         // 2. Create item and add it to the collection
         publicItem = ItemBuilder.createItem(context, col)
                 .withAuthor(AUTHOR)
+                .withMetadata(SPONSOR_SCHEMA, SPONSOR_ELEMENT, null, SPONSOR_VALUE )
+                .build();
+
+        // two items has the same sponsor
+        sponsorItem = ItemBuilder.createItem(context, col)
+                .withAuthor(AUTHOR)
+                .withMetadata(SPONSOR_SCHEMA, SPONSOR_ELEMENT, null, SPONSOR_VALUE )
                 .build();
         context.restoreAuthSystemState();
     }
@@ -156,6 +172,45 @@ public class MetadataValueRestRepositoryIT extends AbstractControllerIntegration
                 ))
                 .andExpect(jsonPath("$.page.size", is(20)))
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
+    }
+
+    @Test
+    public void shouldReturnDistinctSuggestion() throws Exception {
+        MetadataValue titleMetadataValue = this.getTitleMetadataValue();
+
+
+        String metadataSchema = titleMetadataValue.getMetadataField().getMetadataSchema().getName();
+        String metadataElement = titleMetadataValue.getMetadataField().getElement();
+        String metadataQualifier = titleMetadataValue.getMetadataField().getQualifier();
+        String searchValue = titleMetadataValue.getValue();
+
+        getClient().perform(get(SEARCH_BYVALUE_ENDPOINT)
+                        .param("schema", metadataSchema)
+                        .param("element",metadataElement)
+                        .param("qualifier",metadataQualifier)
+                        .param("searchValue",searchValue))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$._embedded.metadatavalues", Matchers.hasItem(
+                        MetadataValueMatcher.matchMetadataValueByKeys(titleMetadataValue.getValue(),
+                                titleMetadataValue.getLanguage(), titleMetadataValue.getAuthority(),
+                                titleMetadataValue.getConfidence(), titleMetadataValue.getPlace()))
+                ))
+                .andExpect(jsonPath("$.page.size", is(20)))
+                .andExpect(jsonPath("$.page.totalElements", is(1)));
+    }
+
+    @Test
+    public void shouldNotReturnSponsorSuggestion() throws Exception {
+        String searchValue = "grantAgreement";
+
+        getClient().perform(get(SEARCH_BYVALUE_ENDPOINT)
+                        .param("schema", SPONSOR_SCHEMA)
+                        .param("element", SPONSOR_ELEMENT)
+                        .param("searchValue", searchValue))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.page.totalElements", is(0)));
     }
 
     private MetadataValue getTitleMetadataValue() {

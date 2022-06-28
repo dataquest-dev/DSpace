@@ -113,10 +113,11 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     private Group embargoedGroup2;
     private Group anonymousGroup;
 
-    private String euSponsor = "EU;Test funding code;Test funding organization;Test funding name;" +
+    public static final String REST_SERVER_URL = "http://localhost/api/";
+    public static final String EU_SPONSOR = "EU;Test funding code;Test funding organization;Test funding name;" +
             "info:eu-repo/grantAgreement/Test funding code";
-    String nonEuSponsor = "No EU;Test funding code;Test funding organization;Test funding name";
-    String relation = "info:eu-repo/grantAgreement/Test funding code";
+    private static final String NON_EU_SPONSOR = "No EU;Test funding code;Test funding organization;Test funding name";
+    private static final String EU_SPONSOR_RELATION = "info:eu-repo/grantAgreement/Test funding code";
 
     @Before
     @Override
@@ -7204,7 +7205,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // create a list of values to use in add operation
         List<Map<String, String>> titleValues = new ArrayList<Map<String, String>>();
         Map<String, String> value = new HashMap<String, String>();
-        value.put("value", euSponsor);
+        value.put("value", EU_SPONSOR);
         titleValues.add(value);
         addTitle.add(new AddOperation("/sections/traditionalpageone/local.sponsor", titleValues));
 
@@ -7217,7 +7218,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
-                        euSponsor, relation)));
+                        EU_SPONSOR, EU_SPONSOR_RELATION)));
     }
 
     @Test
@@ -7228,7 +7229,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // create a list of values to use in add operation
         List<Map<String, String>> titleValues = new ArrayList<Map<String, String>>();
         Map<String, String> value = new HashMap<String, String>();
-        value.put("value", nonEuSponsor);
+        value.put("value", NON_EU_SPONSOR);
         titleValues.add(value);
         addTitle.add(new AddOperation("/sections/traditionalpageone/local.sponsor", titleValues));
 
@@ -7241,25 +7242,25 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
-                        nonEuSponsor, null)));
+                        NON_EU_SPONSOR, null)));
     }
 
     @Test
     public void patchAddMoreNonEUWithEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
         WorkspaceItem witem = this.createSimpleWorkspaceItem();
-        String secondNonEUSponsor = "2" + nonEuSponsor;
-        String secondEUSponsor = "2" + euSponsor;
+        String secondNonEUSponsor = "2" + NON_EU_SPONSOR;
+        String secondEUSponsor = "2" + EU_SPONSOR;
 
         List<Operation> addSponsorOperations = new ArrayList<Operation>();
 
         // create a list of values to use in add operation
         List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
         Map<String, String> firstSponsor = new HashMap<String, String>();
-        firstSponsor.put("value", euSponsor);
+        firstSponsor.put("value", EU_SPONSOR);
         firstSponsorValues.add(firstSponsor);
 
         Map<String, String> secondSponsor = new HashMap<String, String>();
-        secondSponsor.put("value", nonEuSponsor);
+        secondSponsor.put("value", NON_EU_SPONSOR);
 
         Map<String, String> thirdSponsor = new HashMap<String, String>();
         thirdSponsor.put("value", secondNonEUSponsor);
@@ -7281,35 +7282,35 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
-                        is(euSponsor)))
+                        is(EU_SPONSOR)))
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
-                        is(nonEuSponsor)))
+                        is(NON_EU_SPONSOR)))
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][2].value",
                         is(secondNonEUSponsor)))
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][3].value",
                         is(secondEUSponsor)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
-                        is(relation)))
+                        is(EU_SPONSOR_RELATION)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value",
-                        is(relation)));
+                        is(EU_SPONSOR_RELATION)));
     }
 
     @Test
     public void patchAddMoreEUWithNonEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
         WorkspaceItem witem = this.createSimpleWorkspaceItem();
-        String secondNonEUSponsor = "2" + nonEuSponsor;
-        String secondEUSponsor = "2" + euSponsor;
+        String secondNonEUSponsor = "2" + NON_EU_SPONSOR;
+        String secondEUSponsor = "2" + EU_SPONSOR;
 
         List<Operation> addSponsorOperations = new ArrayList<Operation>();
 
         // create a list of values to use in add operation
         List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
         Map<String, String> firstSponsor = new HashMap<String, String>();
-        firstSponsor.put("value", nonEuSponsor);
+        firstSponsor.put("value", NON_EU_SPONSOR);
         firstSponsorValues.add(firstSponsor);
 
         Map<String, String> secondSponsor = new HashMap<String, String>();
-        secondSponsor.put("value", euSponsor);
+        secondSponsor.put("value", EU_SPONSOR);
 
         Map<String, String> thirdSponsor = new HashMap<String, String>();
         thirdSponsor.put("value", secondEUSponsor);
@@ -7331,24 +7332,24 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
-                        is(nonEuSponsor)))
+                        is(NON_EU_SPONSOR)))
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
-                        is(euSponsor)))
+                        is(EU_SPONSOR)))
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][2].value",
                         is(secondEUSponsor)))
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][3].value",
                         is(secondNonEUSponsor)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
-                        is(relation)))
+                        is(EU_SPONSOR_RELATION)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value",
-                        is(relation)));
+                        is(EU_SPONSOR_RELATION)));
     }
 
     // replace nonEU - should do not have relation
     @Test
     public void patchReplaceNonEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
         WorkspaceItem witem = this.createSimpleWorkspaceItem();
-        String updatedSponsor = "updated" + nonEuSponsor;
+        String updatedSponsor = "updated" + NON_EU_SPONSOR;
 
         List<Operation> addSponsorOperations = new ArrayList<Operation>();
         List<Operation> replaceSponsorOperations = new ArrayList<Operation>();
@@ -7356,7 +7357,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // create a list of values to use in add operation
         List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
         Map<String, String> firstSponsor = new HashMap<String, String>();
-        firstSponsor.put("value", nonEuSponsor);
+        firstSponsor.put("value", NON_EU_SPONSOR);
         firstSponsorValues.add(firstSponsor);
 
         // creating replace operation
@@ -7378,7 +7379,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
-                        nonEuSponsor, null)))
+                        NON_EU_SPONSOR, null)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value").doesNotExist());
 
         // Replace operation
@@ -7395,7 +7396,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     @Test
     public void patchReplaceEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
         WorkspaceItem witem = this.createSimpleWorkspaceItem();
-        String updatedSponsor = "updated" + euSponsor;
+        String updatedSponsor = "updated" + EU_SPONSOR;
 
         List<Operation> addSponsorOperations = new ArrayList<Operation>();
         List<Operation> replaceSponsorOperations = new ArrayList<Operation>();
@@ -7403,7 +7404,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // create a list of values to use in add operation
         List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
         Map<String, String> firstSponsor = new HashMap<String, String>();
-        firstSponsor.put("value", euSponsor);
+        firstSponsor.put("value", EU_SPONSOR);
         firstSponsorValues.add(firstSponsor);
 
         // creating replace operation
@@ -7425,7 +7426,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
-                        euSponsor, relation)))
+                        EU_SPONSOR, EU_SPONSOR_RELATION)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
 
         // Replace operation
@@ -7434,7 +7435,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
-                        updatedSponsor, relation)))
+                        updatedSponsor, EU_SPONSOR_RELATION)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
     }
 
@@ -7449,12 +7450,12 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // create a list of values to use in add operation
         List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
         Map<String, String> firstSponsor = new HashMap<String, String>();
-        firstSponsor.put("value", nonEuSponsor);
+        firstSponsor.put("value", NON_EU_SPONSOR);
         firstSponsorValues.add(firstSponsor);
 
         // creating replace operation
         Map<String, String> updatedSponsorValue = new HashMap<String, String>();
-        updatedSponsorValue.put("value", euSponsor);
+        updatedSponsorValue.put("value", EU_SPONSOR);
 
         addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor",
                 firstSponsorValues));
@@ -7471,7 +7472,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
-                        nonEuSponsor, null)))
+                        NON_EU_SPONSOR, null)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value").doesNotExist());
 
         // Replace operation
@@ -7480,7 +7481,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
-                        euSponsor, relation)))
+                        EU_SPONSOR, EU_SPONSOR_RELATION)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
     }
 
@@ -7495,12 +7496,12 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // create a list of values to use in add operation
         List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
         Map<String, String> firstSponsor = new HashMap<String, String>();
-        firstSponsor.put("value", euSponsor);
+        firstSponsor.put("value", EU_SPONSOR);
         firstSponsorValues.add(firstSponsor);
 
         // creating replace operation
         Map<String, String> updatedSponsorValue = new HashMap<String, String>();
-        updatedSponsorValue.put("value", nonEuSponsor);
+        updatedSponsorValue.put("value", NON_EU_SPONSOR);
 
         addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor", firstSponsorValues));
         replaceSponsorOperations.add(new ReplaceOperation("/sections/traditionalpageone/local.sponsor/0",
@@ -7516,7 +7517,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
-                        euSponsor, relation)))
+                        EU_SPONSOR, EU_SPONSOR_RELATION)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
 
         // Replace operation
@@ -7525,7 +7526,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",  WorkspaceItemMatcher.matchItemWithSponsorRelation(witem,
-                        nonEuSponsor, null)))
+                        NON_EU_SPONSOR, null)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
     }
 
@@ -7533,7 +7534,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     @Test
     public void patchAddMoreEUAndNonEUAndReplaceEachOtherOnItemStillInSubmissionTest() throws Exception {
         WorkspaceItem witem = this.createSimpleWorkspaceItem();
-        String secondEuSponsor = "2" + euSponsor;
+        String secondEuSponsor = "2" + EU_SPONSOR;
 
         List<Operation> addSponsorOperations = new ArrayList<Operation>();
         List<Operation> replaceSponsorOperations = new ArrayList<Operation>();
@@ -7541,11 +7542,11 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // create a list of values to use in add operation
         List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
         Map<String, String> firstSponsor = new HashMap<String, String>();
-        firstSponsor.put("value", euSponsor);
+        firstSponsor.put("value", EU_SPONSOR);
         firstSponsorValues.add(firstSponsor);
 
         Map<String, String> secondSponsor = new HashMap<String, String>();
-        secondSponsor.put("value", nonEuSponsor);
+        secondSponsor.put("value", NON_EU_SPONSOR);
 
         // creating replace operation
         Map<String, String> updatedSponsorValue = new HashMap<String, String>();
@@ -7566,11 +7567,11 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
-                        is(euSponsor)))
+                        is(EU_SPONSOR)))
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
-                        is(nonEuSponsor)))
+                        is(NON_EU_SPONSOR)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
-                        is(relation)))
+                        is(EU_SPONSOR_RELATION)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
 
         // Replace operation
@@ -7579,20 +7580,20 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
-                        is(euSponsor)))
+                        is(EU_SPONSOR)))
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
                         is(secondEuSponsor)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
-                        is(relation)))
+                        is(EU_SPONSOR_RELATION)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value",
-                        is(relation)));
+                        is(EU_SPONSOR_RELATION)));
     }
 
     // add EU, add nonEU, changee EU to nonEU, change nonEU to EU
     @Test
     public void patchAddMoreNonEUAndEUAndReplaceEachOtherOnItemStillInSubmissionTest() throws Exception {
         WorkspaceItem witem = this.createSimpleWorkspaceItem();
-        String secondNonEuSponsor = "2" + nonEuSponsor;
+        String secondNonEuSponsor = "2" + NON_EU_SPONSOR;
 
         List<Operation> addSponsorOperations = new ArrayList<Operation>();
         List<Operation> replaceSponsorOperations = new ArrayList<Operation>();
@@ -7600,11 +7601,11 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // create a list of values to use in add operation
         List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
         Map<String, String> firstSponsor = new HashMap<String, String>();
-        firstSponsor.put("value", nonEuSponsor);
+        firstSponsor.put("value", NON_EU_SPONSOR);
         firstSponsorValues.add(firstSponsor);
 
         Map<String, String> secondSponsor = new HashMap<String, String>();
-        secondSponsor.put("value", euSponsor);
+        secondSponsor.put("value", EU_SPONSOR);
 
         // creating replace operation
         Map<String, String> updatedSponsorValue = new HashMap<String, String>();
@@ -7625,11 +7626,11 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
-                        is(nonEuSponsor)))
+                        is(NON_EU_SPONSOR)))
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
-                        is(euSponsor)))
+                        is(EU_SPONSOR)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value",
-                        is(relation)))
+                        is(EU_SPONSOR_RELATION)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
 
         // Replace operation
@@ -7638,7 +7639,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][0].value",
-                        is(nonEuSponsor)))
+                        is(NON_EU_SPONSOR)))
                 .andExpect(jsonPath("$.sections.traditionalpageone['local.sponsor'][1].value",
                         is(secondNonEuSponsor)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value").doesNotExist())

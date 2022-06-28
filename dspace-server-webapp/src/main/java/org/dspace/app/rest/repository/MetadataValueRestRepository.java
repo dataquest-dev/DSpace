@@ -11,6 +11,11 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -99,6 +104,10 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
             }
         }
 
+        if (searchValue.contains(":")) {
+            searchValue = searchValue.replace(":", "");
+        }
+
         // Find matches in Solr Search core
         DiscoverQuery discoverQuery =
                 this.createDiscoverQuery(metadataField, searchValue, pageable);
@@ -111,6 +120,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
                     // get metadata values of the item
                     List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
                             ((IndexableItem) object).getIndexedObject(), metadataField);
+
                     // convert metadata values to the wrapper
                     List<MetadataValueWrapper> metadataValueWrapperList =
                             this.convertMetadataValuesToWrappers(metadataValues);
@@ -122,7 +132,25 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
             throw new IllegalArgumentException("Error while searching with Discovery: " + e.getMessage());
         }
 
+        // filter eu sponsor -> do not return eu sponsor suggestions because for eu sponsors is used
+        // openAIRE API
+        if (StringUtils.equals(schemaName, "local") && StringUtils.equals(elementName, "sponsor")) {
+            metadataValueWrappers = filterEUSponsors(metadataValueWrappers);
+        }
+        metadataValueWrappers = distinctMetadataValues(metadataValueWrappers);
+
         return converter.toRestPage(metadataValueWrappers, pageable, utils.obtainProjection());
+    }
+
+    public List<MetadataValueWrapper> filterEUSponsors(List<MetadataValueWrapper> metadataWrappers) {
+        return metadataWrappers.stream().filter(m -> !m.getMetadataValue().getValue().contains("info:eu-repo"))
+                .collect(Collectors.toList());
+    }
+
+    public List<MetadataValueWrapper> distinctMetadataValues(List<MetadataValueWrapper> metadataWrappers) {
+        return metadataWrappers.stream().filter(
+                distinctByKey(metadataValueWrapper -> metadataValueWrapper.getMetadataValue().getValue()) )
+                .collect( Collectors.toList() );
     }
 
     private DiscoverQuery createDiscoverQuery(String metadataField, String searchValue, Pageable pageable) {
@@ -144,6 +172,15 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
             metadataValueWrapperList.add(metadataValueWrapper);
         }
         return metadataValueWrapperList;
+    }
+
+    /**
+     * Filter unique values from the list and return list with unique values
+     * @return List with unique values
+     */
+    public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> map = new ConcurrentHashMap<>();
+        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
     @Override
