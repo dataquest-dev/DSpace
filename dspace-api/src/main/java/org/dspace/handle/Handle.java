@@ -60,10 +60,6 @@ public class Handle implements ReloadableEntity<Integer> {
      * or
      * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject, String, boolean)}
      */
-    protected Handle() {
-
-    }
-
     @Override
     public Integer getID() {
         return id;
