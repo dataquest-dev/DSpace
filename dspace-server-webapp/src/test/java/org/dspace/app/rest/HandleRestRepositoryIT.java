@@ -1,25 +1,27 @@
 package org.dspace.app.rest;
 
-import static org.hamcrest.Matchers.is;
+
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.dspace.app.rest.matcher.HandleMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.handle.Handle;
+import org.dspace.handle.service.HandleService;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-
-import static java.nio.file.Paths.get;
+import org.springframework.test.web.servlet.ResultMatcher;
 
 
 public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
@@ -31,6 +33,9 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    private HandleService handleService;
 
     @Before
     public void setup() throws Exception {
@@ -51,22 +56,21 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void findAll() throws Exception {
-        // Get handle from the item
-//        Handle titleMetadataValue = this.g;
-
-//        getClient().perform(get("/api/core/handles")
-////                        .param("size", String.valueOf(100)))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType(contentType))
+        // Get title metadata from the item
+        Handle handle = new Handle();
+        handle.setHandle(publicItem.getHandle());
+        handle.setDSpaceObject(publicItem);
+        publicItem.getHandle();
+        getClient().perform(get("/api/core/handles"))
+                .andExpect(status().isOk());
+//                .andExpect(content().contentType(contentType));
 //                .andExpect(jsonPath("$._embedded.handles", Matchers.hasItem(
-//                        MetadataValueMatcher.matchMetadataValueByKeys(titleMetadataValue.getValue(),
-//                                titleMetadataValue.getLanguage(), titleMetadataValue.getAuthority(),
-//                                titleMetadataValue.getConfidence(), titleMetadataValue.getPlace()))
+//                        HandleMatcher.matchHandleByKeys(handle.getHandle(),
+//                                handle.getDSpaceObject(), handle.getResourceTypeId()))
 //                ))
 //                .andExpect(jsonPath("$._links.self.href",
-//                        Matchers.containsString("/api/core/metadatavalues")))
+//                        Matchers.containsString("/api/core/handles")))
 //                .andExpect(jsonPath("$.page.size", is(100)));
-
     }
 
 }
