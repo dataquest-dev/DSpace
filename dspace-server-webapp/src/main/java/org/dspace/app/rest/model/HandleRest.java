@@ -1,5 +1,6 @@
 package org.dspace.app.rest.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
 import org.dspace.content.DSpaceObject;
@@ -9,6 +10,8 @@ public class HandleRest extends BaseObjectRest<Integer> {
     public static final String CATEGORY = RestAddressableModel.CORE;
 
     private String handle;
+
+    @JsonIgnore
     private DSpaceObject dso; //joinColumn resource_id
 
     private Integer resourceTypeID;
@@ -16,7 +19,7 @@ public class HandleRest extends BaseObjectRest<Integer> {
     //neriesis asi ani resource_id - uuid
     //-vsetko suvisi s migrate handle table
 
-    public String getHandle_() {
+    public String getHandle() {
         return handle;
     }
 
