@@ -1,8 +1,8 @@
 ## Welcome to DSpace github page
 
-[REST API](http://dev-5.pc:8080/server/)
+[REST API](http://dev-5.pc/server/)
 
-[FRONTEND](http://dev-5.pc:4000/)
+[FRONTEND](http://dev-5.pc)
 
 The rest is pre-generated.
 
