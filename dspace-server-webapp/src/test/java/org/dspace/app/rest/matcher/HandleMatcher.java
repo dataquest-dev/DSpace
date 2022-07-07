@@ -1,13 +1,11 @@
 package org.dspace.app.rest.matcher;
 
-import org.dspace.content.DSpaceObject;
-import org.dspace.handle.Handle;
-
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.is;
 
-import org.dspace.content.MetadataValue;
+import org.dspace.content.DSpaceObject;
+import org.dspace.handle.Handle;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 

@@ -16,12 +16,11 @@ public class HandleRest extends BaseObjectRest<Integer> {
     //neriesis asi ani resource_id - uuid
     //-vsetko suvisi s migrate handle table
 
-
-    public String getHandle() {
+    public String getHandle_() {
         return handle;
     }
 
-    public DSpaceObject getDso() {
+    public DSpaceObject getDespaceObject() {
         return dso;
     }
 
@@ -37,7 +36,7 @@ public class HandleRest extends BaseObjectRest<Integer> {
         this.dso = dso;
     }
 
-    public void setResourceType(Integer resourceTypeID) {
+    public void setResourceTypeID(Integer resourceTypeID) {
         this.resourceTypeID = resourceTypeID;
     }
 
