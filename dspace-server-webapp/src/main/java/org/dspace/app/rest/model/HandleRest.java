@@ -12,7 +12,7 @@ public class HandleRest extends BaseObjectRest<Integer> {
     private String handle;
 
     @JsonIgnore
-    private DSpaceObject dso; //joinColumn resource_id
+    private DSpaceObjectRest dso; //joinColumn resource_id
 
     private Integer resourceTypeID;
     //resource_legacy_id v V6.0_2015.03.07_DS-2701_Hibernate_migration.sql - to asi neriesis
@@ -23,7 +23,7 @@ public class HandleRest extends BaseObjectRest<Integer> {
         return handle;
     }
 
-    public DSpaceObject getDespaceObject() {
+    public DSpaceObjectRest getDespaceObject() {
         return dso;
     }
 
@@ -35,7 +35,7 @@ public class HandleRest extends BaseObjectRest<Integer> {
         this.handle = handle;
     }
 
-    public void setDso(DSpaceObject dso) {
+    public void setDso(DSpaceObjectRest dso) {
         this.dso = dso;
     }
 

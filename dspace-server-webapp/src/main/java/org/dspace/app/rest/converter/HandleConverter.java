@@ -1,7 +1,9 @@
 package org.dspace.app.rest.converter;
 
+import org.dspace.app.rest.model.DSpaceObjectRest;
 import org.dspace.app.rest.model.HandleRest;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.content.DSpaceObject;
 import org.dspace.handle.Handle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,7 +20,8 @@ public class HandleConverter implements DSpaceConverter<Handle, HandleRest> {
         handleRest.setProjection(projection);
         handleRest.setId(modelObject.getID());
         handleRest.setHandle(modelObject.getHandle());
-        handleRest.setDso(converter.toRest(modelObject.getDSpaceObject(), projection));
+        DSpaceObjectRest obj = converter.toRest(modelObject.getDSpaceObject(), projection);
+        handleRest.setDso(obj);
         handleRest.setResourceTypeID(modelObject.getResourceTypeId());
         return handleRest;
     }
