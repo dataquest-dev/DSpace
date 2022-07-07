@@ -7,6 +7,7 @@
  */
 package org.dspace.iiif.canvasdimension;
 
+import org.apache.commons.lang.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -408,7 +409,7 @@ public class CanvasDimensionsIT extends AbstractIntegrationTestWithDatabase  {
 
         execCanvasScriptWithMaxRecs(id);
         // check System.out for number of items processed.
-        assertEquals("2 IIIF items were processed.\n", outContent.toString());
+        assertEquals("2 IIIF items were processed.", StringUtils.chomp(outContent.toString()));
     }
 
     @Test
