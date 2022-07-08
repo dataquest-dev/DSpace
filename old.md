@@ -1,6 +1,6 @@
 #this is old
 
-[link back home](../)
+[link back home](./)
 
 You can use the [editor on GitHub](https://github.com/dataquest-dev/DSpace/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
 
