@@ -1,9 +1,16 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
-import org.dspace.content.DSpaceObject;
+
 public class HandleRest extends BaseObjectRest<Integer> {
     public static final String NAME = "handle";
     public static final String NAME_PLURAL = "handles";
@@ -12,18 +19,14 @@ public class HandleRest extends BaseObjectRest<Integer> {
     private String handle;
 
     @JsonIgnore
-    private DSpaceObjectRest dso; //joinColumn resource_id
-
+    private DSpaceObjectRest dso;
     private Integer resourceTypeID;
-    //resource_legacy_id v V6.0_2015.03.07_DS-2701_Hibernate_migration.sql - to asi neriesis
-    //neriesis asi ani resource_id - uuid
-    //-vsetko suvisi s migrate handle table
 
     public String getHandle() {
         return handle;
     }
 
-    public DSpaceObjectRest getDespaceObject() {
+    public DSpaceObjectRest getDspaceObject() {
         return dso;
     }
 
