@@ -61,6 +61,11 @@
                     <input-type>onebox</input-type>
                     <hint>Enter the author's name (Family name, Given names).</hint>
                     <required></required>
+                    <!-- Example ACL field definition.
+                         Uncomment it and the Author input field will be showed only for the admin.
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl> -->
                 </field>
             </row>
             <row>
@@ -191,6 +196,26 @@
                     <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
                     <hint>Are you going to upload cmdi file?</hint>
                     <required></required>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>bitstream</dc-element>
+                    <dc-qualifier>redirectToURL</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Bitstream redirect URL</label>
+                    <input-type>onebox</input-type>
+                    <hint>
+                        The bitstream will be loaded from this URL. Example: /temp/file.png
+                    </hint>
+                    <required></required>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
                 </field>
             </row>
         </form>
