@@ -7198,7 +7198,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                               )))
                              .andExpect(jsonPath("$.page.totalElements", is(1)));
     }
-    
+
     @Test
     public void uploadFileBiggerThanUploadFileSizeLimit() throws Exception {
         // Create a big file in the /temp folder
@@ -7263,7 +7263,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             }
         }
     }
-    
+
     @Test
     public void patchAddEUFundingMetadataOnItemStillInSubmissionTest() throws Exception {
         WorkspaceItem witem = this.createSimpleWorkspaceItem();
