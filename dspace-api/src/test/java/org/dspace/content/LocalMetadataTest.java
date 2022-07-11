@@ -56,5 +56,4 @@ public class LocalMetadataTest extends AbstractUnitTest {
 
         assertThat("existBitstreamRedirectUrl 0", field, notNullValue());
     }
-
 }
