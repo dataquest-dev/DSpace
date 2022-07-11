@@ -46,6 +46,7 @@ public class LocalMetadataTest extends AbstractUnitTest {
         assertThat("existHasCMDI 0", field, notNullValue());
     }
 
+    /**
      * Test of existing custom metadata field `local.bitstream.redirectToURL`
      */
     @Test
