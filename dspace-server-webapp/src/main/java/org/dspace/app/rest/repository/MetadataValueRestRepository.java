@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
+import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.MetadataValueWrapper;
 import org.dspace.app.rest.model.MetadataValueWrapperRest;
 import org.dspace.content.MetadataField;
@@ -87,6 +88,10 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
                                                    @Parameter(value = "searchValue", required = false) String
                                                                   searchValue,
                                                    Pageable pageable) {
+        if (StringUtils.isBlank(searchValue)) {
+            throw new DSpaceBadRequestException("searchValue cannot be null!");
+        }
+
         Context context = obtainContext();
 
         String separator = ".";
