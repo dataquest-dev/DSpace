@@ -9,6 +9,7 @@ package org.dspace.app.rest.repository;
 
 import java.sql.SQLException;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.HandleRest;
@@ -23,7 +24,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
 
 @Component(HandleRest.CATEGORY + "." + HandleRest.NAME)
 public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Integer> {
@@ -76,13 +76,15 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         try {
             return handleClarinService.createHandle(context, dSpaceObject);
         } catch (SQLException e) {
-            throw new RuntimeException("error while trying to create new Handle for dspaceobjecs with id: " + dSpaceObject.getID(), e);
+            throw new RuntimeException
+            ("error while trying to create new Handle for dspaceobjecs with id: " + dSpaceObject.getID(), e);
         }
     }
 
     //este bude prerobena
+    //replace operation
     @PreAuthorize("hasAuthority('ADMIN')")
-    protected void changePrefix(Context context, String newPrefix) throws AuthorizeException {
+    protected void changePrefix(Context context) throws AuthorizeException {
 //        try {
 //            if (!handleClarinService.changePrefix(context, newPrefix)) {
 //                throw new RuntimeException("error while trying to change handle prefix");
@@ -94,7 +96,8 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
 
     //este prerob - posielanie objektu do request
     @PreAuthorize("hasAuthority('ADMIN')")
-    protected void patch(Context context, HttpServletRequest request, DSpaceObject dSpaceObject, Integer id) throws AuthorizeException {
+    protected void patch(Context context, HttpServletRequest request,
+                         DSpaceObject dSpaceObject, Integer id) throws AuthorizeException {
 //        try {
 //            Handle foundHandle = handleClarinService.findByID(context, id);
 //            handleClarinService.save(context, );

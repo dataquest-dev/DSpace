@@ -7,8 +7,8 @@
  */
 package org.dspace.app.rest;
 
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,7 +22,6 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.handle.Handle;
-import org.dspace.handle.service.HandleClarinService;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +36,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ItemService itemService;
+
 
     @Before
     public void setup() throws Exception {
@@ -59,30 +59,28 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     @Test
     public void findAll() throws Exception {
         Handle handle = publicItem.getHandles().get(0);
-        getClient().perform(get(HANDLES_ENDPOINT)
-                    .param("size", String.valueOf(5)))
+        getClient().perform(get("/api/core/handles"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$._embedded.handles", Matchers.hasItem(
-                        HandleMatcher.matchHandleByKeys(handle.getHandle(), handle.getResourceTypeId())
+                    .andExpect(jsonPath("$._embedded.handles", Matchers.hasItem(
+                        HandleMatcher.matchHandleByKeys(handle)
                 )))
                 .andExpect(jsonPath("$._links.self.href",
-                        Matchers.containsString(HANDLES_ENDPOINT)))
-                .andExpect(jsonPath("$.page.size", is(5)));
+                        Matchers.containsString("/api/core/handles")));
     }
 
     @Test
     public void findOne() throws Exception {
         Handle handle = publicItem.getHandles().get(0);
 
-        getClient().perform(patch(HANDLES_ENDPOINT + handle.getID()))
+        getClient().perform(get(HANDLES_ENDPOINT + handle.getID()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$", Matchers.is(
                         HandleMatcher.matchHandle(handle)
                 )))
                 .andExpect(jsonPath("$._links.self.href",
-                        Matchers.containsString(HANDLES_ENDPOINT)));
+                        Matchers.containsString("/api/core/handles")));
     }
 
     @Test

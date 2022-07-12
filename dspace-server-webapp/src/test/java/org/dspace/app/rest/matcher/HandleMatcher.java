@@ -23,18 +23,18 @@ public class HandleMatcher {
         return allOf(
                 hasJsonPath("$.handle", is(handle.getHandle())),
                 hasJsonPath("$.resourceTypeID", is(handle.getResourceTypeId())),
-                hasJsonPath("$._embedded.despaceObject", Matchers.not(Matchers.empty())),
-                hasJsonPath("$._links.despaceObject.href", Matchers.containsString("/api/core/handles")),
+                hasJsonPath("$._embedded.dspaceObject", Matchers.not(Matchers.empty())),
+                hasJsonPath("$._links.dspaceObject.href", Matchers.containsString("/api/core/handles")),
                 hasJsonPath("$._links.self.href", Matchers.containsString("/api/core/handles"))
         );
     }
 
-    public static Matcher<? super Object> matchHandleByKeys(String handle, Integer resourceTypeID) {
+    public static Matcher<? super Object> matchHandleByKeys(Handle handle) {
         return allOf(
-                hasJsonPath("$.handle", is(handle)),
-                hasJsonPath("$.resourceTypeID", is(resourceTypeID)),
-                hasJsonPath("$._embedded.despaceObject", Matchers.not(Matchers.empty())),
-                hasJsonPath("$._links.despaceObject.href", Matchers.containsString("/api/core/handles")),
+                hasJsonPath("$.handle", is(handle.getHandle())),
+                hasJsonPath("$.resourceTypeID", is(handle.getResourceTypeId())),
+                hasJsonPath("$._embedded.dspaceObject", Matchers.not(Matchers.empty())),
+                hasJsonPath("$._links.dspaceObject.href", Matchers.containsString("/api/core/handles")),
                 hasJsonPath("$._links.self.href", Matchers.containsString("/api/core/handles"))
         );
     }
