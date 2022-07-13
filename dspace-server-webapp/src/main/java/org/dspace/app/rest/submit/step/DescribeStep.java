@@ -151,16 +151,20 @@ public class DescribeStep extends AbstractProcessingStep {
             if (inputConfig.isFieldPresent(split[0])) {
                 patchOperation.perform(context, currentRequest, source, op);
                 String mappedToIfNotDefault = this.getMappedToIfNotDefault(split[0], inputConfig);
+                if (StringUtils.isBlank(mappedToIfNotDefault)) {
+                    return;
+                }
+
                 // if the complex input field contains `mapped-to-if-not-default` definition
                 // put additional data to the defined metadata from the `mapped-to-if-not-default`
-                if (!StringUtils.isBlank(mappedToIfNotDefault)) {
-                    Operation newOp = this.getOperationWithChangedMetadataField(op, mappedToIfNotDefault, source);
-                    if (!ObjectUtils.isEmpty(newOp)) {
-                        patchOperation = new PatchOperationFactory()
-                                .instanceOf(DESCRIBE_STEP_METADATA_OPERATION_ENTRY, newOp.getOp());
-                        patchOperation.perform(context, currentRequest, source, newOp);
-                    }
+                Operation newOp = this.getOperationWithChangedMetadataField(op, mappedToIfNotDefault, source);
+                if (ObjectUtils.isEmpty(newOp)) {
+                    return;
                 }
+
+                patchOperation = new PatchOperationFactory()
+                        .instanceOf(DESCRIBE_STEP_METADATA_OPERATION_ENTRY, newOp.getOp());
+                patchOperation.perform(context, currentRequest, source, newOp);
             } else {
                 throw new UnprocessableEntityException("The field " + split[0] + " is not present in section "
                                                                                    + inputConfig.getFormName());

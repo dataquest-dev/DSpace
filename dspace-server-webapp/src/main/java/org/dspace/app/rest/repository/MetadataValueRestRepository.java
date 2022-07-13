@@ -137,7 +137,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
             throw new IllegalArgumentException("Error while searching with Discovery: " + e.getMessage());
         }
 
-        // filter eu sponsor -> do not return eu sponsor suggestions because for eu sponsors is used
+        // filter eu sponsor -> do not return eu sponsor suggestions for items where eu sponsor is used.
         // openAIRE API
         if (StringUtils.equals(schemaName, "local") && StringUtils.equals(elementName, "sponsor")) {
             metadataValueWrappers = filterEUSponsors(metadataValueWrappers);
