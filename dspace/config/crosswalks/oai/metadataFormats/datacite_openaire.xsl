@@ -178,7 +178,7 @@
         !-->
 
         <!-- type -->
-        <xsl:variable name="dc_type" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'][1]"/>
+        <xsl:variable name="dc_type" select="distinct(doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'])[1]"/>
         <xsl:choose>
             <xsl:when test="$dc_type='corpus'">
                 <resourceType resourceTypeGeneral="Dataset">
