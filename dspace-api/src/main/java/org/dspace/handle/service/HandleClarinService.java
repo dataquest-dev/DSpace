@@ -27,5 +27,9 @@ public interface HandleClarinService {
 
     public void save(Context context, Handle handle) throws SQLException, AuthorizeException;
 
-    public boolean changePrefix(Context context, String newPrefix) throws SQLException, AuthorizeException;
+    public void editHandle(Context context, Handle oldHandle, String newHandle) throws SQLException, AuthorizeException;
+
+    public void setPrefix(Context context, String newPrefix) throws SQLException, AuthorizeException;
+
+
 }

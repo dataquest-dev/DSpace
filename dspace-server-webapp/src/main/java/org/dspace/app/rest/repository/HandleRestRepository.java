@@ -11,8 +11,13 @@ import java.sql.SQLException;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.HandleRest;
+import org.dspace.app.rest.model.patch.JsonValueEvaluator;
+import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
@@ -23,7 +28,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
-
 
 @Component(HandleRest.CATEGORY + "." + HandleRest.NAME)
 public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Integer> {
@@ -81,29 +85,39 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         }
     }
 
-    //este bude prerobena
-    //replace operation
     @PreAuthorize("hasAuthority('ADMIN')")
-    protected void changePrefix(Context context) throws AuthorizeException {
-//        try {
-//            if (!handleClarinService.changePrefix(context, newPrefix)) {
-//                throw new RuntimeException("error while trying to change handle prefix");
-//            }
-//        } catch (SQLException e) {
-//            throw new RuntimeException("error while trying to change handle prefix");
-//        }
-    }
-
-    //este prerob - posielanie objektu do request
-    @PreAuthorize("hasAuthority('ADMIN')")
-    protected void patch(Context context, HttpServletRequest request,
-                         DSpaceObject dSpaceObject, Integer id) throws AuthorizeException {
-//        try {
-//            Handle foundHandle = handleClarinService.findByID(context, id);
-//            handleClarinService.save(context, );
-//        } catch (SQLException e) {
-//            throw new RuntimeException("error while trying to edit Handle with id: " + id, e);
-//        }
+    protected void patch(Context context, HttpServletRequest request, String apiCategory, String model, Integer id,
+                         Patch patch) throws SQLException, AuthorizeException {
+        List<Operation> operations = patch.getOperations();
+        try {
+            for (Operation operation : patch.getOperations()) {
+                //just fot now are add and replace
+                switch (operation.getOp()) {
+                    case "add":
+                        Handle oldHandle = handleClarinService.findByID(context, id);
+                        if (operation.getValue() != null && oldHandle != null) {
+                            JsonNode valueNode = ((JsonValueEvaluator) operation.getValue())
+                                    .getValueNode().get("value");
+                            String newHandle = valueNode.textValue();
+                            handleClarinService.editHandle(context, oldHandle, newHandle);
+                        }
+                        break;
+                    case "replace":
+                        if (operation.getValue() != null) {
+                            JsonNode valueNode = ((JsonValueEvaluator) operation.getValue())
+                                    .getValueNode().get("value");
+                            String newPrefix = valueNode.textValue();
+                            handleClarinService.setPrefix(context, newPrefix);
+                        }
+                        break;
+                    default: throw new UnprocessableEntityException("Provided operation:"
+                            + operation.getOp() + " is not supported");
+                }
+            }
+        } catch (SQLException e) {
+            //wrong error message
+            throw new RuntimeException("error while trying to edit handle");
+        }
     }
 
     @Override
