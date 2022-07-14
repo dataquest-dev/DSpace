@@ -7257,7 +7257,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             // the big file should be deleted
             File checkFile = null;
 
-            String shouldDeleteFile = configurationService.getProperty("upload.file.delete");
+            String shouldDeleteFile = configurationService.getProperty("delete.big.file.after.upload");
             if (!Objects.isNull(file) && StringUtils.equals("true", shouldDeleteFile)) {
                 checkFile = new File(file.getAbsolutePath());
                 Assert.assertFalse(checkFile.exists());

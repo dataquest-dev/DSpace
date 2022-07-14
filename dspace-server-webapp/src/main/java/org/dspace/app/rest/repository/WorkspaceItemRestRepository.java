@@ -436,7 +436,7 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         wis.update(context, witem);
 
         // delete file
-        String shouldDeleteFile = configurationService.getProperty("upload.file.delete");
+        String shouldDeleteFile = configurationService.getProperty("delete.big.file.after.upload");
         if (StringUtils.isNotBlank(shouldDeleteFile) && StringUtils.equals("true", shouldDeleteFile)) {
             FileUtils.forceDelete(file);
         }
