@@ -82,7 +82,9 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     public void findAll() throws Exception {
         Handle handle = publicItem.getHandles().get(0);
 
-        getClient().perform(get("/api/core/handles"))
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/core/handles"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                     .andExpect(jsonPath("$._embedded.handles", Matchers.hasItem(
