@@ -7,7 +7,7 @@
  */
 package org.dspace.app.rest;
 
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -106,21 +106,25 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     //does not work again
-//    @Test
-//    public void deleteSuccess() throws Exception {
-//        Handle handle = publicItem.getHandles().get(0);
-//
-//        getClient().perform(get(HANDLES_ENDPOINT + handle.getID()))
-//                .andExpect(status().isOk());
-//        getClient(getAuthToken(admin.getEmail(), password))
-//                .perform(delete(HANDLES_ENDPOINT + handle.getID()))
-//                .andExpect(status().isNoContent());
-//
-//        getClient().perform(get(HANDLES_ENDPOINT + handle.getID()))
-//                .andExpect(status().isNotFound());
-//
-//        this.cleanHandles();
-//    }
+    @Test
+    public void deleteSuccess() throws Exception {
+        Handle handle = publicItem.getHandles().get(0);
+
+        getClient().perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk());
+        getClient(getAuthToken(admin.getEmail(), password))
+                .perform(delete(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isNoContent());
+
+        getClient().perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isNotFound());
+
+        //Item handle was deleted in test
+        context.turnOffAuthorisationSystem();
+        handleClarinService.delete(context, parentCommunity.getHandles().get(0));
+        handleClarinService.delete(context, col.getHandles().get(0));
+        context.restoreAuthSystemState();
+    }
 
     // clean handles of the created Items, Communities, Collections because when is created
     // a new Item/Collection/Community in another test, the handle of the old Item/Collection/Community
