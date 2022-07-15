@@ -16,13 +16,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
+//import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+//import java.util.Map;
 import javax.ws.rs.core.MediaType;
 
 import org.dspace.app.rest.matcher.HandleMatcher;
-import org.dspace.app.rest.model.patch.AddOperation;
+//import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -143,9 +143,10 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     public void patchEditHandle() throws  Exception {
         Handle handle = publicItem.getHandles().get(0);
         List<Operation> ops = new ArrayList<Operation>();
-        Map<String, String> value = new HashMap<String, String>();
-        value.put("value", "123");
-        ops.add(new AddOperation("/edit", value));
+        //Map<String, String> value = new HashMap<String, String>();
+        //value.put("value", "123");
+        String value = "123";
+        ops.add(new ReplaceOperation("/edit", value));
 
         String patchBody = getPatchContent(ops);
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -178,8 +179,9 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     public void patchSetPrefix() throws  Exception {
         Handle handle = publicItem.getHandles().get(0);
         List<Operation> ops = new ArrayList<Operation>();
-        Map<String, String> value = new HashMap<String, String>();
-        value.put("value", "123");
+//        Map<String, String> value = new HashMap<String, String>();
+//        value.put("value", "123");
+        String value = "123";
         ops.add(new ReplaceOperation("/set", value));
 
         String patchBody = getPatchContent(ops);
@@ -189,7 +191,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-
+        
         this.cleanHandles();
     }
 }

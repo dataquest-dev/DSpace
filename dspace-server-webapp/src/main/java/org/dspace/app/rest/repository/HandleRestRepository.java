@@ -11,11 +11,11 @@ import java.sql.SQLException;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
-import com.fasterxml.jackson.databind.JsonNode;
+//import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.HandleRest;
-import org.dspace.app.rest.model.patch.JsonValueEvaluator;
+//import org.dspace.app.rest.model.patch.JsonValueEvaluator;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.authorize.AuthorizeException;
@@ -91,27 +91,33 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         List<Operation> operations = patch.getOperations();
         try {
             for (Operation operation : patch.getOperations()) {
-                //just fot now are add and replace
-                switch (operation.getOp()) {
-                    case "add":
-                        Handle oldHandle = handleClarinService.findByID(context, id);
-                        if (operation.getValue() != null && oldHandle != null) {
-                            JsonNode valueNode = ((JsonValueEvaluator) operation.getValue())
-                                    .getValueNode().get("value");
-                            String newHandle = valueNode.textValue();
-                            handleClarinService.editHandle(context, oldHandle, newHandle);
-                        }
-                        break;
-                    case "replace":
-                        if (operation.getValue() != null) {
-                            JsonNode valueNode = ((JsonValueEvaluator) operation.getValue())
-                                    .getValueNode().get("value");
-                            String newPrefix = valueNode.textValue();
-                            handleClarinService.setPrefix(context, newPrefix);
-                        }
-                        break;
-                    default: throw new UnprocessableEntityException("Provided operation:"
-                            + operation.getOp() + " is not supported");
+                if (operation.getOp() == "replace") {
+                    switch (operation.getPath()) {
+                        case "/edit":
+                            Handle oldHandle = handleClarinService.findByID(context, id);
+                            if (operation.getValue() != null && oldHandle != null) {
+                                //if value is Hashmap
+//                                JsonNode valueNode = ((JsonValueEvaluator) operation.getValue())
+//                                        .getValueNode().get("value");
+//                                String newHandle = valueNode.textValue();
+//                                handleClarinService.editHandle(context, oldHandle, newHandle);
+                                handleClarinService.editHandle(context, oldHandle, operation.getValue().toString());
+                            }
+                            break;
+                        case "/set":
+                            if (operation.getValue() != null) {
+                                //if value is Hashmap
+//                                JsonNode valueNode = ((JsonValueEvaluator) operation.getValue())
+//                                        .getValueNode().get("value");
+//                                String newPrefix = valueNode.textValue();
+//                                handleClarinService.setPrefix(context, newPrefix);
+                                handleClarinService.setPrefix(context, operation.getValue().toString());
+                            }
+                            break;
+                        default:
+                            throw new UnprocessableEntityException("Provided operation:"
+                                    + operation.getOp() + " is not supported");
+                    }
                 }
             }
         } catch (SQLException e) {
