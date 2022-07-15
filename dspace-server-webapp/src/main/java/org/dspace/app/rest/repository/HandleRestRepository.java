@@ -29,6 +29,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+/**
+ * This is the repository responsible to manage Handle Rest object.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 @Component(HandleRest.CATEGORY + "." + HandleRest.NAME)
 public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Integer> {
 
@@ -92,20 +97,24 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         try {
             for (Operation operation : patch.getOperations()) {
                 if (operation.getOp() == "replace") {
+                    //
                     switch (operation.getPath()) {
-                        case "/edit":
-                            Handle oldHandle = handleClarinService.findByID(context, id);
-                            if (operation.getValue() != null && oldHandle != null) {
+                        case "/replaceHandle":
+                            //replace handle in handle object by new handle
+                            Handle handleObject = handleClarinService.findByID(context, id);
+                            if (operation.getValue() != null && handleObject != null) {
                                 //if value is Hashmap
 //                                JsonNode valueNode = ((JsonValueEvaluator) operation.getValue())
 //                                        .getValueNode().get("value");
 //                                String newHandle = valueNode.textValue();
 //                                handleClarinService.editHandle(context, oldHandle, newHandle);
-                                handleClarinService.editHandle(context, oldHandle, operation.getValue().toString());
+                                handleClarinService.replaceHandle(context, handleObject,
+                                        operation.getValue().toString());
                             }
                             break;
-                        case "/set":
+                        case "/setPrefix":
                             if (operation.getValue() != null) {
+                                //set handle prefix
                                 //if value is Hashmap
 //                                JsonNode valueNode = ((JsonValueEvaluator) operation.getValue())
 //                                        .getValueNode().get("value");
@@ -121,8 +130,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 }
             }
         } catch (SQLException e) {
-            //wrong error message
-            throw new RuntimeException("error while trying to edit handle");
+            throw new RuntimeException("error while trying to patch handle");
         }
     }
 

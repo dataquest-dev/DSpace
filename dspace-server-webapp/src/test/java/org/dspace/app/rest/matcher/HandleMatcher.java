@@ -15,6 +15,12 @@ import org.dspace.handle.Handle;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
+
+/**
+ * Utility class to construct a Matcher for a handle.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class HandleMatcher {
 
     private HandleMatcher() { }

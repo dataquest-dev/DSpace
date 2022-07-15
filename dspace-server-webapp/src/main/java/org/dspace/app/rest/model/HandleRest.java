@@ -11,6 +11,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
 
+/**
+ * The Handle REST Resource
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class HandleRest extends BaseObjectRest<Integer> {
     public static final String NAME = "handle";
     public static final String NAME_PLURAL = "handles";

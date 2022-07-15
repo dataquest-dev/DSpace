@@ -40,6 +40,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Integration tests for the {@link org.dspace.app.rest.repository.HandleRestRepository}
+ * This class will include all the tests for the logic with regards to the
+ * {@link org.dspace.app.rest.repository.HandleRestRepository}
+ */
 public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     private static final String AUTHOR = "Test author name";
@@ -105,7 +110,6 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         this.cleanHandles();
     }
 
-    //does not work again
     @Test
     public void deleteSuccess() throws Exception {
         Handle handle = publicItem.getHandles().get(0);
@@ -120,33 +124,21 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .andExpect(status().isNotFound());
 
         //Item handle was deleted in test
+        //delete just Community and Collection
         context.turnOffAuthorisationSystem();
         handleClarinService.delete(context, parentCommunity.getHandles().get(0));
         handleClarinService.delete(context, col.getHandles().get(0));
-        context.restoreAuthSystemState();
-    }
-
-    // clean handles of the created Items, Communities, Collections because when is created
-    // a new Item/Collection/Community in another test, the handle of the old Item/Collection/Community
-    // lost DSpaceObject (dso is null) and it throws error in the HandleConverter
-    private void cleanHandles() throws SQLException, AuthorizeException {
-        context.turnOffAuthorisationSystem();
-
-        handleClarinService.delete(context, parentCommunity.getHandles().get(0));
-        handleClarinService.delete(context, col.getHandles().get(0));
-        handleClarinService.delete(context, publicItem.getHandles().get(0));
-
         context.restoreAuthSystemState();
     }
 
     @Test
-    public void patchEditHandle() throws  Exception {
+    public void patchReplaceHandle() throws  Exception {
         Handle handle = publicItem.getHandles().get(0);
         List<Operation> ops = new ArrayList<Operation>();
         //Map<String, String> value = new HashMap<String, String>();
         //value.put("value", "123");
         String value = "123";
-        ops.add(new ReplaceOperation("/edit", value));
+        ops.add(new ReplaceOperation("/replaceHandle", value));
 
         String patchBody = getPatchContent(ops);
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -182,7 +174,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 //        Map<String, String> value = new HashMap<String, String>();
 //        value.put("value", "123");
         String value = "123";
-        ops.add(new ReplaceOperation("/set", value));
+        ops.add(new ReplaceOperation("/setPrefix", value));
 
         String patchBody = getPatchContent(ops);
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -191,7 +183,20 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        
+
         this.cleanHandles();
+    }
+
+    // clean handles of the created Items, Communities, Collections because when is created
+    // a new Item/Collection/Community in another test, the handle of the old Item/Collection/Community
+    // lost DSpaceObject (dso is null) and it throws error in the HandleConverter
+    private void cleanHandles() throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+
+        handleClarinService.delete(context, parentCommunity.getHandles().get(0));
+        handleClarinService.delete(context, col.getHandles().get(0));
+        handleClarinService.delete(context, publicItem.getHandles().get(0));
+
+        context.restoreAuthSystemState();
     }
 }

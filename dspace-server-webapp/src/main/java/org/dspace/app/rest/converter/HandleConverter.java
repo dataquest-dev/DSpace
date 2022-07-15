@@ -14,6 +14,11 @@ import org.dspace.handle.Handle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Converter to translate between domain {@link Handle}s and {@link HandleRest} representations.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 @Component
 public class HandleConverter implements DSpaceConverter<Handle, HandleRest> {
 

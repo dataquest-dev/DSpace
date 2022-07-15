@@ -24,6 +24,11 @@ import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Additional service implementation for the Handle object in Clarin.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class HandleClarinServiceImpl implements HandleClarinService {
 
     /**
@@ -44,7 +49,9 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     protected AuthorizeService authorizeService;
 
 
-
+    /**
+     * Public Constructor
+     */
     protected HandleClarinServiceImpl() {
     }
 
@@ -52,23 +59,10 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     public List<Handle> findAll(Context context) throws SQLException {
         return handleDAO.findAll(context, Handle.class);
     }
+
     @Override
     public Handle findByID(Context context, int id) throws SQLException {
         return handleDAO.findByID(context, Handle.class, id);
-    }
-
-    @Override
-    public void delete(Context context, Handle handle) throws SQLException, AuthorizeException {
-        // Check authorisation: Only admins may create DC types
-        if (!authorizeService.isAdmin(context)) {
-            throw new AuthorizeException(
-                    "Only administrators may modify the handle registry");
-        }
-
-        handleDAO.delete(context, handle);
-
-        log.info(LogHelper.getHeader(context, "delete_metadata_field",
-                "handle_id=" + handle.getID()));
     }
 
     @Override
@@ -96,6 +90,20 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     }
 
     @Override
+    public void delete(Context context, Handle handle) throws SQLException, AuthorizeException {
+        // Check authorisation: Only admins may create DC types
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException(
+                    "Only administrators may modify the handle registry");
+        }
+
+        handleDAO.delete(context, handle);
+
+        log.info(LogHelper.getHeader(context, "delete_metadata_field",
+                "handle_id=" + handle.getID()));
+    }
+
+    @Override
     public void save(Context context, Handle handle) throws SQLException, AuthorizeException {
         // Check authorisation: Only admins may create DC types
         if (!authorizeService.isAdmin(context)) {
@@ -106,15 +114,15 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     }
 
     @Override
-    public void editHandle(Context context, Handle oldHandle, String newHandle)
+    public void replaceHandle(Context context, Handle handleObject, String newHandle)
             throws SQLException, AuthorizeException {
         // Check authorisation: Only admins may create DC types
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
-        oldHandle.setHandle(newHandle);
-        handleDAO.save(context, oldHandle);
+        handleObject.setHandle(newHandle);
+        handleDAO.save(context, handleObject);
     }
 
     @Override
@@ -126,11 +134,11 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         }
 
         if (!(configurationService.setProperty("handle.prefix",newPrefix))) {
-            throw new RuntimeException("error while trying to change handle prefix");
+            throw new RuntimeException("error while trying to set handle prefix");
         }
     }
 
-    protected String createId(Context context) throws SQLException {
+    private String createId(Context context) throws SQLException {
         // Get configured prefix
         String handlePrefix = handleService.getPrefix();
 
