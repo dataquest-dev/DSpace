@@ -20,6 +20,10 @@ import java.io.PrintStream;
 import com.lyncode.xoai.dataprovider.services.api.ResourceResolver;
 import com.lyncode.xoai.dataprovider.services.impl.BaseDateProvider;
 //import org.apache.solr.client.solrj.SolrClient;
+//import org.apache.solr.client.solrj.SolrClient;
+//import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -30,14 +34,18 @@ import org.dspace.content.Community;
 //import org.dspace.discovery.MockSolrSearchCore;
 //import org.dspace.discovery.MockSolrSearchCore;
 //import org.dspace.discovery.SolrSearchCore;
-import org.dspace.discovery.SolrOaiCore;
+import org.dspace.content.Item;
+import org.dspace.discovery.MockSolrOaiCore;
 import org.dspace.services.ConfigurationService;
 //import org.dspace.solr.MockSolrServer;
 //import org.dspace.solr.MockSolrServer;
 import org.dspace.xoai.app.XOAI;
 import org.dspace.xoai.services.api.EarliestDateResolver;
 import org.dspace.xoai.services.api.cache.XOAICacheService;
+import org.dspace.xoai.services.api.cache.XOAIItemCacheService;
 import org.dspace.xoai.services.api.config.XOAIManagerResolver;
+//import org.dspace.xoai.services.api.solr.SolrServerResolver;
+import org.dspace.xoai.services.api.solr.SolrServerResolver;
 import org.dspace.xoai.services.api.xoai.DSpaceFilterResolver;
 import org.junit.AfterClass;
 import org.junit.Assume;
@@ -75,6 +83,9 @@ public class OAIOpenAIREIT extends AbstractControllerIntegrationTest {
     @MockBean
     private XOAICacheService xoaiCacheService;
 
+    @MockBean
+    private XOAIItemCacheService xoaiItemCacheService;
+
     // Spy on the current EarliestDateResolver bean, to allow us to change behavior in tests below
     @SpyBean
     private EarliestDateResolver earliestDateResolver;
@@ -94,7 +105,7 @@ public class OAIOpenAIREIT extends AbstractControllerIntegrationTest {
     private DSpaceFilterResolver filterResolver;
 
     @Autowired
-    private SolrOaiCore solrOaiCore;
+    private MockSolrOaiCore mockSolrOaiCore;
 //    private SolrOaiCore solrOaiCore;
 //    private static SolrClient myCore;
 
@@ -148,7 +159,7 @@ public class OAIOpenAIREIT extends AbstractControllerIntegrationTest {
         CollectionBuilder.createCollection(context, secondCommunity)
                 .withName("Second Collection")
                 .build();
-        ItemBuilder.createItem(context, firstCollection)
+        Item one = ItemBuilder.createItem(context, firstCollection)
                 .withTitle("Test item 1")
                 .withMetadata("dc","relation","","info:eu-repo/grantAgreement/")
                 .build();
@@ -164,13 +175,35 @@ public class OAIOpenAIREIT extends AbstractControllerIntegrationTest {
                 .withTitle("Test item 4")
                 .withAuthor("Ben Kenobi")
                 .build();
-        XOAI.main(new String[]{"import"});
-//        XOAI.main(new String[]{"import", "-c"});
+        ps.println("visibility check before indexing");
+//        XOAI indexer = new XOAI(context,true, true, true);
+        XOAI indexer = new XOAI(context, false, new SolrServerResolver() {
+//
+            @Override
+            public SolrClient getServer() throws SolrServerException {
+                return mockSolrOaiCore.getSolr();
+            }
 
-        ps.println("Slept well");
-        solrOaiCore.getSolr().commit(false,false);
+        });
+//        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(new Class[] {
+//                BasicConfiguration.class
+//        });
+//        applicationContext.getAutowireCapableBeanFactory().autowireBean(indexer);
+        ps.println("Item one is seen: " + indexer.checkVisible(one));
+
+        int imported = indexer.index();
+        if (imported > 0) {
+            indexer.test_cleanCache(xoaiItemCacheService, xoaiCacheService);
+        }
         context.restoreAuthSystemState();
-        solrOaiCore.getSolr().commit(false,false);
+        xoaiCacheService.deleteAll();
+        xoaiItemCacheService.deleteAll();
+//        indexer.index();
+        ps.println("visibility check after indexing");
+        ps.println("Item one is seen: " + indexer.checkVisible(one));
+//        solrOaiCore.getSolr().commit(false,false);
+//        context.restoreAuthSystemState();
+//        solrOaiCore.getSolr().commit(false,false);
         String token = getAuthToken(admin.getEmail(), password);
         ps.println("rest items");
         getClient(token).perform(get("/api/core/items")).andExpect(
