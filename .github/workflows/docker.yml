@@ -8,6 +8,7 @@ on:
     branches:
       - dtq-dev
   pull_request:
+  workflow_dispatch:
 
 jobs:
   docker:
