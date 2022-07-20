@@ -31,8 +31,6 @@ public class HandleConverter implements DSpaceConverter<Handle, HandleRest> {
         handleRest.setProjection(projection);
         handleRest.setId(modelObject.getID());
         handleRest.setHandle(modelObject.getHandle());
-        DSpaceObjectRest obj = converter.toRest(modelObject.getDSpaceObject(), projection);
-        handleRest.setDso(obj);
         handleRest.setResourceTypeID(modelObject.getResourceTypeId());
         return handleRest;
     }

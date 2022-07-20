@@ -31,20 +31,12 @@ public class HandleRest extends BaseObjectRest<Integer> {
         return handle;
     }
 
-    public DSpaceObjectRest getDspaceObject() {
-        return dso;
-    }
-
     public Integer getResourceTypeID() {
         return resourceTypeID;
     }
 
     public void setHandle(String handle) {
         this.handle = handle;
-    }
-
-    public void setDso(DSpaceObjectRest dso) {
-        this.dso = dso;
     }
 
     public void setResourceTypeID(Integer resourceTypeID) {
