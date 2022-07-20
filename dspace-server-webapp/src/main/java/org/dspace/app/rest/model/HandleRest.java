@@ -23,8 +23,6 @@ public class HandleRest extends BaseObjectRest<Integer> {
 
     private String handle;
 
-    @JsonIgnore
-    private DSpaceObjectRest dso;
     private Integer resourceTypeID;
 
     public String getHandle() {
