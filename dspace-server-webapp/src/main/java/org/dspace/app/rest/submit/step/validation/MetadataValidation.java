@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.submit.step.validation;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.service.MetadataAuthorityService;
@@ -104,8 +106,9 @@ public class MetadataValidation extends AbstractValidation {
                         try {
                             Context context = ContextUtil.obtainCurrentRequestContext();
                             CMDIFileBundleMaintainer.updateCMDIFileBundle(context, obj.getItem(), mdv);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        } catch (AuthorizeException | IOException exception) {
+                            log.error("Cannot update CMDI file bundle (ORIGINAL/METADATA) because: " +
+                                    exception.getMessage());
                         }
                     }
                 }

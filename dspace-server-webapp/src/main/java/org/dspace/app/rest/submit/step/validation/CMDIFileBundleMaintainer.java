@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -31,6 +32,8 @@ import org.dspace.core.Context;
  */
 public class CMDIFileBundleMaintainer {
 
+    private static final String hasCMDYesOptionValue = "yes";
+
     private static BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
     private static ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
@@ -45,8 +48,7 @@ public class CMDIFileBundleMaintainer {
      * @param mdv of the 'local.hasCMDI' metadata
      */
     public static void updateCMDIFileBundle(Context context, Item item, List<MetadataValue> mdv)
-            throws SQLException, AuthorizeException,
-            IOException {
+            throws SQLException, AuthorizeException, IOException {
         List<Bundle> bundleMETADATA = itemService.getBundles(item, Constants.METADATA_BUNDLE_NAME);
         List<Bundle> bundleORIGINAL = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
 
@@ -56,7 +58,8 @@ public class CMDIFileBundleMaintainer {
         if (!bundleMETADATA.isEmpty() && mdv.isEmpty()) {
             targetBundle = Constants.CONTENT_BUNDLE_NAME;
             bundleToProcess = bundleMETADATA;
-        } else if (!bundleORIGINAL.isEmpty() && !mdv.isEmpty() && "yes".equals(mdv.get(0).getValue())) {
+        } else if (!bundleORIGINAL.isEmpty() && !mdv.isEmpty() &&
+                StringUtils.equals(hasCMDYesOptionValue, mdv.get(0).getValue())) {
             targetBundle = Constants.METADATA_BUNDLE_NAME;
             bundleToProcess = bundleORIGINAL;
         }
