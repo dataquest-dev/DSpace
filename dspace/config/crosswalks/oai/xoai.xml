@@ -9,6 +9,7 @@
 
             <Format ref="oaidc"/>
             <Format ref="mets"/>
+            <Format ref="cmdi" />
             <Format ref="xoai"/>
             <Format ref="didl"/>
             <Format ref="dim"/>
@@ -100,6 +101,13 @@
             <XSLT>metadataFormats/oai_dc.xsl</XSLT>
             <Namespace>http://www.openarchives.org/OAI/2.0/oai_dc/</Namespace>
             <SchemaLocation>http://www.openarchives.org/OAI/2.0/oai_dc.xsd</SchemaLocation>
+        </Format>
+        <Format id="cmdi">
+            <Prefix>cmdi</Prefix>
+            <XSLT>metadataFormats/lindat_cmdi.xsl</XSLT>
+            <Namespace>http://www.clarin.eu/cmd/</Namespace>
+            <SchemaLocation>http://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/profiles/clarin.eu:cr1:p_1349361150622/xsd</SchemaLocation>
+<!--            <Filter ref="ExcludeItemsInComOrCol"/>-->
         </Format>
         <Format id="mets">
             <Prefix>mets</Prefix>
@@ -209,6 +217,11 @@
                * AND Driver "open access" condition is specified
              This filter is only used in the DRIVER context ([oai]/driver)
         -->
+        <Filter id="ExcludeItemsInComOrCol">
+            <Definition>
+                <Custom ref="cmdiExcludedComsOrCols"/>
+            </Definition>
+        </Filter>
         <Filter id="driverFilter">
             <Definition>
                 <And>
@@ -516,6 +529,12 @@
             </Configuration>
         </CustomCondition>
 
+        <CustomCondition id="cmdiExcludedComsOrCols">
+            <Class>cz.cuni.mff.org.dspace.dspace.xoai.filter.ColComFilter</Class>
+            <Configuration>
+                <string name="handle">XXX</string>
+            </Configuration>
+        </CustomCondition>
     </Filters>
 
     <Sets>
