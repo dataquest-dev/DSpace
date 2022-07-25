@@ -28,7 +28,7 @@ import org.dspace.core.Context;
 /**
  * The class for maintaining CMDI file in the right bundle.
  *
- * @author Milan Majchrak (milan.majchrak at dataquest dot sk)
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public class CMDIFileBundleMaintainer {
 
