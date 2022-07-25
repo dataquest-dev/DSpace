@@ -8,6 +8,7 @@
 package org.dspace.app.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
 
@@ -16,6 +17,7 @@ import org.dspace.app.rest.RestResourceController;
  *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class HandleRest extends BaseObjectRest<Integer> {
     public static final String NAME = "handle";
     public static final String NAME_PLURAL = "handles";

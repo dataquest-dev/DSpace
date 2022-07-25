@@ -7,15 +7,19 @@
  */
 package org.dspace.app.rest.repository;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 //import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.HandleRest;
 //import org.dspace.app.rest.model.patch.JsonValueEvaluator;
+import org.dspace.app.rest.model.MetadataFieldRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.authorize.AuthorizeException;
@@ -28,6 +32,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 /**
  * This is the repository responsible to manage Handle Rest object.
@@ -81,13 +86,32 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    protected Handle create(Context context, DSpaceObject dSpaceObject) throws AuthorizeException {
+    protected HandleRest createAndReturn(Context context) throws AuthorizeException {
+        Handle handle = null;
+
         try {
-            return handleClarinService.createHandle(context, dSpaceObject);
+            handle = new ObjectMapper().readValue(
+                    getRequestService().getCurrentRequest().getHttpServletRequest().getInputStream(),
+                    Handle.class
+            );
+        } catch (IOException excIO) {
+            throw new DSpaceBadRequestException("error parsing request body", excIO);
+        }
+
+        try {
+            handle = handleClarinService.createHandle(context, handle.getDSpaceObject());
+            // @TODO create update method
+//            handleClarinService.update(context, handle);
         } catch (SQLException e) {
             throw new RuntimeException
-            ("error while trying to create new Handle for dspaceobjecs with id: " + dSpaceObject.getID(), e);
+            ("error while trying to create new Handle for dspaceobjecs with id: " + handle.getID(), e);
         }
+
+        if (ObjectUtils.isEmpty(handle)) {
+            // @TODO throw exception
+            return null;
+        }
+        return converter.toRest(handle, utils.obtainProjection());
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
