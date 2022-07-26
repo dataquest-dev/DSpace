@@ -16,25 +16,38 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+//import net.sf.saxon.om.NodeInfo;
+//import net.sf.saxon.s9api.ItemType;
+//import net.sf.saxon.s9api.OccurrenceIndicator;
+//import net.sf.saxon.s9api.Processor;
+//import net.sf.saxon.s9api.QName;
+//import net.sf.saxon.s9api.SaxonApiException;
+//import net.sf.saxon.s9api.SequenceType;
+//import net.sf.saxon.s9api.XdmAtomicValue;
+//import net.sf.saxon.s9api.XdmNode;
+//import net.sf.saxon.s9api.XdmValue;
 import org.dspace.app.util.DCInput;
 import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.ItemServiceImpl;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.xoai.app.BasicConfiguration;
 import org.dspace.xoai.services.api.HandleResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 
-
-public class ItemUtil {
+@Component
+public class SpecialItemService {
 
     @Autowired
     private static HandleResolver handleResolver;
@@ -45,13 +58,12 @@ public class ItemUtil {
     @Autowired
     private static BitstreamService bitstreamService;
 
-    protected ItemUtil() {}
 
     /** log4j logger */
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger
-            .getLogger(ItemUtil.class);
+            .getLogger(SpecialItemService.class);
 
-    public static Node getUploadedMetadata(String handle) {
+    public Node getUploadedMetadata(String handle) {
         Node ret = null;
         Context context = null;
         try {
@@ -80,13 +92,18 @@ public class ItemUtil {
             }
         } catch (Exception e) {
             log.error(e);
+            try {
+                ret = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+            } catch (ParserConfigurationException ex) {
+                log.error(ex);
+            }
         } finally {
             closeContext(context);
         }
         return ret;
     }
 
-    public static Node getFunding(String mdValue) {
+    public Node getFunding(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -116,7 +133,7 @@ public class ItemUtil {
         }
     }
 
-    public static Node getContact(String mdValue) {
+    public Node getContact(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -145,7 +162,7 @@ public class ItemUtil {
         }
     }
 
-    public static Node getSize(String mdValue) {
+    public Node getSize(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -172,7 +189,7 @@ public class ItemUtil {
         }
     }
 
-    public static Node getAuthor(String mdValue) {
+    public Node getAuthor(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -200,17 +217,16 @@ public class ItemUtil {
         }
     }
 
-    public static boolean hasOwnMetadata(List<MetadataValue> metadataValues) {
+    public boolean hasOwnMetadata(List<MetadataValue> metadataValues) {
         if (metadataValues.size() == 1 && metadataValues.get(0).getValue().equalsIgnoreCase("true")) {
             return true;
         }
         return false;
     }
 
-    private static void closeContext(Context c) {
+    private void closeContext(Context c) {
         if (c != null) {
             c.abort();
         }
     }
-
 }

@@ -8,7 +8,7 @@
 
 /* Created for LINDAT/CLARIAH-CZ (UFAL) */
 
-package org.dspace.dspace.xoai.filter;
+package org.dspace.xoai.filter;
 
 import java.sql.SQLException;
 
@@ -23,7 +23,6 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.core.Constants;
 import org.dspace.xoai.data.DSpaceItem;
-import org.dspace.xoai.filter.DSpaceFilter;
 import org.dspace.xoai.filter.results.SolrFilterResult;
 import org.dspace.xoai.services.api.HandleResolver;
 import org.dspace.xoai.services.api.HandleResolverException;

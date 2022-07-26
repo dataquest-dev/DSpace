@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -18,13 +19,33 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
 import com.lyncode.xoai.dataprovider.services.api.ResourceResolver;
+import net.sf.saxon.jaxp.SaxonTransformerFactory;
+import net.sf.saxon.s9api.ExtensionFunction;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.xoai.services.impl.resources.functions.GetAuthorFn;
+import org.dspace.xoai.services.impl.resources.functions.GetContactFn;
+import org.dspace.xoai.services.impl.resources.functions.GetFundingFn;
+import org.dspace.xoai.services.impl.resources.functions.GetLangForCodeFn;
+import org.dspace.xoai.services.impl.resources.functions.GetSizeFn;
+import org.dspace.xoai.services.impl.resources.functions.GetUploadedMetadataFn;
+import org.dspace.xoai.services.impl.resources.functions.StringReplaceFn;
+import org.dspace.xoai.services.impl.resources.functions.GetPropertyFn;
 
 public class DSpaceResourceResolver implements ResourceResolver {
     private static final TransformerFactory transformerFactory = TransformerFactory
             .newInstance("net.sf.saxon.TransformerFactoryImpl", null);
+    static {
+        List<ExtensionFunction> extensionFunctionList = List.of(new GetPropertyFn(), new StringReplaceFn(),
+                new GetContactFn(), new GetAuthorFn(), new GetFundingFn(), new GetLangForCodeFn(),
+                new GetPropertyFn(), new GetSizeFn(), new GetUploadedMetadataFn());
 
+        SaxonTransformerFactory saxonTransformerFactory = (SaxonTransformerFactory) transformerFactory;
+        for (ExtensionFunction en :
+                extensionFunctionList) {
+            saxonTransformerFactory.getProcessor().registerExtensionFunction(en);
+        }
+    }
     private final String basePath;
 
     public DSpaceResourceResolver() {

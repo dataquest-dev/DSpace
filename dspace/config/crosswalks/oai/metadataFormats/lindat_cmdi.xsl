@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- 
 -->
+<!--		xmlns:isocodes="org.dspace.utils.IsoLangCodes"-->
+<!--		xmlns:itemUtil="java:org.dspace.utils.ItemUtil"-->
+<!--		xmlns:configuration="org.dspace.core.ConfigurationManager"-->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:doc="http://www.lyncode.com/xoai" 
-    xmlns:itemUtil="cz.cuni.mff.ufal.utils.ItemUtil"
-    xmlns:isocodes="cz.cuni.mff.ufal.IsoLangCodes"
+    xmlns:doc="http://www.lyncode.com/xoai"
+    xmlns:fn="http://custom.crosswalk.functions"
     xmlns:xalan="http://xml.apache.org/xslt"
-    xmlns:configuration="org.dspace.core.ConfigurationManager"
-    xmlns:jstring="java.lang.String"
     xmlns:ms="http://www.ilsp.gr/META-XMLSchema"
     xmlns:olac="http://experimental.loc/olac"
     xmlns:cmd="http://www.clarin.eu/cmd/"
     xmlns:lindat="http://lindat.mff.cuni.cz/ns/experimental/cmdi"
-    exclude-result-prefixes="doc xalan itemUtil isocodes configuration ms jstring"
-    version="1.0">
-    <xsl:import href="metadataFormats/metasharev2.xsl"/>
-    <xsl:import href="metadataFormats/olac-dcmiterms.xsl"/>
+    exclude-result-prefixes="doc xalan fn ms" version="1.0">
+    <xsl:import href="metasharev2.xsl"/>
+    <xsl:import href="olac-dcmiterms.xsl"/>
     
     <xsl:output omit-xml-declaration="yes" method="xml" indent="yes" xalan:indent-amount="4"/>
     <xsl:namespace-alias stylesheet-prefix="ms" result-prefix="cmd"/>
@@ -25,15 +24,15 @@
 
     <xsl:variable name="handle" select="/doc:metadata/doc:element[@name='others']/doc:field[@name='handle']/text()"/>
     <xsl:variable name="dc_identifier_uri"
-				  select="jstring:replaceFirst(jstring:new(/doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']), 'http://', 'https://')"/>
+    select="fn:stringReplace(/doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])"/>
     <xsl:variable name="modifyDate" select="/doc:metadata/doc:element[@name='others']/doc:field[@name='lastModifyDate']/text()"/>
-	<xsl:variable name="dc_rights_uri" select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value']" />
-    <xsl:variable name="dsURL" select="configuration:getProperty('dspace.url')"/>
+    <xsl:variable name="dc_rights_uri" select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value']" />
+    <xsl:variable name="dsURL" select="fn:getProperty('dspace.url')"/>
     <xsl:variable name="newProfile" select="'clarin.eu:cr1:p_1403526079380'"/>
     <xsl:variable name="oldProfile" select="'clarin.eu:cr1:p_1349361150622'"/>
     
     <xsl:template match="/">
-        <xsl:variable name="uploaded_md" select="itemUtil:getUploadedMetadata($handle)"/>
+        <xsl:variable name="uploaded_md" select="fn:getUploadedMetadata($handle)"/>
         <xsl:choose>
             <xsl:when test="$uploaded_md != ''">
                 <xsl:copy-of select="$uploaded_md"/>
@@ -123,7 +122,7 @@
 	</xsl:template>
 	
 	<xsl:template name="ProcessSourceURI">
-	   <xsl:for-each select="xalan:distinct(doc:metadata/doc:element[@name='dc']/doc:element[@name='source']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])">
+	   <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='source']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
 	       <cmd:ResourceProxy>
 	           <xsl:attribute name="id">uri_<xsl:value-of select="position()"/></xsl:attribute>
 	           <cmd:ResourceType><xsl:attribute name="mimetype">text/html</xsl:attribute>Resource</cmd:ResourceType>
@@ -169,7 +168,7 @@
 			</cmd:titles>
 			<cmd:authors>
 				<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value']">
-					<xsl:copy-of select="itemUtil:getAuthor(.)"/>
+					<xsl:copy-of select="fn:getAuthor(.)"/>
 				</xsl:for-each>
 			</cmd:authors>
 			<cmd:dates>
@@ -183,11 +182,11 @@
 			<xsl:if test="doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value']">
                 <cmd:funds>
                     <xsl:for-each select="doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value']">
-                        <xsl:copy-of select="itemUtil:getFunding(.)"/>
+                        <xsl:copy-of select="fn:getFunding(.)"/>
                     </xsl:for-each>
                 </cmd:funds>
             </xsl:if>
-			<xsl:copy-of select="itemUtil:getContact(doc:metadata/doc:element[@name='local']/doc:element[@name='contact']/doc:element[@name='person']/doc:element/doc:field[@name='value'])"/>
+			<xsl:copy-of select="fn:getContact(doc:metadata/doc:element[@name='local']/doc:element[@name='contact']/doc:element[@name='person']/doc:element/doc:field[@name='value'])"/>
 			<cmd:publishers>
 				<cmd:publisher>
 					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']"/>
@@ -215,7 +214,7 @@
 					<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='language']/doc:element[@name='iso']/doc:element/doc:field[@name='value']">
 						<cmd:language>
 							<cmd:code><xsl:value-of select="."/></cmd:code>
-							<cmd:name><xsl:value-of select="isocodes:getLangForCode(.)"/></cmd:name>
+							<cmd:name><xsl:value-of select="fn:getLangForCode(.)"/></cmd:name>
 						</cmd:language>
                 	</xsl:for-each>
 				</cmd:languages>
@@ -239,7 +238,7 @@
 			<xsl:if test="doc:metadata/doc:element[@name='local']/doc:element[@name='size']/doc:element[@name='info']/doc:element/doc:field[@name='value']">
 				<cmd:sizeInfo>
 					<xsl:for-each select="doc:metadata/doc:element[@name='local']/doc:element[@name='size']/doc:element[@name='info']/doc:element/doc:field[@name='value']">
-                          <xsl:copy-of select="itemUtil:getSize(.)"/>
+                          <xsl:copy-of select="fn:getSize(.)"/>
                 	</xsl:for-each>
 				</cmd:sizeInfo>
 			</xsl:if>
