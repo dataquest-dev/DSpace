@@ -1,0 +1,1 @@
+ALTER TABLE handle ADD url varchar(2048);
