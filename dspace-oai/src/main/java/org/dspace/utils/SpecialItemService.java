@@ -195,7 +195,7 @@ public class SpecialItemService {
                 elements[i].appendChild(doc.createTextNode(values[i]));
                 el.appendChild(elements[i]);
             }
-            return doc.getDocumentElement();
+            return doc;
         } catch (ParserConfigurationException e) {
             return null;
         }

@@ -27,7 +27,7 @@
     select="fn:stringReplace(/doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])"/>
     <xsl:variable name="modifyDate" select="/doc:metadata/doc:element[@name='others']/doc:field[@name='lastModifyDate']/text()"/>
     <xsl:variable name="dc_rights_uri" select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value']" />
-    <xsl:variable name="dsURL" select="fn:getProperty('dspace.url')"/>
+    <xsl:variable name="dsURL" select="fn:getProperty('dspace.ui.url')"/>
     <xsl:variable name="newProfile" select="'clarin.eu:cr1:p_1403526079380'"/>
     <xsl:variable name="oldProfile" select="'clarin.eu:cr1:p_1349361150622'"/>
     
