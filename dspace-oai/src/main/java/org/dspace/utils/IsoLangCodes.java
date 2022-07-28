@@ -38,7 +38,6 @@ public class IsoLangCodes {
 
 	private static Map<String, String> buildMap(){
 		Map<String, String> map = new HashMap<String, String>();
-		System.out.println("Getting lang_codes.txt");
 		final InputStream langCodesInputStream = Thread.currentThread()
 				.getContextClassLoader().getResourceAsStream("lang_codes.txt");
 		if (langCodesInputStream != null) {
