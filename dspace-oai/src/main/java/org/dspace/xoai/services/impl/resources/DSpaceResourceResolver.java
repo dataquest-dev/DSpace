@@ -28,10 +28,10 @@ import org.dspace.xoai.services.impl.resources.functions.GetAuthorFn;
 import org.dspace.xoai.services.impl.resources.functions.GetContactFn;
 import org.dspace.xoai.services.impl.resources.functions.GetFundingFn;
 import org.dspace.xoai.services.impl.resources.functions.GetLangForCodeFn;
+import org.dspace.xoai.services.impl.resources.functions.GetPropertyFn;
 import org.dspace.xoai.services.impl.resources.functions.GetSizeFn;
 import org.dspace.xoai.services.impl.resources.functions.GetUploadedMetadataFn;
 import org.dspace.xoai.services.impl.resources.functions.StringReplaceFn;
-import org.dspace.xoai.services.impl.resources.functions.GetPropertyFn;
 
 public class DSpaceResourceResolver implements ResourceResolver {
     private static final TransformerFactory transformerFactory = TransformerFactory

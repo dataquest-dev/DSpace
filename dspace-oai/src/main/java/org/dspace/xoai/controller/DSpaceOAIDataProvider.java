@@ -152,7 +152,7 @@ public class DSpaceOAIDataProvider {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                                "Unexpected error while writing the output. For more information visit the log files.");
         } catch (Exception e) {
-            System.out.println("this happened: " + e);
+            System.out.println("Unexpected error with stack trace: " + e);
             e.printStackTrace();
 
         } finally {

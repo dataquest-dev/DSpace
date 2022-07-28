@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- 
 -->
-<!--		xmlns:isocodes="org.dspace.utils.IsoLangCodes"-->
-<!--		xmlns:itemUtil="java:org.dspace.utils.ItemUtil"-->
-<!--		xmlns:configuration="org.dspace.core.ConfigurationManager"-->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:doc="http://www.lyncode.com/xoai"
     xmlns:fn="http://custom.crosswalk.functions"
@@ -51,7 +48,7 @@
                             	<xsl:value-of select="$newProfile"/>
                             </xsl:when>
                             <xsl:otherwise>
-                            	<xsl:value-of select="$newProfile"/>
+                            	<xsl:value-of select="$oldProfile"/>
                             </xsl:otherwise>
                     </xsl:choose>
                     
@@ -186,9 +183,7 @@
                     </xsl:for-each>
                 </cmd:funds>
             </xsl:if>
-			<!-- <xsl:copy-of select="fn:getContact(doc:metadata/doc:element[@name='local']/doc:element[@name='contact']/doc:element[@name='person']/doc:element/doc:field[@name='value'])"/> -->
-			<xsl:copy-of select="fn:getContact('Joakim;Nivre;joakim.nivre@lingfil.uu.se;Uppsala University')"/>
-
+			<xsl:copy-of select="fn:getContact(doc:metadata/doc:element[@name='local']/doc:element[@name='contact']/doc:element[@name='person']/doc:element/doc:field[@name='value'])"/>
 			<cmd:publishers>
 				<cmd:publisher>
 					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']"/>

@@ -11,34 +11,15 @@ package org.dspace.utils;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
-//import net.sf.saxon.om.NodeInfo;
-//import net.sf.saxon.s9api.ItemType;
-//import net.sf.saxon.s9api.OccurrenceIndicator;
-//import net.sf.saxon.s9api.Processor;
-//import net.sf.saxon.s9api.QName;
-//import net.sf.saxon.s9api.SaxonApiException;
-//import net.sf.saxon.s9api.SequenceType;
-//import net.sf.saxon.s9api.XdmAtomicValue;
-//import net.sf.saxon.s9api.XdmNode;
-//import net.sf.saxon.s9api.XdmValue;
-import net.sf.saxon.dom.DOMNodeList;
 import org.dspace.app.util.DCInput;
-import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.ItemServiceImpl;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
@@ -47,16 +28,11 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
-import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.xoai.app.BasicConfiguration;
-import org.dspace.xoai.services.api.HandleResolver;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
-
 
 @Component
 public class SpecialItemService {
@@ -70,16 +46,10 @@ public class SpecialItemService {
         Context context = null;
         try {
             context = new Context();
-            DSpaceServicesFactory dsf = DSpaceServicesFactory.getInstance();
-            UtilServiceFactory usf = UtilServiceFactory.getInstance();
             ContentServiceFactory csf = ContentServiceFactory.getInstance();
-
-            HandleResolver handleResolver = new BasicConfiguration().handleResolver();
-
             ItemService itemService = csf.getItemService();
             BitstreamService bitstreamService = csf.getBitstreamService();
             HandleService hs = HandleServiceFactory.getInstance().getHandleService();
-//            DSpaceObject dSpaceObject = handleResolver.resolve(handle);
             DSpaceObject dSpaceObject = hs.resolveToObject(context, handle);
             List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(((Item) dSpaceObject),
                     "local.hasMetadata");

@@ -1,9 +1,15 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+
+
 package org.dspace.xoai.services.impl.resources.functions;
 
-import org.dspace.app.configuration.OAIWebConfig;
 import org.dspace.utils.SpecialItemService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 
