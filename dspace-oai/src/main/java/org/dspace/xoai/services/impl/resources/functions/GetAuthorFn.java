@@ -1,13 +1,16 @@
 package org.dspace.xoai.services.impl.resources.functions;
 
-public class GetAuthorFn extends StringXSLFunction {
+import org.dspace.utils.SpecialItemService;
+import org.w3c.dom.Node;
+
+public class GetAuthorFn extends NodeXslFunction {
     @Override
     protected String getFnName() {
         return "getAuthor";
     }
 
-//    @Override
-//    protected String getStringResult(String param) {
-//        return uncertainString(ItemUtil.getAuthor(param));
-//    }
+    @Override
+    protected Node getNode(String param) {
+        return new SpecialItemService().getAuthor(param);
+    }
 }

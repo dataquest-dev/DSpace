@@ -11,10 +11,16 @@ package org.dspace.utils;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 //import net.sf.saxon.om.NodeInfo;
 //import net.sf.saxon.s9api.ItemType;
@@ -26,16 +32,22 @@ import javax.xml.parsers.ParserConfigurationException;
 //import net.sf.saxon.s9api.XdmAtomicValue;
 //import net.sf.saxon.s9api.XdmNode;
 //import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.dom.DOMNodeList;
 import org.dspace.app.util.DCInput;
+import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.ItemServiceImpl;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.xoai.app.BasicConfiguration;
 import org.dspace.xoai.services.api.HandleResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,16 +61,6 @@ import org.xml.sax.InputSource;
 @Component
 public class SpecialItemService {
 
-    @Autowired
-    private static HandleResolver handleResolver;
-
-    @Autowired
-    private static ItemService itemService;
-
-    @Autowired
-    private static BitstreamService bitstreamService;
-
-
     /** log4j logger */
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger
             .getLogger(SpecialItemService.class);
@@ -68,8 +70,17 @@ public class SpecialItemService {
         Context context = null;
         try {
             context = new Context();
+            DSpaceServicesFactory dsf = DSpaceServicesFactory.getInstance();
+            UtilServiceFactory usf = UtilServiceFactory.getInstance();
+            ContentServiceFactory csf = ContentServiceFactory.getInstance();
 
-            DSpaceObject dSpaceObject = handleResolver.resolve(handle);
+            HandleResolver handleResolver = new BasicConfiguration().handleResolver();
+
+            ItemService itemService = csf.getItemService();
+            BitstreamService bitstreamService = csf.getBitstreamService();
+            HandleService hs = HandleServiceFactory.getInstance().getHandleService();
+//            DSpaceObject dSpaceObject = handleResolver.resolve(handle);
+            DSpaceObject dSpaceObject = hs.resolveToObject(context, handle);
             List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(((Item) dSpaceObject),
                     "local.hasMetadata");
             if (dSpaceObject != null && dSpaceObject.getType() == Constants.ITEM && hasOwnMetadata(metadataValues)) {
@@ -84,7 +95,7 @@ public class SpecialItemService {
                     factory.setNamespaceAware(true);
                     DocumentBuilder builder = factory.newDocumentBuilder();
                     Document doc = builder.parse(new InputSource(reader));
-                    ret = doc.getDocumentElement();
+                    ret = doc;
                 } finally {
                     reader.close();
                 }
@@ -127,7 +138,7 @@ public class SpecialItemService {
                 elements[i].appendChild(doc.createTextNode(values[i]));
                 el.appendChild(elements[i]);
             }
-            return doc.getDocumentElement();
+            return doc;
         } catch (ParserConfigurationException e) {
             return null;
         }
@@ -156,7 +167,8 @@ public class SpecialItemService {
                 elements[i].appendChild(doc.createTextNode(values[i]));
                 el.appendChild(elements[i]);
             }
-            return doc.getDocumentElement();
+
+            return doc;
         } catch (ParserConfigurationException e) {
             return null;
         }
@@ -211,7 +223,7 @@ public class SpecialItemService {
                 first.appendChild(doc.createTextNode(values[1]));
                 el.appendChild(first);
             }
-            return doc.getDocumentElement();
+            return doc;
         } catch (ParserConfigurationException e) {
             return null;
         }

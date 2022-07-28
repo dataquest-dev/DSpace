@@ -23,6 +23,7 @@ import net.sf.saxon.jaxp.SaxonTransformerFactory;
 import net.sf.saxon.s9api.ExtensionFunction;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.xoai.services.impl.resources.functions.DistinctFn;
 import org.dspace.xoai.services.impl.resources.functions.GetAuthorFn;
 import org.dspace.xoai.services.impl.resources.functions.GetContactFn;
 import org.dspace.xoai.services.impl.resources.functions.GetFundingFn;
@@ -38,7 +39,7 @@ public class DSpaceResourceResolver implements ResourceResolver {
     static {
         List<ExtensionFunction> extensionFunctionList = List.of(new GetPropertyFn(), new StringReplaceFn(),
                 new GetContactFn(), new GetAuthorFn(), new GetFundingFn(), new GetLangForCodeFn(),
-                new GetPropertyFn(), new GetSizeFn(), new GetUploadedMetadataFn());
+                new GetPropertyFn(), new GetSizeFn(), new GetUploadedMetadataFn(), new DistinctFn());
 
         SaxonTransformerFactory saxonTransformerFactory = (SaxonTransformerFactory) transformerFactory;
         for (ExtensionFunction en :

@@ -51,7 +51,7 @@
                             	<xsl:value-of select="$newProfile"/>
                             </xsl:when>
                             <xsl:otherwise>
-                            	<xsl:value-of select="$oldProfile"/>
+                            	<xsl:value-of select="$newProfile"/>
                             </xsl:otherwise>
                     </xsl:choose>
                     
@@ -122,7 +122,7 @@
 	</xsl:template>
 	
 	<xsl:template name="ProcessSourceURI">
-	   <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='source']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
+	   <xsl:for-each select="fn:distinct(doc:metadata/doc:element[@name='dc']/doc:element[@name='source']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])">
 	       <cmd:ResourceProxy>
 	           <xsl:attribute name="id">uri_<xsl:value-of select="position()"/></xsl:attribute>
 	           <cmd:ResourceType><xsl:attribute name="mimetype">text/html</xsl:attribute>Resource</cmd:ResourceType>
@@ -186,7 +186,9 @@
                     </xsl:for-each>
                 </cmd:funds>
             </xsl:if>
-			<xsl:copy-of select="fn:getContact(doc:metadata/doc:element[@name='local']/doc:element[@name='contact']/doc:element[@name='person']/doc:element/doc:field[@name='value'])"/>
+			<!-- <xsl:copy-of select="fn:getContact(doc:metadata/doc:element[@name='local']/doc:element[@name='contact']/doc:element[@name='person']/doc:element/doc:field[@name='value'])"/> -->
+			<xsl:copy-of select="fn:getContact('Joakim;Nivre;joakim.nivre@lingfil.uu.se;Uppsala University')"/>
+
 			<cmd:publishers>
 				<cmd:publisher>
 					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']"/>

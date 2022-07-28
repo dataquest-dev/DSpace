@@ -4,21 +4,17 @@ import org.dspace.app.configuration.OAIWebConfig;
 import org.dspace.utils.SpecialItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
 
 
-public class GetUploadedMetadataFn extends StringXSLFunction{
+public class GetUploadedMetadataFn extends NodeXslFunction {
     @Override
     protected String getFnName() {
         return "getUploadedMetadata";
     }
 
-    @Autowired
-    private SpecialItemService specialItemService;
-
-//    @Override
-//    protected String getStringResult(String param) {
-//        if (specialItemService == null)
-//            return new OAIWebConfig().specialItemService().getUploadedMetadata(param).toString();
-//        return specialItemService.getUploadedMetadata(param).toString();
-//    }
+    @Override
+    protected Node getNode(String param) {
+        return new SpecialItemService().getUploadedMetadata(param);
+    }
 }

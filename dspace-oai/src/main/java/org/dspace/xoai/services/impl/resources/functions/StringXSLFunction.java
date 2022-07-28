@@ -30,7 +30,7 @@ public abstract class StringXSLFunction implements ExtensionFunction {
 
     @Override
     final public SequenceType getResultType() {
-        return SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ONE);
+        return SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ZERO_OR_ONE);
     }
 
     @Override
@@ -46,7 +46,10 @@ public abstract class StringXSLFunction implements ExtensionFunction {
     }
 
     private String checks(String got) {
-        if (got.toLowerCase().equals("[#document: null]".toLowerCase()))
+        if (got == null)
+            return "";
+
+        if (got.equalsIgnoreCase("[#document: null]"))
             return "";
 
         return got;

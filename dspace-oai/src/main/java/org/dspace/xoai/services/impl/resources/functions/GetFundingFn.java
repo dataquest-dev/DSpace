@@ -1,13 +1,16 @@
 package org.dspace.xoai.services.impl.resources.functions;
 
-public class GetFundingFn extends StringXSLFunction {
+import org.dspace.utils.SpecialItemService;
+import org.w3c.dom.Node;
+
+public class GetFundingFn extends NodeXslFunction {
     @Override
     protected String getFnName() {
         return "getFunding";
     }
 
-//    @Override
-//    protected String getStringResult(String param) {
-//        return uncertainString(ItemUtil.getFunding(param));
-//    }
+    @Override
+    protected Node getNode(String param) {
+        return new SpecialItemService().getFunding(param);
+    }
 }

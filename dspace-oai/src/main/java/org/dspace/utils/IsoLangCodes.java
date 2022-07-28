@@ -1,10 +1,17 @@
 /* Created for LINDAT/CLARIN */
 package org.dspace.utils;
 
+import com.hp.hpl.jena.util.ResourceUtils;
+import org.apache.solr.client.solrj.io.stream.JSONTupleStream;
+
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,8 +38,10 @@ public class IsoLangCodes {
 
 	private static Map<String, String> buildMap(){
 		Map<String, String> map = new HashMap<String, String>();
-		final InputStream langCodesInputStream = IsoLangCodes.class.getResourceAsStream("lang_codes.txt");
-		if(langCodesInputStream != null) {
+		System.out.println("Getting lang_codes.txt");
+		final InputStream langCodesInputStream = Thread.currentThread()
+				.getContextClassLoader().getResourceAsStream("lang_codes.txt");
+		if (langCodesInputStream != null) {
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(langCodesInputStream, StandardCharsets.UTF_8))) {
 				String line;
 				while ((line = reader.readLine()) != null) {
