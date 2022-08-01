@@ -66,33 +66,34 @@ public class CMDIFileBundleMaintainer {
 
         for (Bundle bundle : CollectionUtils.emptyIfNull(bundleToProcess)) {
             for (Bitstream bitstream : bundle.getBitstreams()) {
-                // change bundle only for cmdi file
-                if (bitstream.getName().toLowerCase().endsWith(".cmdi")) {
-
-                    List<Bundle> targetBundles = itemService.getBundles(item, targetBundle);
-                    InputStream inputStream = bitstreamService.retrieve(context, bitstream);
-
-                    // Create a new Bitstream
-                    Bitstream source = null;
-
-                    if (targetBundles.size() < 1) {
-                        source = itemService.createSingleBitstream(context, inputStream, item, targetBundle);
-                    } else {
-                        // we have a bundle already, just add bitstream
-                        source = bitstreamService.create(context, targetBundles.get(0), inputStream);
-                    }
-
-                    source.setName(context, bitstream.getName());
-                    source.setSource(context, bitstream.getSource());
-                    source.setFormat(context, bitstream.getFormat(context));
-
-                    // add the bitstream to the right bundle
-                    bitstreamService.update(context, source);
-                    itemService.update(context, item);
-
-                    // remove the bitstream from the bundle where it shouldn't be
-                    bitstreamService.delete(context, bitstream);
+                if (!bitstream.getName().toLowerCase().endsWith(".cmdi")) {
+                    continue;
                 }
+
+                // change bundle only for cmdi file
+                List<Bundle> targetBundles = itemService.getBundles(item, targetBundle);
+                InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+
+                // Create a new Bitstream
+                Bitstream source = null;
+
+                if (targetBundles.size() < 1) {
+                    source = itemService.createSingleBitstream(context, inputStream, item, targetBundle);
+                } else {
+                    // we have a bundle already, just add bitstream
+                    source = bitstreamService.create(context, targetBundles.get(0), inputStream);
+                }
+
+                source.setName(context, bitstream.getName());
+                source.setSource(context, bitstream.getSource());
+                source.setFormat(context, bitstream.getFormat(context));
+
+                // add the bitstream to the right bundle
+                bitstreamService.update(context, source);
+                itemService.update(context, item);
+
+                // remove the bitstream from the bundle where it shouldn't be
+                bitstreamService.delete(context, bitstream);
             }
         }
     }
