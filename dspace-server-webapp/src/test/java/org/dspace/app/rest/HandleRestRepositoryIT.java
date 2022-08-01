@@ -16,13 +16,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-//import java.util.HashMap;
 import java.util.List;
-//import java.util.Map;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.dspace.app.rest.matcher.HandleMatcher;
-//import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -56,6 +55,8 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ItemService itemService;
+
+    private JsonNodeFactory jsonNodeFactory = new JsonNodeFactory(true);
 
     @Autowired
     private HandleClarinService handleClarinService;
@@ -137,15 +138,15 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     public void patchReplaceHandle() throws  Exception {
         Handle handle = publicItem.getHandles().get(0);
         List<Operation> ops = new ArrayList<Operation>();
-        //Map<String, String> value = new HashMap<String, String>();
-        //value.put("value", "123");
-        String value = "123";
-        ops.add(new ReplaceOperation("/replaceHandle", value));
+        List<ObjectNode> values = new ArrayList<ObjectNode>();
+        values.add(jsonNodeFactory.objectNode().put("value","123"));
+        values.add(jsonNodeFactory.objectNode().put("archive",true));
+        ops.add(new ReplaceOperation("/replaceHandle", values));
 
         String patchBody = getPatchContent(ops);
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        getClient().perform(get(HANDLES_ENDPOINT + handle.getID()))
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.is(
                         HandleMatcher.matchHandle(handle)
@@ -154,13 +155,13 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        getClient().perform(get(HANDLES_ENDPOINT + handle.getID()))
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.not(Matchers.is(
                         HandleMatcher.matchHandle(handle))
                 )));
         handle.setHandle("123");
-        getClient().perform(get(HANDLES_ENDPOINT + handle.getID()))
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.is(
                         HandleMatcher.matchHandle(handle))
@@ -173,9 +174,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     public void patchSetPrefix() throws  Exception {
         Handle handle = publicItem.getHandles().get(0);
         List<Operation> ops = new ArrayList<Operation>();
-//        Map<String, String> value = new HashMap<String, String>();
-//        value.put("value", "123");
-        String value = "123";
+        ObjectNode value = jsonNodeFactory.objectNode().put("value","123");
         ops.add(new ReplaceOperation("/setPrefix", value));
 
         String patchBody = getPatchContent(ops);

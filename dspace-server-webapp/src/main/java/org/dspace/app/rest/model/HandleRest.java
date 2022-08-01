@@ -7,7 +7,6 @@
  */
 package org.dspace.app.rest.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
@@ -27,6 +26,8 @@ public class HandleRest extends BaseObjectRest<Integer> {
 
     private Integer resourceTypeID;
 
+    private String url;
+
     public String getHandle() {
         return handle;
     }
@@ -35,12 +36,20 @@ public class HandleRest extends BaseObjectRest<Integer> {
         return resourceTypeID;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
     public void setHandle(String handle) {
         this.handle = handle;
     }
 
     public void setResourceTypeID(Integer resourceTypeID) {
         this.resourceTypeID = resourceTypeID;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     @Override
@@ -58,4 +67,5 @@ public class HandleRest extends BaseObjectRest<Integer> {
     public String getType() {
         return NAME;
     }
+
 }

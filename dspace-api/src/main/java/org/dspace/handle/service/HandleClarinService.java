@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 
@@ -44,13 +43,14 @@ public interface HandleClarinService {
     /**
      * Creates a new handle.
      *
-     * @param context DSpace context object
-     * @param dso     dspace object
+     * @param context             DSpace context object
+     * @param resourceTypeID      Integer
+     * @param url                          String
      * @return new Handle
      * @throws AuthorizeException if authorization error
      * @throws SQLException       if database error
      */
-    public Handle createHandle(Context context, DSpaceObject dso)
+    public Handle createHandle(Context context, Integer resourceTypeID, String url)
             throws SQLException, AuthorizeException;
 
     /**
@@ -64,14 +64,15 @@ public interface HandleClarinService {
     public void delete(Context context, Handle handle) throws SQLException, AuthorizeException;
 
     /**
-     * Save the handle.
+     * Update the metadata field in the database.
      *
-     * @param context DSpace context object
+     * @param context dspace context
      * @param handle  handle
-     * @throws AuthorizeException if authorization error
-     * @throws SQLException       if database error
+     * @throws SQLException               if database error
+     * @throws AuthorizeException         if authorization error
      */
-    public void save(Context context, Handle handle) throws SQLException, AuthorizeException;
+    public void update(Context context, Handle handle)
+            throws SQLException, AuthorizeException;
 
     /**
      * Replace handle in handle object by new handle.
@@ -94,4 +95,9 @@ public interface HandleClarinService {
      * @throws SQLException       if database error
      */
     public void setPrefix(Context context, String newPrefix) throws SQLException, AuthorizeException;
+
+    public boolean isInternalResource(Handle handle);
+
+    public String getCanonicalForm(String handle);
+
 }

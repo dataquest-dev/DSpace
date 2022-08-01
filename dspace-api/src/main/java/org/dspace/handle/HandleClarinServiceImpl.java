@@ -13,8 +13,8 @@ import java.util.List;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.MetadataFieldServiceImpl;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
@@ -43,6 +43,9 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     protected HandleService handleService;
 
     @Autowired(required = true)
+    protected ItemService itemService;
+
+    @Autowired(required = true)
     protected ConfigurationService configurationService;
 
     @Autowired(required = true)
@@ -66,7 +69,8 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     }
 
     @Override
-    public Handle createHandle(Context context, DSpaceObject dso) throws SQLException, AuthorizeException  {
+    public Handle createHandle(Context context, Integer resourceTypeID, String url)
+            throws SQLException, AuthorizeException  {
         // Check authorisation: Only admins may create DC types
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
@@ -74,16 +78,14 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         }
         Handle handle = handleDAO.create(context, new Handle());
         String handleId = createId(context);
-
         handle.setHandle(handleId);
-        handle.setDSpaceObject(dso);
-        dso.addHandle(handle);
-        handle.setResourceTypeId(dso.getType());
+        handle.setResourceTypeId(resourceTypeID);
+        handle.setUrl(url);
         handleDAO.save(context, handle);
 
         log.debug("Created new Handle for {} (ID={}) {}",
-            () -> Constants.typeText[dso.getType()],
-            () -> dso.getID(),
+            () -> Constants.typeText[resourceTypeID],
+            () -> resourceTypeID,
             () -> handleId);
 
         return handle;
@@ -104,13 +106,19 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     }
 
     @Override
-    public void save(Context context, Handle handle) throws SQLException, AuthorizeException {
-        // Check authorisation: Only admins may create DC types
+    public void update(Context context, Handle handle) throws SQLException, AuthorizeException {
+        // Check authorisation: Only admins may update the metadata registry
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "Only administrators may modify the handle registry");
+                    "Only administrators may modiffy the handle registry");
         }
-        handleDAO.save(context,handle);
+
+        handleDAO.save(context, handle);
+
+        log.info(LogHelper.getHeader(context, "update_handleregistry",
+                "handle_id=" + handle.getID()
+                        + "handle=" + handle.getHandle()
+                        + "resourceTypeID=" + handle.getResourceTypeId()));
     }
 
     @Override
@@ -136,6 +144,32 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         if (!(configurationService.setProperty("handle.prefix",newPrefix))) {
             throw new RuntimeException("error while trying to set handle prefix");
         }
+    }
+
+    @Override
+    public boolean isInternalResource(Handle handle) {
+        return (handle.getUrl() == null || handle.getUrl().isEmpty());
+    }
+
+    /**
+     * Transforms handle into the canonical form <em>hdl:handle</em>.
+     *
+     * No attempt is made to verify that handle is in fact valid.
+     *
+     * @param handle
+     *            The handle
+     * @return The canonical form
+     */
+    public String getCanonicalForm(String handle) {
+        // Let the admin define a new prefix, if not then we'll use the
+        // CNRI default. This allows the admin to use "hdl:" if they want to or
+        // use a locally branded prefix handle.myuni.edu.
+        String handlePrefix = configurationService.getProperty("handle.canonical.prefix");
+        if (handlePrefix == null || handlePrefix.length() == 0) {
+            handlePrefix = "http://hdl.handle.net/";
+        }
+
+        return handlePrefix + handle;
     }
 
     private String createId(Context context) throws SQLException {

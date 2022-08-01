@@ -29,8 +29,7 @@ public class HandleMatcher {
         return allOf(
                 hasJsonPath("$.handle", is(handle.getHandle())),
                 hasJsonPath("$.resourceTypeID", is(handle.getResourceTypeId())),
-                hasJsonPath("$._embedded.dspaceObject", Matchers.not(Matchers.empty())),
-                hasJsonPath("$._links.dspaceObject.href", Matchers.containsString("/api/core/handles")),
+                hasJsonPath("$.url", is(handle.getUrl())),
                 hasJsonPath("$._links.self.href", Matchers.containsString("/api/core/handles"))
         );
     }
@@ -39,8 +38,7 @@ public class HandleMatcher {
         return allOf(
                 hasJsonPath("$.handle", is(handle.getHandle())),
                 hasJsonPath("$.resourceTypeID", is(handle.getResourceTypeId())),
-                hasJsonPath("$._embedded.dspaceObject", Matchers.not(Matchers.empty())),
-                hasJsonPath("$._links.dspaceObject.href", Matchers.containsString("/api/core/handles")),
+                hasJsonPath("$.url", is(handle.getUrl())),
                 hasJsonPath("$._links.self.href", Matchers.containsString("/api/core/handles"))
         );
     }
