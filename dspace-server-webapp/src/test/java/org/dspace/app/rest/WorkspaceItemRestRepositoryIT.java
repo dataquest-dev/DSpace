@@ -11,6 +11,7 @@ import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
+import static org.dspace.core.Constants.METADATA_BUNDLE_NAME;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -7864,20 +7865,20 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
     @Test
     public void uploadCMDIFileToTheMETADATABundleAndRemoveIt() throws Exception {
-        // create Item with hasCMDI = yes
         context.turnOffAuthorisationSystem();
 
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                 .withName("Sub Community")
                 .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1)
-                .withName("Collection 1")
-                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
 
-        context.setCurrentUser(eperson);
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
                 .withTitle("Workspace Item 1")
                 .withIssueDate("2017-10-17")
@@ -7885,32 +7886,20 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .withMetadata("local","hasCMDI",null, "yes")
                 .build();
 
-        context.restoreAuthSystemState();
-
         // create CMDI file
-        InputStream endnote = getClass().getResourceAsStream(testProps.get("test.CMDIfile").toString());
-//        final MockMultipartFile endnoteFile = new MockMultipartFile("file", "/local/path/endnote-test.enw",
-//                "text/endnote", endnote);
-        // Upload CMDI file
-        MockMultipartFile cmdiFile = new MockMultipartFile("exampleCMDI.cmdi","exampleCMDI.cmdi",
+        InputStream endnote = getClass().getResourceAsStream("exampleCMDI.cmdi");
+        final MockMultipartFile cmdiFile = new MockMultipartFile("file","/local/path/exampleCMDI.cmdi",
                 "text/plain", endnote);
 
-        String authToken = getAuthToken(eperson.getEmail(), password);
+        context.restoreAuthSystemState();
+
         AtomicReference<List<Integer>> idRef = new AtomicReference<>();
         // create workspaceitems in the default collection (col1)
         try {
-            getClient(authToken).perform(fileUpload("/api/submission/workspaceitems")
+            // upload the file in our workspaceitem
+            getClient(authToken).perform(fileUpload("/api/submission/workspaceitems/" + witem.getID())
                             .file(cmdiFile))
-                    // create should return 200, 201 (created) is better for single resource
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$._embedded.workspaceitems[0].sections.upload.files[0]"
-                                    + ".metadata['dc.source'][0].value",
-                            is("exampleCMDI.cmdi")))
-                    .andExpect(jsonPath("$._embedded.workspaceitems[0].sections.upload.files[0]"
-                                    + ".metadata['dc.title'][0].value",
-                            is("exampleCMDI.cmdi")))
-                    .andExpect(
-                            jsonPath("$._embedded.workspaceitems[*]._embedded.upload").doesNotExist());
+                    .andExpect(status().isCreated());
         } finally {
             if (idRef != null && idRef.get() != null) {
                 for (int i : idRef.get()) {
@@ -7919,6 +7908,118 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             }
         }
         endnote.close();
+
+        // create a list of values to use in add operation
+        String updatedSponsor = "updated" + NON_EU_SPONSOR;
+        List<Operation> addSponsorOperations = new ArrayList<Operation>();
+        List<Map<String, String>> firstSponsorValues = new ArrayList<Map<String, String>>();
+        Map<String, String> firstSponsor = new HashMap<String, String>();
+        firstSponsor.put("value", NON_EU_SPONSOR);
+        firstSponsorValues.add(firstSponsor);
+
+        // creating replace operation
+        Map<String, String> updatedSponsorValue = new HashMap<String, String>();
+        updatedSponsorValue.put("value", updatedSponsor);
+
+        addSponsorOperations.add(new AddOperation("/sections/traditionalpageone/local.sponsor",
+                firstSponsorValues));
+
+        String patchBody = getPatchContent(addSponsorOperations);
+
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        // Add operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        // submit the workspaceitem to complete the deposit (as there is no workflow configured)
+        getClient(authToken)
+                .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
+                        .content("/api/submission/workspaceitems/" + witem.getID())
+                        .contentType(textUriContentType))
+                .andExpect(status().isCreated());
+
+        boolean uploadedFiles = itemService.hasUploadedFiles(witem.getItem(), METADATA_BUNDLE_NAME);
+        boolean uploadedFiles2 = itemService.hasUploadedFiles(witem.getItem(), METADATA_BUNDLE_NAME);
+
+
+        // create Item with hasCMDI = yes
+//        context.turnOffAuthorisationSystem();
+//
+//        parentCommunity = CommunityBuilder.createCommunity(context)
+//                .withName("Parent Community")
+//                .build();
+//        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+//                .withName("Sub Community")
+//                .build();
+//        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+//
+//        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+//                .withTitle("Test WorkspaceItem")
+//                .withIssueDate("2017-10-17")
+//                .build();
+//
+//
+//
+//        context.restoreAuthSystemState();
+//
+//        String authToken = getAuthToken(admin.getEmail(), password);
+//        getClient(authToken).perform(fileUpload("/api/submission/workspaceitems/" + witem.getID())
+//                        .file(cmdiFile))
+//                .andExpect(status().isOk());
+
+//        context.turnOffAuthorisationSystem();
+//
+//        parentCommunity = CommunityBuilder.createCommunity(context)
+//                .withName("Parent Community")
+//                .build();
+//        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+//                .withName("Sub Community")
+//                .build();
+//        Collection col1 = CollectionBuilder.createCollection(context, child1)
+//                .withName("Collection 1")
+//                .build();
+//
+//        context.setCurrentUser(eperson);
+//        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+//                .withTitle("Workspace Item 1")
+//                .withIssueDate("2017-10-17")
+//                .withSubject("ExtraEntry")
+//                .withMetadata("local","hasCMDI",null, "yes")
+//                .build();
+
+//        context.restoreAuthSystemState();
+
+
+
+//        String authToken = getAuthToken(admin.getEmail(), password);
+//        AtomicReference<List<Integer>> idRef = new AtomicReference<>();
+//        // create workspaceitems in the default collection (col1)
+//        try {
+//            getClient(authToken).perform(fileUpload("/api/submission/workspaceitems/" + witem.getID())
+//                            .file(cmdiFile))
+//                    // create should return 200, 201 (created) is better for single resource
+//                    .andExpect(status().isOk())
+//                    .andExpect(jsonPath("$.sections.upload.files[0]"
+//                                    + ".metadata['dc.source'][0].value",
+//                            is("/local/path/exampleCMDI.cmdi")))
+//                    .andExpect(jsonPath("$.sections.upload.files[0]"
+//                                    + ".metadata['dc.title'][0].value",
+//                            is("exampleCMDI.cmdi")))
+//                    .andExpect(
+//                            jsonPath("$._embedded.workspaceitems[*]._embedded.upload").doesNotExist());
+//        } finally {
+//            if (idRef != null && idRef.get() != null) {
+//                for (int i : idRef.get()) {
+//                    WorkspaceItemBuilder.deleteWorkspaceItem(i);
+//                }
+//            }
+//        }
+//        endnote.close();
+//
+//        boolean uploadedFiles = itemService.hasUploadedFiles(witem.getItem(), METADATA_BUNDLE_NAME);
+//        boolean uploadedFiles2 = itemService.hasUploadedFiles(witem.getItem(), METADATA_BUNDLE_NAME);
 //        InputStream inputStream = new BufferedInputStream(f.getInputStream());
 //        Bitstream result = itemService.createSingleBitstream(context, inputStream, it,
 //                Constants.METADATA_BUNDLE_NAME);
