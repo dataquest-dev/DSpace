@@ -83,7 +83,7 @@ public interface HandleClarinService {
      * @throws AuthorizeException if authorization error
      * @throws SQLException       if database error
      */
-    public void replaceHandle(Context context, Handle handleObject, String newHandle)
+    public void replaceHandle(Context context, Handle handleObject, String newHandle, String newUrl)
             throws SQLException, AuthorizeException;
 
     /**

@@ -10,13 +10,11 @@ package org.dspace.app.rest.repository;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
@@ -136,67 +134,59 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                             Handle handleObject = handleClarinService.findByID(context, id);
 
                             if (operation.getValue() != null && handleObject != null) {
-                                JsonNode jsonNodeValue = null;
+                                JsonNode jsonNodeUrl = null;
+                                JsonNode jsonNodeHandle = null;
                                 JsonNode jsonNodeArchive = null;
                                 JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) operation.getValue();
-                                Iterator<JsonNode> jsonNodes = jsonValEvaluator.getValueNode().elements();
-                                //get new handle
-                                // add operation has value wrapped in the ArrayNode
-                                for (Iterator<JsonNode> it = jsonNodes; it.hasNext(); ) {
+                                JsonNode jsonNodes = jsonValEvaluator.getValueNode();
 
-                                    JsonNode jsonNode = it.next();
-                                    if (jsonNode instanceof ObjectNode) {
-                                        if (jsonNode.get("value") != null) {
-                                            jsonNodeValue = jsonNode.get("value");
-                                        }
-                                        if (jsonNode.get("archive") != null) {
-                                            jsonNodeArchive = jsonNode.get("archive");
-                                        }
-                                    }
+                                if (jsonNodes.get("handle") != null) {
+                                    jsonNodeHandle = jsonNodes.get("handle");
                                 }
-
-                                if (ObjectUtils.isEmpty(jsonNodeValue.asText()) ||
-                                        StringUtils.isBlank(jsonNodeValue.asText())) {
+                                if (jsonNodes.get("url") != null) {
+                                    jsonNodeUrl = jsonNodes.get("url");
+                                }
+                                if (jsonNodes.get("archive") != null) {
+                                    jsonNodeArchive = jsonNodes.get("archive");
+                                }
+                                if (ObjectUtils.isEmpty(jsonNodeHandle.asText()) ||
+                                        StringUtils.isBlank(jsonNodeHandle.asText()) ||
+                                        ObjectUtils.isEmpty(jsonNodeUrl.asText()) ||
+                                        StringUtils.isBlank(jsonNodeUrl.asText()) ||
+                                        ObjectUtils.isEmpty(jsonNodeArchive.asText()) ||
+                                        StringUtils.isBlank(jsonNodeArchive.asText())) {
                                     throw new UnprocessableEntityException
                                     ("Cannot load JsonNode value from the operation: " + operation.getPath());
                                 }
 
                                 //archive old handle
-                                archiveHandle(context, handleObject, jsonNodeValue.asText(),
+                                archiveHandle(context, handleObject, jsonNodeHandle.asText(),
                                         jsonNodeArchive.asBoolean());
 
                                 // get the value from the old operation as a string
-                                handleClarinService.replaceHandle(context, handleObject,jsonNodeValue.asText());
+                                handleClarinService.replaceHandle(context, handleObject,
+                                        jsonNodeHandle.asText(), jsonNodeUrl.asText());
                             }
                             break;
 
                         case "/setPrefix":
                             if (operation.getValue() != null) {
                                 //set handle prefix
-                                JsonNode jsonNodeValue = null;
+                                JsonNode jsonNodePrefix = null;
                                 JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) operation.getValue();
-                                Iterator<JsonNode> jsonNodes = jsonValEvaluator.getValueNode().elements();
+                                JsonNode jsonNodes = jsonValEvaluator.getValueNode();
 
-                                if (jsonValEvaluator.getValueNode().size() == 1) {
-                                    // replace operation has value wrapped in the ObjectNode
-                                    jsonNodeValue = jsonValEvaluator.getValueNode().get("value");
-                                } else {
-                                    // add operation has value wrapped in the ArrayNode
-                                    for (Iterator<JsonNode> it = jsonNodes; it.hasNext(); ) {
-                                        JsonNode jsonNode = it.next();
-                                        if (jsonNode instanceof ObjectNode) {
-                                            jsonNodeValue = jsonNode.get("value");
-                                        }
-                                    }
+                                if (jsonNodes.get("prefix") != null) {
+                                    jsonNodePrefix = jsonNodes.get("prefix");
                                 }
 
-                                if (ObjectUtils.isEmpty(jsonNodeValue) ||
-                                        StringUtils.isBlank(jsonNodeValue.asText())) {
+                                if (ObjectUtils.isEmpty(jsonNodePrefix) ||
+                                        StringUtils.isBlank(jsonNodePrefix.asText())) {
                                     throw new UnprocessableEntityException
                                     ("Cannot load JsonNode value from the operation: " + operation.getPath());
                                 }
                                 // get the value from the old operation as a string
-                                handleClarinService.setPrefix(context, jsonNodeValue.asText());
+                                handleClarinService.setPrefix(context, jsonNodePrefix.asText());
                             }
                             break;
 

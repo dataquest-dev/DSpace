@@ -122,13 +122,14 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     }
 
     @Override
-    public void replaceHandle(Context context, Handle handleObject, String newHandle)
+    public void replaceHandle(Context context, Handle handleObject, String newHandle, String newUrl)
             throws SQLException, AuthorizeException {
         // Check authorisation: Only admins may create DC types
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
+        handleObject.setUrl(newUrl);
         handleObject.setHandle(newHandle);
         handleDAO.save(context, handleObject);
     }
