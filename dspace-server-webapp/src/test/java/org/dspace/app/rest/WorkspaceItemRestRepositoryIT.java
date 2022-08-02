@@ -28,11 +28,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -56,6 +59,7 @@ import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.RemoveOperation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
+import org.dspace.app.rest.submit.step.validation.CMDIFileBundleMaintainer;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.builder.BitstreamBuilder;
@@ -93,6 +97,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Test suite for the WorkspaceItem endpoint
@@ -7857,6 +7862,69 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
     }
 
+    @Test
+    public void uploadCMDIFileToTheMETADATABundleAndRemoveIt() throws Exception {
+        // create Item with hasCMDI = yes
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                .withName("Collection 1")
+                .build();
+
+        context.setCurrentUser(eperson);
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                .withTitle("Workspace Item 1")
+                .withIssueDate("2017-10-17")
+                .withSubject("ExtraEntry")
+                .withMetadata("local","hasCMDI",null, "yes")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // create CMDI file
+        InputStream endnote = getClass().getResourceAsStream(testProps.get("test.CMDIfile").toString());
+//        final MockMultipartFile endnoteFile = new MockMultipartFile("file", "/local/path/endnote-test.enw",
+//                "text/endnote", endnote);
+        // Upload CMDI file
+        MockMultipartFile cmdiFile = new MockMultipartFile("exampleCMDI.cmdi","exampleCMDI.cmdi",
+                "text/plain", endnote);
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        AtomicReference<List<Integer>> idRef = new AtomicReference<>();
+        // create workspaceitems in the default collection (col1)
+        try {
+            getClient(authToken).perform(fileUpload("/api/submission/workspaceitems")
+                            .file(cmdiFile))
+                    // create should return 200, 201 (created) is better for single resource
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0].sections.upload.files[0]"
+                                    + ".metadata['dc.source'][0].value",
+                            is("exampleCMDI.cmdi")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0].sections.upload.files[0]"
+                                    + ".metadata['dc.title'][0].value",
+                            is("exampleCMDI.cmdi")))
+                    .andExpect(
+                            jsonPath("$._embedded.workspaceitems[*]._embedded.upload").doesNotExist());
+        } finally {
+            if (idRef != null && idRef.get() != null) {
+                for (int i : idRef.get()) {
+                    WorkspaceItemBuilder.deleteWorkspaceItem(i);
+                }
+            }
+        }
+        endnote.close();
+//        InputStream inputStream = new BufferedInputStream(f.getInputStream());
+//        Bitstream result = itemService.createSingleBitstream(context, inputStream, it,
+//                Constants.METADATA_BUNDLE_NAME);
+    }
+
+
     private WorkspaceItem createSimpleWorkspaceItem() {
         context.turnOffAuthorisationSystem();
 
@@ -7881,4 +7949,6 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         return witem;
     }
+
+
 }
