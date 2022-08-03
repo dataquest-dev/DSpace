@@ -142,7 +142,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
                     "Only administrators may modify the handle registry");
         }
         String handle = handleService.getPrefix();
-        if (handleService.getPrefix().equals(oldPrefix)) {
+        if (handle.equals(oldPrefix)) {
             if (!(configurationService.setProperty("handle.prefix", newPrefix))) {
                 throw new RuntimeException("error while trying to set handle prefix");
             }

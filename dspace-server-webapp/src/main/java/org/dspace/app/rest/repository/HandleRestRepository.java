@@ -10,6 +10,7 @@ package org.dspace.app.rest.repository;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
@@ -159,13 +160,8 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                                     ("Cannot load JsonNode value from the operation: " + operation.getPath());
                                 }
 
-                                //archive old handle
-                                archiveHandle(context, handleObject, jsonNodeHandle.asText(),
+                                updateHandle(context, handleObject, jsonNodeHandle.asText(), jsonNodeUrl.asText(),
                                         jsonNodeArchive.asBoolean());
-
-                                // get the value from the old operation as a string
-                                handleClarinService.replaceHandle(context, handleObject,
-                                        jsonNodeHandle.asText(), jsonNodeUrl.asText());
                             }
                             break;
 
@@ -174,6 +170,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                                 //set handle prefix
                                 JsonNode jsonNodeNewPrefix = null;
                                 JsonNode jsonNodeOldPrefix = null;
+                                JsonNode jsonNodeArchive = null;
                                 JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) operation.getValue();
                                 JsonNode jsonNodes = jsonValEvaluator.getValueNode();
 
@@ -183,18 +180,29 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                                 if (jsonNodes.get("oldPrefix") != null) {
                                     jsonNodeOldPrefix = jsonNodes.get("oldPrefix");
                                 }
+                                if (jsonNodes.get("archive") != null) {
+                                    jsonNodeArchive = jsonNodes.get("archive");
+                                }
 
                                 if (ObjectUtils.isEmpty(jsonNodeNewPrefix) ||
                                         StringUtils.isBlank(jsonNodeNewPrefix.asText()) ||
                                         ObjectUtils.isEmpty(jsonNodeOldPrefix) ||
-                                        StringUtils.isBlank(jsonNodeOldPrefix.asText())) {
+                                        StringUtils.isBlank(jsonNodeOldPrefix.asText()) ||
+                                        ObjectUtils.isEmpty(jsonNodeArchive) ||
+                                        StringUtils.isBlank(jsonNodeArchive.asText())) {
                                     throw new UnprocessableEntityException
                                     ("Cannot load JsonNode value from the operation: " + operation.getPath());
                                 }
 
-                                // get the value from the old operation as a string
-                                handleClarinService.setPrefix(context, jsonNodeNewPrefix.asText(),
-                                        jsonNodeOldPrefix.asText());
+                                //changing prefix in existing handles with old prefix
+                                //archiving if it is required
+                                if(!jsonNodeOldPrefix.asText().equals( jsonNodeNewPrefix.asText())) {
+                                    this.changePrefixInExistingHandles(context, jsonNodeOldPrefix.asText(),
+                                            jsonNodeNewPrefix.asText(), jsonNodeArchive.asBoolean());
+                                    // get the value from the old operation as a string
+                                    handleClarinService.setPrefix(context, jsonNodeNewPrefix.asText(),
+                                            jsonNodeOldPrefix.asText());
+                                }
                             }
                             break;
 
@@ -214,7 +222,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         return HandleRest.class;
     }
 
-    private void archiveHandle(Context context, Handle handleObject, String newHandle, boolean archive)
+    private void updateHandle(Context context, Handle handleObject, String newHandle, String url, boolean archive)
             throws AuthorizeException {
         //archive handle
         Item item = null;
@@ -260,13 +268,32 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
             }
 
             if (!newHandle.equals(handleObject.getHandle())) {
-                Handle archivedHandle = handleClarinService.createHandle(context, handleObject.getResourceTypeId(),
+                Handle createdHandle = handleClarinService.createHandle(context, handleObject.getResourceTypeId(),
                         handleObject.getUrl());
-                handleClarinService.update(context, archivedHandle);
+                handleClarinService.update(context, createdHandle);
             }
 
+            handleClarinService.replaceHandle(context, handleObject,
+                    newHandle, url);
+
         } catch (SQLException e) {
-            throw new RuntimeException("error while trying to archive handle");
+            throw new RuntimeException("error while trying to update handle");
+        }
+    }
+
+    public void changePrefixInExistingHandles( Context context, String oldPrefix,
+                                     String newPrefix, boolean archive) throws AuthorizeException {
+        try {
+            List<Handle> handles = handleClarinService.findAll(context);
+            for (Iterator<Handle> it = handles.iterator(); it.hasNext(); ) {
+                Handle handleObject = it.next();
+                String[] handleParts = (handleObject.getHandle()).split("/");
+                if ((handleParts[0]).equals(oldPrefix)) {
+                    updateHandle(context, handleObject, newPrefix + "/" + handleParts[1], handleObject.getUrl(), archive);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("error while trying to change prefix in existing handles");
         }
     }
 }
