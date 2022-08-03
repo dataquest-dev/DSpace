@@ -172,21 +172,29 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                         case "/setPrefix":
                             if (operation.getValue() != null) {
                                 //set handle prefix
-                                JsonNode jsonNodePrefix = null;
+                                JsonNode jsonNodeNewPrefix = null;
+                                JsonNode jsonNodeOldPrefix = null;
                                 JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) operation.getValue();
                                 JsonNode jsonNodes = jsonValEvaluator.getValueNode();
 
-                                if (jsonNodes.get("prefix") != null) {
-                                    jsonNodePrefix = jsonNodes.get("prefix");
+                                if (jsonNodes.get("newPrefix") != null) {
+                                    jsonNodeNewPrefix = jsonNodes.get("newPrefix");
+                                }
+                                if (jsonNodes.get("oldPrefix") != null) {
+                                    jsonNodeOldPrefix = jsonNodes.get("oldPrefix");
                                 }
 
-                                if (ObjectUtils.isEmpty(jsonNodePrefix) ||
-                                        StringUtils.isBlank(jsonNodePrefix.asText())) {
+                                if (ObjectUtils.isEmpty(jsonNodeNewPrefix) ||
+                                        StringUtils.isBlank(jsonNodeNewPrefix.asText()) ||
+                                        ObjectUtils.isEmpty(jsonNodeOldPrefix) ||
+                                        StringUtils.isBlank(jsonNodeOldPrefix.asText())) {
                                     throw new UnprocessableEntityException
                                     ("Cannot load JsonNode value from the operation: " + operation.getPath());
                                 }
+
                                 // get the value from the old operation as a string
-                                handleClarinService.setPrefix(context, jsonNodePrefix.asText());
+                                handleClarinService.setPrefix(context, jsonNodeNewPrefix.asText(),
+                                        jsonNodeOldPrefix.asText());
                             }
                             break;
 

@@ -174,8 +174,10 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     public void patchSetPrefix() throws  Exception {
         Handle handle = publicItem.getHandles().get(0);
         List<Operation> ops = new ArrayList<Operation>();
-        ObjectNode value = jsonNodeFactory.objectNode().put("value","123");
-        ops.add(new ReplaceOperation("/setPrefix", value));
+        List<ObjectNode> values = new ArrayList<ObjectNode>();
+        values.add(jsonNodeFactory.objectNode().put("oldPrefix","123456789"));
+        values.add(jsonNodeFactory.objectNode().put("newPrefix","987654321"));
+        ops.add(new ReplaceOperation("/setPrefix", values));
 
         String patchBody = getPatchContent(ops);
         String adminToken = getAuthToken(admin.getEmail(), password);

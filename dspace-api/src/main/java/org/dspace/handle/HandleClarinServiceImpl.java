@@ -135,15 +135,17 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     }
 
     @Override
-    public void setPrefix(Context context, String newPrefix) throws SQLException, AuthorizeException {
+    public void setPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException, AuthorizeException {
         // Check authorisation: Only admins may create DC types
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
-
-        if (!(configurationService.setProperty("handle.prefix",newPrefix))) {
-            throw new RuntimeException("error while trying to set handle prefix");
+        String handle = handleService.getPrefix();
+        if (handleService.getPrefix().equals(oldPrefix)) {
+            if (!(configurationService.setProperty("handle.prefix", newPrefix))) {
+                throw new RuntimeException("error while trying to set handle prefix");
+            }
         }
     }
 

@@ -94,7 +94,7 @@ public interface HandleClarinService {
      * @throws AuthorizeException if authorization error
      * @throws SQLException       if database error
      */
-    public void setPrefix(Context context, String newPrefix) throws SQLException, AuthorizeException;
+    public void setPrefix(Context context, String newPrefix, String oldprefix) throws SQLException, AuthorizeException;
 
     public boolean isInternalResource(Handle handle);
 
