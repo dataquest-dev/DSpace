@@ -10,12 +10,17 @@ package org.dspace.app.rest.repository;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -41,6 +46,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 /**
  * This is the repository responsible to manage MetadataValueWrapper Rest object.
@@ -117,6 +123,33 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
         DiscoverQuery discoverQuery =
                 this.createDiscoverQuery(metadataField, searchValue, pageable);
 
+        if (ObjectUtils.isEmpty(discoverQuery)) {
+            // @TODO throw exception
+        }
+
+        // regex if searchValue consist of numbers and characters
+        String regex = "(.)*(\\d)(.)*";
+        Pattern pattern = Pattern.compile(regex);
+        // if searchValue is mix numbers with characters
+        if (pattern.matcher(searchValue).matches()) {
+            List<String> characterList = null;
+            List<String> numberList = new ArrayList<>();
+
+            // get numbers from searchValue as List
+            Pattern numberRegex = Pattern.compile("-?\\d+");
+            Matcher numberMatcher = numberRegex.matcher(searchValue);
+            while (numberMatcher.find()) {
+                numberList.add(numberMatcher.group());
+            }
+
+            // get characters from searchValue as List
+            searchValue = searchValue.replaceAll("[0-9]", " ");
+            characterList = new LinkedList<>(Arrays.asList(searchValue.split(" ")));
+            // remove empty characters from the characterList
+            characterList.removeIf(characters -> characters == null || "".equals(characters));
+        }
+
+
         List<MetadataValueWrapper> metadataValueWrappers = new ArrayList<>();
         try {
             DiscoverResult searchResult = searchService.search(context, null, discoverQuery);
@@ -147,6 +180,17 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
         return converter.toRestPage(metadataValueWrappers, pageable, utils.obtainProjection());
     }
 
+    private List<String> extractCharacterListFromString(String searchValue) {
+        List<String> characterList = null;
+        // get characters from searchValue as List
+        searchValue = searchValue.replaceAll("[0-9]", " ");
+        characterList = new LinkedList<>(Arrays.asList(searchValue.split(" ")));
+        // remove empty characters from the characterList
+        characterList.removeIf(characters -> characters == null || "".equals(characters));
+
+        return characterList;
+    }
+    
     public List<MetadataValueWrapper> filterEUSponsors(List<MetadataValueWrapper> metadataWrappers) {
         return metadataWrappers.stream().filter(m -> !m.getMetadataValue().getValue().contains("info:eu-repo"))
                 .collect(Collectors.toList());
