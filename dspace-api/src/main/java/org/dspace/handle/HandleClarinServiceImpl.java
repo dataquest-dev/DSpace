@@ -76,6 +76,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
+
         Handle handle = handleDAO.create(context, new Handle());
         String handleId = createId(context);
         handle.setHandle(handleId);
@@ -93,7 +94,8 @@ public class HandleClarinServiceImpl implements HandleClarinService {
 
     @Override
     public void delete(Context context, Handle handle) throws SQLException, AuthorizeException {
-        // Check authorisation: Only admins may create DC types
+
+        // Check authorisation: Only admins may delete DC types
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
@@ -101,52 +103,60 @@ public class HandleClarinServiceImpl implements HandleClarinService {
 
         handleDAO.delete(context, handle);
 
-        log.info(LogHelper.getHeader(context, "delete_metadata_field",
+        log.info(LogHelper.getHeader(context, "delete_handle",
                 "handle_id=" + handle.getID()));
     }
 
     @Override
-    public void update(Context context, Handle handle) throws SQLException, AuthorizeException {
+    public void save(Context context, Handle handle) throws SQLException, AuthorizeException {
         // Check authorisation: Only admins may update the metadata registry
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "Only administrators may modiffy the handle registry");
+                    "Only administrators may modify the handle registry");
         }
 
         handleDAO.save(context, handle);
 
-        log.info(LogHelper.getHeader(context, "update_handleregistry",
+        log.info(LogHelper.getHeader(context, "save_handle",
                 "handle_id=" + handle.getID()
                         + "handle=" + handle.getHandle()
                         + "resourceTypeID=" + handle.getResourceTypeId()));
     }
 
     @Override
-    public void replaceHandle(Context context, Handle handleObject, String newHandle, String newUrl)
+    public void update(Context context, Handle handleObject, String newHandle, String newUrl)
             throws SQLException, AuthorizeException {
-        // Check authorisation: Only admins may create DC types
+        // Check authorisation: Only admins may update DC types
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
-        handleObject.setUrl(newUrl);
+
         handleObject.setHandle(newHandle);
-        handleDAO.save(context, handleObject);
+        handleObject.setUrl(newUrl);
+        this.save(context, handleObject);
+
+        log.info(LogHelper.getHeader(context, "update_handle",
+                "handle_id=" + handleObject.getID()));
     }
 
     @Override
     public void setPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException, AuthorizeException {
-        // Check authorisation: Only admins may create DC types
+        // Check authorisation: Only admins may set handle prefix
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
+
         String handle = handleService.getPrefix();
         if (handle.equals(oldPrefix)) {
             if (!(configurationService.setProperty("handle.prefix", newPrefix))) {
                 throw new RuntimeException("error while trying to set handle prefix");
             }
         }
+
+        log.info(LogHelper.getHeader(context, "set_handle_prefix",
+                "old_prefix=" + oldPrefix + " new_prefix=" + newPrefix));
     }
 
     @Override
@@ -154,15 +164,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         return (handle.getUrl() == null || handle.getUrl().isEmpty());
     }
 
-    /**
-     * Transforms handle into the canonical form <em>hdl:handle</em>.
-     *
-     * No attempt is made to verify that handle is in fact valid.
-     *
-     * @param handle
-     *            The handle
-     * @return The canonical form
-     */
+    @Override
     public String getCanonicalForm(String handle) {
         // Let the admin define a new prefix, if not then we'll use the
         // CNRI default. This allows the admin to use "hdl:" if they want to or
@@ -175,6 +177,13 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         return handlePrefix + handle;
     }
 
+    /**
+     * Create id for handle object.
+     *
+     * @param context       DSpace context object
+     * @return              handle id
+     * @throws SQLException if database error
+     */
     private String createId(Context context) throws SQLException {
         // Get configured prefix
         String handlePrefix = handleService.getPrefix();

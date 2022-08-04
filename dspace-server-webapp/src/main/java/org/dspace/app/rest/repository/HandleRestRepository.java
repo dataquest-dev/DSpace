@@ -110,7 +110,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         Handle handle = null;
         try {
             handle = handleClarinService.createHandle(context, handleRest.getResourceTypeID(), handleRest.getUrl());
-            handleClarinService.update(context, handle);
+            handleClarinService.save(context, handle);
         } catch (SQLException e) {
             throw new RuntimeException
             ("error while trying to create new Handle and update it", e);
@@ -130,8 +130,8 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
             for (Operation operation : patch.getOperations()) {
                 if (operation.getOp() == "replace") {
                     switch (operation.getPath()) {
-                        case "/replaceHandle":
-                            //replace handle in handle object by new handle
+                        case "/updateHandle":
+                            //update handle and url in handle object
                             Handle handleObject = handleClarinService.findByID(context, id);
 
                             if (operation.getValue() != null && handleObject != null) {
@@ -151,7 +151,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                                     jsonNodeArchive = jsonNodes.get("archive");
                                 }
                                 if (ObjectUtils.isEmpty(jsonNodeHandle.asText()) ||
-                                        StringUtils.isBlank(jsonNodeHandle.asText()) ||
+                                            StringUtils.isBlank(jsonNodeHandle.asText()) ||
                                         ObjectUtils.isEmpty(jsonNodeUrl.asText()) ||
                                         StringUtils.isBlank(jsonNodeUrl.asText()) ||
                                         ObjectUtils.isEmpty(jsonNodeArchive.asText()) ||
@@ -196,7 +196,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
 
                                 //changing prefix in existing handles with old prefix
                                 //archiving if it is required
-                                if(!jsonNodeOldPrefix.asText().equals( jsonNodeNewPrefix.asText())) {
+                                if (!jsonNodeOldPrefix.asText().equals( jsonNodeNewPrefix.asText())) {
                                     this.changePrefixInExistingHandles(context, jsonNodeOldPrefix.asText(),
                                             jsonNodeNewPrefix.asText(), jsonNodeArchive.asBoolean());
                                     // get the value from the old operation as a string
@@ -224,7 +224,6 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
 
     private void updateHandle(Context context, Handle handleObject, String newHandle, String url, boolean archive)
             throws AuthorizeException {
-        //archive handle
         Item item = null;
         String oldHandle = handleObject.getHandle();
         try {
@@ -258,8 +257,8 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
 
                     // Update dc.identifier.uri
                     if (oldHandle != null && !handleObject.getHandle().isEmpty()) {
-                        String newUri = handleClarinService.getCanonicalForm(oldHandle);
-                        itemService.addMetadata(context, item, "dc", "identifier", "uri", Item.ANY, newUri);
+                        String newUrl = handleClarinService.getCanonicalForm(oldHandle);
+                        itemService.addMetadata(context, item, "dc", "identifier", "uri", Item.ANY, newUrl);
                     }
 
                     // Update the metadata
@@ -270,10 +269,10 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
             if (!newHandle.equals(handleObject.getHandle())) {
                 Handle createdHandle = handleClarinService.createHandle(context, handleObject.getResourceTypeId(),
                         handleObject.getUrl());
-                handleClarinService.update(context, createdHandle);
+                handleClarinService.save(context, createdHandle);
             }
 
-            handleClarinService.replaceHandle(context, handleObject,
+            handleClarinService.update(context, handleObject,
                     newHandle, url);
 
         } catch (SQLException e) {
@@ -289,7 +288,8 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 Handle handleObject = it.next();
                 String[] handleParts = (handleObject.getHandle()).split("/");
                 if ((handleParts[0]).equals(oldPrefix)) {
-                    updateHandle(context, handleObject, newPrefix + "/" + handleParts[1], handleObject.getUrl(), archive);
+                    updateHandle(context, handleObject, newPrefix + "/" + handleParts[1],
+                            handleObject.getUrl(), archive);
                 }
             }
         } catch (SQLException e) {

@@ -23,8 +23,8 @@ public interface HandleClarinService {
     /**
      * Retrieve all handle from the registry
      *
-     * @param context DSpace context object
-     * @return        array of handles
+     * @param context       DSpace context object
+     * @return              array of handles
      * @throws SQLException if database error
      */
     public List<Handle> findAll(Context context) throws SQLException;
@@ -33,9 +33,9 @@ public interface HandleClarinService {
      * Find the handle corresponding to the given numeric ID.  The ID is
      * a database key internal to DSpace.
      *
-     * @param context DSpace context object
-     * @param id      the handle ID
-     * @return the handle object
+     * @param context       DSpace context object
+     * @param id            the handle ID
+     * @return              the handle object
      * @throws SQLException if database error
      */
     public Handle findByID(Context context, int id) throws SQLException;
@@ -45,7 +45,7 @@ public interface HandleClarinService {
      *
      * @param context             DSpace context object
      * @param resourceTypeID      Integer
-     * @param url                          String
+     * @param url                 String
      * @return new Handle
      * @throws AuthorizeException if authorization error
      * @throws SQLException       if database error
@@ -56,34 +56,34 @@ public interface HandleClarinService {
     /**
      * Delete the handle.
      *
-     * @param context DSpace context object
-     * @param handle  handle
+     * @param context             DSpace context object
+     * @param handle              handle
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
     public void delete(Context context, Handle handle) throws SQLException, AuthorizeException;
 
     /**
-     * Update the metadata field in the database.
+     * Save the metadata field in the database.
      *
-     * @param context dspace context
-     * @param handle  handle
-     * @throws SQLException               if database error
-     * @throws AuthorizeException         if authorization error
+     * @param context             dspace context
+     * @param handle              handle
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
-    public void update(Context context, Handle handle)
+    public void save(Context context, Handle handle)
             throws SQLException, AuthorizeException;
 
     /**
-     * Replace handle in handle object by new handle.
+     * Update handle and url in handle object.
      *
-     * @param context   DSpace context object
-     * @param handleObject handle object
-     * @param newHandle handle
+     * @param context             DSpace context object
+     * @param handleObject        handle object
+     * @param newHandle           handle
      * @throws AuthorizeException if authorization error
      * @throws SQLException       if database error
      */
-    public void replaceHandle(Context context, Handle handleObject, String newHandle, String newUrl)
+    public void update(Context context, Handle handleObject, String newHandle, String newUrl)
             throws SQLException, AuthorizeException;
 
     /**
@@ -96,8 +96,22 @@ public interface HandleClarinService {
      */
     public void setPrefix(Context context, String newPrefix, String oldprefix) throws SQLException, AuthorizeException;
 
+    /**
+     * Control, if handle is internal resource.
+     *
+     * @param handle   handle object
+     * @return         boolean
+     */
     public boolean isInternalResource(Handle handle);
 
+    /**
+     * Transforms handle into the canonical form <em>hdl:handle</em>.
+     *
+     * No attempt is made to verify that handle is in fact valid.
+     *
+     * @param handle handle
+     * @return       The canonical form
+     */
     public String getCanonicalForm(String handle);
 
 }
