@@ -53,48 +53,48 @@
         <form name="traditionalpageone">
             <!-- Example row for the complex input type definition.
                  Uncomment it and the complex input will be showed in the submission UI. -->
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>contact</dc-element>
-                    <dc-qualifier>person</dc-qualifier>
-                    <repeatable>true</repeatable>
-                    <label>Contact person</label>
-                    <style>col-sm-5</style>
-                    <input-type complex-definition-ref="contact_person">complex</input-type>
-                    <hint>This is contact person</hint>
-                    <required>Enter the contact person data.</required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>sponsor</dc-element>
-                    <repeatable>true</repeatable>
-                    <label>Funding</label>
-                    <style>col-sm-5</style>
-                    <input-type complex-definition-ref="funding">complex</input-type>
-                    <hint>This is funding</hint>
-                    <required>Enter the funding.</required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>contributor</dc-element>
-                    <dc-qualifier>author</dc-qualifier>
-                    <repeatable>true</repeatable>
-                    <label>Author</label>
-                    <input-type>autocomplete</input-type>
-                    <hint>Enter the author's name (Family name, Given names).</hint>
-                    <required></required>
-                    <!-- Example ACL field definition.
-                         Uncomment it and the Author input field will be showed only for the admin.
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl> -->
-                </field>
-            </row>
+<!--            <row>-->
+<!--                <field>-->
+<!--                    <dc-schema>local</dc-schema>-->
+<!--                    <dc-element>contact</dc-element>-->
+<!--                    <dc-qualifier>person</dc-qualifier>-->
+<!--                    <repeatable>true</repeatable>-->
+<!--                    <label>Contact person</label>-->
+<!--                    <style>col-sm-5</style>-->
+<!--                    <input-type complex-definition-ref="contact_person">complex</input-type>-->
+<!--                    <hint>This is contact person</hint>-->
+<!--                    <required>Enter the contact person data.</required>-->
+<!--                </field>-->
+<!--            </row>-->
+<!--            <row>-->
+<!--                <field>-->
+<!--                    <dc-schema>local</dc-schema>-->
+<!--                    <dc-element>sponsor</dc-element>-->
+<!--                    <repeatable>true</repeatable>-->
+<!--                    <label>Funding</label>-->
+<!--                    <style>col-sm-5</style>-->
+<!--                    <input-type complex-definition-ref="funding">complex</input-type>-->
+<!--                    <hint>This is funding</hint>-->
+<!--                    <required>Enter the funding.</required>-->
+<!--                </field>-->
+<!--            </row>-->
+<!--            <row>-->
+<!--                <field>-->
+<!--                    <dc-schema>dc</dc-schema>-->
+<!--                    <dc-element>contributor</dc-element>-->
+<!--                    <dc-qualifier>author</dc-qualifier>-->
+<!--                    <repeatable>true</repeatable>-->
+<!--                    <label>Author</label>-->
+<!--                    <input-type>autocomplete</input-type>-->
+<!--                    <hint>Enter the author's name (Family name, Given names).</hint>-->
+<!--                    <required></required>-->
+<!--                    &lt;!&ndash; Example ACL field definition.-->
+<!--                         Uncomment it and the Author input field will be showed only for the admin.-->
+<!--                    <acl>-->
+<!--                        policy=deny,action=read,grantee-type=user,grantee-id=*-->
+<!--                    </acl> &ndash;&gt;-->
+<!--                </field>-->
+<!--            </row>-->
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
