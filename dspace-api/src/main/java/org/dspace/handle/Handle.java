@@ -52,10 +52,6 @@ public class Handle implements ReloadableEntity<Integer> {
     @Column(name = "resource_type_id")
     private Integer resourceTypeId;
 
-    @Column(name = "url")
-    private String url;
-
-
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject)}
@@ -125,13 +121,5 @@ public class Handle implements ReloadableEntity<Integer> {
             .append(handle)
             .append(resourceTypeId)
             .toHashCode();
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 }
