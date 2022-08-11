@@ -1,13 +1,18 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.handle;
-
-
-import org.dspace.services.ConfigurationService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.util.Map;
 
+import org.dspace.services.ConfigurationService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractPIDService {
 
@@ -50,8 +55,9 @@ public abstract class AbstractPIDService {
         PIDServiceURL = configurationService.getProperty("lr", "lr.pid.service.url");
         PIDServiceUSER = configurationService.getProperty("lr", "lr.pid.service.user");
         PIDServicePASS = configurationService.getProperty("lr", "lr.pid.service.pass");
-        if (PIDServiceURL == null || PIDServiceURL.length() == 0)
+        if (PIDServiceURL == null || PIDServiceURL.length() == 0) {
             throw new Exception("PIDService URL not configured.");
+        }
         authenticator = new PIDServiceAuthenticator();
         Authenticator.setDefault(authenticator);
     }
@@ -62,7 +68,8 @@ public abstract class AbstractPIDService {
 
     public abstract String createPID(Map<String, String> handleFields, String prefix) throws Exception;
 
-    public abstract String createCustomPID(Map<String, String> handleFields, String prefix, String suffix) throws Exception;
+    public abstract String createCustomPID(Map<String, String> handleFields,
+                                           String prefix, String suffix) throws Exception;
 
     public abstract String modifyPID(String PID, Map<String, String> handleFields) throws Exception;
 

@@ -9,6 +9,7 @@ package org.dspace.handle;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -19,8 +20,7 @@ import org.apache.commons.lang.StringUtils;
  *
  */
 
-public class PIDCommunityConfiguration
-{
+public class PIDCommunityConfiguration {
     public static final String TYPE_LOCAL = "local";
 
     public static final String TYPE_EPIC = "epic";
@@ -50,14 +50,11 @@ public class PIDCommunityConfiguration
      *            String with assignment rules
      * @return New instance of this class
      */
-    public static PIDCommunityConfiguration fromString(String s)
-    {
+    public static PIDCommunityConfiguration fromString(String s) {
         Map<String, String> configMap = new HashMap<String, String>();
-        for (String part : s.split(","))
-        {
+        for (String part : s.split(",")) {
             String[] keyValue = part.split("=", 2);
-            if (keyValue.length == 2)
-            {
+            if (keyValue.length == 2) {
                 String key = keyValue[0].trim();
                 String value = keyValue[1].trim();
                 configMap.put(key, value);
@@ -69,19 +66,14 @@ public class PIDCommunityConfiguration
     /**
      * @return PID service type or null
      */
-    public Integer getCommunityID()
-    {
-        Integer communityID = null;
+    public UUID getCommunityID() {
+        UUID communityID = null;
         String value = configMap.get(COMMUNITY_KEYWORD);
-        if (value != null)
-        {
-            if (value.equals(ANY_KEYWORD))
-            {
+        if (value != null) {
+            if (value.equals(ANY_KEYWORD)) {
                 communityID = null;
-            }
-            else
-            {
-                communityID = Integer.valueOf(value);
+            } else {
+                communityID = UUID.fromString(value);
             }
         }
         return communityID;
@@ -91,8 +83,7 @@ public class PIDCommunityConfiguration
      * Returns PID type for given community
      * @return PID service type or null
      */
-    public String getType()
-    {
+    public String getType() {
         return configMap.get(TYPE_KEYWORD);
     }
 
@@ -100,8 +91,7 @@ public class PIDCommunityConfiguration
      * Returns canonical PID prefix for given community
      * @return PID prefix or null
      */
-    public String getCanonicalPrefix()
-    {
+    public String getCanonicalPrefix() {
         return configMap.get(CANONICAL_PREFIX_KEYWORD);
     }
 
@@ -109,8 +99,7 @@ public class PIDCommunityConfiguration
      * Returns PID prefix for given community
      * @return PID prefix or null
      */
-    public String getPrefix()
-    {
+    public String getPrefix() {
         return configMap.get(PREFIX_KEYWORD);
     }
 
@@ -118,23 +107,19 @@ public class PIDCommunityConfiguration
      * Returns PID subprefix for given community
      * @return PID subprefix or null
      */
-    public String getSubprefix()
-    {
+    public String getSubprefix() {
         return configMap.get(SUBPREFIX_KEYWORD);
     }
 
-    PIDCommunityConfiguration(Map<String, String> configMap)
-    {
+    PIDCommunityConfiguration(Map<String, String> configMap) {
         this.configMap = configMap;
     }
 
-    public boolean isEpic()
-    {
+    public boolean isEpic() {
         return configMap.get(TYPE_KEYWORD).equals(TYPE_EPIC);
     }
 
-    public boolean isLocal()
-    {
+    public boolean isLocal() {
         return configMap.get(TYPE_KEYWORD).equals(TYPE_LOCAL);
     }
 
@@ -143,15 +128,12 @@ public class PIDCommunityConfiguration
      *
      * @return Array of alternative prefixes for this community
      */
-    public String[] getAlternativePrefixes()
-    {
+    public String[] getAlternativePrefixes() {
         String[] alternativePrefixes = {};
         String alternativePrefixesString = configMap.get(ALTERNATIVE_PREFIXES_KEYWORD);
-        if(alternativePrefixesString != null)
-        {
+        if (alternativePrefixesString != null) {
             alternativePrefixes = StringUtils.split(alternativePrefixesString, ALTERNATIVE_PREFIXES_DELIMITER);
         }
         return alternativePrefixes;
     }
-
 }

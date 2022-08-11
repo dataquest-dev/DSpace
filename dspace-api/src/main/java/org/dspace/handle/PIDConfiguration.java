@@ -6,16 +6,20 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.handle;
+
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.service.DspaceObjectClarinService;
+import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,8 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  */
 
-public class PIDConfiguration
-{
+public class PIDConfiguration {
 
     /** log4j category */
     private static Logger log = Logger.getLogger(PIDConfiguration.class);
@@ -36,29 +39,29 @@ public class PIDConfiguration
 
     private static final String LINDAT_PID_COMMUNITY_CONFIGURATIONS_KEYWORD = "lr.pid.community.configurations";
 
-    private static Map<Integer, PIDCommunityConfiguration> pidCommunityConfigurations;
+    private static Map<UUID, PIDCommunityConfiguration> pidCommunityConfigurations;
 
     @Autowired
     private ConfigurationService configurationService;
 
-    private PIDConfiguration()
-    {
+    @Autowired
+    private DspaceObjectClarinService dspaceObjectClarinService;
+
+    private PIDConfiguration() {
         initialize();
     }
 
     /**
      * Initializes the singleton
      */
-    private void initialize()
-    {
-        String pidCommunityConfigurationsString = configurationService.getProperty("lr", LINDAT_PID_COMMUNITY_CONFIGURATIONS_KEYWORD);
+    private void initialize() {
+        String pidCommunityConfigurationsString = configurationService.getProperty
+                ("lr", LINDAT_PID_COMMUNITY_CONFIGURATIONS_KEYWORD);
 
-        pidCommunityConfigurations = new HashMap<Integer, PIDCommunityConfiguration>();
-        if (pidCommunityConfigurationsString != null)
-        {
+        pidCommunityConfigurations = new HashMap<UUID, PIDCommunityConfiguration>();
+        if (pidCommunityConfigurationsString != null) {
             for (String pidCommunityConfigurationString : pidCommunityConfigurationsString
-                    .split(";"))
-            {
+                    .split(";")) {
                 PIDCommunityConfiguration pidCommunityConfiguration = PIDCommunityConfiguration
                         .fromString(pidCommunityConfigurationString);
                 pidCommunityConfigurations.put(
@@ -73,10 +76,8 @@ public class PIDConfiguration
      *
      * @return PIDConfiguration
      */
-    public static PIDConfiguration getInstance()
-    {
-        if (instance == null)
-        {
+    public static PIDConfiguration getInstance() {
+        if (instance == null) {
             instance = new PIDConfiguration();
         }
         return instance;
@@ -90,17 +91,14 @@ public class PIDConfiguration
      * @return PID community configuration or null
      */
     public static PIDCommunityConfiguration getPIDCommunityConfiguration(
-            Integer communityID)
-    {
+            UUID communityID) {
         instance = getInstance();
         PIDCommunityConfiguration pidCommunityConfiguration = pidCommunityConfigurations
                 .get(communityID);
-        if (pidCommunityConfiguration == null)
-        {
+        if (pidCommunityConfiguration == null) {
             pidCommunityConfiguration = pidCommunityConfigurations.get(null);
         }
-        if (pidCommunityConfiguration == null)
-        {
+        if (pidCommunityConfiguration == null) {
             throw new IllegalStateException("Missing configuration entry in "
                     + LINDAT_PID_COMMUNITY_CONFIGURATIONS_KEYWORD
                     + " for community with ID " + communityID);
@@ -116,14 +114,12 @@ public class PIDConfiguration
      *            DSpaceObject
      * @return PID community configuration or null
      */
-    public static PIDCommunityConfiguration getPIDCommunityConfiguration(
-            DSpaceObject dso) throws SQLException
-    {
+    public PIDCommunityConfiguration getPIDCommunityConfiguration(Context context,
+            DSpaceObject dso) throws SQLException {
         instance = getInstance();
-        Integer communityID = null;
-        Community community = dso.getPrincipalCommunity();
-        if (community != null)
-        {
+        UUID communityID = null;
+        Community community = dspaceObjectClarinService.getPrincipalCommunity(context, dso);
+        if (community != null) {
             communityID = community.getID();
         }
         PIDCommunityConfiguration pidCommunityConfiguration = getPIDCommunityConfiguration(communityID);
@@ -135,8 +131,7 @@ public class PIDConfiguration
      *
      * @return Map of PID community communications
      */
-    public static Map<Integer, PIDCommunityConfiguration> getPIDCommunityConfigurations()
-    {
+    public static Map<UUID, PIDCommunityConfiguration> getPIDCommunityConfigurations() {
         instance = getInstance();
         return pidCommunityConfigurations;
     }
@@ -146,15 +141,12 @@ public class PIDConfiguration
      *
      * @return Default PID community configuration or null
      */
-    public static PIDCommunityConfiguration getDefaultCommunityConfiguration()
-    {
+    public static PIDCommunityConfiguration getDefaultCommunityConfiguration() {
         instance = getInstance();
-        PIDCommunityConfiguration pidCommunityConfiguration = getPIDCommunityConfiguration((Integer)null);
-        if(pidCommunityConfiguration == null)
-        {
-            Integer[] keys = pidCommunityConfigurations.keySet().toArray(new Integer[0]);
-            if(keys.length > 0)
-            {
+        PIDCommunityConfiguration pidCommunityConfiguration = getPIDCommunityConfiguration((UUID)null);
+        if (pidCommunityConfiguration == null) {
+            UUID[] keys = pidCommunityConfigurations.keySet().toArray(new UUID[0]);
+            if (keys.length > 0) {
                 pidCommunityConfiguration = getPIDCommunityConfiguration(keys[0]);
             }
         }
@@ -166,14 +158,11 @@ public class PIDConfiguration
      *
      * @return Array of distinct alternative prefixes from all community configurations (can be empty)
      */
-    public static String[] getAlternativePrefixes(String mainPrefix)
-    {
+    public static String[] getAlternativePrefixes(String mainPrefix) {
         instance = getInstance();
         Set<String> alternativePrefixes = new HashSet<String>();
-        for(PIDCommunityConfiguration pidCommunityConfiguration : pidCommunityConfigurations.values())
-        {
-            if(mainPrefix != null && mainPrefix.equals(pidCommunityConfiguration.getPrefix()))
-            {
+        for (PIDCommunityConfiguration pidCommunityConfiguration : pidCommunityConfigurations.values()) {
+            if (mainPrefix != null && mainPrefix.equals(pidCommunityConfiguration.getPrefix())) {
                 Collections.addAll(alternativePrefixes, pidCommunityConfiguration.getAlternativePrefixes());
             }
         }
@@ -185,13 +174,11 @@ public class PIDConfiguration
      *
      * @return Prefix from default community configuration
      */
-    public static String getDefaultPrefix()
-    {
+    public static String getDefaultPrefix() {
         instance = getInstance();
         String prefix = null;
         PIDCommunityConfiguration pidCommunityConfiguration = getDefaultCommunityConfiguration();
-        if(pidCommunityConfiguration != null)
-        {
+        if (pidCommunityConfiguration != null) {
             prefix = pidCommunityConfiguration.getPrefix();
         }
         return prefix;
@@ -202,16 +189,13 @@ public class PIDConfiguration
      *
      * @return All possible prefixes for all communities
      */
-    public static Set<String> getSupportedPrefixes()
-    {
+    public static Set<String> getSupportedPrefixes() {
         instance = getInstance();
         Set<String> prefixes = new HashSet<String>();
-        for(PIDCommunityConfiguration pidCommunityConfiguration : pidCommunityConfigurations.values())
-        {
+        for (PIDCommunityConfiguration pidCommunityConfiguration : pidCommunityConfigurations.values()) {
             prefixes.add(pidCommunityConfiguration.getPrefix());
             Collections.addAll(prefixes, pidCommunityConfiguration.getAlternativePrefixes());
         }
         return prefixes;
     }
-
 }
