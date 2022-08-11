@@ -135,6 +135,21 @@
                 </field>
 
                 <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hidden</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Hidden</label>
+                    <style>col-sm-4</style>
+                    <input-type value-pairs-name="hidden_list">dropdown</input-type>
+                    <hint>Should item be hidden?</hint>
+                    <required/>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+
+                <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>publisher</dc-element>
                     <dc-qualifier></dc-qualifier>
@@ -369,6 +384,21 @@
                         You can leave out the day and/or month if they aren't applicable.
                     </hint>
                     <required>You must enter at least the year.</required>
+                </field>
+
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hidden</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Hidden</label>
+                    <style>col-sm-4</style>
+                    <input-type value-pairs-name="hidden_list">dropdown</input-type>
+                    <hint>Should item be hidden?</hint>
+                    <required/>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
                 </field>
 
                 <field>
@@ -884,6 +914,21 @@
                         and/or month if they aren't applicable.
                     </hint>
                     <required>You must enter at least the year.</required>
+                </field>
+
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hidden</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Hidden</label>
+                    <style>col-sm-4</style>
+                    <input-type value-pairs-name="hidden_list">dropdown</input-type>
+                    <hint>Should item be hidden?</hint>
+                    <required/>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
                 </field>
             </row>
             <row>
@@ -2018,6 +2063,18 @@
                 <stored-value>FundingOrganization</stored-value>
             </pair>
         </value-pairs>
+
+        <value-pairs value-pairs-name="hidden_list" dc-term="">
+            <pair>
+                <displayed-value>hidden</displayed-value>
+                <stored-value>hidden</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>false</displayed-value>
+                <stored-value>false</stored-value>
+            </pair>
+        </value-pairs>
+
 
     </form-value-pairs>
 
