@@ -10,6 +10,7 @@ package org.dspace.content;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import com.maxmind.db.Metadata;
 import org.dspace.AbstractUnitTest;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.MetadataFieldService;
@@ -78,4 +79,11 @@ public class LocalMetadataTest extends AbstractUnitTest {
 
         assertThat("existBitstreamRedirectUrl 0", field, notNullValue());
     }
+
+    @Test
+    public void existsHidden() throws Exception {
+        MetadataField field = metadataFieldService.findByString(context, "local.hidden", '.');
+        assertThat("existsHidden 0", field, notNullValue());
+    }
+
 }
