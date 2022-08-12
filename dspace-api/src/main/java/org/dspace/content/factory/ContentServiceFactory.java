@@ -20,6 +20,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
 import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.DspaceObjectClarinService;
 import org.dspace.content.service.EntityService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.InProgressSubmissionService;
@@ -104,6 +105,8 @@ public abstract class ContentServiceFactory {
     public abstract EntityService getEntityService();
 
     public abstract RelationshipMetadataService getRelationshipMetadataService();
+
+    public abstract DspaceObjectClarinService getDspaceObjectClarinService();
 
     public InProgressSubmissionService getInProgressSubmissionService(InProgressSubmission inProgressSubmission) {
         if (inProgressSubmission instanceof WorkspaceItem) {
