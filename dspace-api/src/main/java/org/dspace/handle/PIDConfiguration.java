@@ -8,7 +8,12 @@
 package org.dspace.handle;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.Community;
@@ -47,7 +52,7 @@ public class PIDConfiguration {
      */
     private void initialize() {
         //edid this metod for more communities
-        String[] pidCommunityConfigurationsArray= configurationService.getArrayProperty
+        String[] pidCommunityConfigurationsArray = configurationService.getArrayProperty
                 (CLARIN_PID_COMMUNITY_CONFIGURATIONS_KEYWORD);
 
         pidCommunityConfigurations = new HashMap<UUID, PIDCommunityConfiguration>();

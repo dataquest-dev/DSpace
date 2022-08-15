@@ -7,6 +7,8 @@
  */
 package org.dspace.handle;
 
+import static org.junit.Assert.assertEquals;
+
 import java.sql.SQLException;
 
 import org.dspace.AbstractUnitTest;
@@ -22,8 +24,6 @@ import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class PIDConfigurationTest extends AbstractUnitTest {
     private static final String AUTHOR = "Test author name";
