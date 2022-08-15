@@ -31,6 +31,7 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.handle.service.HandleClarinService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -86,6 +87,9 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
 
     @Autowired(required = true)
     private DspaceObjectClarinService dspaceObjectClarinService;
+
+    @Autowired(required = true)
+    private HandleClarinService handleClarinService;
 
     @Override
     public List<DSpaceObjectService<? extends DSpaceObject>> getDSpaceObjectServices() {
@@ -190,5 +194,10 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     @Override
     public DspaceObjectClarinService getDspaceObjectClarinService() {
         return dspaceObjectClarinService;
+    }
+
+    @Override
+    public HandleClarinService getHandleClarinService() {
+        return handleClarinService;
     }
 }

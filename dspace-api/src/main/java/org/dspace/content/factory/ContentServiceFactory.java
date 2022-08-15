@@ -34,6 +34,7 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.handle.service.HandleClarinService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 
@@ -107,6 +108,8 @@ public abstract class ContentServiceFactory {
     public abstract RelationshipMetadataService getRelationshipMetadataService();
 
     public abstract DspaceObjectClarinService getDspaceObjectClarinService();
+
+    public abstract HandleClarinService getHandleClarinService();
 
     public InProgressSubmissionService getInProgressSubmissionService(InProgressSubmission inProgressSubmission) {
         if (inProgressSubmission instanceof WorkspaceItem) {

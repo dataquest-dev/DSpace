@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.service.SiteService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -138,7 +139,7 @@ public class HandleServiceImpl implements HandleService {
     public String createHandle(Context context, DSpaceObject dso)
         throws SQLException {
         Handle handle = handleDAO.create(context, new Handle());
-        String handleId = createId(context);
+        String handleId = createId(context, dso);
 
         handle.setHandle(handleId);
         handle.setDSpaceObject(dso);
@@ -359,20 +360,48 @@ public class HandleServiceImpl implements HandleService {
         return handleDAO.findByHandle(context, handle);
     }
 
-    /**
-     * Create/mint a new handle id.
-     *
-     * @param context DSpace Context
-     * @return A new handle id
-     * @throws SQLException If a database error occurs
-     */
-    protected String createId(Context context) throws SQLException {
+//    /**
+//     * Create/mint a new handle id.
+//     *
+//     * @param context DSpace Context
+//     * @return A new handle id
+//     * @throws SQLException If a database error occurs
+//     */
+//    protected String createId(Context context) throws SQLException {
+//        // Get configured prefix
+//        String handlePrefix = getPrefix();
+//
+//        // Get next available suffix (as a Long, since DSpace uses an incrementing sequence)
+//        Long handleSuffix = handleDAO.getNextHandleSuffix(context);
+//
+//        return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") + handleSuffix.toString();
+//    }
+
+    protected String createId(Context context, DSpaceObject dso) throws SQLException {
         // Get configured prefix
         String handlePrefix = getPrefix();
 
         // Get next available suffix (as a Long, since DSpace uses an incrementing sequence)
         Long handleSuffix = handleDAO.getNextHandleSuffix(context);
 
+        if (dso instanceof Item) {
+            PIDCommunityConfiguration pidCommunityConfiguration = PIDConfiguration
+                    .getPIDCommunityConfiguration(dso.getID());
+
+            if (pidCommunityConfiguration.isEpic()) {
+                //here is missing code
+                return null;
+            } else if (pidCommunityConfiguration.isLocal()) {
+                String handleSubprefix = pidCommunityConfiguration.getSubprefix();
+                if (handleSubprefix != null && !handleSubprefix.isEmpty()) {
+                    return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/")
+                            + handleSubprefix + "-" + handleSuffix.toString();
+                }
+            } else {
+                throw new IllegalStateException("Unsupported PID type: "
+                        + pidCommunityConfiguration.getType());
+            }
+        }
         return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") + handleSuffix.toString();
     }
 

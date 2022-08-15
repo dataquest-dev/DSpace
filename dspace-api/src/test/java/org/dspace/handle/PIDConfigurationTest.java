@@ -52,40 +52,17 @@ public class PIDConfigurationTest extends AbstractUnitTest {
         context.restoreAuthSystemState();
     }
 
-    static final String PREFIX_DELIMITER = "/";
-
-    static final String SUBPREFIX_DELIMITER = "-";
+    @Test
+    public void testItemHandle() {
+        String handle = publicItem.getHandle();
+        assertEquals("123456789/1-" + ((handle.split("/"))[1].split("-"))[1], handle);
+    }
 
     @Test
-    public void newHandleIdentifier() {
-        String handle = publicItem.getHandle();
-        PIDCommunityConfiguration pidCommunityConfiguration = PIDConfiguration
-                .getPIDCommunityConfiguration(publicItem.getID());
-        String handleId = null;
-        if (pidCommunityConfiguration.isEpic()) {
-            return;
-        } else if (pidCommunityConfiguration.isLocal()) {
-            StringBuffer handleIdBuff = new StringBuffer();
-            String handlePrefix = pidCommunityConfiguration.getPrefix();
-            handleIdBuff.append(handlePrefix);
-
-            if (!handlePrefix.endsWith(PREFIX_DELIMITER)) {
-                handleIdBuff.append(PREFIX_DELIMITER);
-            }
-            StringBuffer suffix = new StringBuffer();
-            String handleSubprefix = pidCommunityConfiguration.getSubprefix();
-            if (handleSubprefix != null && !handleSubprefix.isEmpty()) {
-                suffix.append(handleSubprefix + SUBPREFIX_DELIMITER);
-            }
-            suffix.append(publicItem.getHandles().get(0).getID());
-            String handleSuffix = suffix.toString();
-            handleIdBuff.append(handleSuffix);
-            handleId = handleIdBuff.toString();
-        } else {
-            throw new IllegalStateException("Unsupported PID type: "
-                    + pidCommunityConfiguration.getType());
-        }
-
-        assertEquals("123456789/1-" + publicItem.getHandles().get(0).getID(), handleId);
+    public void testCollectionHandle() {
+        String handle = col.getHandle();
+        assertEquals("123456789/" + (handle.split("/"))[1], handle);
     }
+
+
 }
