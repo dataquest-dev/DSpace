@@ -58,6 +58,17 @@ public class LocalMetadataTest extends AbstractUnitTest {
     }
 
     /**
+     * Test of existing custom metadata field `local.hasCMDI`
+     */
+    @Test
+    public void existHasCMDI() throws Exception {
+        MetadataField field = metadataFieldService.findByString(context, "local.hasCMDI",
+                '.');
+
+        assertThat("existHasCMDI 0", field, notNullValue());
+    }
+
+    /**
      * Test of existing custom metadata field `local.bitstream.redirectToURL`
      */
     @Test
@@ -78,5 +89,4 @@ public class LocalMetadataTest extends AbstractUnitTest {
 
         assertThat("existWithdrawnReason 0", field, notNullValue());
     }
-
 }

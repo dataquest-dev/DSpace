@@ -127,7 +127,6 @@
                     <repeatable>false</repeatable>
                     <label>Date of Issue</label>
                     <style>col-sm-4</style>
-                    <type-bind>example</type-bind>
                     <input-type>date</input-type>
                     <hint>Please give the date of previous publication or public distribution.
                         You can leave out the day and/or month if they aren't applicable.
@@ -166,6 +165,7 @@
                     <dc-qualifier>ispartofseries</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Series/Report No.</label>
+                    <type-bind>Technical Report</type-bind>
                     <input-type>series</input-type>
                     <hint>Enter the series and number assigned to this item by your community.</hint>
                     <required></required>
@@ -217,13 +217,30 @@
             <row>
                 <field>
                     <dc-schema>local</dc-schema>
+                    <dc-element>hasCMDI</dc-element>
+                    <repeatable>true</repeatable>
+                    <label>Has CMDI file</label>
+                    <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
+                    <hint>Are you going to upload cmdi file?</hint>
+                    <required></required>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
                     <dc-element>bitstream</dc-element>
                     <dc-qualifier>redirectToURL</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Bitstream redirect URL</label>
+                    <label>Big file URL</label>
                     <input-type>onebox</input-type>
                     <hint>
-                        The bitstream will be loaded from this URL. Example: /temp/file.png
+                        The actual maximum upload size of the file is 4GB. To upload the file bigger than maximum
+                        upload size type the URL of that big file. Admin must know URL to that bitstream file.
+                        Then click on the 'Save' button and the file will start to upload. The file will be loaded
+                        from the '/temp' folder of the server. Example: /tomcat/temp/bitstream.png
                     </hint>
                     <required></required>
                     <acl>
@@ -1351,6 +1368,12 @@
     <!-- stores the associated stored-values in the database.                  -->
 
     <form-value-pairs>
+        <value-pairs value-pairs-name="hasCMDI_checkbox" dc-term="identifier">
+            <pair>
+                <displayed-value>Yes</displayed-value>
+                <stored-value>yes</stored-value>
+            </pair>
+        </value-pairs>
         <value-pairs value-pairs-name="common_identifiers" dc-term="identifier">
             <pair>
                 <displayed-value>ISSN</displayed-value>

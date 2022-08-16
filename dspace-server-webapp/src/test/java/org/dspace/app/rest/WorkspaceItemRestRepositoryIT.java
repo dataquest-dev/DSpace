@@ -40,12 +40,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.ws.rs.core.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.dspace.app.rest.matcher.CollectionMatcher;
 import org.dspace.app.rest.matcher.ItemMatcher;
@@ -88,6 +91,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1877,6 +1881,150 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             WorkspaceItemBuilder.deleteWorkspaceItem(idRef.get());
         }
 
+    }
+
+    @Test
+    /**
+     * Test the update of metadata for fields configured with type-bind
+     *
+     * @throws Exception
+     */
+    public void patchUpdateMetadataWithBindTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                .withSubmitter(eperson)
+                .withTitle("Workspace Item 1")
+                .withIssueDate("2017-10-17")
+                .withSubject("ExtraEntry")
+                .grantLicense()
+                .build();
+
+        //disable file upload mandatory
+        configurationService.setProperty("webui.submit.upload.required", false);
+
+        context.restoreAuthSystemState();
+
+        // Try to add isPartOfSeries (type bound to technical report) - this should not work and instead we'll get
+        // no JSON path for that field
+        List<Operation> updateSeries = new ArrayList<Operation>();
+        List<Map<String, String>> seriesValues = new ArrayList<>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "New Series");
+        seriesValues.add(value);
+        updateSeries.add(new AddOperation("/sections/traditionalpageone/dc.relation.ispartofseries", seriesValues));
+
+        String patchBody = getPatchContent(updateSeries);
+
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        // Check this - we should match an item with no series or type
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, null, null))));
+
+        // Verify that the metadata isn't in the workspace item
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        // Check this - we should match an item with no series or type
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, null, null))));
+
+        // Set the type to Technical Report confirm it worked
+        List<Operation> updateType = new ArrayList<>();
+        List<Map<String, String>> typeValues = new ArrayList<>();
+        value = new HashMap<String, String>();
+        value.put("value", "Technical Report");
+        typeValues.add(value);
+        updateType.add(new AddOperation("/sections/traditionalpageone/dc.type", typeValues));
+        patchBody = getPatchContent(updateType);
+
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        // Check this - we should now match an item with the expected type and series
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, "Technical Report",
+                                null))));
+
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, "Technical Report",
+                                null))));
+
+        // Another test, this time adding the series value should be successful and we'll see the value
+        patchBody = getPatchContent(updateSeries);
+
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        // Check this - we should match an item with the expected series and type
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem,
+                                "Technical Report", "New Series"))));
+
+        // Verify that the metadata isn't in the workspace item
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        // Check this - we should match an item with the expected series and type
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem,
+                                "Technical Report", "New Series"))));
+
+        // One final update, to a different type, this should lose the series as we're back to a non-matching type
+        updateType = new ArrayList<>();
+        typeValues = new ArrayList<>();
+        value = new HashMap<String, String>();
+        value.put("value", "Article");
+        typeValues.add(value);
+        updateType.add(new AddOperation("/sections/traditionalpageone/dc.type", typeValues));
+        patchBody = getPatchContent(updateType);
+
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        // Check this - we should NOT match an item with the series "New Series"
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, "Article",
+                                null))));
+
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, "Article",
+                                null))));
+
+        // Submit the workspace item to complete the deposit (as there is no workflow configured) and ensure a
+        // successful result with no validation errors
+        getClient(authToken)
+                .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
+                        .content("/api/submission/workspaceitems/" + witem.getID())
+                        .contentType(textUriContentType))
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -7256,8 +7404,20 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         } catch (Exception e) {
             throw new Exception("Cannot upload file bigger than upload file size limit, " + e.getMessage());
         } finally {
+            // the big file should be deleted
+            File checkFile = null;
+
+            String shouldDeleteFile = configurationService.getProperty("delete.big.file.after.upload");
+            if (!Objects.isNull(file) && StringUtils.equals("true", shouldDeleteFile)) {
+                checkFile = new File(file.getAbsolutePath());
+                Assert.assertFalse(checkFile.exists());
+            }
+
             try {
-                file.delete();
+                // if is not deleted, delete that test big file
+                if (!Objects.isNull(checkFile) && checkFile.exists()) {
+                    FileUtils.forceDelete(file);
+                }
             } catch (Exception e) {
                 throw new Exception("Cannot delete the file in the end of the test: " + e.getMessage());
             }

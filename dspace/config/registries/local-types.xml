@@ -32,6 +32,12 @@
 
   <dc-type>
     <schema>local</schema>
+    <element>hasCMDI</element>
+    <scope_note>Indicates uploaded cmdi file</scope_note>
+  </dc-type>
+    
+  <dc-type>
+    <schema>local</schema>
     <element>contact</element>
     <qualifier>person</qualifier>
     <scope_note>Contact person</scope_note>
@@ -56,4 +62,5 @@
     <qualifier>reason</qualifier>
     <scope_note>Store the withdrawal reason in addition to provenance</scope_note>
   </dc-type>
+
 </dspace-dc-types>
