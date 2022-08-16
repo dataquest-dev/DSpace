@@ -11,8 +11,10 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import net.cnri.util.StreamTable;
 import net.handle.hdllib.Encoder;
@@ -22,6 +24,8 @@ import net.handle.hdllib.HandleValue;
 import net.handle.hdllib.ScanCallback;
 import net.handle.hdllib.Util;
 import org.apache.logging.log4j.Logger;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
@@ -29,6 +33,7 @@ import org.dspace.servicemanager.DSpaceKernelImpl;
 import org.dspace.servicemanager.DSpaceKernelInit;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * Extension to the CNRI Handle Server that translates requests to resolve
@@ -47,11 +52,15 @@ import org.dspace.services.factory.DSpaceServicesFactory;
  * @author Peter Breton
  * @version $Revision$
  */
+@Component
 public class HandlePlugin implements HandleStorage {
     /**
      * log4j category
      */
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(HandlePlugin.class);
+
+    private static String repositoryName;
+
 
     /**
      * The DSpace service manager kernel
@@ -62,7 +71,25 @@ public class HandlePlugin implements HandleStorage {
      * References to DSpace Services
      **/
     protected HandleService handleService;
-    protected ConfigurationService configurationService;
+    protected static ConfigurationService configurationService;
+
+    private static final String repositoryEmail;
+    static {
+        String name = configurationService.getProperty(
+                "dspace.name");
+        if (name != null) {
+            repositoryName = name.trim();
+        } else {
+            repositoryName = null;
+        }
+        String email = configurationService.getProperty(
+                "lr", "lr.help.mail");
+        if (email != null) {
+            repositoryEmail = email.trim();
+        } else {
+            repositoryEmail = null;
+        }
+    }
 
     ////////////////////////////////////////
     // Non-Resolving methods -- unimplemented
@@ -403,5 +430,22 @@ public class HandlePlugin implements HandleStorage {
                 }
             }
         }
+    }
+
+    public static Map<String, String> extractMetadata(DSpaceObject dso) {
+        Map<String, String> map = new LinkedHashMap<>();
+        if (null != dso) {
+            List<MetadataValue> mds = dso.getMetadata();
+            if (0 < mds.size()) {
+                map.put(AbstractPIDService.HANDLE_FIELDS.TITLE.toString(), mds.get(0).getValue());
+            }
+            map.put(AbstractPIDService.HANDLE_FIELDS.REPOSITORY.toString(), repositoryName);
+            mds = dso.getMetadata();
+            if (0 < mds.size()) {
+                map.put(AbstractPIDService.HANDLE_FIELDS.SUBMITDATE.toString(), mds.get(0).getValue());
+            }
+            map.put(AbstractPIDService.HANDLE_FIELDS.REPORTEMAIL.toString(), repositoryEmail);
+        }
+        return map;
     }
 }

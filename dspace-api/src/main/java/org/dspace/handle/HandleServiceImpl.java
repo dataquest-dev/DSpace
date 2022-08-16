@@ -7,6 +7,7 @@
  */
 package org.dspace.handle;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.api.DSpaceApi;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.SiteService;
@@ -389,8 +391,36 @@ public class HandleServiceImpl implements HandleService {
                     .getPIDCommunityConfiguration(dso.getID());
 
             if (pidCommunityConfiguration.isEpic()) {
-                //here is missing code
-                return null;
+
+                String handleId;
+
+//                //1-
+//                String suffix = formatSuffix(id, pidCommunityConfiguration);
+                StringBuffer suffix = new StringBuffer();
+                String handleSubprefix = pidCommunityConfiguration.getSubprefix();
+                if (handleSubprefix != null && !handleSubprefix.isEmpty()) {
+                    suffix.append(handleSubprefix + "-");
+                }
+                suffix.append(handleSuffix);
+
+                //123456789
+                String prefix = pidCommunityConfiguration.getPrefix();
+
+                try {
+                    handleId = DSpaceApi.handle_HandleManager_createId(log, handleSuffix, prefix, suffix.toString());
+                    // if the handle created successfully register the final handle
+                    DSpaceApi
+                            .handle_HandleManager_registerFinalHandleURL(log, handleId, dso);
+                } catch (IOException e) {
+//                    DSpaceApi
+//                            .getFunctionalityManager()
+//                            .setErrorMessage(
+//                                    "PID Service is not working. Please contact the administrator.");
+                    throw new IllegalStateException(
+                            "External PID service is not working. Please contact the administrator. "
+                                    + "Internal message: [" + e.toString() + "]");
+                }
+                return handleId;
             } else if (pidCommunityConfiguration.isLocal()) {
                 String handleSubprefix = pidCommunityConfiguration.getSubprefix();
                 if (handleSubprefix != null && !handleSubprefix.isEmpty()) {

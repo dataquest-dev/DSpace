@@ -7,7 +7,6 @@
  */
 package org.dspace.handle;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,26 +38,6 @@ public class PIDCommunityConfiguration {
 
     PIDCommunityConfiguration(Map<String, String> configMap) {
         this.configMap = configMap;
-    }
-
-    /**
-     * Creates new AssignmentRules from given string
-     *
-     * @param s
-     *            String with assignment rules
-     * @return New instance of this class
-     */
-    public static PIDCommunityConfiguration fromString(String[] s) {
-        Map<String, String> configMap = new HashMap<String, String>();
-        for (String part : s) {
-            String[] keyValue = part.split("=", 2);
-            if (keyValue.length == 2) {
-                String key = keyValue[0].trim();
-                String value = keyValue[1].trim();
-                configMap.put(key, value);
-            }
-        }
-        return new PIDCommunityConfiguration(configMap);
     }
 
     /**

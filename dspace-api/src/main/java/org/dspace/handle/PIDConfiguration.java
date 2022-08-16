@@ -51,17 +51,41 @@ public class PIDConfiguration {
      * Initializes the singleton
      */
     private void initialize() {
-        //edid this metod for more communities
+        //All configurations are loaded into one array.
+        //New configuration starts after loaded part contains "community".
         String[] pidCommunityConfigurationsArray = configurationService.getArrayProperty
                 (CLARIN_PID_COMMUNITY_CONFIGURATIONS_KEYWORD);
-
-        pidCommunityConfigurations = new HashMap<UUID, PIDCommunityConfiguration>();
         if (pidCommunityConfigurationsArray != null) {
-            PIDCommunityConfiguration pidCommunityConfiguration = PIDCommunityConfiguration
-                    .fromString(pidCommunityConfigurationsArray);
+            //hashmap for creating PIDCommunityConfiguration
+            Map<String, String> map = new HashMap<String, String>();
+            pidCommunityConfigurations = new HashMap<UUID, PIDCommunityConfiguration>();
+            //exists minimally one configuration
+            String[] keyValue = pidCommunityConfigurationsArray[0].split("=");
+            String key = keyValue[0].trim();
+            String value = keyValue[1].trim();
+            map.put(key, value);
+            for (int i = 1; i < pidCommunityConfigurationsArray.length; i++) {
+                keyValue = pidCommunityConfigurationsArray[i].split("=");
+                key = keyValue[0].trim();
+                value = keyValue[1].trim();
+                //finding the end of the configuration
+                if (key.equals("community")) {
+                    //creating PIDCOmmunityConfiguration
+                    PIDCommunityConfiguration pidCommunityConfiguration = new PIDCommunityConfiguration (map);
+                    pidCommunityConfigurations.put(
+                            pidCommunityConfiguration.getCommunityID(),
+                            pidCommunityConfiguration);
+                    //cleaning map for other configuration
+                    map.clear();
+                }
+                map.put(key, value);
+            }
+            //creating PIDCOmmunityConfiguration
+            PIDCommunityConfiguration pidCommunityConfiguration = new PIDCommunityConfiguration (map);
             pidCommunityConfigurations.put(
                     pidCommunityConfiguration.getCommunityID(),
                     pidCommunityConfiguration);
+            //cleaning map for other configuration
         }
     }
 

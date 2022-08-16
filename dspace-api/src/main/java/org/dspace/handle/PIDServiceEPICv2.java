@@ -32,14 +32,14 @@ import org.apache.log4j.Logger;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.handle.service.HandleClarinService;
 
-public class PIDServicePID extends AbstractPIDService {
-    private static final Logger log = Logger.getLogger(PIDServicePID.class);
+public class PIDServiceEPICv2 extends AbstractPIDService {
+    private static final Logger log = Logger.getLogger(PIDServiceEPICv2.class);
     private static final Type handleListType = new TypeToken<List<Handle>>() {}.getType();
 
     private HandleClarinService handleClarinService = ContentServiceFactory.getInstance().getHandleClarinService();
 
-    public PIDServicePID() throws Exception {
-
+    public PIDServiceEPICv2() throws Exception {
+        super();
     }
 
     @Override

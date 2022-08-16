@@ -12,6 +12,7 @@ import java.net.PasswordAuthentication;
 import java.util.Map;
 
 import org.dspace.services.ConfigurationService;
+import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,8 +22,7 @@ public abstract class AbstractPIDService {
     public String PIDServiceUSER;
     public String PIDServicePASS;
 
-    @Autowired
-    private ConfigurationService configurationService;
+    private ConfigurationService configurationService = new DSpace().getConfigurationService();
 
     class PIDServiceAuthenticator extends Authenticator {
         public PasswordAuthentication getPasswordAuthentication() {
