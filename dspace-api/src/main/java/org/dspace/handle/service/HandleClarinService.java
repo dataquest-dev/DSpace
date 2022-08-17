@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 
@@ -50,7 +51,7 @@ public interface HandleClarinService {
      * @throws AuthorizeException if authorization error
      * @throws SQLException       if database error
      */
-    public Handle createHandle(Context context, Integer resourceTypeID, String url)
+    public Handle createHandle(Context context, DSpaceObject dSpaceObject, String url)
             throws SQLException, AuthorizeException;
 
     /**
@@ -83,7 +84,8 @@ public interface HandleClarinService {
      * @throws AuthorizeException if authorization error
      * @throws SQLException       if database error
      */
-    public void update(Context context, Handle handleObject, String newHandle, String newUrl)
+    public void update(Context context, Handle handleObject, String newHandle, DSpaceObject dso,
+                       Integer resourceTypeId, String newUrl)
             throws SQLException, AuthorizeException;
 
     /**
@@ -113,5 +115,10 @@ public interface HandleClarinService {
      * @return       The canonical form
      */
     public String getCanonicalForm(String handle);
+
+    public DSpaceObject resolve(Context context, String identifier);
+
+    public String resolveToURL(Context context, String handle_str)
+            throws SQLException;
 
 }

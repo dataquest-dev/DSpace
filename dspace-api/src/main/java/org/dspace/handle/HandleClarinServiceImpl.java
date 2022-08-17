@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.MetadataFieldServiceImpl;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -36,6 +37,8 @@ public class HandleClarinServiceImpl implements HandleClarinService {
      */
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataFieldServiceImpl.class);
 
+    static final String PART_IDENTIFIER_DELIMITER = "@";
+
     @Autowired(required = true)
     protected HandleDAO handleDAO;
 
@@ -50,6 +53,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
 
     @Autowired(required = true)
     protected AuthorizeService authorizeService;
+
 
 
     /**
@@ -69,7 +73,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     }
 
     @Override
-    public Handle createHandle(Context context, Integer resourceTypeID, String url)
+    public Handle createHandle(Context context, DSpaceObject dSpaceObject, String url)
             throws SQLException, AuthorizeException  {
         // Check authorisation: Only admins may create DC types
         if (!authorizeService.isAdmin(context)) {
@@ -80,14 +84,21 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         Handle handle = handleDAO.create(context, new Handle());
         String handleId = createId(context);
         handle.setHandle(handleId);
-        handle.setResourceTypeId(resourceTypeID);
+        handle.setDSpaceObject(dSpaceObject);
+        if (dSpaceObject != null) {
+            handle.setResourceTypeId(dSpaceObject.getType());
+        }
         handle.setUrl(url);
         handleDAO.save(context, handle);
 
-        log.debug("Created new Handle for {} (ID={}) {}",
-            () -> Constants.typeText[resourceTypeID],
-            () -> resourceTypeID,
-            () -> handleId);
+        if (dSpaceObject != null) {
+            log.debug("Created new Handle for {} (ID={}) {}",
+                () -> Constants.typeText[dSpaceObject.getType()],
+                () -> dSpaceObject.getType(),
+                () -> handleId);
+        } else {
+            log.debug("Created new Handle without dspace object");
+        }
 
         return handle;
     }
@@ -124,7 +135,8 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     }
 
     @Override
-    public void update(Context context, Handle handleObject, String newHandle, String newUrl)
+    public void update(Context context, Handle handleObject, String newHandle,
+                       DSpaceObject dso, Integer resourceTypeId, String newUrl)
             throws SQLException, AuthorizeException {
         // Check authorisation: Only admins may update DC types
         if (!authorizeService.isAdmin(context)) {
@@ -133,6 +145,8 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         }
 
         handleObject.setHandle(newHandle);
+        handleObject.setDSpaceObject(dso);
+        handleObject.setResourceTypeId(resourceTypeId);
         handleObject.setUrl(newUrl);
         this.save(context, handleObject);
 
@@ -177,6 +191,64 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         return handlePrefix + handle;
     }
 
+    @Override
+    public DSpaceObject resolve(Context context, String identifier) {
+        // We can do nothing with this, return null
+        try {
+            Handle handle = handleDAO.findByHandle(context, identifier);
+
+            if (handle == null) {
+                // Check for an url
+                identifier = retrieveHandleOutOfUrl(identifier);
+                if (identifier != null) {
+                    handle = handleDAO.findByHandle(context, identifier);
+                }
+
+                if (handle == null) {
+                    return null;
+                }
+            }
+
+            return handle.getDSpaceObject();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error while trying to resolve handle");
+        }
+    }
+
+    @Override
+    public String resolveToURL(Context context, String handle_str) throws SQLException {
+        // <UFAL>
+        String baseHandle = stripPartIdentifier(handle_str);
+
+        log.debug(String.format("Base handle [%s]", baseHandle));
+
+        Handle handle = handleDAO.findByHandle(context, baseHandle);
+
+        if (handle == null) {
+            return null;
+        }
+
+        String url = null;
+
+        if (handle.getUrl() != null) {
+            url = handle.getUrl();
+        } else {
+            url = configurationService.getProperty("dspace.url") + "/handle/"
+                    + baseHandle;
+        }
+
+        String partIdentifier = extractPartIdentifier(handle_str);
+        url = appendPartIdentifierToUrl(url, partIdentifier);
+        // </UFAL>
+
+        if (log.isDebugEnabled()) {
+            log.debug("Resolved " + handle + " to " + url);
+        }
+
+        return url;
+    }
+
     /**
      * Create id for handle object.
      *
@@ -192,5 +264,73 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         Long handleSuffix = handleDAO.getNextHandleSuffix(context);
 
         return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") + handleSuffix.toString();
+    }
+
+    private static String retrieveHandleOutOfUrl(String url)
+            throws SQLException {
+        // We can do nothing with this, return null
+        if (!url.contains("/")) {
+            return null;
+        }
+
+        String[] splitUrl = url.split("/");
+
+        return splitUrl[splitUrl.length - 2] + "/" + splitUrl[splitUrl.length - 1];
+    }
+
+
+    /**
+     * Strips the part identifier from the handle
+     *
+     * @param handle The handle with optional part identifier
+     * @return The handle without the part identifier
+     */
+    private static String stripPartIdentifier(String handle) {
+        String baseHandle = null;
+        if (handle != null) {
+            int pos = handle.indexOf(PART_IDENTIFIER_DELIMITER);
+            if (pos >= 0) {
+                baseHandle = handle.substring(0, pos);
+            } else {
+                baseHandle = handle;
+            }
+        }
+        return baseHandle;
+    }
+
+    /**
+     * Extracts the part identifier from the handle
+     *
+     * @param handle The handle with optional part identifier
+     * @return part identifier or null
+     */
+    private static String extractPartIdentifier(String handle) {
+        String partIdentifier = null;
+        if (handle != null) {
+            int pos = handle.indexOf(PART_IDENTIFIER_DELIMITER);
+            if (pos >= 0) {
+                partIdentifier = handle.substring(pos + 1);
+            }
+        }
+        return partIdentifier;
+    }
+
+    /**
+     * Appends the partIdentifier as parameters to the given URL
+     *
+     * @param url The URL
+     * @param partIdentifier  Part identifier (can be null or empty)
+     * @return Final URL with part identifier appended as parameters to the given URL
+     */
+    private static String appendPartIdentifierToUrl(String url, String partIdentifier) {
+        String finalUrl = url;
+        if (finalUrl != null && partIdentifier != null && !partIdentifier.isEmpty()) {
+            if (finalUrl.contains("?")) {
+                finalUrl += '&' + partIdentifier;
+            } else {
+                finalUrl += '?' + partIdentifier;
+            }
+        }
+        return finalUrl;
     }
 }

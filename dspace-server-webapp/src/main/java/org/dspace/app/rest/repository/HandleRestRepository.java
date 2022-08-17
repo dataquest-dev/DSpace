@@ -109,7 +109,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
 
         Handle handle = null;
         try {
-            handle = handleClarinService.createHandle(context, handleRest.getResourceTypeID(), handleRest.getUrl());
+            handle = handleClarinService.createHandle(context, null, handleRest.getUrl());
             handleClarinService.save(context, handle);
         } catch (SQLException e) {
             throw new RuntimeException
@@ -160,7 +160,9 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                                     ("Cannot load JsonNode value from the operation: " + operation.getPath());
                                 }
 
-                                updateHandle(context, handleObject, jsonNodeHandle.asText(), jsonNodeUrl.asText(),
+                                updateHandle(context, handleObject, jsonNodeHandle.asText(),
+                                        handleObject.getDSpaceObject(),
+                                        handleObject.getResourceTypeId(), jsonNodeUrl.asText(),
                                         jsonNodeArchive.asBoolean());
                             }
                             break;
@@ -222,15 +224,28 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         return HandleRest.class;
     }
 
-    private void updateHandle(Context context, Handle handleObject, String newHandle, String url, boolean archive)
+    //handle_str is just part after prefix
+    private void updateHandle(Context context, Handle handleObject, String newHandleStr,
+                              DSpaceObject handleDso, Integer resourceTypeId,
+                              String url, boolean archive)
             throws AuthorizeException {
+
+        //end update if handleObject is null
+        if ( null == handleObject ) {
+            log.warn("Could not find handle record for " + newHandleStr);
+            return;
+        }
+
         Item item = null;
+        //actual string handle of handleObject
         String oldHandle = handleObject.getHandle();
         try {
+            //handleObject has not url
             if (handleClarinService.isInternalResource(handleObject)) {
+                DSpaceObject dso = null;
                 // Try resolving handle to Item
                 try {
-                    DSpaceObject dso = handleObject.getDSpaceObject();
+                    dso = handleClarinService.resolve(context, oldHandle);
                     if (dso != null && dso.getType() == Constants.ITEM) {
                         item = (Item) dso;
                     }
@@ -256,8 +271,8 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                     itemService.clearMetadata(context, item, "dc", "identifier", "uri", Item.ANY);
 
                     // Update dc.identifier.uri
-                    if (oldHandle != null && !handleObject.getHandle().isEmpty()) {
-                        String newUrl = handleClarinService.getCanonicalForm(oldHandle);
+                    if (newHandleStr != null && !newHandleStr.isEmpty()) {
+                        String newUrl = handleClarinService.getCanonicalForm(newHandleStr);
                         itemService.addMetadata(context, item, "dc", "identifier", "uri", Item.ANY, newUrl);
                     }
 
@@ -266,14 +281,29 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 }
             }
 
-            if (!newHandle.equals(handleObject.getHandle())) {
-                Handle createdHandle = handleClarinService.createHandle(context, handleObject.getResourceTypeId(),
-                        handleObject.getUrl());
-                handleClarinService.save(context, createdHandle);
+            //update handleObject
+            handleClarinService.update(context,handleObject, newHandleStr, handleDso, resourceTypeId, url);
+
+            // Archive handle
+            if ( archive ) {
+                //if new handle is not equals with old handle
+                if (!newHandleStr.equals(oldHandle)) {
+                    //create url
+                    String newUrl = handleClarinService.resolveToURL(context, newHandleStr);
+                    //created new handle for archive without dspace object
+                    Handle archivedHandle = handleClarinService.createHandle(context, null,
+                            handleObject.getUrl());
+                    //set handle in archived handle
+                    archivedHandle.setHandle(oldHandle);
+                    //save created archived handle
+                    handleClarinService.save(context, archivedHandle);
+                }
             }
 
-            handleClarinService.update(context, handleObject,
-                    newHandle, url);
+            if (log.isDebugEnabled()) {
+                log.debug("Created new handle for "
+                        + Constants.typeText[handleObject.getResourceTypeId()] + " " + newHandleStr);
+            }
 
         } catch (SQLException e) {
             throw new RuntimeException("error while trying to update handle");
@@ -289,6 +319,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 String[] handleParts = (handleObject.getHandle()).split("/");
                 if ((handleParts[0]).equals(oldPrefix)) {
                     updateHandle(context, handleObject, newPrefix + "/" + handleParts[1],
+                            handleObject.getDSpaceObject(), handleObject.getResourceTypeId(),
                             handleObject.getUrl(), archive);
                 }
             }

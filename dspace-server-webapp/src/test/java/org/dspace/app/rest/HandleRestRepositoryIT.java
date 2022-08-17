@@ -196,7 +196,8 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     // clean handles of the created Items, Communities, Collections because when is created
     // a new Item/Collection/Community in another test, the handle of the old Item/Collection/Community
     // lost DSpaceObject (dso is null) and it throws error in the HandleConverter
-    private void cleanHandles() throws SQLException, AuthorizeException {
+    private void
+    cleanHandles() throws SQLException, AuthorizeException {
         context.turnOffAuthorisationSystem();
 
         handleClarinService.delete(context, parentCommunity.getHandles().get(0));
