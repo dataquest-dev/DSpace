@@ -57,7 +57,6 @@
             ref="org.dspace.identifier.doi.DOIConnector" />
     </bean>
     -->
-    <!--
     <bean id="org.dspace.identifier.DOIIdentifierProvider"
         class="org.dspace.identifier.VersionedDOIIdentifierProvider"
         scope="singleton">
@@ -66,7 +65,6 @@
         <property name="DOIConnector"
             ref="org.dspace.identifier.doi.DOIConnector" />
     </bean>
-    -->
 
     <!-- An optional logical item filter can be included in provider configuration based
     on the filters defined in item-filters.xml, eg. -->
@@ -91,7 +89,6 @@
          e.g. EZID is part of DataCite but provides their own APIs. The following
          DataCiteConnector won't work if EZID is your registration agency.
     -->
-    <!-- Uncomment this to use the DataCite API directly as DOIConnector.
     <bean id="org.dspace.identifier.doi.DOIConnector"
         class="org.dspace.identifier.doi.DataCiteConnector"
         scope="singleton">
@@ -101,7 +98,6 @@
         <property name='DATACITE_METADATA_PATH' value='/metadata/' />
         <property name='disseminationCrosswalkName' value="DataCite" />
     </bean>
-    -->
 
     <!-- Provider to mint and register DOIs using EZID as the registrar.
     -->
