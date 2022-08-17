@@ -135,21 +135,6 @@
                 </field>
 
                 <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>hiddenButHarvestable</dc-element>
-                    <dc-qualifier/>
-                    <repeatable>false</repeatable>
-                    <label>Hidden but harvestable</label>
-                    <style>col-sm-4</style>
-                    <input-type value-pairs-name="hidden_list">dropdown</input-type>
-                    <hint>Should item be harvestable thru OAI-PMH but behave like private?</hint>
-                    <required/>
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl>
-                </field>
-
-                <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>publisher</dc-element>
                     <dc-qualifier></dc-qualifier>
@@ -238,6 +223,22 @@
                     <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
                     <hint>Are you going to upload cmdi file?</hint>
                     <required></required>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hiddenButHarvestable</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Hidden but harvestable</label>
+                    <style>col-sm-4</style>
+                    <input-type value-pairs-name="hidden_list">list</input-type>
+                    <hint>Should item be harvestable thru OAI-PMH but behave like private?</hint>
+                    <required/>
                     <acl>
                         policy=deny,action=read,grantee-type=user,grantee-id=*
                     </acl>
@@ -386,20 +387,7 @@
                     <required>You must enter at least the year.</required>
                 </field>
 
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>hiddenButHarvestable</dc-element>
-                    <dc-qualifier/>
-                    <repeatable>false</repeatable>
-                    <label>Hidden but harvestable</label>
-                    <style>col-sm-4</style>
-                    <input-type value-pairs-name="hidden_list">dropdown</input-type>
-                    <hint>Should item be harvestable thru OAI-PMH but behave like private?</hint>
-                    <required/>
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl>
-                </field>
+
 
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -916,20 +904,6 @@
                     <required>You must enter at least the year.</required>
                 </field>
 
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>hiddenButHarvestable</dc-element>
-                    <dc-qualifier/>
-                    <repeatable>false</repeatable>
-                    <label>Hidden but harvestable</label>
-                    <style>col-sm-4</style>
-                    <input-type value-pairs-name="hidden_list">dropdown</input-type>
-                    <hint>Should item be harvestable thru OAI-PMH but behave like private?</hint>
-                    <required/>
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl>
-                </field>
             </row>
             <row>
                 <field>
@@ -2066,12 +2040,8 @@
 
         <value-pairs value-pairs-name="hidden_list" dc-term="">
             <pair>
-                <displayed-value>hidden</displayed-value>
+                <displayed-value>Hidden</displayed-value>
                 <stored-value>hidden</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>false</displayed-value>
-                <stored-value>false</stored-value>
             </pair>
         </value-pairs>
 
