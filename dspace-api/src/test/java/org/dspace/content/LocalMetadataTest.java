@@ -81,7 +81,7 @@ public class LocalMetadataTest extends AbstractUnitTest {
 
     @Test
     public void existsHidden() throws Exception {
-        MetadataField field = metadataFieldService.findByString(context, "local.hidden", '.');
+        MetadataField field = metadataFieldService.findByString(context, "local.hiddenButHarvestable", '.');
         assertThat("existsHidden 0", field, notNullValue());
     }
 

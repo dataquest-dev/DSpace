@@ -52,7 +52,7 @@ public class SpecialItemService {
             HandleService hs = HandleServiceFactory.getInstance().getHandleService();
             DSpaceObject dSpaceObject = hs.resolveToObject(context, handle);
             List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(((Item) dSpaceObject),
-                    "local.hasMetadata");
+                    "local.hasCMDI");
             if (dSpaceObject != null && dSpaceObject.getType() == Constants.ITEM && hasOwnMetadata(metadataValues)) {
 
                 Bitstream bitstream = itemService.getBundles(((Item) dSpaceObject), "METADATA").get(0)
