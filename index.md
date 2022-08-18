@@ -6,13 +6,7 @@
 
 [OAI-PMH](http://dev-5.pc/server/oai/)
 
-Private test
-
-[![Test dspace on dev-5](https://github.com/dataquest-dev/dspace-blackbox-testing/actions/workflows/test.yml/badge.svg)](https://github.com/dataquest-dev/dspace-blackbox-testing/actions/workflows/test.yml)
-
-Public one
-
-[![Build](https://github.com/dataquest-dev/DSpace/actions/workflows/build.yml/badge.svg)](https://github.com/dataquest-dev/DSpace/actions/workflows/build.yml)
+[Check blackbox tests here](http://dev-5.pc/status/)
 
 [TEST STATUS](http://dev-5.pc/status/)
 
