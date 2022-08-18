@@ -15,7 +15,6 @@ import org.dspace.handle.Handle;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
-
 /**
  * Utility class to construct a Matcher for a handle.
  *
@@ -25,6 +24,12 @@ public class HandleMatcher {
 
     private HandleMatcher() { }
 
+    /**
+     * Get a matcher for handle attributes and _links.self.href.
+     *
+     * @param handle handle pbject
+     * @return the matcher.
+     */
     public static Matcher<? super Object> matchHandle(Handle handle) {
         return allOf(
                 hasJsonPath("$.handle", is(handle.getHandle())),
@@ -33,14 +38,4 @@ public class HandleMatcher {
                 hasJsonPath("$._links.self.href", Matchers.containsString("/api/core/handles"))
         );
     }
-
-    public static Matcher<? super Object> matchHandleByKeys(Handle handle) {
-        return allOf(
-                hasJsonPath("$.handle", is(handle.getHandle())),
-                hasJsonPath("$.resourceTypeID", is(handle.getResourceTypeId())),
-                hasJsonPath("$.url", is(handle.getUrl())),
-                hasJsonPath("$._links.self.href", Matchers.containsString("/api/core/handles"))
-        );
-    }
-
 }

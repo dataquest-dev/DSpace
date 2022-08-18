@@ -31,6 +31,7 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.handle.Handle;
@@ -90,11 +91,10 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                     .andExpect(jsonPath("$._embedded.handles", Matchers.hasItem(
-                        HandleMatcher.matchHandleByKeys(handle)
+                        HandleMatcher.matchHandle(handle)
                 )))
                 .andExpect(jsonPath("$._links.self.href",
                         Matchers.containsString("/api/core/handles")));
-
         this.cleanHandles();
     }
 
@@ -136,12 +136,107 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void patchUpdateHandle() throws  Exception {
+    public void patchUpdateHandleWithoutHandleAndWithoutArchive() throws  Exception {
+        //handle: null
+        //url: www.test.com
+        //archive: false
         Handle handle = publicItem.getHandles().get(0);
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
-        values.put("handle", jsonNodeFactory.textNode(handle.getHandle()));
-        values.put("url", jsonNodeFactory.textNode("www.newUrl.sk"));
+        values.put("handle", jsonNodeFactory.textNode(null));
+        values.put("url", jsonNodeFactory.textNode("www.test.com"));
+        values.put("archive", jsonNodeFactory.textNode("false"));
+        ops.add(new ReplaceOperation("/updateHandle", values));
+
+        String patchBody = getPatchContent(ops);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        HandleMatcher.matchHandle(handle)
+                )));
+        //status is not ok
+        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        this.cleanHandles();
+    }
+
+    public void patchUpdateHandleWithoutUrlAndWithoutArchive() throws  Exception {
+        //handle: 123
+        //url: null
+        //archive: false
+        Handle handle = publicItem.getHandles().get(0);
+        List<Operation> ops = new ArrayList<Operation>();
+        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
+        values.put("handle", jsonNodeFactory.textNode("123"));
+        values.put("url", jsonNodeFactory.textNode(null));
+        values.put("archive", jsonNodeFactory.textNode("false"));
+        ops.add(new ReplaceOperation("/updateHandle", values));
+
+        String patchBody = getPatchContent(ops);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        HandleMatcher.matchHandle(handle)
+                )));
+        //status is not ok
+        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        this.cleanHandles();
+    }
+
+    public void patchUpdateHandleWithoutArchive() throws  Exception {
+        //handle: 123
+        //url: www.test.com
+        //archive: false
+        Handle handle = publicItem.getHandles().get(0);
+        List<Operation> ops = new ArrayList<Operation>();
+        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
+        values.put("handle", jsonNodeFactory.textNode("122"));
+        values.put("url", jsonNodeFactory.textNode("www.test.com"));
+        values.put("archive", jsonNodeFactory.textNode("false"));
+        ops.add(new ReplaceOperation("/updateHandle", values));
+
+        String patchBody = getPatchContent(ops);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        HandleMatcher.matchHandle(handle)
+                )));
+        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        handle.setHandle("123");
+        handle.setUrl("www.test.com");
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        HandleMatcher.matchHandle(handle))
+                ));
+
+        this.cleanHandles();
+    }
+
+    public void patchUpdateHandleWithArchive() throws  Exception {
+        //handle: 123
+        //url: www.test.com
+        //archive: true
+        Handle handle = publicItem.getHandles().get(0);
+        Handle archivedHandle = publicItem.getHandles().get(0);
+        List<Operation> ops = new ArrayList<Operation>();
+        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
+        values.put("handle", jsonNodeFactory.textNode("122"));
+        values.put("url", jsonNodeFactory.textNode("www.test.com"));
         values.put("archive", jsonNodeFactory.textNode("true"));
         ops.add(new ReplaceOperation("/updateHandle", values));
 
@@ -157,23 +252,110 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.not(Matchers.is(
-                        HandleMatcher.matchHandle(handle))
-                )));
-        handle.setUrl("www.newUrl.sk");
+        //set handle
+        handle.setHandle("123");
+        handle.setUrl("www.test.com");
         getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.is(
                         HandleMatcher.matchHandle(handle))
                 ));
+        //archived handle
+        archivedHandle.setUrl(handle.getUrl());
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + archivedHandle.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        HandleMatcher.matchHandle(archivedHandle))
+                ));
+        this.cleanHandles();
+    }
 
+
+    @Test
+    public void patchSetPrefixWithoutArchive() throws  Exception {
+        Handle handle = publicItem.getHandles().get(0);
+        List<Operation> ops = new ArrayList<Operation>();
+        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
+        values.put("oldPrefix", jsonNodeFactory.textNode("123456789"));
+        values.put("newPrefix", jsonNodeFactory.textNode("987654321"));
+        values.put("archive", jsonNodeFactory.textNode("false"));
+        ops.add(new ReplaceOperation("/setPrefix", values));
+
+        String patchBody = getPatchContent(ops);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        //update handle
+        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        //status not OK
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk());
+        //status not OK
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + col.getHandles().get(0).getID()))
+                .andExpect(status().isOk());
         this.cleanHandles();
     }
 
     @Test
-    public void patchSetPrefix() throws  Exception {
+    public void patchSetPrefixForSameWithoutArchive() throws  Exception {
+        Handle handle = publicItem.getHandles().get(0);
+        List<Operation> ops = new ArrayList<Operation>();
+        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
+        values.put("oldPrefix", jsonNodeFactory.textNode("123456789"));
+        values.put("newPrefix", jsonNodeFactory.textNode("123456789"));
+        values.put("archive", jsonNodeFactory.textNode("false"));
+        ops.add(new ReplaceOperation("/setPrefix", values));
+
+        String patchBody = getPatchContent(ops);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        //update handle
+        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        //status not OK
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk());
+        //status not OK
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + col.getHandles().get(0).getID()))
+                .andExpect(status().isOk());
+        this.cleanHandles();
+    }
+
+    @Test
+    public void patchSetPrefixWithoutPrefixWithoutArchive() throws  Exception {
+        Handle handle = publicItem.getHandles().get(0);
+        List<Operation> ops = new ArrayList<Operation>();
+        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
+        values.put("oldPrefix", jsonNodeFactory.textNode("123456789"));
+        values.put("newPrefix", jsonNodeFactory.textNode(null));
+        values.put("archive", jsonNodeFactory.textNode("false"));
+        ops.add(new ReplaceOperation("/setPrefix", values));
+
+        String patchBody = getPatchContent(ops);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        //update handle
+        //status not OK
+        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        //status OK
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk());
+        this.cleanHandles();
+    }
+
+
+    @Test
+    public void patchSetPrefixWithArchive() throws  Exception {
         Handle handle = publicItem.getHandles().get(0);
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
@@ -185,11 +367,22 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         String patchBody = getPatchContent(ops);
         String adminToken = getAuthToken(admin.getEmail(), password);
 
+        //update handle
         getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
+        //status OK
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk());
+        handle.setHandle("987654321/" + handle.getHandle().split("/")[1]);
+        //status OK
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk());
+        //status not OK
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + col.getHandles().get(0).getID()))
+                .andExpect(status().isOk());
         this.cleanHandles();
     }
 

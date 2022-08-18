@@ -18,6 +18,7 @@ import org.dspace.app.rest.RestResourceController;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HandleRest extends BaseObjectRest<Integer> {
+
     public static final String NAME = "handle";
     public static final String NAME_PLURAL = "handles";
     public static final String CATEGORY = RestAddressableModel.CORE;
@@ -67,5 +68,4 @@ public class HandleRest extends BaseObjectRest<Integer> {
     public String getType() {
         return NAME;
     }
-
 }
