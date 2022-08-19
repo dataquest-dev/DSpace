@@ -10,12 +10,12 @@ package org.dspace.handle.service;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 
 /**
- * Additional service interface class of HandleService for the Handle object in Clarin.
+ * Additional service interface class of HandleService for the Handle object in Clarin-DSpace.
  *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
@@ -43,75 +43,76 @@ public interface HandleClarinService {
     /**
      * Creates a new handle.
      *
-     * @param context             DSpace context object
-     * @param resourceTypeID      Integer
-     * @param url                 String
+     * @param context       DSpace context object
+     * @param handleStr     String
+     * @param dSpaceObject  DSpaceObject
+     * @param url           String
      * @return new Handle
-     * @throws AuthorizeException if authorization error
-     * @throws SQLException       if database error
+     * @throws SQLException if database error
      */
-    public Handle createHandle(Context context, Integer resourceTypeID, String url)
-            throws SQLException, AuthorizeException;
+    public Handle createHandle(Context context, String handleStr, DSpaceObject dSpaceObject, String url)
+            throws SQLException;
 
     /**
      * Delete the handle.
      *
-     * @param context             DSpace context object
-     * @param handle              handle
-     * @throws SQLException       if database error
-     * @throws AuthorizeException if authorization error
+     * @param context       DSpace context object
+     * @param handle        handle
+     * @throws SQLException if database error
      */
-    public void delete(Context context, Handle handle) throws SQLException, AuthorizeException;
+    public void delete(Context context, Handle handle) throws SQLException;
 
     /**
      * Save the metadata field in the database.
      *
-     * @param context             dspace context
-     * @param handle              handle
-     * @throws SQLException       if database error
-     * @throws AuthorizeException if authorization error
+     * @param context       dspace context
+     * @param handle        handle
+     * @throws SQLException if database error
      */
     public void save(Context context, Handle handle)
-            throws SQLException, AuthorizeException;
+            throws SQLException;
 
     /**
-     * Update handle and url in handle object.
+     * Update all attributes in handle object.
      *
      * @param context             DSpace context object
      * @param handleObject        handle object
      * @param newHandle           handle
-     * @throws AuthorizeException if authorization error
      * @throws SQLException       if database error
      */
-    public void update(Context context, Handle handleObject, String newHandle, String newUrl)
-            throws SQLException, AuthorizeException;
+    public void update(Context context, Handle handleObject, String newHandle,
+                       DSpaceObject dso, String newUrl)
+            throws SQLException;
 
     /**
      * Set handle prefix.
      *
-     * @param context   DSpace context object
-     * @param newPrefix new prefix
-     * @throws AuthorizeException if authorization error
-     * @throws SQLException       if database error
+     * @param context       DSpace context object
+     * @param newPrefix     new prefix
+     * @throws SQLException if database error
      */
-    public void setPrefix(Context context, String newPrefix, String oldprefix) throws SQLException, AuthorizeException;
+    public void setPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException;
 
+    /* Created for LINDAT/CLARIAH-CZ (UFAL) */
     /**
      * Control, if handle is internal resource.
      *
-     * @param handle   handle object
-     * @return         boolean
+     * @param handle handle object
+     * @return       boolean
      */
     public boolean isInternalResource(Handle handle);
 
-    /**
-     * Transforms handle into the canonical form <em>hdl:handle</em>.
-     *
-     * No attempt is made to verify that handle is in fact valid.
-     *
-     * @param handle handle
-     * @return       The canonical form
-     */
-    public String getCanonicalForm(String handle);
+    public String completeHandle(String prefix, String suffix);
 
+    /**
+     * Return the local URL for internal handle,
+     * saved url for external handle
+     * and null if handle cannot be found.
+     *
+     * @param context       DSpace context
+     * @param handleStr     The handle
+     * @return The URL
+     * @throws SQLException If a database error occurs
+     */
+    public String resolveToURL(Context context, String handleStr) throws SQLException;
 }

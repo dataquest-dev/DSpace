@@ -7,9 +7,9 @@
  */
 package org.dspace.handle.external;
 
+public final class ExternalHandleConstants {
+    public static final String MAGIC_BEAN = "@magicLindat@";
 
-public class Handle {
-
-    public Handle() {
+    private ExternalHandleConstants() {
     }
 }
