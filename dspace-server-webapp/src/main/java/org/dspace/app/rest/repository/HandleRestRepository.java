@@ -118,7 +118,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
      */
     @Override
     @PreAuthorize("hasAuthority('ADMIN')")
-    protected void delete(Context context, Integer id) {
+    protected void delete(Context context, Integer id) throws AuthorizeException {
         try {
             //find handle
             Handle handle = handleClarinService.findByID(context, id);
@@ -136,7 +136,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
      * @return        created handle as handle rest
      */
     @PreAuthorize("hasAuthority('ADMIN')")
-    protected HandleRest createAndReturn(Context context) {
+    protected HandleRest createAndReturn(Context context) throws AuthorizeException {
 
         HandleRest handleRest;
         try {
@@ -151,22 +151,16 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
 
         Handle handle = null;
         try {
-            //Is handle entered?
-            if (handleRest.getHandle() != null) {
-                //Is url entered?
-                if (handleRest.getUrl() != null) {
-                    //create new handle
-                    handle = handleClarinService.createHandle(context, handleRest.getHandle(),
-                            null, handleRest.getUrl());
-                } else {
-                    throw new NullPointerException("Can not create handle. Required field URL is empty.");
-                }
+            //Is handle and url entered?
+            if (handleRest.getHandle() != null && !(ObjectUtils.isEmpty(handleRest.getUrl())) &&
+                    !(StringUtils.isBlank(handleRest.getUrl()))) {
+                handle = handleClarinService.createExternalHandle(context, handleRest.getHandle(),
+                       handleRest.getUrl());
+                //save created handle
+                handleClarinService.save(context, handle);
             } else {
-                throw new NullPointerException("Can not create handle. Required field Handle is empty.");
+                throw new UnprocessableEntityException("Can not create handle. Required fields are empty.");
             }
-            //save created handle
-            handleClarinService.save(context, handle);
-
         } catch (SQLException e) {
             throw new RuntimeException
             ("Error while trying to create new Handle and update it", e);
@@ -246,11 +240,11 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                                 JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) operation.getValue();
                                 JsonNode jsonNodes = jsonValEvaluator.getValueNode();
 
-                                //new global prefix
+                                //new prefix
                                 if (jsonNodes.get("newPrefix") != null) {
                                     jsonNodeNewPrefix = jsonNodes.get("newPrefix");
                                 }
-                                //old global prefix
+                                //old prefix
                                 if (jsonNodes.get("oldPrefix") != null) {
                                     jsonNodeOldPrefix = jsonNodes.get("oldPrefix");
                                 }
@@ -270,16 +264,18 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                                     ("Cannot load JsonNode value from the operation: " + operation.getPath());
                                 }
 
-
-                                //change the prefix only if is not the new prefix equal to the old prefix
-                                if (!jsonNodeOldPrefix.asText().equals( jsonNodeNewPrefix.asText())) {
+                                //old prefix is equals with current prefix
+                                if (jsonNodeOldPrefix.asText().equals(handleService.getPrefix())) {
                                     //changing prefix in existing handles with the old prefix to the new prefix
                                     //in case of request they are archived
                                     this.changePrefixInExistingHandles(context, jsonNodeOldPrefix.asText(),
                                             jsonNodeNewPrefix.asText(), jsonNodeArchive.asBoolean());
-                                    // set old prefix to new prefix
+                                    // set old prefix to the new prefix
                                     handleClarinService.setPrefix(context, jsonNodeNewPrefix.asText(),
                                             jsonNodeOldPrefix.asText());
+                                } else {
+                                    throw new RuntimeException("Cannot change prefix. Old prefix does " +
+                                            "not match with existing prefixes.");
                                 }
                             }
                             break;
@@ -363,7 +359,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
             }
 
             //update handleObject
-            handleClarinService.update(context,handleObject, newHandleStr, handleDso, url);
+            handleClarinService.update(context,handleObject, newHandleStr, url);
 
             // Archive handle
             if (archive) {
@@ -372,7 +368,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                     //create url
                     String newUrl = handleClarinService.resolveToURL(context, newHandleStr);
                     //create new handle for archiving without dspace object and save it
-                    Handle archivedHandle = handleClarinService.createHandle(context, oldHandle, null,
+                    Handle archivedHandle = handleClarinService.createExternalHandle(context, oldHandle,
                             newUrl);
                 }
             }
@@ -406,7 +402,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 Handle handleObject = it.next();
                 //get prefix from handle
                 String[] handleParts = (handleObject.getHandle()).split("/");
-                //if the handle prefix used is the same as the old prefix, update handle
+                //if the used handle prefix is the same as the old prefix, update handle
                 if ((handleParts[0]).equals(oldPrefix)) {
                     //new handle
                     String newHandleStr = newPrefix + "/" + handleParts[1];

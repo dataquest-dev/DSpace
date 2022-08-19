@@ -10,7 +10,7 @@ package org.dspace.handle.service;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.dspace.content.DSpaceObject;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 
@@ -41,57 +41,74 @@ public interface HandleClarinService {
     public Handle findByID(Context context, int id) throws SQLException;
 
     /**
-     * Creates a new handle.
+     * Find the handle corresponding to the given string handle.
      *
      * @param context       DSpace context object
-     * @param handleStr     String
-     * @param dSpaceObject  DSpaceObject
-     * @param url           String
-     * @return new Handle
+     * @param handle        string handle
+     * @return              the handle object
      * @throws SQLException if database error
      */
-    public Handle createHandle(Context context, String handleStr, DSpaceObject dSpaceObject, String url)
-            throws SQLException;
+    public Handle findByHandle(Context context, String handle) throws SQLException;
+
+    /**
+     * Creates a new external handle.
+     * External handle has to have entered URL.
+     *
+     * @param context             DSpace context object
+     * @param handleStr           String
+     * @param url                 String
+     * @return new Handle
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
+     */
+    public Handle createExternalHandle(Context context, String handleStr, String url)
+            throws SQLException, AuthorizeException;
 
     /**
      * Delete the handle.
      *
-     * @param context       DSpace context object
-     * @param handle        handle
-     * @throws SQLException if database error
+     * @param context             DSpace context object
+     * @param handle              handle
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
-    public void delete(Context context, Handle handle) throws SQLException;
+    public void delete(Context context, Handle handle) throws SQLException, AuthorizeException;
 
     /**
      * Save the metadata field in the database.
      *
-     * @param context       dspace context
-     * @param handle        handle
-     * @throws SQLException if database error
+     * @param context             dspace context
+     * @param handle              handle
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
     public void save(Context context, Handle handle)
-            throws SQLException;
+            throws SQLException, AuthorizeException;
 
     /**
-     * Update all attributes in handle object.
+     * Update handle and url in handle object.
+     * It is not possible to update external handle to internal handle or
+     * external handle to internal handle.
      *
      * @param context             DSpace context object
-     * @param handleObject        handle object
-     * @param newHandle           handle
+     * @param newHandle           new handle
+     * @param newUrl              new url
      * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
     public void update(Context context, Handle handleObject, String newHandle,
-                       DSpaceObject dso, String newUrl)
-            throws SQLException;
+                      String newUrl)
+            throws SQLException, AuthorizeException;
 
     /**
      * Set handle prefix.
      *
-     * @param context       DSpace context object
-     * @param newPrefix     new prefix
-     * @throws SQLException if database error
+     * @param context             DSpace context object
+     * @param newPrefix           new prefix
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
-    public void setPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException;
+    public void setPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException, AuthorizeException;
 
     /* Created for LINDAT/CLARIAH-CZ (UFAL) */
     /**

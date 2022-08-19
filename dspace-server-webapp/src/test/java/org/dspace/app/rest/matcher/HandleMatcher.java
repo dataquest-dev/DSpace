@@ -27,7 +27,7 @@ public class HandleMatcher {
     /**
      * Get a matcher for handle attributes and _links.self.href.
      *
-     * @param handle handle pbject
+     * @param handle handle object
      * @return the matcher.
      */
     public static Matcher<? super Object> matchHandle(Handle handle) {
