@@ -5,6 +5,10 @@
  *
  * http://www.dspace.org/license/
  */
+
+
+/* Created for LINDAT/CLARIAH-CZ (UFAL) */
+
 package org.dspace.api;
 
 import java.io.IOException;
@@ -38,8 +42,7 @@ public class DSpaceApi {
      * URL)
      *
      * @return A new handle PID
-     * @exception Exception
-     *                If error occurrs
+     * @exception Exception If error occurrs
      */
     public static String handle_HandleManager_createId(Logger log, Long id,
                                                        String prefix, String suffix) throws IOException {
@@ -84,8 +87,7 @@ public class DSpaceApi {
     /**
      * Modify an existing PID to point to the corresponding DSpace handle
      *
-     * @exception SQLException
-     *                If a database error occurs
+     * @exception SQLException If a database error occurs
      */
     public static void handle_HandleManager_registerFinalHandleURL(Logger log,
                                                                    String pid, DSpaceObject dso) throws IOException {

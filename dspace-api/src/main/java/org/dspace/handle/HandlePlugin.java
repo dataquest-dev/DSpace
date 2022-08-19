@@ -73,6 +73,7 @@ public class HandlePlugin implements HandleStorage {
     protected HandleService handleService;
     protected static ConfigurationService configurationService;
 
+    /* Created for LINDAT/CLARIAH-CZ (UFAL) */
     private static final String repositoryEmail;
     static {
         String name = configurationService.getProperty(
@@ -432,6 +433,7 @@ public class HandlePlugin implements HandleStorage {
         }
     }
 
+    /* Created for LINDAT/CLARIAH-CZ (UFAL) */
     public static Map<String, String> extractMetadata(DSpaceObject dso) {
         Map<String, String> map = new LinkedHashMap<>();
         if (null != dso) {

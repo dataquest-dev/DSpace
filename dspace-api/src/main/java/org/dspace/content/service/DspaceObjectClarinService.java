@@ -13,6 +13,20 @@ import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 
+/**
+ * Additional service interface class of DspaceObjectService for the DspaceObject in Clarin-DSpace.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public interface DspaceObjectClarinService<T extends DSpaceObject> {
+
+    /* Created for LINDAT/CLARIAH-CZ (UFAL) */
+    /**
+     * Retrieve all handle from the registry
+     *
+     * @param context       DSpace context object
+     * @return              array of handles
+     * @throws SQLException if database error
+     */
     public Community getPrincipalCommunity(Context context, DSpaceObject dso) throws SQLException;
 }

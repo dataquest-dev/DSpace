@@ -362,23 +362,31 @@ public class HandleServiceImpl implements HandleService {
         return handleDAO.findByHandle(context, handle);
     }
 
-//    /**
-//     * Create/mint a new handle id.
-//     *
-//     * @param context DSpace Context
-//     * @return A new handle id
-//     * @throws SQLException If a database error occurs
-//     */
-//    protected String createId(Context context) throws SQLException {
-//        // Get configured prefix
-//        String handlePrefix = getPrefix();
-//
-//        // Get next available suffix (as a Long, since DSpace uses an incrementing sequence)
-//        Long handleSuffix = handleDAO.getNextHandleSuffix(context);
-//
-//        return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") + handleSuffix.toString();
-//    }
+    /**
+     * Create/mint a new handle id.
+     *
+     * @param context DSpace Context
+     * @return A new handle id
+     * @throws SQLException If a database error occurs
+     */
+    protected String createId(Context context) throws SQLException {
+        // Get configured prefix
+        String handlePrefix = getPrefix();
 
+        // Get next available suffix (as a Long, since DSpace uses an incrementing sequence)
+        Long handleSuffix = handleDAO.getNextHandleSuffix(context);
+
+        return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") + handleSuffix.toString();
+    }
+
+    /**
+     * Create/mint a new handle id with subprefix.
+     *
+     * @param context DSpace Context
+     * @param dso DSpace object
+     * @return A new handle id
+     * @throws SQLException If a database error occurs
+     */
     protected String createId(Context context, DSpaceObject dso) throws SQLException {
         // Get configured prefix
         String handlePrefix = getPrefix();
@@ -386,36 +394,26 @@ public class HandleServiceImpl implements HandleService {
         // Get next available suffix (as a Long, since DSpace uses an incrementing sequence)
         Long handleSuffix = handleDAO.getNextHandleSuffix(context);
 
+        //add subprefix for item handle
         if (dso instanceof Item) {
             PIDCommunityConfiguration pidCommunityConfiguration = PIDConfiguration
                     .getPIDCommunityConfiguration(dso.getID());
-
+            //Which type is pis community configuration?
             if (pidCommunityConfiguration.isEpic()) {
-
                 String handleId;
-
-//                //1-
-//                String suffix = formatSuffix(id, pidCommunityConfiguration);
                 StringBuffer suffix = new StringBuffer();
                 String handleSubprefix = pidCommunityConfiguration.getSubprefix();
                 if (handleSubprefix != null && !handleSubprefix.isEmpty()) {
                     suffix.append(handleSubprefix + "-");
                 }
                 suffix.append(handleSuffix);
-
-                //123456789
                 String prefix = pidCommunityConfiguration.getPrefix();
-
                 try {
                     handleId = DSpaceApi.handle_HandleManager_createId(log, handleSuffix, prefix, suffix.toString());
                     // if the handle created successfully register the final handle
                     DSpaceApi
                             .handle_HandleManager_registerFinalHandleURL(log, handleId, dso);
                 } catch (IOException e) {
-//                    DSpaceApi
-//                            .getFunctionalityManager()
-//                            .setErrorMessage(
-//                                    "PID Service is not working. Please contact the administrator.");
                     throw new IllegalStateException(
                             "External PID service is not working. Please contact the administrator. "
                                     + "Internal message: [" + e.toString() + "]");
@@ -424,6 +422,7 @@ public class HandleServiceImpl implements HandleService {
             } else if (pidCommunityConfiguration.isLocal()) {
                 String handleSubprefix = pidCommunityConfiguration.getSubprefix();
                 if (handleSubprefix != null && !handleSubprefix.isEmpty()) {
+                    //create local handle
                     return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/")
                             + handleSubprefix + "-" + handleSuffix.toString();
                 }
@@ -432,6 +431,7 @@ public class HandleServiceImpl implements HandleService {
                         + pidCommunityConfiguration.getType());
             }
         }
+        //create handle for another type of dspace objects
         return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") + handleSuffix.toString();
     }
 

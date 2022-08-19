@@ -15,6 +15,12 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
 import org.springframework.stereotype.Component;
 
+/* Created for LINDAT/CLARIAH-CZ (UFAL) */
+/**
+ * Abstract class for PID service.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 @Component
 public abstract class AbstractPIDService {
     public String PIDServiceURL;

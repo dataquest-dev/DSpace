@@ -107,8 +107,18 @@ public abstract class ContentServiceFactory {
 
     public abstract RelationshipMetadataService getRelationshipMetadataService();
 
+    /**
+     * Return the implementation of the DspaceObjectClarinService interface
+     *
+     * @return the DspaceObjectClarinService
+     */
     public abstract DspaceObjectClarinService getDspaceObjectClarinService();
 
+    /**
+     * Return the implementation of the HandleClarinService interface
+     *
+     * @return the HandleClarinService
+     */
     public abstract HandleClarinService getHandleClarinService();
 
     public InProgressSubmissionService getInProgressSubmissionService(InProgressSubmission inProgressSubmission) {
