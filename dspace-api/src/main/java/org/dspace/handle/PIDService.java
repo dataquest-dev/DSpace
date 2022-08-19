@@ -12,8 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
 
-import org.dspace.content.authority.DSpaceControlledVocabulary;
-import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
 
@@ -41,7 +39,8 @@ public class PIDService {
             }
             try {
 //                (DSpaceControlledVocabulary)
-//                        CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(Class.forName(PLUGIN_INTERFACE), "farm");
+//                        CoreServiceFactory.getInstance().getPluginService().
+//                        getNamedPlugin(Class.forName(PLUGIN_INTERFACE), "farm");
                 pidService = (AbstractPIDService)Class.forName(pidServiceClass).getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new Exception(e);

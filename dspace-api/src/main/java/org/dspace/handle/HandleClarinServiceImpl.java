@@ -9,12 +9,10 @@ package org.dspace.handle;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.MetadataFieldServiceImpl;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -33,8 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class HandleClarinServiceImpl implements HandleClarinService {
 
-    static final String PREFIX_DELIMITER = "/";
-    static final String SUBPREFIX_DELIMITER = "-";
     /**
      * log4j logger
      */
@@ -94,26 +90,6 @@ public class HandleClarinServiceImpl implements HandleClarinService {
             () -> handleId);
 
         return handle;
-    }
-
-
-    @Override
-    public String createHandle(Context context, DSpaceObject dso) throws SQLException {
-        Handle handle = handleDAO.create(context, new Handle());
-        String handleId = createId(context, dso.getID());
-
-        handle.setHandle(handleId);
-        handle.setDSpaceObject(dso);
-        dso.addHandle(handle);
-        handle.setResourceTypeId(dso.getType());
-        handleDAO.save(context, handle);
-
-        log.debug("Created new handle for {} (ID={}) {}",
-            () -> Constants.typeText[dso.getType()],
-            () -> dso.getID(),
-            () -> handleId);
-
-        return handleId;
     }
 
     @Override
@@ -208,33 +184,6 @@ public class HandleClarinServiceImpl implements HandleClarinService {
      * @return              handle id
      * @throws SQLException if database error
      */
-    private String createId(Context context, UUID dspId) throws SQLException {
-        // Get configured prefix
-        String handlePrefix = handleService.getPrefix();
-
-        // Get next available suffix (as a Long, since DSpace uses an incrementing sequence)
-        Long handleSuffix = handleDAO.getNextHandleSuffix(context);
-
-        PIDCommunityConfiguration pidCommunityConfiguration = PIDConfiguration
-                .getPIDCommunityConfiguration(dspId);
-
-        if (pidCommunityConfiguration.isEpic()) {
-            //here is missing code
-            return null;
-        } else if (pidCommunityConfiguration.isLocal()) {
-            String handleSubprefix = pidCommunityConfiguration.getSubprefix();
-            if (handleSubprefix != null && !handleSubprefix.isEmpty()) {
-                return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") +
-                        handleSubprefix + "-" + handleSuffix.toString();
-            } else {
-                return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") + handleSuffix.toString();
-            }
-        } else {
-            throw new IllegalStateException("Unsupported PID type: "
-                    + pidCommunityConfiguration.getType());
-        }
-    }
-
     private String createId(Context context) throws SQLException {
         // Get configured prefix
         String handlePrefix = handleService.getPrefix();
@@ -243,34 +192,5 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         Long handleSuffix = handleDAO.getNextHandleSuffix(context);
 
         return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") + handleSuffix.toString();
-
     }
-
-    /**
-     * Returns complete handle made from prefix and suffix
-     */
-    public String completeHandle(String prefix, String suffix) {
-        return prefix + PREFIX_DELIMITER + suffix;
-    }
-
-//    private String newHandleIdentifier(Item item) {
-//        String[] handleParts = item.getHandle().split(PREFIX_DELIMITER);
-//        PIDCommunityConfiguration pidCommunityConfiguration = PIDConfiguration
-//                .getPIDCommunityConfiguration(item.getID());
-//        String handle = null;
-//        if (pidCommunityConfiguration.isEpic()) {
-//            //here is missing code
-//            return null;
-//        } else if (pidCommunityConfiguration.isLocal()) {
-//            String handleSubprefix = pidCommunityConfiguration.getSubprefix();
-//            if (handleSubprefix != null && !handleSubprefix.isEmpty()) {
-//                handle = handleParts[0] + PREFIX_DELIMITER + handleSubprefix + SUBPREFIX_DELIMITER + handleParts[1];
-//            }
-//        } else {
-//            throw new IllegalStateException("Unsupported PID type: "
-//                    + pidCommunityConfiguration.getType());
-//        }
-//        return handle;
-//    }
-
 }

@@ -1,4 +1,3 @@
-
 /**
  * The contents of this file are subject to the license and copyright
  * detailed in the LICENSE and NOTICE files at the root of the source
@@ -12,7 +11,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 
@@ -115,10 +113,5 @@ public interface HandleClarinService {
      * @return       The canonical form
      */
     public String getCanonicalForm(String handle);
-
-    public String completeHandle(String prefix, String suffix);
-
-    public String createHandle(Context context, DSpaceObject dso)
-            throws SQLException;
 
 }
