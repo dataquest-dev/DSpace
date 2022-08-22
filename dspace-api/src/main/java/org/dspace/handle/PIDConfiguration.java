@@ -87,7 +87,7 @@ public class PIDConfiguration {
                 }
                 map.put(key, value);
             }
-            //creating PIDCOmmunityConfiguration because the last configuration found has not been added
+            //creating PIDCommunityConfiguration because the last configuration found has not been added
             PIDCommunityConfiguration pidCommunityConfiguration = new PIDCommunityConfiguration (map);
             pidCommunityConfigurations.put(
                     pidCommunityConfiguration.getCommunityID(),

@@ -1,11 +1,18 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
 
-import org.apache.commons.collections4.ListUtils;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
-import org.dspace.builder.CollectionBuilder;
-import org.dspace.builder.CommunityBuilder;
 import org.dspace.handle.external.ExternalHandleConstants;
-import org.dspace.handle.external.Handle;
 import org.dspace.handle.service.HandleClarinService;
 import org.junit.After;
 import org.junit.Assert;
@@ -13,10 +20,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
@@ -33,7 +36,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
 
         // create Handles with magicURLs
         int index = 0;
-        for(String magicURL : magicURLs) {
+        for (String magicURL : magicURLs) {
             // create Handle
             org.dspace.handle.Handle handle =
                     handleClarinService.createHandle(context, "12479632146935/" + index, null, magicURL);
