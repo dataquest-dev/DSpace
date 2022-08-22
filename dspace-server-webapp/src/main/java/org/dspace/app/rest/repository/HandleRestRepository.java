@@ -392,7 +392,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
      * @throws AuthorizeException if authorization error
      */
     @PreAuthorize("hasAuthority('ADMIN')")
-    public void changePrefixInExistingHandles( Context context, String oldPrefix,
+    private void changePrefixInExistingHandles( Context context, String oldPrefix,
                                      String newPrefix, boolean archive) throws AuthorizeException {
         try {
             //get all handles
