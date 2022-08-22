@@ -30,6 +30,15 @@ public interface HandleClarinService {
     public List<Handle> findAll(Context context) throws SQLException;
 
     /**
+     * Retrieve all external handle from the registry. The external handle has `@magicLindat` string in the URL.
+     *
+     * @param context       DSpace context object
+     * @return              array of external handles
+     * @throws SQLException if database error
+     */
+    public List<Handle> findAllExternalHandles(Context context) throws SQLException;
+
+    /**
      * Find the handle corresponding to the given numeric ID.  The ID is
      * a database key internal to DSpace.
      *
@@ -115,4 +124,11 @@ public interface HandleClarinService {
      * @throws SQLException If a database error occurs
      */
     public String resolveToURL(Context context, String handleStr) throws SQLException;
+
+    /**
+     * Create the external handles from the list of handles with magic URL
+     * @param magicHandles handles with `@magicLindat` string in the URL
+     * @return List of External Handles
+     */
+    public List<org.dspace.handle.external.Handle> convertHandleWithMagicToExternalHandle(List<Handle> magicHandles);
 }

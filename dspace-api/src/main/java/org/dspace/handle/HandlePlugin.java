@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import net.cnri.util.StreamTable;
 import net.handle.hdllib.Encoder;
@@ -61,6 +62,7 @@ public class HandlePlugin implements HandleStorage {
 
     private static String repositoryName;
 
+    private static String repositoryEmail;
 
     /**
      * The DSpace service manager kernel
@@ -72,24 +74,6 @@ public class HandlePlugin implements HandleStorage {
      **/
     protected HandleService handleService;
     protected static ConfigurationService configurationService;
-
-    private static final String repositoryEmail;
-    static {
-        String name = configurationService.getProperty(
-                "dspace.name");
-        if (name != null) {
-            repositoryName = name.trim();
-        } else {
-            repositoryName = null;
-        }
-        String email = configurationService.getProperty(
-                "lr", "lr.help.mail");
-        if (email != null) {
-            repositoryEmail = email.trim();
-        } else {
-            repositoryEmail = null;
-        }
-    }
 
     ////////////////////////////////////////
     // Non-Resolving methods -- unimplemented
@@ -133,6 +117,23 @@ public class HandlePlugin implements HandleStorage {
         // Get a reference to the HandleService & ConfigurationService
         handleService = HandleServiceFactory.getInstance().getHandleService();
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+
+        if (Objects.nonNull(configurationService)) {
+            String name = configurationService.getProperty(
+                    "dspace.name");
+            if (name != null) {
+                repositoryName = name.trim();
+            } else {
+                repositoryName = null;
+            }
+            String email = configurationService.getProperty(
+                    "lr", "lr.help.mail");
+            if (email != null) {
+                repositoryEmail = email.trim();
+            } else {
+                repositoryEmail = null;
+            }
+        }
     }
 
     /**
@@ -447,5 +448,9 @@ public class HandlePlugin implements HandleStorage {
             map.put(AbstractPIDService.HANDLE_FIELDS.REPORTEMAIL.toString(), repositoryEmail);
         }
         return map;
+    }
+
+    public static String getRepositoryName() {
+        return repositoryName;
     }
 }

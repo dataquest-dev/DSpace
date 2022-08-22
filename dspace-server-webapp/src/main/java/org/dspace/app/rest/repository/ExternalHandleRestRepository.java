@@ -15,10 +15,13 @@ import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.handle.external.Handle;
+import org.dspace.handle.service.HandleClarinService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +37,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
@@ -48,14 +52,22 @@ public class ExternalHandleRestRepository {
     private final String EXTERNAL_HANDLE_ENDPOINT_SHORTEN = "handles";
     private final String EXTERNAL_HANDLE_ENDPOINT_UPDATE = "handles";
 
+    @Autowired
+    private HandleClarinService handleClarinService;
+
 
     @RequestMapping(value = EXTERNAL_HANDLE_ENDPOINT_FIND_ALL, method = RequestMethod.GET,
             produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public ResponseEntity<List<Handle>> getHandles(HttpServletResponse response,
-                                                   HttpServletRequest request) {
+                                                   HttpServletRequest request) throws SQLException {
         Context context = ContextUtil.obtainContext(request);
 
-        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+        List<org.dspace.handle.Handle> magicHandles = this.handleClarinService.findAllExternalHandles(context);
+
+        // create the external handles from the handles with magic URL
+        List<Handle> externalHandles = this.handleClarinService.convertHandleWithMagicToExternalHandle(magicHandles);
+
+        return new ResponseEntity<>(new ArrayList<>(externalHandles), HttpStatus.OK);
     }
 
 

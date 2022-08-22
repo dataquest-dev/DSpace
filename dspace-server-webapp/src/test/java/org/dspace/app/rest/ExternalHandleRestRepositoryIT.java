@@ -1,9 +1,11 @@
 package org.dspace.app.rest;
 
 import org.apache.commons.collections4.ListUtils;
+import org.dspace.app.rest.matcher.BundleMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
+import org.dspace.handle.HandlePlugin;
 import org.dspace.handle.external.ExternalHandleConstants;
 import org.dspace.handle.external.Handle;
 import org.dspace.handle.service.HandleClarinService;
@@ -11,12 +13,19 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.util.ObjectUtils;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
@@ -36,7 +45,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         for(String magicURL : magicURLs) {
             // create Handle
             org.dspace.handle.Handle handle =
-                    handleClarinService.createHandle(context, "12479632146935/" + index, null, magicURL);
+                    handleClarinService.createHandle(context, "123/" + index, null, magicURL);
             // add created Handle to the list
             this.handlesWithMagicURLs.add(handle);
             index++;
@@ -60,6 +69,20 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
 
     @Test
     public void findAllExternalHandles() throws Exception {
+        // call endpoint which should return external handles
+        List<Handle> expectedExternalHandles =
+                this.handleClarinService.convertHandleWithMagicToExternalHandle(this.handlesWithMagicURLs);
+
+        getClient().perform(get("/api/services/handles/magic"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(jsonPath("$", BundleMatcher.matchBundle(bundle1.getName(),
+//                        bundle1.getID(),
+//                        bundle1.getHandle(),
+//                        bundle1.getType(),
+//                        bundle1.getBitstreams())
+//                ))
+        ;
         Assert.assertFalse(ObjectUtils.isEmpty(this.handlesWithMagicURLs));
     }
 

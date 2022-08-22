@@ -8,7 +8,10 @@
 package org.dspace.handle;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.DSpaceObject;
@@ -21,6 +24,8 @@ import org.dspace.handle.service.HandleClarinService;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
 
 /**
  * Additional service implementation for the Handle object in Clarin-DSpace.
@@ -57,6 +62,17 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     @Override
     public List<Handle> findAll(Context context) throws SQLException {
         return handleDAO.findAll(context, Handle.class);
+    }
+
+    @Override
+    public List<Handle> findAllExternalHandles(Context context) throws SQLException {
+        // fetch all handles which contains `@magicLindat` string from the DB
+        return handleDAO.findAll(context, Handle.class)
+                .stream()
+                .filter(handle -> Objects.nonNull(handle))
+                .filter(handle -> Objects.nonNull(handle.getUrl()))
+                .filter(handle -> handle.getUrl().contains(MAGIC_BEAN))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -196,6 +212,16 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         log.debug("Resolved {} to {}", handle, url);
 
         return url;
+    }
+
+    @Override
+    public List<org.dspace.handle.external.Handle> convertHandleWithMagicToExternalHandle(List<Handle> magicHandles) {
+        List<org.dspace.handle.external.Handle> externalHandles = new ArrayList<>();
+        for (org.dspace.handle.Handle handleWithMagic: magicHandles) {
+            externalHandles.add(new org.dspace.handle.external.Handle(handleWithMagic.getHandle(), handleWithMagic.getUrl()));
+        }
+
+        return externalHandles;
     }
 
     /**
