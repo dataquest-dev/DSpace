@@ -12,6 +12,12 @@ import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 
+/* Created for LINDAT/CLARIAH-CZ (UFAL) */
+/**
+ * Class encapsulating community based PIDs configuration.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class PIDCommunityConfiguration {
 
     public static final String TYPE_LOCAL = "local";

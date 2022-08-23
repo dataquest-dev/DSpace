@@ -25,6 +25,11 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Tests for PID configuration.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class PIDConfigurationTest extends AbstractUnitTest {
     private static final String AUTHOR = "Test author name";
 

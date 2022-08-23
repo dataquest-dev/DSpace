@@ -25,7 +25,12 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
 import org.springframework.stereotype.Component;
 
-
+/* Created for LINDAT/CLARIAH-CZ (UFAL) */
+/**
+ * Class encapsulating PIDs configuration.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 @Component
 public class PIDConfiguration {
     /**
@@ -59,11 +64,13 @@ public class PIDConfiguration {
             //hashmap for creating PIDCommunityConfiguration
             Map<String, String> map = new HashMap<String, String>();
             pidCommunityConfigurations = new HashMap<UUID, PIDCommunityConfiguration>();
-            //exists minimally one configuration
+            //exists minimally one configuration, so first community is added to map not in cycle
             String[] keyValue = pidCommunityConfigurationsArray[0].split("=");
             String key = keyValue[0].trim();
             String value = keyValue[1].trim();
             map.put(key, value);
+            //another parts of configurations
+            //start from the first position because the zero position was already added
             for (int i = 1; i < pidCommunityConfigurationsArray.length; i++) {
                 keyValue = pidCommunityConfigurationsArray[i].split("=");
                 key = keyValue[0].trim();
@@ -80,12 +87,11 @@ public class PIDConfiguration {
                 }
                 map.put(key, value);
             }
-            //creating PIDCOmmunityConfiguration
+            //creating PIDCommunityConfiguration because the last configuration found has not been added
             PIDCommunityConfiguration pidCommunityConfiguration = new PIDCommunityConfiguration (map);
             pidCommunityConfigurations.put(
                     pidCommunityConfiguration.getCommunityID(),
                     pidCommunityConfiguration);
-            //cleaning map for other configuration
         }
     }
 

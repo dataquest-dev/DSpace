@@ -7,6 +7,12 @@
  */
 package org.dspace.handle;
 
+/* Created for LINDAT/CLARIAH-CZ (UFAL) */
+/**
+ * Service for PID.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,9 +44,6 @@ public class PIDService {
                 throw new IllegalArgumentException("Illegal pid.service type");
             }
             try {
-//                (DSpaceControlledVocabulary)
-//                        CoreServiceFactory.getInstance().getPluginService().
-//                        getNamedPlugin(Class.forName(PLUGIN_INTERFACE), "farm");
                 pidService = (AbstractPIDService)Class.forName(pidServiceClass).getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new Exception(e);

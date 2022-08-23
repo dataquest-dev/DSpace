@@ -15,6 +15,11 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
+/**
+ * Additional service implementation for the DspaceObject in Clarin-DSpace.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class DspaceObjectClarinServiceImpl<T extends DSpaceObject> implements DspaceObjectClarinService<T> {
     private WorkspaceItemService workspaceItemService;
     @Override
