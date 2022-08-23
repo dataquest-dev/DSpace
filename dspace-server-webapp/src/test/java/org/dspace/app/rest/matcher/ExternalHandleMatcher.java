@@ -15,15 +15,15 @@ public class ExternalHandleMatcher {
     private ExternalHandleMatcher() {
     }
 
-    public static Matcher<? super Object> matchProperties(String name, UUID uuid, String handle, int type) {
+    public static Matcher<? super Object> matchProperties(String url, String title, String repository, String submitDate, String reporteMail, String subprefix, String handle) {
         return allOf(
-                hasJsonPath("$.uuid", is(uuid.toString())),
-                hasJsonPath("$.name", is(name)),
-                hasJsonPath("$.handle", is(handle)),
-                hasJsonPath("$.type", is(Constants.typeText[type].toLowerCase())),
-                hasJsonPath("$.metadata", Matchers.allOf(
-                        MetadataMatcher.matchMetadata("dc.title", name)
-                ))
+                hasJsonPath("$.url", is(url)),
+                hasJsonPath("$.title", is(title)),
+                hasJsonPath("$.repository", is(repository)),
+                hasJsonPath("$.submitdate", is(submitDate)),
+                hasJsonPath("$.reportemail", is(reporteMail)),
+                hasJsonPath("$.subprefix", is(subprefix)),
+                hasJsonPath("$.handle", is(handle))
         );
     }
 }

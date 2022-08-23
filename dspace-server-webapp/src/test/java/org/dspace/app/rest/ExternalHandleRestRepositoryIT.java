@@ -8,12 +8,15 @@
 package org.dspace.app.rest;
 
 import org.apache.commons.collections4.ListUtils;
+import org.dspace.app.rest.matcher.ExternalHandleMatcher;
+import org.dspace.app.rest.matcher.MetadataFieldMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.handle.external.ExternalHandleConstants;
 import org.dspace.handle.external.Handle;
 import org.dspace.handle.service.HandleClarinService;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,6 +31,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -78,17 +86,36 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         List<Handle> expectedExternalHandles =
                 this.handleClarinService.convertHandleWithMagicToExternalHandle(this.handlesWithMagicURLs);
 
+        // expectedExternalHandles should not be empty
+        Assert.assertFalse(ObjectUtils.isEmpty(expectedExternalHandles));
+        Handle externalHandle = expectedExternalHandles.get(0);
+
         getClient().perform(get("/api/services/handles/magic"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(jsonPath("$", BundleMatcher.matchBundle(bundle1.getName(),
-//                        bundle1.getID(),
-//                        bundle1.getHandle(),
-//                        bundle1.getType(),
-//                        bundle1.getBitstreams())
-//                ))
+//                .andExpect(jsonPath("$", Matchers.contains(
+//                        ExternalHandleMatcher.matchProperties(
+//                                externalHandle.url,
+//                                externalHandle.title,
+//                                externalHandle.repository,
+//                                externalHandle.submitdate,
+//                                externalHandle.reportemail,
+//                                externalHandle.subprefix,
+//                                externalHandle.getHandle()
+//                        )
+//                )))
+                .andExpect(jsonPath("$", contains(
+                        hasJsonPath("$.url", is(externalHandle.url)),
+                        hasJsonPath("$.title", is(externalHandle.title)),
+                        hasJsonPath("$.repository", is(externalHandle.repository)),
+                        hasJsonPath("$.submitdate", is(externalHandle.submitdate)),
+                        hasJsonPath("$.reportemail", is(externalHandle.reportemail)),
+                        hasJsonPath("$.subprefix", is(externalHandle.subprefix)),
+                        hasJsonPath("$.handle", is(externalHandle.getHandle()))
+                )))
         ;
-        Assert.assertFalse(ObjectUtils.isEmpty(this.handlesWithMagicURLs));
+
+
     }
 
     @Test

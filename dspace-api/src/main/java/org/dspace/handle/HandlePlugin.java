@@ -64,6 +64,8 @@ public class HandlePlugin implements HandleStorage {
 
     private static String repositoryEmail;
 
+    private static String canonicalHandlePrefix;
+
     /**
      * The DSpace service manager kernel
      **/
@@ -133,6 +135,14 @@ public class HandlePlugin implements HandleStorage {
             } else {
                 repositoryEmail = null;
             }
+            String handleUrl = configurationService.getProperty(
+                    "handle.canonical.prefix");
+            if (handleUrl != null) {
+                canonicalHandlePrefix = handleUrl.trim();
+            } else {
+                canonicalHandlePrefix = null;
+            }
+
         }
     }
 
@@ -452,5 +462,9 @@ public class HandlePlugin implements HandleStorage {
 
     public static String getRepositoryName() {
         return repositoryName;
+    }
+
+    public static String getCanonicalHandlePrefix() {
+        return canonicalHandlePrefix;
     }
 }

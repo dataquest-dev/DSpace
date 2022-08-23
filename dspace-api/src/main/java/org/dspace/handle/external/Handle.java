@@ -21,7 +21,6 @@ import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
 
 public class Handle {
 
-    public static final String HANDLE_URL = "http://hdl.handle.net/";
     public String handle;
     public String url;
     public String title;
@@ -97,12 +96,11 @@ public class Handle {
         return magicURL;
     }
 
-    @XmlElement
     public String getHandle() {
-        return HANDLE_URL + handle;
+        return HandlePlugin.getCanonicalHandlePrefix() + handle;
     }
 
     public void setHandle(String handle){
-        this.handle = handle.replace(Handle.HANDLE_URL,"");
+        this.handle = handle.replace(HandlePlugin.getCanonicalHandlePrefix(),"");
     }
 }
