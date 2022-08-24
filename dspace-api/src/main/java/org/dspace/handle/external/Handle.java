@@ -13,6 +13,7 @@ import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.bind.annotation.XmlElement;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -21,7 +22,7 @@ import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
 
 public class Handle {
 
-    public String handle;
+    private String handle;
     public String url;
     public String title;
     public String repository;
@@ -97,10 +98,10 @@ public class Handle {
     }
 
     public String getHandle() {
-        return HandlePlugin.getCanonicalHandlePrefix() + handle;
+        return Objects.isNull(handle) ? null : HandlePlugin.getCanonicalHandlePrefix() + handle;
     }
 
-    public void setHandle(String handle){
+    public void setHandle(String handle) {
         this.handle = handle.replace(HandlePlugin.getCanonicalHandlePrefix(),"");
     }
 }

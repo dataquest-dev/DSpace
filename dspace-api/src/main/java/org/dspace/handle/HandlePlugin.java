@@ -36,6 +36,8 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.stereotype.Component;
 
+import static org.dspace.handle.external.ExternalHandleConstants.DEFAULT_CANONICAL_HANDLE_PREFIX;
+
 /**
  * Extension to the CNRI Handle Server that translates requests to resolve
  * handles into DSpace API calls. The implementation simply stubs out most of
@@ -74,7 +76,7 @@ public class HandlePlugin implements HandleStorage {
     /**
      * References to DSpace Services
      **/
-    protected HandleService handleService;
+    protected static HandleService handleService;
     protected static ConfigurationService configurationService;
 
     ////////////////////////////////////////
@@ -116,34 +118,6 @@ public class HandlePlugin implements HandleStorage {
             throw new IllegalStateException(message, e);
         }
 
-        // Get a reference to the HandleService & ConfigurationService
-        handleService = HandleServiceFactory.getInstance().getHandleService();
-        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-
-        if (Objects.nonNull(configurationService)) {
-            String name = configurationService.getProperty(
-                    "dspace.name");
-            if (name != null) {
-                repositoryName = name.trim();
-            } else {
-                repositoryName = null;
-            }
-            String email = configurationService.getProperty(
-                    "lr", "lr.help.mail");
-            if (email != null) {
-                repositoryEmail = email.trim();
-            } else {
-                repositoryEmail = null;
-            }
-            String handleUrl = configurationService.getProperty(
-                    "handle.canonical.prefix");
-            if (handleUrl != null) {
-                canonicalHandlePrefix = handleUrl.trim();
-            } else {
-                canonicalHandlePrefix = null;
-            }
-
-        }
     }
 
     /**
@@ -443,6 +417,84 @@ public class HandlePlugin implements HandleStorage {
         }
     }
 
+    private static void loadServices() {
+        // services are loaded
+        if (Objects.nonNull(handleService) && Objects.nonNull(configurationService)) {
+            return;
+        }
+
+        // Get a reference to the HandleService & ConfigurationService
+        handleService = HandleServiceFactory.getInstance().getHandleService();
+        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    }
+
+    public static String getRepositoryEmail() {
+        if (Objects.nonNull(repositoryEmail)) {
+            return repositoryEmail;
+        }
+
+        // Handle and Configuration Service
+        loadServices();
+
+        // Cannot load services
+        if (Objects.isNull(configurationService)) {
+            return null;
+        }
+
+        String email = configurationService.getProperty(
+                "help.mail");
+        if (email != null) {
+            repositoryEmail = email.trim();
+        } else {
+            repositoryEmail = null;
+        }
+
+        return repositoryEmail;
+    }
+
+    public static String getRepositoryName() {
+        if (Objects.nonNull(repositoryName)) {
+            return repositoryName;
+        }
+
+        // Handle and Configuration Service
+        loadServices();
+
+        // Cannot load services
+        if (Objects.isNull(configurationService)) {
+            return null;
+        }
+
+        String name = configurationService.getProperty(
+                "dspace.name");
+        if (Objects.nonNull(name)) {
+            repositoryName = name.trim();
+        } else {
+            repositoryName = null;
+        }
+
+        return repositoryName;
+    }
+
+    public static String getCanonicalHandlePrefix() {
+        if (Objects.nonNull(canonicalHandlePrefix)) {
+            return canonicalHandlePrefix;
+        }
+
+        // Handle and Configuration Service
+        loadServices();
+
+        // Cannot load services
+        if (Objects.isNull(configurationService)) {
+            canonicalHandlePrefix = DEFAULT_CANONICAL_HANDLE_PREFIX;
+        } else {
+            canonicalHandlePrefix = configurationService.getProperty(
+                    "handle.canonical.prefix", DEFAULT_CANONICAL_HANDLE_PREFIX);
+        }
+
+        return canonicalHandlePrefix;
+    }
+
     public static Map<String, String> extractMetadata(DSpaceObject dso) {
         Map<String, String> map = new LinkedHashMap<>();
         if (null != dso) {
@@ -450,21 +502,15 @@ public class HandlePlugin implements HandleStorage {
             if (0 < mds.size()) {
                 map.put(AbstractPIDService.HANDLE_FIELDS.TITLE.toString(), mds.get(0).getValue());
             }
-            map.put(AbstractPIDService.HANDLE_FIELDS.REPOSITORY.toString(), repositoryName);
+            map.put(AbstractPIDService.HANDLE_FIELDS.REPOSITORY.toString(), getRepositoryName());
             mds = dso.getMetadata();
             if (0 < mds.size()) {
                 map.put(AbstractPIDService.HANDLE_FIELDS.SUBMITDATE.toString(), mds.get(0).getValue());
             }
-            map.put(AbstractPIDService.HANDLE_FIELDS.REPORTEMAIL.toString(), repositoryEmail);
+            map.put(AbstractPIDService.HANDLE_FIELDS.REPORTEMAIL.toString(), getRepositoryEmail());
         }
         return map;
     }
 
-    public static String getRepositoryName() {
-        return repositoryName;
-    }
 
-    public static String getCanonicalHandlePrefix() {
-        return canonicalHandlePrefix;
-    }
 }

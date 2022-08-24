@@ -10,9 +10,10 @@ package org.dspace.handle.service;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.dspace.content.DSpaceObject;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.handle.Handle;
+import org.dspace.handle.external.HandleRest;
 
 /**
  * Additional service interface class of HandleService for the Handle object in Clarin-DSpace.
@@ -30,15 +31,6 @@ public interface HandleClarinService {
     public List<Handle> findAll(Context context) throws SQLException;
 
     /**
-     * Retrieve all external handle from the registry. The external handle has `@magicLindat` string in the URL.
-     *
-     * @param context       DSpace context object
-     * @return              array of external handles
-     * @throws SQLException if database error
-     */
-    public List<Handle> findAllExternalHandles(Context context) throws SQLException;
-
-    /**
      * Find the handle corresponding to the given numeric ID.  The ID is
      * a database key internal to DSpace.
      *
@@ -50,57 +42,74 @@ public interface HandleClarinService {
     public Handle findByID(Context context, int id) throws SQLException;
 
     /**
-     * Creates a new handle.
+     * Find the handle corresponding to the given string handle.
      *
      * @param context       DSpace context object
-     * @param handleStr     String
-     * @param dSpaceObject  DSpaceObject
-     * @param url           String
-     * @return new Handle
+     * @param handle        string handle
+     * @return              the handle object
      * @throws SQLException if database error
      */
-    public Handle createHandle(Context context, String handleStr, DSpaceObject dSpaceObject, String url)
-            throws SQLException;
+    public Handle findByHandle(Context context, String handle) throws SQLException;
+
+    /**
+     * Creates a new external handle.
+     * External handle has to have entered URL.
+     *
+     * @param context             DSpace context object
+     * @param handleStr           String
+     * @param url                 String
+     * @return new Handle
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
+     */
+    public Handle createExternalHandle(Context context, String handleStr, String url)
+            throws SQLException, AuthorizeException;
 
     /**
      * Delete the handle.
      *
-     * @param context       DSpace context object
-     * @param handle        handle
-     * @throws SQLException if database error
+     * @param context             DSpace context object
+     * @param handle              handle
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
-    public void delete(Context context, Handle handle) throws SQLException;
+    public void delete(Context context, Handle handle) throws SQLException, AuthorizeException;
 
     /**
      * Save the metadata field in the database.
      *
-     * @param context       dspace context
-     * @param handle        handle
-     * @throws SQLException if database error
+     * @param context             dspace context
+     * @param handle              handle
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
     public void save(Context context, Handle handle)
-            throws SQLException;
+            throws SQLException, AuthorizeException;
 
     /**
-     * Update all attributes in handle object.
+     * Update handle and url in handle object.
+     * It is not possible to update external handle to internal handle or
+     * external handle to internal handle.
      *
      * @param context             DSpace context object
-     * @param handleObject        handle object
-     * @param newHandle           handle
+     * @param newHandle           new handle
+     * @param newUrl              new url
      * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
     public void update(Context context, Handle handleObject, String newHandle,
-                       DSpaceObject dso, String newUrl)
-            throws SQLException;
+                      String newUrl)
+            throws SQLException, AuthorizeException;
 
     /**
      * Set handle prefix.
      *
-     * @param context       DSpace context object
-     * @param newPrefix     new prefix
-     * @throws SQLException if database error
+     * @param context             DSpace context object
+     * @param newPrefix           new prefix
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
-    public void setPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException;
+    public void setPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException, AuthorizeException;
 
     /* Created for LINDAT/CLARIAH-CZ (UFAL) */
     /**
@@ -110,8 +119,6 @@ public interface HandleClarinService {
      * @return       boolean
      */
     public boolean isInternalResource(Handle handle);
-
-    public String completeHandle(String prefix, String suffix);
 
     /**
      * Return the local URL for internal handle,
@@ -125,10 +132,40 @@ public interface HandleClarinService {
      */
     public String resolveToURL(Context context, String handleStr) throws SQLException;
 
+
     /**
      * Create the external handles from the list of handles with magic URL
      * @param magicHandles handles with `@magicLindat` string in the URL
      * @return List of External Handles
      */
     public List<org.dspace.handle.external.Handle> convertHandleWithMagicToExternalHandle(List<Handle> magicHandles);
+
+    /**
+     * Convert external.Handles to the external.HandleRest object
+     * @param externalHandles
+     * @return List of Handle Rest
+     */
+    public List<HandleRest> convertExternalHandleToHandleRest(List<org.dspace.handle.external.Handle> externalHandles);
+
+    public String completeHandle(String prefix, String suffix);
+
+    /**
+     * Retrieve all external handle from the registry. The external handle has `@magicLindat` string in the URL.
+     *
+     * @param context       DSpace context object
+     * @return              array of external handles
+     * @throws SQLException if database error
+     */
+    public List<Handle> findAllExternalHandles(Context context) throws SQLException;
+
+    /**
+     * Find the database row corresponding to handle.
+     *
+     * @param context DSpace context object
+     * @param handle The handle of the handle object
+     * @return the Handle object
+     */
+    public Handle findHandleByHandle(Context context, String handle) throws SQLException;
+
+
 }

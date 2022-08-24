@@ -1,14 +1,19 @@
 package org.dspace.app.rest.matcher;
 
 import org.dspace.core.Constants;
+import org.dspace.handle.HandlePlugin;
+import org.dspace.handle.external.Handle;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
+import java.util.List;
 import java.util.UUID;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 public class ExternalHandleMatcher {
 
@@ -24,6 +29,33 @@ public class ExternalHandleMatcher {
                 hasJsonPath("$.reportemail", is(reporteMail)),
                 hasJsonPath("$.subprefix", is(subprefix)),
                 hasJsonPath("$.handle", is(handle))
+        );
+    }
+
+
+    public static Matcher<? super Object> matchListOfExternalHandles(List<Handle> externalHandles) {
+        return allOf(
+                hasJsonPath("$[*].url", containsInAnyOrder(externalHandles.get(0).url,
+                        externalHandles.get(1).url,
+                        externalHandles.get(2).url )),
+                hasJsonPath("$[*].title", containsInAnyOrder(externalHandles.get(0).title,
+                        externalHandles.get(1).title,
+                        externalHandles.get(2).title)),
+                hasJsonPath("$[*].repository", containsInAnyOrder(externalHandles.get(0).repository,
+                        externalHandles.get(1).repository,
+                        externalHandles.get(2).repository)),
+                hasJsonPath("$[*].submitdate", containsInAnyOrder(externalHandles.get(0).submitdate,
+                        externalHandles.get(1).submitdate,
+                        externalHandles.get(2).submitdate)),
+                hasJsonPath("$[*].reportemail", containsInAnyOrder(externalHandles.get(0).reportemail,
+                        externalHandles.get(1).reportemail,
+                        externalHandles.get(2).reportemail)),
+                hasJsonPath("$[*].subprefix", containsInAnyOrder(externalHandles.get(0).subprefix,
+                        externalHandles.get(1).subprefix,
+                        externalHandles.get(2).subprefix)),
+                hasJsonPath("$[*].handle", containsInAnyOrder(externalHandles.get(0).getHandle(),
+                        externalHandles.get(1).getHandle(),
+                        externalHandles.get(2).getHandle()))
         );
     }
 }
