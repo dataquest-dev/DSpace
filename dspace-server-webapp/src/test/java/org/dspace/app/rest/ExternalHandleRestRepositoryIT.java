@@ -9,6 +9,7 @@ package org.dspace.app.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.matcher.ExternalHandleMatcher;
 import org.dspace.app.rest.matcher.MetadataFieldMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -19,6 +20,7 @@ import org.dspace.handle.HandlePlugin;
 import org.dspace.handle.external.ExternalHandleConstants;
 import org.dspace.handle.external.Handle;
 import org.dspace.handle.service.HandleClarinService;
+import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
@@ -51,6 +53,9 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
 
     @Autowired
     HandleClarinService handleClarinService;
+
+    @Autowired
+    ConfigurationService configurationService;
 
     List<org.dspace.handle.Handle> handlesWithMagicURLs = new ArrayList<>();
 
@@ -109,31 +114,6 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
                 .andExpect(jsonPath("$", ExternalHandleMatcher.matchListOfExternalHandles(
                         expectedExternalHandles
                 )))
-
-//                .andExpect(jsonPath("$[*].url", containsInAnyOrder(expectedExternalHandles.get(0).url,
-//                        expectedExternalHandles.get(1).url,
-//                        expectedExternalHandles.get(2).url )))
-//                .andExpect(jsonPath("$", contains(
-//                        hasJsonPath("$.url", contains(expectedExternalHandles.get(0).url)),
-//                        hasJsonPath("$.title", hasItems(expectedExternalHandles.get(0).title,
-//                                expectedExternalHandles.get(1).title,
-//                                expectedExternalHandles.get(2).title)),
-//                        hasJsonPath("$.repository", hasItems(expectedExternalHandles.get(0).repository,
-//                                expectedExternalHandles.get(1).repository,
-//                                expectedExternalHandles.get(2).repository)),
-//                        hasJsonPath("$.submitdate", hasItems(expectedExternalHandles.get(0).submitdate,
-//                                expectedExternalHandles.get(1).submitdate,
-//                                expectedExternalHandles.get(2).submitdate)),
-//                        hasJsonPath("$.reportemail", hasItems(expectedExternalHandles.get(0).reportemail,
-//                                expectedExternalHandles.get(1).reportemail,
-//                                expectedExternalHandles.get(2).reportemail)),
-//                        hasJsonPath("$.subprefix", hasItems(expectedExternalHandles.get(0).subprefix,
-//                                expectedExternalHandles.get(1).subprefix,
-//                                expectedExternalHandles.get(2).subprefix)),
-//                        hasJsonPath("$.handle", hasItems(HandlePlugin.getCanonicalHandlePrefix() + expectedExternalHandles.get(0).handle,
-//                                HandlePlugin.getCanonicalHandlePrefix() + expectedExternalHandles.get(1).handle,
-//                                HandlePlugin.getCanonicalHandlePrefix() + expectedExternalHandles.get(2).handle))
-//                )))
         ;
 
 
@@ -148,17 +128,23 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     public void updateHandle() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        String updatedMagicURL = "@magicLindat@The Penn Treebank 3, Switchboard data set, parsed, tagged, and dysfluency annotated | Query | PML Tree-Query Engine@magicLindat@DSpace at My University@magicLindat@2022-08-24T14:13:46Z@magicLindat@lindat-help@ufal.mff.cuni.cz@magicLindat@@magicLindat@@magicLindat@@magicLindat@0dd32992-6b88-4844-801b-36aeff3d23b4@magicLindat@https://lindat.mff.cuni.cz/#!/services/pmltq/#!/treebank/ptb3_swbd/query/HYe2BcFMCcFsEtgEMA2ACA2mgxk8aBeNAIgEEARANQAViAaNAMwFdhtx4wBnQkgFQCytBqAgwEydFlz4ixarQC6ioA?filter=true&timeout=30&limit=100";
-        String handle = "123/0";
-        Handle externalHandle = new Handle(handle, updatedMagicURL);
+        org.dspace.handle.Handle handleToUpdate = this.handlesWithMagicURLs.get(0);
+        String handle = handleToUpdate.getHandle();
 
-        context.turnOffAuthorisationSystem();
-        getClient().perform(put("/api/services/handles")
-                .content(mapper.writeValueAsBytes(externalHandle))
+        String repositoryName = configurationService.getProperty("dspace.name");
+        String token = "token0";
+        String updatedMagicURL = "@magicLindat@@magicLindat@" + repositoryName +
+                "@magicLindat@@magicLindat@@magicLindat@@magicLindat@@magicLindat@@magicLindat@" + token +
+                "@magicLindat@https://lindat.mff.cuni.cz/#!/services/pmltq/";
+        Handle updatedHandle = new Handle(handle, updatedMagicURL);
+
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(authTokenAdmin).perform(put("/api/services/handles")
+                .content(mapper.writeValueAsBytes(updatedHandle))
                 .contentType(contentType))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url", is(updatedHandle.url)))
         ;
-        context.restoreAuthSystemState();
     }
 
     private List<String> createMagicURLs() {
@@ -179,7 +165,6 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         for (int i = 0; i < 3; i++) {
             // create mock object
             String magicURL =
-                    ExternalHandleConstants.MAGIC_BEAN + url + i +
                             ExternalHandleConstants.MAGIC_BEAN + title + i +
                             ExternalHandleConstants.MAGIC_BEAN + repository + i +
                             ExternalHandleConstants.MAGIC_BEAN + submitDate + i +
@@ -188,7 +173,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
                             ExternalHandleConstants.MAGIC_BEAN + datasetVersion + i +
                             ExternalHandleConstants.MAGIC_BEAN + query + i +
                             ExternalHandleConstants.MAGIC_BEAN + token + i +
-                            ExternalHandleConstants.MAGIC_BEAN + subprefix + i;
+                            ExternalHandleConstants.MAGIC_BEAN + url + i;
             // add mock object to the magicURLs
             magicURLs.add(magicURL);
         }

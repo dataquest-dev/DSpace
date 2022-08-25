@@ -32,6 +32,7 @@ import org.dspace.handle.external.HandleRest;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
+import org.hibernate.Session;
 import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -121,11 +122,16 @@ public class ExternalHandleRestRepository {
     }
 
 
+    // change only the URL
     @RequestMapping(value = EXTERNAL_HANDLE_ENDPOINT_UPDATE, method = RequestMethod.PUT,
             produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public ResponseEntity<Object> updateHandle(@RequestBody Handle updatedHandle, HttpServletResponse response,
                                                    HttpServletRequest request) {
         Context context = ContextUtil.obtainContext(request);
+        if (Objects.isNull(context)) {
+            return new ResponseEntity<>("Context is null.",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
         if(validHandleUrl(updatedHandle.url)
                 && isNotBlank(updatedHandle.getHandle()) && isNotBlank(updatedHandle.token)){
@@ -148,11 +154,6 @@ public class ExternalHandleRestRepository {
                 // create externalHandle based on the handle and the URL with the `@magicLindat` string
                 Handle oldExternalHandle = new Handle(oldHandle.getHandle(), oldHandle.getUrl());
 
-                // check the token
-//                    if (!StringUtils.equals(updatedHandle.token, oldExternalHandle.token)) {
-//                        // something is wrong
-//                    }
-
                 oldExternalHandle.url  = updatedHandle.url;
 
                 // generate new magicURL for the oldHandle
@@ -160,6 +161,7 @@ public class ExternalHandleRestRepository {
 
                 // update handle in the DB
                 this.handleClarinService.save(context, oldHandle);
+                context.commit();
 
                 // return updated external handle
                 return new ResponseEntity<>(oldExternalHandle, HttpStatus.OK);
@@ -246,17 +248,18 @@ public class ExternalHandleRestRepository {
 
     private boolean matchesAnyOf(String tested, String configPropertyWithPatterns){
         final String[] patterns = this.configurationService.getArrayProperty(configPropertyWithPatterns);
-        Object p1 = this.configurationService.getPropertyValue(configPropertyWithPatterns);
         if (Objects.isNull(patterns)) {
-
+            return false;
         }
 
-//        String[] list = patterns.split(";");
-//        for(String regexp : list){
-//            if(tested.matches(regexp.trim())){
-//                return true;
-//            }
-//        }
+        final String pattern = String.join(",", patterns);
+
+        String[] list = pattern.split(";");
+        for(String regexp : list){
+            if(tested.matches(regexp.trim())){
+                return true;
+            }
+        }
         return false;
     }
 
