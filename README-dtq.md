@@ -1,4 +1,10 @@
 
+# Dataquest wiki
+When installing, please checkout wiki on this repo
+
+## [Nginx information](https://github.com/dataquest-dev/DSpace/wiki/Installation#nginx)
+
+
 # DSpace
 ## Overview
 
@@ -30,6 +36,10 @@ https://wiki.lyrasis.org/display/DSDOC7x/Installing+DSpace
 Please be aware that, as a Java web application, DSpace requires a database (PostgreSQL or Oracle)
 and a servlet container (usually Tomcat) in order to function.
 More information about these and all other prerequisites can be found in the Installation instructions above.
+
+## SOURCES 
+
+[maven](https://archive.apache.org/dist/maven/maven-3/3.8.3/binaries/apache-maven-3.8.3-bin.zip)
 
 ## Running DSpace 7 in Docker
 
@@ -106,6 +116,7 @@ run automatically by [GitHub Actions](https://github.com/DSpace/DSpace/actions?q
   mvn test -DskipUnitTests=false -Dtest=[full.package.testClassName] -DfailIfNoTests=false
   
   # Example: mvn test -DskipUnitTests=false -Dtest=org.dspace.content.ItemTest.java -DfailIfNoTests=false -Dtest.argLine=-Xmx1024m -DsurefireJacoco=-XX:MaxPermSize=256m
+  # Debug: -Dmaven.surefire.debug
 
   # Run one test method in a specific test class
   mvn test -DskipUnitTests=false -Dtest=[full.package.testClassName]#[testMethodName] -DfailIfNoTests=false
@@ -122,6 +133,7 @@ run automatically by [GitHub Actions](https://github.com/DSpace/DSpace/actions?q
   
   # Example:
   mvn install -DskipIntegrationTests=false -Dit.test=org.dspace.content.ItemIT.java#dtqExampleTest -Dtest.argLine=-Xmx1024m -DfailsafeJacoco=-XX:MaxPermSize=256m
+  # Debug: -Dmaven.failsafe.debug
 
   # Run one test method in a specific test class
   mvn install -DskipIntegrationTests=false -Dit.test=[full.package.testClassName]#[testMethodName] -DfailIfNoTests=false

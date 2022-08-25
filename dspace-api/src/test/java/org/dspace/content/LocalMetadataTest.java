@@ -16,13 +16,35 @@ import org.dspace.content.service.MetadataFieldService;
 import org.junit.Test;
 
 /**
- * Unit Tests for class MetadataFieldTest
+ * Unit Tests for class LocalMetadataTest
  *
- * @author milanmajchrak
+ * @author Milan Majchrak (milan.majchrak at dataquest dot sk)
  */
 public class LocalMetadataTest extends AbstractUnitTest {
 
     private MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
+
+    /**
+     * Test of existing custom metadata field `local.contact.person`
+     */
+    @Test
+    public void existContactPerson() throws Exception {
+        MetadataField field = metadataFieldService.findByString(context, "local.contact.person",
+                '.');
+
+        assertThat("existContactPerson 0", field, notNullValue());
+    }
+
+    /**
+     * Test of existing custom metadata field `local.sponsor.null`
+     */
+    @Test
+    public void existSponsor() throws Exception {
+        MetadataField field = metadataFieldService.findByString(context, "local.sponsor",
+                '.');
+
+        assertThat("existSponsor 0", field, notNullValue());
+    }
 
     /**
      * Test of existing custom metadata field `local.approximateDate.issued`
@@ -36,6 +58,17 @@ public class LocalMetadataTest extends AbstractUnitTest {
     }
 
     /**
+     * Test of existing custom metadata field `local.hasCMDI`
+     */
+    @Test
+    public void existHasCMDI() throws Exception {
+        MetadataField field = metadataFieldService.findByString(context, "local.hasCMDI",
+                '.');
+
+        assertThat("existHasCMDI 0", field, notNullValue());
+    }
+
+    /**
      * Test of existing custom metadata field `local.bitstream.redirectToURL`
      */
     @Test
@@ -46,4 +79,14 @@ public class LocalMetadataTest extends AbstractUnitTest {
         assertThat("existBitstreamRedirectUrl 0", field, notNullValue());
     }
 
+    /**
+     * Test of existing custom metadata field `local.withdrawn.reason`
+     */
+    @Test
+    public void existWithdrawnReason() throws Exception {
+        MetadataField field = metadataFieldService.findByString(context, "local.withdrawn.reason",
+                '.');
+
+        assertThat("existWithdrawnReason 0", field, notNullValue());
+    }
 }
