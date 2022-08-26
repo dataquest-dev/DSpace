@@ -10,6 +10,7 @@
             <Format ref="oaidc"/>
             <Format ref="mets"/>
             <Format ref="cmdi" />
+            <Format ref="olac" />
             <Format ref="xoai"/>
             <Format ref="didl"/>
             <Format ref="dim"/>
@@ -181,6 +182,12 @@
             <XSLT>metadataFormats/marc.xsl</XSLT>
             <Namespace>http://www.loc.gov/MARC21/slim</Namespace>
             <SchemaLocation>http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd</SchemaLocation>
+        </Format>
+        <Format id="olac">
+            <Prefix>olac</Prefix>
+            <XSLT>metadataFormats/olac.xsl</XSLT>
+            <Namespace>http://www.language-archives.org/OLAC/1.1/olac.xsd</Namespace>
+            <SchemaLocation>http://www.language-archives.org/OLAC/1.1/</SchemaLocation>
         </Format>
         <Format id="uketd_dc">
             <Prefix>uketd_dc</Prefix>
