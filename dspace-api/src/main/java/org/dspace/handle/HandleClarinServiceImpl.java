@@ -7,6 +7,7 @@
  */
 package org.dspace.handle;
 
+import java.awt.print.Pageable;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -18,6 +19,7 @@ import org.dspace.content.MetadataFieldServiceImpl;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
+import org.dspace.handle.dao.HandleClarinDAO;
 import org.dspace.handle.dao.HandleDAO;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.handle.service.HandleService;
@@ -41,6 +43,9 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     protected HandleDAO handleDAO;
 
     @Autowired(required = true)
+    protected HandleClarinDAO handleClarinDAO;
+
+    @Autowired(required = true)
     protected HandleService handleService;
 
     @Autowired(required = true)
@@ -56,6 +61,12 @@ public class HandleClarinServiceImpl implements HandleClarinService {
      * Public Constructor
      */
     protected HandleClarinServiceImpl() {
+    }
+
+    @Override
+    public List<Handle> findAll(Context context, String sortingColumn, boolean direction, int maxResult, int offset) throws SQLException {
+
+        return handleClarinDAO.findAll(context, sortingColumn, direction, maxResult, offset);
     }
 
     @Override

@@ -12,10 +12,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Null;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
@@ -37,9 +40,12 @@ import org.dspace.handle.service.HandleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+
+import static org.springframework.expression.TypedValue.NULL;
 
 /**
  * This is the repository responsible to manage Handle Rest object.
@@ -101,8 +107,12 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
     @PreAuthorize("permitAll()")
     public Page<HandleRest> findAll(Context context, Pageable pageable) {
         try {
+            // get sorting request
+            Sort.Order sortingRequest = pageable.getSort().stream().iterator().next();
+            Long offset = pageable.getOffset();
             //list of all founded handles
-            List<Handle> handles = handleClarinService.findAll(context);
+            List<Handle> handles = handleClarinService.findAll(context, sortingRequest.getProperty(),
+                    sortingRequest.getDirection().isDescending(), pageable.getPageSize(), offset.intValue());
             //convert handles to page of handle rest
             return converter.toRestPage(handles, pageable, utils.obtainProjection());
         } catch (SQLException e) {
@@ -183,7 +193,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
      */
     @PreAuthorize("hasAuthority('ADMIN')")
     protected void patch(Context context, HttpServletRequest request, String apiCategory, String model, Integer id,
-                         Patch patch) throws AuthorizeException {
+                         Patch patch) throws AuthorizeException, SQLException {
         try {
             for (Operation operation : patch.getOperations()) {
                 //work only with replace operation
@@ -287,7 +297,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error while trying to patch handle");
+            throw new SQLException("Error while trying to patch handle");
         }
     }
 
@@ -358,17 +368,20 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 }
             }
 
-            //update handleObject
-            handleClarinService.update(context,handleObject, newHandleStr, url);
+
+            if (!StringUtils.equals(url, "null")) {
+                //update handleObject
+                handleClarinService.update(context,handleObject, newHandleStr, url);
+            }
 
             // Archive handle
             if (archive) {
                 //if new handle is not equals with old handle
-                if (!newHandleStr.equals(oldHandle)) {
+                if (Objects.nonNull(newHandleStr) && !newHandleStr.equals(oldHandle)) {
                     //create url
                     String newUrl = handleClarinService.resolveToURL(context, newHandleStr);
                     //create new handle for archiving without dspace object and save it
-                    Handle archivedHandle = handleClarinService.createExternalHandle(context, oldHandle,
+                     handleClarinService.createExternalHandle(context, oldHandle,
                             newUrl);
                 }
             }
@@ -393,7 +406,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
      */
     @PreAuthorize("hasAuthority('ADMIN')")
     private void changePrefixInExistingHandles( Context context, String oldPrefix,
-                                     String newPrefix, boolean archive) throws AuthorizeException {
+                                     String newPrefix, boolean archive) throws AuthorizeException, SQLException {
         try {
             //get all handles
             List<Handle> handles = handleClarinService.findAll(context);
@@ -402,17 +415,19 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 Handle handleObject = it.next();
                 //get prefix from handle
                 String[] handleParts = (handleObject.getHandle()).split("/");
+
                 //if the used handle prefix is the same as the old prefix, update handle
-                if ((handleParts[0]).equals(oldPrefix)) {
+                if (Objects.nonNull((handleParts[0])) && handleParts[0].equals(oldPrefix)) {
+                    String handle = handleParts.length > 1 ? handleParts[1] : "";
                     //new handle
-                    String newHandleStr = newPrefix + "/" + handleParts[1];
+                    String newHandleStr = newPrefix + "/" + handle;
                     //update handle
                     updateHandle(context, handleObject, newHandleStr,
                             handleObject.getDSpaceObject(), handleObject.getUrl(), archive);
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error while trying to change prefix in existing handles");
+            throw new SQLException("Error while trying to change prefix in existing handles");
         }
     }
 

@@ -27,8 +27,9 @@ public interface HandleClarinService {
      * @return              array of handles
      * @throws SQLException if database error
      */
-    public List<Handle> findAll(Context context) throws SQLException;
+    public List<Handle> findAll(Context context, String sortingColumn, boolean direction, int maxResult, int offset) throws SQLException;
 
+    public List<Handle> findAll(Context context) throws SQLException;
     /**
      * Find the handle corresponding to the given numeric ID.  The ID is
      * a database key internal to DSpace.
