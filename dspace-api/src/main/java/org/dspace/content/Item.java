@@ -167,7 +167,16 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport {
      * @return true if the item is discoverable
      */
     public boolean isDiscoverable() {
-        return discoverable;
+        return discoverable && !this.isHidden();
+    }
+
+    public boolean isHidden() {
+        String valueOfHidden = getItemService().getMetadataFirstValue(this, "local",
+                "hiddenButHarvestable", null, Item.ANY);
+        if (valueOfHidden != null && valueOfHidden.equalsIgnoreCase("hidden")) {
+            return true;
+        }
+        return false;
     }
 
     /**
