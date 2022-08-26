@@ -4,12 +4,13 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:doc="http://www.lyncode.com/xoai"
     xmlns:fn="http://custom.crosswalk.functions"
+	xmlns:fnx="http://www.w3.org/2005/xpath-functions"
     xmlns:xalan="http://xml.apache.org/xslt"
     xmlns:ms="http://www.ilsp.gr/META-XMLSchema"
     xmlns:olac="http://experimental.loc/olac"
     xmlns:cmd="http://www.clarin.eu/cmd/"
     xmlns:lindat="http://lindat.mff.cuni.cz/ns/experimental/cmdi"
-    exclude-result-prefixes="doc xalan fn ms" version="1.0">
+    exclude-result-prefixes="doc xalan fn fnx ms" version="1.0">
     <xsl:import href="metasharev2.xsl"/>
     <xsl:import href="olac-dcmiterms.xsl"/>
     
@@ -119,7 +120,7 @@
 	</xsl:template>
 	
 	<xsl:template name="ProcessSourceURI">
-	   <xsl:for-each select="fn:distinct(doc:metadata/doc:element[@name='dc']/doc:element[@name='source']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])">
+	   <xsl:for-each select="fnx:distinct-values(doc:metadata/doc:element[@name='dc']/doc:element[@name='source']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])">
 	       <cmd:ResourceProxy>
 	           <xsl:attribute name="id">uri_<xsl:value-of select="position()"/></xsl:attribute>
 	           <cmd:ResourceType><xsl:attribute name="mimetype">text/html</xsl:attribute>Resource</cmd:ResourceType>
