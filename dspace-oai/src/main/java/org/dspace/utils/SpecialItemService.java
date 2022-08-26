@@ -52,7 +52,7 @@ public class SpecialItemService {
             HandleService hs = HandleServiceFactory.getInstance().getHandleService();
             DSpaceObject dSpaceObject = hs.resolveToObject(context, handle);
             List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(((Item) dSpaceObject),
-                    "local.hasMetadata");
+                    "local.hasCMDI");
             if (dSpaceObject != null && dSpaceObject.getType() == Constants.ITEM && hasOwnMetadata(metadataValues)) {
 
                 Bitstream bitstream = itemService.getBundles(((Item) dSpaceObject), "METADATA").get(0)
@@ -105,7 +105,11 @@ public class SpecialItemService {
             // mind the order in input forms, org;code;projname;type
             Element[] elements = {organization, code, projName, fundsType};
             for (int i = 0; i < elements.length; i++) {
-                elements[i].appendChild(doc.createTextNode(values[i]));
+                if (values.length <= i) {
+                    elements[i].appendChild(doc.createTextNode(""));
+                } else {
+                    elements[i].appendChild(doc.createTextNode(values[i]));
+                }
                 el.appendChild(elements[i]);
             }
             return doc;
