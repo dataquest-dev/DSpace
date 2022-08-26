@@ -79,10 +79,20 @@ public class LocalMetadataTest extends AbstractUnitTest {
         assertThat("existBitstreamRedirectUrl 0", field, notNullValue());
     }
 
+    /**
+     * Test of existing custom metadata field `local.withdrawn.reason`
+     */
+    @Test
+    public void existWithdrawnReason() throws Exception {
+        MetadataField field = metadataFieldService.findByString(context, "local.withdrawn.reason",
+                '.');
+
+        assertThat("existWithdrawnReason 0", field, notNullValue());
+    }
+    
     @Test
     public void existsHidden() throws Exception {
         MetadataField field = metadataFieldService.findByString(context, "local.hiddenButHarvestable", '.');
         assertThat("existsHidden 0", field, notNullValue());
     }
-
 }
