@@ -28,6 +28,9 @@
     <bean class="org.dspace.discovery.MockSolrSearchCore"
           autowire-candidate="true"/>
 
+    <bean class="org.dspace.discovery.MockSolrOaiCore"
+          autowire-candidate="true"/>
+
     <!--<bean class="org.dspace.discovery.SolrServiceIndexOutputPlugin"
           id="solrServiceIndexOutputPlugin"/>-->
 

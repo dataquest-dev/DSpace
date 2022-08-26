@@ -217,13 +217,46 @@
             <row>
                 <field>
                     <dc-schema>local</dc-schema>
+                    <dc-element>hasCMDI</dc-element>
+                    <repeatable>true</repeatable>
+                    <label>Has CMDI file</label>
+                    <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
+                    <hint>Are you going to upload cmdi file?</hint>
+                    <required></required>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hiddenButHarvestable</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Hidden but harvestable</label>
+                    <style>col-sm-4</style>
+                    <input-type value-pairs-name="hidden_list">list</input-type>
+                    <hint>Should item be harvestable thru OAI-PMH but behave like private?</hint>
+                    <required/>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
                     <dc-element>bitstream</dc-element>
                     <dc-qualifier>redirectToURL</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Bitstream redirect URL</label>
+                    <label>Big file URL</label>
                     <input-type>onebox</input-type>
                     <hint>
-                        The bitstream will be loaded from this URL. Example: /temp/file.png
+                        The actual maximum upload size of the file is 4GB. To upload the file bigger than maximum
+                        upload size type the URL of that big file. Admin must know URL to that bitstream file.
+                        Then click on the 'Save' button and the file will start to upload. The file will be loaded
+                        from the '/temp' folder of the server. Example: /tomcat/temp/bitstream.png
                     </hint>
                     <required></required>
                     <acl>
@@ -353,6 +386,8 @@
                     </hint>
                     <required>You must enter at least the year.</required>
                 </field>
+
+
 
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -868,6 +903,7 @@
                     </hint>
                     <required>You must enter at least the year.</required>
                 </field>
+
             </row>
             <row>
                 <field>
@@ -1351,6 +1387,12 @@
     <!-- stores the associated stored-values in the database.                  -->
 
     <form-value-pairs>
+        <value-pairs value-pairs-name="hasCMDI_checkbox" dc-term="identifier">
+            <pair>
+                <displayed-value>Yes</displayed-value>
+                <stored-value>yes</stored-value>
+            </pair>
+        </value-pairs>
         <value-pairs value-pairs-name="common_identifiers" dc-term="identifier">
             <pair>
                 <displayed-value>ISSN</displayed-value>
@@ -1995,6 +2037,14 @@
                 <stored-value>FundingOrganization</stored-value>
             </pair>
         </value-pairs>
+
+        <value-pairs value-pairs-name="hidden_list" dc-term="">
+            <pair>
+                <displayed-value>Hidden</displayed-value>
+                <stored-value>hidden</stored-value>
+            </pair>
+        </value-pairs>
+
 
     </form-value-pairs>
 

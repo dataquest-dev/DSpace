@@ -5,8 +5,10 @@
     xmlns:doc="http://www.lyncode.com/xoai"
     xmlns:xalan="http://xml.apache.org/xslt"
     xmlns:olac="http://experimental.loc/olac"
+    xmlns:fn="http://custom.crosswalk.functions"
     xmlns:fnx="http://www.w3.org/2005/xpath-functions"
-    exclude-result-prefixes="doc xalan fnx"
+    exclude-result-prefixes="doc xalan fn fnx"
+
     version="1.0">
     <xsl:output omit-xml-declaration="yes" method="xml" indent="yes" />
     

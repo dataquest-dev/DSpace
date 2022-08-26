@@ -64,6 +64,8 @@ import org.dspace.xoai.services.api.cache.XOAICacheService;
 import org.dspace.xoai.services.api.cache.XOAIItemCacheService;
 import org.dspace.xoai.services.api.cache.XOAILastCompilationCacheService;
 import org.dspace.xoai.services.api.solr.SolrServerResolver;
+//import org.dspace.xoai.services.impl.DSpaceCollectionsService;
+//import org.dspace.xoai.services.impl.cache.DSpaceXOAILastCompilationCacheService;
 import org.dspace.xoai.solr.DSpaceSolrSearch;
 import org.dspace.xoai.solr.exceptions.DSpaceSolrException;
 import org.dspace.xoai.solr.exceptions.DSpaceSolrIndexerException;
@@ -113,6 +115,18 @@ public class XOAI {
             log.error(ex.getMessage(), ex);
         }
         return formats;
+    }
+
+    public XOAI() {
+        this(null, false);
+    }
+
+    public XOAI(Context context, boolean hasOption, SolrServerResolver resolver) {
+        this(context, hasOption);
+//        solrServerResolver = resolver;
+//        collectionsService = new DSpaceCollectionsService();
+//        xoaiLastCompilationCacheService = new DSpaceXOAILastCompilationCacheService();
+//        clean = true;
     }
 
     public XOAI(Context context, boolean optimize, boolean clean, boolean verbose) {
@@ -369,6 +383,10 @@ public class XOAI {
         return lastChange;
     }
 
+    public boolean checkVisible(Item item) throws IOException {
+        return checkIfVisibleInOAI(item);
+    }
+
     private SolrInputDocument index(Item item)
             throws SQLException, IOException, XMLStreamException, WritingXmlException {
         SolrInputDocument doc = new SolrInputDocument();
@@ -410,9 +428,12 @@ public class XOAI {
          * invisible embargoed items, because this will override the item.public
          * flag.
          */
+        boolean deleted = false;
+        if (!item.isHidden()) {
+            deleted = (item.isWithdrawn() || !item.isDiscoverable() || (isEmbargoed ? isPublic : false));
+        }
+        doc.addField("item.deleted", deleted);
 
-        doc.addField("item.deleted",
-                (item.isWithdrawn() || !item.isDiscoverable() || (isEmbargoed ? isPublic : false)));
 
         /*
          * An item that is embargoed will potentially not be harvested by
@@ -541,6 +562,11 @@ public class XOAI {
         } catch (SolrServerException | IOException ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
         }
+    }
+
+    public static void test_cleanCache(XOAIItemCacheService xoaiItemCacheService, XOAICacheService xoaiCacheService)
+            throws IOException {
+        cleanCache(xoaiItemCacheService, xoaiCacheService);
     }
 
     private static void cleanCache(XOAIItemCacheService xoaiItemCacheService, XOAICacheService xoaiCacheService)
