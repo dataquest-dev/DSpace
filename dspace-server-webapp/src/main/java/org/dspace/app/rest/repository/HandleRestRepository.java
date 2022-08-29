@@ -107,12 +107,16 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
     @PreAuthorize("permitAll()")
     public Page<HandleRest> findAll(Context context, Pageable pageable) {
         try {
-            // get sorting request
-            Sort.Order sortingRequest = pageable.getSort().stream().iterator().next();
+            // get sorting request into the string variable
+            String sortingColumnDefinition = null;
+            if (pageable.getSort().isSorted()) {
+                sortingColumnDefinition = pageable.getSort().stream().iterator().next().getProperty();
+            }
+
             Long offset = pageable.getOffset();
             //list of all founded handles
-            List<Handle> handles = handleClarinService.findAll(context, sortingRequest.getProperty(),
-                    sortingRequest.getDirection().isDescending(), pageable.getPageSize(), offset.intValue());
+            List<Handle> handles = handleClarinService.findAll(context, sortingColumnDefinition,
+                    pageable.getPageSize(), offset.intValue());
             //convert handles to page of handle rest
             return converter.toRestPage(handles, pageable, utils.obtainProjection());
         } catch (SQLException e) {
