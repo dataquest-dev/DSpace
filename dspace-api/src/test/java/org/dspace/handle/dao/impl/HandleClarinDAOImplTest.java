@@ -80,7 +80,6 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
 
     private static final String HANDLE_PREFIX = "123456789";
     private static final String SUFFIX_1 = "101";
-    private static final String SUFFIX_2 = "101.2";
     private static final String SUFFIX_3 = "303";
     private static final String SUFFIX_4 = "404";
     private static final String SUFFIX_EXTERNAL = "123456";
@@ -238,7 +237,7 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
 
         List<Handle> receivedHandles = handleClarinDAO.findAll(context, RESOURCE_TYPE_HANDLE_COLLECTION_SORTING_COLUMN_DEF, 10, 0);
 
-        assertEquals(receivedHandles.size(), 2);
+        assertEquals(receivedHandles.size(), 1);
         context.restoreAuthSystemState();
     }
 
