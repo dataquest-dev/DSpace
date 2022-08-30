@@ -437,7 +437,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         }
 
         // the old prefix doesn't equal with current prefix
-        if (jsonNodeOldPrefix.asText().equals(handleService.getPrefix())) {
+        if (!jsonNodeOldPrefix.asText().equals(handleService.getPrefix())) {
             throw new RuntimeException("Cannot change prefix. Old prefix does " +
                     "not match with existing prefixes.");
         }
