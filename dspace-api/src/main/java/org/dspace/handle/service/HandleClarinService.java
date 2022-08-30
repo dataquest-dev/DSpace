@@ -20,16 +20,19 @@ import org.dspace.handle.Handle;
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
 public interface HandleClarinService {
+
+
+    List<Handle> findAll(Context context, String sortingColumn, int maxResult, int offset) throws SQLException;
+
     /**
-     * Retrieve all handle from the registry
+     * Retrieve all handles from the database
      *
      * @param context       DSpace context object
-     * @return              array of handles
+     * @return              list of handles
      * @throws SQLException if database error
      */
-    public List<Handle> findAll(Context context, String sortingColumn, int maxResult, int offset) throws SQLException;
+    List<Handle> findAll(Context context) throws SQLException;
 
-    public List<Handle> findAll(Context context) throws SQLException;
     /**
      * Find the handle corresponding to the given numeric ID.  The ID is
      * a database key internal to DSpace.
@@ -39,7 +42,7 @@ public interface HandleClarinService {
      * @return              the handle object
      * @throws SQLException if database error
      */
-    public Handle findByID(Context context, int id) throws SQLException;
+    Handle findByID(Context context, int id) throws SQLException;
 
     /**
      * Find the handle corresponding to the given string handle.
@@ -49,7 +52,7 @@ public interface HandleClarinService {
      * @return              the handle object
      * @throws SQLException if database error
      */
-    public Handle findByHandle(Context context, String handle) throws SQLException;
+    Handle findByHandle(Context context, String handle) throws SQLException;
 
     /**
      * Creates a new external handle.
@@ -62,7 +65,7 @@ public interface HandleClarinService {
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    public Handle createExternalHandle(Context context, String handleStr, String url)
+    Handle createExternalHandle(Context context, String handleStr, String url)
             throws SQLException, AuthorizeException;
 
     /**
@@ -73,7 +76,7 @@ public interface HandleClarinService {
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    public void delete(Context context, Handle handle) throws SQLException, AuthorizeException;
+    void delete(Context context, Handle handle) throws SQLException, AuthorizeException;
 
     /**
      * Save the metadata field in the database.
@@ -83,7 +86,7 @@ public interface HandleClarinService {
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    public void save(Context context, Handle handle)
+    void save(Context context, Handle handle)
             throws SQLException, AuthorizeException;
 
     /**
@@ -97,7 +100,7 @@ public interface HandleClarinService {
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    public void update(Context context, Handle handleObject, String newHandle,
+    void update(Context context, Handle handleObject, String newHandle,
                       String newUrl)
             throws SQLException, AuthorizeException;
 
@@ -109,7 +112,7 @@ public interface HandleClarinService {
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    public void setPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException, AuthorizeException;
+    void setPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException, AuthorizeException;
 
     /* Created for LINDAT/CLARIAH-CZ (UFAL) */
     /**
@@ -118,7 +121,7 @@ public interface HandleClarinService {
      * @param handle handle object
      * @return       boolean
      */
-    public boolean isInternalResource(Handle handle);
+    boolean isInternalResource(Handle handle);
 
     /**
      * Return the local URL for internal handle,
@@ -130,5 +133,5 @@ public interface HandleClarinService {
      * @return The URL
      * @throws SQLException If a database error occurs
      */
-    public String resolveToURL(Context context, String handleStr) throws SQLException;
+    String resolveToURL(Context context, String handleStr) throws SQLException;
 }

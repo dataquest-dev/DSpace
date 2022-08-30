@@ -1,30 +1,44 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.handle.dao.impl;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
-import org.dspace.authorize.ResourcePolicy_;
-import org.dspace.content.EntityType_;
 import org.dspace.core.AbstractHibernateDAO;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 import org.dspace.handle.Handle_;
 import org.dspace.handle.dao.HandleClarinDAO;
-import org.dspace.versioning.Version_;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.SingularAttribute;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Hibernate implementation of the Database Access Object interface class for the Handle object.
+ * This class is responsible for specific database calls for the Handle object and is autowired by spring
+ * This class should never be accessed directly.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class HandleClarinDAOImpl extends AbstractHibernateDAO<Handle> implements HandleClarinDAO {
+
+    /**
+     * The constant for the sorting option `url:external`.
+     */
     private static final String EXTERNAL = "external";
+
     /**
      * log4j category
      */
@@ -86,4 +100,3 @@ public class HandleClarinDAOImpl extends AbstractHibernateDAO<Handle> implements
         return list(context, criteriaQuery, false, Handle.class, maxResult, offset);
     }
 }
-

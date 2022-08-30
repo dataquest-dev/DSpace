@@ -7,7 +7,6 @@
  */
 package org.dspace.handle;
 
-import java.awt.print.Pageable;
 import java.sql.SQLException;
 import java.util.List;
 

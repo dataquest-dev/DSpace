@@ -135,7 +135,7 @@ public class HandleServiceImpl implements HandleService {
     }
 
     @Override
-public String createHandle(Context context, DSpaceObject dso)
+    public String createHandle(Context context, DSpaceObject dso)
         throws SQLException {
         Handle handle = handleDAO.create(context, new Handle());
         String handleId = createId(context);
