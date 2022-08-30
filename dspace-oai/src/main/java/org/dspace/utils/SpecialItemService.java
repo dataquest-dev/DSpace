@@ -137,8 +137,12 @@ public class SpecialItemService {
                     .split(DCInput.ComplexDefinitions.getSeparator(), -1);
 
             Element[] elements = {first, last, email, affil};
-            for (int i = 0; i < values.length; i++) {
-                elements[i].appendChild(doc.createTextNode(values[i]));
+            for (int i = 0; i < elements.length; i++) {
+                if (values.length <= i) {
+                    elements[i].appendChild(doc.createTextNode(""));
+                } else {
+                    elements[i].appendChild(doc.createTextNode(values[i]));
+                }
                 el.appendChild(elements[i]);
             }
 
@@ -165,8 +169,12 @@ public class SpecialItemService {
                     .split(DCInput.ComplexDefinitions.getSeparator(), -1);
 
             Element[] elements = {size, unit};
-            for (int i = 0; i < values.length; i++) {
-                elements[i].appendChild(doc.createTextNode(values[i]));
+            for (int i = 0; i < elements.length; i++) {
+                if (values.length <= i) {
+                    elements[i].appendChild(doc.createTextNode(""));
+                } else {
+                    elements[i].appendChild(doc.createTextNode(values[i]));
+                }
                 el.appendChild(elements[i]);
             }
             return doc;

@@ -17,8 +17,7 @@ import java.util.Date;
 import org.apache.commons.io.FileUtils;
 import org.dspace.xoai.services.api.cache.XOAILastCompilationCacheService;
 import org.dspace.xoai.services.api.config.ConfigurationService;
-import org.dspace.xoai.services.impl.config.DSpaceConfigurationService;
-//import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 public class DSpaceXOAILastCompilationCacheService implements XOAILastCompilationCacheService {
@@ -33,8 +32,8 @@ public class DSpaceXOAILastCompilationCacheService implements XOAILastCompilatio
 
     private static File file = null;
 
-//    @Autowired
-    ConfigurationService configurationService = new DSpaceConfigurationService();
+    @Autowired
+    ConfigurationService configurationService;
 
     private File getFile() {
         if (file == null) {
