@@ -53,16 +53,15 @@ import org.springframework.test.web.servlet.MvcResult;
 public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     private static final String AUTHOR = "Test author name";
+    private static final String HANDLES_ENDPOINT = "/api/core/handles/";
+
+    private JsonNodeFactory jsonNodeFactory = new JsonNodeFactory(true);
 
     private Collection col;
     private Item publicItem;
 
-    public static final String HANDLES_ENDPOINT = "/api/core/handles/";
-
     @Autowired
     private ItemService itemService;
-
-    private JsonNodeFactory jsonNodeFactory = new JsonNodeFactory(true);
 
     @Autowired
     private HandleClarinService handleClarinService;
