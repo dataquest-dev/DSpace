@@ -441,6 +441,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         }
         // set discoverable to true (default)
         item.setDiscoverable(true);
+
         // Call update to give the item a last modified date. OK this isn't
         // amazingly efficient but creates don't happen that often.
         context.turnOffAuthorisationSystem();
@@ -459,6 +460,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         Item item = itemDAO.create(context, new Item());
         // set discoverable to true (default)
         item.setDiscoverable(true);
+
         // Call update to give the item a last modified date. OK this isn't
         // amazingly efficient but creates don't happen that often.
         context.turnOffAuthorisationSystem();

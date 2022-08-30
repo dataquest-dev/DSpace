@@ -7,6 +7,8 @@
  */
 package org.dspace.handle;
 
+import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,16 +23,12 @@ import org.dspace.content.MetadataFieldServiceImpl;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
-import org.dspace.handle.dao.HandleClarinDAO;
 import org.dspace.handle.dao.HandleDAO;
 import org.dspace.handle.external.HandleRest;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ObjectUtils;
-
-import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
 
 /**
  * Additional service implementation for the Handle object in Clarin-DSpace.
@@ -48,9 +46,6 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     protected HandleDAO handleDAO;
 
     @Autowired(required = true)
-    protected HandleClarinDAO handleClarinDAO;
-
-    @Autowired(required = true)
     protected HandleService handleService;
 
     @Autowired(required = true)
@@ -65,7 +60,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     static final String PREFIX_DELIMITER = "/";
 
     /**
-     * Public Constructor
+     * Protected Constructor
      */
     protected HandleClarinServiceImpl() {
     }
@@ -93,9 +88,9 @@ public class HandleClarinServiceImpl implements HandleClarinService {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
-        String handleId = null;
+        String handleId;
         //Do we want to generate the new handleId or use entered handleStr by user?
-        if (handleStr != null) {
+        if (Objects.nonNull(handleStr)) {
             //we use handleStr entered by use
             handleId = handleStr;
         } else {
@@ -104,7 +99,6 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         }
 
         Handle handle = handleDAO.create(context, new Handle());
-
         log.debug("Created new external Handle with handle " + handleId);
 
         //set handle and url in created handle
@@ -122,7 +116,6 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         }
         //delete handle
         handleDAO.delete(context, handle);
-
         log.info(LogHelper.getHeader(context, "delete_handle",
                 "handle_id=" + handle.getID()));
     }
@@ -136,7 +129,6 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         }
         //save handle
         handleDAO.save(context, handle);
-
         log.info(LogHelper.getHeader(context, "save_handle",
                 "handle_id=" + handle.getID()
                         + "handle=" + handle.getHandle()
@@ -154,13 +146,11 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         }
         //set handle and url in handle
         setHandleAndUrlOfHandleObject(context, handleObject, newHandle, newUrl);
-
         log.info(LogHelper.getHeader(context, "update_handle",
                 "handle_id=" + handleObject.getID()));
     }
 
     @Override
-  //  @PreAuthorize("hasAuthority('ADMIN')")
     public void setPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException,
             AuthorizeException {
         // Check authorisation: Only admins may create DC types
@@ -169,8 +159,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
                     "Only administrators may modify the handle registry");
         }
         //control, if are new and old prefix entered
-        if (ObjectUtils.isEmpty(newPrefix) && StringUtils.isBlank(newPrefix) &&
-                ObjectUtils.isEmpty(oldPrefix) && StringUtils.isBlank(oldPrefix)) {
+        if (StringUtils.isBlank(newPrefix) || StringUtils.isBlank(oldPrefix)) {
             throw new NullPointerException("Cannot set prefix. Required fields are empty.");
         }
         //get handle prefix
@@ -194,13 +183,13 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     @Override
     public boolean isInternalResource(Handle handle) {
         //in internal handle is not entered url
-        return (handle.getUrl() == null || handle.getUrl().isEmpty());
+        return (Objects.isNull(handle.getUrl()) || handle.getUrl().isEmpty());
     }
 
     @Override
     public String resolveToURL(Context context, String handleStr) throws SQLException {
         //handle is not entered
-        if (handleStr == null) {
+        if (Objects.isNull(handleStr)) {
             throw new IllegalArgumentException("Handle is null");
         }
 
@@ -208,7 +197,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         Handle handle = handleDAO.findByHandle(context, handleStr);
 
         //handle was not find
-        if (handle == null) {
+        if (Objects.isNull(handle)) {
             return null;
         }
 
@@ -222,7 +211,6 @@ public class HandleClarinServiceImpl implements HandleClarinService {
             //external handle
             url = handle.getUrl();
         }
-
         log.debug("Resolved {} to {}", handle, url);
 
         return url;
@@ -261,19 +249,18 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         //set handle
         handleObject.setHandle(newHandle);
         //if it is internal handle, do nothing with url
-        if (newUrl != null) {
-            //set url only if is not empty
-            //when you add null to String, it converts null to "null"
-            if (!(ObjectUtils.isEmpty(newUrl)) && !(StringUtils.isBlank(newUrl)) &&
-                newUrl != "null") {
-                handleObject.setUrl(newUrl);
-            } else {
-                throw new RuntimeException("Cannot change handle and url of handle object.");
-            }
+        if (Objects.isNull(newUrl)) {
+            throw new RuntimeException("Cannot change handle and url of handle object.");
         }
 
-        this.save(context, handleObject);
+        //set url only if is not empty
+        //when you add null to String, it converts null to "null"
+        if (StringUtils.isBlank(newUrl) || StringUtils.equals(newUrl, "null")) {
+            throw new RuntimeException("Cannot change handle and url of handle object.");
+        }
+        handleObject.setUrl(newUrl);
 
+        this.save(context, handleObject);
         log.info(LogHelper.getHeader(context, "Set handle and url of handle object.",
                 "handle_id=" + handleObject.getID()));
     }
@@ -282,7 +269,8 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     public List<org.dspace.handle.external.Handle> convertHandleWithMagicToExternalHandle(List<Handle> magicHandles) {
         List<org.dspace.handle.external.Handle> externalHandles = new ArrayList<>();
         for (org.dspace.handle.Handle handleWithMagic: magicHandles) {
-            externalHandles.add(new org.dspace.handle.external.Handle(handleWithMagic.getHandle(), handleWithMagic.getUrl()));
+            externalHandles.add(new org.dspace.handle.external.Handle(handleWithMagic.getHandle(),
+                    handleWithMagic.getUrl()));
         }
 
         return externalHandles;
@@ -328,7 +316,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
 
     @Override
     public Handle findHandleByHandle(Context context, String handle) throws SQLException {
-        if (handle == null) {
+        if (Objects.isNull(handle)) {
             throw new IllegalArgumentException("Handle is null");
         }
 
