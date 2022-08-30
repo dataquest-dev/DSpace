@@ -6,7 +6,8 @@
                 xmlns:odc="http://schema.datacite.org/oai/oai-1.1/"
                 xmlns="http://datacite.org/schema/kernel-3"
                 xmlns:fn="http://custom.crosswalk.functions"
-                exclude-result-prefixes="doc xalan fn" version="1.0">
+                xmlns:fnx="http://www.w3.org/2005/xpath-functions"
+                exclude-result-prefixes="doc xalan fn fnx" version="1.0">
     <xsl:output omit-xml-declaration="yes" method="xml" indent="yes" />
 
     <!-- TODO implement Required & optional templates -->
@@ -179,7 +180,7 @@
         !-->
 
         <!-- type -->
-        <xsl:variable name="dc_type" select="fn:distinct(doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'])[1]"/>
+        <xsl:variable name="dc_type" select="fnx:distinct-values(doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'])[1]"/>
         <xsl:choose>
             <xsl:when test="$dc_type='corpus'">
                 <resourceType resourceTypeGeneral="Dataset">
