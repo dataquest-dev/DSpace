@@ -1,4 +1,15 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.handle.dao.impl;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import org.apache.logging.log4j.Logger;
 import org.dspace.AbstractUnitTest;
@@ -21,9 +32,7 @@ import org.dspace.eperson.service.GroupService;
 import org.dspace.handle.Handle;
 import org.dspace.handle.Handle_;
 import org.dspace.handle.dao.HandleClarinDAO;
-import org.dspace.handle.dao.HandleDAO;
 import org.dspace.handle.factory.HandleClarinServiceFactory;
-import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.utils.DSpace;
 import org.dspace.versioning.factory.VersionServiceFactory;
@@ -35,10 +44,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 /**
  * Test class for the Handle Clarin DAO
@@ -79,6 +84,7 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
     private Community owningCommunity;
 
     private static final String HANDLE_PREFIX = "123456789";
+    private static final String CUSTOM_PREFIX = "hdl:custom-prefix";
     private static final String SUFFIX_1 = "101";
     private static final String SUFFIX_3 = "303";
     private static final String SUFFIX_4 = "404";
@@ -98,7 +104,7 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
     public void init() {
         super.init();
         try {
-            //we have to create a new community in the database
+            // we have to create a new community in the database
             context.turnOffAuthorisationSystem();
             this.owningCommunity = communityService.create(null, context);
             Collection collection = collectionService.create(context, owningCommunity);
@@ -108,8 +114,6 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
             item1.setSubmitter(context.getCurrentUser());
             itemService.update(context, item1);
 
-//            item2 = versioningService.createNewVersion(context, item1).getItem();
-
             workspaceItem = workspaceItemService.create(context, collection, false);
             item3 = installItemService.installItem(context, workspaceItem, HANDLE_PREFIX + "/" + SUFFIX_3);
             item3.setSubmitter(context.getCurrentUser());
@@ -117,17 +121,16 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
 
             workspaceItem = workspaceItemService.create(context, collection, false);
             item4 = installItemService.installItem(context, workspaceItem,
-                    "hdl:custom-prefix" + "/" + SUFFIX_4);
+                    CUSTOM_PREFIX + "/" + SUFFIX_4);
             item4.setSubmitter(context.getCurrentUser());
             itemService.update(context, item4);
 
             // create external handle
             externalHandle = handleClarinService.createExternalHandle(context,
                     HANDLE_PREFIX + "/" + SUFFIX_EXTERNAL, EXTERNAL_URL);
-            //save created handle
+            // save created handle
             handleClarinService.save(context, externalHandle);
 
-            //we need to commit the changes so we don't block the table for testing
             context.restoreAuthSystemState();
         } catch (AuthorizeException ex) {
             log.error("Authorization Error in init", ex);
@@ -146,20 +149,14 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
     public void destroy() {
         try {
             context.turnOffAuthorisationSystem();
-
-            externalHandle = context.reloadEntity(externalHandle);
-            handleClarinService.delete(context, externalHandle);
             // Context might have been committed in the test method, so best to reload to entity so we're sure that it
             // is attached.
+            externalHandle = context.reloadEntity(externalHandle);
+            handleClarinService.delete(context, externalHandle);
+
             owningCommunity = context.reloadEntity(owningCommunity);
-
             ContentServiceFactory.getInstance().getCommunityService().delete(context, owningCommunity);
-
             owningCommunity = null;
-
-//
-
-
         } catch (Exception e) {
             throw new AssertionError("Error occurred in destroy()", e);
         }
@@ -179,7 +176,7 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
         assertEquals(receivedHandles.size(), 7);
         assertEquals(receivedHandles.get(3).getHandle(), HANDLE_PREFIX + "/" + SUFFIX_1);
         assertEquals(receivedHandles.get(4).getHandle(), HANDLE_PREFIX + "/" + SUFFIX_3);
-        assertEquals(receivedHandles.get(5).getHandle(), "hdl:custom-prefix" + "/" + SUFFIX_4);
+        assertEquals(receivedHandles.get(5).getHandle(), CUSTOM_PREFIX + "/" + SUFFIX_4);
         assertEquals(receivedHandles.get(6).getHandle(), HANDLE_PREFIX + "/" + SUFFIX_EXTERNAL);
         context.restoreAuthSystemState();
     }

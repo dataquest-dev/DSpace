@@ -22,6 +22,14 @@ import org.dspace.handle.Handle;
 public interface HandleClarinService {
 
 
+    /**
+     * Find all Handles following the sorting options
+     * @param context DSpace context object
+     * @param sortingColumn sorting option in the specific format e.g. `handle:123456789/111`
+     * @param maxResult the max count of the handles
+     * @param offset page
+     * @return List of Handles
+     */
     List<Handle> findAll(Context context, String sortingColumn, int maxResult, int offset) throws SQLException;
 
     /**

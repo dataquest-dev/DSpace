@@ -22,8 +22,6 @@ public class HandleRest extends BaseObjectRest<Integer> {
     public static final String NAME = "handle";
     public static final String NAME_PLURAL = "handles";
     public static final String CATEGORY = RestAddressableModel.CORE;
-    public static final String INTERNAL = "internal";
-    public static final String EXTERNAL = "external";
 
     private String handle;
 
