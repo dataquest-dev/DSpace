@@ -35,16 +35,6 @@
           class="org.dspace.discovery.MockSolrSearchCore"
           autowire-candidate="true"/>
 
-    <bean id="org.dspace.discovery.MockSolrOaiCore"
-          class="org.dspace.discovery.MockSolrOaiCore"
-          autowire-candidate="true"/>
-
-    <bean id="org.dspace.xoai.app.XOAI"
-          class="org.dspace.xoai.app.XOAI"
-          autowire-candidate="true"/>
-
-
-
     <!--<bean class="org.dspace.discovery.SolrServiceIndexOutputPlugin"
           id="solrServiceIndexOutputPlugin"/>-->
 
