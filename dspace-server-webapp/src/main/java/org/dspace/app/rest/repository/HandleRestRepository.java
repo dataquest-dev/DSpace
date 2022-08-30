@@ -292,8 +292,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                     //create url
                     String newUrl = handleClarinService.resolveToURL(context, newHandleStr);
                     //create new handle for archiving without dspace object and save it
-                     handleClarinService.createExternalHandle(context, oldHandle,
-                            newUrl);
+                    handleClarinService.createExternalHandle(context, oldHandle, newUrl);
                 }
             }
 
@@ -384,8 +383,8 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 StringUtils.isBlank(jsonNodeUrl.asText()) ||
                 ObjectUtils.isEmpty(jsonNodeArchive.asText()) ||
                 StringUtils.isBlank(jsonNodeArchive.asText())) {
-            throw new UnprocessableEntityException
-                    ("Cannot load JsonNode value from the operation: " + operation.getPath());
+            throw new UnprocessableEntityException(
+                    "Cannot load JsonNode value from the operation: " + operation.getPath());
         }
 
         //update handle based on obtained values from jsno nodes
@@ -433,8 +432,8 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 StringUtils.isBlank(jsonNodeOldPrefix.asText()) ||
                 ObjectUtils.isEmpty(jsonNodeArchive) ||
                 StringUtils.isBlank(jsonNodeArchive.asText())) {
-            throw new UnprocessableEntityException
-                    ("Cannot load JsonNode value from the operation: " + operation.getPath());
+            throw new UnprocessableEntityException(
+                    "Cannot load JsonNode value from the operation: " + operation.getPath());
         }
 
         // the old prefix doesn't equal with current prefix

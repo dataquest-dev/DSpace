@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-public class HandleClarinServiceFactoryImpl extends HandleClarinServiceFactory{
+public class HandleClarinServiceFactoryImpl extends HandleClarinServiceFactory {
 
     @Autowired(required = true)
     private HandleClarinService handleClarinService;

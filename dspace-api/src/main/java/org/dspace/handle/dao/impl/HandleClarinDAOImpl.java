@@ -7,6 +7,14 @@
  */
 package org.dspace.handle.dao.impl;
 
+import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -16,14 +24,6 @@ import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 import org.dspace.handle.Handle_;
 import org.dspace.handle.dao.HandleClarinDAO;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the Handle object.

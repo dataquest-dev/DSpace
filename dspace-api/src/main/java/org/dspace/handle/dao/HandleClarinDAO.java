@@ -7,10 +7,11 @@
  */
 package org.dspace.handle.dao;
 
-import org.dspace.core.Context;
-import org.dspace.handle.Handle;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.dspace.core.Context;
+import org.dspace.handle.Handle;
 
 /**
  * Database Access Object interface class for the Handle object.

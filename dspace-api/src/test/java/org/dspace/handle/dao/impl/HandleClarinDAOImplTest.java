@@ -11,6 +11,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.apache.logging.log4j.Logger;
 import org.dspace.AbstractUnitTest;
 import org.dspace.authorize.AuthorizeException;
@@ -40,10 +44,6 @@ import org.dspace.versioning.service.VersioningService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Test class for the Handle Clarin DAO
@@ -76,7 +76,8 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
     protected WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
     protected InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
     protected VersioningService versioningService = VersionServiceFactory.getInstance().getVersionService();
-    protected HandleClarinService handleClarinService = HandleClarinServiceFactory.getInstance().getHandleClarinService();
+    protected HandleClarinService handleClarinService =
+            HandleClarinServiceFactory.getInstance().getHandleClarinService();
 
     private HandleClarinDAO handleClarinDAO =
             new DSpace().getServiceManager().getServicesByType(HandleClarinDAO.class).get(0);
@@ -221,7 +222,8 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
         context.turnOffAuthorisationSystem();
         assertNotNull(this.externalHandle);
 
-        List<Handle> receivedHandles = handleClarinDAO.findAll(context, RESOURCE_TYPE_HANDLE_ITEM_SORTING_COLUMN_DEF, 10, 0);
+        List<Handle> receivedHandles =
+                handleClarinDAO.findAll(context, RESOURCE_TYPE_HANDLE_ITEM_SORTING_COLUMN_DEF, 10, 0);
 
         assertEquals(receivedHandles.size(), 3);
         context.restoreAuthSystemState();
@@ -232,7 +234,8 @@ public class HandleClarinDAOImplTest extends AbstractUnitTest {
         context.turnOffAuthorisationSystem();
         assertNotNull(this.externalHandle);
 
-        List<Handle> receivedHandles = handleClarinDAO.findAll(context, RESOURCE_TYPE_HANDLE_COLLECTION_SORTING_COLUMN_DEF, 10, 0);
+        List<Handle> receivedHandles =
+                handleClarinDAO.findAll(context, RESOURCE_TYPE_HANDLE_COLLECTION_SORTING_COLUMN_DEF, 10, 0);
 
         assertEquals(receivedHandles.size(), 1);
         context.restoreAuthSystemState();
