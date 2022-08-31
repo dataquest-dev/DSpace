@@ -1,20 +1,18 @@
 package org.dspace.app.rest.matcher;
 
-import org.dspace.core.Constants;
-import org.dspace.handle.HandlePlugin;
-import org.dspace.handle.external.Handle;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-
-import java.util.List;
-import java.util.UUID;
-
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+import java.util.List;
+
+import org.dspace.handle.external.Handle;
+import org.hamcrest.Matcher;
+
+/**
+ * Compare the json from the response with the expected values
+ */
 public class ExternalHandleMatcher {
 
     private ExternalHandleMatcher() {
@@ -31,7 +29,6 @@ public class ExternalHandleMatcher {
                 hasJsonPath("$.handle", is(handle))
         );
     }
-
 
     public static Matcher<? super Object> matchListOfExternalHandles(List<Handle> externalHandles) {
         return allOf(

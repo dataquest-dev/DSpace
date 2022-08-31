@@ -49,6 +49,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
+/**
+ * Integration test class for the ExternalHandleRestRepository
+ */
 public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
@@ -115,13 +118,6 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
                         expectedExternalHandles
                 )))
         ;
-
-
-    }
-
-    @Test
-    public void shortenHandle() throws Exception {
-        Assert.assertNotNull("ff");
     }
 
     @Test
@@ -180,5 +176,4 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
 
         return magicURLs;
     }
-
 }

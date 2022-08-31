@@ -49,7 +49,9 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
 
-
+/**
+ * The REST Controller which manages the `external/Handle` which has the URL with the `@magicLindat` string
+ */
 @RestController
 @RequestMapping("/api/services")
 public class ExternalHandleRestRepository {
@@ -69,7 +71,10 @@ public class ExternalHandleRestRepository {
     @Autowired
     private ConfigurationService configurationService;
 
-
+    /**
+     * Get all Handles with url which contains the `@magicLindat` string then convert them to the `external/Handle`
+     * and return in the List.
+     */
     @RequestMapping(value = EXTERNAL_HANDLE_ENDPOINT_FIND_ALL, method = RequestMethod.GET,
             produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public ResponseEntity<List<HandleRest>> getHandles(HttpServletResponse response,
@@ -90,6 +95,13 @@ public class ExternalHandleRestRepository {
         return responsee;
     }
 
+    /**
+     * From the Handle url create some `external/Handle` with short /handle/URL
+     * @param handle
+     * @param response
+     * @param request
+     * @return
+     */
     @RequestMapping(value = EXTERNAL_HANDLE_ENDPOINT_SHORTEN, method = RequestMethod.POST,
             produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public ResponseEntity<Object> shortenHandle(@RequestBody Handle handle, HttpServletResponse response,

@@ -35,8 +35,6 @@ import org.junit.Test;
  */
 public class DspaceObjectClarinImplTest extends AbstractUnitTest {
 
-    private static final String AUTHOR = "Test author name";
-
     private Collection col;
     private Community com;
     private Community subCom;
