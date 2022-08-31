@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -394,45 +395,50 @@ public class HandleServiceImpl implements HandleService {
         // Get next available suffix (as a Long, since DSpace uses an incrementing sequence)
         Long handleSuffix = handleDAO.getNextHandleSuffix(context);
 
-        //add subprefix for item handle
-        if (dso instanceof Item) {
-            PIDCommunityConfiguration pidCommunityConfiguration = PIDConfiguration
-                    .getPIDCommunityConfiguration(dso.getID());
-            //Which type is pis community configuration?
-            if (pidCommunityConfiguration.isEpic()) {
-                String handleId;
-                StringBuffer suffix = new StringBuffer();
-                String handleSubprefix = pidCommunityConfiguration.getSubprefix();
-                if (handleSubprefix != null && !handleSubprefix.isEmpty()) {
-                    suffix.append(handleSubprefix + "-");
-                }
-                suffix.append(handleSuffix);
-                String prefix = pidCommunityConfiguration.getPrefix();
-                try {
-                    handleId = DSpaceApi.handle_HandleManager_createId(log, handleSuffix, prefix, suffix.toString());
-                    // if the handle created successfully register the final handle
-                    DSpaceApi
-                            .handle_HandleManager_registerFinalHandleURL(log, handleId, dso);
-                } catch (IOException e) {
-                    throw new IllegalStateException(
-                            "External PID service is not working. Please contact the administrator. "
-                                    + "Internal message: [" + e.toString() + "]");
-                }
-                return handleId;
-            } else if (pidCommunityConfiguration.isLocal()) {
-                String handleSubprefix = pidCommunityConfiguration.getSubprefix();
-                if (handleSubprefix != null && !handleSubprefix.isEmpty()) {
-                    //create local handle
-                    return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/")
-                            + handleSubprefix + "-" + handleSuffix.toString();
-                }
-            } else {
-                throw new IllegalStateException("Unsupported PID type: "
-                        + pidCommunityConfiguration.getType());
-            }
+        String createdId = handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") + handleSuffix.toString();
+        if (!(dso instanceof Item)) {
+            //create handle for another type of dspace objects
+            return createdId;
         }
+
+        //add subprefix for item handle
+        PIDCommunityConfiguration pidCommunityConfiguration = PIDConfiguration
+                .getPIDCommunityConfiguration(dso.getID());
+        //Which type is pis community configuration?
+        if (pidCommunityConfiguration.isEpic()) {
+            String handleId;
+            StringBuffer suffix = new StringBuffer();
+            String handleSubprefix = pidCommunityConfiguration.getSubprefix();
+            if (Objects.nonNull(handleSubprefix) && !handleSubprefix.isEmpty()) {
+                suffix.append(handleSubprefix).append("-");
+            }
+            suffix.append(handleSuffix);
+            String prefix = pidCommunityConfiguration.getPrefix();
+            try {
+                handleId = DSpaceApi.handle_HandleManager_createId(log, handleSuffix, prefix, suffix.toString());
+                // if the handle created successfully register the final handle
+                DSpaceApi
+                        .handle_HandleManager_registerFinalHandleURL(log, handleId, dso);
+            } catch (IOException e) {
+                throw new IllegalStateException(
+                        "External PID service is not working. Please contact the administrator. "
+                                + "Internal message: [" + e.toString() + "]");
+            }
+            return handleId;
+        } else if (pidCommunityConfiguration.isLocal()) {
+            String handleSubprefix = pidCommunityConfiguration.getSubprefix();
+            if (Objects.nonNull(handleSubprefix) && !handleSubprefix.isEmpty()) {
+                //create local handle
+                return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/")
+                        + handleSubprefix + "-" + handleSuffix.toString();
+            }
+        } else {
+            throw new IllegalStateException("Unsupported PID type: "
+                    + pidCommunityConfiguration.getType());
+        }
+
         //create handle for another type of dspace objects
-        return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/") + handleSuffix.toString();
+        return createdId;
     }
 
     @Override

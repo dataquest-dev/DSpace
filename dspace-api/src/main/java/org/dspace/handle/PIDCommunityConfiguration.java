@@ -8,6 +8,7 @@
 package org.dspace.handle;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
@@ -94,7 +95,7 @@ public class PIDCommunityConfiguration {
     public String[] getAlternativePrefixes() {
         String[] alternativePrefixes = {};
         String alternativePrefixesString = configMap.get(ALTERNATIVE_PREFIXES_KEYWORD);
-        if (alternativePrefixesString != null) {
+        if (Objects.nonNull(alternativePrefixesString)) {
             alternativePrefixes = StringUtils.split(alternativePrefixesString, ALTERNATIVE_PREFIXES_DELIMITER);
         }
         return alternativePrefixes;
@@ -104,14 +105,17 @@ public class PIDCommunityConfiguration {
      * @return PID service type or null
      */
     public UUID getCommunityID() {
-        UUID communityID = null;
+        UUID communityID;
         String value = configMap.get(COMMUNITY_KEYWORD);
-        if (value != null) {
-            if (value.equals(ANY_KEYWORD)) {
-                communityID = null;
-            } else {
-                communityID = UUID.fromString(value);
-            }
+
+        if (Objects.isNull(value)) {
+            return null;
+        }
+
+        if (value.equals(ANY_KEYWORD)) {
+            communityID = null;
+        } else {
+            communityID = UUID.fromString(value);
         }
         return communityID;
     }

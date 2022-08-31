@@ -24,9 +24,13 @@ import net.handle.hdllib.HandleStorage;
 import net.handle.hdllib.HandleValue;
 import net.handle.hdllib.ScanCallback;
 import net.handle.hdllib.Util;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
@@ -62,10 +66,17 @@ public class HandlePlugin implements HandleStorage {
      */
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(HandlePlugin.class);
 
+    /**
+     * Repository name loaded from the configuration
+     */
     private static String repositoryName;
-
+    /**
+     * Repository email loaded from the configuration
+     */
     private static String repositoryEmail;
-
+    /**
+     * Canonical handle prefix loaded from the configuration
+     */
     private static String canonicalHandlePrefix;
 
     /**
@@ -78,6 +89,7 @@ public class HandlePlugin implements HandleStorage {
      **/
     protected static HandleService handleService;
     protected static ConfigurationService configurationService;
+    protected static ItemService itemService;
 
     ////////////////////////////////////////
     // Non-Resolving methods -- unimplemented
@@ -417,17 +429,26 @@ public class HandlePlugin implements HandleStorage {
         }
     }
 
+    /**
+     * Initialize Handle, Configuration and Item service
+     */
     private static void loadServices() {
         // services are loaded
-        if (Objects.nonNull(handleService) && Objects.nonNull(configurationService)) {
+        if (Objects.nonNull(handleService) && Objects.nonNull(configurationService) &&
+            Objects.nonNull(itemService)) {
             return;
         }
 
         // Get a reference to the HandleService & ConfigurationService
         handleService = HandleServiceFactory.getInstance().getHandleService();
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        itemService = ContentServiceFactory.getInstance().getItemService();
     }
 
+    /**
+     * Load the repository email from the configuration. The mail is in the property `help.mail`.
+     * @return configured repository mail as String or return null if it is not configured
+     */
     public static String getRepositoryEmail() {
         if (Objects.nonNull(repositoryEmail)) {
             return repositoryEmail;
@@ -443,15 +464,21 @@ public class HandlePlugin implements HandleStorage {
 
         String email = configurationService.getProperty(
                 "help.mail");
-        if (email != null) {
-            repositoryEmail = email.trim();
-        } else {
+
+        // the email is not configured
+        if (Objects.isNull(email)) {
             repositoryEmail = null;
+            return repositoryEmail;
         }
 
+        repositoryEmail = email.trim();
         return repositoryEmail;
     }
 
+    /**
+     * Load the repository name from the configuration. The name is in the property `dspace.name`.
+     * @return configured repository name as String or return null if it is not configured
+     */
     public static String getRepositoryName() {
         if (Objects.nonNull(repositoryName)) {
             return repositoryName;
@@ -467,20 +494,23 @@ public class HandlePlugin implements HandleStorage {
 
         String name = configurationService.getProperty(
                 "dspace.name");
-        if (Objects.nonNull(name)) {
-            repositoryName = name.trim();
-        } else {
+        if (Objects.isNull(name)) {
             repositoryName = null;
+            return repositoryName;
         }
 
+        repositoryName = name.trim();
         return repositoryName;
     }
 
+    /**
+     * Load the canonical handle prefix from the configuration. The prefix is in the property `handle.canonical.prefix`.
+     * @return canonical handle prefix as String or return DEFAULT_CANONICAL_HANDLE_PREFIX = `http://hdl.handle.net/`
+     */
     public static String getCanonicalHandlePrefix() {
         if (Objects.nonNull(canonicalHandlePrefix)) {
             return canonicalHandlePrefix;
         }
-
         // Handle and Configuration Service
         loadServices();
 
@@ -497,20 +527,27 @@ public class HandlePlugin implements HandleStorage {
 
     public static Map<String, String> extractMetadata(DSpaceObject dso) {
         Map<String, String> map = new LinkedHashMap<>();
-        if (null != dso) {
-            List<MetadataValue> mds = dso.getMetadata();
-            if (0 < mds.size()) {
-                map.put(AbstractPIDService.HANDLE_FIELDS.TITLE.toString(), mds.get(0).getValue());
-            }
-            map.put(AbstractPIDService.HANDLE_FIELDS.REPOSITORY.toString(), getRepositoryName());
-            mds = dso.getMetadata();
-            if (0 < mds.size()) {
-                map.put(AbstractPIDService.HANDLE_FIELDS.SUBMITDATE.toString(), mds.get(0).getValue());
-            }
-            map.put(AbstractPIDService.HANDLE_FIELDS.REPORTEMAIL.toString(), getRepositoryEmail());
+        if (Objects.isNull(dso)) {
+            return map;
         }
+
+        if (!(dso instanceof Item)) {
+            return map;
+        }
+        // load ItemService
+        loadServices();
+
+        // load the DSpaceObject metadata
+        List<MetadataValue> mds = itemService.getMetadataByMetadataString((Item) dso, "dc.title");
+        if (CollectionUtils.isNotEmpty(mds)) {
+            map.put(AbstractPIDService.HANDLE_FIELDS.TITLE.toString(), mds.get(0).getValue());
+        }
+        map.put(AbstractPIDService.HANDLE_FIELDS.REPOSITORY.toString(), getRepositoryName());
+        mds = itemService.getMetadataByMetadataString((Item) dso, "dc.date.accessioned");
+        if (CollectionUtils.isNotEmpty(mds)) {
+            map.put(AbstractPIDService.HANDLE_FIELDS.SUBMITDATE.toString(), mds.get(0).getValue());
+        }
+        map.put(AbstractPIDService.HANDLE_FIELDS.REPORTEMAIL.toString(), getRepositoryEmail());
         return map;
     }
-
-
 }
