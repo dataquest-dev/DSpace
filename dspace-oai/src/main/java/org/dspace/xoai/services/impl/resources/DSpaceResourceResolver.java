@@ -30,15 +30,27 @@ import org.dspace.xoai.services.impl.resources.functions.GetLangForCodeFn;
 import org.dspace.xoai.services.impl.resources.functions.GetPropertyFn;
 import org.dspace.xoai.services.impl.resources.functions.GetSizeFn;
 import org.dspace.xoai.services.impl.resources.functions.GetUploadedMetadataFn;
+import org.dspace.xoai.services.impl.resources.functions.LogMissingFn;
+import org.dspace.xoai.services.impl.resources.functions.LogMissingMsgFn;
 import org.dspace.xoai.services.impl.resources.functions.StringReplaceFn;
+import org.dspace.xoai.services.impl.resources.functions.UriToLicenseFn;
+import org.dspace.xoai.services.impl.resources.functions.UriToMetaShareFn;
+import org.dspace.xoai.services.impl.resources.functions.UriToRestrictionsFn;
 
 public class DSpaceResourceResolver implements ResourceResolver {
     private static final TransformerFactory transformerFactory = TransformerFactory
             .newInstance("net.sf.saxon.TransformerFactoryImpl", null);
     static {
-        List<ExtensionFunction> extensionFunctionList = List.of(new GetPropertyFn(), new StringReplaceFn(),
+        /*
+         * Any additional extension functions that might be used in XST transformations
+         * should be added to this list. Look at those already added for inspiration.
+         */
+        List<ExtensionFunction> extensionFunctionList = List.of(
+                new GetPropertyFn(), new StringReplaceFn(), new UriToMetaShareFn(),
+                new UriToLicenseFn(), new LogMissingMsgFn(), new UriToRestrictionsFn(),
                 new GetContactFn(), new GetAuthorFn(), new GetFundingFn(), new GetLangForCodeFn(),
-                new GetPropertyFn(), new GetSizeFn(), new GetUploadedMetadataFn());
+                new GetPropertyFn(), new GetSizeFn(), new GetUploadedMetadataFn(), new LogMissingFn()
+        );
 
         SaxonTransformerFactory saxonTransformerFactory = (SaxonTransformerFactory) transformerFactory;
         for (ExtensionFunction en :

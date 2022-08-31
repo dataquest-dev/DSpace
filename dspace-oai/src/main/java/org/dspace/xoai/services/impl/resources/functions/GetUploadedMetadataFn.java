@@ -21,6 +21,6 @@ public class GetUploadedMetadataFn extends NodeXslFunction {
 
     @Override
     protected Node getNode(String param) {
-        return new SpecialItemService().getUploadedMetadata(param);
+        return SpecialItemService.getUploadedMetadata(param);
     }
 }

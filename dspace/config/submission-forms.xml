@@ -387,8 +387,6 @@
                     <required>You must enter at least the year.</required>
                 </field>
 
-
-
                 <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>publisher</dc-element>
@@ -903,7 +901,6 @@
                     </hint>
                     <required>You must enter at least the year.</required>
                 </field>
-
             </row>
             <row>
                 <field>

@@ -20,6 +20,6 @@ public class GetContactFn extends NodeXslFunction {
 
     @Override
     protected Node getNode(String param) {
-        return new SpecialItemService().getContact(param);
+        return SpecialItemService.getContact(param);
     }
 }

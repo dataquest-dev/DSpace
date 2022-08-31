@@ -2,17 +2,14 @@
 <!-- 
 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:doc="http://www.lyncode.com/xoai" 
-    xmlns:logUtil="cz.cuni.mff.ufal.utils.XslLogUtil"
-    xmlns:isocodes="cz.cuni.mff.ufal.IsoLangCodes"
-    xmlns:license="cz.cuni.mff.ufal.utils.LicenseUtil"
-    xmlns:xalan="http://xml.apache.org/xslt"
+    xmlns:doc="http://www.lyncode.com/xoai"
     xmlns:str="http://exslt.org/strings"
     xmlns:ms="http://www.ilsp.gr/META-XMLSchema"
-    exclude-result-prefixes="doc logUtil isocodes license xalan str"
+    xmlns:fn="http://custom.crosswalk.functions"
+    exclude-result-prefixes="doc fn str"
     version="1.0">
-    
-    <xsl:output omit-xml-declaration="yes" method="xml" indent="yes" xalan:indent-amount="4"/>
+
+    <xsl:output omit-xml-declaration="yes" method="xml" indent="yes"/>
     
     <xsl:variable name="handle" select="/doc:metadata/doc:element[@name='others']/doc:field[@name='handle']/text()"/>
     <xsl:variable name="rightsUri" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value']"/>
@@ -66,7 +63,7 @@
                         <xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']" />
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="logUtil:logMissing('resourceName',$handle)"/>
+                        <xsl:value-of select="fn:logMissing('resourceName',$handle)"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </ms:resourceName>
@@ -79,7 +76,7 @@
                         <xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element/doc:field[@name='value']" />
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="logUtil:logMissing('description',$handle)"/>
+                        <xsl:value-of select="fn:logMissing('description',$handle)"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </ms:description>
@@ -90,7 +87,7 @@
                         <xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']" />
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="logUtil:logMissing('identifier',$handle)"/>
+                        <xsl:value-of select="fn:logMissing('identifier',$handle)"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </ms:identifier>
@@ -99,10 +96,10 @@
     
     <xsl:template name="DistributionInfo">
     <ms:distributionInfo>
-           <ms:availability><xsl:value-of select="license:uriToAvailability($rightsUri)"/></ms:availability>
+           <ms:availability><xsl:value-of select="fn:uriToAvailability($rightsUri)"/></ms:availability>
             <ms:licenceInfo>
-                <ms:licence><xsl:value-of select="license:uriToMetashare($rightsUri)"/></ms:licence>
-                <xsl:for-each select="license:uriToRestrictions($rightsUri)">
+                <ms:licence><xsl:value-of select="fn:uriToMetashare($rightsUri)"/></ms:licence>
+                <xsl:for-each select="fn:uriToRestrictions($rightsUri)">
                         <ms:restrictionsOfUse><xsl:value-of select="."/></ms:restrictionsOfUse>
                 </xsl:for-each>
                     <xsl:choose>
@@ -126,7 +123,7 @@
                         </xsl:when>
                         <xsl:otherwise>
                         <ms:distributionAccessMedium>
-                            <xsl:value-of select="logUtil:logMissing('distributionAccessMedium',$handle)"/>
+                            <xsl:value-of select="fn:logMissing('distributionAccessMedium',$handle)"/>
                         </ms:distributionAccessMedium>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -148,7 +145,7 @@
                     <xsl:value-of select="str:split(doc:metadata/doc:element[@name='local']/doc:element[@name='contact']/doc:element[@name='person']/doc:element/doc:field[@name='value'], '@@')[2]"/>
                 </xsl:when>
 				<xsl:otherwise>
-					<xsl:value-of select="logUtil:logMissing('surname',$handle)" />
+					<xsl:value-of select="fn:logMissing('surname',$handle)" />
 				</xsl:otherwise>
 			</xsl:choose>
 		</ms:surname>
@@ -164,7 +161,7 @@
                     <xsl:value-of select="str:split(doc:metadata/doc:element[@name='local']/doc:element[@name='contact']/doc:element[@name='person']/doc:element/doc:field[@name='value'], '@@')[1]"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="logUtil:logMissing('givenName',$handle)" />
+                    <xsl:value-of select="fn:logMissing('givenName',$handle)" />
                 </xsl:otherwise>
             </xsl:choose>		
 		</ms:givenName>
@@ -208,7 +205,7 @@
                             <xsl:value-of select="str:split(doc:metadata/doc:element[@name='local']/doc:element[@name='contact']/doc:element[@name='person']/doc:element/doc:field[@name='value'], '@@')[3]"/>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="logUtil:logMissing('email',$handle)" />
+                            <xsl:value-of select="fn:logMissing('email',$handle)" />
                         </xsl:otherwise>
                     </xsl:choose>        
             </ms:email>   
@@ -305,7 +302,7 @@
                     <xsl:when test="not($fundingProjectNameCount = $fundingTypeCount)">
                         <!-- Implies funding info is incomplete -->
                         <xsl:variable name="msg" select="concat('Item with handle ', $handle,' has incomplete funding info')"/>
-                        <xsl:variable name="iJustWantToLog" select="logUtil:logMissing('fundingInfo', $handle, $msg)" />
+                        <xsl:variable name="iJustWantToLog" select="fn:logMissingMsg('fundingInfo', $handle, $msg)" />
                     </xsl:when>
                 </xsl:choose>
             </xsl:otherwise>
@@ -335,7 +332,7 @@
                 <xsl:value-of select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="logUtil:logMissing('type',$handle)"/>
+                <xsl:value-of select="fn:logMissing('type',$handle)"/>
             </xsl:otherwise>
         </xsl:choose>
 	</xsl:template>
@@ -348,7 +345,7 @@
 	               <xsl:value-of select="/doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ContentInfo']/doc:element[@name='mediaType']/doc:element/doc:field[@name='value']"/>
 	           </xsl:when>
 	           <xsl:otherwise>
-                   <xsl:value-of select="logUtil:logMissing('mediaType',$handle)"/>
+                   <xsl:value-of select="fn:logMissing('mediaType',$handle)"/>
 	           </xsl:otherwise>
 	       </xsl:choose>
 	   </xsl:if>
@@ -369,7 +366,7 @@
                    </xsl:choose>
 	           </xsl:when>
 	           <xsl:otherwise>
-                   <xsl:value-of select="logUtil:logMissing('detailedType',$handle)"/>
+                   <xsl:value-of select="fn:logMissing('detailedType',$handle)"/>
 	           </xsl:otherwise>
 	       </xsl:choose>
 	   </xsl:if>
@@ -415,12 +412,12 @@
 	                               <xsl:for-each select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='language']/doc:element[@name='iso']/doc:element/doc:field[@name='value']">
 	                                   <ms:languageInfo>
 	                                       <ms:languageId><xsl:value-of select="."/></ms:languageId>
-	                                       <ms:languageName><xsl:value-of select="isocodes:getLangForCode(.)"/></ms:languageName>
+	                                       <ms:languageName><xsl:value-of select="fn:getLangForCode(.)"/></ms:languageName>
 	                                   </ms:languageInfo>
 	                               </xsl:for-each>
 	                           </xsl:when>
                                <xsl:otherwise>
-                                   <xsl:value-of select="logUtil:logMissing('language',$handle)"/>
+                                   <xsl:value-of select="fn:logMissing('language',$handle)"/>
                                </xsl:otherwise>
 	                       </xsl:choose>
                             <xsl:choose>
@@ -443,7 +440,7 @@
 	                       <xsl:value-of select="/doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ResourceComponentType#ToolServiceInfo']/doc:element[@name='languageDependent']/doc:element/doc:field[@name='value']"/>
 	                   </xsl:when>
                        <xsl:otherwise>
-                           <xsl:value-of select="logUtil:logMissing('languageDependent',$handle)"/>
+                           <xsl:value-of select="fn:logMissing('languageDependent',$handle)"/>
                        </xsl:otherwise>
 	               </xsl:choose>
 		   </ms:languageDependent>
@@ -465,7 +462,7 @@
                         <xsl:value-of select="str:split(doc:metadata/doc:element[@name='local']/doc:element[@name='size']/doc:element[@name='info']/doc:element/doc:field[@name='value'], '@@')[1]"/>
                     </xsl:when>
 					<xsl:otherwise>
-                        			<xsl:variable name="iJustWantToLog" select="logUtil:logMissing('size',$handle)" />
+                        			<xsl:variable name="iJustWantToLog" select="fn:logMissing('size',$handle)" />
 						<xsl:value-of select="count(/doc:metadata/doc:element[@name='bundles']/doc:element[@name='bundle']/doc:field[@name='name'][text()='ORIGINAL']/../doc:element[@name='bitstreams']/doc:element[@name='bitstream'])"/>
 					</xsl:otherwise>
 				</xsl:choose>
@@ -482,7 +479,7 @@
                         <xsl:value-of select="str:split(doc:metadata/doc:element[@name='local']/doc:element[@name='size']/doc:element[@name='info']/doc:element/doc:field[@name='value'], '@@')[2]"/>
                     </xsl:when>
 					<xsl:otherwise>
-                        			<xsl:variable name="iJustWantToLog" select="logUtil:logMissing('size',$handle)" />
+                        			<xsl:variable name="iJustWantToLog" select="fn:logMissing('size',$handle)" />
 						<xsl:text>files</xsl:text>
 					</xsl:otherwise>
 				</xsl:choose>

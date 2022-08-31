@@ -5,20 +5,18 @@
  *
  * http://www.dspace.org/license/
  */
-
 package org.dspace.xoai.services.impl.resources.functions;
 
-import org.dspace.utils.SpecialItemService;
-import org.w3c.dom.Node;
+import org.dspace.utils.LicenseUtil;
 
-public class GetSizeFn extends NodeXslFunction {
+public class UriToMetaShareFn extends StringXSLFunction {
     @Override
     protected String getFnName() {
-        return "getSize";
+        return "uriToMetashare";
     }
 
     @Override
-    protected Node getNode(String param) {
-        return SpecialItemService.getSize(param);
+    protected String getStringResult(String param) {
+        return LicenseUtil.uriToMetashare(param);
     }
 }

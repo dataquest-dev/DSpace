@@ -37,11 +37,12 @@ import org.xml.sax.InputSource;
 @Component
 public class SpecialItemService {
 
+    private SpecialItemService() {}
     /** log4j logger */
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger
+    private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
             .getLogger(SpecialItemService.class);
 
-    public Node getUploadedMetadata(String handle) {
+    public static Node getUploadedMetadata(String handle) {
         Node ret = null;
         Context context = null;
         try {
@@ -84,7 +85,7 @@ public class SpecialItemService {
         return ret;
     }
 
-    public Node getFunding(String mdValue) {
+    public static Node getFunding(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -118,7 +119,7 @@ public class SpecialItemService {
         }
     }
 
-    public Node getContact(String mdValue) {
+    public static Node getContact(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -152,7 +153,7 @@ public class SpecialItemService {
         }
     }
 
-    public Node getSize(String mdValue) {
+    public static Node getSize(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -183,7 +184,7 @@ public class SpecialItemService {
         }
     }
 
-    public Node getAuthor(String mdValue) {
+    public static Node getAuthor(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -211,14 +212,14 @@ public class SpecialItemService {
         }
     }
 
-    public boolean hasOwnMetadata(List<MetadataValue> metadataValues) {
+    public static boolean hasOwnMetadata(List<MetadataValue> metadataValues) {
         if (metadataValues.size() == 1 && metadataValues.get(0).getValue().equalsIgnoreCase("true")) {
             return true;
         }
         return false;
     }
 
-    private void closeContext(Context c) {
+    private static void closeContext(Context c) {
         if (c != null) {
             c.abort();
         }

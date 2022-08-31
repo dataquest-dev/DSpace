@@ -19,6 +19,6 @@ public class GetAuthorFn extends NodeXslFunction {
 
     @Override
     protected Node getNode(String param) {
-        return new SpecialItemService().getAuthor(param);
+        return SpecialItemService.getAuthor(param);
     }
 }

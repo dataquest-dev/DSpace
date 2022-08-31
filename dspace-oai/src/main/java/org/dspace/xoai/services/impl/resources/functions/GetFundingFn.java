@@ -19,6 +19,6 @@ public class GetFundingFn extends NodeXslFunction {
 
     @Override
     protected Node getNode(String param) {
-        return new SpecialItemService().getFunding(param);
+        return SpecialItemService.getFunding(param);
     }
 }

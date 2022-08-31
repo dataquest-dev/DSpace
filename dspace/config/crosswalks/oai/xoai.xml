@@ -466,6 +466,7 @@
                 <string name="field">dc.contributor.author</string>
             </Configuration>
         </CustomCondition>
+
         <!-- This condition determines if an Item has a "dc.title" -->
         <CustomCondition id="titleExistsCondition">
             <Class>org.dspace.xoai.filter.DSpaceMetadataExistsFilter</Class>
