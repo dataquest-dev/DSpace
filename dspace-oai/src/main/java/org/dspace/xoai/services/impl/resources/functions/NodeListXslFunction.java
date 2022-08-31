@@ -6,7 +6,6 @@
  * http://www.dspace.org/license/
  */
 
-
 package org.dspace.xoai.services.impl.resources.functions;
 
 import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunction.BASE;
@@ -23,10 +22,17 @@ import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.SequenceType;
+import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
+import org.bouncycastle.util.Arrays;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.util.Objects;
+
+/**
+ * Serves as proxy for call from XSL engine.
+ */
 public abstract class NodeListXslFunction implements ExtensionFunction {
 
     protected abstract String getFnName();
@@ -52,9 +58,12 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
 
     @Override
     final public XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
+        if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues)) {
+            return new XdmAtomicValue("");
+        }
         NodeList nodeList = getNodeList(xdmValues[0].itemAt(0).getStringValue());
         DocumentBuilder db = new Processor(false).newDocumentBuilder();
-        if (nodeList == null) {
+        if (Objects.isNull(nodeList)) {
             try {
                 nodeList = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument().getChildNodes();
             } catch (ParserConfigurationException e) {

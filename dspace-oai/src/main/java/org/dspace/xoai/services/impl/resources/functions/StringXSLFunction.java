@@ -8,6 +8,7 @@
 
 package org.dspace.xoai.services.impl.resources.functions;
 
+import com.rometools.utils.Strings;
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
 import net.sf.saxon.s9api.OccurrenceIndicator;
@@ -16,6 +17,14 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.SequenceType;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
+import org.bouncycastle.util.Arrays;
+
+import java.util.Objects;
+
+/**
+ * Serves as proxy for call from XSL engine. Base for all functions having one string param
+ * and returning one string.
+ */
 public abstract class StringXSLFunction implements ExtensionFunction {
 
     public static final String BASE = "http://custom.crosswalk.functions";
@@ -50,11 +59,14 @@ public abstract class StringXSLFunction implements ExtensionFunction {
 
     @Override
     final public XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
+        if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues)) {
+            return new XdmAtomicValue("");
+        }
         return new XdmAtomicValue(checks(getStringResult(xdmValues[0].itemAt(0).getStringValue())));
     }
 
     private String checks(String got) {
-        if (got == null) {
+        if (Strings.isEmpty(got)) {
             return "";
         }
 

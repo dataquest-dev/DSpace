@@ -5,12 +5,12 @@
  *
  * http://www.dspace.org/license/
  */
-
 /* Created for LINDAT/CLARIAH-CZ (UFAL) */
 
 package org.dspace.xoai.filter;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 import com.lyncode.xoai.dataprovider.core.ReferenceSet;
 import org.apache.log4j.LogManager;
@@ -28,7 +28,9 @@ import org.dspace.xoai.services.api.HandleResolver;
 import org.dspace.xoai.services.api.HandleResolverException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
+/**
+ * Serves as filter in xoai for OAI-PMH interface.
+ */
 public class ColComFilter extends DSpaceFilter {
     private static Logger log = LogManager.getLogger(ColComFilter.class);
 
@@ -83,36 +85,35 @@ public class ColComFilter extends DSpaceFilter {
     }
 
     private DSpaceObject getDSpaceObject() {
-        if (dso == null) {
-            if (getConfiguration().get("handle") != null) {
-                String handle = getConfiguration().get("handle").asSimpleType().asString();
-                try {
-                    dso = handleResolver.resolve(handle);
-                } catch (HandleResolverException e) {
-                    log.error(e);
+        if (Objects.isNull(dso)) {
+            return dso;
+        }
+        if (Objects.nonNull(getConfiguration().get("handle"))) {
+            String handle = getConfiguration().get("handle").asSimpleType().asString();
+            try {
+                dso = handleResolver.resolve(handle);
+            } catch (HandleResolverException e) {
+                log.error(e);
+            }
+        } else if (Objects.nonNull(getConfiguration().get("name"))) {
+            String name = getConfiguration().get("name").asSimpleType().asString();
+            try {
+                for (Community c : communityService.findAll(context)) {
+                    if (name.equals(c.getName())) {
+                        dso = c;
+                        break;
+                    }
                 }
-            } else if (getConfiguration().get("name") != null) {
-                String name = getConfiguration().get("name").asSimpleType().asString();
-                try {
-
-                    for (Community c : communityService.findAll(context)) {
+                if (Objects.isNull(dso)) {
+                    for (Collection c : collectionService.findAll(context)) {
                         if (name.equals(c.getName())) {
                             dso = c;
                             break;
                         }
                     }
-                    if (dso == null) {
-                        for (Collection c : collectionService.findAll(context)) {
-                            if (name.equals(c.getName())) {
-                                dso = c;
-                                break;
-                            }
-                        }
-                    }
-                } catch (SQLException e) {
-                    log.error(e);
                 }
-
+            } catch (SQLException e) {
+                log.error(e);
             }
         }
         return dso;

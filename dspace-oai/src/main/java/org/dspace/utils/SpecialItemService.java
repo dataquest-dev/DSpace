@@ -12,10 +12,12 @@ package org.dspace.utils;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.rometools.utils.Strings;
 import org.dspace.app.util.DCInput;
 import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
@@ -37,11 +39,21 @@ import org.xml.sax.InputSource;
 @Component
 public class SpecialItemService {
 
+    /**
+     * Refactored class from clarin-dspace. Provides various information based on
+     * provided metadata or strings
+     */
+
     private SpecialItemService() {}
     /** log4j logger */
     private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
             .getLogger(SpecialItemService.class);
 
+    /**
+     * Returns cmdi metadata of item, if uploaded and marked as local.hasCMDI = true.
+     * @param handle handle of object for which we need metadata.
+     * @return Document repserenting cmdi metadata uploaded to METADATA bundle of item.
+     */
     public static Node getUploadedMetadata(String handle) {
         Node ret = null;
         Context context = null;
@@ -54,10 +66,13 @@ public class SpecialItemService {
             DSpaceObject dSpaceObject = hs.resolveToObject(context, handle);
             List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(((Item) dSpaceObject),
                     "local.hasCMDI");
-            if (dSpaceObject != null && dSpaceObject.getType() == Constants.ITEM && hasOwnMetadata(metadataValues)) {
+            if (Objects.nonNull(dSpaceObject) && dSpaceObject.getType() == Constants.ITEM && hasOwnMetadata(metadataValues)) {
 
                 Bitstream bitstream = itemService.getBundles(((Item) dSpaceObject), "METADATA").get(0)
                         .getBitstreams().get(0);
+                if (Objects.isNull(bitstream)) {
+                    return ret;
+                }
                 context.turnOffAuthorisationSystem();
                 Reader reader = new InputStreamReader(bitstreamService.retrieve(context, bitstream));
                 context.restoreAuthSystemState();
@@ -85,6 +100,11 @@ public class SpecialItemService {
         return ret;
     }
 
+    /**
+     * Splits funding into separate values and creates document with those values.
+     * @param mdValue String of funding, expected to have 4 fields separated by ;
+     * @return document representing separated values from param
+     */
     public static Node getFunding(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -100,9 +120,12 @@ public class SpecialItemService {
             Element code = doc.createElementNS(ns, "code");
             Element fundsType = doc.createElementNS(ns, "fundsType");
 
+            if (Objects.isNull(mdValue)) {
+                log.warn("Trying to extract funding from null value!");
+                return null;
+            }
             String[] values = mdValue
                     .split(DCInput.ComplexDefinitions.getSeparator(), -1);
-
             // mind the order in input forms, org;code;projname;type
             Element[] elements = {organization, code, projName, fundsType};
             for (int i = 0; i < elements.length; i++) {
@@ -119,6 +142,11 @@ public class SpecialItemService {
         }
     }
 
+    /**
+     * Creates document representing separated/parsed contact info from param
+     * @param mdValue Contact field with several values delimited by ;
+     * @return document representing separated values
+     */
     public static Node getContact(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -184,6 +212,11 @@ public class SpecialItemService {
         }
     }
 
+    /**
+     * Generates author document from provided string.
+     * @param mdValue String containing author, possibly with separated Firstname by ;
+     * @return document representing possibly separated values from param.
+     */
     public static Node getAuthor(String mdValue) {
         String ns = "http://www.clarin.eu/cmd/";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -196,12 +229,20 @@ public class SpecialItemService {
             doc.appendChild(el);
             Element last = doc.createElementNS(ns, "lastName");
 
+            if (Strings.isEmpty(mdValue)) {
+                log.warn("Trying to extract author from empty string!");
+                return null;
+            }
             String[] values = mdValue
                     .split(",", 2);
 
             last.appendChild(doc.createTextNode(values[0]));
             el.appendChild(last);
             if (values.length > 1) {
+                // this probably means that if there are multiple fields, first is surname, second
+                // is first name. Taken from here:
+                // https://github.com/ufal/clarin-dspace/blob/8780782ce2977d304f2390b745a98eaea00b8255/
+                // dspace-oai/src/main/java/cz/cuni/mff/ufal/utils/ItemUtil.java#L168
                 Element first = doc.createElementNS(ns, "firstName");
                 first.appendChild(doc.createTextNode(values[1]));
                 el.appendChild(first);
@@ -220,7 +261,7 @@ public class SpecialItemService {
     }
 
     private static void closeContext(Context c) {
-        if (c != null) {
+        if (Objects.nonNull(c)) {
             c.abort();
         }
     }

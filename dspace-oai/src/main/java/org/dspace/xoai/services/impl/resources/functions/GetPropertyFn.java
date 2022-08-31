@@ -10,6 +10,9 @@ package org.dspace.xoai.services.impl.resources.functions;
 
 import org.dspace.services.factory.DSpaceServicesFactory;
 
+/**
+ * Serves as proxy for call from XSL engine. Returns property from config.
+ */
 public class GetPropertyFn extends StringXSLFunction {
 
     @Override

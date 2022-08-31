@@ -11,6 +11,9 @@ package org.dspace.xoai.services.impl.resources.functions;
 import org.dspace.utils.SpecialItemService;
 import org.w3c.dom.Node;
 
+/**
+ * Serves as proxy for call from XSL engine. Calls SpecialItemService.
+ */
 public class GetFundingFn extends NodeXslFunction {
     @Override
     protected String getFnName() {

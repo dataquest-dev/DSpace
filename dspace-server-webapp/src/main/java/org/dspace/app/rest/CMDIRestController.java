@@ -20,6 +20,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,8 +48,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
-
+/**
+ * Creates endpoint /cmdi/oai-metadata that returns metadata in cmdi format.
+ */
 @RestController
 @RequestMapping("/cmdi")
 public class CMDIRestController {
@@ -68,10 +70,10 @@ public class CMDIRestController {
     @Autowired
     private ItemRepositoryResolver itemRepositoryResolver;
 
-    private DSpaceResumptionTokenFormatter resumptionTokenFormat = new DSpaceResumptionTokenFormatter();
+    private final DSpaceResumptionTokenFormatter resumptionTokenFormat = new DSpaceResumptionTokenFormatter();
 
-    /*
-     * This is not an oai endpoint. It's here only to expose the metadata
+    /**
+     * This is not an oai endpoint. It's here only to expose the cmdi metadata
      */
     @RequestMapping("/oai-metadata")
     public String getCmdiMetadata(Model model, HttpServletRequest request, HttpServletResponse response)
@@ -160,14 +162,14 @@ public class CMDIRestController {
     }
 
     private void closeContext(Context context) {
-        if (context != null && context.isValid()) {
+        if (Objects.nonNull(context) && context.isValid()) {
             context.abort();
         }
     }
 
     private Map<String, List<String>> buildParametersMap(HttpServletRequest request) {
         Map<String, List<String>> map = new HashMap<String, List<String>>();
-        Enumeration names = request.getParameterNames();
+        Enumeration<String> names = request.getParameterNames();
         while (names.hasMoreElements()) {
             String name = (String) names.nextElement();
             String[] values = request.getParameterValues(name);
@@ -176,6 +178,10 @@ public class CMDIRestController {
         return map;
     }
 
+    /**
+     * Returns contexts available
+     * @throws ServletException if it can't load XOAI manager
+     */
     @RequestMapping("/")
     public String indexAction(HttpServletResponse response, org.springframework.ui.Model model)
             throws ServletException {

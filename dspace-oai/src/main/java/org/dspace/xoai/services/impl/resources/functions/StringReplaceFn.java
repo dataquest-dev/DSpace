@@ -8,6 +8,9 @@
 
 package org.dspace.xoai.services.impl.resources.functions;
 
+/**
+ * Serves as proxy for call from XSL engine. Replaces http:// with https://
+ */
 public class StringReplaceFn extends StringXSLFunction {
 
     @Override

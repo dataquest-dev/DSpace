@@ -6,15 +6,14 @@
  * http://www.dspace.org/license/
  */
 
-
 /* Created for LINDAT/CLARIAH-CZ (UFAL) */
 package org.dspace.utils;
-
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,10 +24,15 @@ import org.w3c.dom.Element;
 
 public class LicenseUtil {
 
+
+    /**
+     * I don't know what exactly this class does. It replaces strings in licenses. Used in
+     * XST crosswalks.
+     */
     private LicenseUtil() {}
 
     /** log4j logger */
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger
+    private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
             .getLogger(LicenseUtil.class);
 
     /*
@@ -74,7 +78,7 @@ public class LicenseUtil {
                         <xs:enumeration value="other"/>
 
      */
-    private static String[] _uri2metashareDefs = {
+    private static final String[] _uri2metashareDefs = {
         "http://opensource.org/licenses/GPL-3.0,GPL",
         "http://www.gnu.org/licenses/gpl-2.0.html,GPL",
         "http://opensource.org/licenses/BSD-2-Clause,BSD",
@@ -104,7 +108,7 @@ public class LicenseUtil {
                         <xs:enumeration value="other"/>
 
      */
-    private static String[] _restrictionDefs = {
+    private static final String[] _restrictionDefs = {
             ccToRes("http://creativecommons.org/licenses/by-nc/3.0/"),
             ccToRes("http://creativecommons.org/licenses/by-nc-sa/3.0/"),
             ccToRes("http://creativecommons.org/licenses/by-nd/3.0/"),
@@ -139,7 +143,13 @@ public class LicenseUtil {
         HashMap<String, String> map = new HashMap<String, String>();
         for (String def : _uri2metashareDefs) {
             String[] defn = def.split(",", 2);
-            map.put(defn[0], defn[1]);
+            if (defn.length < 2) {
+                log.warn("Bad string " + def + ", should have at least two parts " +
+                                "delimited by ,");
+                map.put("", "");
+            } else {
+                map.put(defn[0], defn[1]);
+            }
         }
         return Collections.unmodifiableMap(map);
     }
@@ -148,16 +158,28 @@ public class LicenseUtil {
         HashMap<String, String> map = new HashMap<String, String>();
         for (String def : _restrictionDefs) {
             String[] defn = def.split("©", 2);
-            map.put(defn[0], defn[1]);
+            if (defn.length < 2) {
+                log.warn("Bad string " + def + ", should have at least two parts " +
+                        "delimited by ,");
+                map.put("", "");
+            } else {
+                map.put(defn[0], defn[1]);
+            }
         }
         return Collections.unmodifiableMap(map);
     }
 
+    /**
+     *
+     * @param uri uri
+     * @return returns string mapped to uri. If not mapped, returns "other". I don't know why.
+     */
     public static String uriToMetashare(String uri) {
         String mapped = _uri2metashare.get(uri);
-        if (mapped != null) {
+        if (Objects.nonNull(mapped)) {
             return mapped;
         } else {
+
             return "other";
         }
 
@@ -182,10 +204,8 @@ public class LicenseUtil {
         Document doc = builder.newDocument();
         Element root = doc.createElement("restrictions");
 
-        //TODO unrestricted?
-
         String restrictions = _uri2restrictions.get(uri);
-        if (restrictions == null) {
+        if (Objects.nonNull(restrictions)) {
             restrictions = "other";
         }
 

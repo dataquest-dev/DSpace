@@ -6,13 +6,15 @@
  * http://www.dspace.org/license/
  */
 
-
 package org.dspace.xoai.services.impl.resources.functions;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.dspace.utils.LicenseUtil;
 
+/**
+ * Serves as proxy for call from XSL engine. Calls LicenseUtil
+ */
 public class UriToRestrictionsFn extends NodeListXslFunction {
     @Override
     protected String getFnName() {

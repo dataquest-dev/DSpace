@@ -10,6 +10,9 @@ package org.dspace.xoai.services.impl.resources.functions;
 
 import org.dspace.utils.IsoLangCodes;
 
+/**
+ * Serves as proxy for call from XSL engine. Calls SpecialItemService.
+ */
 public class GetLangForCodeFn extends StringXSLFunction {
     @Override
     protected String getFnName() {
