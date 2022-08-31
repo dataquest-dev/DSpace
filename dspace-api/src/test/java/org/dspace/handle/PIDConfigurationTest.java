@@ -68,6 +68,4 @@ public class PIDConfigurationTest extends AbstractUnitTest {
         String handle = col.getHandle();
         assertEquals("123456789/" + (handle.split("/"))[1], handle);
     }
-
-
 }

@@ -147,6 +147,12 @@ public interface HandleClarinService {
      */
     public List<HandleRest> convertExternalHandleToHandleRest(List<org.dspace.handle.external.Handle> externalHandles);
 
+    /**
+     * Join the prefix and suffix with the delimiter
+     * @param prefix of the handle
+     * @param suffix of the handle
+     * @return the Handle string which is joined the prefix and suffix with delimiter
+     */
     public String completeHandle(String prefix, String suffix);
 
     /**

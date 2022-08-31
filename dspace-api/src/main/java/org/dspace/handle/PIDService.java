@@ -16,6 +16,7 @@ package org.dspace.handle;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 
 import org.dspace.services.ConfigurationService;
@@ -35,19 +36,20 @@ public class PIDService {
     }
 
     private static void initialize() throws Exception {
-        if (pidService == null) {
-            String serviceType = getServiceType();
-            String pidServiceClass = null;
-            if (serviceType.equals(PIDService.SERVICE_TYPE_EPIC2)) {
-                pidServiceClass = "org.dspace.handle.PIDServiceEPICv2";
-            } else {
-                throw new IllegalArgumentException("Illegal pid.service type");
-            }
-            try {
-                pidService = (AbstractPIDService)Class.forName(pidServiceClass).getDeclaredConstructor().newInstance();
-            } catch (Exception e) {
-                throw new Exception(e);
-            }
+        if (Objects.nonNull(pidService)) {
+            return;
+        }
+        String serviceType = getServiceType();
+        String pidServiceClass = null;
+        if (serviceType.equals(PIDService.SERVICE_TYPE_EPIC2)) {
+            pidServiceClass = "org.dspace.handle.PIDServiceEPICv2";
+        } else {
+            throw new IllegalArgumentException("Illegal pid.service type");
+        }
+        try {
+            pidService = (AbstractPIDService)Class.forName(pidServiceClass).getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new Exception(e);
         }
     }
 

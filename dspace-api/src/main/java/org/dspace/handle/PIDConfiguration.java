@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -60,39 +61,42 @@ public class PIDConfiguration {
         //New configuration starts after loaded part contains "community".
         String[] pidCommunityConfigurationsArray = configurationService.getArrayProperty
                 (CLARIN_PID_COMMUNITY_CONFIGURATIONS_KEYWORD);
-        if (pidCommunityConfigurationsArray != null) {
-            //hashmap for creating PIDCommunityConfiguration
-            Map<String, String> map = new HashMap<String, String>();
-            pidCommunityConfigurations = new HashMap<UUID, PIDCommunityConfiguration>();
-            //exists minimally one configuration, so first community is added to map not in cycle
-            String[] keyValue = pidCommunityConfigurationsArray[0].split("=");
-            String key = keyValue[0].trim();
-            String value = keyValue[1].trim();
-            map.put(key, value);
-            //another parts of configurations
-            //start from the first position because the zero position was already added
-            for (int i = 1; i < pidCommunityConfigurationsArray.length; i++) {
-                keyValue = pidCommunityConfigurationsArray[i].split("=");
-                key = keyValue[0].trim();
-                value = keyValue[1].trim();
-                //finding the end of the configuration
-                if (key.equals("community")) {
-                    //creating PIDCOmmunityConfiguration
-                    PIDCommunityConfiguration pidCommunityConfiguration = new PIDCommunityConfiguration (map);
-                    pidCommunityConfigurations.put(
-                            pidCommunityConfiguration.getCommunityID(),
-                            pidCommunityConfiguration);
-                    //cleaning map for other configuration
-                    map.clear();
-                }
-                map.put(key, value);
-            }
-            //creating PIDCommunityConfiguration because the last configuration found has not been added
-            PIDCommunityConfiguration pidCommunityConfiguration = new PIDCommunityConfiguration (map);
-            pidCommunityConfigurations.put(
-                    pidCommunityConfiguration.getCommunityID(),
-                    pidCommunityConfiguration);
+
+        if (Objects.isNull(pidCommunityConfigurationsArray)) {
+            return;
         }
+
+        //hashmap for creating PIDCommunityConfiguration
+        Map<String, String> map = new HashMap<String, String>();
+        pidCommunityConfigurations = new HashMap<UUID, PIDCommunityConfiguration>();
+        //exists minimally one configuration, so first community is added to map not in cycle
+        String[] keyValue = pidCommunityConfigurationsArray[0].split("=");
+        String key = keyValue[0].trim();
+        String value = keyValue[1].trim();
+        map.put(key, value);
+        //another parts of configurations
+        //start from the first position because the zero position was already added
+        for (int i = 1; i < pidCommunityConfigurationsArray.length; i++) {
+            keyValue = pidCommunityConfigurationsArray[i].split("=");
+            key = keyValue[0].trim();
+            value = keyValue[1].trim();
+            //finding the end of the configuration
+            if (key.equals("community")) {
+                //creating PIDCOmmunityConfiguration
+                PIDCommunityConfiguration pidCommunityConfiguration = new PIDCommunityConfiguration (map);
+                pidCommunityConfigurations.put(
+                        pidCommunityConfiguration.getCommunityID(),
+                        pidCommunityConfiguration);
+                //cleaning map for other configuration
+                map.clear();
+            }
+            map.put(key, value);
+        }
+        //creating PIDCommunityConfiguration because the last configuration found has not been added
+        PIDCommunityConfiguration pidCommunityConfiguration = new PIDCommunityConfiguration (map);
+        pidCommunityConfigurations.put(
+                pidCommunityConfiguration.getCommunityID(),
+                pidCommunityConfiguration);
     }
 
     /**
@@ -101,7 +105,7 @@ public class PIDConfiguration {
      * @return PIDConfiguration
      */
     public static PIDConfiguration getInstance() {
-        if (instance == null) {
+        if (Objects.isNull(instance)) {
             instance = new PIDConfiguration();
         }
         return instance;
@@ -117,12 +121,13 @@ public class PIDConfiguration {
     public static PIDCommunityConfiguration getPIDCommunityConfiguration(
             UUID communityID) {
         instance = getInstance();
+
         PIDCommunityConfiguration pidCommunityConfiguration = pidCommunityConfigurations
                 .get(communityID);
-        if (pidCommunityConfiguration == null) {
+        if (Objects.isNull(pidCommunityConfiguration)) {
             pidCommunityConfiguration = pidCommunityConfigurations.get(null);
         }
-        if (pidCommunityConfiguration == null) {
+        if (Objects.isNull(pidCommunityConfiguration)) {
             throw new IllegalStateException("Missing configuration entry in "
                     + CLARIN_PID_COMMUNITY_CONFIGURATIONS_KEYWORD
                     + " for community with ID " + communityID);
@@ -143,11 +148,10 @@ public class PIDConfiguration {
         instance = getInstance();
         UUID communityID = null;
         Community community = dspaceObjectClarinService.getPrincipalCommunity(context, dso);
-        if (community != null) {
+        if (Objects.nonNull(community)) {
             communityID = community.getID();
         }
-        PIDCommunityConfiguration pidCommunityConfiguration = getPIDCommunityConfiguration(communityID);
-        return pidCommunityConfiguration;
+        return getPIDCommunityConfiguration(communityID);
     }
 
     /**
@@ -168,7 +172,7 @@ public class PIDConfiguration {
     public PIDCommunityConfiguration getDefaultCommunityConfiguration() {
         instance = getInstance();
         PIDCommunityConfiguration pidCommunityConfiguration = getPIDCommunityConfiguration((UUID)null);
-        if (pidCommunityConfiguration == null) {
+        if (Objects.isNull(pidCommunityConfiguration)) {
             UUID[] keys = pidCommunityConfigurations.keySet().toArray(new UUID[0]);
             if (keys.length > 0) {
                 pidCommunityConfiguration = getPIDCommunityConfiguration(keys[0]);
@@ -186,7 +190,7 @@ public class PIDConfiguration {
         instance = getInstance();
         Set<String> alternativePrefixes = new HashSet<String>();
         for (PIDCommunityConfiguration pidCommunityConfiguration : pidCommunityConfigurations.values()) {
-            if (mainPrefix != null && mainPrefix.equals(pidCommunityConfiguration.getPrefix())) {
+            if (Objects.nonNull(mainPrefix) && mainPrefix.equals(pidCommunityConfiguration.getPrefix())) {
                 Collections.addAll(alternativePrefixes, pidCommunityConfiguration.getAlternativePrefixes());
             }
         }
@@ -202,7 +206,7 @@ public class PIDConfiguration {
         instance = getInstance();
         String prefix = null;
         PIDCommunityConfiguration pidCommunityConfiguration = getDefaultCommunityConfiguration();
-        if (pidCommunityConfiguration != null) {
+        if (Objects.nonNull(pidCommunityConfiguration)) {
             prefix = pidCommunityConfiguration.getPrefix();
         }
         return prefix;

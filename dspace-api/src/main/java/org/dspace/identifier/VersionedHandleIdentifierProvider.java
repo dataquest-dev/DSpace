@@ -353,9 +353,6 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
 
     protected String createNewIdentifier(Context context, DSpaceObject dso, String handleId) throws SQLException {
         if (handleId == null) {
-            if (dso.getType() == Constants.ITEM) {
-
-            }
             return handleService.createHandle(context, dso);
         } else {
             return handleService.createHandle(context, dso, handleId);

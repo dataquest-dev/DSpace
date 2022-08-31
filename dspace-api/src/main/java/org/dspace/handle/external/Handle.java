@@ -20,6 +20,14 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
 
+/**
+ * The external Handle which contains the url with the `@magicLindat` string. That string is parsed to the
+ * attributes.
+ * Created by
+ * @author okosarko on 13.10.15.
+ * Modified by
+ * @author Milan Majchrak (milan.majchrak at dataquest dot sk)
+ */
 public class Handle {
 
     private String handle;
@@ -52,6 +60,11 @@ public class Handle {
         this.subprefix = subprefix;
     }
 
+    /**
+     * Constructor which parse the magicURL to the attributes
+     * @param handle
+     * @param magicURL
+     */
     public Handle(String handle, String magicURL){
         this.handle = handle;
         //similar to HandlePlugin
@@ -76,11 +89,19 @@ public class Handle {
         this.subprefix = handle.split("/",2)[1].split("-",2)[0];
     }
 
+    /**
+     * From the attributes generate the url with `@magicLindat` string
+     * @return url with the `@magicLindat` string
+     */
     public String getMagicUrl(){
         return this.getMagicUrl(this.title, this.submitdate, this.reportemail, this.datasetName, this.datasetVersion,
                 this.query, this.url);
     }
 
+    /**
+     * From the attributes generate the url with `@magicLindat` string
+     * @return url with the `@magicLindat` string
+     */
     public String getMagicUrl(String title, String submitdate, String reportemail, String datasetName,
                               String datasetVersion, String query, String url){
         String magicURL = "";
@@ -97,10 +118,18 @@ public class Handle {
         return magicURL;
     }
 
+    /**
+     * It the `handle` attribute is null return the CanonicalHandlePrefix
+     * @return `handle` attribute value or the CanonicalHandlePrefix loaded from the configuration
+     */
     public String getHandle() {
         return Objects.isNull(handle) ? null : HandlePlugin.getCanonicalHandlePrefix() + handle;
     }
 
+    /**
+     * Remove the CanonicalHandlePrefix from the `handle` attribute
+     * @param handle
+     */
     public void setHandle(String handle) {
         this.handle = handle.replace(HandlePlugin.getCanonicalHandlePrefix(),"");
     }

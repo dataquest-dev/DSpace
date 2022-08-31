@@ -7,6 +7,9 @@
  */
 package org.dspace.handle.external;
 
+/**
+ * The `external/Handle` REST Resource
+ */
 public class HandleRest {
 
     private String handle;

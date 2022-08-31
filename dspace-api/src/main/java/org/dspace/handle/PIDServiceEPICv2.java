@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -55,7 +56,7 @@ public class PIDServiceEPICv2 extends AbstractPIDService {
         String data = (String) params.get(PARAMS.DATA.toString());
         String prefix = null;
 
-        if (PID == null) {
+        if (Objects.isNull(PID)) {
             PID = "";
         } else {
             prefix = PID.startsWith("/") ? PID.split("/", 3)[1] : PID.split("/", 2)[0];
@@ -73,13 +74,13 @@ public class PIDServiceEPICv2 extends AbstractPIDService {
 
         Map<String, String> headers = (Map<String, String>) params
                 .get(PARAMS.HEADER.toString());
-        if (headers != null) {
+        if (Objects.nonNull(headers)) {
             for (Map.Entry<String, String> header : headers.entrySet()) {
                 conn.setRequestProperty(header.getKey(), header.getValue());
             }
         }
 
-        if (data != null) {
+        if (Objects.nonNull(data)) {
             OutputStream out = conn.getOutputStream();
             out.write(data.getBytes());
             out.flush();
@@ -100,7 +101,7 @@ public class PIDServiceEPICv2 extends AbstractPIDService {
         if (responseCode == 201) {
             String location = conn.getHeaderField("Location");
             int index;
-            if (prefix != null) {
+            if (Objects.nonNull(prefix)) {
                 index = location.indexOf(prefix);
             } else {
                 index = PIDServiceURL.endsWith("/") ? PIDServiceURL.length()
