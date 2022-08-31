@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest;
 
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -86,18 +87,22 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void findAll() throws Exception {
-        Handle handle = publicItem.getHandles().get(0);
+        // findAll method in the HandleRestRepository returns handles ordered by creating the handle with ID = 1
+        // should be returned at first
+        Handle handle = handleClarinService.findByID(context, 1);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        getClient(adminToken).perform(get("/api/core/handles"))
+        getClient(adminToken).perform(get("/api/core/handles")
+                .param("size", String.valueOf(100)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                     .andExpect(jsonPath("$._embedded.handles", Matchers.hasItem(
                         HandleMatcher.matchHandle(handle)
                 )))
                 .andExpect(jsonPath("$._links.self.href",
-                        Matchers.containsString("/api/core/handles")));
+                        Matchers.containsString("/api/core/handles")))
+                .andExpect(jsonPath("$.page.size", is(100)));;
         this.cleanHandles();
     }
 
