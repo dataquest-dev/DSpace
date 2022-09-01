@@ -24,6 +24,7 @@ import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -58,21 +59,22 @@ public class PIDConfigurationTest extends AbstractUnitTest {
         context.restoreAuthSystemState();
     }
 
-//    @Test
-//    public void testItemHandle() {
-//        String handle = publicItem.getHandle();
-//        String[] prefixAndSuffix = handle.split("/");
-//        if (prefixAndSuffix.length != 2) {
-//            fail("Wrong handle format.");
-//        }
-//
-//        String[] customSuffix = prefixAndSuffix[1].split("-");
-//        if (customSuffix.length != 2) {
-//            fail("Wrong custom suffix format.");
-//        }
-//
-//        assertEquals("123456789/1-" + customSuffix[1], handle);
-//    }
+    @Ignore("Ignore unless the epic consortium will be configured")
+    @Test
+    public void testItemHandle() {
+        String handle = publicItem.getHandle();
+        String[] prefixAndSuffix = handle.split("/");
+        if (prefixAndSuffix.length != 2) {
+            fail("Wrong handle format.");
+        }
+
+        String[] customSuffix = prefixAndSuffix[1].split("-");
+        if (customSuffix.length != 2) {
+            fail("Wrong custom suffix format.");
+        }
+
+        assertEquals("123456789/1-" + customSuffix[1], handle);
+    }
 
     @Test
     public void testCollectionHandle() {
