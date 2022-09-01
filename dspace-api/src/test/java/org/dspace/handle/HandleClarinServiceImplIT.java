@@ -23,9 +23,9 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
 
 /**
  * The test suite for testing the HandleClarinService.

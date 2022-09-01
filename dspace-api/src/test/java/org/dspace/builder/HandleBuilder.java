@@ -1,4 +1,13 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.builder;
+
+import java.sql.SQLException;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -6,14 +15,12 @@ import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 import org.dspace.handle.service.HandleClarinService;
 
-import java.sql.SQLException;
-
 /**
  * Builder to construct Handle objects
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-public class HandleBuilder extends AbstractBuilder<Handle, HandleClarinService>{
+public class HandleBuilder extends AbstractBuilder<Handle, HandleClarinService> {
 
     HandleClarinService handleClarinService = ContentServiceFactory.getInstance().getHandleClarinService();
     private Handle handle;
