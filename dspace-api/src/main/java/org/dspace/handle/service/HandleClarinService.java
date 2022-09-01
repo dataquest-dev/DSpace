@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 import org.dspace.handle.external.HandleRest;
@@ -19,6 +20,8 @@ import org.dspace.handle.external.HandleRest;
  * Additional service interface class of HandleService for the Handle object in Clarin-DSpace.
  *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ * @author Peter Breton modified for LINDAT/CLARIN
  */
 public interface HandleClarinService {
     /**
@@ -132,9 +135,22 @@ public interface HandleClarinService {
      */
     public String resolveToURL(Context context, String handleStr) throws SQLException;
 
+    /**
+     * Return the object which handle maps to (Item, Collection, Community), or null. This is the object
+     * itself, not a URL which points to it.
+     *
+     * @param context DSpace context
+     * @param handle The handle to resolve
+     * @return The object which handle maps to, or null if handle is not mapped
+     *         to any object.
+     * @throws IllegalStateException If handle was found but is not bound to an object
+     * @throws SQLException If a database error occurs
+     */
+    public DSpaceObject resolveToObject(Context context, String handle) throws IllegalStateException, SQLException;
 
     /**
      * Create the external handles from the list of handles with magic URL
+     *
      * @param magicHandles handles with `@magicLindat` string in the URL
      * @return List of External Handles
      */
@@ -142,6 +158,7 @@ public interface HandleClarinService {
 
     /**
      * Convert external.Handles to the external.HandleRest object
+     *
      * @param externalHandles
      * @return List of Handle Rest
      */
@@ -149,11 +166,19 @@ public interface HandleClarinService {
 
     /**
      * Join the prefix and suffix with the delimiter
+     *
      * @param prefix of the handle
      * @param suffix of the handle
      * @return the Handle string which is joined the prefix and suffix with delimiter
      */
     public String completeHandle(String prefix, String suffix);
+
+    /**
+     * Returns prefix/suffix or null/null.
+     *
+     * @param handle Prefix of the handle
+     */
+    public  String[] splitHandle(String handle);
 
     /**
      * Retrieve all external handle from the registry. The external handle has `@magicLindat` string in the URL.
@@ -165,13 +190,21 @@ public interface HandleClarinService {
     public List<Handle> findAllExternalHandles(Context context) throws SQLException;
 
     /**
-     * Find the database row corresponding to handle.
+     * Returns the Handle `dead` column value from the database.
      *
-     * @param context DSpace context object
-     * @param handle The handle of the handle object
-     * @return the Handle object
+     * @param context       DSpace context object
+     * @param handle        handle of Handle object
+     * @return              Handle `dead` column value from the database
+     * @throws SQLException if database error
      */
-    public Handle findHandleByHandle(Context context, String handle) throws SQLException;
+    public boolean isDead(Context context, String handle) throws SQLException;
 
-
+    /**
+     * Return the date when was the Handle set as dead
+     * @param context DSpace context object
+     * @param handle of the Handle object
+     * @return Date in the String format
+     * @throws SQLException if database error
+     */
+    public String getDeadSince(Context context, String handle) throws SQLException;
 }

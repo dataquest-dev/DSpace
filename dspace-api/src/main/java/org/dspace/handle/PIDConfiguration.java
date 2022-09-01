@@ -186,7 +186,7 @@ public class PIDConfiguration {
      *
      * @return Array of distinct alternative prefixes from all community configurations (can be empty)
      */
-    public String[] getAlternativePrefixes(String mainPrefix) {
+    public static String[] getAlternativePrefixes(String mainPrefix) {
         instance = getInstance();
         Set<String> alternativePrefixes = new HashSet<String>();
         for (PIDCommunityConfiguration pidCommunityConfiguration : pidCommunityConfigurations.values()) {

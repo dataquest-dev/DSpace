@@ -11,16 +11,27 @@ import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldServiceImpl;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.SiteService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.dspace.handle.dao.HandleDAO;
@@ -34,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Additional service implementation for the Handle object in Clarin-DSpace.
  *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public class HandleClarinServiceImpl implements HandleClarinService {
 
@@ -41,6 +53,9 @@ public class HandleClarinServiceImpl implements HandleClarinService {
      * log4j logger
      */
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataFieldServiceImpl.class);
+
+    @Autowired(required = true)
+    protected SiteService siteService;
 
     @Autowired(required = true)
     protected HandleDAO handleDAO;
@@ -52,12 +67,19 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     protected ItemService itemService;
 
     @Autowired(required = true)
+    protected CollectionService collectionService;
+
+    @Autowired(required = true)
+    protected CommunityService communityService;
+
+    @Autowired(required = true)
     protected ConfigurationService configurationService;
 
     @Autowired(required = true)
     protected AuthorizeService authorizeService;
 
     static final String PREFIX_DELIMITER = "/";
+    static final String PART_IDENTIFIER_DELIMITER = "@";
 
     /**
      * Protected Constructor
@@ -193,6 +215,9 @@ public class HandleClarinServiceImpl implements HandleClarinService {
             throw new IllegalArgumentException("Handle is null");
         }
 
+        // <UFAL>
+        handleStr = stripPartIdentifier(handleStr);
+
         //find handle
         Handle handle = handleDAO.findByHandle(context, handleStr);
 
@@ -214,6 +239,60 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         log.debug("Resolved {} to {}", handle, url);
 
         return url;
+    }
+
+    @Override
+    public DSpaceObject resolveToObject(Context context, String handle) throws IllegalStateException, SQLException {
+        Handle foundHandle = findByHandle(context, handle);
+
+        if (Objects.isNull(foundHandle)) {
+            //If this is the Site-wide Handle, return Site object
+            if (handle.equals(configurationService.getProperty("handle.prefix") + "/0")) {
+                return siteService.findSite(context);
+            }
+            //Otherwise, return null (i.e. handle not found in DB)
+            return null;
+        }
+
+        // check if handle was allocated previously, but is currently not
+        // associated with a DSpaceObject
+        // (this may occur when 'unbindHandle()' is called for an obj that was removed)
+        if (Objects.isNull(foundHandle.getResourceTypeId()) || Objects.isNull(foundHandle.getDSpaceObject())) {
+            //if handle has been unbound, just return null (as this will result in a PageNotFound)
+            return null;
+        }
+
+        int handleTypeId = foundHandle.getResourceTypeId();
+        UUID resourceID = foundHandle.getDSpaceObject().getID();
+
+        if (handleTypeId == Constants.ITEM) {
+            Item item = itemService.find(context, resourceID);
+            if (log.isDebugEnabled()) {
+                log.debug("Resolved handle " + handle + " to item "
+                        + (Objects.isNull(item) ? (-1) : item.getID()));
+            }
+
+            return item;
+        } else if (handleTypeId == Constants.COLLECTION) {
+            Collection collection = collectionService.find(context, resourceID);
+            if (log.isDebugEnabled()) {
+                log.debug("Resolved handle " + handle + " to collection "
+                        + (Objects.isNull(collection) ? (-1) : collection.getID()));
+            }
+
+            return collection;
+        } else if (handleTypeId == Constants.COMMUNITY) {
+            Community community = communityService.find(context, resourceID);
+            if (log.isDebugEnabled()) {
+                log.debug("Resolved handle " + handle + " to community "
+                        + (Objects.isNull(community) ? (-1) : community.getID()));
+            }
+
+            return community;
+        }
+
+        throw new IllegalStateException("Unsupported Handle Type "
+                + Constants.typeText[handleTypeId]);
     }
 
     /**
@@ -299,8 +378,17 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     /**
      * Returns complete handle made from prefix and suffix
      */
+    @Override
     public String completeHandle(String prefix, String suffix) {
         return prefix + PREFIX_DELIMITER + suffix;
+    }
+
+    @Override
+    public String[] splitHandle(String handle) {
+        if (Objects.nonNull(handle)) {
+            return handle.split(PREFIX_DELIMITER);
+        }
+        return new String[] { null, null };
     }
 
     @Override
@@ -315,11 +403,40 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     }
 
     @Override
-    public Handle findHandleByHandle(Context context, String handle) throws SQLException {
+    public boolean isDead(Context context, String handle) throws SQLException {
+        String baseHandle = stripPartIdentifier(handle);
+        Handle foundHandle = handleDAO.findByHandle(context, baseHandle);
+        return foundHandle.getDead();
+
+    }
+    @Override
+    public String getDeadSince(Context context, String handle) throws SQLException {
+        String baseHandle = stripPartIdentifier(handle);
+        Handle foundHandle = handleDAO.findByHandle(context, baseHandle);
+        Date timestamptz = foundHandle.getDeadSince();
+
+        return Objects.nonNull(timestamptz) ? DateFormatUtils.ISO_8601_EXTENDED_DATETIME_TIME_ZONE_FORMAT.
+                format(timestamptz) : null;
+    }
+
+    /**
+     * Strips the part identifier from the handle
+     *
+     * @param handle The handle with optional part identifier
+     * @return The handle without the part identifier
+     */
+    private static String stripPartIdentifier(String handle) {
         if (Objects.isNull(handle)) {
-            throw new IllegalArgumentException("Handle is null");
+            return null;
         }
 
-        return handleDAO.findByHandle(context, handle);
+        String baseHandle;
+        int pos = handle.indexOf(PART_IDENTIFIER_DELIMITER);
+        if (pos >= 0) {
+            baseHandle = handle.substring(0, pos);
+        } else {
+            baseHandle = handle;
+        }
+        return baseHandle;
     }
 }
