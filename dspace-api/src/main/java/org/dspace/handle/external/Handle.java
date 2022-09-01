@@ -7,18 +7,14 @@
  */
 package org.dspace.handle.external;
 
-
-import org.dspace.handle.HandlePlugin;
-import org.dspace.services.ConfigurationService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.xml.bind.annotation.XmlElement;
-import java.util.Objects;
-import java.util.UUID;
-
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
+
+import java.util.Objects;
+import java.util.UUID;
+
+import org.dspace.handle.HandlePlugin;
 
 /**
  * The external Handle which contains the url with the `@magicLindat` string. That string is parsed to the
@@ -46,7 +42,8 @@ public class Handle {
 
     }
 
-    public Handle(String handle, String url, String title, String repository, String submitdate, String reportemail, String datasetName, String datasetVersion, String query, String token, String subprefix) {
+    public Handle(String handle, String url, String title, String repository, String submitdate, String reportemail,
+                  String datasetName, String datasetVersion, String query, String token, String subprefix) {
         this.handle = handle;
         this.url = url;
         this.title = title;
@@ -65,7 +62,7 @@ public class Handle {
      * @param handle
      * @param magicURL
      */
-    public Handle(String handle, String magicURL){
+    public Handle(String handle, String magicURL) {
         this.handle = handle;
         //similar to HandlePlugin
         String[] splits = magicURL.split(MAGIC_BEAN,10);
@@ -74,16 +71,16 @@ public class Handle {
         this.repository = splits[2];
         this.submitdate = splits[3];
         this.reportemail = splits[4];
-        if(isNotBlank(splits[5])) {
+        if (isNotBlank(splits[5])) {
             this.datasetName = splits[5];
         }
-        if(isNotBlank(splits[6])) {
+        if (isNotBlank(splits[6])) {
             this.datasetVersion = splits[6];
         }
-        if(isNotBlank(splits[7])) {
+        if (isNotBlank(splits[7])) {
             this.query = splits[7];
         }
-        if(isNotBlank(splits[8])){
+        if (isNotBlank(splits[8])) {
             this.token = splits[8];
         }
         this.subprefix = handle.split("/",2)[1].split("-",2)[0];
@@ -93,7 +90,7 @@ public class Handle {
      * From the attributes generate the url with `@magicLindat` string
      * @return url with the `@magicLindat` string
      */
-    public String getMagicUrl(){
+    public String getMagicUrl() {
         return this.getMagicUrl(this.title, this.submitdate, this.reportemail, this.datasetName, this.datasetVersion,
                 this.query, this.url);
     }
@@ -103,13 +100,13 @@ public class Handle {
      * @return url with the `@magicLindat` string
      */
     public String getMagicUrl(String title, String submitdate, String reportemail, String datasetName,
-                              String datasetVersion, String query, String url){
+                              String datasetVersion, String query, String url) {
         String magicURL = "";
         String token = UUID.randomUUID().toString();
-
-        for (String part : new String[]{title, HandlePlugin.getRepositoryName(), submitdate, reportemail, datasetName,
-                datasetVersion, query, token, url}){
-            if(isBlank(part)){
+        String[] magicURLProps = new String[] {title, HandlePlugin.getRepositoryName(), submitdate, reportemail,
+            datasetName, datasetVersion, query, token, url};
+        for (String part : magicURLProps) {
+            if (isBlank(part)) {
                 //optional dataset etc...
                 part = "";
             }

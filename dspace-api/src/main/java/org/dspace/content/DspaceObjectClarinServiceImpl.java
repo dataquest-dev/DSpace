@@ -12,13 +12,10 @@ import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.dspace.content.service.DspaceObjectClarinService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.utils.DSpace;
 
 /**
  * Additional service implementation for the DspaceObject in Clarin-DSpace.

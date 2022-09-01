@@ -7,6 +7,8 @@
  */
 package org.dspace.handle;
 
+import static org.dspace.handle.external.ExternalHandleConstants.DEFAULT_CANONICAL_HANDLE_PREFIX;
+
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -39,8 +41,6 @@ import org.dspace.servicemanager.DSpaceKernelInit;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.stereotype.Component;
-
-import static org.dspace.handle.external.ExternalHandleConstants.DEFAULT_CANONICAL_HANDLE_PREFIX;
 
 /**
  * Extension to the CNRI Handle Server that translates requests to resolve

@@ -18,7 +18,9 @@ public class ExternalHandleMatcher {
     private ExternalHandleMatcher() {
     }
 
-    public static Matcher<? super Object> matchProperties(String url, String title, String repository, String submitDate, String reporteMail, String subprefix, String handle) {
+    public static Matcher<? super Object> matchProperties(String url, String title, String repository,
+                                                          String submitDate, String reporteMail, String subprefix,
+                                                          String handle) {
         return allOf(
                 hasJsonPath("$.url", is(url)),
                 hasJsonPath("$.title", is(title)),
