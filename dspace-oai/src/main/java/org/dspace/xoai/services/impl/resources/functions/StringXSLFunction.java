@@ -8,6 +8,8 @@
 
 package org.dspace.xoai.services.impl.resources.functions;
 
+import java.util.Objects;
+
 import com.rometools.utils.Strings;
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
@@ -19,7 +21,6 @@ import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
 import org.bouncycastle.util.Arrays;
 
-import java.util.Objects;
 
 /**
  * Serves as proxy for call from XSL engine. Base for all functions having one string param

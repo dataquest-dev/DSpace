@@ -10,6 +10,8 @@ package org.dspace.xoai.services.impl.resources.functions;
 
 import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunction.BASE;
 
+import java.util.Objects;
+
 import com.rometools.utils.Strings;
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
@@ -22,7 +24,6 @@ import net.sf.saxon.s9api.XdmValue;
 import org.bouncycastle.util.Arrays;
 import org.dspace.utils.XslLogUtil;
 
-import java.util.Objects;
 
 /**
  * Serves as proxy for call from XSL engine.

@@ -18,9 +18,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * This class is taken from UFAL-clarin.
+ * https://github.com/ufal/clarin-dspace/blob
+ * /si-master-origin/dspace-api/src/main/java/cz/cuni/mff/ufal/IsoLangCodes.java
+ */
 public class IsoLangCodes {
 
-    public static final String LANG_CODES_FILE="lang_codes.txt";
+    public static final String LANG_CODES_FILE = "lang_codes.txt";
 
     /**
      * Language codes in LANG_CODES_FILE are expected in format Language:code.

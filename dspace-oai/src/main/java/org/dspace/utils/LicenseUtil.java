@@ -22,14 +22,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+/**
+ * This class is taken from UFAL-clarin. https://github.com/ufal/clarin-dspace/blob
+ * /si-master-origin/dspace-oai/src/main/java/cz/cuni/mff/ufal/utils/LicenseUtil.java
+ */
 public class LicenseUtil {
 
-
-    /**
-     * I don't know what exactly this class does. It replaces strings in licenses. Used in
-     * XST crosswalks.
-     */
-    private LicenseUtil() {}
+    private LicenseUtil() {
+    }
 
     /** log4j logger */
     private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
@@ -145,7 +145,7 @@ public class LicenseUtil {
             String[] defn = def.split(",", 2);
             if (defn.length < 2) {
                 log.warn("Bad string " + def + ", should have at least two parts " +
-                                "delimited by ,");
+                        "delimited by ,");
                 map.put("", "");
             } else {
                 map.put(defn[0], defn[1]);

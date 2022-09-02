@@ -10,6 +10,7 @@ package org.dspace.xoai.services.impl.resources.functions;
 
 import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunction.BASE;
 
+import java.util.Objects;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
@@ -27,7 +28,6 @@ import net.sf.saxon.s9api.XdmValue;
 import org.bouncycastle.util.Arrays;
 import org.w3c.dom.Node;
 
-import java.util.Objects;
 
 /**
  * Serves as proxy for call from XSL engine.

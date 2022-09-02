@@ -37,13 +37,16 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 @Component
+
+/**
+ * @author Marian Berger (marian.berger@dataquest.sk)
+ * Refactored class from clarin-dspace. https://github.com/ufal/clarin-dspace/blob
+ * /si-master-origin/dspace-oai/src/main/java/cz/cuni/mff/ufal/utils/ItemUtil.java
+ *
+ * Provides various information based on
+ * provided metadata or strings.
+ */
 public class SpecialItemService {
-
-    /**
-     * Refactored class from clarin-dspace. Provides various information based on
-     * provided metadata or strings
-     */
-
     private SpecialItemService() {}
     /** log4j logger */
     private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
@@ -66,7 +69,8 @@ public class SpecialItemService {
             DSpaceObject dSpaceObject = hs.resolveToObject(context, handle);
             List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(((Item) dSpaceObject),
                     "local.hasCMDI");
-            if (Objects.nonNull(dSpaceObject) && dSpaceObject.getType() == Constants.ITEM && hasOwnMetadata(metadataValues)) {
+            if (Objects.nonNull(dSpaceObject) && dSpaceObject.getType() == Constants.ITEM
+                    && hasOwnMetadata(metadataValues)) {
 
                 Bitstream bitstream = itemService.getBundles(((Item) dSpaceObject), "METADATA").get(0)
                         .getBitstreams().get(0);
