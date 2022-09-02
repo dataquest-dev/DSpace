@@ -30,6 +30,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Serves as filter in xoai for OAI-PMH interface.
+ * Taken from 
+ * https://github.com/ufal/clarin-dspace/blob
+ * /8780782ce2977d304f2390b745a98eaea00b8255
+ * /dspace-oai/src/main/java/cz/cuni/mff/ufal/dspace/xoai/filter/ColComFilter.java
  */
 public class ColComFilter extends DSpaceFilter {
     private static Logger log = LogManager.getLogger(ColComFilter.class);
