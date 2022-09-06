@@ -12,7 +12,6 @@ import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunctio
 
 import java.util.Objects;
 
-import com.rometools.utils.Strings;
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
 import net.sf.saxon.s9api.OccurrenceIndicator;
@@ -58,7 +57,7 @@ public class LogMissingFn implements ExtensionFunction {
     }
 
     private String checks(String got) {
-        if (Strings.isEmpty(got)) {
+        if (Objects.isNull(got) || got.isEmpty()) {
             return "";
         }
 

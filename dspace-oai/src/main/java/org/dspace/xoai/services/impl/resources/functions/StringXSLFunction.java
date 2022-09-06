@@ -10,7 +10,6 @@ package org.dspace.xoai.services.impl.resources.functions;
 
 import java.util.Objects;
 
-import com.rometools.utils.Strings;
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
 import net.sf.saxon.s9api.OccurrenceIndicator;
@@ -67,7 +66,7 @@ public abstract class StringXSLFunction implements ExtensionFunction {
     }
 
     private String checks(String got) {
-        if (Strings.isEmpty(got)) {
+        if (Objects.isNull(got) || got.isEmpty()) {
             return "";
         }
 

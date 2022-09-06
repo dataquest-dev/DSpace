@@ -17,7 +17,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import com.rometools.utils.Strings;
 import org.dspace.app.util.DCInput;
 import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
@@ -233,7 +232,7 @@ public class SpecialItemService {
             doc.appendChild(el);
             Element last = doc.createElementNS(ns, "lastName");
 
-            if (Strings.isEmpty(mdValue)) {
+            if (Objects.isNull(mdValue) || mdValue.isEmpty()) {
                 log.warn("Trying to extract author from empty string!");
                 return null;
             }
