@@ -34,7 +34,7 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
         setClarinLicenseLabel(license, modelObject.getLicenseLabels(), projection);
 //        license.setExtendedClarinLicenseLabels(modelObject.getLicenseLabels(), projection);
 //        license.setClarinLicenseLabel(modelObject.getLicenseLabels(), projection);
-        // TODO find out which bitstreams are using this license
+        // TODO find out which bitstreams are using by this license
         license.setBitstreams(0);
         return license;
     }

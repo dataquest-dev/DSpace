@@ -19,7 +19,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
@@ -117,16 +120,39 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(jsonPath("$._embedded.clarinlicenses", Matchers.hasItem(
                         ClarinLicenseMatcher.matchClarinLicense(secondCLicense))
                 ))
-                .andExpect(jsonPath("$._embedded.clarinlicenses[0].clarinLicenseLabel", Matchers.hasItem(
-                        ClarinLicenseLabelMatcher.matchClarinLicenseLabel(firstCLicense.getLicenseLabels().get(2)))
+                .andExpect(jsonPath("$._embedded.clarinlicenses[0].clarinLicenseLabel", Matchers.is(
+                        ClarinLicenseLabelMatcher.matchClarinLicenseLabel(
+                                Objects.requireNonNull(getNonExtendedLicenseLabel(firstCLicense.getLicenseLabels()))))
                 ))
-                .andExpect(jsonPath("$._embedded.clarinlicenses[0].extendedClarinLicenseLabels", Matchers.hasValue(firstCLicense.getLicenseLabels().get(1))))
-//                .andExpect(jsonPath("$._embedded.clarinlicenses[0].extendedClarinLicenseLabels", Matchers.hasItem(
-//                        ClarinLicenseLabelMatcher.matchClarinLicenseLabel(firstCLicense.getLicenseLabels().get(0)))
-//                ))
-//                .andExpect(jsonPath("$._links.self.href",
-//                        Matchers.containsString("/api/core/clarinlicenses")))
+                .andExpect(jsonPath("$._embedded.clarinlicenses[0].extendedClarinLicenseLabels",
+                        Matchers.hasItem(
+                                ClarinLicenseLabelMatcher.matchClarinLicenseLabel(
+                                        Objects.requireNonNull(getExtendedLicenseLabels(
+                                                firstCLicense.getLicenseLabels())))
+                                )))
+                .andExpect(jsonPath("$._links.self.href",
+                        Matchers.containsString("/api/core/clarinlicenses")))
         ;
+    }
+
+    private ClarinLicenseLabel getNonExtendedLicenseLabel(List<ClarinLicenseLabel> clarinLicenseLabelList) {
+        for (ClarinLicenseLabel clarinLicenseLabel : clarinLicenseLabelList) {
+            if (clarinLicenseLabel.isExtended()) {
+                continue;
+            }
+            return clarinLicenseLabel;
+        }
+        return null;
+    }
+
+    private ClarinLicenseLabel getExtendedLicenseLabels(List<ClarinLicenseLabel> clarinLicenseLabelList) {
+        for (ClarinLicenseLabel clarinLicenseLabel : clarinLicenseLabelList) {
+            if (!clarinLicenseLabel.isExtended()) {
+                continue;
+            }
+            return clarinLicenseLabel;
+        }
+        return null;
     }
 
 
