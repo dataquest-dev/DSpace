@@ -13,9 +13,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 
-public class ClarinClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService {
+public class ClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService {
 
     private static final Logger log = LoggerFactory.getLogger(ClarinLicenseServiceImpl.class);
 
@@ -54,6 +55,11 @@ public class ClarinClarinLicenseLabelServiceImpl implements ClarinLicenseLabelSe
     @Override
     public ClarinLicenseLabel find(Context context, int valueId) throws SQLException {
         return clarinLicenseLabelDAO.findByID(context, ClarinLicenseLabel.class, valueId);
+    }
+
+    @Override
+    public List<ClarinLicenseLabel> findAll(Context context) throws SQLException {
+        return clarinLicenseLabelDAO.findAll(context, ClarinLicenseLabel.class);
     }
 
     @Override
