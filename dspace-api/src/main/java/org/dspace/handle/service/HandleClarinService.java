@@ -16,6 +16,8 @@ import org.dspace.handle.Handle;
 
 /**
  * Additional service interface class of HandleService for the Handle object in Clarin-DSpace.
+ * Added External Handles, ability to update prefix for every Handle, generating the handle prefix based on the
+ * pid configuration.
  *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
