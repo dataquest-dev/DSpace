@@ -49,7 +49,7 @@ public class DspaceObjectClarinServiceImpl<T extends DSpaceObject> implements Ds
     }
 
     /**
-     * The DSpaceObject has some collection where belongs - return that collection
+     * Return the collection where belongs current DSpaceObject
      * @param context DSpaceObject contenxt
      * @param dso DSpaceObject Collection or Item
      * @param type number representation of DSpaceObject type

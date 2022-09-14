@@ -322,6 +322,10 @@ public class HandlePlugin implements HandleStorage {
             ResolvedHandle rh = null;
             if (url.startsWith(MAGIC_BEAN)) {
                 String[] splits = url.split(MAGIC_BEAN,10);
+                if (splits.length < 8) {
+                    throw new RuntimeException("Cannot resolve external handle with magicLindat string, " +
+                            "because the external handle do not have enough information.");
+                }
                 url = splits[splits.length - 1];
                 // EMPTY, String title, String repository, String submitdate, String reportemail,
                 // String dataset_name, String dataset_version, String query, token is splits[8] but don't show that

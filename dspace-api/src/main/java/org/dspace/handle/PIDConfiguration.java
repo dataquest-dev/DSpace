@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -62,7 +63,7 @@ public class PIDConfiguration {
         String[] pidCommunityConfigurationsArray = configurationService.getArrayProperty
                 (CLARIN_PID_COMMUNITY_CONFIGURATIONS_KEYWORD);
 
-        if (Objects.isNull(pidCommunityConfigurationsArray)) {
+        if (ArrayUtils.isEmpty(pidCommunityConfigurationsArray)) {
             return;
         }
 
@@ -71,6 +72,11 @@ public class PIDConfiguration {
         pidCommunityConfigurations = new HashMap<UUID, PIDCommunityConfiguration>();
         //exists minimally one configuration, so first community is added to map not in cycle
         String[] keyValue = pidCommunityConfigurationsArray[0].split("=");
+
+        if (keyValue.length < 2) {
+            throw new RuntimeException("Cannot initialize PIDConfiguration, because the configuration " +
+                    "property has wrong syntax. Property must be in the format: `key=value`");
+        }
         String key = keyValue[0].trim();
         String value = keyValue[1].trim();
         map.put(key, value);

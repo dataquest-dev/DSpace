@@ -17,7 +17,8 @@ import org.springframework.stereotype.Component;
 
 /* Created for LINDAT/CLARIAH-CZ (UFAL) */
 /**
- * Abstract class for PID service.
+ * Abstract class for PID service which manages EPIC handles.
+ * This class loads the parameters from configuration for calling EPIC API.
  *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
