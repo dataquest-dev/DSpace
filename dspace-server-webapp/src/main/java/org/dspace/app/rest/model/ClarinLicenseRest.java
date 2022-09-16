@@ -1,13 +1,10 @@
 package org.dspace.app.rest.model;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 @Component
@@ -16,10 +13,6 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
     public static final String NAME = "clarinlicense";
     public static final String CATEGORY = RestAddressableModel.CORE;
 
-    /**
-     * Map of ClarinLicenseLabelRest, it throws error if it is Array List
-     */
-//    @JsonAnySetter
     private List<ClarinLicenseLabelRest> extendedClarinLicenseLabels;
     private ClarinLicenseLabelRest clarinLicenseLabel;
     private String name;
@@ -31,12 +24,6 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
     public ClarinLicenseRest() {
     }
 
-    /**
-     * Gets the map.
-     *
-     * @return the map of keys to ordered values.
-     */
-//    @JsonAnyGetter
     public List<ClarinLicenseLabelRest> getExtendedClarinLicenseLabels() {
         if (extendedClarinLicenseLabels == null) {
             extendedClarinLicenseLabels = new ArrayList<>();
@@ -120,16 +107,4 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
     public String getCategory() {
         return CATEGORY;
     }
-
-//    @Override
-//    public boolean equals(Object object) {
-//        return object instanceof ClarinLicenseRest && ((ClarinLicenseRest) object).getMap().equals(map);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return new HashCodeBuilder(7, 37)
-//                .append(this.getMap())
-//                .toHashCode();
-//    }
 }

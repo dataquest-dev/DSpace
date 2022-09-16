@@ -5,7 +5,9 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
+import org.dspace.app.rest.model.MetadataFieldRest;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.MetadataField;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.service.clarin.ClarinLicenseService;
@@ -14,6 +16,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -50,6 +53,7 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
     }
 
     @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Page<ClarinLicenseRest> findAll(Context context, Pageable pageable) {
         try {
             List<ClarinLicense> clarinLicenseList = clarinLicenseService.findAll(context);
@@ -66,7 +70,6 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
 
         // parse request body
         ClarinLicenseRest clarinLicenseRest;
-        JSONObject clarinLicenseJSON;
         try {
             clarinLicenseRest = new ObjectMapper().readValue(
                     getRequestService().getCurrentRequest().getHttpServletRequest().getInputStream(),
@@ -76,11 +79,11 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
             throw new DSpaceBadRequestException("error parsing request body", excIO);
         }
 
-//        // validate fields
-//        if (isBlank(clarinLicenseRest.getName()) || isBlank(clarinLicenseRest.getDefinition())) {
-//            throw new UnprocessableEntityException("Clarin License name, definition, " +
-//                    "license label cannot be null or empty");
-//        }
+        // validate fields
+        if (isBlank(clarinLicenseRest.getName()) || isBlank(clarinLicenseRest.getDefinition())) {
+            throw new UnprocessableEntityException("Clarin License name, definition, " +
+                    "license label cannot be null or empty");
+        }
 
         // create
         ClarinLicense clarinLicense;
@@ -98,6 +101,23 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
     }
 
     @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
+    protected void delete(Context context, Integer id) throws AuthorizeException {
+
+        try {
+            ClarinLicense clarinLicense = clarinLicenseService.find(context, id);
+
+            if (Objects.isNull(clarinLicense)) {
+                throw new ResourceNotFoundException("Clarin license with id: " + id + " not found");
+            }
+
+            clarinLicenseService.delete(context, clarinLicense);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error while trying to delete " + ClarinLicenseRest.NAME + " with id: " + id, e);
+        }
+    }
+
+    @Override
     public Class<ClarinLicenseRest> getDomainClass() {
         return ClarinLicenseRest.class;
     }
@@ -110,13 +130,6 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
         extendedClarinLicenseLabels.forEach(cllr -> {
             clarinLicenseLabels.add(getClarinLicenseLabelFromRest(cllr));
         });
-
-//        clarinLicenseLabels.add(getClarinLicenseLabelFromRest(clarinLicenseRest.getClarinLicenseLabel()));
-//        clarinLicenseRest.getExtendedClarinLicenseLabels().values().forEach(list -> {
-//            list.forEach(clarinLicenseLabelRest -> {
-//                clarinLicenseLabels.add(getClarinLicenseLabelFromRest(clarinLicenseLabelRest));
-//            });
-//        });
 
         return clarinLicenseLabels;
     }

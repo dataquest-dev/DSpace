@@ -37,6 +37,7 @@ import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -123,7 +124,8 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
 
     @Test
     public void findAll() throws Exception {
-        getClient().perform(get("/api/core/clarinlicenses"))
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(authTokenAdmin).perform(get("/api/core/clarinlicenses"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$._embedded.clarinlicenses", Matchers.hasItem(
@@ -205,6 +207,57 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 ClarinLicenseBuilder.deleteClarinLicense(idRef.get());
             }
         }
+    }
+
+    // 204
+    @Test
+    public void deleteClarinLicense() throws Exception {
+        context.turnOffAuthorisationSystem();
+        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+        context.restoreAuthSystemState();
+
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(authTokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(status().isOk());
+
+        getClient(authTokenAdmin).perform(delete("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(status().isNoContent());
+
+        getClient(authTokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(status().isNotFound());
+    }
+
+    // 401
+    @Test
+    public void unauthorizedDeleteClarinLicense() throws Exception {
+        context.turnOffAuthorisationSystem();
+        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+        context.restoreAuthSystemState();
+
+        getClient().perform(delete("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(status().isUnauthorized())
+        ;
+    }
+
+    // 403
+    @Test
+    public void forbiddenDeleteClarinLicense() throws Exception {
+        context.turnOffAuthorisationSystem();
+        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+        context.restoreAuthSystemState();
+
+        String authTokenUser = getAuthToken(eperson.getEmail(), password);
+        getClient(authTokenUser).perform(delete("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(status().isForbidden())
+        ;
+    }
+    // 404
+    @Test
+    public void notFoundDeleteClarinLicense() throws Exception {
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(authTokenAdmin).perform(delete("/api/core/clarinlicenses/" + 1239990))
+                .andExpect(status().isNotFound())
+        ;
     }
 
     private ClarinLicenseLabel getNonExtendedLicenseLabel(List<ClarinLicenseLabel> clarinLicenseLabelList) {

@@ -28,8 +28,6 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
         license.setRequiredInfo(modelObject.getRequiredInfo());
         setExtendedClarinLicenseLabels(license, modelObject.getLicenseLabels(), projection);
         setClarinLicenseLabel(license, modelObject.getLicenseLabels(), projection);
-//        license.setExtendedClarinLicenseLabels(modelObject.getLicenseLabels(), projection);
-//        license.setClarinLicenseLabel(modelObject.getLicenseLabels(), projection);
         // TODO find out which bitstreams are using by this license
         license.setBitstreams(0);
         return license;
@@ -53,17 +51,8 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
             if (!clarinLicenseLabel.isExtended()) {
                 continue;
             }
-//            ClarinLicenseLabelRest clarinLicenseLabelRest = new ClarinLicenseLabelRest();
-//            clarinLicenseLabelRest.setId(clarinLicenseLabel.getId());
-//            clarinLicenseLabelRest.setLabel(clarinLicenseLabel.getLabel());
-//            clarinLicenseLabelRest.setExtended(clarinLicenseLabel.isExtended());
-//            clarinLicenseLabelRest.setTitle(clarinLicenseLabel.getTitle());
-//            clarinLicenseLabelRest.setIcon(clarinLicenseLabel.getIcon());
-//            clarinLicenseLabelRestList.add(clarinLicenseLabelConverter.convert(clarinLicenseLabel, projection));
             licenseRest.getExtendedClarinLicenseLabels().add(clarinLicenseLabelConverter.convert(clarinLicenseLabel, projection));
         }
-//        licenseRest.getExtendedClarinLicenseLabels().setadd()
-//                .put(ClarinLicenseLabelRest.EXTENDED_LABEL_NAME_PRETTY, clarinLicenseLabelRestList);
     }
 
     public void setClarinLicenseLabel(ClarinLicenseRest licenseRest, List<ClarinLicenseLabel> cLicenseLabels,
