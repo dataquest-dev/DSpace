@@ -15,7 +15,7 @@ public class ClarinLicenseLabelConverter implements DSpaceConverter<ClarinLicens
     public ClarinLicenseLabelRest convert(ClarinLicenseLabel modelObject, Projection projection) {
         ClarinLicenseLabelRest licenseLabel = new ClarinLicenseLabelRest();
         licenseLabel.setProjection(projection);
-        licenseLabel.setId(modelObject.getId());
+        licenseLabel.setId(modelObject.getID());
         licenseLabel.setTitle(modelObject.getTitle());
         licenseLabel.setLabel(modelObject.getLabel());
         licenseLabel.setExtended(modelObject.isExtended());

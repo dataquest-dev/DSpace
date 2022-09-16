@@ -79,9 +79,9 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
             throw new NullArgumentException("Cannot update clarin license because the new clarin license is null");
         }
 
-        ClarinLicense foundClarinLicense = find(context, newClarinLicense.getId());
+        ClarinLicense foundClarinLicense = find(context, newClarinLicense.getID());
         if (Objects.isNull(foundClarinLicense)) {
-            throw new ObjectNotFoundException(newClarinLicense.getId(), "Cannot update the license because the clarin license wasn't found " +
+            throw new ObjectNotFoundException(newClarinLicense.getID(), "Cannot update the license because the clarin license wasn't found " +
                     "in the database.");
         }
 

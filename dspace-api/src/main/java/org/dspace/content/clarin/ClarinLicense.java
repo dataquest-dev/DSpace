@@ -67,10 +67,6 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
         this.name = name;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
     public void setId(Integer id) {
         this.id = id;
     }

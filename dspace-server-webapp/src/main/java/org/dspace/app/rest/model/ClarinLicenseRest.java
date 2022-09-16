@@ -4,16 +4,11 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
-import org.dspace.app.rest.converter.ConverterService;
-import org.dspace.app.rest.converter.DSpaceConverter;
-import org.dspace.app.rest.projection.Projection;
-import org.dspace.content.Collection;
-import org.dspace.content.clarin.ClarinLicenseLabel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -27,7 +22,7 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
      * Map of ClarinLicenseLabelRest, it throws error if it is Array List
      */
     @JsonAnySetter
-    private SortedMap<String, List<ClarinLicenseLabelRest>> extendedLicenseLabelsMap = new TreeMap();
+    private Map<String, List<ClarinLicenseLabelRest>> extendedClarinLicenseLabels = new HashMap<>();
     private ClarinLicenseLabelRest clarinLicenseLabel;
     private String name;
     private String definition;
@@ -44,12 +39,12 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
      * @return the map of keys to ordered values.
      */
     @JsonAnyGetter
-    public SortedMap<String, List<ClarinLicenseLabelRest>> getExtendedLicenseLabelsMap() {
-        return extendedLicenseLabelsMap;
+    public Map<String, List<ClarinLicenseLabelRest>> getExtendedClarinLicenseLabels() {
+        return extendedClarinLicenseLabels;
     }
 
-    public void setExtendedLicenseLabelsMap(SortedMap<String, List<ClarinLicenseLabelRest>> extendedLicenseLabelsMap) {
-        this.extendedLicenseLabelsMap = extendedLicenseLabelsMap;
+    public void setExtendedClarinLicenseLabels(SortedMap<String, List<ClarinLicenseLabelRest>> extendedClarinLicenseLabels) {
+        this.extendedClarinLicenseLabels = extendedClarinLicenseLabels;
     }
 
     public ClarinLicenseLabelRest getClarinLicenseLabel() {

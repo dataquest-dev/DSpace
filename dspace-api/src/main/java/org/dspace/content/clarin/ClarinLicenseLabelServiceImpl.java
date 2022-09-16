@@ -73,9 +73,9 @@ public class ClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService 
             throw new NullArgumentException("Cannot update licenseLabel because the clarinLicenseLabel is null");
         }
 
-        ClarinLicenseLabel foundClarinLicenseLabel = find(context, newClarinLicenseLabel.getId());
+        ClarinLicenseLabel foundClarinLicenseLabel = find(context, newClarinLicenseLabel.getID());
         if (Objects.isNull(foundClarinLicenseLabel)) {
-            throw new ObjectNotFoundException(newClarinLicenseLabel.getId(), "Cannot update the clarinLicenseLabel " +
+            throw new ObjectNotFoundException(newClarinLicenseLabel.getID(), "Cannot update the clarinLicenseLabel " +
                     "because the licenseLabel wasn't found in the database.");
         }
 

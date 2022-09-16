@@ -42,10 +42,6 @@ public class ClarinLicenseLabel implements ReloadableEntity<Integer> {
     public ClarinLicenseLabel() {
     }
 
-    public Integer getId() {
-        return id;
-    }
-
     public void setId(Integer id) {
         this.id = id;
     }

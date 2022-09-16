@@ -21,4 +21,5 @@ public interface ClarinLicenseLabelService {
     void delete(Context context, ClarinLicenseLabel clarinLicenseLabel) throws SQLException;
 
     void update(Context context, ClarinLicenseLabel newClarinLicenseLabel) throws SQLException;
+
 }

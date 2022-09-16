@@ -1,12 +1,8 @@
 package org.dspace.app.rest.converter;
 
-import org.dspace.app.rest.converter.ConverterService;
-import org.dspace.app.rest.converter.DSpaceConverter;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
-import org.dspace.app.rest.model.CollectionRest;
 import org.dspace.app.rest.projection.Projection;
-import org.dspace.content.Collection;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +21,7 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
     public ClarinLicenseRest convert(ClarinLicense modelObject, Projection projection) {
         ClarinLicenseRest license = new ClarinLicenseRest();
         license.setProjection(projection);
-        license.setId(modelObject.getId());
+        license.setId(modelObject.getID());
         license.setName(modelObject.getName());
         license.setConfirmation(modelObject.getConfirmation());
         license.setDefinition(modelObject.getDefinition());
@@ -65,7 +61,7 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
 //            clarinLicenseLabelRest.setIcon(clarinLicenseLabel.getIcon());
             clarinLicenseLabelRestList.add(clarinLicenseLabelConverter.convert(clarinLicenseLabel, projection));
         }
-        licenseRest.getExtendedLicenseLabelsMap()
+        licenseRest.getExtendedClarinLicenseLabels()
                 .put(ClarinLicenseLabelRest.EXTENDED_LABEL_NAME_PRETTY, clarinLicenseLabelRestList);
     }
 

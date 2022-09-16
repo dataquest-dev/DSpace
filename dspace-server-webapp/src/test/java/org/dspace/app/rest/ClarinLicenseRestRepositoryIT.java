@@ -1,6 +1,9 @@
 package org.dspace.app.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.converter.ClarinLicenseConverter;
+import org.dspace.app.rest.converter.ConverterService;
+import org.dspace.app.rest.converter.DSpaceConverter;
 import org.dspace.app.rest.matcher.ClarinLicenseLabelMatcher;
 import org.dspace.app.rest.matcher.ClarinLicenseMatcher;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
@@ -23,9 +26,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -133,6 +140,26 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(jsonPath("$._links.self.href",
                         Matchers.containsString("/api/core/clarinlicenses")))
         ;
+    }
+
+    @Test
+    public void create() throws Exception {
+        ClarinLicenseRest clarinLicenseRest = new ClarinLicenseRest();
+        clarinLicenseRest.setName("name");
+        clarinLicenseRest.setBitstreams(0);
+        clarinLicenseRest.setConfirmation(4);
+        clarinLicenseRest.setRequiredInfo("Not required");
+        clarinLicenseRest.setDefinition("definition");
+        clarinLicenseConverter.setExtendedClarinLicenseLabels(clarinLicenseRest, firstCLicense.getLicenseLabels(),
+                Projection.DEFAULT);
+        clarinLicenseConverter.setClarinLicenseLabel(clarinLicenseRest, firstCLicense.getLicenseLabels(),
+                Projection.DEFAULT);
+
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(authTokenAdmin).perform(post("/api/core/clarinlicenses")
+                .content(new ObjectMapper().writeValueAsBytes(clarinLicenseRest))
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     private ClarinLicenseLabel getNonExtendedLicenseLabel(List<ClarinLicenseLabel> clarinLicenseLabelList) {
