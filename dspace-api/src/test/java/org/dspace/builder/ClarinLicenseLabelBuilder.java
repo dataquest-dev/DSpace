@@ -13,9 +13,6 @@ import java.sql.SQLException;
 
 public class ClarinLicenseLabelBuilder extends AbstractBuilder<ClarinLicenseLabel, ClarinLicenseLabelService> {
 
-    private ClarinLicenseLabelService clarinLicenseLabelService =
-            ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
-
     private ClarinLicenseLabel clarinLicenseLabel;
 
     protected ClarinLicenseLabelBuilder(Context context) {

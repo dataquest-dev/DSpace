@@ -12,6 +12,7 @@ import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.builder.ClarinLicenseLabelBuilder;
+import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
@@ -21,6 +22,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -29,7 +31,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static com.jayway.jsonpath.JsonPath.read;
+import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -86,7 +91,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         // add ClarinLicenseLabels to the ClarinLicense
         HashSet<ClarinLicenseLabel> firstClarinLicenseLabels = new HashSet<>();
         firstClarinLicenseLabels.add(firstCLicenseLabel);
-        firstClarinLicenseLabels.add(secondCLicenseLabel);
+//        firstClarinLicenseLabels.add(secondCLicenseLabel);
         firstClarinLicenseLabels.add(thirdCLicenseLabel);
         firstCLicense.setLicenseLabels(firstClarinLicenseLabels);
         clarinLicenseService.update(context, firstCLicense);
@@ -155,11 +160,51 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         clarinLicenseConverter.setClarinLicenseLabel(clarinLicenseRest, firstCLicense.getLicenseLabels(),
                 Projection.DEFAULT);
 
+        // id of created clarin license
+        AtomicReference<Integer> idRef = new AtomicReference<>();
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(authTokenAdmin).perform(post("/api/core/clarinlicenses")
-                .content(new ObjectMapper().writeValueAsBytes(clarinLicenseRest))
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        try {
+            getClient(authTokenAdmin).perform(post("/api/core/clarinlicenses")
+                            .content(new ObjectMapper().writeValueAsBytes(clarinLicenseRest))
+                            .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.name", is(clarinLicenseRest.getName())))
+                    .andExpect(jsonPath("$.definition",
+                            is(clarinLicenseRest.getDefinition())))
+                    .andExpect(jsonPath("$.confirmation",
+                            is(clarinLicenseRest.getConfirmation())))
+                    .andExpect(jsonPath("$.requiredInfo",
+                            is(clarinLicenseRest.getRequiredInfo())))
+                    .andExpect(jsonPath("$.bitstreams",
+                            is(clarinLicenseRest.getBitstreams())))
+                    .andExpect(jsonPath("$.type",
+                            is(ClarinLicenseRest.NAME)))
+
+                    .andExpect(jsonPath("$.clarinLicenseLabel.label",
+                            is(clarinLicenseRest.getClarinLicenseLabel().getLabel())))
+                    .andExpect(jsonPath("$.clarinLicenseLabel.title",
+                            is(clarinLicenseRest.getClarinLicenseLabel().getTitle())))
+                    .andExpect(jsonPath("$.clarinLicenseLabel.extended",
+                            is(clarinLicenseRest.getClarinLicenseLabel().isExtended())))
+                    .andExpect(jsonPath("$.clarinLicenseLabel.type",
+                            is(ClarinLicenseLabelRest.NAME)))
+
+                    .andExpect(jsonPath("$.extendedClarinLicenseLabels[0].label",
+                            is(clarinLicenseRest.getExtendedClarinLicenseLabels().get(0).getLabel())))
+                    .andExpect(jsonPath("$.extendedClarinLicenseLabels[0].title",
+                            is(clarinLicenseRest.getExtendedClarinLicenseLabels().get(0).getTitle())))
+                    .andExpect(jsonPath("$.extendedClarinLicenseLabels[0].extended",
+                            is(clarinLicenseRest.getExtendedClarinLicenseLabels().get(0).isExtended())))
+                    .andExpect(jsonPath("$.extendedClarinLicenseLabels[0].type",
+                            is(ClarinLicenseLabelRest.NAME)))
+                    .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(),
+                            "$.id")));
+        } finally {
+            if (Objects.nonNull(idRef.get())) {
+                // remove created clarin license
+                ClarinLicenseBuilder.deleteClarinLicense(idRef.get());
+            }
+        }
     }
 
     private ClarinLicenseLabel getNonExtendedLicenseLabel(List<ClarinLicenseLabel> clarinLicenseLabelList) {

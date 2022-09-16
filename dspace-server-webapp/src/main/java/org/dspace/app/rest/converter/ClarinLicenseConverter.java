@@ -59,10 +59,11 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
 //            clarinLicenseLabelRest.setExtended(clarinLicenseLabel.isExtended());
 //            clarinLicenseLabelRest.setTitle(clarinLicenseLabel.getTitle());
 //            clarinLicenseLabelRest.setIcon(clarinLicenseLabel.getIcon());
-            clarinLicenseLabelRestList.add(clarinLicenseLabelConverter.convert(clarinLicenseLabel, projection));
+//            clarinLicenseLabelRestList.add(clarinLicenseLabelConverter.convert(clarinLicenseLabel, projection));
+            licenseRest.getExtendedClarinLicenseLabels().add(clarinLicenseLabelConverter.convert(clarinLicenseLabel, projection));
         }
-        licenseRest.getExtendedClarinLicenseLabels()
-                .put(ClarinLicenseLabelRest.EXTENDED_LABEL_NAME_PRETTY, clarinLicenseLabelRestList);
+//        licenseRest.getExtendedClarinLicenseLabels().setadd()
+//                .put(ClarinLicenseLabelRest.EXTENDED_LABEL_NAME_PRETTY, clarinLicenseLabelRestList);
     }
 
     public void setClarinLicenseLabel(ClarinLicenseRest licenseRest, List<ClarinLicenseLabel> cLicenseLabels,

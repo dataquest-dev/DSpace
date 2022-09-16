@@ -6,11 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 @Component
 public class ClarinLicenseRest extends BaseObjectRest<Integer> {
@@ -21,8 +19,8 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
     /**
      * Map of ClarinLicenseLabelRest, it throws error if it is Array List
      */
-    @JsonAnySetter
-    private Map<String, List<ClarinLicenseLabelRest>> extendedClarinLicenseLabels = new HashMap<>();
+//    @JsonAnySetter
+    private List<ClarinLicenseLabelRest> extendedClarinLicenseLabels;
     private ClarinLicenseLabelRest clarinLicenseLabel;
     private String name;
     private String definition;
@@ -38,12 +36,15 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
      *
      * @return the map of keys to ordered values.
      */
-    @JsonAnyGetter
-    public Map<String, List<ClarinLicenseLabelRest>> getExtendedClarinLicenseLabels() {
+//    @JsonAnyGetter
+    public List<ClarinLicenseLabelRest> getExtendedClarinLicenseLabels() {
+        if (extendedClarinLicenseLabels == null) {
+            extendedClarinLicenseLabels = new ArrayList<>();
+        }
         return extendedClarinLicenseLabels;
     }
 
-    public void setExtendedClarinLicenseLabels(SortedMap<String, List<ClarinLicenseLabelRest>> extendedClarinLicenseLabels) {
+    public void setExtendedClarinLicenseLabels(List<ClarinLicenseLabelRest> extendedClarinLicenseLabels) {
         this.extendedClarinLicenseLabels = extendedClarinLicenseLabels;
     }
 

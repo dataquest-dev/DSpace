@@ -18,7 +18,6 @@ public class ClarinLicenseLabelMatcher {
 
     public static Matcher<? super Object> matchClarinLicenseLabel(ClarinLicenseLabel clarinLicenseLabel) {
         return allOf(
-                hasJsonPath("$.id", is(clarinLicenseLabel.getID())),
                 hasJsonPath("$.label", is(clarinLicenseLabel.getLabel())),
                 hasJsonPath("$.type", is(ClarinLicenseLabelRest.NAME)),
                 hasJsonPath("$.title", is(clarinLicenseLabel.getTitle())),
@@ -28,7 +27,6 @@ public class ClarinLicenseLabelMatcher {
 
     public static Matcher<? super Object> matchExtendedClarinLicenseLabel(ClarinLicenseLabel clarinLicenseLabel) {
         return allOf(
-                hasJsonPath("$.id", is(clarinLicenseLabel.getID())),
                 hasJsonPath("$.label", is(clarinLicenseLabel.getLabel())),
                 hasJsonPath("$.type", is(ClarinLicenseLabelRest.NAME)),
                 hasJsonPath("$.title", is(clarinLicenseLabel.getTitle())),

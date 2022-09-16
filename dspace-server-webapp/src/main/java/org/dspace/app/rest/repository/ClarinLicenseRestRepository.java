@@ -68,9 +68,9 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
         ClarinLicenseRest clarinLicenseRest;
         JSONObject clarinLicenseJSON;
         try {
-            clarinLicenseJSON = new ObjectMapper().readValue(
+            clarinLicenseRest = new ObjectMapper().readValue(
                     getRequestService().getCurrentRequest().getHttpServletRequest().getInputStream(),
-                    JSONObject.class
+                    ClarinLicenseRest.class
             );
         } catch (IOException excIO) {
             throw new DSpaceBadRequestException("error parsing request body", excIO);
@@ -85,12 +85,14 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
         // create
         ClarinLicense clarinLicense;
         clarinLicense = clarinLicenseService.create(context);
-//        clarinLicense.setName(clarinLicenseRest.getName());
-//        clarinLicense.setLicenseLabels(this.getClarinLicenseLabels(clarinLicenseRest));
-//        clarinLicense.setDefinition(clarinLicenseRest.getDefinition());
-//        clarinLicense.setConfirmation(clarinLicenseRest.getConfirmation());
-//        clarinLicense.setRequiredInfo(clarinLicenseRest.getRequiredInfo());
+        clarinLicense.setName(clarinLicenseRest.getName());
+        clarinLicense.setLicenseLabels(this.getClarinLicenseLabels(clarinLicenseRest.getClarinLicenseLabel(),
+                clarinLicenseRest.getExtendedClarinLicenseLabels()));
+        clarinLicense.setDefinition(clarinLicenseRest.getDefinition());
+        clarinLicense.setConfirmation(clarinLicenseRest.getConfirmation());
+        clarinLicense.setRequiredInfo(clarinLicenseRest.getRequiredInfo());
 
+        clarinLicenseService.update(context, clarinLicense);
         // return
         return converter.toRest(clarinLicense, utils.obtainProjection());
     }
@@ -100,14 +102,21 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
         return ClarinLicenseRest.class;
     }
 
-    private Set<ClarinLicenseLabel> getClarinLicenseLabels(ClarinLicenseRest clarinLicenseRest) {
+    private Set<ClarinLicenseLabel> getClarinLicenseLabels(ClarinLicenseLabelRest clarinLicenseLabelRest,
+                                                           List<ClarinLicenseLabelRest> extendedClarinLicenseLabels) {
         Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
-        clarinLicenseLabels.add(getClarinLicenseLabelFromRest(clarinLicenseRest.getClarinLicenseLabel()));
-        clarinLicenseRest.getExtendedClarinLicenseLabels().values().forEach(list -> {
-            list.forEach(clarinLicenseLabelRest -> {
-                clarinLicenseLabels.add(getClarinLicenseLabelFromRest(clarinLicenseLabelRest));
-            });
+
+        clarinLicenseLabels.add(getClarinLicenseLabelFromRest(clarinLicenseLabelRest));
+        extendedClarinLicenseLabels.forEach(cllr -> {
+            clarinLicenseLabels.add(getClarinLicenseLabelFromRest(cllr));
         });
+
+//        clarinLicenseLabels.add(getClarinLicenseLabelFromRest(clarinLicenseRest.getClarinLicenseLabel()));
+//        clarinLicenseRest.getExtendedClarinLicenseLabels().values().forEach(list -> {
+//            list.forEach(clarinLicenseLabelRest -> {
+//                clarinLicenseLabels.add(getClarinLicenseLabelFromRest(clarinLicenseLabelRest));
+//            });
+//        });
 
         return clarinLicenseLabels;
     }
