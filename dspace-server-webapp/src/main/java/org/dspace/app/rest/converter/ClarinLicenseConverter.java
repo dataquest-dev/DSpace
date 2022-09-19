@@ -1,25 +1,29 @@
 package org.dspace.app.rest.converter;
 
-import org.dspace.app.rest.converter.ConverterService;
-import org.dspace.app.rest.converter.DSpaceConverter;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
-import org.dspace.app.rest.model.CollectionRest;
 import org.dspace.app.rest.projection.Projection;
-import org.dspace.content.Collection;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.xoai.services.api.context.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, ClarinLicenseRest> {
-
     @Autowired
     private ConverterService converter;
+
+    @Inject
+    private ContextService contextService;
+
+    @Autowired
+    private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     @Override
     public ClarinLicenseRest convert(ClarinLicense modelObject, Projection projection) {
@@ -35,7 +39,12 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
 //        license.setExtendedClarinLicenseLabels(modelObject.getLicenseLabels(), projection);
 //        license.setClarinLicenseLabel(modelObject.getLicenseLabels(), projection);
         // TODO find out which bitstreams are using this license
-        license.setBitstreams(0);
+        try {
+            license.setBitstreams(clarinLicenseResourceMappingService.findAllByLicenseId(contextService.getContext(), modelObject.getID()).size());
+        } catch (Exception e) {
+            throw new RuntimeException("Message");
+        }
+
         return license;
     }
 

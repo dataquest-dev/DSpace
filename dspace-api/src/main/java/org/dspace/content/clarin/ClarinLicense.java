@@ -35,7 +35,7 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
             name = "license_label_extended_mapping",
             joinColumns = @JoinColumn(name = "license_id"),
             inverseJoinColumns = @JoinColumn(name = "label_id"))
-    Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();;
+    Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
 
 //    @Column(name = "eperson_id")
 //    private Integer epersonId;
