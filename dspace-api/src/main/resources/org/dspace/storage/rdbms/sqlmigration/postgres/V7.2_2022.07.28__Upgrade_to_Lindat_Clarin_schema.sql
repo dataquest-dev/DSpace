@@ -7,3 +7,5 @@
 --
 
 ALTER TABLE handle ADD url varchar(2048);
+ALTER TABLE handle ADD dead BOOL;
+ALTER TABLE handle ADD dead_since TIMESTAMP WITH TIME ZONE;
