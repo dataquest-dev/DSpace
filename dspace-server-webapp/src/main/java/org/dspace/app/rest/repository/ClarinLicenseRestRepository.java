@@ -1,6 +1,9 @@
 package org.dspace.app.rest.repository;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
@@ -8,6 +11,7 @@ import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.app.rest.model.MetadataFieldRest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.MetadataField;
+import org.dspace.content.NonUniqueMetadataException;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.service.clarin.ClarinLicenseService;
@@ -20,6 +24,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashSet;
@@ -97,6 +102,42 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
 
         clarinLicenseService.update(context, clarinLicense);
         // return
+        return converter.toRest(clarinLicense, utils.obtainProjection());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
+    protected ClarinLicenseRest put(Context context, HttpServletRequest request, String apiCategory, String model,
+                                    Integer id, JsonNode jsonNode) throws SQLException, AuthorizeException {
+
+        ClarinLicenseRest clarinLicenseRest = new Gson().fromJson(jsonNode.toString(), ClarinLicenseRest.class);
+
+        if (Objects.isNull(clarinLicenseRest)) {
+            throw new RuntimeException("Cannot parse ClarinLicenseRest object from request.");
+        }
+
+        if (Objects.isNull(clarinLicenseRest.getClarinLicenseLabel()) ||
+                Objects.isNull(clarinLicenseRest.getExtendedClarinLicenseLabels()) ||
+                StringUtils.isBlank(clarinLicenseRest.getName()) ||
+                StringUtils.isBlank(clarinLicenseRest.getDefinition())) {
+            throw new UnprocessableEntityException("The ClarinLicense doesn't have required properties or some " +
+                    "some property is null.");
+        }
+
+        ClarinLicense clarinLicense = clarinLicenseService.find(context, id);
+        if (Objects.isNull(clarinLicense)) {
+            throw new ResourceNotFoundException("Clarin License with id: " + id + " not found");
+        }
+
+        clarinLicense.setName(clarinLicenseRest.getName());
+        clarinLicense.setRequiredInfo(clarinLicenseRest.getRequiredInfo());
+        clarinLicense.setDefinition(clarinLicenseRest.getDefinition());
+        clarinLicense.setConfirmation(clarinLicenseRest.getConfirmation());
+        clarinLicense.setLicenseLabels(this.getClarinLicenseLabels(clarinLicenseRest.getClarinLicenseLabel(),
+                clarinLicenseRest.getExtendedClarinLicenseLabels()));
+
+        clarinLicenseService.update(context, clarinLicense);
+
         return converter.toRest(clarinLicense, utils.obtainProjection());
     }
 

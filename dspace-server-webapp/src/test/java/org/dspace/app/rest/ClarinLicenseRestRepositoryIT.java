@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -207,6 +208,107 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 ClarinLicenseBuilder.deleteClarinLicense(idRef.get());
             }
         }
+    }
+
+    // Edit
+    @Test
+    public void update() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // clarin license to update
+        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+        clarinLicense.setName("default name");
+        clarinLicense.setDefinition("default definition");
+        clarinLicense.setConfirmation(0);
+        clarinLicense.setRequiredInfo("default info");
+
+        Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
+        clarinLicenseLabels.add(firstCLicenseLabel);
+        clarinLicenseLabels.add(secondCLicenseLabel);
+        clarinLicense.setLicenseLabels(clarinLicenseLabels);
+
+        // clarin license with updated values
+        ClarinLicense clarinLicenseUpdated = ClarinLicenseBuilder.createClarinLicense(context).build();
+        clarinLicenseUpdated.setName("updated name");
+        clarinLicenseUpdated.setDefinition("updated definition");
+        clarinLicenseUpdated.setConfirmation(4);
+        clarinLicenseUpdated.setRequiredInfo("updated info");
+
+        Set<ClarinLicenseLabel> clarinLicenseLabelUpdated = new HashSet<>();
+        clarinLicenseLabelUpdated.add(firstCLicenseLabel);
+        clarinLicenseLabelUpdated.add(thirdCLicenseLabel);
+        clarinLicenseUpdated.setLicenseLabels(clarinLicenseLabelUpdated);
+        context.restoreAuthSystemState();
+
+        ClarinLicenseRest clarinLicenseRest = clarinLicenseConverter.convert(clarinLicenseUpdated, Projection.DEFAULT);
+
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(authTokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(status().isOk());
+
+        getClient(authTokenAdmin).perform(put("/api/core/clarinlicenses/" + clarinLicense.getID())
+                        .content(new ObjectMapper().writeValueAsBytes(clarinLicenseRest))
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        getClient(authTokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        ClarinLicenseMatcher.matchClarinLicenseWithoutId(clarinLicenseUpdated))
+                ));
+    }
+
+    // 403
+    @Test
+    public void forbiddenUpdateClarinLicense() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // clarin license to update
+        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+
+        clarinLicense.setName("default name");
+        clarinLicense.setDefinition("default definition");
+        clarinLicense.setConfirmation(0);
+        clarinLicense.setRequiredInfo("default info");
+
+        Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
+        clarinLicenseLabels.add(firstCLicenseLabel);
+        clarinLicenseLabels.add(thirdCLicenseLabel);
+        clarinLicense.setLicenseLabels(clarinLicenseLabels);
+        context.restoreAuthSystemState();
+
+        ClarinLicenseRest clarinLicenseRest = clarinLicenseConverter.convert(clarinLicense, Projection.DEFAULT);
+        String authTokenUser = getAuthToken(eperson.getEmail(), password);
+        getClient(authTokenUser).perform(delete("/api/core/clarinlicenses/" + clarinLicense.getID())
+                .content(new ObjectMapper().writeValueAsBytes(clarinLicenseRest))
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+        ;
+    }
+    // 404
+    @Test
+    public void notFoundUpdateClarinLicense() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // clarin license to update
+        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+
+        clarinLicense.setName("default name");
+        clarinLicense.setDefinition("default definition");
+        clarinLicense.setConfirmation(0);
+        clarinLicense.setRequiredInfo("default info");
+
+        Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
+        clarinLicenseLabels.add(firstCLicenseLabel);
+        clarinLicenseLabels.add(thirdCLicenseLabel);
+        clarinLicense.setLicenseLabels(clarinLicenseLabels);
+        context.restoreAuthSystemState();
+
+        ClarinLicenseRest clarinLicenseRest = clarinLicenseConverter.convert(clarinLicense, Projection.DEFAULT);
+
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(authTokenAdmin).perform(put("/api/core/clarinlicenses/" + clarinLicense.getID() + "124679")
+                .content(new ObjectMapper().writeValueAsBytes(clarinLicenseRest))
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+        ;
     }
 
     // 204

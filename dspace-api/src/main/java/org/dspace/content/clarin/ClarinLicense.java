@@ -55,10 +55,6 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     public ClarinLicense() {
     }
 
-    public void setClarinLicenseLabels(Set<ClarinLicenseLabel> clarinLicenseLabels) {
-        this.clarinLicenseLabels = clarinLicenseLabels;
-    }
-
     public String getName() {
         return name;
     }
