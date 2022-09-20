@@ -41,6 +41,7 @@ import org.dspace.handle.service.HandleClarinService;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Additional service implementation for the Handle object in Clarin-DSpace.
@@ -337,16 +338,17 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         //set handle
         handleObject.setHandle(newHandle);
         //if it is internal handle, do nothing with url
-        if (Objects.isNull(newUrl)) {
-            throw new RuntimeException("Cannot change handle and url of handle object.");
+        if (Objects.nonNull(newUrl)) {
+            //set url only if is not empty
+            //when you add null to String, it converts null to "null"
+            if (!(ObjectUtils.isEmpty(newUrl)) && !(StringUtils.isBlank(newUrl)) &&
+                    !newUrl.equals("null")) {
+                handleObject.setUrl(newUrl);
+            } else {
+                throw new RuntimeException("Cannot change handle and url of handle object " +
+                        "- the url has wrong value: 'null' or is blank");
+            }
         }
-
-        //set url only if is not empty
-        //when you add null to String, it converts null to "null"
-        if (StringUtils.isBlank(newUrl) || StringUtils.equals(newUrl, "null")) {
-            throw new RuntimeException("Cannot change handle and url of handle object.");
-        }
-        handleObject.setUrl(newUrl);
 
         this.save(context, handleObject);
         log.info(LogHelper.getHeader(context, "Set handle and url of handle object.",
