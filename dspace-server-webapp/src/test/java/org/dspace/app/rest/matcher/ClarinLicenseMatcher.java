@@ -31,4 +31,18 @@ public class ClarinLicenseMatcher {
                         Matchers.containsString("/api/core/clarinlicenses/" + clarinLicense.getID()))
         );
     }
+
+    // when the Clarin License is updated
+    public static Matcher<? super Object> matchClarinLicenseWithoutId(ClarinLicense clarinLicense) {
+        return allOf(
+                hasJsonPath("$.name", is(clarinLicense.getName())),
+                hasJsonPath("$.definition", is(clarinLicense.getDefinition())),
+                hasJsonPath("$.type", is(ClarinLicenseRest.NAME)),
+                hasJsonPath("$.confirmation", is(clarinLicense.getConfirmation())),
+                hasJsonPath("$.requiredInfo", is(clarinLicense.getRequiredInfo())),
+                hasJsonPath("$.bitstreams", Matchers.not(Matchers.empty())),
+                hasJsonPath("$.clarinLicenseLabel", Matchers.not(Matchers.empty())),
+                hasJsonPath("$.extendedClarinLicenseLabels", Matchers.not(Matchers.empty()))
+        );
+    }
 }

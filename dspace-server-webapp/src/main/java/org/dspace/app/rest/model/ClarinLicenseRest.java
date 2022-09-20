@@ -1,21 +1,11 @@
 package org.dspace.app.rest.model;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
-import org.dspace.app.rest.converter.ConverterService;
-import org.dspace.app.rest.converter.DSpaceConverter;
-import org.dspace.app.rest.projection.Projection;
-import org.dspace.content.Collection;
-import org.dspace.content.clarin.ClarinLicenseLabel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 @Component
 public class ClarinLicenseRest extends BaseObjectRest<Integer> {
@@ -23,11 +13,7 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
     public static final String NAME = "clarinlicense";
     public static final String CATEGORY = RestAddressableModel.CORE;
 
-    /**
-     * Map of ClarinLicenseLabelRest, it throws error if it is Array List
-     */
-    @JsonAnySetter
-    private SortedMap<String, List<ClarinLicenseLabelRest>> extendedLicenseLabelsMap = new TreeMap();
+    private List<ClarinLicenseLabelRest> extendedClarinLicenseLabels;
     private ClarinLicenseLabelRest clarinLicenseLabel;
     private String name;
     private String definition;
@@ -38,18 +24,15 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
     public ClarinLicenseRest() {
     }
 
-    /**
-     * Gets the map.
-     *
-     * @return the map of keys to ordered values.
-     */
-    @JsonAnyGetter
-    public SortedMap<String, List<ClarinLicenseLabelRest>> getExtendedLicenseLabelsMap() {
-        return extendedLicenseLabelsMap;
+    public List<ClarinLicenseLabelRest> getExtendedClarinLicenseLabels() {
+        if (extendedClarinLicenseLabels == null) {
+            extendedClarinLicenseLabels = new ArrayList<>();
+        }
+        return extendedClarinLicenseLabels;
     }
 
-    public void setExtendedLicenseLabelsMap(SortedMap<String, List<ClarinLicenseLabelRest>> extendedLicenseLabelsMap) {
-        this.extendedLicenseLabelsMap = extendedLicenseLabelsMap;
+    public void setExtendedClarinLicenseLabels(List<ClarinLicenseLabelRest> extendedClarinLicenseLabels) {
+        this.extendedClarinLicenseLabels = extendedClarinLicenseLabels;
     }
 
     public ClarinLicenseLabelRest getClarinLicenseLabel() {
@@ -124,16 +107,4 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
     public String getCategory() {
         return CATEGORY;
     }
-
-//    @Override
-//    public boolean equals(Object object) {
-//        return object instanceof ClarinLicenseRest && ((ClarinLicenseRest) object).getMap().equals(map);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return new HashCodeBuilder(7, 37)
-//                .append(this.getMap())
-//                .toHashCode();
-//    }
 }

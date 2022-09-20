@@ -1,6 +1,7 @@
 package org.dspace.builder;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.service.clarin.ClarinLicenseService;
@@ -8,10 +9,9 @@ import org.dspace.core.Context;
 import org.dspace.eperson.Group;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class ClarinLicenseBuilder extends AbstractBuilder<ClarinLicense, ClarinLicenseService> {
-
-    private ClarinLicenseService clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
 
     private ClarinLicense clarinLicense;
 
@@ -32,6 +32,21 @@ public class ClarinLicenseBuilder extends AbstractBuilder<ClarinLicense, ClarinL
             return handleException(e);
         }
         return this;
+    }
+
+    public static void deleteClarinLicense(Integer id) throws Exception {
+        if (Objects.isNull(id)) {
+            return;
+        }
+        try (Context c = new Context()) {
+            c.turnOffAuthorisationSystem();
+            ClarinLicense clarinLicense = clarinLicenseService.find(c, id);
+
+            if (clarinLicense != null) {
+                clarinLicenseService.delete(c, clarinLicense);
+            }
+            c.complete();
+        }
     }
 
     @Override
