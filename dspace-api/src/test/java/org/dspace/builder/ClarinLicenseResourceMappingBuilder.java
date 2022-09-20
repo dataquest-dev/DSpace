@@ -1,7 +1,6 @@
 package org.dspace.builder;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;

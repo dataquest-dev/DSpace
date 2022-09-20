@@ -32,7 +32,7 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
     public ClarinLicenseResourceMapping create(Context context) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License");
+                    "You must be an admin to create an Clarin License Resource Mapping");
         }
 
         // Create a table row

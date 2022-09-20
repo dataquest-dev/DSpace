@@ -9,18 +9,9 @@ import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.builder.ClarinLicenseLabelBuilder;
-import org.dspace.builder.ClarinLicenseResourceMappingBuilder;
-import org.dspace.builder.CollectionBuilder;
-import org.dspace.builder.CommunityBuilder;
-import org.dspace.builder.ItemBuilder;
-import org.dspace.content.Collection;
-import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
-import org.dspace.content.clarin.ClarinLicenseResourceMapping;
-import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
-import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -39,8 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegrationTest {
 
-    private static final String AUTHOR = "Test author name";
-
     @Autowired
     ClarinLicenseService clarinLicenseService;
 
@@ -49,15 +38,6 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
 
     @Autowired
     ClarinLicenseConverter clarinLicenseConverter;
-
-    @Autowired
-    ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
-
-    private Item publicItem1;
-
-    private Item publicItem2;
-
-    private Item publicItem3;
 
     ClarinLicense firstCLicense;
     ClarinLicense secondCLicense;
@@ -112,55 +92,6 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         secondCLicense.setLicenseLabels(secondClarinLicenseLabels);
         clarinLicenseService.update(context, secondCLicense);
 
-        //create community for items
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
-
-        //create collection for items
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 2").build();
-        Collection col3 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 3").build();
-
-        // create two items with the first license
-        publicItem1 = ItemBuilder.createItem(context, col1)
-                .withTitle("Item 1")
-                .withIssueDate("2022-10-17")
-                .withAuthor("Smith, Donald").withAuthor("Doe, John")
-                .withSubject("ExtraEntry")
-                .build();
-        ClarinLicenseResourceMapping clarinLicenseResourceMapping1 = ClarinLicenseResourceMappingBuilder
-                .createClarinLicenseResourceMapping(context).build();
-        clarinLicenseResourceMapping1.setLicenseId(firstCLicense.getID());
-        clarinLicenseResourceMapping1.setBitstreamId(publicItem1.getID());
-        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping1);
-
-        publicItem2 = ItemBuilder.createItem(context, col2)
-                .withTitle("Public item 2")
-                .withIssueDate("2016-02-13")
-                .withAuthor("Smith, Maria").withAuthor("Doe, Jane")
-                .withSubject("TestingForMore").withSubject("ExtraEntry")
-                .build();
-        ClarinLicenseResourceMapping clarinLicenseResourceMapping2 = ClarinLicenseResourceMappingBuilder
-                .createClarinLicenseResourceMapping(context).build();
-        clarinLicenseResourceMapping1.setLicenseId(firstCLicense.getID());
-        clarinLicenseResourceMapping1.setBitstreamId(publicItem2.getID());
-        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping2);
-
-        //create item with the second license
-        publicItem3 = ItemBuilder.createItem(context, col3)
-                .withTitle("Public item 3")
-                .withIssueDate("2016-02-13")
-                .withAuthor("Smith, Maria").withAuthor("Doe, Jane")
-                .withSubject("AnotherTest").withSubject("TestingForMore")
-                .withSubject("ExtraEntry")
-                .build();
-        ClarinLicenseResourceMapping clarinLicenseResourceMapping3 = ClarinLicenseResourceMappingBuilder
-                .createClarinLicenseResourceMapping(context).build();
-        clarinLicenseResourceMapping1.setLicenseId(secondCLicense.getID());
-        clarinLicenseResourceMapping1.setBitstreamId(publicItem3.getID());
-        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping3);
-
         context.restoreAuthSystemState();
     }
 
@@ -198,10 +129,5 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         ;
     }
 
-    @Test
-    public void findAllBitstreamByLicenseId() throws Exception {
-        //first license is used in firstItem and secondItem
-        Assert.assertEquals(this.clarinLicenseResourceMappingService.findAllByLicenseId(context, firstCLicense.getID()), 2);
-    }
 
 }
