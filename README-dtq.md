@@ -134,6 +134,8 @@ run automatically by [GitHub Actions](https://github.com/DSpace/DSpace/actions?q
   # Example:
   mvn install -DskipIntegrationTests=false -Dit.test=org.dspace.content.ItemIT.java#dtqExampleTest -Dtest.argLine=-Xmx1024m -DfailsafeJacoco=-XX:MaxPermSize=256m -DfailIfNoTests=false -Dcheckstyle.skip -Dmaven.failsafe.debug
   # Debug: -Dmaven.failsafe.debug
+  # Skip checking of licensing headers: -Dlicense.skip
+  # Skip checkstyle: -Dcheckstyle.skip
 
   ```
   How to turn off checkstyle in tests: `-Dcheckstyle.skip`
