@@ -7,6 +7,10 @@
  */
 package org.dspace.content.clarin;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
+
 import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -19,13 +23,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
-
 /**
  * Service implementation for the Clarin License Label object.
- * This class is responsible for all business logic calls for the Clarin License Label object and is autowired by spring.
+ * This class is responsible for all business logic calls for the Clarin License Label object and is autowired
+ * by spring.
  * This class should never be accessed directly.
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
@@ -92,7 +93,8 @@ public class ClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService 
     }
 
     @Override
-    public void update(Context context, ClarinLicenseLabel newClarinLicenseLabel) throws SQLException, AuthorizeException {
+    public void update(Context context, ClarinLicenseLabel newClarinLicenseLabel) throws SQLException,
+            AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
                     "You must be an admin to create an Clarin License Label");

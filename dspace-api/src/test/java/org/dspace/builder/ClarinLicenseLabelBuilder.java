@@ -7,16 +7,12 @@
  */
 package org.dspace.builder;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.clarin.ClarinLicense;
-import org.dspace.content.clarin.ClarinLicenseLabel;
-import org.dspace.content.factory.ClarinServiceFactory;
-import org.dspace.content.service.clarin.ClarinLicenseLabelService;
-import org.dspace.content.service.clarin.ClarinLicenseService;
-import org.dspace.core.Context;
-import org.dspace.eperson.Group;
-
 import java.sql.SQLException;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.dspace.core.Context;
 
 /**
  * Builder to construct Clarin License Label objects

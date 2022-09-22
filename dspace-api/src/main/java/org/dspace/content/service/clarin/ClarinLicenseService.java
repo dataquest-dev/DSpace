@@ -7,12 +7,12 @@
  */
 package org.dspace.content.service.clarin;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.core.Context;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service interface class for the Clarin License object.

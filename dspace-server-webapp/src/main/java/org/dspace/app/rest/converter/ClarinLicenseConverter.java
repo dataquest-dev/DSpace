@@ -7,6 +7,9 @@
  */
 package org.dspace.app.rest.converter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.app.rest.projection.Projection;
@@ -14,9 +17,6 @@ import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This is the converter from/to the Clarin License in the DSpace API data model and the
@@ -67,7 +67,8 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
             if (!clarinLicenseLabel.isExtended()) {
                 continue;
             }
-            licenseRest.getExtendedClarinLicenseLabels().add(clarinLicenseLabelConverter.convert(clarinLicenseLabel, projection));
+            licenseRest.getExtendedClarinLicenseLabels().add(clarinLicenseLabelConverter.convert(clarinLicenseLabel,
+                    projection));
         }
     }
 

@@ -18,7 +18,8 @@ import org.dspace.core.AbstractHibernateDAO;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-public class ClarinLicenseLabelDAOImpl extends AbstractHibernateDAO<ClarinLicenseLabel> implements ClarinLicenseLabelDAO {
+public class ClarinLicenseLabelDAOImpl extends AbstractHibernateDAO<ClarinLicenseLabel>
+        implements ClarinLicenseLabelDAO {
     protected ClarinLicenseLabelDAOImpl() {
         super();
     }

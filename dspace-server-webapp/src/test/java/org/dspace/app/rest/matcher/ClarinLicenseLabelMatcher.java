@@ -7,15 +7,13 @@
  */
 package org.dspace.app.rest.matcher;
 
-import org.dspace.app.rest.model.ClarinLicenseLabelRest;
-import org.dspace.content.clarin.ClarinLicenseLabel;
-import org.hamcrest.Matcher;
-
-import java.util.List;
-
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.is;
+
+import org.dspace.app.rest.model.ClarinLicenseLabelRest;
+import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.hamcrest.Matcher;
 
 /**
  * Utility class to construct a Matcher for a clarin license label

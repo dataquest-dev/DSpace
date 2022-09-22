@@ -7,15 +7,14 @@
  */
 package org.dspace.app.rest.matcher;
 
-import org.dspace.app.rest.model.ClarinLicenseRest;
-import org.dspace.content.MetadataValue;
-import org.dspace.content.clarin.ClarinLicense;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.is;
+
+import org.dspace.app.rest.model.ClarinLicenseRest;
+import org.dspace.content.clarin.ClarinLicense;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 
 /**
  * Utility class to construct a Matcher for a clarin license

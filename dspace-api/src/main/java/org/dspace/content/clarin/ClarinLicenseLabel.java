@@ -7,8 +7,8 @@
  */
 package org.dspace.content.clarin;
 
-import org.dspace.core.ReloadableEntity;
-
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,8 +17,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.dspace.core.ReloadableEntity;
 
 /**
  * Class representing a clarin license label of the clarin license. The clarin license could have one
@@ -32,7 +32,7 @@ import java.util.List;
 public class ClarinLicenseLabel implements ReloadableEntity<Integer> {
 
     @Id
-    @Column(name="label_id")
+    @Column(name = "label_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "license_label_label_id_seq")
     @SequenceGenerator(name = "license_label_label_id_seq", sequenceName = "license_label_label_id_seq",
             allocationSize = 1)

@@ -7,8 +7,10 @@
  */
 package org.dspace.content.clarin;
 
-import org.dspace.core.ReloadableEntity;
-
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -21,10 +23,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import org.dspace.core.ReloadableEntity;
 
 /**
  * Class representing a clarin license in DSpace.
@@ -39,7 +39,7 @@ import java.util.Set;
 public class ClarinLicense implements ReloadableEntity<Integer> {
 
     @Id
-    @Column(name="license_id")
+    @Column(name = "license_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "license_definition_license_id_seq")
     @SequenceGenerator(name = "license_definition_license_id_seq", sequenceName = "license_definition_license_id_seq",
             allocationSize = 1)
