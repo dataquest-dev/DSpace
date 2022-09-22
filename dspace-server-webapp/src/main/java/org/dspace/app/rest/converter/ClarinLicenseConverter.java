@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.converter;
 
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
@@ -11,6 +18,14 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This is the converter from/to the Clarin License in the DSpace API data model and the
+ * REST data model
+ * Clarin License Rest object has clarin license labels separated to the list of the extended clarin license labels
+ * and one non-extended clarin license label
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Component
 public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, ClarinLicenseRest> {
 
@@ -38,8 +53,9 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
         return ClarinLicense.class;
     }
 
+
     /**
-     * Add ExtendedClarinLicenseLabel list to the map
+     * Clarin license labels separate to the list of the extended clarin license labels
      */
     public void setExtendedClarinLicenseLabels(ClarinLicenseRest licenseRest, List<ClarinLicenseLabel> cLicenseLabels,
                                                Projection projection) {
@@ -55,6 +71,9 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
         }
     }
 
+    /**
+     * Get non-extended clarin license label from clarin license labels
+     */
     public void setClarinLicenseLabel(ClarinLicenseRest licenseRest, List<ClarinLicenseLabel> cLicenseLabels,
                                       Projection projection) {
         DSpaceConverter<ClarinLicenseLabel, ClarinLicenseLabelRest> clarinLicenseLabelConverter =

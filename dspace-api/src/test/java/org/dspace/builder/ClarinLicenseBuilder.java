@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.builder;
 
 import org.dspace.authorize.AuthorizeException;
@@ -11,6 +18,11 @@ import org.dspace.eperson.Group;
 import java.sql.SQLException;
 import java.util.Objects;
 
+/**
+ * Builder to construct Clarin License objects
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinLicenseBuilder extends AbstractBuilder<ClarinLicense, ClarinLicenseService> {
 
     private ClarinLicense clarinLicense;

@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +52,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Integration tests for the Clarin License Rest Repository
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired

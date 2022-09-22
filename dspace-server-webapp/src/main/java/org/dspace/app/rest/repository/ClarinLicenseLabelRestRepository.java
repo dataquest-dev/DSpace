@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +32,11 @@ import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+/**
+ * This is the repository responsible to manage Clarin License Label Rest object
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Component(ClarinLicenseLabelRest.CATEGORY + "." + ClarinLicenseLabelRest.NAME)
 public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<ClarinLicenseLabelRest, Integer> {
 
@@ -41,7 +53,7 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
         try {
             List<ClarinLicenseLabel> clarinLicenseLabelList = clarinLicenseLabelService.findAll(context);
             return converter.toRestPage(clarinLicenseLabelList, pageable, utils.obtainProjection());
-        } catch (SQLException e) {
+        } catch (SQLException | AuthorizeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }

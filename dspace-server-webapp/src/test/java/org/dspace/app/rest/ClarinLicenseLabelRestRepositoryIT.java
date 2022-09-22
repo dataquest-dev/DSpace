@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
 
 import org.dspace.app.rest.matcher.ClarinLicenseLabelMatcher;
@@ -19,6 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Integration tests for the Clarin License Label Rest Repository
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinLicenseLabelRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired

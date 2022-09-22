@@ -1,5 +1,8 @@
 package org.dspace.core;
 
+/**
+ * Constants for clarin customization
+ */
 public class ClarinConstants {
 
     /**

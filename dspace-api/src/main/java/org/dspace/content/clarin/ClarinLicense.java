@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
 
 import org.dspace.core.ReloadableEntity;
@@ -19,6 +26,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Class representing a clarin license in DSpace.
+ * Clarin License is license for the bitstreams of the item. The item could have only one type of the Clarin License.
+ * The Clarin License is selected in the submission process.
+ * Admin could manage Clarin Licenses in the License Administration page.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Entity
 @Table(name = "license_definition")
 public class ClarinLicense implements ReloadableEntity<Integer> {

@@ -63,18 +63,33 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
     }
 
     @Override
-    public List<ClarinLicense> findAll(Context context) throws SQLException {
+    public List<ClarinLicense> findAll(Context context) throws SQLException, AuthorizeException {
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException(
+                     "You must be an admin to create an Clarin License");
+        }
+
         return clarinLicenseDAO.findAll(context, ClarinLicense.class);
     }
 
 
     @Override
-    public void delete(Context context, ClarinLicense clarinLicense) throws SQLException {
+    public void delete(Context context, ClarinLicense clarinLicense) throws SQLException, AuthorizeException {
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException(
+                    "You must be an admin to create an Clarin License");
+        }
+
         clarinLicenseDAO.delete(context, clarinLicense);
     }
 
     @Override
-    public void update(Context context, ClarinLicense newClarinLicense) throws SQLException {
+    public void update(Context context, ClarinLicense newClarinLicense) throws SQLException, AuthorizeException {
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException(
+                    "You must be an admin to create an Clarin License");
+        }
+
         if (Objects.isNull(newClarinLicense)) {
             throw new NullArgumentException("Cannot update clarin license because the new clarin license is null");
         }

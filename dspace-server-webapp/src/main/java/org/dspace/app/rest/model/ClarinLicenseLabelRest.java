@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -5,6 +12,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
 import org.dspace.content.clarin.ClarinLicense;
 
+/**
+ * The Clarin License Label REST Resource
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinLicenseLabelRest extends BaseObjectRest<Integer> {
 
     public static final String NAME = "clarinlicenselabel";

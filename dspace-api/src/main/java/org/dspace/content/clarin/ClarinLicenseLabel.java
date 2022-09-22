@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
 
 import org.dspace.core.ReloadableEntity;
@@ -13,6 +20,13 @@ import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class representing a clarin license label of the clarin license. The clarin license could have one
+ * non-extended license label and multiple extended license labels.
+ * The license label could be defined in the License Administration table.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Entity
 @Table(name = "license_label")
 public class ClarinLicenseLabel implements ReloadableEntity<Integer> {
