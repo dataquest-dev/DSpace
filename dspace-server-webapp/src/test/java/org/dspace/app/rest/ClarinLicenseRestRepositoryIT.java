@@ -77,12 +77,6 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
     ClarinLicenseLabel secondCLicenseLabel;
     ClarinLicenseLabel thirdCLicenseLabel;
 
-    ClarinLicenseResourceMapping clarinLicenseResourceMapping1;
-    ClarinLicenseResourceMapping clarinLicenseResourceMapping2;
-
-    Bitstream firstBitstream;
-    Bitstream secondBitstream;
-
     Item publicItem1;
 
     Item publicItem2;
@@ -142,7 +136,8 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         Collection col2 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection2").build();
         Collection col3 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection3").build();
 
-        //create two items with the first license
+        // create two items with the first license
+        // the publicItem1 has license information added to the metadata
         publicItem1 = ItemBuilder.createItem(context, col1)
                 .withTitle("Public item 1")
                 .withIssueDate("2022-10-17")
@@ -161,7 +156,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .withSubject("TestingForMore").withSubject("ExtraEntry")
                 .build();
 
-        //create item with the second license
+        // create item with the second license
         publicItem3 = ItemBuilder.createItem(context, col3)
                 .withTitle("Public item 3")
                 .withIssueDate("2016-02-13")
@@ -170,18 +165,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .withSubject("ExtraEntry")
                 .build();
 
-        // create bitstreams and add them with licenses to the clarin license resource mapping
-        firstBitstream = BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test 1", UTF_8))
-                .withFormat("test format")
-                .build();
-
-        secondBitstream = BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test 2", UTF_8))
-                .withFormat("test format")
-                .build();
         context.restoreAuthSystemState();
-
-        // without commit the clarin license resource mappings aren't mapped into th clarin license object
-        context.commit();
 
     }
 
@@ -224,14 +208,22 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
-    public void findAllBitstreamByLicenseId() throws Exception {
-        ClarinLicense cl = clarinLicenseService.find(context, firstCLicense.getID());
-        List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = clarinLicenseResourceMappingService.findAllByLicenseId(context, firstCLicense.getID());
-        assertNotNull(cl);
-        assertEquals(cl.getClarinLicenseResourceMappings().size(),2);
-//        ClarinLicenseResourceMapping clarinLicenseResourceMapping = clarinLicenseResourceMappingService.find(context, clarinLicenseResourceMapping1.getID());
-//        assertEquals(clarinLicenseResourceMapping.getBitstream().getID(), firstBitstream.getID());
+    public void findAllBitstreamsAttachedToLicense() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // create bitstreams and add them with licenses to the clarin license resource mapping
+        BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test 1", UTF_8))
+                .withFormat("test format")
+                .build();
 
+        BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test 2", UTF_8))
+                .withFormat("test format")
+                .build();
+        context.restoreAuthSystemState();
+        // without commit the clarin license resource mappings aren't mapped into th clarin license object
+        context.commit();
+
+        ClarinLicense cl = clarinLicenseService.find(context, firstCLicense.getID());
+        assertEquals(cl.getClarinLicenseResourceMappings().size(),2);
     }
 
     @Test
