@@ -8,6 +8,8 @@
 
 -- HANDLE TABLE
 ALTER TABLE handle ADD url varchar(2048);
+ALTER TABLE handle ADD dead BOOL;
+ALTER TABLE handle ADD dead_since TIMESTAMP WITH TIME ZONE;
 
 
 -- LICENSES
@@ -327,4 +329,3 @@ ALTER TABLE ONLY license_label_extended_mapping
 
 ALTER TABLE ONLY license_resource_user_allowance
     ADD CONSTRAINT license_resource_mapping_license_resource_user_allowance_fk FOREIGN KEY (mapping_id) REFERENCES license_resource_mapping(mapping_id) ON UPDATE CASCADE ON DELETE CASCADE;
-
