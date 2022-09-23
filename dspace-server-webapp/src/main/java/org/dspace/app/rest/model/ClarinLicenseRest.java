@@ -1,12 +1,26 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.model;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * The Clarin License REST Resource
+ * Clarin License Rest object has clarin license labels separated to the list of the extended clarin license labels
+ * and one non-extended clarin license label.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Component
 public class ClarinLicenseRest extends BaseObjectRest<Integer> {
 
@@ -82,15 +96,6 @@ public class ClarinLicenseRest extends BaseObjectRest<Integer> {
     public void setBitstreams(Integer bitstreams) {
         this.bitstreams = bitstreams;
     }
-
-    //    public ClarinLicenseLabelListRest getLicenseLabel() {
-//        return clarinLicenseLabels;
-//    }
-//
-//    public void setLicenseLabel(ClarinLicenseLabelListRest licenseLabel) {
-//        this.clarinLicenseLabels = licenseLabel;
-//    }
-
 
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

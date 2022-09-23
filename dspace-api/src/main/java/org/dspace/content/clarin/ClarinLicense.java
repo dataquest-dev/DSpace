@@ -1,7 +1,16 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
 
-import org.dspace.core.ReloadableEntity;
-
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,17 +23,23 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
+import org.dspace.core.ReloadableEntity;
+
+/**
+ * Class representing a clarin license in DSpace.
+ * Clarin License is license for the bitstreams of the item. The item could have only one type of the Clarin License.
+ * The Clarin License is selected in the submission process.
+ * Admin could manage Clarin Licenses in the License Administration page.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Entity
 @Table(name = "license_definition")
 public class ClarinLicense implements ReloadableEntity<Integer> {
 
     @Id
-    @Column(name="license_id")
+    @Column(name = "license_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "license_definition_license_id_seq")
     @SequenceGenerator(name = "license_definition_license_id_seq", sequenceName = "license_definition_license_id_seq",
             allocationSize = 1)
@@ -35,7 +50,7 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
             name = "license_label_extended_mapping",
             joinColumns = @JoinColumn(name = "license_id"),
             inverseJoinColumns = @JoinColumn(name = "label_id"))
-    Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
+    Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();;
 
 //    @Column(name = "eperson_id")
 //    private Integer epersonId;
@@ -55,20 +70,12 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     public ClarinLicense() {
     }
 
-    public void setClarinLicenseLabels(Set<ClarinLicenseLabel> clarinLicenseLabels) {
-        this.clarinLicenseLabels = clarinLicenseLabels;
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Integer getId() {
-        return id;
     }
 
     public void setId(Integer id) {

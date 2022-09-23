@@ -1,4 +1,15 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;
@@ -12,10 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.SQLException;
-import java.util.Objects;
-
-public class ClarinClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService {
+/**
+ * Service implementation for the Clarin License Label object.
+ * This class is responsible for all business logic calls for the Clarin License Label object and is autowired
+ * by spring.
+ * This class should never be accessed directly.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
+public class ClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService {
 
     private static final Logger log = LoggerFactory.getLogger(ClarinLicenseServiceImpl.class);
 
@@ -57,19 +73,40 @@ public class ClarinClarinLicenseLabelServiceImpl implements ClarinLicenseLabelSe
     }
 
     @Override
-    public void delete(Context context, ClarinLicenseLabel license) throws SQLException {
+    public List<ClarinLicenseLabel> findAll(Context context) throws SQLException, AuthorizeException {
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException(
+                    "You must be an admin to create an Clarin License Label");
+        }
+
+        return clarinLicenseLabelDAO.findAll(context, ClarinLicenseLabel.class);
+    }
+
+    @Override
+    public void delete(Context context, ClarinLicenseLabel license) throws SQLException, AuthorizeException {
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException(
+                    "You must be an admin to create an Clarin License Label");
+        }
+
         clarinLicenseLabelDAO.delete(context, license);
     }
 
     @Override
-    public void update(Context context, ClarinLicenseLabel newClarinLicenseLabel) throws SQLException {
+    public void update(Context context, ClarinLicenseLabel newClarinLicenseLabel) throws SQLException,
+            AuthorizeException {
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException(
+                    "You must be an admin to create an Clarin License Label");
+        }
+
         if (Objects.isNull(newClarinLicenseLabel)) {
             throw new NullArgumentException("Cannot update licenseLabel because the clarinLicenseLabel is null");
         }
 
-        ClarinLicenseLabel foundClarinLicenseLabel = find(context, newClarinLicenseLabel.getId());
+        ClarinLicenseLabel foundClarinLicenseLabel = find(context, newClarinLicenseLabel.getID());
         if (Objects.isNull(foundClarinLicenseLabel)) {
-            throw new ObjectNotFoundException(newClarinLicenseLabel.getId(), "Cannot update the clarinLicenseLabel " +
+            throw new ObjectNotFoundException(newClarinLicenseLabel.getID(), "Cannot update the clarinLicenseLabel " +
                     "because the licenseLabel wasn't found in the database.");
         }
 

@@ -1,50 +1,50 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.converter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
-import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
-import org.dspace.xoai.services.api.context.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * This is the converter from/to the Clarin License in the DSpace API data model and the
+ * REST data model
+ * Clarin License Rest object has clarin license labels separated to the list of the extended clarin license labels
+ * and one non-extended clarin license label
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Component
 public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, ClarinLicenseRest> {
+
     @Autowired
     private ConverterService converter;
-
-    @Inject
-    private ContextService contextService;
-
-    @Autowired
-    private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     @Override
     public ClarinLicenseRest convert(ClarinLicense modelObject, Projection projection) {
         ClarinLicenseRest license = new ClarinLicenseRest();
         license.setProjection(projection);
-        license.setId(modelObject.getId());
+        license.setId(modelObject.getID());
         license.setName(modelObject.getName());
         license.setConfirmation(modelObject.getConfirmation());
         license.setDefinition(modelObject.getDefinition());
         license.setRequiredInfo(modelObject.getRequiredInfo());
         setExtendedClarinLicenseLabels(license, modelObject.getLicenseLabels(), projection);
         setClarinLicenseLabel(license, modelObject.getLicenseLabels(), projection);
-//        license.setExtendedClarinLicenseLabels(modelObject.getLicenseLabels(), projection);
-//        license.setClarinLicenseLabel(modelObject.getLicenseLabels(), projection);
-        // TODO find out which bitstreams are using this license
-        try {
-            license.setBitstreams(clarinLicenseResourceMappingService.findAllByLicenseId(contextService.getContext(), modelObject.getID()).size());
-        } catch (Exception e) {
-            throw new RuntimeException("Message");
-        }
-
+        // TODO find out which bitstreams are using by this license
+        license.setBitstreams(0);
         return license;
     }
 
@@ -53,8 +53,9 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
         return ClarinLicense.class;
     }
 
+
     /**
-     * Add ExtendedClarinLicenseLabel list to the map
+     * Clarin license labels separate to the list of the extended clarin license labels
      */
     public void setExtendedClarinLicenseLabels(ClarinLicenseRest licenseRest, List<ClarinLicenseLabel> cLicenseLabels,
                                                Projection projection) {
@@ -66,10 +67,14 @@ public class ClarinLicenseConverter implements DSpaceConverter<ClarinLicense, Cl
             if (!clarinLicenseLabel.isExtended()) {
                 continue;
             }
-            licenseRest.getExtendedClarinLicenseLabels().add(clarinLicenseLabelConverter.convert(clarinLicenseLabel, projection));
+            licenseRest.getExtendedClarinLicenseLabels().add(clarinLicenseLabelConverter.convert(clarinLicenseLabel,
+                    projection));
         }
     }
 
+    /**
+     * Get non-extended clarin license label from clarin license labels
+     */
     public void setClarinLicenseLabel(ClarinLicenseRest licenseRest, List<ClarinLicenseLabel> cLicenseLabels,
                                       Projection projection) {
         DSpaceConverter<ClarinLicenseLabel, ClarinLicenseLabelRest> clarinLicenseLabelConverter =

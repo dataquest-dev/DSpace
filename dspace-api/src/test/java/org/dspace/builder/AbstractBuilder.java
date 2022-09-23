@@ -38,6 +38,7 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexingService;
@@ -100,6 +101,7 @@ public abstract class AbstractBuilder<T, S> {
     static VersioningService versioningService;
     static ClarinLicenseService clarinLicenseService;
     static ClarinLicenseLabelService clarinLicenseLabelService;
+    static ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     protected Context context;
 
@@ -158,6 +160,7 @@ public abstract class AbstractBuilder<T, S> {
         workflowItemRoleService = XmlWorkflowServiceFactory.getInstance().getWorkflowItemRoleService();
         clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
         clarinLicenseLabelService = ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
+        clarinLicenseResourceMappingService = ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
     }
 
 
@@ -192,6 +195,7 @@ public abstract class AbstractBuilder<T, S> {
         versioningService = null;
         clarinLicenseService = null;
         clarinLicenseLabelService = null;
+        clarinLicenseResourceMappingService = null;
 
     }
 

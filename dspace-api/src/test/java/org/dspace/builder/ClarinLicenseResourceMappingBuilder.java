@@ -9,9 +9,6 @@ import org.dspace.core.Context;
 import java.sql.SQLException;
 
 public class ClarinLicenseResourceMappingBuilder extends AbstractBuilder<ClarinLicenseResourceMapping, ClarinLicenseResourceMappingService> {
-
-    private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService = ClarinServiceFactory.getInstance().getClarinResourceMappingService();
-
     private ClarinLicenseResourceMapping clarinLicenseResourceMapping;
 
     protected ClarinLicenseResourceMappingBuilder(Context context) {

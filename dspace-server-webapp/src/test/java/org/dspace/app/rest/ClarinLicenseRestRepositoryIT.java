@@ -1,50 +1,57 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
+
+import static com.jayway.jsonpath.JsonPath.read;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.converter.ClarinLicenseConverter;
-import org.dspace.app.rest.converter.ConverterService;
-import org.dspace.app.rest.converter.DSpaceConverter;
 import org.dspace.app.rest.matcher.ClarinLicenseLabelMatcher;
 import org.dspace.app.rest.matcher.ClarinLicenseMatcher;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
-import org.dspace.builder.ClarinLicenseBuilder;
-import org.dspace.builder.ClarinLicenseLabelBuilder;
-import org.dspace.builder.WorkspaceItemBuilder;
+import org.dspace.builder.*;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static com.jayway.jsonpath.JsonPath.read;
-import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
-import static org.hamcrest.Matchers.in;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+/**
+ * Integration tests for the Clarin License Rest Repository
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
@@ -56,12 +63,19 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
     @Autowired
     ClarinLicenseConverter clarinLicenseConverter;
 
+    @Autowired
+    ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
     ClarinLicense firstCLicense;
     ClarinLicense secondCLicense;
 
     ClarinLicenseLabel firstCLicenseLabel;
     ClarinLicenseLabel secondCLicenseLabel;
     ClarinLicenseLabel thirdCLicenseLabel;
+
+    Item publicItem1;
+
+    Item publicItem2;
+    Item publicItem3;
 
     @Before
     public void setup() throws Exception {
@@ -109,6 +123,58 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         secondCLicense.setLicenseLabels(secondClarinLicenseLabels);
         clarinLicenseService.update(context, secondCLicense);
 
+        //create collection for items
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection2").build();
+        Collection col3 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection3").build();
+
+        //create two items with the first license
+        publicItem1 = ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 1")
+                .withIssueDate("2022-10-17")
+                .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                .withSubject("ExtraEntry")
+                .build();
+
+        publicItem2 = ItemBuilder.createItem(context, col2)
+                .withTitle("Public item 2")
+                .withIssueDate("2016-02-13")
+                .withAuthor("Smith, Maria").withAuthor("Doe, Jane")
+                .withSubject("TestingForMore").withSubject("ExtraEntry")
+                .build();
+
+        //create item with the second license
+        publicItem3 = ItemBuilder.createItem(context, col3)
+                .withTitle("Public item 3")
+                .withIssueDate("2016-02-13")
+                .withAuthor("Smith, Maria").withAuthor("Doe, Jane")
+                .withSubject("AnotherTest").withSubject("TestingForMore")
+                .withSubject("ExtraEntry")
+                .build();
+
+        ClarinLicenseResourceMapping clarinLicenseResourceMapping1 = ClarinLicenseResourceMappingBuilder
+                .createClarinLicenseResourceMapping(context).build();
+        clarinLicenseResourceMapping1.setLicenseId(firstCLicense.getID());
+        clarinLicenseResourceMapping1.setBitstreamId(publicItem1.getID());
+        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping1);
+
+
+//        ClarinLicenseResourceMapping clarinLicenseResourceMapping2 = ClarinLicenseResourceMappingBuilder
+//                .createClarinLicenseResourceMapping(context).build();
+//        clarinLicenseResourceMapping2.setLicenseId(firstCLicense.getID());
+//        clarinLicenseResourceMapping2.setBitstreamId(publicItem2.getID());
+//        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping2);
+
+
+        ClarinLicenseResourceMapping clarinLicenseResourceMapping3 = ClarinLicenseResourceMappingBuilder
+                .createClarinLicenseResourceMapping(context).build();
+        clarinLicenseResourceMapping3.setLicenseId(secondCLicense.getID());
+        clarinLicenseResourceMapping3.setBitstreamId(publicItem3.getID());
+        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping3);
+
         context.restoreAuthSystemState();
     }
 
@@ -148,6 +214,11 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(jsonPath("$._links.self.href",
                         Matchers.containsString("/api/core/clarinlicenses")))
         ;
+    }
+
+    @Test
+    public void findAllBitstreamByLicenseId() throws Exception {
+        assertEquals(clarinLicenseResourceMappingService.findAllByLicenseId(context,firstCLicense.getID()),0);
     }
 
     @Test

@@ -1,20 +1,25 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.builder;
-
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.clarin.ClarinLicense;
-import org.dspace.content.clarin.ClarinLicenseLabel;
-import org.dspace.content.factory.ClarinServiceFactory;
-import org.dspace.content.service.clarin.ClarinLicenseLabelService;
-import org.dspace.content.service.clarin.ClarinLicenseService;
-import org.dspace.core.Context;
-import org.dspace.eperson.Group;
 
 import java.sql.SQLException;
 
-public class ClarinLicenseLabelBuilder extends AbstractBuilder<ClarinLicenseLabel, ClarinLicenseLabelService> {
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.dspace.core.Context;
 
-    private ClarinLicenseLabelService clarinLicenseLabelService =
-            ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
+/**
+ * Builder to construct Clarin License Label objects
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
+public class ClarinLicenseLabelBuilder extends AbstractBuilder<ClarinLicenseLabel, ClarinLicenseLabelService> {
 
     private ClarinLicenseLabel clarinLicenseLabel;
 

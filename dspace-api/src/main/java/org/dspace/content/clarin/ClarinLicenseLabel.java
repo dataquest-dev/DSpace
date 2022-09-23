@@ -1,7 +1,14 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
 
-import org.dspace.core.ReloadableEntity;
-
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,15 +17,22 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
 
+import org.dspace.core.ReloadableEntity;
+
+/**
+ * Class representing a clarin license label of the clarin license. The clarin license could have one
+ * non-extended license label and multiple extended license labels.
+ * The license label could be defined in the License Administration table.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Entity
 @Table(name = "license_label")
 public class ClarinLicenseLabel implements ReloadableEntity<Integer> {
 
     @Id
-    @Column(name="label_id")
+    @Column(name = "label_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "license_label_label_id_seq")
     @SequenceGenerator(name = "license_label_label_id_seq", sequenceName = "license_label_label_id_seq",
             allocationSize = 1)
@@ -40,10 +54,6 @@ public class ClarinLicenseLabel implements ReloadableEntity<Integer> {
     List<ClarinLicense> licenses = new ArrayList<>();
 
     public ClarinLicenseLabel() {
-    }
-
-    public Integer getId() {
-        return id;
     }
 
     public void setId(Integer id) {

@@ -1,12 +1,23 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.factory;
 
-import org.dspace.content.clarin.ClarinLicenseResourceMapping;
-import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Factory implementation to get services for the clarin package, use ClarinServiceFactory.getInstance()
+ * to retrieve an implementation
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinServiceFactoryImpl extends ClarinServiceFactory {
 
     @Autowired(required = true)
@@ -17,7 +28,6 @@ public class ClarinServiceFactoryImpl extends ClarinServiceFactory {
 
     @Autowired(required = true)
     private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
-
 
     @Override
     public ClarinLicenseService getClarinLicenseService() {
@@ -30,7 +40,7 @@ public class ClarinServiceFactoryImpl extends ClarinServiceFactory {
     }
 
     @Override
-    public ClarinLicenseResourceMappingService getClarinResourceMappingService() {
+    public ClarinLicenseResourceMappingService getClarinLicenseResourceMappingService() {
         return clarinLicenseResourceMappingService;
     }
 }
