@@ -54,6 +54,8 @@ public interface ClarinLicenseService {
      */
     ClarinLicense find(Context context, int valueId) throws SQLException;
 
+    ClarinLicense findByDefinition(Context context, String definition) throws SQLException;
+
     /**
      * Find all clarin license objects
      *

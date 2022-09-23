@@ -1,6 +1,7 @@
 package org.dspace.content.service.clarin;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
@@ -22,4 +23,8 @@ public interface ClarinLicenseResourceMappingService {
     void update(Context context, ClarinLicenseResourceMapping newClarinLicenseResourceMapping) throws SQLException;
 
     void delete(Context context, ClarinLicenseResourceMapping clarinLicenseResourceMapping) throws SQLException;
+
+    void detachLicenses(Context context, Bitstream bitstream) throws SQLException;
+
+    void attachLicense(Context context, ClarinLicense clarinLicense, Bitstream bitstream) throws SQLException, AuthorizeException;
 }

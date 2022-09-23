@@ -110,7 +110,7 @@ CREATE SEQUENCE license_label_label_id_seq
 
 CREATE TABLE license_resource_mapping (
     mapping_id integer NOT NULL,
-    bitstream_uuid uuid UNIQUE,
+    bitstream_uuid uuid,
     license_id integer
 );
 

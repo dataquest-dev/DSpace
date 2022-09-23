@@ -1,10 +1,14 @@
 package org.dspace.content.clarin;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.Bitstream;
 import org.dspace.content.dao.clarin.ClarinLicenseResourceMappingDAO;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.hibernate.ObjectNotFoundException;
@@ -12,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.ws.rs.NotFoundException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,15 +31,16 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
     ClarinLicenseResourceMappingDAO clarinLicenseResourceMappingDAO;
 
     @Autowired
+    ClarinLicenseService clarinLicenseService;
+
+    @Autowired
+    BitstreamService bitstreamService;
+
+    @Autowired
     AuthorizeService authorizeService;
 
     @Override
-    public ClarinLicenseResourceMapping create(Context context) throws SQLException, AuthorizeException {
-        if (!authorizeService.isAdmin(context)) {
-            throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License Resource Mapping");
-        }
-
+    public ClarinLicenseResourceMapping create(Context context) throws SQLException {
         // Create a table row
         ClarinLicenseResourceMapping clarinLicenseResourceMapping = clarinLicenseResourceMappingDAO.create(context, new ClarinLicenseResourceMapping());
 
@@ -45,24 +51,24 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
     }
 
     @Override
-    public ClarinLicenseResourceMapping create(Context context, ClarinLicenseResourceMapping clarinLicenseResourceMapping) throws SQLException, AuthorizeException {
-        if (!authorizeService.isAdmin(context)) {
-            throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License Resource Mapping");
-        }
+    public ClarinLicenseResourceMapping create(Context context, ClarinLicenseResourceMapping clarinLicenseResourceMapping) throws SQLException {
         return clarinLicenseResourceMappingDAO.create(context, clarinLicenseResourceMapping);
     }
 
     @Override
-    public ClarinLicenseResourceMapping create(Context context, Integer licenseId, UUID bitstreamUuid) throws SQLException, AuthorizeException {
-        if (!authorizeService.isAdmin(context)) {
-            throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License Resource Mapping");
+    public ClarinLicenseResourceMapping create(Context context, Integer licenseId, UUID bitstreamUuid) throws SQLException {
+        ClarinLicenseResourceMapping clarinLicenseResourceMapping = new ClarinLicenseResourceMapping();
+        ClarinLicense clarinLicense = clarinLicenseService.find(context, licenseId);
+        if (Objects.isNull(clarinLicense)) {
+            throw new NotFoundException("Cannot find the license with id: " + licenseId);
         }
 
-        ClarinLicenseResourceMapping clarinLicenseResourceMapping = new ClarinLicenseResourceMapping();
-        clarinLicenseResourceMapping.setLicenseId(licenseId);
-        clarinLicenseResourceMapping.setBitstreamId(bitstreamUuid);
+        Bitstream bitstream = bitstreamService.find(context, bitstreamUuid);
+        if (Objects.isNull(bitstream)) {
+            throw new NotFoundException("Cannot find the bitstream with id: " + bitstreamUuid);
+        }
+        clarinLicenseResourceMapping.setLicense(clarinLicense);
+        clarinLicenseResourceMapping.setBitstream(bitstream);
 
         return clarinLicenseResourceMappingDAO.create(context, clarinLicenseResourceMapping);
     }
@@ -77,7 +83,7 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
         List<ClarinLicenseResourceMapping> mappings = clarinLicenseResourceMappingDAO.findAll(context, ClarinLicenseResourceMapping.class);
         List<ClarinLicenseResourceMapping> mappingsByLicenseId = new ArrayList<>();
         for (ClarinLicenseResourceMapping mapping: mappings) {
-            if (mapping.getLicenseId() == licenseId) {
+            if (Objects.equals(mapping.getLicense().getID(), licenseId)) {
                 mappingsByLicenseId.add(mapping);
             }
         }
@@ -103,5 +109,41 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
     @Override
     public void delete(Context context, ClarinLicenseResourceMapping clarinLicenseResourceMapping) throws SQLException {
         clarinLicenseResourceMappingDAO.delete(context, clarinLicenseResourceMapping);
+    }
+
+    @Override
+    public void detachLicenses(Context context, Bitstream bitstream) throws SQLException {
+        List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings =
+                clarinLicenseResourceMappingDAO.findByBitstreamUUID(context, bitstream.getID());
+
+        if (CollectionUtils.isEmpty(clarinLicenseResourceMappings)) {
+            log.info("Cannot detach licenses because bitstream with id: " + bitstream.getID() + " is not " +
+                    "attached to any license.");
+            return;
+        }
+
+        clarinLicenseResourceMappings.forEach(clarinLicenseResourceMapping -> {
+            try {
+                this.delete(context, clarinLicenseResourceMapping);
+            } catch (SQLException e) {
+                log.error(e.getMessage());
+            }
+        });
+    }
+
+    @Override
+    public void attachLicense(Context context, ClarinLicense clarinLicense, Bitstream bitstream) throws SQLException {
+        ClarinLicenseResourceMapping clarinLicenseResourceMapping = this.create(context);
+        if (Objects.isNull(clarinLicenseResourceMapping)) {
+            throw new NotFoundException("Cannot create the ClarinLicenseResourceMapping.");
+        }
+        if (Objects.isNull(clarinLicense) || Objects.isNull(bitstream)) {
+            throw new NullArgumentException("Clarin License or Bitstream cannot be null.");
+        }
+
+        clarinLicenseResourceMapping.setBitstream(bitstream);
+        clarinLicenseResourceMapping.setLicense(clarinLicense);
+
+        clarinLicenseResourceMappingDAO.save(context, clarinLicenseResourceMapping);
     }
 }

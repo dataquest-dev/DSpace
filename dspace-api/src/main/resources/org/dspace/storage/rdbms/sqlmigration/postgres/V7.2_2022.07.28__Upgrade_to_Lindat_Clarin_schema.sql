@@ -134,7 +134,7 @@ SELECT pg_catalog.setval('license_label_label_id_seq', 19, true);
 
 CREATE TABLE license_resource_mapping (
     mapping_id integer NOT NULL,
-    bitstream_uuid uuid UNIQUE,
+    bitstream_uuid uuid,
     license_id integer
 );
 

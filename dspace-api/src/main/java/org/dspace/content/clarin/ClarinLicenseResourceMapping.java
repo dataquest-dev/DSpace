@@ -1,5 +1,6 @@
 package org.dspace.content.clarin;
 
+import org.dspace.content.Bitstream;
 import org.dspace.core.ReloadableEntity;
 
 import javax.persistence.*;
@@ -15,11 +16,14 @@ public class ClarinLicenseResourceMapping implements ReloadableEntity<Integer> {
     @SequenceGenerator(name = "license_resource_mapping_mapping_id_seq", sequenceName = "license_resource_mapping_mapping_id_seq",
             allocationSize = 1)
     private Integer id;
-    @Column(name = "bitstream_uuid")
-    private UUID bitstreamUuid = null;
 
-    @Column(name = "license_id")
-    private Integer licenseId = 0;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+    @JoinColumn(name = "license_id")
+    private ClarinLicense license;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "bitstream_uuid", referencedColumnName = "uuid")
+    private Bitstream bitstream;
 
     @Override
     public Integer getID() {
@@ -30,19 +34,19 @@ public class ClarinLicenseResourceMapping implements ReloadableEntity<Integer> {
         this.id = id;
     }
 
-    public UUID getBitstreamId() {
-        return bitstreamUuid;
+    public Bitstream getBitstream() {
+        return bitstream;
     }
 
-    public void setBitstreamId(UUID bitstreamId) {
-        this.bitstreamUuid = bitstreamId;
+    public void setBitstream(Bitstream bitstream) {
+        this.bitstream = bitstream;
     }
 
-    public Integer getLicenseId() {
-        return licenseId;
+    public ClarinLicense getLicense() {
+        return license;
     }
 
-    public void setLicenseId(Integer licenseId) {
-        this.licenseId = licenseId;
+    public void setLicense(ClarinLicense license) {
+        this.license = license;
     }
 }

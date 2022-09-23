@@ -8,8 +8,11 @@
 package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
+import static org.apache.commons.codec.CharEncoding.UTF_8;
+import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -18,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -33,6 +37,7 @@ import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.*;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
@@ -71,6 +76,12 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
     ClarinLicenseLabel firstCLicenseLabel;
     ClarinLicenseLabel secondCLicenseLabel;
     ClarinLicenseLabel thirdCLicenseLabel;
+
+    ClarinLicenseResourceMapping clarinLicenseResourceMapping1;
+    ClarinLicenseResourceMapping clarinLicenseResourceMapping2;
+
+    Bitstream firstBitstream;
+    Bitstream secondBitstream;
 
     Item publicItem1;
 
@@ -137,6 +148,10 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .withIssueDate("2022-10-17")
                 .withAuthor("Smith, Donald").withAuthor("Doe, John")
                 .withSubject("ExtraEntry")
+                .withMetadata("dc", "rights", null, firstCLicense.getName())
+                .withMetadata("dc", "rights", "uri", firstCLicense.getDefinition())
+//                .withMetadata("dc", "rights", "label",
+//                        Objects.requireNonNull(firstCLicense.getNonExtendedClarinLicenseLabel()).getLabel())
                 .build();
 
         publicItem2 = ItemBuilder.createItem(context, col2)
@@ -155,25 +170,28 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .withSubject("ExtraEntry")
                 .build();
 
-        ClarinLicenseResourceMapping clarinLicenseResourceMapping1 = ClarinLicenseResourceMappingBuilder
+        // create bitstreams and add them with licenses to the clarin license resource mapping
+        firstBitstream = BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test 1", UTF_8))
+                .withFormat("test format")
+                .build();
+
+        secondBitstream = BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test 2", UTF_8))
+                .withFormat("test format")
+                .build();
+
+        clarinLicenseResourceMapping1 = ClarinLicenseResourceMappingBuilder
                 .createClarinLicenseResourceMapping(context).build();
-        clarinLicenseResourceMapping1.setLicenseId(firstCLicense.getID());
-        clarinLicenseResourceMapping1.setBitstreamId(publicItem1.getID());
+        firstCLicense.getClarinLicenseResourceMappings().add(clarinLicenseResourceMapping1);
+        clarinLicenseResourceMapping1.setLicense(firstCLicense);
+        clarinLicenseResourceMapping1.setBitstream(firstBitstream);
         clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping1);
 
-
-//        ClarinLicenseResourceMapping clarinLicenseResourceMapping2 = ClarinLicenseResourceMappingBuilder
-//                .createClarinLicenseResourceMapping(context).build();
-//        clarinLicenseResourceMapping2.setLicenseId(firstCLicense.getID());
-//        clarinLicenseResourceMapping2.setBitstreamId(publicItem2.getID());
-//        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping2);
-
-
-        ClarinLicenseResourceMapping clarinLicenseResourceMapping3 = ClarinLicenseResourceMappingBuilder
+        clarinLicenseResourceMapping2 = ClarinLicenseResourceMappingBuilder
                 .createClarinLicenseResourceMapping(context).build();
-        clarinLicenseResourceMapping3.setLicenseId(secondCLicense.getID());
-        clarinLicenseResourceMapping3.setBitstreamId(publicItem3.getID());
-        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping3);
+        firstCLicense.getClarinLicenseResourceMappings().add(clarinLicenseResourceMapping2);
+        clarinLicenseResourceMapping2.setLicense(firstCLicense);
+        clarinLicenseResourceMapping2.setBitstream(secondBitstream);
+        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping2);
 
         context.restoreAuthSystemState();
     }
@@ -218,7 +236,12 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
 
     @Test
     public void findAllBitstreamByLicenseId() throws Exception {
-        assertEquals(clarinLicenseResourceMappingService.findAllByLicenseId(context,firstCLicense.getID()),0);
+        ClarinLicense cl = clarinLicenseService.find(context, firstCLicense.getID());
+        assertNotNull(cl);
+        assertEquals(cl.getClarinLicenseResourceMappings().size(),2);
+//        ClarinLicenseResourceMapping clarinLicenseResourceMapping = clarinLicenseResourceMappingService.find(context, clarinLicenseResourceMapping1.getID());
+//        assertEquals(clarinLicenseResourceMapping.getBitstream().getID(), firstBitstream.getID());
+
     }
 
     @Test
