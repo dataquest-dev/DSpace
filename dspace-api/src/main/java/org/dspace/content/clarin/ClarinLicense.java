@@ -26,7 +26,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import org.dspace.authorize.ResourcePolicy;
 import org.dspace.core.ReloadableEntity;
 
 /**

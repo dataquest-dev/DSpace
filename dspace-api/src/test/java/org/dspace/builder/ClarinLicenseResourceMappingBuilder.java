@@ -1,14 +1,21 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.builder;
-
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.clarin.ClarinLicenseResourceMapping;
-import org.dspace.content.factory.ClarinServiceFactory;
-import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
-import org.dspace.core.Context;
 
 import java.sql.SQLException;
 
-public class ClarinLicenseResourceMappingBuilder extends AbstractBuilder<ClarinLicenseResourceMapping, ClarinLicenseResourceMappingService> {
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinLicenseResourceMapping;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.core.Context;
+
+public class ClarinLicenseResourceMappingBuilder extends AbstractBuilder<ClarinLicenseResourceMapping,
+        ClarinLicenseResourceMappingService> {
     private ClarinLicenseResourceMapping clarinLicenseResourceMapping;
 
     protected ClarinLicenseResourceMappingBuilder(Context context) {

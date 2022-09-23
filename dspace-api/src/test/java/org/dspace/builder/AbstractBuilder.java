@@ -160,7 +160,8 @@ public abstract class AbstractBuilder<T, S> {
         workflowItemRoleService = XmlWorkflowServiceFactory.getInstance().getWorkflowItemRoleService();
         clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
         clarinLicenseLabelService = ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
-        clarinLicenseResourceMappingService = ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
+        clarinLicenseResourceMappingService = ClarinServiceFactory.getInstance().
+                getClarinLicenseResourceMappingService();
     }
 
 

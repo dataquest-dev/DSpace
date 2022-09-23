@@ -7,11 +7,11 @@
  */
 package org.dspace.content.dao.clarin;
 
+import java.sql.SQLException;
+
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
-
-import java.sql.SQLException;
 
 /**
  * Database Access Object interface class for the Clarin License object.

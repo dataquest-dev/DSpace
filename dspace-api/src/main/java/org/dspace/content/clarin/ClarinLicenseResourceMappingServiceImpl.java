@@ -1,8 +1,21 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.NullArgumentException;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.dao.clarin.ClarinLicenseResourceMappingDAO;
@@ -15,13 +28,6 @@ import org.hibernate.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.ws.rs.NotFoundException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseResourceMappingService {
 
@@ -42,21 +48,25 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
     @Override
     public ClarinLicenseResourceMapping create(Context context) throws SQLException {
         // Create a table row
-        ClarinLicenseResourceMapping clarinLicenseResourceMapping = clarinLicenseResourceMappingDAO.create(context, new ClarinLicenseResourceMapping());
+        ClarinLicenseResourceMapping clarinLicenseResourceMapping = clarinLicenseResourceMappingDAO.create(context,
+                new ClarinLicenseResourceMapping());
 
-        log.info(LogHelper.getHeader(context, "create_clarin_license_resource_mapping", "clarin_license_resource_mapping_id="
-                + clarinLicenseResourceMapping.getID()));
+        log.info(LogHelper.getHeader(context, "create_clarin_license_resource_mapping",
+                "clarin_license_resource_mapping_id=" + clarinLicenseResourceMapping.getID()));
 
         return clarinLicenseResourceMapping;
     }
 
     @Override
-    public ClarinLicenseResourceMapping create(Context context, ClarinLicenseResourceMapping clarinLicenseResourceMapping) throws SQLException {
+    public ClarinLicenseResourceMapping create(Context context,
+                                               ClarinLicenseResourceMapping clarinLicenseResourceMapping)
+            throws SQLException {
         return clarinLicenseResourceMappingDAO.create(context, clarinLicenseResourceMapping);
     }
 
     @Override
-    public ClarinLicenseResourceMapping create(Context context, Integer licenseId, UUID bitstreamUuid) throws SQLException {
+    public ClarinLicenseResourceMapping create(Context context, Integer licenseId, UUID bitstreamUuid)
+            throws SQLException {
         ClarinLicenseResourceMapping clarinLicenseResourceMapping = new ClarinLicenseResourceMapping();
         ClarinLicense clarinLicense = clarinLicenseService.find(context, licenseId);
         if (Objects.isNull(clarinLicense)) {
@@ -79,8 +89,10 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
     }
 
     @Override
-    public List<ClarinLicenseResourceMapping> findAllByLicenseId(Context context, Integer licenseId) throws SQLException {
-        List<ClarinLicenseResourceMapping> mappings = clarinLicenseResourceMappingDAO.findAll(context, ClarinLicenseResourceMapping.class);
+    public List<ClarinLicenseResourceMapping> findAllByLicenseId(Context context, Integer licenseId)
+            throws SQLException {
+        List<ClarinLicenseResourceMapping> mappings =
+                clarinLicenseResourceMappingDAO.findAll(context, ClarinLicenseResourceMapping.class);
         List<ClarinLicenseResourceMapping> mappingsByLicenseId = new ArrayList<>();
         for (ClarinLicenseResourceMapping mapping: mappings) {
             if (Objects.equals(mapping.getLicense().getID(), licenseId)) {
@@ -91,14 +103,18 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
     }
 
     @Override
-    public void update(Context context, ClarinLicenseResourceMapping newClarinLicenseResourceMapping) throws SQLException {
+    public void update(Context context, ClarinLicenseResourceMapping newClarinLicenseResourceMapping)
+            throws SQLException {
         if (Objects.isNull(newClarinLicenseResourceMapping)) {
-            throw new NullArgumentException("Cannot update clarin license resource mapping because the new clarin license resource mapping is null");
+            throw new NullArgumentException("Cannot update clarin license resource mapping because " +
+                    "the new clarin license resource mapping is null");
         }
 
-        ClarinLicenseResourceMapping foundClarinLicenseResourceMapping = find(context, newClarinLicenseResourceMapping.getID());
+        ClarinLicenseResourceMapping foundClarinLicenseResourceMapping =
+                find(context, newClarinLicenseResourceMapping.getID());
         if (Objects.isNull(foundClarinLicenseResourceMapping)) {
-            throw new ObjectNotFoundException(newClarinLicenseResourceMapping.getID(), "Cannot update the license resource mapping because" +
+            throw new ObjectNotFoundException(newClarinLicenseResourceMapping.getID(), "Cannot update " +
+                    "the license resource mapping because" +
                     " the clarin license resource mapping wasn't found " +
                     "in the database.");
         }
@@ -107,7 +123,8 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
     }
 
     @Override
-    public void delete(Context context, ClarinLicenseResourceMapping clarinLicenseResourceMapping) throws SQLException {
+    public void delete(Context context, ClarinLicenseResourceMapping clarinLicenseResourceMapping)
+            throws SQLException {
         clarinLicenseResourceMappingDAO.delete(context, clarinLicenseResourceMapping);
     }
 

@@ -193,12 +193,12 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
                     itemService.getMetadata(owningItem, "dc", "rights", "uri", Item.ANY);
 
             String licenseUri = null;
-            if(CollectionUtils.isNotEmpty(dcRights)) {
+            if (CollectionUtils.isNotEmpty(dcRights)) {
                 if ( dcRights.size() != dcRightsUri.size() ) {
-                    log.warn( String.format("Harvested bitstream [%s / %s] has different length of dc_rights and dc_rights_uri",
-                            bitstream.getName(), bitstream.getHandle()));
+                    log.warn( String.format("Harvested bitstream [%s / %s] has different length of " +
+                                    "dc_rights and dc_rights_uri", bitstream.getName(), bitstream.getHandle()));
                     licenseUri = "unknown";
-                }else {
+                } else {
                     licenseUri = Objects.requireNonNull(dcRightsUri.get(0)).getValue();
                 }
             }
