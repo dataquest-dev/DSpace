@@ -178,22 +178,11 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         secondBitstream = BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test 2", UTF_8))
                 .withFormat("test format")
                 .build();
-
-        clarinLicenseResourceMapping1 = ClarinLicenseResourceMappingBuilder
-                .createClarinLicenseResourceMapping(context).build();
-        firstCLicense.getClarinLicenseResourceMappings().add(clarinLicenseResourceMapping1);
-        clarinLicenseResourceMapping1.setLicense(firstCLicense);
-        clarinLicenseResourceMapping1.setBitstream(firstBitstream);
-        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping1);
-
-        clarinLicenseResourceMapping2 = ClarinLicenseResourceMappingBuilder
-                .createClarinLicenseResourceMapping(context).build();
-        firstCLicense.getClarinLicenseResourceMappings().add(clarinLicenseResourceMapping2);
-        clarinLicenseResourceMapping2.setLicense(firstCLicense);
-        clarinLicenseResourceMapping2.setBitstream(secondBitstream);
-        clarinLicenseResourceMappingService.update(context, clarinLicenseResourceMapping2);
-
         context.restoreAuthSystemState();
+
+        // without commit the clarin license resource mappings aren't mapped into th clarin license object
+        context.commit();
+
     }
 
     @Test
@@ -237,6 +226,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
     @Test
     public void findAllBitstreamByLicenseId() throws Exception {
         ClarinLicense cl = clarinLicenseService.find(context, firstCLicense.getID());
+        List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = clarinLicenseResourceMappingService.findAllByLicenseId(context, firstCLicense.getID());
         assertNotNull(cl);
         assertEquals(cl.getClarinLicenseResourceMappings().size(),2);
 //        ClarinLicenseResourceMapping clarinLicenseResourceMapping = clarinLicenseResourceMappingService.find(context, clarinLicenseResourceMapping1.getID());
