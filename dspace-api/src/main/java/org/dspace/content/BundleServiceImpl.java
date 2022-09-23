@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -27,10 +28,13 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
+import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.dao.BundleDAO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
@@ -62,6 +66,10 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     protected AuthorizeService authorizeService;
     @Autowired(required = true)
     protected ResourcePolicyService resourcePolicyService;
+    @Autowired(required = true)
+    protected ClarinLicenseService clarinLicenseService;
+    @Autowired(required = true)
+    protected ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     protected BundleServiceImpl() {
         super();
@@ -160,7 +168,6 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         bundle.addBitstream(bitstream);
         bitstream.getBundles().add(bundle);
 
-
         context.addEvent(new Event(Event.ADD, Constants.BUNDLE, bundle.getID(),
                                    Constants.BITSTREAM, bitstream.getID(), String.valueOf(bitstream.getSequenceID()),
                                    getIdentifiers(context, bundle)));
@@ -169,6 +176,52 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         // FIXME: multiple inclusion is affected by this...
         authorizeService.inheritPolicies(context, bundle, bitstream);
         bitstreamService.update(context, bitstream);
+
+        // Add Clarin License to the bitstream
+        try {
+            if (!Objects.equals(bundle.getName(), Constants.CONTENT_BUNDLE_NAME)) {
+                return;
+            }
+
+            if (Objects.isNull(owningItem)) {
+                return;
+            }
+
+            List<MetadataValue> dcRights =
+                    itemService.getMetadata(owningItem, "dc", "rights", null, Item.ANY);
+            List<MetadataValue> dcRightsUri =
+                    itemService.getMetadata(owningItem, "dc", "rights", "uri", Item.ANY);
+
+            String licenseUri = null;
+            if(CollectionUtils.isNotEmpty(dcRights)) {
+                if ( dcRights.size() != dcRightsUri.size() ) {
+                    log.warn( String.format("Harvested bitstream [%s / %s] has different length of dc_rights and dc_rights_uri",
+                            bitstream.getName(), bitstream.getHandle()));
+                    licenseUri = "unknown";
+                }else {
+                    licenseUri = Objects.requireNonNull(dcRightsUri.get(0)).getValue();
+                }
+            }
+
+            ClarinLicense clarinLicense = this.clarinLicenseService.findByDefinition(context, licenseUri);
+            if (Objects.isNull(clarinLicense)) {
+                log.info("Cannot find clarin license with definition: " + licenseUri);
+            }
+
+            List<Bundle> bundles = owningItem.getBundles(Constants.CONTENT_BUNDLE_NAME);
+            for (Bundle clarinBundle : bundles) {
+                List<Bitstream> bitstreamList = clarinBundle.getBitstreams();
+                for (Bitstream bundleBitstream : bitstreamList) {
+                    // in case bitstream ID exists in license table for some reason .. just remove it
+                    this.clarinLicenseResourceMappingService.detachLicenses(context, bitstream);
+                }
+                // add the license to bitstream
+                this.clarinLicenseResourceMappingService.attachLicense(context, clarinLicense, bitstream);
+            }
+        } catch (SQLException e) {
+            log.error("Something went wrong in the maintenance of clarin license in the bitstream bundle: "
+                    + e.getSQLState());
+        }
     }
 
     @Override

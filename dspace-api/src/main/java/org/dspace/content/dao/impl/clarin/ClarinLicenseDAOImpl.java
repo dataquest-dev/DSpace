@@ -10,6 +10,10 @@ package org.dspace.content.dao.impl.clarin;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.dao.clarin.ClarinLicenseDAO;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
+
+import javax.persistence.Query;
+import java.sql.SQLException;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the Clarin License object.
@@ -21,5 +25,17 @@ import org.dspace.core.AbstractHibernateDAO;
 public class ClarinLicenseDAOImpl extends AbstractHibernateDAO<ClarinLicense> implements ClarinLicenseDAO {
     protected ClarinLicenseDAOImpl() {
         super();
+    }
+
+    @Override
+    public ClarinLicense findByDefinition(Context context, String definition) throws SQLException {
+        Query query = createQuery(context, "SELECT cl " +
+                "FROM ClarinLicense cl " +
+                "WHERE cl.definition = :definition");
+
+        query.setParameter("definition", definition);
+        query.setHint("org.hibernate.cacheable", Boolean.TRUE);
+
+        return singleResult(query);
     }
 }

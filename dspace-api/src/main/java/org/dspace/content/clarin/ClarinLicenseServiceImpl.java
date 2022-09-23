@@ -65,6 +65,11 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
     }
 
     @Override
+    public ClarinLicense findByDefinition(Context context, String definition) throws SQLException {
+        return clarinLicenseDAO.findByDefinition(context, definition);
+    }
+
+    @Override
     public List<ClarinLicense> findAll(Context context) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
