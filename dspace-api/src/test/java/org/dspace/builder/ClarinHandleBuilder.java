@@ -7,12 +7,12 @@
  */
 package org.dspace.builder;
 
+import java.sql.SQLException;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 import org.dspace.handle.service.HandleClarinService;
-
-import java.sql.SQLException;
 
 public class ClarinHandleBuilder extends AbstractBuilder<Handle, HandleClarinService> {
 

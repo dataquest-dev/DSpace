@@ -27,7 +27,6 @@ import org.dspace.handle.external.ExternalHandleConstants;
 import org.dspace.handle.external.Handle;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.services.ConfigurationService;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
