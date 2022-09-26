@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
 
 import java.sql.SQLException;
@@ -55,6 +62,11 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
     @Override
     public ClarinLicense find(Context context, int valueId) throws SQLException {
         return clarinLicenseDAO.findByID(context, ClarinLicense.class, valueId);
+    }
+
+    @Override
+    public ClarinLicense findByDefinition(Context context, String definition) throws SQLException {
+        return clarinLicenseDAO.findByDefinition(context, definition);
     }
 
     @Override

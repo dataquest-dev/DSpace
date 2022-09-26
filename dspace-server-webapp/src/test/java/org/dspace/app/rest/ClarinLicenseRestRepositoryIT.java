@@ -8,7 +8,10 @@
 package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
+import static org.apache.commons.codec.CharEncoding.UTF_8;
+import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -31,11 +34,18 @@ import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.builder.ClarinLicenseLabelBuilder;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.ItemBuilder;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -59,12 +69,19 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
     @Autowired
     ClarinLicenseConverter clarinLicenseConverter;
 
+    @Autowired
+    ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
     ClarinLicense firstCLicense;
     ClarinLicense secondCLicense;
 
     ClarinLicenseLabel firstCLicenseLabel;
     ClarinLicenseLabel secondCLicenseLabel;
     ClarinLicenseLabel thirdCLicenseLabel;
+
+    Item publicItem1;
+
+    Item publicItem2;
+    Item publicItem3;
 
     @Before
     public void setup() throws Exception {
@@ -112,7 +129,45 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         secondCLicense.setLicenseLabels(secondClarinLicenseLabels);
         clarinLicenseService.update(context, secondCLicense);
 
+        //create collection for items
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection2").build();
+        Collection col3 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection3").build();
+
+        // create two items with the first license
+        // the publicItem1 has license information added to the metadata
+        publicItem1 = ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 1")
+                .withIssueDate("2022-10-17")
+                .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                .withSubject("ExtraEntry")
+                .withMetadata("dc", "rights", null, firstCLicense.getName())
+                .withMetadata("dc", "rights", "uri", firstCLicense.getDefinition())
+//                .withMetadata("dc", "rights", "label",
+//                        Objects.requireNonNull(firstCLicense.getNonExtendedClarinLicenseLabel()).getLabel())
+                .build();
+
+        publicItem2 = ItemBuilder.createItem(context, col2)
+                .withTitle("Public item 2")
+                .withIssueDate("2016-02-13")
+                .withAuthor("Smith, Maria").withAuthor("Doe, Jane")
+                .withSubject("TestingForMore").withSubject("ExtraEntry")
+                .build();
+
+        // create item with the second license
+        publicItem3 = ItemBuilder.createItem(context, col3)
+                .withTitle("Public item 3")
+                .withIssueDate("2016-02-13")
+                .withAuthor("Smith, Maria").withAuthor("Doe, Jane")
+                .withSubject("AnotherTest").withSubject("TestingForMore")
+                .withSubject("ExtraEntry")
+                .build();
+
         context.restoreAuthSystemState();
+
     }
 
     @Test
@@ -149,8 +204,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                                                 firstCLicense.getLicenseLabels())))
                                 )))
                 .andExpect(jsonPath("$._links.self.href",
-                        Matchers.containsString("/api/core/clarinlicenses")))
-        ;
+                        Matchers.containsString("/api/core/clarinlicenses")));
     }
 
     @Test
@@ -363,6 +417,26 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         getClient(authTokenAdmin).perform(delete("/api/core/clarinlicenses/" + 1239990))
                 .andExpect(status().isNotFound())
         ;
+    }
+
+
+    @Test
+    public void findAllBitstreamsAttachedToLicense() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // create bitstreams and add them with licenses to the clarin license resource mapping
+        BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test 1", UTF_8))
+                .withFormat("test format")
+                .build();
+
+        BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test 2", UTF_8))
+                .withFormat("test format")
+                .build();
+        context.restoreAuthSystemState();
+        // without commit the clarin license resource mappings aren't mapped into th clarin license object
+        context.commit();
+
+        ClarinLicense cl = clarinLicenseService.find(context, firstCLicense.getID());
+        assertEquals(cl.getClarinLicenseResourceMappings().size(),2);
     }
 
     private ClarinLicenseLabel getNonExtendedLicenseLabel(List<ClarinLicenseLabel> clarinLicenseLabelList) {
