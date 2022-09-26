@@ -18,8 +18,10 @@
 //
 //    @Id
 //    @Column(name = "transaction_id")
-//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "license_resource_user_allowance_transaction_id_seq")
-//    @SequenceGenerator(name = "license_resource_user_allowance_transaction_id_seq", sequenceName = "license_resource_user_allowance_transaction_id_seq",
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator =
+//    "license_resource_user_allowance_transaction_id_seq")
+//    @SequenceGenerator(name = "license_resource_user_allowance_transaction_id_seq", sequenceName =
+//    "license_resource_user_allowance_transaction_id_seq",
 //            allocationSize = 1)
 //    private Integer id;
 //
