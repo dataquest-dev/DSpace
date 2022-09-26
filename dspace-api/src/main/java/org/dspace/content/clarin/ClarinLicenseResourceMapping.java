@@ -43,6 +43,10 @@ public class ClarinLicenseResourceMapping implements ReloadableEntity<Integer> {
     @JoinColumn(name = "bitstream_uuid", referencedColumnName = "uuid")
     private Bitstream bitstream;
 
+//    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+//    @JoinColumn(name = "mapping_id")
+//    private ClarinLicenseResourceUserAllowance licenseResourceUserAllowance;
+
     @Override
     public Integer getID() {
         return id;
@@ -67,4 +71,12 @@ public class ClarinLicenseResourceMapping implements ReloadableEntity<Integer> {
     public void setLicense(ClarinLicense license) {
         this.license = license;
     }
+
+//    public ClarinLicenseResourceUserAllowance getLicenseResourceUserAllowance() {
+//        return licenseResourceUserAllowance;
+//    }
+//
+//    public void setLicenseResourceUserAllowance(ClarinLicenseResourceUserAllowance licenseResourceUserAllowance) {
+//        this.licenseResourceUserAllowance = licenseResourceUserAllowance;
+//    }
 }
