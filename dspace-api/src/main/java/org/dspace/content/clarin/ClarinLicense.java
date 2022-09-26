@@ -7,6 +7,7 @@
  */
 package org.dspace.content.clarin;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +22,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -50,7 +52,10 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
             name = "license_label_extended_mapping",
             joinColumns = @JoinColumn(name = "license_id"),
             inverseJoinColumns = @JoinColumn(name = "label_id"))
-    Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();;
+    Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "license", cascade = CascadeType.PERSIST)
+    private final List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = new ArrayList<>();
 
 //    @Column(name = "eperson_id")
 //    private Integer epersonId;
@@ -113,6 +118,19 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
 
     public void setLicenseLabels(Set<ClarinLicenseLabel> clarinLicenseLabels) {
         this.clarinLicenseLabels = clarinLicenseLabels;
+    }
+
+    public List<ClarinLicenseResourceMapping> getClarinLicenseResourceMappings() {
+        return clarinLicenseResourceMappings;
+    }
+
+    public ClarinLicenseLabel getNonExtendedClarinLicenseLabel() {
+        for (ClarinLicenseLabel cll : getLicenseLabels()) {
+            if (!cll.isExtended()) {
+                return cll;
+            }
+        }
+        return null;
     }
 
     @Override

@@ -136,9 +136,8 @@ SELECT pg_catalog.setval('license_label_label_id_seq', 19, true);
 
 CREATE TABLE license_resource_mapping (
     mapping_id integer NOT NULL,
-    bitstream_id integer,
-    license_id integer,
-    active boolean DEFAULT true
+    bitstream_uuid uuid,
+    license_id integer
 );
 
 
@@ -305,6 +304,8 @@ ALTER TABLE ONLY license_label_extended_mapping
 ALTER TABLE ONLY license_resource_mapping
     ADD CONSTRAINT license_definition_license_resource_mapping_fk FOREIGN KEY (license_id) REFERENCES license_definition(license_id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY license_resource_mapping
+    ADD CONSTRAINT bitstream_license_resource_mapping_fk FOREIGN KEY (bitstream_uuid) REFERENCES bitstream(uuid) ON DELETE CASCADE;
 
 --
 -- Name: license_label_license_definition_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
