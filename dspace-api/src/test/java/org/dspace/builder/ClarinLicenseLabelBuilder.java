@@ -8,6 +8,7 @@
 package org.dspace.builder;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicenseLabel;
@@ -40,6 +41,21 @@ public class ClarinLicenseLabelBuilder extends AbstractBuilder<ClarinLicenseLabe
             return handleException(e);
         }
         return this;
+    }
+
+    public static void deleteClarinLicenseLabel(Integer id) throws Exception {
+        if (Objects.isNull(id)) {
+            return;
+        }
+        try (Context c = new Context()) {
+            c.turnOffAuthorisationSystem();
+            ClarinLicenseLabel clarinLicenseLabel = clarinLicenseLabelService.find(c, id);
+
+            if (Objects.nonNull(clarinLicenseLabel)) {
+                clarinLicenseLabelService.delete(c, clarinLicenseLabel);
+            }
+            c.complete();
+        }
     }
 
     @Override

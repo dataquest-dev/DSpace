@@ -83,6 +83,7 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
         clarinLicenseLabel.setLabel(clarinLicenseLabelRest.getLabel());
         clarinLicenseLabel.setTitle(clarinLicenseLabelRest.getTitle());
         clarinLicenseLabel.setIcon(clarinLicenseLabelRest.getIcon());
+        clarinLicenseLabel.setExtended(clarinLicenseLabelRest.isExtended());
 
         clarinLicenseLabelService.update(context, clarinLicenseLabel);
         // return
