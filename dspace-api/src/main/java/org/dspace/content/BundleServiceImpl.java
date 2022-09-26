@@ -206,6 +206,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
             ClarinLicense clarinLicense = this.clarinLicenseService.findByDefinition(context, licenseUri);
             if (Objects.isNull(clarinLicense)) {
                 log.info("Cannot find clarin license with definition: " + licenseUri);
+                return;
             }
 
             List<Bundle> bundles = owningItem.getBundles(Constants.CONTENT_BUNDLE_NAME);
