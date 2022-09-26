@@ -161,6 +161,27 @@ CREATE SEQUENCE license_resource_user_allowance_transaction_id_seq
     NO MINVALUE
     CACHE 1;
 
+--
+-- Name: user_registration; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
+--
+
+CREATE TABLE user_registration (
+    eperson_id integer NOT NULL,
+    email varchar(256) NOT NULL,
+    organization varchar(256) NOT NULL,
+    confirmation boolean DEFAULT true NOT NULL
+);
+
+--
+-- Name: user_registration_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
+--
+
+CREATE SEQUENCE user_registration_transaction_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
 
 --
 -- Name: license_resource_user_allowance_transaction_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
@@ -244,7 +265,12 @@ ALTER TABLE license_resource_mapping
 ALTER TABLE license_resource_user_allowance
     ADD CONSTRAINT license_resource_user_allowance_pkey PRIMARY KEY (transaction_id);
 
+--
+-- Name: user_registration_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
+--
 
+ALTER TABLE user_registration
+    ADD CONSTRAINT user_registration_pkey PRIMARY KEY (eperson_id);
 
 --
 -- Name: license_definition_license_label_extended_mapping_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
