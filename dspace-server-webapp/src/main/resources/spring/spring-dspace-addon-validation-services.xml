@@ -26,4 +26,10 @@
         <property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
         <property name="uploadConfigurationService" ref="uploadConfigurationService"/>
     </bean>
+
+    <bean name="clarinLicenseValidation" class="org.dspace.app.rest.submit.step.validation.ClarinLicenseValidation" scope="prototype">
+        <property name="name" value="clarin-license"/>
+        <property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
+    </bean>
+
 </beans>

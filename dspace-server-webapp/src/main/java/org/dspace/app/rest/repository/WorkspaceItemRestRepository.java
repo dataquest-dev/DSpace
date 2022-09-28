@@ -15,10 +15,14 @@ import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.NotFoundException;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,8 +35,11 @@ import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.model.WorkspaceItemRest;
+import org.dspace.app.rest.model.patch.AddOperation;
+import org.dspace.app.rest.model.patch.JsonValueEvaluator;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.Patch;
+import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.repository.handler.service.UriListHandlerService;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.rest.submit.UploadableStep;
@@ -46,13 +53,17 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.LicenseUtils;
+import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -69,7 +80,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE;
 
 
 /**
@@ -121,6 +135,9 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
     @Autowired
     private UriListHandlerService uriListHandlerService;
+
+    @Autowired
+    ClarinLicenseService clarinLicenseService;
 
     private SubmissionConfigReader submissionConfigReader;
 
@@ -211,8 +228,66 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         WorkspaceItemRest wsi = findOne(context, id);
         WorkspaceItem source = wis.find(context, id);
         for (Operation op : operations) {
-            //the value in the position 0 is a null value
             String[] path = op.getPath().substring(1).split("/", 3);
+            if (OPERATION_PATH_LICENSE.equals(path[0])) {
+                // get item
+                Item item = source.getItem();
+                if (Objects.isNull(item)) {
+                    continue;
+                }
+                // get value from operation
+                if (!(op instanceof ReplaceOperation)) {
+                    continue;
+                }
+                JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) op.getValue();
+                // replace operation has value wrapped in the ObjectNode
+                JsonNode jsonNodeValue = jsonValEvaluator.getValueNode().get("value");
+                if (ObjectUtils.isEmpty(jsonNodeValue)) {
+                    continue;
+                }
+                String clarinLicenseDefinition = jsonNodeValue.asText();
+
+                // get clarin license by definition
+                ClarinLicense clarinLicense = clarinLicenseService.findByDefinition(context, clarinLicenseDefinition);
+                if (Objects.isNull(clarinLicense)) {
+                    throw new NotFoundException("Cannot patch workspace item with id: " + source.getID() + "," +
+                            " because wasn't find the clarin license with definition: " + clarinLicenseDefinition);
+                }
+
+                // update item metadata with license data
+                itemService.clearMetadata(context, item, "dc", "rights", "holder", Item.ANY);
+                itemService.clearMetadata(context, item,"dc", "rights", "uri", Item.ANY);
+                itemService.clearMetadata(context, item, "dc", "rights", null, Item.ANY);
+                itemService.clearMetadata(context, item, "dc", "rights", "label", Item.ANY);
+
+//                itemService.addMetadata(context, item, "dc", "rights", "holder", Item.ANY, );
+                itemService.addMetadata(context, item, "dc", "rights", "uri", Item.ANY,
+                        clarinLicense.getDefinition());
+                itemService.addMetadata(context, item, "dc", "rights", null, Item.ANY,
+                        clarinLicense.getName());
+                itemService.addMetadata(context, item, "dc", "rights", "uri", Item.ANY,
+                        clarinLicense.getNonExtendedClarinLicenseLabel().getLabel());
+
+                // Save changes to database
+                itemService.update(context, item);
+
+                // For Default License between user and repo
+                EPerson submitter = context.getCurrentUser();
+
+                try {
+                    // remove any existing DSpace license (just in case the user
+                    // accepted it previously)
+                    itemService.removeDSpaceLicense(context, item);
+
+                    String license = LicenseUtils.getLicenseText(context.getCurrentLocale(), source.getCollection(), item,
+                            submitter);
+
+                    LicenseUtils.grantLicense(context, item, license, null);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                continue;
+            }
             if (OPERATION_PATH_SECTIONS.equals(path[0])) {
                 String section = path[1];
                 submissionService.evaluatePatchToInprogressSubmission(context, request, source, wsi, section, op);
@@ -226,7 +301,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         try {
             uploadFileFromURL(context, request, id);
         } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
+            throw new DSpaceBadRequestException(
+                    "Cannot upload file from URL because: " + e.getMessage());
         }
     }
 

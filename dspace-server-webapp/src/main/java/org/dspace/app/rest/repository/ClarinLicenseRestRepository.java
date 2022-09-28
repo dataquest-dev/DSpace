@@ -25,9 +25,16 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
+import org.dspace.app.rest.model.WorkspaceItemRest;
+import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +52,16 @@ import org.springframework.stereotype.Component;
 @Component(ClarinLicenseRest.CATEGORY + "." + ClarinLicenseRest.NAME)
 public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLicenseRest, Integer> {
 
+    public static final String OPERATION_PATH_LICENSE = "license";
+
     @Autowired
     ClarinLicenseService clarinLicenseService;
+
+    @Autowired
+    WorkspaceItemService wis;
+
+    @Autowired
+    ItemService itemService;
 
     @Override
     @PreAuthorize("permitAll()")
@@ -110,6 +125,18 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
         clarinLicenseService.update(context, clarinLicense);
         // return
         return converter.toRest(clarinLicense, utils.obtainProjection());
+    }
+
+    @Override
+    public void patch(Context context, HttpServletRequest request, String apiCategory, String model, Integer id,
+                                   Patch patch) throws SQLException, AuthorizeException {
+        // load
+        List<Operation> operations = patch.getOperations();
+        WorkspaceItem source = wis.find(context, id);
+        Item item = source.getItem();
+        itemService.setMetadataSingleValue(context, item, "dc", "rights","license", null, "license");
+        itemService.update(context, item);
+        wis.update(context, source);
     }
 
     @Override
