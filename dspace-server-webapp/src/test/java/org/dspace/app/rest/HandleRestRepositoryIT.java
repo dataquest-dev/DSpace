@@ -8,6 +8,9 @@
 package org.dspace.app.rest;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -144,11 +147,111 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void patchUpdateHandleWithoutHandleAndWithoutArchive() throws  Exception {
+    public void patchUpdateInternalHandleWithoutHandle() throws  Exception {
+        //handle: ""
+        //archive: false
+        Handle handle = publicItem.getHandles().get(0);
+        List<Operation> ops = new ArrayList<Operation>();
+        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
+        values.put("handle", jsonNodeFactory.textNode(""));
+        values.put("url", jsonNodeFactory.textNode(null));
+        values.put("archive", jsonNodeFactory.textNode("false"));
+        ops.add(new ReplaceOperation("/updateHandle", values));
+
+        String patchBody = getPatchContent(ops);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        HandleMatcher.matchHandle(handle)
+                )));
+        //exception UnprocessableEntityException
+        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect((status().is(422)));
+        this.cleanHandles();
+    }
+
+    @Test
+    public void patchUpdateInternalHandleWithoutArchive() throws  Exception {
+        //handle: 123
+        //archive: false
+        Handle handle = publicItem.getHandles().get(0);
+        String oldHandleStr = handle.getHandle();
+
+        List<Operation> ops = new ArrayList<Operation>();
+        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
+        values.put("handle", jsonNodeFactory.textNode("123"));
+        values.put("url", jsonNodeFactory.textNode(null));
+        values.put("archive", jsonNodeFactory.textNode("false"));
+        ops.add(new ReplaceOperation("/updateHandle", values));
+
+        String patchBody = getPatchContent(ops);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        HandleMatcher.matchHandle(handle)
+                )));
+        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isOk());
+        //update item
+        publicItem = itemService.find(context, publicItem.getID());
+        //control, if the handle has changed
+        assertEquals(handleClarinService.findByHandle(context, "123"), publicItem.getHandles().get(0));
+        //archive was false, archived handle does not exist
+        assertNull(handleClarinService.findByHandle(context,oldHandleStr));
+        this.cleanHandles();
+    }
+
+    @Test
+    public void patchUpdateInternalHandleWithArchive() throws  Exception {
+        //handle: 123
+        //archive: true
+        Handle handle = publicItem.getHandles().get(0);
+        String oldHandleStr = handle.getHandle();
+        List<Operation> ops = new ArrayList<Operation>();
+        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
+        values.put("handle", jsonNodeFactory.textNode("123"));
+        values.put("url", jsonNodeFactory.textNode(null));
+        values.put("archive", jsonNodeFactory.textNode("true"));
+        ops.add(new ReplaceOperation("/updateHandle", values));
+
+        String patchBody = getPatchContent(ops);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        HandleMatcher.matchHandle(handle)
+                )));
+        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        // Update item
+        publicItem = itemService.find(context, publicItem.getID());
+        // Control, if the handle has changed
+        assertEquals(handleClarinService.findByHandle(context, "123"), publicItem.getHandles().get(0));
+        // Archive was true, archived handle exists
+        assertEquals(handleClarinService.findByHandle(context,oldHandleStr).getHandle(), oldHandleStr);
+        // Archive was true, archived handle is external handle with correct url
+        assertEquals(handleClarinService.findByHandle(context,oldHandleStr).getUrl(), "http://localhost:4000/handle/" + publicItem.getHandle());
+        this.cleanHandles();
+    }
+
+
+    @Test
+    public void patchUpdateExternalHandleWithoutHandle() throws  Exception {
         //handle: ""
         //url: www.test.com
         //archive: false
-        Handle handle = publicItem.getHandles().get(0);
+        Handle handle = createExternalHandle();
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
         values.put("handle", jsonNodeFactory.textNode(""));
@@ -173,11 +276,11 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void patchUpdateHandleWithoutUrlAndWithoutArchive() throws  Exception {
+    public void patchUpdateExternalHandleWithoutUrl() throws  Exception {
         //handle: 123
         //url: ""
         //archive: false
-        Handle handle = publicItem.getHandles().get(0);
+        Handle handle = createExternalHandle();
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
         values.put("handle", jsonNodeFactory.textNode("123"));
@@ -197,16 +300,19 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().is(422));
+                        .andExpect((status().is(422)));
         this.cleanHandles();
     }
 
     @Test
-    public void patchUpdateHandleWithoutArchive() throws  Exception {
+    public void patchUpdateExternalHandleWithoutArchive() throws  Exception {
         //handle: 123
         //url: www.test.com
         //archive: false
-        Handle handle = publicItem.getHandles().get(0);
+
+        Handle handle = createExternalHandle();
+        String oldHandleStr = handle.getHandle();
+
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
         values.put("handle", jsonNodeFactory.textNode("123"));
@@ -226,14 +332,11 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        handle.setHandle("123");
-        handle.setUrl("www.test.com");
-        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.is(
-                        HandleMatcher.matchHandle(handle))
-                ));
-
+        //control, if the handle has changed
+        assertNotNull(handleClarinService.findByHandle(context, "123"));
+        assertEquals(handleClarinService.findByHandle(context, "123").getUrl(), "www.test.com");
+        //archive was false, archived handle does not exist
+        assertNull(handleClarinService.findByHandle(context,oldHandleStr));
         this.cleanHandles();
     }
 
@@ -242,8 +345,9 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         //handle: 123
         //url: www.test.com
         //archive: true
-        Handle handle = publicItem.getHandles().get(0);
-        Handle archivedHandle = publicItem.getHandles().get(0);
+        Handle handle = createExternalHandle();
+        String oldHandleStr = handle.getHandle();
+
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
         values.put("handle", jsonNodeFactory.textNode("123"));
@@ -263,21 +367,13 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        //set handle
-        handle.setHandle("123");
-        handle.setUrl("www.test.com");
-        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.is(
-                        HandleMatcher.matchHandle(handle))
-                ));
-        //archived handle
-        archivedHandle.setUrl(handle.getUrl());
-        getClient(adminToken).perform(get(HANDLES_ENDPOINT + archivedHandle.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.is(
-                        HandleMatcher.matchHandle(archivedHandle))
-                ));
+        //control, if the handle has changed
+        assertNotNull(handleClarinService.findByHandle(context, "123"));
+        assertEquals(handleClarinService.findByHandle(context, "123").getUrl(), "www.test.com");
+        //archive was true, archived handle exists
+        assertNotNull(handleClarinService.findByHandle(context,oldHandleStr));
+        //archive was true, archived handle is external handle with correct url
+        assertEquals(handleClarinService.findByHandle(context,oldHandleStr).getUrl(), "http://localhost:4000/handle/" + publicItem.getHandle());
         this.cleanHandles();
     }
 
@@ -480,4 +576,26 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
     }
+
+    private Handle createExternalHandle() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        HandleRest handleRest = new HandleRest();
+        handleRest.setHandle("987");
+        handleRest.setUrl("www.externalHandle.com");
+        Integer handleId = null;
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        MvcResult mvcResult = getClient(adminToken).perform(post(HANDLES_ENDPOINT)
+                        .content(mapper.writeValueAsBytes(handleRest))
+                        .contentType(contentType))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        Map<String, Object> map = mapper.readValue(content, Map.class);
+        handleId = Integer.valueOf(String.valueOf(map.get("id")));
+        //find created handle
+        Handle handle = handleClarinService.findByID(context, handleId);
+        return handle;
+    }
+
 }

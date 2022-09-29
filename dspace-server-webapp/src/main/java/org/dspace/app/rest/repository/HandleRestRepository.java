@@ -196,7 +196,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         try {
             for (Operation operation : patch.getOperations()) {
                 //work only with replace operation
-                if (!operation.getOp().equals("replace")) {
+                if (!Objects.equals(operation.getOp(), "replace")) {
                     throw new WrongMethodTypeException("The operation method must be `replace`.");
                 }
 
@@ -269,7 +269,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                     itemService.clearMetadata(context, item, "dc", "identifier", "uri", Item.ANY);
 
                     // Update dc.identifier.uri
-                    if (Objects.nonNull(newHandleStr) && !newHandleStr.isEmpty()) {
+                    if (!(StringUtils.isBlank(newHandleStr))) {
                         String newUrl = handleService.getCanonicalForm(newHandleStr);
                         itemService.addMetadata(context, item, "dc", "identifier", "uri", Item.ANY, newUrl);
                     }
@@ -279,23 +279,20 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 }
             }
 
-
-            if (!StringUtils.equals(url, "null")) {
-                //update handleObject
-                handleClarinService.update(context,handleObject, newHandleStr, url);
-            }
+            // Update handleObject
+            handleClarinService.update(context,handleObject, newHandleStr, url);
 
             // Archive handle
             if (archive) {
                 //if new handle is not equals with old handle
-                if (Objects.nonNull(newHandleStr) && !newHandleStr.equals(oldHandle)) {
+                if (!Objects.equals(newHandleStr,oldHandle)) {
                     //create url
                     String newUrl = handleClarinService.resolveToURL(context, newHandleStr);
                     //create new handle for archiving without dspace object and save it
                     handleClarinService.createExternalHandle(context, oldHandle, newUrl);
                 }
             }
-
+            //I am not sure about this debug message
             if (log.isDebugEnabled()) {
                 log.debug("Updated handle with id: " + handleObject.getID());
             }
@@ -326,7 +323,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 String[] handleParts = (handleObject.getHandle()).split("/");
 
                 //if the used handle prefix is the same as the old prefix, update handle
-                if (Objects.nonNull((handleParts[0])) && handleParts[0].equals(oldPrefix)) {
+                if (Objects.nonNull((handleParts[0])) && Objects.equals(handleParts[0], oldPrefix)) {
                     String handle = handleParts.length > 1 ? handleParts[1] : "";
                     //new handle
                     String newHandleStr = newPrefix + "/" + handle;
@@ -377,14 +374,22 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
             jsonNodeArchive = jsonNodes.get("archive");
         }
         //Can we load json node value from operation?
-        if (ObjectUtils.isEmpty(jsonNodeHandle.asText()) ||
-                StringUtils.isBlank(jsonNodeHandle.asText()) ||
-                ObjectUtils.isEmpty(jsonNodeUrl.asText()) ||
-                StringUtils.isBlank(jsonNodeUrl.asText()) ||
-                ObjectUtils.isEmpty(jsonNodeArchive.asText()) ||
-                StringUtils.isBlank(jsonNodeArchive.asText())) {
+        if (StringUtils.isBlank(jsonNodeHandle.asText()) ||
+              StringUtils.isBlank(jsonNodeUrl.asText()) ||
+              StringUtils.isBlank(jsonNodeArchive.asText())) {
             throw new UnprocessableEntityException(
                     "Cannot load JsonNode value from the operation: " + operation.getPath());
+        }
+
+        if  (Objects.equals(jsonNodeHandle.asText(),"null")) {
+            throw new RuntimeException("Cannot fetch and update handle object " +
+                    "- required values new handle is incorrect entered.");
+        }
+
+        if (!handleClarinService.isInternalResource(handleObject) &&
+            Objects.equals(jsonNodeUrl.asText(),"null")) {
+            throw new RuntimeException("Cannot fetch and update handle object " +
+                "- required values url is incorrect entered.");
         }
 
         //update handle based on obtained values from jsno nodes
@@ -401,7 +406,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
      * @throws AuthorizeException the current user cannot chang the prefix
      */
     private void setHandlePrefix(Context context, Operation operation) throws SQLException, AuthorizeException {
-        //set handle prefix
+        // Set handle prefix
         if (Objects.isNull(operation.getValue())) {
             return;
         }
@@ -412,20 +417,20 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) operation.getValue();
         JsonNode jsonNodes = jsonValEvaluator.getValueNode();
 
-        //new prefix
+        // New prefix
         if (jsonNodes.get("newPrefix") != null) {
             jsonNodeNewPrefix = jsonNodes.get("newPrefix");
         }
-        //old prefix
+        // Old prefix
         if (jsonNodes.get("oldPrefix") != null) {
             jsonNodeOldPrefix = jsonNodes.get("oldPrefix");
         }
-        //Do we want to archive all handles with old prefix?
+        // Do we want to archive all handles with old prefix?
         if (jsonNodes.get("archive") != null) {
             jsonNodeArchive = jsonNodes.get("archive");
         }
 
-        //Can we load json node value from operation?
+        // Can we load json node value from operation?
         if (ObjectUtils.isEmpty(jsonNodeNewPrefix) ||
                 StringUtils.isBlank(jsonNodeNewPrefix.asText()) ||
                 ObjectUtils.isEmpty(jsonNodeOldPrefix) ||
@@ -436,8 +441,8 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                     "Cannot load JsonNode value from the operation: " + operation.getPath());
         }
 
-        // the old prefix doesn't equal with current prefix
-        if (!jsonNodeOldPrefix.asText().equals(handleService.getPrefix())) {
+        // The old prefix doesn't equal with current prefix
+        if (!Objects.equals(jsonNodeOldPrefix.asText(), handleService.getPrefix())) {
             throw new RuntimeException("Cannot change prefix. Old prefix does " +
                     "not match with existing prefixes.");
         }
