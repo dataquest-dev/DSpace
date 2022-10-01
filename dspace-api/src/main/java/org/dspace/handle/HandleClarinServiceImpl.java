@@ -185,14 +185,15 @@ public class HandleClarinServiceImpl implements HandleClarinService {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
+
         // Set handle only if it is not empty
-        // When you add null to String, it converts null to "null"
         if (!(StringUtils.isBlank(newHandle))) {
             handleObject.setHandle(newHandle);
         } else {
             throw new RuntimeException("Cannot change handle of handle object " +
                     "- the handle is empty");
         }
+
         // Set url only if it is external handle
         if (!isInternalResource(handleObject)) {
             // When you add null to String, it converts null to "null"

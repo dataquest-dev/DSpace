@@ -39,10 +39,13 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.handle.Handle;
 import org.dspace.handle.service.HandleClarinService;
+import org.dspace.handle.service.HandleService;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,8 +71,13 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     private ItemService itemService;
 
     @Autowired
+    private CollectionService collectionService;
+
+    @Autowired
     private HandleClarinService handleClarinService;
 
+    @Autowired
+    private HandleService handleService;
     @Before
     public void setup() {
         context.turnOffAuthorisationSystem();
@@ -341,7 +349,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void patchUpdateHandleWithArchive() throws  Exception {
+    public void patchUpdateExternalHandleWithArchive() throws  Exception {
         //handle: 123
         //url: www.test.com
         //archive: true
@@ -373,7 +381,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         //archive was true, archived handle exists
         assertNotNull(handleClarinService.findByHandle(context,oldHandleStr));
         //archive was true, archived handle is external handle with correct url
-        assertEquals(handleClarinService.findByHandle(context,oldHandleStr).getUrl(), "http://localhost:4000/handle/" + publicItem.getHandle());
+        assertEquals(handleClarinService.findByHandle(context,oldHandleStr).getUrl(), "www.test.com");
         this.cleanHandles();
     }
 
@@ -396,22 +404,44 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        //set item handle for handle with new prefix
-        handle.setHandle("987654321/" + handle.getHandle().split("/")[1]);
-        //find handle of public item
-        getClient(adminToken).perform(get(HANDLES_ENDPOINT + handle.getID()))
+        //update item
+        publicItem = itemService.find(context, publicItem.getID());
+        //update column
+        col = collectionService.find(context, col.getID());
+
+        //set prefix in existing handles
+        assertEquals(publicItem.getHandle().split("/")[0], "987654321");
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + publicItem.getHandles().get(0).getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.is(
-                        HandleMatcher.matchHandle(handle)
+                        HandleMatcher.matchHandle(publicItem.getHandles().get(0))
                 )));
-        //set column handle for handle with new prefix
-        col.getHandles().get(0).setHandle("987654321/" + col.getHandles().get(0).getHandle().split("/")[1]);
+        assertEquals(col.getHandle().split("/")[0], "987654321");
         //find handle of column
         getClient(adminToken).perform(get(HANDLES_ENDPOINT + col.getHandles().get(0).getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.is(
                         HandleMatcher.matchHandle(col.getHandles().get(0)))
                 ));
+
+        //changed prefix
+        assertEquals(handleService.getPrefix(), "987654321");
+
+        //create new item
+        context.turnOffAuthorisationSystem();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection col2 =  CollectionBuilder.createCollection(context, community).build();
+        Item newItem = ItemBuilder.createItem(context, col2)
+                .withAuthor(AUTHOR)
+                .build();
+        context.restoreAuthSystemState();
+
+        //handle of new item has changed prefix
+        assertEquals(newItem.getHandle().split("/")[0],handleService.getPrefix());
+
+        //archive was false
+        assertNull(handleClarinService.findByHandle(context, "123456789/" + publicItem.getHandle().split("/")[1]));
+        assertNull(handleClarinService.findByHandle(context, "123456789/" + col.getHandle().split("/")[1]));
         this.cleanHandles();
     }
 

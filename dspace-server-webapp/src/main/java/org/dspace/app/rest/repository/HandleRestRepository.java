@@ -381,17 +381,6 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                     "Cannot load JsonNode value from the operation: " + operation.getPath());
         }
 
-        if  (Objects.equals(jsonNodeHandle.asText(),"null")) {
-            throw new RuntimeException("Cannot fetch and update handle object " +
-                    "- required values new handle is incorrect entered.");
-        }
-
-        if (!handleClarinService.isInternalResource(handleObject) &&
-            Objects.equals(jsonNodeUrl.asText(),"null")) {
-            throw new RuntimeException("Cannot fetch and update handle object " +
-                "- required values url is incorrect entered.");
-        }
-
         //update handle based on obtained values from jsno nodes
         this.updateHandle(context, handleObject, jsonNodeHandle.asText(),
                 handleObject.getDSpaceObject(), jsonNodeUrl.asText(),
@@ -431,14 +420,11 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         }
 
         // Can we load json node value from operation?
-        if (ObjectUtils.isEmpty(jsonNodeNewPrefix) ||
-                StringUtils.isBlank(jsonNodeNewPrefix.asText()) ||
-                ObjectUtils.isEmpty(jsonNodeOldPrefix) ||
-                StringUtils.isBlank(jsonNodeOldPrefix.asText()) ||
-                ObjectUtils.isEmpty(jsonNodeArchive) ||
-                StringUtils.isBlank(jsonNodeArchive.asText())) {
-            throw new UnprocessableEntityException(
-                    "Cannot load JsonNode value from the operation: " + operation.getPath());
+        if (StringUtils.isBlank(jsonNodeNewPrefix.asText()) ||
+           StringUtils.isBlank(jsonNodeOldPrefix.asText()) ||
+           StringUtils.isBlank(jsonNodeArchive.asText())) {
+               throw new UnprocessableEntityException(
+                   "Cannot load JsonNode value from the operation: " + operation.getPath());
         }
 
         // The old prefix doesn't equal with current prefix
