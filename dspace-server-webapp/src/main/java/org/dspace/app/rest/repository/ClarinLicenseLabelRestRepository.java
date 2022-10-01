@@ -12,6 +12,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.ArrayUtils;
@@ -19,6 +20,7 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.MetadataField;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.core.Context;
@@ -40,8 +42,17 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
     ClarinLicenseLabelService clarinLicenseLabelService;
 
     @Override
-    public ClarinLicenseLabelRest findOne(Context context, Integer integer) {
-        return null;
+    public ClarinLicenseLabelRest findOne(Context context, Integer id) {
+        ClarinLicenseLabel clarinLicenseLabel;
+        try {
+            clarinLicenseLabel = clarinLicenseLabelService.find(context, id);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        if (Objects.isNull(clarinLicenseLabel)) {
+            return null;
+        }
+        return converter.toRest(clarinLicenseLabel, utils.obtainProjection());
     }
 
     @Override
@@ -80,6 +91,7 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
         // create
         ClarinLicenseLabel clarinLicenseLabel;
         clarinLicenseLabel = clarinLicenseLabelService.create(context);
+        clarinLicenseLabel.setId(clarinLicenseLabelRest.getId());
         clarinLicenseLabel.setLabel(clarinLicenseLabelRest.getLabel());
         clarinLicenseLabel.setTitle(clarinLicenseLabelRest.getTitle());
         clarinLicenseLabel.setIcon(clarinLicenseLabelRest.getIcon());

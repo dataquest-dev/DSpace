@@ -11,6 +11,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.core.Context;
 
@@ -54,7 +57,13 @@ public interface ClarinLicenseService {
      */
     ClarinLicense find(Context context, int valueId) throws SQLException;
 
-    ClarinLicense findByDefinition(Context context, String definition) throws SQLException;
+    ClarinLicense findByName(Context context, String name) throws SQLException;
+
+    void addLicenseMetadataToItem(Context context, ClarinLicense clarinLicense, Item item) throws SQLException;
+
+    void clearLicenseMetadataFromItem(Context context, Item item) throws SQLException;
+
+    void addClarinLicenseToBitstream(Context context, Item item, Bundle bundle, Bitstream bitstream);
 
     /**
      * Find all clarin license objects

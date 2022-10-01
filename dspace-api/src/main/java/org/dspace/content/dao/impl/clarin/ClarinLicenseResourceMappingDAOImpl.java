@@ -35,4 +35,10 @@ public class ClarinLicenseResourceMappingDAOImpl extends AbstractHibernateDAO<Cl
 
         return list(query);
     }
+
+    @Override
+    public void delete(Context context, ClarinLicenseResourceMapping clarinLicenseResourceMapping) throws SQLException {
+        clarinLicenseResourceMapping.setBitstream(null);
+        super.delete(context, clarinLicenseResourceMapping);
+    }
 }

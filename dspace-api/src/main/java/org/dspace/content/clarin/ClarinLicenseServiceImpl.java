@@ -11,11 +11,19 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.dao.clarin.ClarinLicenseDAO;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.hibernate.ObjectNotFoundException;
@@ -32,6 +40,15 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
 
     @Autowired
     AuthorizeService authorizeService;
+
+    @Autowired
+    ItemService itemService;
+
+    @Autowired
+    ClarinLicenseService clarinLicenseService;
+
+    @Autowired
+    ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     @Override
     public ClarinLicense create(Context context) throws SQLException, AuthorizeException {
@@ -65,8 +82,80 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
     }
 
     @Override
-    public ClarinLicense findByDefinition(Context context, String definition) throws SQLException {
-        return clarinLicenseDAO.findByDefinition(context, definition);
+    public ClarinLicense findByName(Context context, String name) throws SQLException {
+        return clarinLicenseDAO.findByName(context, name);
+    }
+
+    @Override
+    public void addLicenseMetadataToItem(Context context, ClarinLicense clarinLicense, Item item) throws SQLException {
+        itemService.addMetadata(context, item, "dc", "rights", "uri", Item.ANY,
+                clarinLicense.getDefinition());
+        itemService.addMetadata(context, item, "dc", "rights", null, Item.ANY,
+                clarinLicense.getName());
+        itemService.addMetadata(context, item, "dc", "rights", "label", Item.ANY,
+                clarinLicense.getNonExtendedClarinLicenseLabel().getLabel());
+    }
+
+    @Override
+    public void clearLicenseMetadataFromItem(Context context, Item item) throws SQLException {
+        itemService.clearMetadata(context, item, "dc", "rights", "holder", Item.ANY);
+        itemService.clearMetadata(context, item,"dc", "rights", "uri", Item.ANY);
+        itemService.clearMetadata(context, item, "dc", "rights", null, Item.ANY);
+        itemService.clearMetadata(context, item, "dc", "rights", "label", Item.ANY);
+    }
+
+    @Override
+    public void addClarinLicenseToBitstream(Context context, Item item, Bundle bundle, Bitstream bitstream) {
+        try {
+            if (!Objects.equals(bundle.getName(), Constants.CONTENT_BUNDLE_NAME)) {
+                return;
+            }
+
+            if (Objects.isNull(item)) {
+                return;
+            }
+
+            List<MetadataValue> dcRights =
+                    itemService.getMetadata(item, "dc", "rights", null, Item.ANY);
+            List<MetadataValue> dcRightsUri =
+                    itemService.getMetadata(item, "dc", "rights", "uri", Item.ANY);
+
+            String licenseUri = null;
+            // If the item bitstreams has license
+            if (CollectionUtils.isNotEmpty(dcRights)) {
+                if ( dcRights.size() != dcRightsUri.size() ) {
+                    log.warn( String.format("Harvested bitstream [%s / %s] has different length of " +
+                            "dc_rights and dc_rights_uri", bitstream.getName(), bitstream.getHandle()));
+                    licenseUri = "unknown";
+                } else {
+                    licenseUri = Objects.requireNonNull(dcRightsUri.get(0)).getValue();
+                }
+            }
+
+            ClarinLicense clarinLicense = this.clarinLicenseService.findByName(context, licenseUri);
+            // The item bitstreams doesn't have the license
+            if (Objects.isNull(clarinLicense)) {
+                log.info("Cannot find clarin license with definition: " + licenseUri);
+                return;
+            }
+
+            // The item bitstreams has the license -> detach old license and attach the new license
+            List<Bundle> bundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
+            for (Bundle clarinBundle : bundles) {
+                List<Bitstream> bitstreamList = clarinBundle.getBitstreams();
+                for (Bitstream bundleBitstream : bitstreamList) {
+                    // in case bitstream ID exists in license table for some reason .. just remove it
+                    this.clarinLicenseResourceMappingService.detachLicenses(context, bundleBitstream);
+                    // add the license to bitstream
+                    this.clarinLicenseResourceMappingService.attachLicense(context, clarinLicense, bundleBitstream);
+                }
+            }
+
+            this.addLicenseMetadataToItem(context, clarinLicense, item);
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Something went wrong in the maintenance of clarin license in the bitstream bundle: "
+                    + e.getMessage());
+        }
     }
 
     @Override

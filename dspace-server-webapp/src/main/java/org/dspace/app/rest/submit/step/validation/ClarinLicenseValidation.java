@@ -1,5 +1,6 @@
 package org.dspace.app.rest.submit.step.validation;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.repository.WorkspaceItemRestRepository;
 import org.dspace.app.rest.submit.SubmissionService;
@@ -23,11 +24,16 @@ public class ClarinLicenseValidation extends AbstractValidation {
     @Override
     public List<? extends ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) throws DCInputsReaderException, SQLException {
         Item item = obj.getItem();
-        List<MetadataValue> mdv = itemService.getMetadataByMetadataString(item, "dc.rights.license");
-        addError(ERROR_VALIDATION_LICENSEREQUIRED,
-                "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/"
-                        + config.getId());
+        List<MetadataValue> licenseDefinition = itemService.getMetadataByMetadataString(item, "dc.rights.uri");
+        List<MetadataValue> licenseName = itemService.getMetadataByMetadataString(item, "dc.rights");
+        List<MetadataValue> licenseLabel = itemService.getMetadataByMetadataString(item, "dc.rights.label");
 
+        if (CollectionUtils.isEmpty(licenseDefinition) || CollectionUtils.isEmpty(licenseName) ||
+            CollectionUtils.isEmpty(licenseLabel)) {
+            addError(ERROR_VALIDATION_LICENSEREQUIRED,
+                    "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/"
+                            + config.getId());
+        }
         return getErrors();
     }
 
