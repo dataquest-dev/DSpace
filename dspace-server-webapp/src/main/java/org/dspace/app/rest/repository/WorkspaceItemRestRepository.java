@@ -29,6 +29,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.WorkspaceItemConverter;
+import org.dspace.app.rest.exception.ClarinLicenseNotFoundException;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
@@ -497,11 +498,12 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         // Get clarin license by definition
         ClarinLicense clarinLicense = clarinLicenseService.findByName(context, clarinLicenseDefinition);
         if (StringUtils.isNotBlank(clarinLicenseDefinition) && Objects.isNull(clarinLicense)) {
-            throw new NotFoundException("Cannot patch workspace item with id: " + source.getID() + "," +
-                    " because wasn't find the clarin license with definition: " + clarinLicenseDefinition);
+            throw new ClarinLicenseNotFoundException("Cannot patch workspace item with id: " + source.getID() + "," +
+                    " because the clarin license with definition: " + clarinLicenseDefinition + " isn't supported in" +
+                    " the CLARIN/DSpace");
         }
 
-        // Clear the license metadata of the item
+        // Clear the license metadata from the item
         clarinLicenseService.clearLicenseMetadataFromItem(context, item);
 
         // Detach the clarin licenses from the uploaded bitstreams
