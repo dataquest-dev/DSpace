@@ -95,8 +95,7 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
     @ExceptionHandler({ClarinLicenseNotFoundException.class})
     protected void clarinLicenseNotFoundException(HttpServletRequest request, HttpServletResponse response,
                                              Exception ex) throws IOException {
-        sendErrorResponse(request, response, ex, "Clarin License is not found, because is not supported " +
-                        "in the CLARIN/DSpace", HttpServletResponse.SC_NOT_FOUND);
+        sendErrorResponse(request, response, ex, ex.getMessage(), HttpServletResponse.SC_NOT_FOUND);
     }
 
     @ExceptionHandler(SQLException.class)

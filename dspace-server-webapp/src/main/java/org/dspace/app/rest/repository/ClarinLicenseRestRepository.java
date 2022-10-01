@@ -11,6 +11,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -21,15 +22,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.rest.Parameter;
+import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
+import org.dspace.app.rest.model.MetadataFieldRest;
 import org.dspace.app.rest.model.WorkspaceItemRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
@@ -77,6 +83,24 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
             return null;
         }
         return converter.toRest(clarinLicense, utils.obtainProjection());
+    }
+
+    @SearchRestMethod(name = "byName")
+    public Page<ClarinLicenseRest> findByName(@Parameter(value = "name", required = true) String name,
+                                              Pageable pageable) {
+        List<ClarinLicense> clarinLicenseList = new ArrayList<>();
+        ClarinLicense clarinLicense;
+        try {
+            Context context = obtainContext();
+            clarinLicense = clarinLicenseService.findByName(context, name);
+            if (Objects.isNull(clarinLicense)) {
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        clarinLicenseList.add(clarinLicense);
+        return converter.toRestPage(clarinLicenseList, pageable, utils.obtainProjection());
     }
 
     @Override
