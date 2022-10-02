@@ -40,7 +40,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 
 /**
  * This is the repository responsible to manage Handle Rest object.
@@ -421,10 +420,10 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
 
         // Can we load json node value from operation?
         if (StringUtils.isBlank(jsonNodeNewPrefix.asText()) ||
-           StringUtils.isBlank(jsonNodeOldPrefix.asText()) ||
-           StringUtils.isBlank(jsonNodeArchive.asText())) {
-               throw new UnprocessableEntityException(
-                   "Cannot load JsonNode value from the operation: " + operation.getPath());
+            StringUtils.isBlank(jsonNodeOldPrefix.asText()) ||
+            StringUtils.isBlank(jsonNodeArchive.asText())) {
+            throw new UnprocessableEntityException(
+                "Cannot load JsonNode value from the operation: " + operation.getPath());
         }
 
         // The old prefix doesn't equal with current prefix
