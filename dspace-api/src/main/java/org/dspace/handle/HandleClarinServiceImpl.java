@@ -459,12 +459,13 @@ public class HandleClarinServiceImpl implements HandleClarinService {
      */
     private String extractPartIdentifier(String handle) {
         // <UFAL>
+        if (Objects.isNull(handle)) {
+            return null;
+        }
         String partIdentifier = null;
-        if (handle != null) {
-            int pos = handle.indexOf(PART_IDENTIFIER_DELIMITER);
-            if (pos >= 0) {
-                partIdentifier = handle.substring(pos + 1);
-            }
+        int pos = handle.indexOf(PART_IDENTIFIER_DELIMITER);
+        if (pos >= 0) {
+            partIdentifier = handle.substring(pos + 1);
         }
         return partIdentifier;
     }
@@ -479,12 +480,13 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     private static String appendPartIdentifierToUrl(String url, String partIdentifier) {
         // <UFAL>
         String finalUrl = url;
-        if (finalUrl != null && partIdentifier != null && !partIdentifier.isEmpty()) {
-            if (finalUrl.contains("?")) {
-                finalUrl += '&' + partIdentifier;
-            } else {
-                finalUrl += '?' + partIdentifier;
-            }
+        if (Objects.isNull(finalUrl) && StringUtils.isBlank(partIdentifier)) {
+            return null;
+        }
+        if (finalUrl.contains("?")) {
+            finalUrl += '&' + partIdentifier;
+        } else {
+            finalUrl += '?' + partIdentifier;
         }
         return finalUrl;
     }
