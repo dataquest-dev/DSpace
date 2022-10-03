@@ -29,11 +29,9 @@ public interface HandleClarinService {
      * Find all Handles following the sorting options
      * @param context DSpace context object
      * @param sortingColumn sorting option in the specific format e.g. `handle:123456789/111`
-     * @param maxResult the max count of the handles
-     * @param offset page
      * @return List of Handles
      */
-    List<Handle> findAll(Context context, String sortingColumn, int maxResult, int offset) throws SQLException;
+    List<Handle> findAll(Context context, String sortingColumn) throws SQLException;
 
     /**
      * Retrieve all handle from the registry
@@ -145,6 +143,7 @@ public interface HandleClarinService {
      * @throws SQLException If a database error occurs
      */
     public String resolveToURL(Context context, String handleStr) throws SQLException;
+
     /**
      * Return the object which handle maps to (Item, Collection, Community), or null. This is the object
      * itself, not a URL which points to it.
