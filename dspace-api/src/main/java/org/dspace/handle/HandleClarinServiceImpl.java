@@ -481,7 +481,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         // <UFAL>
         String finalUrl = url;
         if (Objects.isNull(finalUrl) || StringUtils.isBlank(partIdentifier)) {
-            return null;
+            return finalUrl;
         }
         if (finalUrl.contains("?")) {
             finalUrl += '&' + partIdentifier;
