@@ -480,7 +480,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     private static String appendPartIdentifierToUrl(String url, String partIdentifier) {
         // <UFAL>
         String finalUrl = url;
-        if (Objects.isNull(finalUrl) && StringUtils.isBlank(partIdentifier)) {
+        if (Objects.isNull(finalUrl) || StringUtils.isBlank(partIdentifier)) {
             return null;
         }
         if (finalUrl.contains("?")) {
