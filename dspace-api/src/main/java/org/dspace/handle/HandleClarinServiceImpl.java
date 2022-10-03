@@ -121,7 +121,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         String handleId;
         // Do we want to generate the new handleId or use entered handleStr?
         if (!(StringUtils.isBlank(handleStr))) {
-            //we use handleStr entered by use
+            // We use handleStr entered by use
             handleId = handleStr;
         } else {
             // We generate new handleId
@@ -155,7 +155,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
-        //delete handle
+        // Delete handle
         handleDAO.delete(context, handle);
         log.info(LogHelper.getHeader(context, "delete_handle",
                 "handle_id=" + handle.getID()));
@@ -168,7 +168,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
-        //save handle
+        // Save handle
         handleDAO.save(context, handle);
         log.info(LogHelper.getHeader(context, "save_handle",
                 "handle_id=" + handle.getID()
@@ -219,17 +219,17 @@ public class HandleClarinServiceImpl implements HandleClarinService {
             throw new AuthorizeException(
                     "Only administrators may modify the handle registry");
         }
-        //control, if are new and old prefix entered
+        // Control, if are new and old prefix entered
         if (StringUtils.isBlank(newPrefix) || StringUtils.isBlank(oldPrefix)) {
             throw new NullPointerException("Cannot set prefix. Required fields are empty.");
         }
-        //get handle prefix
+        // Get handle prefix
         String prefix = handleService.getPrefix();
-        //set prefix only if not equal to old prefix
+        // Set prefix only if not equal to old prefix
         if (Objects.equals(prefix, oldPrefix)) {
-            //return value says if set prefix was successful
+            // Return value says if set prefix was successful
             if (!(configurationService.setProperty("handle.prefix", newPrefix))) {
-                //prefix has not changed
+                // Prefix has not changed
                 throw new RuntimeException("error while trying to set handle prefix");
             }
         } else {
@@ -243,13 +243,13 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     /* Created for LINDAT/CLARIAH-CZ (UFAL) */
     @Override
     public boolean isInternalResource(Handle handle) {
-        //in internal handle is not entered url
+        // In internal handle is not entered url
         return (Objects.isNull(handle.getUrl()) || handle.getUrl().isEmpty());
     }
 
     @Override
     public String resolveToURL(Context context, String handleStr) throws SQLException {
-        //handle is not entered
+        // Handle is not entered
         if (Objects.isNull(handleStr)) {
             throw new IllegalArgumentException("Handle is null");
         }
@@ -257,22 +257,21 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         // <UFAL>
         handleStr = stripPartIdentifier(handleStr);
 
-        //find handle
+        // Find handle
         Handle handle = handleDAO.findByHandle(context, handleStr);
-
-        //handle was not find
+        //Handle was not find
         if (Objects.isNull(handle)) {
             return null;
         }
 
         String url;
         if (isInternalResource(handle)) {
-            //internal handle
-            //create url for internal handle
+            // Internal handle
+            // Create url for internal handle
             url = configurationService.getProperty("dspace.ui.url")
                     + "/handle/" + handleStr;
         } else {
-            //external handle
+            // External handle
             url = handle.getUrl();
         }
         String partIdentifier = extractPartIdentifier(handleStr);
@@ -288,19 +287,19 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         Handle foundHandle = findByHandle(context, handle);
 
         if (Objects.isNull(foundHandle)) {
-            //If this is the Site-wide Handle, return Site object
+            // If this is the Site-wide Handle, return Site object
             if (Objects.equals(handle, configurationService.getProperty("handle.prefix") + "/0")) {
                 return siteService.findSite(context);
             }
-            //Otherwise, return null (i.e. handle not found in DB)
+            // Otherwise, return null (i.e. handle not found in DB)
             return null;
         }
 
-        // check if handle was allocated previously, but is currently not
-        // associated with a DSpaceObject
+        // Check if handle was allocated previously, but is currently not
+        // Associated with a DSpaceObject
         // (this may occur when 'unbindHandle()' is called for an obj that was removed)
         if (Objects.isNull(foundHandle.getResourceTypeId()) || Objects.isNull(foundHandle.getDSpaceObject())) {
-            //if handle has been unbound, just return null (as this will result in a PageNotFound)
+            // If handle has been unbound, just return null (as this will result in a PageNotFound)
             return null;
         }
 
@@ -392,6 +391,9 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         return prefix + PREFIX_DELIMITER + suffix;
     }
 
+    /**
+     * Split handle by prefix delimiter
+     */
     @Override
     public String[] splitHandle(String handle) {
         if (Objects.nonNull(handle)) {
@@ -456,6 +458,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
      * @return part identifier or null
      */
     private String extractPartIdentifier(String handle) {
+        // <UFAL>
         String partIdentifier = null;
         if (handle != null) {
             int pos = handle.indexOf(PART_IDENTIFIER_DELIMITER);
@@ -474,6 +477,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
      * @return Final URL with part identifier appended as parameters to the given URL
      */
     private static String appendPartIdentifierToUrl(String url, String partIdentifier) {
+        // <UFAL>
         String finalUrl = url;
         if (finalUrl != null && partIdentifier != null && !partIdentifier.isEmpty()) {
             if (finalUrl.contains("?")) {

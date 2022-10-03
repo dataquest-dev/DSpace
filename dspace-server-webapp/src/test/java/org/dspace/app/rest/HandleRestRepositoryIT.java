@@ -55,13 +55,14 @@ import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * Integration tests for the {@link org.dspace.app.rest.repository.HandleRestRepository}
- * This class will include all the tests for the logic with regards to the
+ * This class will include all the tests for the logic with regard to the
  * {@link org.dspace.app.rest.repository.HandleRestRepository}
  */
 public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     private static final String AUTHOR = "Test author name";
     private static final String HANDLES_ENDPOINT = "/api/core/handles/";
+    private static final String LOCALHOST_URL = "http://localhost:4000/handle/";
 
     private JsonNodeFactory jsonNodeFactory = new JsonNodeFactory(true);
 
@@ -99,8 +100,6 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void findAll() throws Exception {
-        // findAll method in the HandleRestRepository returns handles ordered by creating the handle with ID = 1
-        // should be returned at first
         Handle handle = handleClarinService.findAll(context).get(0);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -149,16 +148,13 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         //Item handle was deleted in test
         //delete just Community and Collection
-        context.turnOffAuthorisationSystem();
-        handleClarinService.delete(context, parentCommunity.getHandles().get(0));
-        handleClarinService.delete(context, col.getHandles().get(0));
-        context.restoreAuthSystemState();
+        this.cleanHandles();
     }
 
     @Test
     public void patchUpdateInternalHandleWithoutHandle() throws  Exception {
-        //handle: ""
-        //archive: false
+        // Handle: ""
+        // Archive: false
         Handle handle = publicItem.getHandles().get(0);
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
@@ -175,7 +171,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .andExpect(jsonPath("$", Matchers.is(
                         HandleMatcher.matchHandle(handle)
                 )));
-        //exception UnprocessableEntityException
+        // Exception UnprocessableEntityException
         getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
                 .content(patchBody)
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
@@ -185,8 +181,8 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void patchUpdateInternalHandleWithoutArchive() throws  Exception {
-        //handle: 123
-        //archive: false
+        // Handle: 123
+        // Archive: false
         Handle handle = publicItem.getHandles().get(0);
         String oldHandleStr = handle.getHandle();
 
@@ -209,10 +205,13 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                         .andExpect(status().isOk());
-        //update item
+
+        // Update item
         publicItem = itemService.find(context, publicItem.getID());
-        //control, if the handle has changed
-        assertEquals(handleClarinService.findByHandle(context, "123"), publicItem.getHandles().get(0));
+        // Control, if the handle has changed
+        assertEquals(publicItem.getHandle(), "123");
+        // Control, if it is internal handle
+        assertNull(publicItem.getHandles().get(0).getUrl());
         //archive was false, archived handle does not exist
         assertNull(handleClarinService.findByHandle(context,oldHandleStr));
         this.cleanHandles();
@@ -220,8 +219,8 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void patchUpdateInternalHandleWithArchive() throws  Exception {
-        //handle: 123
-        //archive: true
+        // Handle: 123
+        // Archive: true
         Handle handle = publicItem.getHandles().get(0);
         String oldHandleStr = handle.getHandle();
 
@@ -231,8 +230,6 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         values.put("url", jsonNodeFactory.textNode(null));
         values.put("archive", jsonNodeFactory.textNode("true"));
         ops.add(new ReplaceOperation("/updateHandle", values));
-
-
 
         String patchBody = getPatchContent(ops);
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -246,24 +243,26 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .content(patchBody)
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
+
         // Update item
         publicItem = itemService.find(context, publicItem.getID());
         // Control, if the handle has changed
-        assertEquals(handleClarinService.findByHandle(context, "123"), publicItem.getHandles().get(0));
+        assertEquals(publicItem.getHandle(), "123");
+        // Control, if it is internal handle
+        assertNull(publicItem.getHandles().get(0).getUrl());
         // Archive was true, archived handle exists
-        assertEquals(handleClarinService.findByHandle(context,oldHandleStr).getHandle(), oldHandleStr);
+        assertNotNull(handleClarinService.findByHandle(context,oldHandleStr));
         // Archive was true, archived handle is external handle with correct url
-        assertEquals(handleClarinService.findByHandle(context,oldHandleStr).getUrl(), "http://localhost:4000/handle/" + publicItem.getHandle());
-
+        assertEquals(handleClarinService.findByHandle(context,oldHandleStr).getUrl(),
+                LOCALHOST_URL + publicItem.getHandle());
         this.cleanHandles();
     }
 
-
     @Test
     public void patchUpdateExternalHandleWithoutHandle() throws  Exception {
-        //handle: ""
-        //url: www.test.com
-        //archive: false
+        // Handle: ""
+        // Url: www.test.com
+        // Archive: false
         Handle handle = this.createExternalHandle("987");
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
@@ -280,7 +279,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .andExpect(jsonPath("$", Matchers.is(
                         HandleMatcher.matchHandle(handle)
                 )));
-        //exception UnprocessableEntityException
+        // Exception UnprocessableEntityException
         getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
@@ -291,9 +290,9 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void patchUpdateExternalHandleWithoutUrl() throws  Exception {
-        //handle: 123
-        //url: ""
-        //archive: false
+        // Handle: 123
+        // Url: ""
+        // Archive: false
         Handle handle = this.createExternalHandle("987");
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
@@ -310,7 +309,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .andExpect(jsonPath("$", Matchers.is(
                         HandleMatcher.matchHandle(handle)
                 )));
-        //exception UnprocessableEntityException
+        // Exception UnprocessableEntityException
         getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
@@ -321,13 +320,12 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void patchUpdateExternalHandleWithoutArchive() throws  Exception {
-        //handle: 123
-        //url: www.test.com
-        //archive: false
+        // Handle: 123
+        // Url: www.test.com
+        // Archive: false
 
         Handle handle = this.createExternalHandle("987");
         String oldHandleStr = handle.getHandle();
-
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
         values.put("handle", jsonNodeFactory.textNode("123"));
@@ -347,23 +345,22 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        //control, if the handle has changed
+
+        // Control, if the handle has changed
         assertNotNull(handleClarinService.findByHandle(context, "123"));
         assertEquals(handleClarinService.findByHandle(context, "123").getUrl(), "www.test.com");
         //archive was false, archived handle does not exist
         assertNull(handleClarinService.findByHandle(context,oldHandleStr));
-
         this.cleanHandles();
     }
 
     @Test
     public void patchUpdateExternalHandleWithArchive() throws  Exception {
-        //handle: 123
-        //url: www.test.com
-        //archive: true
+        // Handle: 123
+        // Url: www.test.com
+        // Archive: true
         Handle handle = this.createExternalHandle("987");
         String oldHandleStr = handle.getHandle();
-
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
         values.put("handle", jsonNodeFactory.textNode("123"));
@@ -383,80 +380,15 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        //control, if the handle has changed
+
+        // Control, if the handle has changed
         assertNotNull(handleClarinService.findByHandle(context, "123"));
         assertEquals(handleClarinService.findByHandle(context, "123").getUrl(), "www.test.com");
-        //archive was true, archived handle exists
+        // Archive was true
+        // Archived handle exists
         assertNotNull(handleClarinService.findByHandle(context,oldHandleStr));
-        //archive was true, archived handle is external handle with correct url
+        // Archived handle is external handle with correct url
         assertEquals(handleClarinService.findByHandle(context,oldHandleStr).getUrl(), "www.test.com");
-
-        this.cleanHandles();
-    }
-
-
-    @Test
-    public void patchSetPrefixWithoutArchive() throws  Exception {
-        Handle handle = publicItem.getHandles().get(0);
-        Handle externalHandle = this.createExternalHandle("987");
-        List<Operation> ops = new ArrayList<Operation>();
-        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
-        values.put("oldPrefix", jsonNodeFactory.textNode("123456789"));
-        values.put("newPrefix", jsonNodeFactory.textNode("987654321"));
-        values.put("archive", jsonNodeFactory.textNode("false"));
-        ops.add(new ReplaceOperation("/setPrefix", values));
-
-        String patchBody = getPatchContent(ops);
-        String adminToken = getAuthToken(admin.getEmail(), password);
-
-        //set prefix
-        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
-                        .content(patchBody)
-                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isOk());
-        //update item
-        publicItem = itemService.find(context, publicItem.getID());
-        //set prefix in existing handles
-        assertEquals(publicItem.getHandle().split("/")[0], "987654321");
-        getClient(adminToken).perform(get(HANDLES_ENDPOINT + publicItem.getHandles().get(0).getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.is(
-                        HandleMatcher.matchHandle(publicItem.getHandles().get(0))
-                )));
-        //update column
-        col = collectionService.find(context, col.getID());
-        assertEquals(col.getHandle().split("/")[0], "987654321");
-        //find handle of column
-        getClient(adminToken).perform(get(HANDLES_ENDPOINT + col.getHandles().get(0).getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.is(
-                        HandleMatcher.matchHandle(col.getHandles().get(0)))
-                ));
-
-        //update external handle
-        //handle: "987"
-        externalHandle = handleClarinService.findByID(context, externalHandle.getID());
-        assertNotEquals(externalHandle.getHandle().split("/")[0],"987654321");
-
-        //changed prefix
-        assertEquals(handleService.getPrefix(), "987654321");
-
-        //create new item
-        context.turnOffAuthorisationSystem();
-        Community community = CommunityBuilder.createCommunity(context).build();
-        Collection col2 =  CollectionBuilder.createCollection(context, community).build();
-        Item newItem = ItemBuilder.createItem(context, col2)
-                .withAuthor(AUTHOR)
-                .build();
-        context.restoreAuthSystemState();
-
-        //handle of new item has changed prefix
-        assertEquals(newItem.getHandle().split("/")[0],handleService.getPrefix());
-
-        //archive was false
-        assertNull(handleClarinService.findByHandle(context, "123456789/" + publicItem.getHandle().split("/")[1]));
-        assertNull(handleClarinService.findByHandle(context, "123456789/" + col.getHandle().split("/")[1]));
-
         this.cleanHandles();
     }
 
@@ -473,7 +405,8 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         String patchBody = getPatchContent(ops);
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        //set prefix
+        // Set prefix
+        // Exception
         getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
@@ -494,7 +427,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         String patchBody = getPatchContent(ops);
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        //update handle
+        // Set prefix
         //exception UnprocessableEntityException
         getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
                         .content(patchBody)
@@ -503,11 +436,78 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         this.cleanHandles();
     }
 
+    @Test
+    public void patchSetPrefixWithoutArchive() throws  Exception {
+        Handle internalHandle = publicItem.getHandles().get(0);
+        Handle externalHandle = this.createExternalHandle("987");
+
+        List<Operation> ops = new ArrayList<Operation>();
+        LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
+        values.put("oldPrefix", jsonNodeFactory.textNode("123456789"));
+        values.put("newPrefix", jsonNodeFactory.textNode("987654321"));
+        values.put("archive", jsonNodeFactory.textNode("false"));
+        ops.add(new ReplaceOperation("/setPrefix", values));
+
+        String patchBody = getPatchContent(ops);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        // Set prefix
+        getClient(adminToken).perform(patch(HANDLES_ENDPOINT + internalHandle.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        // Control of changed prefix
+        assertEquals(handleService.getPrefix(), "987654321");
+
+        // Update item
+        publicItem = itemService.find(context, publicItem.getID());
+        // Control, if the prefix has changed
+        assertEquals(publicItem.getHandle().split("/")[0], "987654321");
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + publicItem.getHandles().get(0).getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        HandleMatcher.matchHandle(publicItem.getHandles().get(0))
+                )));
+        // Update column
+        col = collectionService.find(context, col.getID());
+        // Control, if the prefix has changed
+        assertEquals(col.getHandle().split("/")[0], "987654321");
+        getClient(adminToken).perform(get(HANDLES_ENDPOINT + col.getHandles().get(0).getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        HandleMatcher.matchHandle(col.getHandles().get(0)))
+                ));
+
+        // Update external handle
+        // Prefix of external handle was not equal with old prefix, handle was not changed
+        externalHandle = handleClarinService.findByID(context, externalHandle.getID());
+        assertNotEquals(externalHandle.getHandle().split("/")[0],"987654321");
+
+        // Archive was false
+        assertNull(handleClarinService.findByHandle(context, "123456789/" + publicItem.getHandle().split("/")[1]));
+        assertNull(handleClarinService.findByHandle(context, "123456789/" + col.getHandle().split("/")[1]));
+
+        // Create new item with new prefix
+        context.turnOffAuthorisationSystem();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection col2 =  CollectionBuilder.createCollection(context, community).build();
+        Item newItem = ItemBuilder.createItem(context, col2)
+                .withAuthor(AUTHOR)
+                .build();
+        context.restoreAuthSystemState();
+        // Control of prefix in new item
+        assertEquals(newItem.getHandle().split("/")[0], "987654321");
+
+        this.cleanHandles();
+    }
 
     @Test
     public void patchSetPrefixWithArchive() throws  Exception {
         Handle handle = publicItem.getHandles().get(0);
+        // External handle without current prefix
         Handle externalHandle1 = this.createExternalHandle("987");
+        //External handle with current prefix
         Handle externalHandle2 = this.createExternalHandle("123456789/100");
         List<Operation> ops = new ArrayList<Operation>();
         LinkedHashMap<String, TextNode> values = new LinkedHashMap<>();
@@ -519,41 +519,42 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         String patchBody = getPatchContent(ops);
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        //set prefix
+        // Set prefix
         getClient(adminToken).perform(patch(HANDLES_ENDPOINT + handle.getID())
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        //update item
+        // Changed prefix
+        assertEquals(handleService.getPrefix(), "987654321");
+
+        // Update item
         publicItem = itemService.find(context, publicItem.getID());
-        //set prefix in existing handles
+        //Control, if prefix has changed
         assertEquals(publicItem.getHandle().split("/")[0], "987654321");
         getClient(adminToken).perform(get(HANDLES_ENDPOINT + publicItem.getHandles().get(0).getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.is(
                         HandleMatcher.matchHandle(publicItem.getHandles().get(0))
                 )));
-        //update column
+        // Update column
         col = collectionService.find(context, col.getID());
+        //Control, if prefix has changed
         assertEquals(col.getHandle().split("/")[0], "987654321");
-        //find handle of column
         getClient(adminToken).perform(get(HANDLES_ENDPOINT + col.getHandles().get(0).getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.is(
                         HandleMatcher.matchHandle(col.getHandles().get(0)))
                 ));
-        //update external handle
+
+        // Update external handles
         externalHandle1 = handleClarinService.findByID(context, externalHandle1.getID());
-        assertNotEquals(externalHandle1.getHandle().split("/")[0],"987654321");
         externalHandle2 = handleClarinService.findByID(context, externalHandle2.getID());
+        // Control, if prefix has changed
+        assertNotEquals(externalHandle1.getHandle().split("/")[0],"987654321");
         assertEquals(externalHandle2.getHandle().split("/")[0],"987654321");
 
-
-        //changed prefix
-        assertEquals(handleService.getPrefix(), "987654321");
-
-        //create new item
+        // Create new item
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
         Collection col2 =  CollectionBuilder.createCollection(context, community).build();
@@ -561,31 +562,30 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .withAuthor(AUTHOR)
                 .build();
         context.restoreAuthSystemState();
+        //Control of handle prefix
+        assertEquals(newItem.getHandle().split("/")[0], "987654321");
 
-        //handle of new item has changed prefix
-        assertEquals(newItem.getHandle().split("/")[0],handleService.getPrefix());
-
-        //archive was true
+        // Archive was true
         Handle archivedItem = handleClarinService.findByHandle(context, "123456789/" +
                 publicItem.getHandle().split("/")[1]);
         Handle archivedCol = handleClarinService.findByHandle(context, "123456789/" + col.getHandle().split("/")[1]);
         Handle archivedExternalHandle2 = handleClarinService.findByHandle(context, "123456789/" +
                 externalHandle2.getHandle().split("/")[1]);
+        //Control, if archived handle exist
         assertNotNull(archivedItem);
         assertNotNull(archivedCol);
         assertNotNull(archivedExternalHandle2);
-
-        assertEquals(archivedItem.getUrl(), "http://localhost:4000/handle/" + publicItem.getHandle());
-        assertEquals(archivedCol.getUrl(), "http://localhost:4000/handle/" + col.getHandle());
-        assertNotEquals(archivedExternalHandle2.getUrl(), "http://localhost:4000/handle/" + externalHandle2.getHandle());
+        // Control of archived handle url
+        assertEquals(archivedItem.getUrl(), LOCALHOST_URL + publicItem.getHandle());
+        assertEquals(archivedCol.getUrl(), LOCALHOST_URL + col.getHandle());
+        assertNotEquals(archivedExternalHandle2.getUrl(), LOCALHOST_URL + externalHandle2.getHandle());
         assertEquals(archivedExternalHandle2.getUrl(), externalHandle2.getUrl());
 
         this.cleanHandles();
     }
 
-    // clean handles of the created Items, Communities, Collections because when is created
-    // a new Item/Collection/Community in another test, the handle of the old Item/Collection/Community
-    // lost DSpaceObject (dso is null) and it throws error in the HandleConverter
+    // Clean handles of all created handles (items, cmmunity, collection, archived handles, external handles...)
+    // Lost DSpaceObject (dso is null) and it throws error in the HandleConverter
     private void
     cleanHandles() throws SQLException, AuthorizeException {
         context.turnOffAuthorisationSystem();
@@ -593,13 +593,10 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         for (Handle handle: handles) {
             handleClarinService.delete(context, handle);
         }
-//        handleClarinService.delete(context, parentCommunity.getHandles().get(0));
-//        handleClarinService.delete(context, col.getHandles().get(0));
-//        handleClarinService.delete(context, publicItem.getHandles().get(0));
-
         context.restoreAuthSystemState();
     }
 
+    // Create external handle
     private Handle createExternalHandle(String strHandle) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         HandleRest handleRest = new HandleRest();
@@ -620,5 +617,4 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         Handle handle = handleClarinService.findByID(context, handleId);
         return handle;
     }
-
 }

@@ -77,16 +77,16 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
     public HandleRest findOne(Context context, Integer id) {
         Handle handle;
         try {
-            // find handle by id
+            // Find handle by id
             handle = handleClarinService.findByID(context, id);
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
-        // didn't find the handle
+        // Didn't find the handle
         if (Objects.isNull(handle)) {
             return null;
         }
-        // convert handle to handle rest
+        // Convert handle to handle rest
         return converter.toRest(handle, utils.obtainProjection());
     }
 
@@ -102,18 +102,18 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
     @PreAuthorize("permitAll()")
     public Page<HandleRest> findAll(Context context, Pageable pageable) {
         try {
-            // get sorting request into the string variable
+            // Get sorting request into the string variable
             String sortingColumnDefinition = null;
-            // if the Pageable object has the sorting definition
+            // If the Pageable object has the sorting definition
             if (pageable.getSort().isSorted()) {
                 sortingColumnDefinition = pageable.getSort().stream().iterator().next().getProperty();
             }
 
             Long offset = pageable.getOffset();
-            //list of all founded handles
+            // List of all founded handles
             List<Handle> handles = handleClarinService.findAll(context, sortingColumnDefinition,
                     pageable.getPageSize(), offset.intValue());
-            //convert handles to page of handle rest
+            // Convert handles to page of handle rest
             return converter.toRestPage(handles, pageable, utils.obtainProjection());
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
@@ -130,9 +130,9 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
     @PreAuthorize("hasAuthority('ADMIN')")
     protected void delete(Context context, Integer id) throws AuthorizeException {
         try {
-            //find handle
+            // Find handle
             Handle handle = handleClarinService.findByID(context, id);
-            //delete handle
+            // Delete handle
             handleClarinService.delete(context, handle);
         } catch (SQLException e) {
             throw new RuntimeException("error while trying to delete " + HandleRest.NAME + " with id: " + id, e);
@@ -149,7 +149,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
     protected HandleRest createAndReturn(Context context) throws AuthorizeException {
         HandleRest handleRest;
         try {
-            // get the Handle Rest object from the request
+            // Get the Handle Rest object from the request
             handleRest = new ObjectMapper().readValue(
                     getRequestService().getCurrentRequest().getHttpServletRequest().getInputStream(),
                     HandleRest.class
@@ -161,19 +161,18 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         Handle handle;
         try {
             // Is the handle or the url empty/null?
-            if (Objects.isNull(handleRest.getHandle()) || StringUtils.isBlank(handleRest.getUrl())) {
+            if (StringUtils.isBlank(handleRest.getHandle()) || StringUtils.isBlank(handleRest.getUrl())) {
                 throw new UnprocessableEntityException("Can not create handle. Required fields are empty.");
             }
-
             handle = handleClarinService.createExternalHandle(context, handleRest.getHandle(),
                    handleRest.getUrl());
-            // save created handle
+            // Save created handle
             handleClarinService.save(context, handle);
         } catch (SQLException e) {
             throw new RuntimeException
             ("Error while trying to create new Handle and update it", e);
         }
-        // convert handle to handle rest
+        // Convert handle to handle rest
         return converter.toRest(handle, utils.obtainProjection());
     }
 
@@ -194,7 +193,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                          Patch patch) throws AuthorizeException, SQLException {
         try {
             for (Operation operation : patch.getOperations()) {
-                //work only with replace operation
+                // Work only with replace operation
                 if (!Objects.equals(operation.getOp(), "replace")) {
                     throw new WrongMethodTypeException("The operation method must be `replace`.");
                 }
@@ -232,17 +231,17 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
     @PreAuthorize("hasAuthority('ADMIN')")
     private void updateHandle(Context context, Handle handleObject, String newHandleStr,
                               DSpaceObject handleDso, String url, boolean archive) throws AuthorizeException {
-        //end update if handleObject is null
+        // End update if handleObject is null
         if ( Objects.isNull(handleObject)) {
             log.warn("Could not find handle record for " + newHandleStr);
             return;
         }
 
         Item item = null;
-        //current string handle of handleObject
+        // Current string handle of handleObject
         String oldHandle = handleObject.getHandle();
         try {
-            //handleObject is internal, when it has not url
+            // HandleObject is internal, when it has not url
             if (handleClarinService.isInternalResource(handleObject)) {
                 DSpaceObject dso;
                 // Try resolving handle to Item
@@ -283,17 +282,18 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
 
             // Archive handle
             if (archive) {
-                //if new handle is not equals with old handle
+                // If new handle is not equals with old handle
                 if (!Objects.equals(newHandleStr,oldHandle)) {
-                    //create url
+                    // Create url
                     String newUrl = handleClarinService.resolveToURL(context, newHandleStr);
-                    //create new handle for archiving without dspace object and save it
+                    // Create new handle for archiving without dspace object and save it
                     handleClarinService.createExternalHandle(context, oldHandle, newUrl);
                 }
             }
-            //I am not sure about this debug message
+
             if (log.isDebugEnabled()) {
-                log.debug("Updated handle with id: " + handleObject.getID());
+                log.debug("Updated handle with id: " + handleObject.getID() +
+                        " and in case of its archiving its archiving.");
             }
 
         } catch (SQLException e) {
@@ -314,19 +314,19 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
     private void changePrefixInExistingHandles( Context context, String oldPrefix,
                                      String newPrefix, boolean archive) throws AuthorizeException, SQLException {
         try {
-            //get all handles
+            // Get all handles
             List<Handle> handles = handleClarinService.findAll(context);
 
             for (Handle handleObject : handles) {
-                //get prefix from handle
+                // Get prefix from handle
                 String[] handleParts = (handleObject.getHandle()).split("/");
 
-                //if the used handle prefix is the same as the old prefix, update handle
+                // If the used handle prefix is the same as the old prefix, update handle
                 if (Objects.nonNull((handleParts[0])) && Objects.equals(handleParts[0], oldPrefix)) {
                     String handle = handleParts.length > 1 ? handleParts[1] : "";
-                    //new handle
+                    // New str handle
                     String newHandleStr = newPrefix + "/" + handle;
-                    //update handle
+                    // Update handle
                     updateHandle(context, handleObject, newHandleStr,
                             handleObject.getDSpaceObject(), handleObject.getUrl(), archive);
                 }
@@ -346,10 +346,10 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
      */
     private void fetchHandleAndUpdate(Context context, Operation operation, Integer id)
             throws SQLException, AuthorizeException {
-        //update handle or url in handle object
-        //find handle
+        // Update handle or url in handle object
+        // Find handle
         Handle handleObject = handleClarinService.findByID(context, id);
-        //get value from operation
+        // Get value from operation
         if (Objects.isNull(operation.getValue()) || Objects.isNull(handleObject)) {
             return;
         }
@@ -360,19 +360,19 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
         JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) operation.getValue();
         JsonNode jsonNodes = jsonValEvaluator.getValueNode();
 
-        //new handle entered by admin
+        // New handle entered by admin
         if (jsonNodes.get("handle") != null) {
             jsonNodeHandle = jsonNodes.get("handle");
         }
-        //new url entered by admin
+        // New url entered by admin
         if (jsonNodes.get("url") != null) {
             jsonNodeUrl = jsonNodes.get("url");
         }
-        //Do we want to archive the handle?
+        // Do we want to archive the handle?
         if (jsonNodes.get("archive") != null) {
             jsonNodeArchive = jsonNodes.get("archive");
         }
-        //Can we load json node value from operation?
+
         if (StringUtils.isBlank(jsonNodeHandle.asText()) ||
               StringUtils.isBlank(jsonNodeUrl.asText()) ||
               StringUtils.isBlank(jsonNodeArchive.asText())) {
@@ -380,21 +380,21 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                     "Cannot load JsonNode value from the operation: " + operation.getPath());
         }
 
-        //update handle based on obtained values from jsno nodes
+        // Update handle based on obtained values from json nodes
         this.updateHandle(context, handleObject, jsonNodeHandle.asText(),
                 handleObject.getDSpaceObject(), jsonNodeUrl.asText(),
                 jsonNodeArchive.asBoolean());
     }
 
     /**
-     * Set the prefix for all Handles
+     * Set the prefix for all Handles where is used and global prefix.
      * @param context DSpace context object
      * @param operation contains the old prefix and new prefix
      * @throws SQLException database error
      * @throws AuthorizeException the current user cannot chang the prefix
      */
     private void setHandlePrefix(Context context, Operation operation) throws SQLException, AuthorizeException {
-        // Set handle prefix
+
         if (Objects.isNull(operation.getValue())) {
             return;
         }
@@ -418,7 +418,6 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
             jsonNodeArchive = jsonNodes.get("archive");
         }
 
-        // Can we load json node value from operation?
         if (StringUtils.isBlank(jsonNodeNewPrefix.asText()) ||
             StringUtils.isBlank(jsonNodeOldPrefix.asText()) ||
             StringUtils.isBlank(jsonNodeArchive.asText())) {
@@ -432,11 +431,11 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                     "not match with existing prefixes.");
         }
 
-        //changing prefix in existing handles with the old prefix to the new prefix
-        //in case of request they are archived
+        // Changing prefix in existing handles with the old prefix to the new prefix
+        // In case of request they are archived
         this.changePrefixInExistingHandles(context, jsonNodeOldPrefix.asText(),
                 jsonNodeNewPrefix.asText(), jsonNodeArchive.asBoolean());
-        // set old prefix to the new prefix
+        // Set old prefix to the new prefix
         handleClarinService.setPrefix(context, jsonNodeNewPrefix.asText(), jsonNodeOldPrefix.asText());
     }
 
