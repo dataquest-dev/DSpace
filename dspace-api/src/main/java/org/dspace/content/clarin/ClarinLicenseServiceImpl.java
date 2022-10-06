@@ -135,7 +135,7 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
             ClarinLicense clarinLicense = this.clarinLicenseService.findByName(context, licenseUri);
             // The item bitstreams doesn't have the license
             if (Objects.isNull(clarinLicense)) {
-                log.info("Cannot find clarin license with definition: " + licenseUri);
+                log.info("Cannot find clarin license with name: " + licenseUri);
                 return;
             }
 
@@ -156,11 +156,6 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
             log.error("Something went wrong in the maintenance of clarin license in the bitstream bundle: "
                     + e.getMessage());
         }
-    }
-
-    public ClarinLicense findByDefinition(Context context, String definition) throws SQLException {
-        return clarinLicenseDAO.findByDefinition(context, definition);
-
     }
 
     @Override
