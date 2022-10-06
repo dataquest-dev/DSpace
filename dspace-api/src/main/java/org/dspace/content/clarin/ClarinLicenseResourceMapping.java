@@ -39,7 +39,7 @@ public class ClarinLicenseResourceMapping implements ReloadableEntity<Integer> {
     @JoinColumn(name = "license_id")
     private ClarinLicense license;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST})
     @JoinColumn(name = "bitstream_uuid", referencedColumnName = "uuid")
     private Bitstream bitstream;
 
