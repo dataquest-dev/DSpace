@@ -15,8 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.SQLException;
 import java.util.List;
 
-public class ClarinLicenseValidation extends AbstractValidation {
-    private static final String ERROR_VALIDATION_LICENSEREQUIRED = "error.validation.license.notgranted";
+public class ClarinLicenseResourceValidation extends AbstractValidation {
+    private static final String ERROR_VALIDATION_CLARIN_LICENSE_GRANTED = "error.validation.clarin-license.notgranted";
+    private static final String ERROR_VALIDATION_RESOURCE_CLARIN_LICENSE_REQUIRED =
+            "error.validation.clarin-license.resource.required";
 
     @Autowired
     ItemService itemService;
@@ -30,10 +32,12 @@ public class ClarinLicenseValidation extends AbstractValidation {
 
         if (CollectionUtils.isEmpty(licenseDefinition) || CollectionUtils.isEmpty(licenseName) ||
             CollectionUtils.isEmpty(licenseLabel)) {
-            addError(ERROR_VALIDATION_LICENSEREQUIRED,
+            addError(ERROR_VALIDATION_CLARIN_LICENSE_GRANTED,
                     "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/"
                             + config.getId());
         }
+
+
         return getErrors();
     }
 

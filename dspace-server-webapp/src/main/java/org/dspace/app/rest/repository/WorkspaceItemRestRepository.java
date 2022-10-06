@@ -85,7 +85,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE;
+import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
 
 
 /**
@@ -234,7 +234,7 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         WorkspaceItem source = wis.find(context, id);
         for (Operation op : operations) {
             String[] path = op.getPath().substring(1).split("/", 3);
-            if (OPERATION_PATH_LICENSE.equals(path[0])) {
+            if (OPERATION_PATH_LICENSE_RESOURCE.equals(path[0])) {
                 this.maintainLicensesForItem(context, source, op);
                 continue;
             }

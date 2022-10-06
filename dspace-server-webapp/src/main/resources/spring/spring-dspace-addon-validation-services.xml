@@ -27,9 +27,17 @@
         <property name="uploadConfigurationService" ref="uploadConfigurationService"/>
     </bean>
 
-    <bean name="clarinLicenseValidation" class="org.dspace.app.rest.submit.step.validation.ClarinLicenseValidation" scope="prototype">
+    <bean name="clarinLicenseValidation" class="org.dspace.app.rest.submit.step.validation.ClarinLicenseResourceValidation" scope="prototype">
         <property name="name" value="clarin-license"/>
         <property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
     </bean>
+
+    <bean name="licenseValidation" class="org.dspace.app.rest.submit.step.validation.ClarinLicenseDistributionValidation">
+        <property name="name" value="license"/>
+    </bean>
+
+<!--    <bean name="licenseValidation" class="org.dspace.app.rest.submit.step.validation.LicenseValidation">-->
+<!--        <property name="name" value="license"/>-->
+<!--    </bean>-->
 
 </beans>

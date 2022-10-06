@@ -58,7 +58,9 @@ import org.springframework.stereotype.Component;
 @Component(ClarinLicenseRest.CATEGORY + "." + ClarinLicenseRest.NAME)
 public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLicenseRest, Integer> {
 
-    public static final String OPERATION_PATH_LICENSE = "license";
+    public static final String OPERATION_PATH_LICENSE_RESOURCE = "license";
+
+    public static final String OPERATION_PATH_LICENSE_GRANTED = "granted-license";
 
     @Autowired
     ClarinLicenseService clarinLicenseService;

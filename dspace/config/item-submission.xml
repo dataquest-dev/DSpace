@@ -143,7 +143,7 @@
         </step-definition>
         <step-definition id="clarin-license">
             <heading>submit.progressbar.clarin-license</heading>
-            <processing-class>org.dspace.app.rest.submit.step.ClarinLicenseStep</processing-class>
+            <processing-class>org.dspace.app.rest.submit.step.ClarinLicenseResourceStep</processing-class>
             <type>clarin-license</type>
         </step-definition>
 
@@ -248,7 +248,7 @@
             <!-- <step id="cclicense"/> -->
 
             <!--Step will be to Sign off on the required DSpace License agreement -->
-<!--            <step id="license"/>-->
+            <step id="license"/>
             <step id="clarin-license"/>
         </submission-process>
 
