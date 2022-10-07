@@ -91,9 +91,9 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
         // create
         ClarinLicenseLabel clarinLicenseLabel;
         clarinLicenseLabel = clarinLicenseLabelService.create(context);
-        if (Objects.nonNull(clarinLicenseLabelRest.getId())) {
-            clarinLicenseLabel.setId(clarinLicenseLabelRest.getId());
-        }
+//        if (Objects.nonNull(clarinLicenseLabelRest.getId())) {
+//            clarinLicenseLabel.setId(clarinLicenseLabelRest.getId());
+//        }
         clarinLicenseLabel.setLabel(clarinLicenseLabelRest.getLabel());
         clarinLicenseLabel.setTitle(clarinLicenseLabelRest.getTitle());
         clarinLicenseLabel.setIcon(clarinLicenseLabelRest.getIcon());
