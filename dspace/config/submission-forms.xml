@@ -63,7 +63,7 @@
                     <style>col-sm-5</style>
                     <input-type complex-definition-ref="contact_person">complex</input-type>
                     <hint>This is contact person</hint>
-                    <required>Enter the contact person data.</required>
+                    <required></required>
                 </field>
             </row>
             <row>
@@ -75,7 +75,7 @@
                     <style>col-sm-5</style>
                     <input-type complex-definition-ref="funding">complex</input-type>
                     <hint>This is funding</hint>
-                    <required>Enter the funding.</required>
+                    <required></required>
                 </field>
             </row>
             <row>
