@@ -1618,6 +1618,7 @@
                 <value>dc.rights.label</value>
             </list>
         </property>
+        <property name="type" value="standard"/>
         <property name="facetLimit" value="5"/>
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
