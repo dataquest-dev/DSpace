@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -27,10 +28,13 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
+import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.dao.BundleDAO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
@@ -62,6 +66,10 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     protected AuthorizeService authorizeService;
     @Autowired(required = true)
     protected ResourcePolicyService resourcePolicyService;
+    @Autowired(required = true)
+    protected ClarinLicenseService clarinLicenseService;
+    @Autowired(required = true)
+    protected ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     protected BundleServiceImpl() {
         super();
@@ -160,7 +168,6 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         bundle.addBitstream(bitstream);
         bitstream.getBundles().add(bundle);
 
-
         context.addEvent(new Event(Event.ADD, Constants.BUNDLE, bundle.getID(),
                                    Constants.BITSTREAM, bitstream.getID(), String.valueOf(bitstream.getSequenceID()),
                                    getIdentifiers(context, bundle)));
@@ -169,6 +176,9 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         // FIXME: multiple inclusion is affected by this...
         authorizeService.inheritPolicies(context, bundle, bitstream);
         bitstreamService.update(context, bitstream);
+
+        // Add clarin license to the bitstream and clarin license values to the item metadata
+        clarinLicenseService.addClarinLicenseToBitstream(context, owningItem, bundle, bitstream);
     }
 
     @Override

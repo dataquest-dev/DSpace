@@ -56,7 +56,7 @@
     <bean class="org.dspace.content.RelationshipTypeServiceImpl"/>
     <bean class="org.dspace.content.RelationshipMetadataServiceImpl"/>
     <bean class="org.dspace.content.FeedbackServiceImpl"/>
-
+    <bean class="org.dspace.content.DspaceObjectClarinServiceImpl"/>
     <bean class="org.dspace.scripts.ProcessServiceImpl"/>
     <bean class="org.dspace.scripts.ScriptServiceImpl"/>
 
@@ -73,6 +73,9 @@
     <!-- Ensure PluginService is initialized properly via init() method -->
     <bean class="org.dspace.core.LegacyPluginServiceImpl" init-method="init"/>
     <bean class="org.dspace.core.LicenseServiceImpl"/>
+    <bean class="org.dspace.content.clarin.ClarinLicenseServiceImpl"/>
+    <bean class="org.dspace.content.clarin.ClarinLicenseLabelServiceImpl"/>
+    <bean class="org.dspace.content.clarin.ClarinLicenseResourceMappingServiceImpl"/>
     <bean class="org.dspace.core.NewsServiceImpl">
         <property name="acceptableFilenames">
             <list>
@@ -99,6 +102,7 @@
     <bean class="org.dspace.event.EventServiceImpl"/>
 
     <bean class="org.dspace.handle.HandleServiceImpl"/>
+    <bean class="org.dspace.handle.HandleClarinServiceImpl"/>
 
     <bean class="org.dspace.harvest.HarvestedCollectionServiceImpl"/>
     <bean class="org.dspace.harvest.HarvestedItemServiceImpl"/>

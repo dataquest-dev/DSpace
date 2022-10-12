@@ -21,6 +21,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.builder.util.AbstractBuilderCleanupUtil;
 import org.dspace.content.Bitstream;
+import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
@@ -36,12 +37,16 @@ import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexingService;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.eperson.service.RegistrationDataService;
+import org.dspace.handle.service.HandleClarinService;
 import org.dspace.scripts.factory.ScriptServiceFactory;
 import org.dspace.scripts.service.ProcessService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -95,6 +100,10 @@ public abstract class AbstractBuilder<T, S> {
     static ProcessService processService;
     static RequestItemService requestItemService;
     static VersioningService versioningService;
+    static ClarinLicenseService clarinLicenseService;
+    static ClarinLicenseLabelService clarinLicenseLabelService;
+    static ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+    static HandleClarinService handleClarinService;
 
     protected Context context;
 
@@ -151,6 +160,11 @@ public abstract class AbstractBuilder<T, S> {
         inProgressUserService = XmlWorkflowServiceFactory.getInstance().getInProgressUserService();
         poolTaskService = XmlWorkflowServiceFactory.getInstance().getPoolTaskService();
         workflowItemRoleService = XmlWorkflowServiceFactory.getInstance().getWorkflowItemRoleService();
+        clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
+        clarinLicenseLabelService = ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
+        clarinLicenseResourceMappingService = ClarinServiceFactory.getInstance().
+                getClarinLicenseResourceMappingService();
+        handleClarinService = ClarinServiceFactory.getInstance().getClarinHandleService();
     }
 
 
@@ -183,6 +197,10 @@ public abstract class AbstractBuilder<T, S> {
         processService = null;
         requestItemService = null;
         versioningService = null;
+        clarinLicenseService = null;
+        clarinLicenseLabelService = null;
+        clarinLicenseResourceMappingService = null;
+        handleClarinService = null;
 
     }
 
