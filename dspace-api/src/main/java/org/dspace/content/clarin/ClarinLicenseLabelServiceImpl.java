@@ -74,11 +74,6 @@ public class ClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService 
 
     @Override
     public List<ClarinLicenseLabel> findAll(Context context) throws SQLException, AuthorizeException {
-        if (!authorizeService.isAdmin(context)) {
-            throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License Label");
-        }
-
         return clarinLicenseLabelDAO.findAll(context, ClarinLicenseLabel.class);
     }
 
