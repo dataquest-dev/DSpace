@@ -7,6 +7,7 @@
  */
 package org.dspace.content.clarin;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -26,6 +27,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import org.apache.log4j.Logger;
+import org.dspace.content.Bitstream;
+import org.dspace.content.logic.condition.MetadataValueMatchCondition;
 import org.dspace.core.ReloadableEntity;
 
 /**
@@ -39,6 +43,8 @@ import org.dspace.core.ReloadableEntity;
 @Entity
 @Table(name = "license_definition")
 public class ClarinLicense implements ReloadableEntity<Integer> {
+
+    private static Logger log = Logger.getLogger(MetadataValueMatchCondition.class);
 
     @Id
     @Column(name = "license_id")
@@ -122,6 +128,28 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
 
     public List<ClarinLicenseResourceMapping> getClarinLicenseResourceMappings() {
         return clarinLicenseResourceMappings;
+    }
+
+    /**
+     * The bitstream is not removed from the database after deleting the item, but is set as `deleted`.
+     * Do not count deleted bitstreams for the clarin license.
+     * @return count of the non deleted bitstream assigned to the current clarin license.
+     */
+    public int getNonDeletedBitstreams() {
+        int counter = 0;
+
+        for(ClarinLicenseResourceMapping clrm : clarinLicenseResourceMappings) {
+            Bitstream bitstream = clrm.getBitstream();
+            try {
+                if (bitstream.isDeleted()) {
+                    continue;
+                }
+                counter++;
+            } catch (SQLException e) {
+                log.error("Cannot find out if the bitstream: " + bitstream.getID() + " is deleted.");
+            }
+        }
+        return counter;
     }
 
     public ClarinLicenseLabel getNonExtendedClarinLicenseLabel() {
