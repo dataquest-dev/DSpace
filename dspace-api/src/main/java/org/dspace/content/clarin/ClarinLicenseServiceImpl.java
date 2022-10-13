@@ -128,7 +128,7 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
                             "dc_rights and dc_rights_uri", bitstream.getName(), bitstream.getHandle()));
                     licenseUri = "unknown";
                 } else {
-                    licenseUri = Objects.requireNonNull(dcRightsUri.get(0)).getValue();
+                    licenseUri = Objects.requireNonNull(dcRights.get(0)).getValue();
                 }
             }
 
@@ -151,6 +151,7 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
                 }
             }
 
+            this.clearLicenseMetadataFromItem(context, item);
             this.addLicenseMetadataToItem(context, clarinLicense, item);
         } catch (SQLException | AuthorizeException e) {
             log.error("Something went wrong in the maintenance of clarin license in the bitstream bundle: "
