@@ -57,5 +57,7 @@ public class ClarinServiceFactoryImpl extends ClarinServiceFactory {
     }
 
     @Override
-    public ClarinUserRegistrationService getClarinUserRegistration() { return clarinUserRegistrationService; }
+    public ClarinUserRegistrationService getClarinUserRegistration() {
+        return clarinUserRegistrationService;
+    }
 }

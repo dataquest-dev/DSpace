@@ -29,8 +29,8 @@ import javax.persistence.Table;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.Bitstream;
-import org.dspace.content.logic.condition.MetadataValueMatchCondition;
 import org.dspace.core.ReloadableEntity;
+
 
 /**
  * Class representing a clarin license in DSpace.
@@ -61,10 +61,11 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "license", cascade = CascadeType.PERSIST)
-    private final List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = new ArrayList<>();
+    private List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = new ArrayList<>();
 
-//    @Column(name = "eperson_id")
-//    private Integer epersonId;
+//    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+//    @JoinColumn(name = "eperson_id")
+//    private ClarinUserRegistration eperson;
 
     @Column(name = "name")
     private String name = null;
@@ -138,7 +139,7 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     public int getNonDeletedBitstreams() {
         int counter = 0;
 
-        for(ClarinLicenseResourceMapping clrm : clarinLicenseResourceMappings) {
+        for (ClarinLicenseResourceMapping clrm : clarinLicenseResourceMappings) {
             Bitstream bitstream = clrm.getBitstream();
             try {
                 if (bitstream.isDeleted()) {
@@ -165,4 +166,20 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     public Integer getID() {
         return id;
     }
+
+    public Set<ClarinLicenseLabel> getClarinLicenseLabels() {
+        return clarinLicenseLabels;
+    }
+
+    public void setClarinLicenseLabels(Set<ClarinLicenseLabel> clarinLicenseLabels) {
+        this.clarinLicenseLabels = clarinLicenseLabels;
+    }
+
+//    public ClarinUserRegistration getEperson() {
+//        return eperson;
+//    }
+//
+//    public void setEperson(ClarinUserRegistration eperson) {
+//        this.eperson = eperson;
+//    }
 }

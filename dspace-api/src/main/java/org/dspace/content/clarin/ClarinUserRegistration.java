@@ -7,11 +7,16 @@
  */
 package org.dspace.content.clarin;
 
-import org.apache.log4j.Logger;
-import org.dspace.content.logic.condition.MetadataValueMatchCondition;
-import org.dspace.core.ReloadableEntity;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 
-import javax.persistence.*;
+import org.apache.log4j.Logger;
+import org.dspace.core.ReloadableEntity;
 
 @Entity
 @Table(name = "user_registration")
@@ -26,13 +31,19 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
     private Integer id;
 
     @Column(name = "email")
-    private String email= null;
+    private String email = null;
 
     @Column(name = "organization")
     private String organization = null;
 
     @Column(name = "confirmation")
     private boolean confirmation = false;
+
+//    @OneToMany(fetch = FetchType.LAZY, mappedBy = "eperson", cascade = CascadeType.PERSIST)
+//    private List<ClarinLicense> clarinLicenses = new ArrayList<>();
+//
+//    @OneToMany(fetch = FetchType.LAZY, mappedBy = "userRegistration", cascade = CascadeType.PERSIST)
+//    private List<ClarinLicenseResourceUserAllowance> licenseResourceUserAllowances = new ArrayList<>();
 
     public ClarinUserRegistration() {
     }
@@ -72,4 +83,21 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
     public void setConfirmation(boolean confirmation) {
         this.confirmation = confirmation;
     }
+
+//    public List<ClarinLicense> getClarinLicenses() {
+//        return clarinLicenses;
+//    }
+//
+//    public List<ClarinLicenseResourceUserAllowance> getLicenseResourceUserAllowances() {
+//        return licenseResourceUserAllowances;
+//    }
+//
+//    public void setClarinLicenses(List<ClarinLicense> clarinLicenses) {
+//        this.clarinLicenses = clarinLicenses;
+//    }
+//
+//    public void setLicenseResourceUserAllowances(List<ClarinLicenseResourceUserAllowance>
+//                                                         licenseResourceUserAllowances) {
+//        this.licenseResourceUserAllowances = licenseResourceUserAllowances;
+//    }
 }

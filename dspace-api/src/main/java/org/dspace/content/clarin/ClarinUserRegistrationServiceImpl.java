@@ -1,4 +1,13 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
+
+import java.sql.SQLException;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -9,8 +18,6 @@ import org.dspace.core.LogHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
 
 public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistrationService {
 
@@ -43,7 +50,8 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
     }
 
     @Override
-    public void delete(Context context, ClarinUserRegistration clarinUserRegistration) throws SQLException, AuthorizeException {
+    public void delete(Context context, ClarinUserRegistration clarinUserRegistration)
+            throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
                     "You must be an admin to create an Clarin License");

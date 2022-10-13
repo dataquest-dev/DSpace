@@ -227,6 +227,12 @@ ALTER TABLE license_resource_mapping ALTER COLUMN mapping_id SET DEFAULT nextval
 ALTER TABLE license_resource_user_allowance ALTER COLUMN transaction_id SET DEFAULT nextval('license_resource_user_allowance_transaction_id_seq');
 
 --
+-- Name: eperson_id; Type: DEFAULT; Schema: public; Owner: dspace
+--
+
+ALTER TABLE user_registration ALTER COLUMN eperson_id SET DEFAULT nextval('user_registration_eperson_id_seq');
+
+--
 -- Name: license_definition_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
 --
 
@@ -313,3 +319,17 @@ ALTER TABLE license_label_extended_mapping
 
 ALTER TABLE license_resource_user_allowance
     ADD CONSTRAINT license_resource_mapping_license_resource_user_allowance_fk FOREIGN KEY (mapping_id) REFERENCES license_resource_mapping(mapping_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+--
+-- Name: user_registration_license_definition_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
+--
+
+--ALTER TABLE license_definition
+--    ADD CONSTRAINT user_registration_license_definition_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id) ON DELETE CASCADE;
+
+--
+-- Name: user_registration_license_resource_user_allowance_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
+--
+
+--ALTER TABLE license_resource_user_allowance
+--    ADD CONSTRAINT user_registration_license_resource_user_allowance_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id) ON DELETE CASCADE;

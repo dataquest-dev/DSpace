@@ -674,13 +674,13 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
             }
 
             final String licenseName = dcRights.get(0).getValue();
-            if(Objects.isNull(licenseName)) {
+            if (Objects.isNull(licenseName)) {
                 continue;
             }
 
             final ClarinLicense license = clarinLicenseService.findByName(c, licenseName);
-            for(Bundle bundle : newItem.getBundles(CONTENT_BUNDLE_NAME)) {
-                for(Bitstream b : bundle.getBitstreams()) {
+            for (Bundle bundle : newItem.getBundles(CONTENT_BUNDLE_NAME)) {
+                for (Bitstream b : bundle.getBitstreams()) {
                     this.clarinLicenseResourceMappingService.detachLicenses(c, b);
                     // add the license to bitstream
                     this.clarinLicenseResourceMappingService.attachLicense(c, license, b);
