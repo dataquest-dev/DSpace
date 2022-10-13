@@ -44,7 +44,7 @@ import org.dspace.core.ReloadableEntity;
 @Table(name = "license_definition")
 public class ClarinLicense implements ReloadableEntity<Integer> {
 
-    private static Logger log = Logger.getLogger(MetadataValueMatchCondition.class);
+    private static Logger log = Logger.getLogger(ClarinLicense.class);
 
     @Id
     @Column(name = "license_id")

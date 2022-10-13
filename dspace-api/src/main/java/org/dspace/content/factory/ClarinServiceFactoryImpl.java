@@ -10,6 +10,7 @@ package org.dspace.content.factory;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.handle.service.HandleClarinService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -33,6 +34,8 @@ public class ClarinServiceFactoryImpl extends ClarinServiceFactory {
     @Autowired(required = true)
     private HandleClarinService handleClarinService;
 
+    @Autowired(required = true)
+    private ClarinUserRegistrationService clarinUserRegistrationService;
     @Override
     public ClarinLicenseService getClarinLicenseService() {
         return clarinLicenseService;
@@ -52,4 +55,7 @@ public class ClarinServiceFactoryImpl extends ClarinServiceFactory {
     public HandleClarinService getClarinHandleService() {
         return handleClarinService;
     }
+
+    @Override
+    public ClarinUserRegistrationService getClarinUserRegistration() { return clarinUserRegistrationService; }
 }

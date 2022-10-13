@@ -173,10 +173,10 @@ CREATE TABLE user_registration (
 );
 
 --
--- Name: user_registration_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
+-- Name: user_registration_eperson_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
 --
 
-CREATE SEQUENCE user_registration_transaction_id_seq
+CREATE SEQUENCE user_registration_eperson_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE

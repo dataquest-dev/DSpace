@@ -40,6 +40,7 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexingService;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -105,6 +106,8 @@ public abstract class AbstractBuilder<T, S> {
     static ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
     static HandleClarinService handleClarinService;
 
+    static ClarinUserRegistrationService clarinUserRegistrationService;
+
     protected Context context;
 
     /**
@@ -165,6 +168,7 @@ public abstract class AbstractBuilder<T, S> {
         clarinLicenseResourceMappingService = ClarinServiceFactory.getInstance().
                 getClarinLicenseResourceMappingService();
         handleClarinService = ClarinServiceFactory.getInstance().getClarinHandleService();
+        clarinUserRegistrationService = ClarinServiceFactory.getInstance().getClarinUserRegistration();
     }
 
 

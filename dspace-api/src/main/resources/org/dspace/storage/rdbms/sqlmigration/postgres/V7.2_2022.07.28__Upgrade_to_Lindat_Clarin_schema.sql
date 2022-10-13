@@ -196,7 +196,6 @@ CREATE SEQUENCE license_resource_user_allowance_transaction_id_seq
     NO MINVALUE
     CACHE 1;
 
-
 ALTER TABLE public.license_resource_user_allowance_transaction_id_seq OWNER TO dspace;
 
 --
@@ -211,6 +210,39 @@ ALTER SEQUENCE license_resource_user_allowance_transaction_id_seq OWNED BY licen
 --
 
 SELECT pg_catalog.setval('license_resource_user_allowance_transaction_id_seq', 241, true);
+
+--
+-- Name: user_registration; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
+--
+
+CREATE TABLE user_registration (
+    eperson_id integer NOT NULL,
+    email character varying(256) NOT NULL,
+    organization character varying(256) NOT NULL,
+    confirmation boolean DEFAULT true NOT NULL
+);
+
+ALTER TABLE public.user_registration OWNER TO dspace;
+
+--
+-- Name: user_registration_eperson_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
+--
+
+CREATE SEQUENCE user_registration_eperson_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+ALTER TABLE public.user_registration_eperson_id_seq OWNER TO dspace;
+
+--
+-- Name: user_registration_eperson_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
+--
+
+ALTER SEQUENCE user_registration_eperson_id_seq OWNED BY user_registration.eperson_id;
+
 
 --
 -- Name: license_id; Type: DEFAULT; Schema: public; Owner: dspace
@@ -329,3 +361,10 @@ ALTER TABLE ONLY license_label_extended_mapping
 
 ALTER TABLE ONLY license_resource_user_allowance
     ADD CONSTRAINT license_resource_mapping_license_resource_user_allowance_fk FOREIGN KEY (mapping_id) REFERENCES license_resource_mapping(mapping_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+--
+-- Name: user_registration_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
+--
+
+ALTER TABLE ONLY user_registration
+    ADD CONSTRAINT user_registration_pkey PRIMARY KEY (eperson_id);

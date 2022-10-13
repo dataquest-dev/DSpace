@@ -10,6 +10,7 @@ package org.dspace.content.factory;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
@@ -29,6 +30,7 @@ public abstract class ClarinServiceFactory {
 
     public abstract HandleClarinService getClarinHandleService();
 
+    public abstract ClarinUserRegistrationService getClarinUserRegistration();
     public static ClarinServiceFactory getInstance() {
         return DSpaceServicesFactory.getInstance().getServiceManager()
                 .getServiceByName("clarinServiceFactory", ClarinServiceFactory.class);
