@@ -340,6 +340,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(status().isForbidden())
         ;
     }
+
     // 404
     @Test
     public void notFoundUpdateClarinLicense() throws Exception {
@@ -410,6 +411,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(status().isForbidden())
         ;
     }
+
     // 404
     @Test
     public void notFoundDeleteClarinLicense() throws Exception {
@@ -418,7 +420,6 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(status().isNotFound())
         ;
     }
-
 
     @Test
     public void findAllBitstreamsAttachedToLicense() throws Exception {

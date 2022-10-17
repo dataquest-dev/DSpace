@@ -69,24 +69,6 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         context.restoreAuthSystemState();
     }
 
-//    @After
-//    public void cleanup() throws Exception {
-//        context.turnOffAuthorisationSystem();
-//
-//        handlesWithMagicURLs.forEach(handle -> {
-//            try {
-//                this.handleClarinService.delete(context, handle);
-//            } catch (SQLException | AuthorizeException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//
-//        context.commit();
-//        context.restoreAuthSystemState();
-//
-//        handlesWithMagicURLs = null;
-//    }
-
     @Test
     public void findAllExternalHandles() throws Exception {
         // call endpoint which should return external handles
