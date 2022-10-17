@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 
+import static org.dspace.core.Constants.CONTENT_BUNDLE_NAME;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -35,6 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.spy;
@@ -91,7 +93,7 @@ public class BundleClarinTest extends AbstractDSpaceObjectTest {
             this.collection = collectionService.create(context, owningCommunity);
             WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, false);
             this.item = installItemService.installItem(context, workspaceItem);
-            this.b = bundleService.create(context, item, Constants.CONTENT_BUNDLE_NAME);
+            this.b = bundleService.create(context, item, CONTENT_BUNDLE_NAME);
             this.dspaceObject = b;
 
             // create clarin license label
@@ -114,24 +116,24 @@ public class BundleClarinTest extends AbstractDSpaceObjectTest {
             this.clarinLicenseService.update(context, this.clarinLicense);
 
             // initialize second clarin license and clarin license label
-//            // create second clarin license label
-//            this.secondClarinLicenseLabel = clarinLicenseLabelService.create(context);
-//            this.secondClarinLicenseLabel.setLabel("wrong label");
-//            this.secondClarinLicenseLabel.setExtended(false);
-//            this.secondClarinLicenseLabel.setTitle("wrong title");
-//            this.secondClarinLicenseLabel.setIcon(new byte[3]);
-//            this.clarinLicenseLabelService.update(context, this.secondClarinLicenseLabel);
-//
-//            HashSet<ClarinLicenseLabel> secondCllSet = new HashSet<>();
-//            secondCllSet.add(this.secondClarinLicenseLabel);
-//
-//            // create second clarin license with clarin license labels
-//            this.secondClarinLicense = clarinLicenseService.create(context);
-//            this.secondClarinLicense.setLicenseLabels(secondCllSet);
-//            this.secondClarinLicense.setName("wrong name");
-//            this.secondClarinLicense.setDefinition("wrong uri");
-//            this.secondClarinLicense.setConfirmation(0);
-//            this.clarinLicenseService.update(context, this.secondClarinLicense);
+            // create second clarin license label
+            this.secondClarinLicenseLabel = clarinLicenseLabelService.create(context);
+            this.secondClarinLicenseLabel.setLabel("wrong");
+            this.secondClarinLicenseLabel.setExtended(false);
+            this.secondClarinLicenseLabel.setTitle("wrong title");
+            this.secondClarinLicenseLabel.setIcon(new byte[3]);
+            this.clarinLicenseLabelService.update(context, this.secondClarinLicenseLabel);
+
+            HashSet<ClarinLicenseLabel> secondCllSet = new HashSet<>();
+            secondCllSet.add(this.secondClarinLicenseLabel);
+
+            // create second clarin license with clarin license labels
+            this.secondClarinLicense = clarinLicenseService.create(context);
+            this.secondClarinLicense.setLicenseLabels(secondCllSet);
+            this.secondClarinLicense.setName("wrong name");
+            this.secondClarinLicense.setDefinition("wrong uri");
+            this.secondClarinLicense.setConfirmation(0);
+            this.clarinLicenseService.update(context, this.secondClarinLicense);
 
             //we need to commit the changes, so we don't block the table for testing
             context.restoreAuthSystemState();
@@ -169,6 +171,9 @@ public class BundleClarinTest extends AbstractDSpaceObjectTest {
         super.destroy();
     }
 
+    /**
+     * The clarin license should be attached to the bitstream if the clarin license resource mapping record was added.
+     */
     @Test
     public void testAttachLicenseToBitstream() throws IOException, SQLException, AuthorizeException {
         // the license is not attached to the bitstream
@@ -176,17 +181,9 @@ public class BundleClarinTest extends AbstractDSpaceObjectTest {
 
         context.turnOffAuthorisationSystem();
         // add clarin license data to the item metadata
-        itemService.addMetadata(context, item, "dc", "rights", "uri", Item.ANY,
-                clarinLicense.getDefinition());
-        itemService.addMetadata(context, item, "dc", "rights", null, Item.ANY,
-                clarinLicense.getName());
-        itemService.addMetadata(context, item, "dc", "rights", "label", Item.ANY,
-                clarinLicense.getNonExtendedClarinLicenseLabel().getLabel());
-
-        // run addBitstream method
-        File f = new File(testProps.get("test.bitstream").toString());
-        Bitstream bs = bitstreamService.create(context, new FileInputStream(f));
-        bundleService.addBitstream(context, b, bs);
+        clarinLicenseService.addLicenseMetadataToItem(context, clarinLicense, item);
+        this.addFileToBitstream();
+        context.restoreAuthSystemState();
 
         List<ClarinLicenseResourceMapping> bitstreamAddedToLicense = clarinLicenseResourceMappingService
                 .findAllByLicenseId(context, clarinLicense.getID());
@@ -196,29 +193,98 @@ public class BundleClarinTest extends AbstractDSpaceObjectTest {
         assertEquals(bitstreamAddedToLicense.size(), 1);
     }
 
-    // clear and add metadata to the item
+    /**
+     * On bitstream remove the clarin license should be removed from the bitstream - the clarin license resource
+     * mapping record is removed.
+     */
     @Test
-    public void testAddLicenseMetadataToItem() throws SQLException, AuthorizeException, IOException {
+    public void testDetachLicenseOnBitstreamRemove() throws IOException, SQLException, AuthorizeException {
+        // 1. Attach the license to the bitstream
         context.turnOffAuthorisationSystem();
-        // add clarin license data to the item metadata
-        itemService.addMetadata(context, item, "dc", "rights", "uri", Item.ANY,
-                clarinLicense.getDefinition());
-        itemService.addMetadata(context, item, "dc", "rights", null, Item.ANY,
-                clarinLicense.getName());
-        itemService.addMetadata(context, item, "dc", "rights", "label", Item.ANY,
-                clarinLicense.getNonExtendedClarinLicenseLabel().getLabel());
+        clarinLicenseService.addLicenseMetadataToItem(context, clarinLicense, item);
+        Bitstream bs = this.addFileToBitstream();
 
+        List<ClarinLicenseResourceMapping> bitstreamAddedToLicense = clarinLicenseResourceMappingService
+                .findAllByLicenseId(context, clarinLicense.getID());
+        // the license is attached to the bitstream
+        assertNotNull(bitstreamAddedToLicense);
+        assertEquals(bitstreamAddedToLicense.size(), 1);
+
+        // 2. Remove the bitstream, it should remove the license resource mapping
+        bundleService.removeBitstream(context, b, bs);
+        context.restoreAuthSystemState();
+        List<ClarinLicenseResourceMapping> removedBitstreamResourceMapping = clarinLicenseResourceMappingService
+                .findAllByLicenseId(context, clarinLicense.getID());
+
+        assertNotNull(removedBitstreamResourceMapping);
+        assertEquals(removedBitstreamResourceMapping.size(), 0);
+    }
+
+    /**
+     * Add the clarin license to the bitstream and then change the clarin license - the clarin license
+     * should be changed in the bitstream.
+     */
+    @Test
+    public void changeBitstreamLicenseOnLicenseChange() throws SQLException, AuthorizeException, IOException {
+        // 1. Attach the license to the bitstream
+        context.turnOffAuthorisationSystem();
+        clarinLicenseService.addLicenseMetadataToItem(context, clarinLicense, item);
+        Bitstream bs = this.addFileToBitstream();
+
+        List<ClarinLicenseResourceMapping> bitstreamAddedToLicense = clarinLicenseResourceMappingService
+                .findAllByLicenseId(context, clarinLicense.getID());
+        // the license is attached to the bitstream
+        assertNotNull(bitstreamAddedToLicense);
+        assertEquals(bitstreamAddedToLicense.size(), 1);
+
+        // 2. Add another clarin license to the item
+        // clear the actual clarin license metadata from the item
+        clarinLicenseService.clearLicenseMetadataFromItem(context, item);
+        // add a new clarin license metadata to the item
+        clarinLicenseService.addLicenseMetadataToItem(context, secondClarinLicense, item);
+        // add clarin license to the bitstream
+        clarinLicenseService.addClarinLicenseToBitstream(context, item, b, bs);
+        context.restoreAuthSystemState();
+
+        // 3. Check if the clarin license was changed in the bitstream
+        // the item metadata was changed
+        String licenseName = itemService.getMetadataFirstValue(item, "dc", "rights", null, Item.ANY);
+        assertEquals(secondClarinLicense.getName(), licenseName);
+
+        // bitstream license was changed
+        List<ClarinLicenseResourceMapping> changedBitstreamLicense = clarinLicenseResourceMappingService
+                .findAllByLicenseId(context, secondClarinLicense.getID());
+
+        // the license is attached to the bitstream
+        assertNotNull(changedBitstreamLicense);
+        assertEquals(changedBitstreamLicense.size(), 1);
+        assertEquals(changedBitstreamLicense.get(0).getLicense().getName(), secondClarinLicense.getName());
+    }
+
+    /**
+     * The clarin license metadata should be removed from the item.
+     */
+    @Test
+    public void clearClarinLicenseMetadataFromItem() throws SQLException {
+        context.turnOffAuthorisationSystem();
+        clarinLicenseService.addLicenseMetadataToItem(context, clarinLicense, item);
+
+        // check if the license metadata was added to the item
+        String licenseName = itemService.getMetadataFirstValue(item, "dc", "rights", null, Item.ANY);
+        assertEquals(clarinLicense.getName(), licenseName);
+
+        // clear the clarin license metadata from the item
+        clarinLicenseService.clearLicenseMetadataFromItem(context, item);
+        String licenseNameNull = itemService.getMetadataFirstValue(item, "dc", "rights", null, Item.ANY);
+        assertNull(licenseNameNull);
+    }
+
+    private Bitstream addFileToBitstream() throws SQLException, AuthorizeException, IOException {
         // run addBitstream method
         File f = new File(testProps.get("test.bitstream").toString());
         Bitstream bs = bitstreamService.create(context, new FileInputStream(f));
         bundleService.addBitstream(context, b, bs);
-
-        // the license is attached to the bitstream
-        List<MetadataValue> licenseName =
-                this.itemService.getMetadata(item, "dc", "rights", null, Item.ANY, false);
-        assertNotNull(licenseName);
-        assertEquals(licenseName.size(), 1);
-        assertEquals(licenseName.get(0).getValue(), clarinLicense.getName());
+        return bs;
     }
 
     /**
@@ -256,7 +322,7 @@ public class BundleClarinTest extends AbstractDSpaceObjectTest {
     @Test
     public void testGetName() {
         //created bundle has no name
-        assertThat("testGetName 0", b.getName(), equalTo("TESTBUNDLE"));
+        assertThat("testGetName 0", b.getName(), equalTo(CONTENT_BUNDLE_NAME));
     }
 
     /**
