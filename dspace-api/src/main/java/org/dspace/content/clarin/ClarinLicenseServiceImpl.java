@@ -88,6 +88,18 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
 
     @Override
     public void addLicenseMetadataToItem(Context context, ClarinLicense clarinLicense, Item item) throws SQLException {
+        if (Objects.isNull(clarinLicense) || Objects.isNull(item)) {
+            log.error("Cannot add clarin license to the item metadata because the Item or the Clarin License is null.");
+        }
+        if (Objects.isNull(clarinLicense.getDefinition()) ||
+                Objects.isNull(clarinLicense.getNonExtendedClarinLicenseLabel()) ||
+                Objects.isNull(clarinLicense.getName())) {
+            log.error("Cannot add clarin license to the item metadata because one of the necessary clairn license" +
+                    "attribute is null: " +
+                    "nonExtendedClarinLicenseLabel: " + clarinLicense.getNonExtendedClarinLicenseLabel() +
+                    ", name: " + clarinLicense.getName() +
+                    ", definition: " + clarinLicense.getDefinition());
+        }
         itemService.addMetadata(context, item, "dc", "rights", "uri", Item.ANY,
                 clarinLicense.getDefinition());
         itemService.addMetadata(context, item, "dc", "rights", null, Item.ANY,

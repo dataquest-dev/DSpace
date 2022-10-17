@@ -10,6 +10,7 @@ package org.dspace.app.rest;
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
+import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
 import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.empty;
@@ -33,11 +34,13 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,8 +63,11 @@ import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.RemoveOperation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.builder.BitstreamBuilder;
+import org.dspace.builder.ClarinLicenseBuilder;
+import org.dspace.builder.ClarinLicenseLabelBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
@@ -82,8 +88,13 @@ import org.dspace.content.MetadataFieldName;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.clarin.ClarinLicense;
+import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinLicenseLabel_;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -111,6 +122,10 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     private ItemService itemService;
     @Autowired
     private ConfigurationService configurationService;
+    @Autowired
+    private ClarinLicenseService clarinLicenseService;
+    @Autowired
+    private ClarinLicenseLabelService clarinLicenseLabelService;
 
     private GroupService groupService;
 
@@ -7871,6 +7886,63 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         is(secondNonEuSponsor)))
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][0].value").doesNotExist())
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.relation'][1].value").doesNotExist());
+    }
+
+    @Test
+    public void addClarinLicenseToWI() throws Exception {
+        WorkspaceItem witem = this.createSimpleWorkspaceItem();
+        List<Operation> replaceOperations = new ArrayList<Operation>();
+        String clarinLicenseName = "Test Clarin License";
+
+        context.turnOffAuthorisationSystem();
+        // Create test clarin license label and clarin license
+        // create LicenseLabels
+        ClarinLicenseLabel clarinLicenseLabel = ClarinLicenseLabelBuilder.createClarinLicenseLabel(context).build();
+        clarinLicenseLabel.setLabel("CC");
+        clarinLicenseLabel.setExtended(false);
+        clarinLicenseLabel.setTitle("CLL Title1");
+        clarinLicenseLabelService.update(context, clarinLicenseLabel);
+
+        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+        clarinLicense.setConfirmation(0);
+        clarinLicense.setDefinition("CL Definition1");
+        clarinLicense.setRequiredInfo("CL Req1");
+        clarinLicense.setName(clarinLicenseName);
+        // add ClarinLicenseLabels to the ClarinLicense
+        HashSet<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
+        clarinLicenseLabels.add(clarinLicenseLabel);
+        clarinLicense.setLicenseLabels(clarinLicenseLabels);
+        clarinLicenseService.update(context, clarinLicense);
+
+        // creating replace operation
+        Map<String, String> licenseReplaceOpValue = new HashMap<String, String>();
+        licenseReplaceOpValue.put("value", clarinLicenseName);
+        replaceOperations.add(new ReplaceOperation("/" + OPERATION_PATH_LICENSE_RESOURCE,
+                licenseReplaceOpValue));
+
+        context.restoreAuthSystemState();
+        String updateBody = getPatchContent(replaceOperations);
+
+        String tokenEperson = getAuthToken(admin.getEmail(), password);
+        // Add operation
+        getClient(tokenEperson).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        getClient(tokenEperson).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.rights'][0].value", is(clarinLicenseName)));
+    }
+
+    @Test
+    public void removeClarinLicenseFromWI() {
+
+    }
+
+    @Test
+    public void updateClarinLicenseInWI() {
+
     }
 
     private WorkspaceItem createSimpleWorkspaceItem() {
