@@ -15,12 +15,14 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.repository.WorkspaceItemRestRepository;
 import org.dspace.app.rest.submit.SubmissionService;
+import org.dspace.app.util.Configuration;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.Bitstream;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Constants;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -38,14 +40,19 @@ public class ClarinLicenseDistributionValidation extends AbstractValidation {
     @Autowired
     private BitstreamService bitstreamService;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     @Override
     public List<ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj,
                                     SubmissionStepConfig config) throws DCInputsReaderException, SQLException {
 
         this.getErrors().clear();
+
+        boolean isRequired = configurationService.getBooleanProperty("webui.submit.distribution.license.required", true);
         Bitstream bitstream = bitstreamService
                 .getBitstreamByName(obj.getItem(), Constants.LICENSE_BUNDLE_NAME, Constants.LICENSE_BITSTREAM_NAME);
-        if (bitstream == null) {
+        if (isRequired && bitstream == null) {
             addError(ERROR_VALIDATION_LICENSEREQUIRED,
                     "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + config.getId());
         }
