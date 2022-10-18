@@ -107,6 +107,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
 
         // create ClarinLicenses
         firstCLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+        firstCLicense.setName("CL Name1");
         firstCLicense.setConfirmation(0);
         firstCLicense.setDefinition("CL Definition1");
         firstCLicense.setRequiredInfo("CL Req1");
@@ -119,6 +120,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         clarinLicenseService.update(context, firstCLicense);
 
         secondCLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+        secondCLicense.setName("CL Name2");
         secondCLicense.setConfirmation(1);
         secondCLicense.setDefinition("CL Definition2");
         secondCLicense.setRequiredInfo("CL Req2");
@@ -146,8 +148,8 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .withSubject("ExtraEntry")
                 .withMetadata("dc", "rights", null, firstCLicense.getName())
                 .withMetadata("dc", "rights", "uri", firstCLicense.getDefinition())
-//                .withMetadata("dc", "rights", "label",
-//                        Objects.requireNonNull(firstCLicense.getNonExtendedClarinLicenseLabel()).getLabel())
+                .withMetadata("dc", "rights", "label",
+                        Objects.requireNonNull(firstCLicense.getNonExtendedClarinLicenseLabel()).getLabel())
                 .build();
 
         publicItem2 = ItemBuilder.createItem(context, col2)
@@ -433,11 +435,12 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 .withFormat("test format")
                 .build();
         context.restoreAuthSystemState();
-        // without commit the clarin license resource mappings aren't mapped into th clarin license object
-        context.commit();
 
-        ClarinLicense cl = clarinLicenseService.find(context, firstCLicense.getID());
-        assertEquals(cl.getClarinLicenseResourceMappings().size(),2);
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        // Check if the Clarin License was attached to the Bitstreams
+        getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + firstCLicense.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bitstreams", is(2)));
     }
 
     private ClarinLicenseLabel getNonExtendedLicenseLabel(List<ClarinLicenseLabel> clarinLicenseLabelList) {

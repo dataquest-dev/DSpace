@@ -114,7 +114,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)))
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
+                        FacetEntryMatcher.clarinLicenseRightsFacet(false)))
         );
     }
 
