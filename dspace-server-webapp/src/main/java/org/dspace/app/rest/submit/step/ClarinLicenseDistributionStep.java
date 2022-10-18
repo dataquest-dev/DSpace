@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.submit.step;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.atteo.evo.inflector.English;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.BitstreamRest;
@@ -21,8 +23,6 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * License step for DSpace Spring Rest. Expose the distribution license information about the in progress submission.
@@ -44,8 +44,8 @@ public class ClarinLicenseDistributionStep extends AbstractProcessingStep {
             String acceptanceDate = bitstreamService.getMetadata(bitstream, DCTERMS_RIGHTSDATE);
             result.setAcceptanceDate(acceptanceDate);
             result.setUrl(
-                    configurationService.getProperty("dspace.server.url") + "/api/" + BitstreamRest.CATEGORY + "/" + English
-                            .plural(BitstreamRest.NAME) + "/" + bitstream.getID() + "/content");
+                    configurationService.getProperty("dspace.server.url") + "/api/" + BitstreamRest.CATEGORY + "/"
+                            + English.plural(BitstreamRest.NAME) + "/" + bitstream.getID() + "/content");
             result.setGranted(true);
         }
         return result;

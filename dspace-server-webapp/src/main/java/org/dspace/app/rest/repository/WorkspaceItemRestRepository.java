@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.repository;
 
+import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,7 +21,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.NotFoundException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.io.FileUtils;
@@ -58,7 +59,6 @@ import org.dspace.content.LicenseUtils;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.clarin.ClarinLicense;
-import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CollectionService;
@@ -84,9 +84,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
-
-import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
-
 
 /**
  * This is the repository responsible to manage WorkspaceItem Rest object
@@ -475,7 +472,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
      * @param source WorkspaceItem object
      * @param op should be ReplaceOperation, if it is not - do nothing
      */
-    private void maintainLicensesForItem(Context context, WorkspaceItem source, Operation op) throws SQLException, AuthorizeException {
+    private void maintainLicensesForItem(Context context, WorkspaceItem source, Operation op)
+            throws SQLException, AuthorizeException {
         // Get item
         Item item = source.getItem();
         if (Objects.isNull(item)) {

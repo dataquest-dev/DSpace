@@ -20,6 +20,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.spy;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.List;
+
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -35,13 +42,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.List;
 
 /**
  * Test class for testing of maintenance the clarin license in the bitstream.

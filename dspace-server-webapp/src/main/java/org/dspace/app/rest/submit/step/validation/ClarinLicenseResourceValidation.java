@@ -7,6 +7,9 @@
  */
 package org.dspace.app.rest.submit.step.validation;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.repository.WorkspaceItemRestRepository;
@@ -19,9 +22,6 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.SQLException;
-import java.util.List;
-
 /**
  * This submission validation check that the clarin license has picked from the license selector, and it's attributes
  * are added to the item's metadata.
@@ -30,14 +30,14 @@ import java.util.List;
  */
 public class ClarinLicenseResourceValidation extends AbstractValidation {
     private static final String ERROR_VALIDATION_CLARIN_LICENSE_GRANTED = "error.validation.clarin-license.notgranted";
-    private static final String ERROR_VALIDATION_RESOURCE_CLARIN_LICENSE_REQUIRED =
-            "error.validation.clarin-license.resource.required";
 
     @Autowired
     ItemService itemService;
 
     @Override
-    public List<? extends ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) throws DCInputsReaderException, SQLException {
+    public List<? extends ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj,
+                                              SubmissionStepConfig config)
+            throws DCInputsReaderException, SQLException {
         Item item = obj.getItem();
         List<MetadataValue> licenseDefinition = itemService.getMetadataByMetadataString(item, "dc.rights.uri");
         List<MetadataValue> licenseName = itemService.getMetadataByMetadataString(item, "dc.rights");

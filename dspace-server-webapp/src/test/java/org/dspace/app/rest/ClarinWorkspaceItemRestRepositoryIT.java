@@ -14,6 +14,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.matcher.WorkspaceItemMatcher;
@@ -39,18 +51,6 @@ import org.dspace.services.ConfigurationService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.File;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import javax.ws.rs.core.MediaType;
 
 /**
  * Added CLARIN/DSpace modifications for WorkspaceItemRestRepositoryIT class.

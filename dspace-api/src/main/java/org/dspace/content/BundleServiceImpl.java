@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,7 +27,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
-import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.dao.BundleDAO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;

@@ -138,7 +138,7 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     public int getNonDeletedBitstreams() {
         int counter = 0;
 
-        for(ClarinLicenseResourceMapping clrm : clarinLicenseResourceMappings) {
+        for (ClarinLicenseResourceMapping clrm : clarinLicenseResourceMappings) {
             Bitstream bitstream = clrm.getBitstream();
             try {
                 if (bitstream.isDeleted()) {

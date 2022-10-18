@@ -7,6 +7,9 @@
  */
 package org.dspace.app.rest.submit.step.validation;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ErrorRest;
@@ -19,9 +22,6 @@ import org.dspace.content.InProgressSubmission;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * This submission validation check that the license has been grant for the inprogress submission looking for the
