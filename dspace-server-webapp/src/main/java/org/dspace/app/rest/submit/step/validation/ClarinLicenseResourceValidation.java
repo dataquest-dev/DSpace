@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.submit.step.validation;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -15,6 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * This submission validation check that the clarin license has picked from the license selector, and it's attributes
+ * are added to the item's metadata.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinLicenseResourceValidation extends AbstractValidation {
     private static final String ERROR_VALIDATION_CLARIN_LICENSE_GRANTED = "error.validation.clarin-license.notgranted";
     private static final String ERROR_VALIDATION_RESOURCE_CLARIN_LICENSE_REQUIRED =

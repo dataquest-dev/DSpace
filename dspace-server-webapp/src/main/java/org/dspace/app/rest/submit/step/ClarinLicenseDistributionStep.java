@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.submit.step;
 
 import org.atteo.evo.inflector.English;
@@ -18,9 +25,9 @@ import org.dspace.core.Context;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * License step for DSpace Spring Rest. Expose the license information about the in progress submission.
+ * License step for DSpace Spring Rest. Expose the distribution license information about the in progress submission.
  *
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public class ClarinLicenseDistributionStep extends AbstractProcessingStep {
 

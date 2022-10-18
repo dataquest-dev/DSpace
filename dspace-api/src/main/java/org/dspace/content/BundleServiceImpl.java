@@ -168,6 +168,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         bundle.addBitstream(bitstream);
         bitstream.getBundles().add(bundle);
 
+
         context.addEvent(new Event(Event.ADD, Constants.BUNDLE, bundle.getID(),
                                    Constants.BITSTREAM, bitstream.getID(), String.valueOf(bitstream.getSequenceID()),
                                    getIdentifiers(context, bundle)));
