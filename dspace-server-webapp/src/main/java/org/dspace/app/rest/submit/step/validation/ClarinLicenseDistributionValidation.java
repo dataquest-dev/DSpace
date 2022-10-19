@@ -15,7 +15,6 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.repository.WorkspaceItemRestRepository;
 import org.dspace.app.rest.submit.SubmissionService;
-import org.dspace.app.util.Configuration;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.Bitstream;
@@ -49,7 +48,8 @@ public class ClarinLicenseDistributionValidation extends AbstractValidation {
 
         this.getErrors().clear();
 
-        boolean isRequired = configurationService.getBooleanProperty("webui.submit.distribution.license.required", true);
+        boolean isRequired =
+                configurationService.getBooleanProperty("webui.submit.distribution.license.required", true);
         Bitstream bitstream = bitstreamService
                 .getBitstreamByName(obj.getItem(), Constants.LICENSE_BUNDLE_NAME, Constants.LICENSE_BITSTREAM_NAME);
         if (isRequired && bitstream == null) {
