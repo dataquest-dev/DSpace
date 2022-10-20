@@ -147,7 +147,7 @@ CREATE TABLE license_resource_user_allowance (
     eperson_id integer,
     mapping_id integer,
     created_on timestamp,
-    token char(32)
+    token varchar(256)
 );
 
 --
@@ -171,26 +171,6 @@ CREATE TABLE user_registration (
     organization varchar(256) NOT NULL,
     confirmation boolean DEFAULT true NOT NULL
 );
-
---
--- Name: user_registration_eperson_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
---
-
-CREATE SEQUENCE user_registration_eperson_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
---
--- Name: license_resource_user_allowance_transaction_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
---
-
-
---
--- Name: license_resource_user_allowance_transaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dspace
---
 
 --
 -- Name: license_id; Type: DEFAULT; Schema: public; Owner: dspace
@@ -225,12 +205,6 @@ ALTER TABLE license_resource_mapping ALTER COLUMN mapping_id SET DEFAULT nextval
 --
 
 ALTER TABLE license_resource_user_allowance ALTER COLUMN transaction_id SET DEFAULT nextval('license_resource_user_allowance_transaction_id_seq');
-
---
--- Name: eperson_id; Type: DEFAULT; Schema: public; Owner: dspace
---
-
-ALTER TABLE user_registration ALTER COLUMN eperson_id SET DEFAULT nextval('user_registration_eperson_id_seq');
 
 --
 -- Name: license_definition_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
@@ -324,12 +298,12 @@ ALTER TABLE license_resource_user_allowance
 -- Name: user_registration_license_definition_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
 --
 
---ALTER TABLE license_definition
---    ADD CONSTRAINT user_registration_license_definition_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id) ON DELETE CASCADE;
+ALTER TABLE license_definition
+    ADD CONSTRAINT user_registration_license_definition_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
 
 --
 -- Name: user_registration_license_resource_user_allowance_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
 --
 
---ALTER TABLE license_resource_user_allowance
---    ADD CONSTRAINT user_registration_license_resource_user_allowance_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id) ON DELETE CASCADE;
+ALTER TABLE license_resource_user_allowance
+    ADD CONSTRAINT user_registration_license_resource_user_allowance_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);

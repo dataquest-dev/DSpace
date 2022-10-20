@@ -1,4 +1,14 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.submit.step.validation;
+
+import java.sql.SQLException;
+import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.app.rest.model.ErrorRest;
@@ -12,9 +22,6 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.SQLException;
-import java.util.List;
-
 public class ClarinLicenseResourceValidation extends AbstractValidation {
     private static final String ERROR_VALIDATION_CLARIN_LICENSE_GRANTED = "error.validation.clarin-license.notgranted";
     private static final String ERROR_VALIDATION_RESOURCE_CLARIN_LICENSE_REQUIRED =
@@ -24,7 +31,9 @@ public class ClarinLicenseResourceValidation extends AbstractValidation {
     ItemService itemService;
 
     @Override
-    public List<? extends ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) throws DCInputsReaderException, SQLException {
+    public List<? extends ErrorRest> validate(SubmissionService submissionService,
+                                              InProgressSubmission obj, SubmissionStepConfig config)
+            throws DCInputsReaderException, SQLException {
         Item item = obj.getItem();
         List<MetadataValue> licenseDefinition = itemService.getMetadataByMetadataString(item, "dc.rights.uri");
         List<MetadataValue> licenseName = itemService.getMetadataByMetadataString(item, "dc.rights");

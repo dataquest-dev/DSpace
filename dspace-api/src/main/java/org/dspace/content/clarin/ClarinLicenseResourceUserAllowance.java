@@ -38,9 +38,9 @@ public class ClarinLicenseResourceUserAllowance implements ReloadableEntity<Inte
             allocationSize = 1)
     private Integer id;
 
-//    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
-//    @JoinColumn(name = "eperson_id")
-//    private ClarinUserRegistration userRegistration;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+    @JoinColumn(name = "eperson_id")
+    private ClarinUserRegistration userRegistration;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
     @JoinColumn(name = "mapping_id")
@@ -61,13 +61,13 @@ public class ClarinLicenseResourceUserAllowance implements ReloadableEntity<Inte
         this.id = id;
     }
 
-//    public ClarinUserRegistration getUserRegistration() {
-//        return userRegistration;
-//    }
-//
-//    public void setUserRegistration(ClarinUserRegistration userRegistration) {
-//        this.userRegistration = userRegistration;
-//    }
+    public ClarinUserRegistration getUserRegistration() {
+        return userRegistration;
+    }
+
+    public void setUserRegistration(ClarinUserRegistration userRegistration) {
+        this.userRegistration = userRegistration;
+    }
 
     public ClarinLicenseResourceMapping getLicenseResourceMapping() {
         return licenseResourceMapping;

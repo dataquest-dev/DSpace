@@ -23,6 +23,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
@@ -63,9 +64,9 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "license", cascade = CascadeType.PERSIST)
     private List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = new ArrayList<>();
 
-//    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
-//    @JoinColumn(name = "eperson_id")
-//    private ClarinUserRegistration eperson;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+    @JoinColumn(name = "eperson_id")
+    private ClarinUserRegistration eperson;
 
     @Column(name = "name")
     private String name = null;
@@ -175,11 +176,11 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
         this.clarinLicenseLabels = clarinLicenseLabels;
     }
 
-//    public ClarinUserRegistration getEperson() {
-//        return eperson;
-//    }
-//
-//    public void setEperson(ClarinUserRegistration eperson) {
-//        this.eperson = eperson;
-//    }
+    public ClarinUserRegistration getEperson() {
+        return eperson;
+    }
+
+    public void setEperson(ClarinUserRegistration eperson) {
+        this.eperson = eperson;
+    }
 }
