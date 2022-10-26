@@ -10,6 +10,7 @@ package org.dspace.app.rest.repository;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -19,15 +20,19 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.rest.ClarinLicenseUtils;
 import org.dspace.app.rest.converter.MetadataConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.BundleRest;
 import org.dspace.app.rest.model.ItemRest;
+import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.app.rest.repository.handler.service.UriListHandlerService;
 import org.dspace.authorize.AuthorizeException;
@@ -37,6 +42,7 @@ import org.dspace.content.Item;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.InstallItemService;
@@ -51,7 +57,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
+
+import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
 
 /**
  * This is the repository responsible to manage Item Rest object
@@ -139,7 +148,47 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
     @PreAuthorize("hasPermission(#id, 'ITEM', #patch)")
     protected void patch(Context context, HttpServletRequest request, String apiCategory, String model, UUID id,
                          Patch patch) throws AuthorizeException, SQLException {
-        patchDSpaceObject(apiCategory, model, id, patch);
+        // PatchDSpaceObject only if it cannot maintain license for Item
+        if (!maintainLicenseForItem(context, id, patch)) {
+            patchDSpaceObject(apiCategory, model, id, patch);
+        }
+    }
+
+    /**
+     * Get operation from patch request and call method `ClarinLicenseUtils.maintainLicensesForItem` for
+     * attach/detaching license for item and for item bitstreams.
+     * @param context DSpace context object
+     * @param id Item UUID
+     * @param patch PatchRequest object with Operation object
+     */
+    private boolean maintainLicenseForItem(Context context, UUID id, Patch patch) throws AuthorizeException, SQLException {
+        // Get operation
+        List<Operation> operations = patch.getOperations();
+        if (CollectionUtils.isEmpty(operations)) {
+            return false;
+        }
+
+        // Get operation path
+        Operation op = operations.get(0);
+        String[] path = op.getPath().substring(1).split("/");
+
+        // Get item for workspace item
+        Item item = itemService.find(context, id);
+        if (Objects.isNull(item)) {
+            log.error("Cannot find item with id: " + id);
+            return false;
+        }
+
+        // Call `ClarinLicenseUtils.maintainLicensesForItem` only if the path starts with `/license`
+        if (ArrayUtils.isEmpty(path)) {
+            log.error("The operation path is clear! It must be in the format `/license/detach` or `/license/attach`." );
+            return false;
+        }
+        if (StringUtils.equals(OPERATION_PATH_LICENSE_RESOURCE, path[0])) {
+            ClarinLicenseUtils.maintainLicensesForItem(context, item, op);
+            return true;
+        }
+        return false;
     }
 
     @Override

@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
@@ -55,6 +56,8 @@ import org.springframework.stereotype.Component;
 public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLicenseRest, Integer> {
 
     public static final String OPERATION_PATH_LICENSE_RESOURCE = "license";
+    public static final String OPERATION_PATH_LICENSE_ATTACH = "attach";
+
 
     public static final String OPERATION_PATH_LICENSE_GRANTED = "granted-license";
 
@@ -154,10 +157,18 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
                                    Patch patch) throws SQLException, AuthorizeException {
         // load
         List<Operation> operations = patch.getOperations();
+        if (CollectionUtils.isEmpty(operations)) {
+            return;
+        }
         WorkspaceItem source = wis.find(context, id);
-        Item item = source.getItem();
-        itemService.setMetadataSingleValue(context, item, "dc", "rights","license", null, "license");
-        itemService.update(context, item);
+
+        Operation op = operations.get(0);
+        String path = op.getPath();
+        if (OPERATION_PATH_LICENSE_RESOURCE.equals(path)) {
+
+        }
+//        itemService.setMetadataSingleValue(context, item, "dc", "rights","license", null, "license");
+//        itemService.update(context, item);
         wis.update(context, source);
     }
 
