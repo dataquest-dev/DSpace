@@ -12,7 +12,7 @@ import org.dspace.app.rest.AuthorizationRestController;
 public class AuthrnRest extends BaseObjectRest<Integer> {
 
     public static final String NAME = "authrn";
-    public static final String CATEGORY = "authrns";
+    public static final String CATEGORY = "authrn";
 
     public String getCategory() {
         return CATEGORY;
