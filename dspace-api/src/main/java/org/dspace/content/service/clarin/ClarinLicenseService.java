@@ -13,6 +13,7 @@ import java.util.List;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.core.Context;

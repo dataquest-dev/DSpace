@@ -163,4 +163,9 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
 
         clarinLicenseResourceMappingDAO.save(context, clarinLicenseResourceMapping);
     }
+
+    @Override
+    public List<ClarinLicense> getLicensesToAgree(UUID userId, String resourceID) {
+        return null;
+    }
 }
