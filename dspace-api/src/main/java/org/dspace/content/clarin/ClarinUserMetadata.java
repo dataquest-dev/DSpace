@@ -1,2 +1,4 @@
-package org.dspace.content.clarin;public class ClarinUserMetadata {
+package org.dspace.content.clarin;
+
+public class ClarinUserMetadata {
 }

@@ -34,7 +34,7 @@ public interface AuthorizationFeature {
      *            wide feature
      * @return true if the user associated with the context has access to the feature for the specified object
      */
-    boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException, AuthorizeException;
+    boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException;
 
     /**
      * Return the name of the feature

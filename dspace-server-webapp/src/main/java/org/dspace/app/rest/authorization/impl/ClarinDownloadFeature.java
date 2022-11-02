@@ -23,21 +23,15 @@ import java.sql.SQLException;
  * Inspired by DownloadFeature
  */
 @Component
-@AuthorizationFeatureDocumentation(name = ClarinDownloadFeature.NAME,
-        description = "It can be used to verify if the user can download a bitstream")
-public class ClarinDownloadFeature implements AuthorizationFeature {
+public class ClarinDownloadFeature {
     public final static String NAME = "canDownloadClarin";
 
     @Autowired
     private AuthorizeServiceRestUtil authorizeServiceRestUtil;
 
     @Autowired
-    private ClarinLicenseService clarinLicenseService;
-
-    @Autowired
     private AuthorizationBitstreamUtils authorizationBitstreamUtils;
 
-    @Override
     public boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException, AuthorizeException {
         if (!(object instanceof BitstreamRest)) {
             return false;
@@ -54,12 +48,5 @@ public class ClarinDownloadFeature implements AuthorizationFeature {
         // the license restrictions are OK
         authorizationBitstreamUtils.authorizeBitstream(context, object);
         return false;
-    }
-
-    @Override
-    public String[] getSupportedTypes() {
-        return new String[]{
-                BitstreamRest.CATEGORY + "." + BitstreamRest.NAME,
-        };
     }
 }
