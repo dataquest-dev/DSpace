@@ -8,6 +8,8 @@
 package org.dspace.content.service.clarin;
 
 import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
@@ -18,4 +20,7 @@ public interface ClarinLicenseResourceUserAllowanceService {
     ClarinLicenseResourceUserAllowance find(Context context, int valueId) throws SQLException;
     void delete(Context context, ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance)
             throws SQLException, AuthorizeException;
+    boolean verifyToken(String resourceID, String token);
+    boolean isUserAllowedToAccessTheResource(Context context, UUID userId, UUID resourceId) throws SQLException;
+    List<ClarinLicenseResourceUserAllowance> findByEPersonId(Context context, UUID userID) throws SQLException;
 }

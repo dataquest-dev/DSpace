@@ -14,13 +14,17 @@ import java.util.Objects;
 import java.util.UUID;
 import javax.ws.rs.NotFoundException;
 
+import com.github.jsonldjava.utils.Obj;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.jasper.tagplugins.jstl.core.If;
+import org.apache.logging.log4j.core.util.Integers;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.dao.clarin.ClarinLicenseResourceMappingDAO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
@@ -35,6 +39,8 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
 
     @Autowired
     ClarinLicenseResourceMappingDAO clarinLicenseResourceMappingDAO;
+    @Autowired
+    ClarinLicenseResourceUserAllowanceService clarinLicenseResourceUserAllowanceService;
 
     @Autowired
     ClarinLicenseService clarinLicenseService;
@@ -162,5 +168,77 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
         clarinLicenseResourceMapping.setLicense(clarinLicense);
 
         clarinLicenseResourceMappingDAO.save(context, clarinLicenseResourceMapping);
+    }
+
+    @Override
+    public ClarinLicense getLicenseToAgree(Context context, UUID userId, UUID resourceID) throws SQLException {
+        // Load Clarin License for current bitstream.
+        List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings =
+                clarinLicenseResourceMappingDAO.findByBitstreamUUID(context, resourceID);
+
+        // Check there is mappings for the clarin license and bitstream
+        if (CollectionUtils.isEmpty(clarinLicenseResourceMappings)) {
+            return null;
+        }
+
+        // Get the first resource mapping, get only fist - there shouldn't b more mappings
+        ClarinLicenseResourceMapping clarinLicenseResourceMapping = clarinLicenseResourceMappings.get(0);
+        if (Objects.isNull(clarinLicenseResourceMapping)) {
+            return null;
+        }
+
+        // Get Clarin License from resource mapping to get confirmation policies.
+        ClarinLicense clarinLicenseToAgree = clarinLicenseResourceMapping.getLicense();
+        if (Objects.isNull(clarinLicenseToAgree)) {
+            return null;
+        }
+
+        // Confirmation states:
+        // 0 - Not required
+        // 1 - Ask only once
+        // 2 - Ask always
+        // 3 - Allow anonymous
+        if (Objects.equals(clarinLicenseToAgree.getConfirmation(), 0)) {
+            return null;
+        }
+
+        switch (clarinLicenseToAgree.getConfirmation()) {
+            case 1:
+                // Ask only once - check if the clarin license required info is filled in by the user
+                if (userFilledInRequiredInfo(context, clarinLicenseResourceMapping, userId)) {
+                    return null;
+                }
+                return clarinLicenseToAgree;
+            case 2:
+            case 3:
+                return clarinLicenseToAgree;
+            default:
+                return null;
+        }
+    }
+
+    private boolean userFilledInRequiredInfo(Context context,
+                                             ClarinLicenseResourceMapping clarinLicenseResourceMapping, UUID userID)
+            throws SQLException {
+        if (Objects.isNull(userID)) {
+            return false;
+        }
+
+        // Find all records when the current user fill in some clarin license required info
+        List<ClarinLicenseResourceUserAllowance> clarinLicenseResourceUserAllowances =
+                clarinLicenseResourceUserAllowanceService.findByEPersonId(context, userID);
+        if (CollectionUtils.isEmpty(clarinLicenseResourceUserAllowances)) {
+            return false;
+        }
+
+        for (ClarinLicenseResourceUserAllowance clrua : clarinLicenseResourceUserAllowances) {
+            int userAllowanceMappingID = clrua.getLicenseResourceMapping().getID();
+            int resourceMappingID = clarinLicenseResourceMapping.getID();
+            if (Objects.equals(userAllowanceMappingID, resourceMappingID)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
