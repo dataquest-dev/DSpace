@@ -37,5 +37,5 @@ public interface ClarinLicenseResourceMappingService {
     void attachLicense(Context context, ClarinLicense clarinLicense, Bitstream bitstream)
             throws SQLException, AuthorizeException;
 
-    List<ClarinLicense> getLicensesToAgree(UUID userId, String resourceID);
+    ClarinLicense getLicenseToAgree(Context context, UUID userId, UUID resourceID) throws SQLException;
 }

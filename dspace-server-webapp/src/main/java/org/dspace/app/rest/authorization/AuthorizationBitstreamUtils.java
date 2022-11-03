@@ -61,12 +61,18 @@ public class AuthorizationBitstreamUtils {
      * 3. If the bitstream license requires confirmation every time or the user didn't fill in required
      *    metadata for the bitstream's license -> the user is not authorized.
      * @param context
-     * @param baseObjectRest
      * @return
      * @throws SQLException
      */
-    public boolean authorizeBitstream(Context context, BaseObjectRest baseObjectRest) throws SQLException,
+    public boolean authorizeBitstream(Context context, Bitstream bitstream) throws SQLException,
             AuthorizeException {
+        if (Objects.isNull(bitstream)) {
+            return false;
+        }
+        if (Objects.isNull(context)) {
+            return false;
+        }
+
         // Load the current user
         EPerson currentUser = context.getCurrentUser();
         boolean userExists = Objects.nonNull(currentUser);
@@ -77,17 +83,9 @@ public class AuthorizationBitstreamUtils {
             userID = currentUser.getID();
         }
 
-        if (!(baseObjectRest instanceof BitstreamRest)) {
-            return false;
-        }
 
-        String resourceID = String.valueOf(baseObjectRest.getId());
-
-        // Get DSpaceObject based on the BaseObjectRest
-        Bitstream bitstream = (Bitstream) utils.getDSpaceAPIObjectFromRest(context, baseObjectRest);
-        if (Objects.isNull(bitstream)) {
-            return false;
-        }
+        UUID bitstreamUUID = bitstream.getID();
+        String bitstreamID = Objects.isNull(bitstreamUUID) ? null : bitstreamUUID.toString();
 
         // 1. If the current user is submitter of the item where the current bitstream is -> the user is authorized.
         if (userIsSubmitter(context, bitstream, currentUser, userID)) {
@@ -95,13 +93,13 @@ public class AuthorizationBitstreamUtils {
         }
 
         // 2. If the request contains token which is verified -> the user is authorized.
-        if (isTokenVerified(resourceID)) {
+        if (isTokenVerified(bitstreamID)) {
             return true;
         }
 
         // 3. If the bitstream license requires confirmation every time or the user didn't fill in required
         // metadata for the bitstream's license -> the user is not authorized.
-        return isUserAllowedToAccessTheResource(userID, resourceID);
+        return isUserAllowedToAccessTheResource(context, userID, bitstreamUUID);
     }
 
     private boolean userIsSubmitter(Context context, Bitstream bitstream, EPerson currentUser, UUID userID) {
@@ -134,7 +132,7 @@ public class AuthorizationBitstreamUtils {
         return false;
     }
 
-    private boolean isTokenVerified(String resourceID) throws DownloadTokenExpiredException {
+    private boolean isTokenVerified(String bitstreamID) throws DownloadTokenExpiredException {
         // Load the current request.
         HttpServletRequest request = new DSpace().getRequestService().getCurrentRequest()
                 .getHttpServletRequest();
@@ -157,7 +155,7 @@ public class AuthorizationBitstreamUtils {
             return false;
         }
 
-        boolean tokenFound = clarinLicenseResourceUserAllowanceService.verifyToken(resourceID, dtoken);
+        boolean tokenFound = clarinLicenseResourceUserAllowanceService.verifyToken(bitstreamID, dtoken);
         // Check token
         if(tokenFound) { // database token match with url token
             return true;
@@ -166,10 +164,10 @@ public class AuthorizationBitstreamUtils {
         }
     }
 
-    private boolean isUserAllowedToAccessTheResource(UUID userID, String resourceID)
-            throws MissingLicenseAgreementException {
+    private boolean isUserAllowedToAccessTheResource(Context context, UUID userID, UUID bitstreamID)
+            throws MissingLicenseAgreementException, SQLException {
         boolean allowed = clarinLicenseResourceUserAllowanceService
-                .isUserAllowedToAccessTheResource(userID, resourceID);
+                .isUserAllowedToAccessTheResource(context, userID, bitstreamID);
 
         if (!allowed) {
             throw new MissingLicenseAgreementException("Missing license agreement!");

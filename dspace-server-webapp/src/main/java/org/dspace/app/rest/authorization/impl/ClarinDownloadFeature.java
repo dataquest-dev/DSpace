@@ -46,7 +46,7 @@ public class ClarinDownloadFeature {
 
         // This function throws exception if the authorization fails - if it is not reported,
         // the license restrictions are OK
-        authorizationBitstreamUtils.authorizeBitstream(context, object);
+//        authorizationBitstreamUtils.authorizeBitstream(context, object);
         return false;
     }
 }
