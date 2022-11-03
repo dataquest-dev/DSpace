@@ -222,51 +222,66 @@ CREATE TABLE user_registration (
 
 ALTER TABLE public.user_registration OWNER TO dspace;
 
+CREATE SEQUENCE user_registration_eperson_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+ALTER TABLE public.user_registration_eperson_id_seq OWNER TO dspace;
+
+--
+-- Name: user_registration_eperson_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
+--
+
+ALTER SEQUENCE user_registration_eperson_id_seq OWNED BY user_registration.eperson_id;
+
 --
 ---- Name: user_metadata; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
 ----
---
---CREATE TABLE user_metadata (
---    user_metadata_id integer NOT NULL,
---    eperson_id integer NOT NULL,
---    metadata_key character varying(64) NOT NULL,
---    metadata_value character varying(256) NOT NULL,
---    transaction_id integer
---);
---
---
---ALTER TABLE public.user_metadata OWNER TO dspace;
---
-----
----- Name: user_metadata_user_metadata_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
-----
---
---CREATE SEQUENCE user_metadata_user_metadata_id_seq
---    START WITH 1
---    INCREMENT BY 1
---    NO MAXVALUE
---    NO MINVALUE
---    CACHE 1;
---
---
---ALTER TABLE public.user_metadata_user_metadata_id_seq OWNER TO dspace;
---
-----
----- Name: user_metadata_user_metadata_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
-----
---
---ALTER SEQUENCE user_metadata_user_metadata_id_seq OWNED BY user_metadata.user_metadata_id;
+
+CREATE TABLE user_metadata (
+    user_metadata_id integer NOT NULL,
+    eperson_id integer NOT NULL,
+    metadata_key character varying(64) NOT NULL,
+    metadata_value character varying(256) NOT NULL,
+    transaction_id integer
+);
 
 
-----
----- Name: user_metadata_user_metadata_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dspace
-----
---
---SELECT pg_catalog.setval('user_metadata_user_metadata_id_seq', 68, true);
+ALTER TABLE public.user_metadata OWNER TO dspace;
 
 --
+-- Name: user_metadata_user_metadata_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
+--
+
+CREATE SEQUENCE user_metadata_user_metadata_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_metadata_user_metadata_id_seq OWNER TO dspace;
+
+--
+-- Name: user_metadata_user_metadata_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
+--
+
+ALTER SEQUENCE user_metadata_user_metadata_id_seq OWNED BY user_metadata.user_metadata_id;
+
+
+--
+-- Name: user_metadata_user_metadata_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dspace
+--
+
+SELECT pg_catalog.setval('user_metadata_user_metadata_id_seq', 68, true);
+
+
 -- Name: license_id; Type: DEFAULT; Schema: public; Owner: dspace
---
+
 
 ALTER TABLE ONLY license_definition ALTER COLUMN license_id SET DEFAULT nextval('license_definition_license_id_seq'::regclass);
 
@@ -299,8 +314,16 @@ ALTER TABLE ONLY license_resource_mapping ALTER COLUMN mapping_id SET DEFAULT ne
 ALTER TABLE ONLY license_resource_user_allowance ALTER COLUMN transaction_id SET DEFAULT nextval('license_resource_user_allowance_transaction_id_seq'::regclass);
 
 --
--- Name: eperson_id; Type: DEFAULT; Schema: public; Owner: dspace
+-- Name: user_metadata_id; Type: DEFAULT; Schema: public; Owner: dspace
 --
+
+ALTER TABLE ONLY user_metadata ALTER COLUMN user_metadata_id SET DEFAULT nextval('user_metadata_user_metadata_id_seq'::regclass);
+
+--
+-- Name: user_registration_id; Type: DEFAULT; Schema: public; Owner: dspace
+--
+
+ALTER TABLE ONLY user_registration ALTER COLUMN eperson_id SET DEFAULT nextval('user_registration_eperson_id_seq'::regclass);
 
 --
 -- Name: license_definition_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
@@ -400,9 +423,29 @@ ALTER TABLE ONLY user_registration
 ALTER TABLE ONLY license_definition
     ADD CONSTRAINT user_registration_license_definition_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
 --
-----
----- Name: user_registration_license_resource_user_allowance_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
-----
+-- Name: user_registration_license_resource_user_allowance_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
 --
+
 ALTER TABLE ONLY license_resource_user_allowance
     ADD CONSTRAINT user_registration_license_resource_user_allowance_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
+
+--
+-- Name: user_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
+--
+
+ALTER TABLE ONLY user_metadata
+    ADD CONSTRAINT user_metadata_pkey PRIMARY KEY (user_metadata_id);
+
+--
+-- Name: license_resource_user_allowance_user_metadata_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
+--
+
+ALTER TABLE ONLY user_metadata
+    ADD CONSTRAINT license_resource_user_allowance_user_metadata_fk FOREIGN KEY (transaction_id) REFERENCES license_resource_user_allowance(transaction_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+--
+-- Name: user_registration_user_metadata_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
+--
+
+ALTER TABLE ONLY user_metadata
+    ADD CONSTRAINT user_registration_user_metadata_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
