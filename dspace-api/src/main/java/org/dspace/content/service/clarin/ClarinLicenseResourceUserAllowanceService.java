@@ -1,2 +1,21 @@
-package org.dspace.content.service.clarin;public interface ClarinLicenseResourceUserAllowance {
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.content.service.clarin;
+
+import java.sql.SQLException;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
+import org.dspace.core.Context;
+
+public interface ClarinLicenseResourceUserAllowanceService {
+    ClarinLicenseResourceUserAllowance create(Context context) throws SQLException, AuthorizeException;
+    ClarinLicenseResourceUserAllowance find(Context context, int valueId) throws SQLException;
+    void delete(Context context, ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance)
+            throws SQLException, AuthorizeException;
 }

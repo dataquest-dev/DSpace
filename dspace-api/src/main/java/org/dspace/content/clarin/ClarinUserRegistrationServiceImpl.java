@@ -32,7 +32,7 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
     public ClarinUserRegistration create(Context context) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License");
+                    "You must be an admin to create an Clarin user registration");
         }
         // Create a table row
         ClarinUserRegistration clarinUserRegistration = clarinUserRegistrationDAO.create(context,
@@ -54,7 +54,7 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
             throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License");
+                    "You must be an admin to create an Clarin user registration");
         }
         clarinUserRegistrationDAO.delete(context, clarinUserRegistration);
     }

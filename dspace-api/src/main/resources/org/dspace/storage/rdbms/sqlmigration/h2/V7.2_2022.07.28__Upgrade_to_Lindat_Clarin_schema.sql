@@ -172,6 +172,36 @@ CREATE TABLE user_registration (
     confirmation boolean DEFAULT true NOT NULL
 );
 
+CREATE SEQUENCE user_registration_eperson_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+--
+-- Name: user_metadata; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
+--
+
+CREATE TABLE user_metadata (
+    user_metadata_id integer NOT NULL,
+    eperson_id integer NOT NULL,
+    metadata_key character varying(64) NOT NULL,
+    metadata_value character varying(256) NOT NULL,
+    transaction_id integer
+);
+
+--
+-- Name: user_metadata_user_metadata_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
+--
+
+CREATE SEQUENCE user_metadata_user_metadata_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
 --
 -- Name: license_id; Type: DEFAULT; Schema: public; Owner: dspace
 --
@@ -199,12 +229,23 @@ ALTER TABLE license_label_extended_mapping ALTER COLUMN mapping_id SET DEFAULT n
 
 ALTER TABLE license_resource_mapping ALTER COLUMN mapping_id SET DEFAULT nextval('license_resource_mapping_mapping_id_seq');
 
-
 --
 -- Name: transaction_id; Type: DEFAULT; Schema: public; Owner: dspace
 --
 
 ALTER TABLE license_resource_user_allowance ALTER COLUMN transaction_id SET DEFAULT nextval('license_resource_user_allowance_transaction_id_seq');
+
+--
+-- Name: user_metadata_id; Type: DEFAULT; Schema: public; Owner: dspace
+--
+
+ALTER TABLE user_metadata ALTER COLUMN user_metadata_id SET DEFAULT nextval('user_metadata_user_metadata_id_seq');
+
+--
+-- Name: user_registration_id; Type: DEFAULT; Schema: public; Owner: dspace
+--
+
+ALTER TABLE user_registration ALTER COLUMN eperson_id SET DEFAULT nextval('user_registration_eperson_id_seq');
 
 --
 -- Name: license_definition_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
@@ -251,6 +292,13 @@ ALTER TABLE license_resource_user_allowance
 
 ALTER TABLE user_registration
     ADD CONSTRAINT user_registration_pkey PRIMARY KEY (eperson_id);
+
+--
+-- Name: user_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
+--
+
+ALTER TABLE user_metadata
+    ADD CONSTRAINT user_metadata_pkey PRIMARY KEY (user_metadata_id);
 
 --
 -- Name: license_definition_license_label_extended_mapping_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
@@ -307,3 +355,17 @@ ALTER TABLE license_definition
 
 ALTER TABLE license_resource_user_allowance
     ADD CONSTRAINT user_registration_license_resource_user_allowance_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
+
+--
+-- Name: license_resource_user_allowance_user_metadata_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
+--
+
+ALTER TABLE user_metadata
+    ADD CONSTRAINT license_resource_user_allowance_user_metadata_fk FOREIGN KEY (transaction_id) REFERENCES license_resource_user_allowance(transaction_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+--
+-- Name: user_registration_user_metadata_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
+--
+
+ALTER TABLE user_metadata
+    ADD CONSTRAINT user_registration_user_metadata_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);

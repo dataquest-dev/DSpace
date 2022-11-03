@@ -77,6 +77,8 @@
     <bean class="org.dspace.content.clarin.ClarinLicenseLabelServiceImpl"/>
     <bean class="org.dspace.content.clarin.ClarinLicenseResourceMappingServiceImpl"/>
     <bean class="org.dspace.content.clarin.ClarinUserRegistrationServiceImpl"/>
+    <bean class="org.dspace.content.clarin.ClarinUserMetadataServiceImpl"/>
+    <bean class="org.dspace.content.clarin.ClarinLicenseResourceUserAllowanceServiceImpl"/>
     <bean class="org.dspace.core.NewsServiceImpl">
         <property name="acceptableFilenames">
             <list>

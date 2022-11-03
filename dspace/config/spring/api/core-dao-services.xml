@@ -47,6 +47,8 @@
     <bean class="org.dspace.content.dao.impl.clarin.ClarinLicenseLabelDAOImpl"/>
     <bean class="org.dspace.content.dao.impl.clarin.ClarinLicenseResourceMappingDAOImpl"/>
     <bean class="org.dspace.content.dao.impl.clarin.ClarinUserRegistrationDAOImpl"/>
+    <bean class="org.dspace.content.dao.impl.clarin.ClarinUserMetadataDAOImpl"/>
+    <bean class="org.dspace.content.dao.impl.clarin.ClarinLicenseResourceUserAllowanceDAOImpl"/>
 
     <bean class="org.dspace.harvest.dao.impl.HarvestedItemDAOImpl"/>
     <bean class="org.dspace.harvest.dao.impl.HarvestedCollectionDAOImpl"/>

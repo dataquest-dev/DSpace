@@ -13,8 +13,11 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 import org.apache.log4j.Logger;
@@ -27,6 +30,9 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
     private static Logger log = Logger.getLogger(ClarinUserRegistration.class);
     @Id
     @Column(name = "eperson_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_registration_eperson_id_seq")
+    @SequenceGenerator(name = "user_registration_eperson_id_seq", sequenceName = "user_registration_eperson_id_seq",
+            allocationSize = 1)
     private Integer id;
 
     @Column(name = "email")
@@ -43,6 +49,9 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "userRegistration", cascade = CascadeType.PERSIST)
     private List<ClarinLicenseResourceUserAllowance> licenseResourceUserAllowances = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "eperson", cascade = CascadeType.PERSIST)
+    private List<ClarinUserMetadata> userMetadata = new ArrayList<>();
 
     public ClarinUserRegistration() {
     }
@@ -98,5 +107,13 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
     public void setLicenseResourceUserAllowances(List<ClarinLicenseResourceUserAllowance>
                                                          licenseResourceUserAllowances) {
         this.licenseResourceUserAllowances = licenseResourceUserAllowances;
+    }
+
+    public List<ClarinUserMetadata> getUserMetadata() {
+        return userMetadata;
+    }
+
+    public void setUserMetadata(List<ClarinUserMetadata> userMetadata) {
+        this.userMetadata = userMetadata;
     }
 }
