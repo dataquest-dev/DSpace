@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import org.dspace.app.rest.model.BaseObjectRest;
 import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.model.SiteRest;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.springframework.core.annotation.AnnotationUtils;
 

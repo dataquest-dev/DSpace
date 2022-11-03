@@ -16,6 +16,9 @@ import org.dspace.core.Context;
 public interface ClarinUserRegistrationService {
     ClarinUserRegistration create(Context context) throws SQLException, AuthorizeException;
 
+    ClarinUserRegistration create(Context context,
+          ClarinUserRegistration clarinUserRegistration) throws SQLException, AuthorizeException;
+
     ClarinUserRegistration find(Context context, int valueId) throws SQLException;
     void delete(Context context, ClarinUserRegistration clarinUserRegistration) throws SQLException, AuthorizeException;
 }

@@ -7,15 +7,18 @@
  */
 package org.dspace.app.rest;
 
-import com.github.jsonldjava.utils.Obj;
+import java.sql.SQLException;
+import java.util.Objects;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.authorization.AuthorizationBitstreamUtils;
 import org.dspace.app.rest.authorization.AuthorizationRestUtil;
 import org.dspace.app.rest.converter.ConverterService;
-import org.dspace.app.rest.model.AuthnRest;
 import org.dspace.app.rest.model.AuthrnRest;
-import org.dspace.app.rest.model.BaseObjectRest;
-import org.dspace.app.rest.model.hateoas.AuthnResource;
 import org.dspace.app.rest.model.hateoas.AuthrnResource;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
@@ -30,14 +33,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotFoundException;
-import java.sql.SQLException;
-import java.util.Objects;
-import java.util.UUID;
 
 @RequestMapping(value = "/api/" + AuthrnRest.CATEGORY)
 @RestController

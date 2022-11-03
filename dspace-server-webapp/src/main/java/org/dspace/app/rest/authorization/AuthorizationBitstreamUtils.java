@@ -7,25 +7,21 @@
  */
 package org.dspace.app.rest.authorization;
 
-import com.github.jsonldjava.utils.Obj;
+import java.sql.SQLException;
+import java.util.Objects;
+import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.dspace.app.rest.exception.DownloadTokenExpiredException;
 import org.dspace.app.rest.exception.MissingLicenseAgreementException;
-import org.dspace.app.rest.model.BaseObjectRest;
-import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.clarin.ClarinLicense;
-import org.dspace.content.clarin.ClarinLicenseServiceImpl;
-import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.utils.DSpace;
@@ -33,12 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import java.sql.SQLException;
-import java.util.Objects;
-import java.util.UUID;
 
 @Component
 public class AuthorizationBitstreamUtils {
@@ -144,11 +134,12 @@ public class AuthorizationBitstreamUtils {
 
         // Load the token from the request
         String dtoken = null;
-        try{
+        try {
             dtoken = request.getParameter("dtoken");
-        }catch(IllegalStateException e){
+        } catch (IllegalStateException e) {
             //If the dspace kernel is null (eg. when we get here from OAI)
-        }catch(Exception e){
+        } catch (Exception e) {
+            //
         }
 
         if (StringUtils.isBlank(dtoken)) {
@@ -157,7 +148,7 @@ public class AuthorizationBitstreamUtils {
 
         boolean tokenFound = clarinLicenseResourceUserAllowanceService.verifyToken(bitstreamID, dtoken);
         // Check token
-        if(tokenFound) { // database token match with url token
+        if (tokenFound) { // database token match with url token
             return true;
         } else {
             throw new DownloadTokenExpiredException("The download token is invalid or expires.");

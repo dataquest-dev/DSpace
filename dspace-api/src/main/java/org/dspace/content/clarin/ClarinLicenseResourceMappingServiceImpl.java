@@ -14,11 +14,8 @@ import java.util.Objects;
 import java.util.UUID;
 import javax.ws.rs.NotFoundException;
 
-import com.github.jsonldjava.utils.Obj;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.NullArgumentException;
-import org.apache.jasper.tagplugins.jstl.core.If;
-import org.apache.logging.log4j.core.util.Integers;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.dao.clarin.ClarinLicenseResourceMappingDAO;
