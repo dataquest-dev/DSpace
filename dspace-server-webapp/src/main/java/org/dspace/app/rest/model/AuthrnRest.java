@@ -14,6 +14,28 @@ public class AuthrnRest extends BaseObjectRest<Integer> {
     public static final String NAME = "authrn";
     public static final String CATEGORY = "authrn";
 
+    private String errorName;
+    private int responseStatusCode;
+
+    public AuthrnRest() {
+    }
+
+    public String getErrorName() {
+        return errorName;
+    }
+
+    public void setErrorName(String errorName) {
+        this.errorName = errorName;
+    }
+
+    public int getResponseStatusCode() {
+        return responseStatusCode;
+    }
+
+    public void setResponseStatusCode(int responseStatusCode) {
+        this.responseStatusCode = responseStatusCode;
+    }
+
     public String getCategory() {
         return CATEGORY;
     }

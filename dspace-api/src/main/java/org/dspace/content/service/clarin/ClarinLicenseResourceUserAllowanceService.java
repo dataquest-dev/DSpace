@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ClarinLicenseResourceUserAllowanceService {
-    boolean verifyToken(String resourceID, String token);
+    boolean verifyToken(Context context, String resourceID, String token) throws SQLException;
     boolean isUserAllowedToAccessTheResource(Context context, UUID userId, UUID resourceId) throws SQLException;
     List<ClarinLicenseResourceUserAllowance> findByEPersonId(Context context, UUID userID) throws SQLException;
 }

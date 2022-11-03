@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest;
 
+import org.apache.tools.ant.taskdefs.condition.Http;
+import org.dspace.app.rest.exception.DownloadTokenExpiredException;
 import org.dspace.app.rest.matcher.ClarinLicenseMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
@@ -23,6 +25,7 @@ import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 import java.io.InputStream;
 
@@ -59,9 +62,7 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         context.restoreAuthSystemState();
     }
 
-    // - authorize user with right token
-    // -
-
+    // Submitter should be authorized to download th bitstream, 200
     @Test
     public void shouldAuthorizeUserAsSubmitter() throws Exception {
         String authTokenAdmin = getAuthToken(eperson.getEmail(), password);
@@ -70,9 +71,12 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         Bitstream bitstream = item.getBundles().get(0).getBitstreams().get(0);
         getClient(authTokenAdmin).perform(get("/api/authrn/" + bitstream.getID().toString()))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType));
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.errorName", Matchers.is("")))
+                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.OK.value())));;
     }
 
+    // DownloadTokenExpiredException, 401
     @Test
     public void shouldNotAuthorizeUserByWrongToken() throws Exception {
         // Admin is not the submitter.
@@ -83,7 +87,24 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         getClient(authTokenAdmin).perform(get("/api/authrn/" +
                         bitstream.getID().toString() + "?dtoken=wrongToken"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType));
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.errorName", Matchers.is(DownloadTokenExpiredException.NAME)))
+                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.UNAUTHORIZED.value())));
+    }
+
+    @Test
+    public void shouldAuthorizeUserByCorrectToken() throws Exception {
+        // Admin is not the submitter.
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        // Load bitstream from the item.
+        Bitstream bitstream = item.getBundles().get(0).getBitstreams().get(0);
+        getClient(authTokenAdmin).perform(get("/api/authrn/" +
+                        bitstream.getID().toString() + "?dtoken=wrongToken"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.errorName", Matchers.is("")))
+                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.OK.value())));
     }
 
     // 400

@@ -16,6 +16,7 @@ import org.dspace.app.rest.model.BaseObjectRest;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -53,6 +54,8 @@ public class AuthorizationBitstreamUtils {
     private Utils utils;
     @Autowired
     BitstreamService bitstreamService;
+    @Autowired
+    AuthorizeService authorizeService;
 
     /**
      * Check if the current user is authorized to download the bitstream in the three steps:
@@ -75,14 +78,11 @@ public class AuthorizationBitstreamUtils {
 
         // Load the current user
         EPerson currentUser = context.getCurrentUser();
-        boolean userExists = Objects.nonNull(currentUser);
-
         // Load the current user ID or if the user do not exist set ID to null
         UUID userID = null; // user not logged in
-        if (userExists) {
+        if (Objects.nonNull(currentUser)) {
             userID = currentUser.getID();
         }
-
 
         UUID bitstreamUUID = bitstream.getID();
         String bitstreamID = Objects.isNull(bitstreamUUID) ? null : bitstreamUUID.toString();
@@ -93,7 +93,7 @@ public class AuthorizationBitstreamUtils {
         }
 
         // 2. If the request contains token which is verified -> the user is authorized.
-        if (isTokenVerified(bitstreamID)) {
+        if (isTokenVerified(context, bitstreamID)) {
             return true;
         }
 
@@ -132,7 +132,8 @@ public class AuthorizationBitstreamUtils {
         return false;
     }
 
-    private boolean isTokenVerified(String bitstreamID) throws DownloadTokenExpiredException {
+    private boolean isTokenVerified(Context context, String bitstreamID) throws DownloadTokenExpiredException,
+            SQLException {
         // Load the current request.
         HttpServletRequest request = new DSpace().getRequestService().getCurrentRequest()
                 .getHttpServletRequest();
@@ -155,7 +156,7 @@ public class AuthorizationBitstreamUtils {
             return false;
         }
 
-        boolean tokenFound = clarinLicenseResourceUserAllowanceService.verifyToken(bitstreamID, dtoken);
+        boolean tokenFound = clarinLicenseResourceUserAllowanceService.verifyToken(context, bitstreamID, dtoken);
         // Check token
         if(tokenFound) { // database token match with url token
             return true;

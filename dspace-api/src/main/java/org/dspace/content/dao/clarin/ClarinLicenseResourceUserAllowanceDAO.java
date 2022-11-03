@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ClarinLicenseResourceUserAllowanceDAO {
-    boolean verifyToken(String resourceID, String token);
+    List<ClarinLicenseResourceUserAllowance> findByTokenAndBitstreamId(Context context, String resourceID,
+                                                                       String token) throws SQLException;
     public List<ClarinLicenseResourceUserAllowance> findByEPersonId(Context context, UUID userID) throws SQLException;
 }

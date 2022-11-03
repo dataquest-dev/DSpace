@@ -20,8 +20,11 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
     ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     @Override
-    public boolean verifyToken(String resourceID, String token) {
-        return clarinLicenseResourceUserAllowanceDAO.verifyToken(resourceID, token);
+    public boolean verifyToken(Context context, String resourceID, String token) throws SQLException {
+        List<ClarinLicenseResourceUserAllowance> clarinLicenseResourceUserAllowances =
+                clarinLicenseResourceUserAllowanceDAO.findByTokenAndBitstreamId(context, resourceID, token);
+
+        return CollectionUtils.isNotEmpty(clarinLicenseResourceUserAllowances);
     }
 
     @Override
