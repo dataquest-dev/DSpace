@@ -167,9 +167,9 @@ CREATE SEQUENCE license_resource_user_allowance_transaction_id_seq
 
 CREATE TABLE user_registration (
     eperson_id integer NOT NULL,
-    email varchar(256) NOT NULL,
-    organization varchar(256) NOT NULL,
-    confirmation boolean DEFAULT true NOT NULL
+    email varchar(256),
+    organization varchar(256),
+    confirmation boolean DEFAULT true
 );
 
 CREATE SEQUENCE user_registration_eperson_id_seq
@@ -185,9 +185,9 @@ CREATE SEQUENCE user_registration_eperson_id_seq
 
 CREATE TABLE user_metadata (
     user_metadata_id integer NOT NULL,
-    eperson_id integer NOT NULL,
-    metadata_key character varying(64) NOT NULL,
-    metadata_value character varying(256) NOT NULL,
+    eperson_id integer,
+    metadata_key character varying(64),
+    metadata_value character varying(256),
     transaction_id integer
 );
 

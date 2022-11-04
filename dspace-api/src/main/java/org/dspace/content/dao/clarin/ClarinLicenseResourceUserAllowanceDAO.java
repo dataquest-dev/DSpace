@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ClarinLicenseResourceUserAllowanceDAO extends GenericDAO<ClarinLicenseResourceUserAllowance> {
-    List<ClarinLicenseResourceUserAllowance> findByTokenAndBitstreamId(Context context, String resourceID,
+    List<ClarinLicenseResourceUserAllowance> findByTokenAndBitstreamId(Context context, UUID resourceID,
                                                                        String token) throws SQLException;
     public List<ClarinLicenseResourceUserAllowance> findByEPersonId(Context context, UUID userID) throws SQLException;
 }

@@ -215,9 +215,9 @@ SELECT pg_catalog.setval('license_resource_user_allowance_transaction_id_seq', 2
 
 CREATE TABLE user_registration (
     eperson_id integer NOT NULL,
-    email character varying(256) NOT NULL,
-    organization character varying(256) NOT NULL,
-    confirmation boolean DEFAULT true NOT NULL
+    email character varying(256),
+    organization character varying(256),
+    confirmation boolean DEFAULT true
 );
 
 ALTER TABLE public.user_registration OWNER TO dspace;
@@ -243,9 +243,9 @@ ALTER SEQUENCE user_registration_eperson_id_seq OWNED BY user_registration.epers
 
 CREATE TABLE user_metadata (
     user_metadata_id integer NOT NULL,
-    eperson_id integer NOT NULL,
-    metadata_key character varying(64) NOT NULL,
-    metadata_value character varying(256) NOT NULL,
+    eperson_id integer,
+    metadata_key character varying(64),
+    metadata_value character varying(256),
     transaction_id integer
 );
 

@@ -20,7 +20,7 @@ public interface ClarinLicenseResourceUserAllowanceService {
     ClarinLicenseResourceUserAllowance find(Context context, int valueId) throws SQLException;
     void delete(Context context, ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance)
             throws SQLException, AuthorizeException;
-    boolean verifyToken(Context context, String resourceID, String token) throws SQLException;
+    boolean verifyToken(Context context, UUID resourceID, String token) throws SQLException;
     boolean isUserAllowedToAccessTheResource(Context context, UUID userId, UUID resourceId) throws SQLException;
     List<ClarinLicenseResourceUserAllowance> findByEPersonId(Context context, UUID userID) throws SQLException;
 }

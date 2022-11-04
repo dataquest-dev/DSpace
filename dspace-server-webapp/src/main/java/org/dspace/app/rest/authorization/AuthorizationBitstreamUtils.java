@@ -93,7 +93,7 @@ public class AuthorizationBitstreamUtils {
         }
 
         // 2. If the request contains token which is verified -> the user is authorized.
-        if (isTokenVerified(context, bitstreamID)) {
+        if (isTokenVerified(context, bitstreamUUID)) {
             return true;
         }
 
@@ -132,7 +132,7 @@ public class AuthorizationBitstreamUtils {
         return false;
     }
 
-    private boolean isTokenVerified(Context context, String bitstreamID) throws DownloadTokenExpiredException,
+    private boolean isTokenVerified(Context context, UUID bitstreamID) throws DownloadTokenExpiredException,
             SQLException {
         // Load the current request.
         HttpServletRequest request = new DSpace().getRequestService().getCurrentRequest()

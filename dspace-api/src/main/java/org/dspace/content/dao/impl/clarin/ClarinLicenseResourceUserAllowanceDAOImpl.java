@@ -14,7 +14,7 @@ import java.util.UUID;
 public class ClarinLicenseResourceUserAllowanceDAOImpl extends AbstractHibernateDAO<ClarinLicenseResourceUserAllowance>
         implements ClarinLicenseResourceUserAllowanceDAO {
     @Override
-    public List<ClarinLicenseResourceUserAllowance> findByTokenAndBitstreamId(Context context, String resourceID,
+    public List<ClarinLicenseResourceUserAllowance> findByTokenAndBitstreamId(Context context, UUID resourceID,
                                                                               String token) throws SQLException {
         Query query = createQuery(context, "SELECT clrua " +
                 "FROM ClarinLicenseResourceUserAllowance clrua " +
