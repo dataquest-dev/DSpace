@@ -21,7 +21,7 @@ CREATE TABLE license_definition (
     license_id integer NOT NULL,
     name varchar(256),
     definition varchar(256),
-    eperson_id integer,
+    user_registration_id integer,
     label_id integer,
     created_on timestamp,
     confirmation integer DEFAULT 0,
@@ -144,7 +144,7 @@ CREATE SEQUENCE license_resource_mapping_mapping_id_seq
 
 CREATE TABLE license_resource_user_allowance (
     transaction_id integer NOT NULL,
-    eperson_id integer,
+    user_registration_id integer,
     mapping_id integer,
     created_on timestamp,
     token varchar(256)
@@ -166,13 +166,14 @@ CREATE SEQUENCE license_resource_user_allowance_transaction_id_seq
 --
 
 CREATE TABLE user_registration (
-    eperson_id integer NOT NULL,
+    user_registration_id integer NOT NULL,
+    eperson_id UUID,
     email varchar(256),
     organization varchar(256),
     confirmation boolean DEFAULT true
 );
 
-CREATE SEQUENCE user_registration_eperson_id_seq
+CREATE SEQUENCE user_registration_user_registration_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
@@ -185,7 +186,7 @@ CREATE SEQUENCE user_registration_eperson_id_seq
 
 CREATE TABLE user_metadata (
     user_metadata_id integer NOT NULL,
-    eperson_id integer,
+    user_registration_id integer,
     metadata_key character varying(64),
     metadata_value character varying(256),
     transaction_id integer
@@ -245,7 +246,7 @@ ALTER TABLE user_metadata ALTER COLUMN user_metadata_id SET DEFAULT nextval('use
 -- Name: user_registration_id; Type: DEFAULT; Schema: public; Owner: dspace
 --
 
-ALTER TABLE user_registration ALTER COLUMN eperson_id SET DEFAULT nextval('user_registration_eperson_id_seq');
+--ALTER TABLE user_registration ALTER COLUMN eperson_id SET DEFAULT nextval('user_registration_eperson_id_seq');
 
 --
 -- Name: license_definition_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
@@ -291,7 +292,7 @@ ALTER TABLE license_resource_user_allowance
 --
 
 ALTER TABLE user_registration
-    ADD CONSTRAINT user_registration_pkey PRIMARY KEY (eperson_id);
+    ADD CONSTRAINT user_registration_pkey PRIMARY KEY (user_registration_id);
 
 --
 -- Name: user_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
@@ -347,14 +348,14 @@ ALTER TABLE license_resource_user_allowance
 --
 
 ALTER TABLE license_definition
-    ADD CONSTRAINT user_registration_license_definition_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
+    ADD CONSTRAINT user_registration_license_definition_fk FOREIGN KEY (user_registration_id) REFERENCES user_registration(user_registration_id);
 
 --
 -- Name: user_registration_license_resource_user_allowance_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
 --
 
 ALTER TABLE license_resource_user_allowance
-    ADD CONSTRAINT user_registration_license_resource_user_allowance_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
+    ADD CONSTRAINT user_registration_license_resource_user_allowance_fk FOREIGN KEY (user_registration_id) REFERENCES user_registration(user_registration_id);
 
 --
 -- Name: license_resource_user_allowance_user_metadata_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
@@ -368,4 +369,4 @@ ALTER TABLE user_metadata
 --
 
 ALTER TABLE user_metadata
-    ADD CONSTRAINT user_registration_user_metadata_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
+    ADD CONSTRAINT user_registration_user_metadata_fk FOREIGN KEY (user_registration_id) REFERENCES user_registration(user_registration_id);

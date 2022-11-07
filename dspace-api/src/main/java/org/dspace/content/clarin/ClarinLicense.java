@@ -65,7 +65,7 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     private List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
-    @JoinColumn(name = "eperson_id")
+    @JoinColumn(name = "user_registration_id")
     private ClarinUserRegistration eperson;
 
     @Column(name = "name")

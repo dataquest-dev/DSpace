@@ -21,7 +21,7 @@ CREATE TABLE license_definition (
     license_id integer NOT NULL,
     name varchar(256),
     definition varchar(256),
-    eperson_id integer,
+    user_registration_id integer,
     label_id integer,
     created_on timestamp,
     confirmation integer DEFAULT 0,
@@ -177,7 +177,7 @@ SELECT pg_catalog.setval('license_resource_mapping_mapping_id_seq', 1382, true);
 
 CREATE TABLE license_resource_user_allowance (
     transaction_id integer NOT NULL,
-    eperson_id integer,
+    user_registration_id integer,
     mapping_id integer,
     created_on timestamp,
     token varchar(256)
@@ -214,7 +214,8 @@ SELECT pg_catalog.setval('license_resource_user_allowance_transaction_id_seq', 2
 --
 
 CREATE TABLE user_registration (
-    eperson_id integer NOT NULL,
+    user_registration_id integer NOT NULL,
+    eperson_id UUID,
     email character varying(256),
     organization character varying(256),
     confirmation boolean DEFAULT true
@@ -222,20 +223,20 @@ CREATE TABLE user_registration (
 
 ALTER TABLE public.user_registration OWNER TO dspace;
 
-CREATE SEQUENCE user_registration_eperson_id_seq
+CREATE SEQUENCE user_registration_user_registration_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
     CACHE 1;
 
-ALTER TABLE public.user_registration_eperson_id_seq OWNER TO dspace;
+ALTER TABLE public.user_registration_user_registration_id_seq OWNER TO dspace;
 
 --
--- Name: user_registration_eperson_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
+-- Name: user_registration_user_registration_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
 --
 
-ALTER SEQUENCE user_registration_eperson_id_seq OWNED BY user_registration.eperson_id;
+--ALTER SEQUENCE user_registration_user_registration_id_seq OWNED BY user_registration.eperson_id;
 
 --
 ---- Name: user_metadata; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
@@ -243,7 +244,7 @@ ALTER SEQUENCE user_registration_eperson_id_seq OWNED BY user_registration.epers
 
 CREATE TABLE user_metadata (
     user_metadata_id integer NOT NULL,
-    eperson_id integer,
+    user_registration_id integer,
     metadata_key character varying(64),
     metadata_value character varying(256),
     transaction_id integer
@@ -323,7 +324,7 @@ ALTER TABLE ONLY user_metadata ALTER COLUMN user_metadata_id SET DEFAULT nextval
 -- Name: user_registration_id; Type: DEFAULT; Schema: public; Owner: dspace
 --
 
-ALTER TABLE ONLY user_registration ALTER COLUMN eperson_id SET DEFAULT nextval('user_registration_eperson_id_seq'::regclass);
+--ALTER TABLE ONLY user_registration ALTER COLUMN eperson_id SET DEFAULT nextval('user_registration_user_registration_id_seq'::regclass);
 
 --
 -- Name: license_definition_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
@@ -414,20 +415,20 @@ ALTER TABLE ONLY license_resource_user_allowance
 --
 
 ALTER TABLE ONLY user_registration
-    ADD CONSTRAINT user_registration_pkey PRIMARY KEY (eperson_id);
+    ADD CONSTRAINT user_registration_pkey PRIMARY KEY (user_registration_id);
 
 --
 -- Name: user_registration_license_definition_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
 --
 
 ALTER TABLE ONLY license_definition
-    ADD CONSTRAINT user_registration_license_definition_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
+    ADD CONSTRAINT user_registration_license_definition_fk FOREIGN KEY (user_registration_id) REFERENCES user_registration(user_registration_id);
 --
 -- Name: user_registration_license_resource_user_allowance_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
 --
 
 ALTER TABLE ONLY license_resource_user_allowance
-    ADD CONSTRAINT user_registration_license_resource_user_allowance_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
+    ADD CONSTRAINT user_registration_license_resource_user_allowance_fk FOREIGN KEY (user_registration_id) REFERENCES user_registration(user_registration_id);
 
 --
 -- Name: user_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
@@ -448,4 +449,4 @@ ALTER TABLE ONLY user_metadata
 --
 
 ALTER TABLE ONLY user_metadata
-    ADD CONSTRAINT user_registration_user_metadata_fk FOREIGN KEY (eperson_id) REFERENCES user_registration(eperson_id);
+    ADD CONSTRAINT user_registration_user_metadata_fk FOREIGN KEY (user_registration_id) REFERENCES user_registration(user_registration_id);

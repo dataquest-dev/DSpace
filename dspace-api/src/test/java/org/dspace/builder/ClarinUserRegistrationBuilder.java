@@ -8,7 +8,9 @@
 package org.dspace.builder;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinUserRegistration;
@@ -36,6 +38,11 @@ public class ClarinUserRegistrationBuilder extends AbstractBuilder<ClarinUserReg
         } catch (Exception e) {
             return handleException(e);
         }
+        return this;
+    }
+
+    public ClarinUserRegistrationBuilder withEPersonID(UUID epersonID) {
+        clarinUserRegistration.setePersonID(epersonID);
         return this;
     }
 

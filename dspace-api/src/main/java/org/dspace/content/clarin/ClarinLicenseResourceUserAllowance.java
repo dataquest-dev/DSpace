@@ -40,7 +40,7 @@ public class ClarinLicenseResourceUserAllowance implements ReloadableEntity<Inte
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
-    @JoinColumn(name = "eperson_id")
+    @JoinColumn(name = "user_registration_id")
     private ClarinUserRegistration userRegistration;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})

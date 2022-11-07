@@ -80,8 +80,10 @@ public class AuthorizationBitstreamUtils {
         EPerson currentUser = context.getCurrentUser();
         // Load the current user ID or if the user do not exist set ID to null
         UUID userID = null; // user not logged in
+        Integer userLegacyId = null;
         if (Objects.nonNull(currentUser)) {
             userID = currentUser.getID();
+            userLegacyId = currentUser.getLegacyId();
         }
 
         UUID bitstreamUUID = bitstream.getID();

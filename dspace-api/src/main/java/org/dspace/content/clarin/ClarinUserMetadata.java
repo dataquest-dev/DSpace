@@ -23,7 +23,7 @@ public class ClarinUserMetadata  implements ReloadableEntity<Integer> {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
-    @JoinColumn(name = "eperson_id")
+    @JoinColumn(name = "user_registration_id")
     private ClarinUserRegistration eperson;
 
     @Column(name = "metadata_key")

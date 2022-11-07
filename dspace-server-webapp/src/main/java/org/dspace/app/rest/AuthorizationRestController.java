@@ -79,7 +79,7 @@ public class AuthorizationRestController {
         // Load Bitstream by ID.
         Bitstream bitstream = bitstreamService.findByIdOrLegacyId(context, id);
         if (Objects.isNull(bitstream)) {
-            throw new NotFoundException("Cannot find bitstream with id: " + id);
+            throw new BadRequestException("Cannot find bitstream with id: " + id);
         }
 
         // Wrap exceptions to the AuthrnRest object.

@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.apache.tools.ant.taskdefs.condition.Http;
 import org.checkerframework.checker.units.qual.A;
 import org.dspace.app.rest.exception.DownloadTokenExpiredException;
+import org.dspace.app.rest.exception.MissingLicenseAgreementException;
 import org.dspace.app.rest.matcher.ClarinLicenseMatcher;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
@@ -25,6 +26,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.builder.ClarinLicenseLabelBuilder;
 import org.dspace.builder.ClarinLicenseResourceUserAllowanceBuilder;
+import org.dspace.builder.ClarinUserRegistrationBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
@@ -38,10 +40,12 @@ import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
+import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.eperson.EPerson;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -55,31 +59,29 @@ import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class AuthorizationRestControllerIT extends AbstractControllerIntegrationTest {
+
+    private static final String CLARIN_LICENSE_NAME = "Test Clarin License";
 
     @Autowired
     ClarinLicenseService clarinLicenseService;
     @Autowired
     ClarinLicenseLabelService clarinLicenseLabelService;
     @Autowired
-    ClarinLicenseResourceUserAllowanceService clarinLicenseResourceUserAllowanceService;
-    @Autowired
     ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     Item item;
     WorkspaceItem witem;
+    ClarinLicense clarinLicense;
 
     @Before
     public void setup() throws Exception {
@@ -104,6 +106,9 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
                 .build();
 
         item = witem.getItem();
+
+        // Create clarin license with clarin license label
+        clarinLicense = createClarinLicense(CLARIN_LICENSE_NAME, "Test Def", "Test R Info", 1);
         context.restoreAuthSystemState();
     }
 
@@ -137,62 +142,32 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
                 .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.UNAUTHORIZED.value())));
     }
 
+    // Download by token, 200
     @Test
     public void shouldAuthorizeUserByCorrectToken() throws Exception {
-        context.turnOffAuthorisationSystem();
-        String token = "amazingToken";
+        // Prepare environment
+        attachLicenseToBitstream();
 
-        // Create WorkspaceItem with Bitstream and Clarin License
-        List<Operation> replaceOperations = new ArrayList<Operation>();
-        String clarinLicenseName = "Test Clarin License";
-
-        // Create clarin license with clarin license label
-        ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info", 0);
-
-        // Creating replace operation
-        Map<String, String> licenseReplaceOpValue = new HashMap<String, String>();
-        licenseReplaceOpValue.put("value", clarinLicenseName);
-        replaceOperations.add(new ReplaceOperation("/" + OPERATION_PATH_LICENSE_RESOURCE,
-                licenseReplaceOpValue));
-
-        context.restoreAuthSystemState();
-        String updateBody = getPatchContent(replaceOperations);
-
-        // 3. Send request to add Clarin License to the Workspace Item
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem.getID())
-                        .content(updateBody)
-                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isOk());
-
-        // 4. Check if the Clarin License name was added to the Item's metadata `dc.rights`
-        getClient(tokenAdmin).perform(get("/api/submission/workspaceitems/" + witem.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.item.metadata['dc.rights'][0].value", is(clarinLicenseName)));
-
-        // 5. Check if the Clarin License was attached to the Bitstream
-        getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.bitstreams", is(1)));
-
-        // Get clarin license resource mapping which will be added to the LicenseResourceUserAllowance
+        // Get clarin license resource mapping which was created by attaching license to Bitstream
         List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings =
                 clarinLicenseResourceMappingService.findAllByLicenseId(context, clarinLicense.getID());
 
+        // Token for authorization to download the bitstream
+        String token = "amazingToken";
+
         context.turnOffAuthorisationSystem();
         // Create the ClarinLicenseResourceUserAllowance with token then the download with token should work
-        ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance =
-                ClarinLicenseResourceUserAllowanceBuilder.createClarinLicenseResourceUserAllowance(context)
-                        .withToken(token)
-                        .withCreatedOn(new Date())
-                        .withMapping(clarinLicenseResourceMappings.get(0))
-                        .build();
+        ClarinLicenseResourceUserAllowanceBuilder.createClarinLicenseResourceUserAllowance(context)
+                .withToken(token)
+                .withCreatedOn(new Date())
+                .withMapping(clarinLicenseResourceMappings.get(0))
+                .build();
         context.restoreAuthSystemState();
 
         Bitstream bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
-        // Admin is not the submitter.
+        // Admin is not the submitter
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
-        // Load bitstream from the item.
+        // The admin should be authorized to download the bitstream with token
         getClient(authTokenAdmin).perform(get("/api/authrn/" +
                         bitstream.getID().toString() + "?dtoken=" + token))
                 .andExpect(status().isOk())
@@ -202,22 +177,122 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
 
     }
 
+    // Token is expired, 401
+    @Test
+    public void shouldNotAuthorizeByExpiredToken() throws Exception {
+        // Prepare environment
+        attachLicenseToBitstream();
+
+        // Get clarin license resource mapping which was created by attaching license to Bitstream
+        List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings =
+                clarinLicenseResourceMappingService.findAllByLicenseId(context, clarinLicense.getID());
+
+        // Token for authorization to download the bitstream
+        String token = "amazingToken";
+
+        // Create date the user won't be authorized with because of expired token
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.add(Calendar.DAY_OF_MONTH, -45);
+        Date expiredTokenDate = cal.getTime();
+
+        context.turnOffAuthorisationSystem();
+        // Create the ClarinLicenseResourceUserAllowance with token then the download with token should work
+        ClarinLicenseResourceUserAllowanceBuilder.createClarinLicenseResourceUserAllowance(context)
+                .withToken(token)
+                .withCreatedOn(expiredTokenDate)
+                .withMapping(clarinLicenseResourceMappings.get(0))
+                .build();
+        context.restoreAuthSystemState();
+
+        Bitstream bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
+        // Admin is not the submitter
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        // The admin should be authorized to download the bitstream with token
+        getClient(authTokenAdmin).perform(get("/api/authrn/" +
+                        bitstream.getID().toString() + "?dtoken=" + token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.errorName", Matchers.is(DownloadTokenExpiredException.NAME)))
+                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.UNAUTHORIZED.value())));
+    }
+
+    // User metadata are filled in, 200
+    @Test
+    public void shouldAuthorizeWhenUserMetadataAreFilledIn() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // Prepare environment
+        attachLicenseToBitstream();
+
+        ClarinUserRegistration clarinUserRegistration = ClarinUserRegistrationBuilder
+                .createClarinUserRegistration(context)
+                .withEPersonID(admin.getID())
+                .build();
+
+        // Get clarin license resource mapping which was created by attaching license to Bitstream
+        List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings =
+                clarinLicenseResourceMappingService.findAllByLicenseId(context, clarinLicense.getID());
+
+        // Create the ClarinLicenseResourceUserAllowance with User Registration data that means
+        // the user has filled in any information.
+        ClarinLicenseResourceUserAllowanceBuilder.createClarinLicenseResourceUserAllowance(context)
+                .withMapping(clarinLicenseResourceMappings.get(0))
+                .withUser(clarinUserRegistration)
+                .build();
+        context.restoreAuthSystemState();
+
+        Bitstream bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
+        // Admin is not the submitter
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(authTokenAdmin).perform(get("/api/authrn/" + bitstream.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.errorName", Matchers.is("")))
+                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.OK.value())));
+    }
+
+    // User metadata are NOT filled in, MissingLicenseAgreementException
+    @Test
+    public void shouldNotAuthorizeWhenUserMetadataAreNotFilledIn() throws Exception {
+        // Prepare environment
+        attachLicenseToBitstream();
+
+        // Get clarin license resource mapping which was created by attaching license to Bitstream
+        List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings =
+                clarinLicenseResourceMappingService.findAllByLicenseId(context, clarinLicense.getID());
+
+        context.turnOffAuthorisationSystem();
+        // Create the ClarinLicenseResourceUserAllowance without User Registration data that means
+        // the user hasn't filled in any information.
+        ClarinLicenseResourceUserAllowanceBuilder.createClarinLicenseResourceUserAllowance(context)
+                .withMapping(clarinLicenseResourceMappings.get(0))
+                .build();
+        context.restoreAuthSystemState();
+
+        Bitstream bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
+        // Admin is not the submitter
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(authTokenAdmin).perform(get("/api/authrn/" + bitstream.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.errorName", Matchers.is(MissingLicenseAgreementException.NAME)))
+                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.UNAUTHORIZED.value())));
+    }
+
     // 400
     @Test
-    public void shouldReturnBadRequestException() throws Exception {
+    public void shouldReturnNotFoundExceptionWhenIdIsNull() throws Exception {
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
         getClient(authTokenAdmin).perform(get("/api/authrn"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(contentType));
+                .andExpect(status().isNotFound());
     }
 
     // 404
     @Test
-    public void shouldReturnNotFoundException() throws Exception {
+    public void shouldReturnBadRequestExceptionWhenIdIsWrong() throws Exception {
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
         getClient(authTokenAdmin).perform(get("/api/authrn/wrongID"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().contentType(contentType));
+                .andExpect(status().isBadRequest());
     }
 
     /**
@@ -255,5 +330,36 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         return clarinLicense;
     }
 
+    private void attachLicenseToBitstream() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // Create WorkspaceItem with Bitstream and Clarin License
+        List<Operation> replaceOperations = new ArrayList<Operation>();
 
+
+        // Creating replace operation
+        Map<String, String> licenseReplaceOpValue = new HashMap<String, String>();
+        licenseReplaceOpValue.put("value", CLARIN_LICENSE_NAME);
+        replaceOperations.add(new ReplaceOperation("/" + OPERATION_PATH_LICENSE_RESOURCE,
+                licenseReplaceOpValue));
+
+        context.restoreAuthSystemState();
+        String updateBody = getPatchContent(replaceOperations);
+
+        // 3. Send request to add Clarin License to the Workspace Item
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        // 4. Check if the Clarin License name was added to the Item's metadata `dc.rights`
+        getClient(tokenAdmin).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.rights'][0].value", is(CLARIN_LICENSE_NAME)));
+
+        // 5. Check if the Clarin License was attached to the Bitstream
+        getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bitstreams", is(1)));
+    }
 }
