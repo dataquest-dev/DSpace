@@ -8,7 +8,6 @@
 package org.dspace.builder;
 
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -42,7 +41,7 @@ public class ClarinUserRegistrationBuilder extends AbstractBuilder<ClarinUserReg
     }
 
     public ClarinUserRegistrationBuilder withEPersonID(UUID epersonID) {
-        clarinUserRegistration.setePersonID(epersonID);
+        clarinUserRegistration.setPersonID(epersonID);
         return this;
     }
 

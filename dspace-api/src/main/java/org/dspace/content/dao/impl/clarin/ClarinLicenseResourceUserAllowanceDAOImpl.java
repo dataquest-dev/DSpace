@@ -8,6 +8,8 @@
 package org.dspace.content.dao.impl.clarin;
 
 import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.Query;
@@ -18,13 +20,6 @@ import org.dspace.core.AbstractHibernateDAO;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.persistence.Query;
-import java.sql.SQLException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
 
 public class ClarinLicenseResourceUserAllowanceDAOImpl extends AbstractHibernateDAO<ClarinLicenseResourceUserAllowance>
         implements ClarinLicenseResourceUserAllowanceDAO {

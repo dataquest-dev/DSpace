@@ -29,10 +29,5 @@ public class ClarinUserRegistrationServiceImplIT extends AbstractControllerInteg
         //find created handle
         Assert.assertEquals(clarinUserRegistration, clarinUserRegistrationService
                 .find(context, clarinUserRegistration.getID()));
-//        context.turnOffAuthorisationSystem();
-//        clarinUserRegistrationService.delete(context, clarinUserRegistration);
-//        context.restoreAuthSystemState();
-//        clarinUserRegistration = clarinUserRegistrationService.find(context, clarinUserRegistration.getID());
-//        Assert.assertNull(clarinUserRegistration);
     }
 }

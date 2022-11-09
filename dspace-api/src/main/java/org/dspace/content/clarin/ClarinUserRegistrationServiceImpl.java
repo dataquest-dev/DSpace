@@ -9,7 +9,6 @@ package org.dspace.content.clarin;
 
 import java.sql.SQLException;
 import java.util.Objects;
-import java.util.UUID;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;

@@ -8,10 +8,8 @@
 package org.dspace.content.service.clarin;
 
 import java.sql.SQLException;
-import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.core.Context;
 

@@ -11,10 +11,10 @@ import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATI
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -24,12 +24,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.core.MediaType;
 
-import org.apache.tools.ant.taskdefs.condition.Http;
-import org.checkerframework.checker.units.qual.A;
 import org.dspace.app.rest.exception.DownloadTokenExpiredException;
 import org.dspace.app.rest.exception.MissingLicenseAgreementException;
-import org.dspace.app.rest.matcher.ClarinLicenseMatcher;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -40,7 +38,6 @@ import org.dspace.builder.ClarinLicenseResourceUserAllowanceBuilder;
 import org.dspace.builder.ClarinUserRegistrationBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
-import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
@@ -50,23 +47,15 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
-import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
-import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
-import org.dspace.content.service.clarin.ClarinUserRegistrationService;
-import org.dspace.eperson.EPerson;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.orcid.jaxb.model.record_v2.Works;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 public class AuthorizationRestControllerIT extends AbstractControllerIntegrationTest {
 

@@ -20,12 +20,9 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.ClarinObject;
 import org.dspace.core.ReloadableEntity;
-import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 @Table(name = "user_registration")
@@ -71,11 +68,11 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
 //    }
 
 
-    public UUID getePersonID() {
+    public UUID getPersonID() {
         return ePersonID;
     }
 
-    public void setePersonID(UUID ePersonID) {
+    public void setPersonID(UUID ePersonID) {
         this.ePersonID = ePersonID;
     }
 

@@ -1,4 +1,17 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.dao.clarin;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
 
 import org.dspace.AbstractIntegrationTest;
 import org.dspace.content.Bitstream;
@@ -8,20 +21,12 @@ import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
-import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
-import org.dspace.handle.dao.HandleDAO;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
 
 public class ClarinLicenseResourceUserAllowanceDAOImplTest extends AbstractIntegrationTest {
 
