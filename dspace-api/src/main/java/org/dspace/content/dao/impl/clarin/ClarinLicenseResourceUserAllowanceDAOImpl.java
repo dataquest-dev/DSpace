@@ -20,8 +20,17 @@ import org.dspace.core.Context;
 public class ClarinLicenseResourceUserAllowanceDAOImpl extends AbstractHibernateDAO<ClarinLicenseResourceUserAllowance>
         implements ClarinLicenseResourceUserAllowanceDAO {
     @Override
-    public boolean verifyToken(String resourceID, String token) {
-        return false;
+    public List<ClarinLicenseResourceUserAllowance> findByTokenAndBitstreamId(Context context, String resourceID,
+                                                                              String token) throws SQLException {
+        Query query = createQuery(context, "SELECT clrua " +
+                "FROM ClarinLicenseResourceUserAllowance clrua " +
+                "WHERE clrua.token = :token AND licenseResourceMapping.bitstream.id = :resourceID");
+
+        query.setParameter("token", token);
+        query.setParameter("resourceID", resourceID);
+        query.setHint("org.hibernate.cacheable", Boolean.TRUE);
+
+        return list(query);
     }
 
     @Override

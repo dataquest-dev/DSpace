@@ -15,7 +15,8 @@ import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
 
-public interface ClarinLicenseResourceUserAllowanceDAO  extends GenericDAO<ClarinLicenseResourceUserAllowance> {
-    boolean verifyToken(String resourceID, String token);
+public interface ClarinLicenseResourceUserAllowanceDAO extends GenericDAO<ClarinLicenseResourceUserAllowance> {
+    List<ClarinLicenseResourceUserAllowance> findByTokenAndBitstreamId(Context context, String resourceID,
+                                                                       String token) throws SQLException;
     public List<ClarinLicenseResourceUserAllowance> findByEPersonId(Context context, UUID userID) throws SQLException;
 }

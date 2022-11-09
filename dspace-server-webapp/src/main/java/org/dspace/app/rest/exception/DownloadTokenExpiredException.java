@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(value = HttpStatus.UNAUTHORIZED, reason = "The download token is invalid or expires.")
 public class DownloadTokenExpiredException extends AuthorizeException {
+    public static String NAME = "DownloadTokenExpiredException";
 
     public DownloadTokenExpiredException(String message) {
         super(message);

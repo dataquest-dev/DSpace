@@ -1,17 +1,6 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE and NOTICE files at the root of the source
- * tree and available online at
- *
- * http://www.dspace.org/license/
- */
 package org.dspace.content.clarin;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.dao.clarin.ClarinLicenseResourceUserAllowanceDAO;
@@ -22,6 +11,11 @@ import org.dspace.core.LogHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLicenseResourceUserAllowanceService {
     private static final Logger log = LoggerFactory.getLogger(ClarinLicenseResourceUserAllowanceService.class);
@@ -67,8 +61,11 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
     }
 
     @Override
-    public boolean verifyToken(String resourceID, String token) {
-        return clarinLicenseResourceUserAllowanceDAO.verifyToken(resourceID, token);
+    public boolean verifyToken(Context context, String resourceID, String token) throws SQLException {
+        List<ClarinLicenseResourceUserAllowance> clarinLicenseResourceUserAllowances =
+                clarinLicenseResourceUserAllowanceDAO.findByTokenAndBitstreamId(context, resourceID, token);
+
+        return CollectionUtils.isNotEmpty(clarinLicenseResourceUserAllowances);
     }
 
     @Override

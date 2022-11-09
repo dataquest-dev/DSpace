@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Missing license agreement!")
 public class MissingLicenseAgreementException extends AuthorizeException {
+    public static String NAME = "MissingLicenseAgreementException";
+
     public MissingLicenseAgreementException(String message) {
         super(message);
     }
