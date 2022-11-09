@@ -61,7 +61,7 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
     }
 
     @Override
-    public boolean verifyToken(Context context, String resourceID, String token) throws SQLException {
+    public boolean verifyToken(Context context, UUID resourceID, String token) throws SQLException {
         List<ClarinLicenseResourceUserAllowance> clarinLicenseResourceUserAllowances =
                 clarinLicenseResourceUserAllowanceDAO.findByTokenAndBitstreamId(context, resourceID, token);
 

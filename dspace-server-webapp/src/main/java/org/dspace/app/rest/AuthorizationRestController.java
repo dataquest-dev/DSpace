@@ -18,6 +18,7 @@ import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.authorization.AuthorizationBitstreamUtils;
+import org.dspace.app.rest.authorization.AuthorizationFeatureService;
 import org.dspace.app.rest.authorization.AuthorizationRestUtil;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.DownloadTokenExpiredException;
@@ -30,6 +31,7 @@ import org.dspace.app.rest.model.hateoas.AuthrnResource;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
@@ -37,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,10 +70,15 @@ public class AuthorizationRestController {
     private AuthorizationRestUtil authorizationRestUtil;
     @Autowired
     private BitstreamService bitstreamService;
+    @Autowired
+    AuthorizeService authorizeService;
 
+    @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ')")
     @RequestMapping(method = RequestMethod.GET, value = "/{id}")
     public AuthrnResource authrn(@PathVariable String id, HttpServletResponse response, HttpServletRequest request)
             throws SQLException, AuthorizeException {
+
+
         // Validate path variable.
         if (StringUtils.isBlank(id)) {
             log.error("Bitstream's ID is blank");
@@ -86,7 +94,7 @@ public class AuthorizationRestController {
         // Load Bitstream by ID.
         Bitstream bitstream = bitstreamService.findByIdOrLegacyId(context, id);
         if (Objects.isNull(bitstream)) {
-            throw new NotFoundException("Cannot find bitstream with id: " + id);
+            throw new BadRequestException("Cannot find bitstream with id: " + id);
         }
 
         // Wrap exceptions to the AuthrnRest object.

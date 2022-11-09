@@ -8,17 +8,21 @@
 package org.dspace.content.service.clarin;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.core.Context;
 
 public interface ClarinUserRegistrationService {
     ClarinUserRegistration create(Context context) throws SQLException, AuthorizeException;
+//    ClarinUserRegistration create(Context context, UUID id) throws SQLException, AuthorizeException;
 
     ClarinUserRegistration create(Context context,
           ClarinUserRegistration clarinUserRegistration) throws SQLException, AuthorizeException;
 
     ClarinUserRegistration find(Context context, int valueId) throws SQLException;
     void delete(Context context, ClarinUserRegistration clarinUserRegistration) throws SQLException, AuthorizeException;
+    void update(Context context, ClarinUserRegistration clarinUserRegistration) throws SQLException, AuthorizeException;
 }

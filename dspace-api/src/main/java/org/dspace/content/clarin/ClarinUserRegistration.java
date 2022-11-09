@@ -9,6 +9,7 @@ package org.dspace.content.clarin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,21 +20,30 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.apache.log4j.Logger;
+import org.dspace.content.ClarinObject;
 import org.dspace.core.ReloadableEntity;
+import org.hibernate.annotations.GenericGenerator;
 
 @Entity
 @Table(name = "user_registration")
 public class ClarinUserRegistration implements ReloadableEntity<Integer> {
 
     private static Logger log = Logger.getLogger(ClarinUserRegistration.class);
+
     @Id
-    @Column(name = "eperson_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_registration_eperson_id_seq")
-    @SequenceGenerator(name = "user_registration_eperson_id_seq", sequenceName = "user_registration_eperson_id_seq",
+    @Column(name = "user_registration_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+            generator = "user_registration_user_registration_id_seq")
+    @SequenceGenerator(name = "user_registration_user_registration_id_seq",
+            sequenceName = "user_registration_user_registration_id_seq",
             allocationSize = 1)
-    private Integer id;
+    protected Integer id;
+
+    @Column(name = "eperson_id")
+    private UUID ePersonID = null;
 
     @Column(name = "email")
     private String email = null;
@@ -55,6 +65,20 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
 
     public ClarinUserRegistration() {
     }
+
+//    protected ClarinUserRegistration(UUID uuid) {
+//        this.predefineUID = uuid;
+//    }
+
+
+    public UUID getePersonID() {
+        return ePersonID;
+    }
+
+    public void setePersonID(UUID ePersonID) {
+        this.ePersonID = ePersonID;
+    }
+
     public Integer getId() {
         return id;
     }

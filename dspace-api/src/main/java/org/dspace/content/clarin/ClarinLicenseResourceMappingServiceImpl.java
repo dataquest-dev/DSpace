@@ -224,10 +224,13 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
         // Find all records when the current user fill in some clarin license required info
         List<ClarinLicenseResourceUserAllowance> clarinLicenseResourceUserAllowances =
                 clarinLicenseResourceUserAllowanceService.findByEPersonId(context, userID);
+        // The user hasn't been filled in any information.
         if (CollectionUtils.isEmpty(clarinLicenseResourceUserAllowances)) {
             return false;
         }
 
+        // The ClarinLicenseResourceMapping.id record is in the ClarinLicenseResourceUserAllowance
+        // that means the user added some information for the downloading bitstream's license.
         for (ClarinLicenseResourceUserAllowance clrua : clarinLicenseResourceUserAllowances) {
             int userAllowanceMappingID = clrua.getLicenseResourceMapping().getID();
             int resourceMappingID = clarinLicenseResourceMapping.getID();

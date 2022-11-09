@@ -8,12 +8,16 @@
 package org.dspace.builder;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Objects;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
+import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 
 public class ClarinLicenseResourceUserAllowanceBuilder extends AbstractBuilder<ClarinLicenseResourceUserAllowance,
         ClarinLicenseResourceUserAllowanceService> {
@@ -39,6 +43,26 @@ public class ClarinLicenseResourceUserAllowanceBuilder extends AbstractBuilder<C
         } catch (Exception e) {
             return handleException(e);
         }
+        return this;
+    }
+
+    public ClarinLicenseResourceUserAllowanceBuilder withToken(String token) {
+        clarinLicenseResourceUserAllowance.setToken(token);
+        return this;
+    }
+
+    public ClarinLicenseResourceUserAllowanceBuilder withCreatedOn(Date date) {
+        clarinLicenseResourceUserAllowance.setCreatedOn(date);
+        return this;
+    }
+
+    public ClarinLicenseResourceUserAllowanceBuilder withMapping(ClarinLicenseResourceMapping clrm) {
+        clarinLicenseResourceUserAllowance.setLicenseResourceMapping(clrm);
+        return this;
+    }
+
+    public ClarinLicenseResourceUserAllowanceBuilder withUser(ClarinUserRegistration cur) {
+        clarinLicenseResourceUserAllowance.setUserRegistration(cur);
         return this;
     }
 

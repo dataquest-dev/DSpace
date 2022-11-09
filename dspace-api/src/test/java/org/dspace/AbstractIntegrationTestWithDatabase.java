@@ -86,7 +86,7 @@ public class AbstractIntegrationTestWithDatabase extends AbstractDSpaceIntegrati
     public static void initDatabase() {
         try {
             // Update/Initialize the database to latest version (via Flyway)
-            DatabaseUtils.updateDatabase();
+                DatabaseUtils.updateDatabase();
         } catch (SQLException se) {
             log.error("Error initializing database", se);
             fail("Error initializing database: " + se.getMessage()
