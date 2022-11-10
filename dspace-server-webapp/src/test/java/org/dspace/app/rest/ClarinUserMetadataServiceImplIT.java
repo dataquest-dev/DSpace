@@ -26,7 +26,6 @@ public class ClarinUserMetadataServiceImplIT extends AbstractControllerIntegrati
         ClarinUserMetadata clarinUserMetadata = ClarinUserMetadataBuilder
                 .createClarinUserMetadata(context).build();
         context.restoreAuthSystemState();
-        //find created handle
         Assert.assertEquals(clarinUserMetadata, clarinUserMetadataService
                 .find(context, clarinUserMetadata.getID()));
     }
