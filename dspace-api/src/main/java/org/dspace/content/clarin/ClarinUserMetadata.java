@@ -1,13 +1,23 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 import org.apache.log4j.Logger;
@@ -20,6 +30,9 @@ public class ClarinUserMetadata  implements ReloadableEntity<Integer> {
     private static Logger log = Logger.getLogger(ClarinUserMetadata.class);
     @Id
     @Column(name = "user_metadata_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_metadata_user_metadata_id_seq")
+    @SequenceGenerator(name = "user_metadata_user_metadata_id_seq", sequenceName = "user_metadata_user_metadata_id_seq",
+            allocationSize = 1)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})

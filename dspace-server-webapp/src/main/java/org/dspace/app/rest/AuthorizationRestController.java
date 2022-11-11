@@ -7,6 +7,12 @@
  */
 package org.dspace.app.rest;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Objects;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.app.rest.authorization.AuthorizationRestUtil;
@@ -32,12 +38,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Objects;
-
 @RequestMapping(value = "/api/" + AuthrnRest.CATEGORY)
 @RestController
 public class AuthorizationRestController {
@@ -61,7 +61,7 @@ public class AuthorizationRestController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/{id}")
     public ResponseEntity authrn(@PathVariable String id, HttpServletResponse response, HttpServletRequest request)
-            throws SQLException, AuthorizeException, IOException {
+            throws SQLException, AuthorizeException, IOException, IOException {
 
         // Validate path variable.
         if (StringUtils.isBlank(id)) {
@@ -113,5 +113,4 @@ public class AuthorizationRestController {
 
         return ResponseEntity.ok().body("User is authorized to download the bitstream.");
     }
-
 }

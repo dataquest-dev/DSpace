@@ -17,6 +17,7 @@ import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Context;
@@ -170,11 +171,12 @@ public class AuthorizationBitstreamUtils {
 
         // Load the token from the request
         String dtoken = null;
-        try{
+        try {
             dtoken = request.getParameter("dtoken");
-        }catch(IllegalStateException e){
+        } catch (IllegalStateException e) {
             //If the dspace kernel is null (eg. when we get here from OAI)
-        }catch(Exception e){
+        } catch (Exception e) {
+            //
         }
 
         if (StringUtils.isBlank(dtoken)) {
@@ -183,7 +185,7 @@ public class AuthorizationBitstreamUtils {
 
         boolean tokenFound = clarinLicenseResourceUserAllowanceService.verifyToken(context, bitstreamID, dtoken);
         // Check token
-        if(tokenFound) { // database token match with url token
+        if (tokenFound) { // database token match with url token
             return true;
         } else {
             throw new DownloadTokenExpiredException("The download token is invalid or expires.");
