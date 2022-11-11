@@ -5,41 +5,37 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.app.rest.authorization;
+package org.dspace.authorize;
 
-import com.github.jsonldjava.utils.Obj;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.A;
-import org.dspace.app.rest.exception.DownloadTokenExpiredException;
-import org.dspace.app.rest.exception.MissingLicenseAgreementException;
-import org.dspace.app.rest.model.BaseObjectRest;
-import org.dspace.app.rest.model.BitstreamRest;
-import org.dspace.app.rest.utils.Utils;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
-import org.dspace.content.clarin.ClarinLicenseServiceImpl;
-import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
+//import static org.dspace.app.rest.model.hateoas.ClarinLicenseLabelResource.ACADEMIC_USE_LABEL;
+//import static org.dspace.app.rest.model.hateoas.ClarinLicenseLabelResource.RESTRICTED_LABEL;
 
 @Component
 public class AuthorizationBitstreamUtils {
@@ -47,15 +43,11 @@ public class AuthorizationBitstreamUtils {
     private static final Logger log = LoggerFactory.getLogger(AuthorizationBitstreamUtils.class);
 
     @Autowired
-    ClarinLicenseService clarinLicenseService;
-    @Autowired
     ClarinLicenseResourceUserAllowanceService clarinLicenseResourceUserAllowanceService;
     @Autowired
-    private Utils utils;
+    ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
     @Autowired
     BitstreamService bitstreamService;
-    @Autowired
-    AuthorizeService authorizeService;
 
     /**
      * Check if the current user is authorized to download the bitstream in the three steps:
@@ -104,6 +96,37 @@ public class AuthorizationBitstreamUtils {
         return isUserAllowedToAccessTheResource(context, userID, bitstreamUUID);
     }
 
+    public boolean authorizeLicenseWithUser(Context context, UUID bitstreamID) throws SQLException {
+        // If the current user is null that means that the user is not signed in and cannot download the bitstream
+        // with RES or ACA license
+        if (Objects.nonNull(context.getCurrentUser())) {
+            // User is signed
+            return true;
+        }
+
+        // Get ClarinLicenseResourceMapping where the bitstream is mapped with clarin license
+        List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings =
+                clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstreamID);
+
+        // Bitstream does not have Clarin License
+        if (CollectionUtils.isEmpty(clarinLicenseResourceMappings)) {
+            return true;
+        }
+
+        // Bitstream should have only one type of the Clarin license, so we could get first record
+        ClarinLicense clarinLicense = Objects.requireNonNull(clarinLicenseResourceMappings.get(0)).getLicense();
+        // Get License Labels from clarin license and check if one of them is ACA or RES
+        List<ClarinLicenseLabel> clarinLicenseLabels = clarinLicense.getLicenseLabels();
+        for (ClarinLicenseLabel clarinLicenseLabel : clarinLicenseLabels) {
+            if (StringUtils.equals(clarinLicenseLabel.getLabel(), "RES") ||
+                StringUtils.equals(clarinLicenseLabel.getLabel(), "ACA")) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private boolean userIsSubmitter(Context context, Bitstream bitstream, EPerson currentUser, UUID userID) {
         try {
             // Load Bitstream's Item, the Item contains the Bitstream
@@ -134,7 +157,7 @@ public class AuthorizationBitstreamUtils {
         return false;
     }
 
-    private boolean isTokenVerified(Context context, UUID bitstreamID) throws DownloadTokenExpiredException,
+    public boolean isTokenVerified(Context context, UUID bitstreamID) throws DownloadTokenExpiredException,
             SQLException {
         // Load the current request.
         HttpServletRequest request = new DSpace().getRequestService().getCurrentRequest()

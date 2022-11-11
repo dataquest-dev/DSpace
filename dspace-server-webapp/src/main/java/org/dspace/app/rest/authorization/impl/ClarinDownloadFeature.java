@@ -1,15 +1,12 @@
 package org.dspace.app.rest.authorization.impl;
 
-import org.checkerframework.checker.units.qual.A;
-import org.dspace.app.rest.authorization.AuthorizationBitstreamUtils;
+import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.app.rest.authorization.AuthorizationFeature;
 import org.dspace.app.rest.authorization.AuthorizationFeatureDocumentation;
 import org.dspace.app.rest.authorization.AuthorizeServiceRestUtil;
 import org.dspace.app.rest.model.BaseObjectRest;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.security.DSpaceRestPermission;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,7 +20,9 @@ import java.sql.SQLException;
  * Inspired by DownloadFeature
  */
 @Component
-public class ClarinDownloadFeature {
+@AuthorizationFeatureDocumentation(name = ClarinDownloadFeature.NAME,
+        description = "It can be used to verify if the user can download a bitstream with clarin license")
+public class ClarinDownloadFeature implements AuthorizationFeature {
     public final static String NAME = "canDownloadClarin";
 
     @Autowired
@@ -32,7 +31,8 @@ public class ClarinDownloadFeature {
     @Autowired
     private AuthorizationBitstreamUtils authorizationBitstreamUtils;
 
-    public boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException, AuthorizeException {
+    @Override
+    public boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException {
         if (!(object instanceof BitstreamRest)) {
             return false;
         }
@@ -48,5 +48,12 @@ public class ClarinDownloadFeature {
         // the license restrictions are OK
 //        authorizationBitstreamUtils.authorizeBitstream(context, object);
         return false;
+    }
+
+    @Override
+    public String[] getSupportedTypes() {
+        return new String[]{
+                BitstreamRest.CATEGORY + "." + BitstreamRest.NAME,
+        };
     }
 }

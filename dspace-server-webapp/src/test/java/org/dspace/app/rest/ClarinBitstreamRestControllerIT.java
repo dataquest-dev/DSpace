@@ -1,18 +1,4 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE and NOTICE files at the root of the source
- * tree and available online at
- *
- * http://www.dspace.org/license/
- */
 package org.dspace.app.rest;
-
-import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.dspace.authorize.DownloadTokenExpiredException;
 import org.dspace.authorize.MissingLicenseAgreementException;
@@ -56,11 +42,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class AuthorizationRestControllerIT extends AbstractControllerIntegrationTest {
+public class ClarinBitstreamRestControllerIT extends AbstractControllerIntegrationTest {
 
     private static final String CLARIN_LICENSE_NAME = "Test Clarin License";
+    private static final String BITSTREAM_CONTENT_TYPE = "application/octet-stream";
 
     @Autowired
     ClarinLicenseService clarinLicenseService;
@@ -72,6 +65,7 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
     Item item;
     WorkspaceItem witem;
     ClarinLicense clarinLicense;
+    Bitstream bitstream;
 
     @Before
     public void setup() throws Exception {
@@ -96,6 +90,7 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
                 .build();
 
         item = witem.getItem();
+        bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
 
         // Create clarin license with clarin license label
         clarinLicense = createClarinLicense(CLARIN_LICENSE_NAME, "Test Def", "Test R Info", 1);
@@ -108,12 +103,10 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         String authTokenAdmin = getAuthToken(eperson.getEmail(), password);
 
         // Load bitstream from the item.
-        Bitstream bitstream = item.getBundles().get(0).getBitstreams().get(0);
-        getClient(authTokenAdmin).perform(get("/api/authrn/" + bitstream.getID().toString()))
+        getClient(authTokenAdmin).perform(get("/api/core/bitstreams/" + bitstream.getID().toString() +
+                        "/content"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.errorName", Matchers.is("")))
-                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.OK.value())));;
+                .andExpect(content().contentType(BITSTREAM_CONTENT_TYPE));
     }
 
     // DownloadTokenExpiredException, 401
@@ -123,10 +116,9 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
 
         // Load bitstream from the item.
-        Bitstream bitstream = item.getBundles().get(0).getBitstreams().get(0);
-        getClient(authTokenAdmin).perform(get("/api/authrn/" +
-                        bitstream.getID().toString() + "?dtoken=wrongToken"))
-                .andExpect(status().isOk())
+        getClient(authTokenAdmin).perform(get("/api/core/bitstreams/" + bitstream.getID().toString() +
+                        "/content" + "?dtoken=wrongToken"))
+                .andExpect(status().isUnauthorized())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$.errorName", Matchers.is(DownloadTokenExpiredException.NAME)))
                 .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.UNAUTHORIZED.value())));
@@ -154,17 +146,13 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
                 .build();
         context.restoreAuthSystemState();
 
-        Bitstream bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
         // Admin is not the submitter
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
         // The admin should be authorized to download the bitstream with token
-        getClient(authTokenAdmin).perform(get("/api/authrn/" +
-                        bitstream.getID().toString() + "?dtoken=" + token))
+        getClient(authTokenAdmin).perform(get("/api/core/bitstreams/" + bitstream.getID().toString() +
+                        "/content" + "?dtoken=" + token))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.errorName", Matchers.is("")))
-                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.OK.value())));
-
+                .andExpect(content().contentType(BITSTREAM_CONTENT_TYPE));
     }
 
     // Token is expired, 401
@@ -195,13 +183,12 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
                 .build();
         context.restoreAuthSystemState();
 
-        Bitstream bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
         // Admin is not the submitter
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
         // The admin should be authorized to download the bitstream with token
-        getClient(authTokenAdmin).perform(get("/api/authrn/" +
-                        bitstream.getID().toString() + "?dtoken=" + token))
-                .andExpect(status().isOk())
+        getClient(authTokenAdmin).perform(get("/api/core/bitstreams/" + bitstream.getID().toString() +
+                        "/content" + "?dtoken=" + token))
+                .andExpect(status().isUnauthorized())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$.errorName", Matchers.is(DownloadTokenExpiredException.NAME)))
                 .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.UNAUTHORIZED.value())));
@@ -231,14 +218,12 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
                 .build();
         context.restoreAuthSystemState();
 
-        Bitstream bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
         // Admin is not the submitter
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(authTokenAdmin).perform(get("/api/authrn/" + bitstream.getID().toString()))
+        getClient(authTokenAdmin).perform(get("/api/core/bitstreams/" + bitstream.getID().toString() +
+                        "/content"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.errorName", Matchers.is("")))
-                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.OK.value())));
+                .andExpect(content().contentType(BITSTREAM_CONTENT_TYPE));
     }
 
     // User metadata are NOT filled in, MissingLicenseAgreementException
@@ -259,30 +244,21 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
                 .build();
         context.restoreAuthSystemState();
 
-        Bitstream bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
         // Admin is not the submitter
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(authTokenAdmin).perform(get("/api/authrn/" + bitstream.getID().toString()))
-                .andExpect(status().isOk())
+        getClient(authTokenAdmin).perform(get("/api/core/bitstreams/" + bitstream.getID().toString() + "/content"))
+                .andExpect(status().isUnauthorized())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$.errorName", Matchers.is(MissingLicenseAgreementException.NAME)))
                 .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.UNAUTHORIZED.value())));
     }
 
-    // 400
-    @Test
-    public void shouldReturnNotFoundExceptionWhenIdIsNull() throws Exception {
-        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(authTokenAdmin).perform(get("/api/authrn"))
-                .andExpect(status().isNotFound());
-    }
-
     // 404
     @Test
-    public void shouldReturnBadRequestExceptionWhenIdIsWrong() throws Exception {
+    public void shouldReturnRuntimeExceptionWhenIdIsWrong() throws Exception {
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(authTokenAdmin).perform(get("/api/authrn/wrongID"))
-                .andExpect(status().isBadRequest());
+        getClient(authTokenAdmin).perform(get("/api/core/bitstreams/" + "wrongId" + "/content"))
+                .andExpect(status().isInternalServerError());
     }
 
     /**

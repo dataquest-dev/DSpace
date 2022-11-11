@@ -7,32 +7,26 @@
  */
 package org.dspace.app.rest;
 
-import com.github.jsonldjava.utils.Obj;
 import org.apache.commons.lang3.StringUtils;
-import org.dspace.app.rest.authorization.AuthorizationBitstreamUtils;
-import org.dspace.app.rest.authorization.AuthorizationFeatureService;
+import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.app.rest.authorization.AuthorizationRestUtil;
 import org.dspace.app.rest.converter.ConverterService;
-import org.dspace.app.rest.exception.DownloadTokenExpiredException;
-import org.dspace.app.rest.exception.MissingLicenseAgreementException;
-import org.dspace.app.rest.model.AuthnRest;
+import org.dspace.authorize.DownloadTokenExpiredException;
+import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.app.rest.model.AuthrnRest;
-import org.dspace.app.rest.model.BaseObjectRest;
-import org.dspace.app.rest.model.hateoas.AuthnResource;
-import org.dspace.app.rest.model.hateoas.AuthrnResource;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.parameters.P;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -40,12 +34,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.NotFoundException;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Objects;
-import java.util.UUID;
 
 @RequestMapping(value = "/api/" + AuthrnRest.CATEGORY)
 @RestController
@@ -65,58 +56,62 @@ public class AuthorizationRestController {
     private BitstreamService bitstreamService;
     @Autowired
     AuthorizeService authorizeService;
+    @Autowired
+    ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
-    @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ')")
     @RequestMapping(method = RequestMethod.GET, value = "/{id}")
-    public AuthrnResource authrn(@PathVariable String id, HttpServletResponse response, HttpServletRequest request)
-            throws SQLException, AuthorizeException {
-
+    public ResponseEntity authrn(@PathVariable String id, HttpServletResponse response, HttpServletRequest request)
+            throws SQLException, AuthorizeException, IOException {
 
         // Validate path variable.
         if (StringUtils.isBlank(id)) {
             log.error("Bitstream's ID is blank");
-            throw new BadRequestException("Bitstream's ID cannot be blank.");
+            response.sendError(HttpStatus.BAD_REQUEST.value(), "Bitstream's ID cannot be blank.");
+            return null;
         }
 
         // Load context object.
         Context context = ContextUtil.obtainContext(request);
         if (Objects.isNull(context)) {
-            throw new RuntimeException("Cannot load context object");
+            response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Cannot load context object");
+            return null;
         }
 
         // Load Bitstream by ID.
         Bitstream bitstream = bitstreamService.findByIdOrLegacyId(context, id);
         if (Objects.isNull(bitstream)) {
-            throw new BadRequestException("Cannot find bitstream with id: " + id);
+            response.sendError(HttpStatus.BAD_REQUEST.value(), "Cannot find bitstream with id: " + id);
+            return null;
+        }
+
+        // If the bitstream has RES or ACA license and the user is Anonymous return NotAuthorized exception
+        if (!authorizationBitstreamUtils.authorizeLicenseWithUser(context, bitstream.getID())) {
+            response.sendError(HttpStatus.UNAUTHORIZED.value(),
+                    "Anonymous user cannot download bitstream with REC or ACA license");
+            return null;
         }
 
         // Wrap exceptions to the AuthrnRest object.
-        AuthrnRest authrnRest = new AuthrnRest();
-        authrnRest.setErrorName("");
+        String errorMessage = "User is not authorized to download the bitstream.";
         boolean isAuthorized = false;
 
         try {
             isAuthorized = authorizationBitstreamUtils.authorizeBitstream(context, bitstream);
         } catch (AuthorizeException e) {
             if (e instanceof MissingLicenseAgreementException) {
-                authrnRest.setErrorName(MissingLicenseAgreementException.NAME);
-                authrnRest.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
+                errorMessage = MissingLicenseAgreementException.NAME;
             } else if (e instanceof DownloadTokenExpiredException) {
-                authrnRest.setErrorName(DownloadTokenExpiredException.NAME);
-                authrnRest.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
-            } else {
-                authrnRest.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
+                errorMessage = DownloadTokenExpiredException.NAME;
             }
         }
 
-        if (isAuthorized) {
-            authrnRest.setResponseStatusCode(HttpStatus.OK.value());
-        } else {
-            authrnRest.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
+        if (!isAuthorized) {
+            // If the user is not authorized return response with the error message
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), errorMessage);
+            return null;
         }
 
-        // Based on the authorization result create the AuthrnRest object.
-        authrnRest.setProjection(utils.obtainProjection());
-        return converter.toResource(authrnRest);
+        return ResponseEntity.ok().body("User is authorized to download the bitstream.");
     }
+
 }

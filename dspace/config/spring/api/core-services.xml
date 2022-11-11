@@ -104,6 +104,8 @@
     <bean class="org.dspace.eperson.SubscribeServiceImpl"/>
     <bean class="org.dspace.eperson.SupervisorServiceImpl"/>
 
+    <bean class="org.dspace.authorize.AuthorizationBitstreamUtils"/>
+
     <bean class="org.dspace.event.EventServiceImpl"/>
 
     <bean class="org.dspace.handle.HandleServiceImpl"/>

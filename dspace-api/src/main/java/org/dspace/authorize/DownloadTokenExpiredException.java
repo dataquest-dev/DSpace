@@ -5,13 +5,9 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.app.rest.exception;
+package org.dspace.authorize;
 
 import org.dspace.authorize.AuthorizeException;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(value = HttpStatus.UNAUTHORIZED, reason = "The download token is invalid or expires.")
 public class DownloadTokenExpiredException extends AuthorizeException {
     public static String NAME = "DownloadTokenExpiredException";
 

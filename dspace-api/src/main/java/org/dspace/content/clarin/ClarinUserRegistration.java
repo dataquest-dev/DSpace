@@ -23,7 +23,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.ClarinObject;
 import org.dspace.core.ReloadableEntity;
 import org.hibernate.annotations.GenericGenerator;
 

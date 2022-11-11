@@ -24,6 +24,7 @@ import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Logger;
+import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.BitstreamRest;
@@ -100,6 +101,9 @@ public class BitstreamRestController {
     @Autowired
     Utils utils;
 
+    @Autowired
+    AuthorizationBitstreamUtils authorizationBitstreamUtils;
+
     @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ')")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")
     public ResponseEntity retrieve(@PathVariable UUID uuid, HttpServletResponse response,
@@ -160,8 +164,6 @@ public class BitstreamRestController {
             if (dispositionThreshold >= 0 && filesize > dispositionThreshold) {
                 httpHeadersInitializer.withDisposition(HttpHeadersInitializer.CONTENT_DISPOSITION_ATTACHMENT);
             }
-
-
 
             org.dspace.app.rest.utils.BitstreamResource bitstreamResource =
                 new org.dspace.app.rest.utils.BitstreamResource(
