@@ -7,7 +7,9 @@
  */
 package org.dspace.content.clarin;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,6 +19,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
@@ -53,8 +56,8 @@ public class ClarinLicenseResourceUserAllowance implements ReloadableEntity<Inte
     @Column(name = "token")
     private String token;
 
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "transaction")
-    private ClarinUserMetadata userMetadata;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "transaction", cascade = CascadeType.PERSIST)
+    private List<ClarinUserMetadata> userMetadata = new ArrayList<>();
 
     @Override
     public Integer getID() {
@@ -97,11 +100,11 @@ public class ClarinLicenseResourceUserAllowance implements ReloadableEntity<Inte
         this.token = token;
     }
 
-    public ClarinUserMetadata getUserMetadata() {
+    public List<ClarinUserMetadata> getUserMetadata() {
         return userMetadata;
     }
 
-    public void setUserMetadata(ClarinUserMetadata userMetadata) {
+    public void setUserMetadata(List<ClarinUserMetadata> userMetadata) {
         this.userMetadata = userMetadata;
     }
 }

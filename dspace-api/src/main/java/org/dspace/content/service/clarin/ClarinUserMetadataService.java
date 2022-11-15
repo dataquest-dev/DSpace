@@ -8,6 +8,7 @@
 package org.dspace.content.service.clarin;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinUserMetadata;
@@ -18,5 +19,6 @@ public interface ClarinUserMetadataService {
     ClarinUserMetadata create(Context context) throws SQLException, AuthorizeException;
 
     ClarinUserMetadata find(Context context, int valueId) throws SQLException;
+    List<ClarinUserMetadata> findAll(Context context) throws SQLException;
     void delete(Context context, ClarinUserMetadata clarinUserMetadata) throws SQLException, AuthorizeException;
 }

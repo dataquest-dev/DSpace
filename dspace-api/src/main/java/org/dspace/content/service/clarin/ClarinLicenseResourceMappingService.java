@@ -26,6 +26,7 @@ public interface ClarinLicenseResourceMappingService {
             throws SQLException, AuthorizeException;
 
     ClarinLicenseResourceMapping find(Context context, int valueId) throws SQLException;
+    List<ClarinLicenseResourceMapping> findAll(Context context) throws SQLException;
     List<ClarinLicenseResourceMapping> findAllByLicenseId(Context context, Integer licenseId) throws SQLException;
 
     void update(Context context, ClarinLicenseResourceMapping newClarinLicenseResourceMapping) throws SQLException;

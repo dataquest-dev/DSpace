@@ -92,6 +92,11 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
     }
 
     @Override
+    public List<ClarinLicenseResourceMapping> findAll(Context context) throws SQLException {
+        return clarinLicenseResourceMappingDAO.findAll(context, ClarinLicenseResourceMapping.class);
+    }
+
+    @Override
     public List<ClarinLicenseResourceMapping> findAllByLicenseId(Context context, Integer licenseId)
             throws SQLException {
         List<ClarinLicenseResourceMapping> mappings =

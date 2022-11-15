@@ -45,7 +45,7 @@ public class ClarinUserMetadata  implements ReloadableEntity<Integer> {
     @Column(name = "metadata_value")
     private String metadataValue = null;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
     @JoinColumn(name = "transaction_id")
     private ClarinLicenseResourceUserAllowance transaction;
 

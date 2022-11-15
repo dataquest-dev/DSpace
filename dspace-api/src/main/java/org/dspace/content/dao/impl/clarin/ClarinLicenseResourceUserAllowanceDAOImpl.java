@@ -63,4 +63,19 @@ public class ClarinLicenseResourceUserAllowanceDAOImpl extends AbstractHibernate
 
         return list(query);
     }
+
+    @Override
+    public List<ClarinLicenseResourceUserAllowance> findByEPersonIdAndBitstreamId(Context context, UUID userID,
+                                                                            UUID bitstreamID) throws SQLException {
+        Query query = createQuery(context, "SELECT clrua " +
+                "FROM ClarinLicenseResourceUserAllowance clrua " +
+                "WHERE clrua.userRegistration.ePersonID = :userID " +
+                "AND clrua.licenseResourceMapping.bitstream.id = :bitstreamID");
+
+        query.setParameter("userID", userID);
+        query.setParameter("bitstreamID", bitstreamID);
+        query.setHint("org.hibernate.cacheable", Boolean.TRUE);
+
+        return list(query);
+    }
 }

@@ -58,6 +58,16 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
     }
 
     @Override
+    public List<ClarinLicenseResourceUserAllowance> findAll(Context context) throws SQLException, AuthorizeException {
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException(
+                    "You must be an admin to get all clarin license resource user allowances");
+        }
+
+        return clarinLicenseResourceUserAllowanceDAO.findAll(context, ClarinLicenseResourceUserAllowance.class);
+    }
+
+    @Override
     public void delete(Context context, ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance)
             throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
@@ -87,5 +97,11 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
     @Override
     public List<ClarinLicenseResourceUserAllowance> findByEPersonId(Context context, UUID userID) throws SQLException {
         return clarinLicenseResourceUserAllowanceDAO.findByEPersonId(context, userID);
+    }
+
+    @Override
+    public List<ClarinLicenseResourceUserAllowance> findByEPersonIdAndBitstreamId(Context context, UUID userID,
+                                                                            UUID bitstreamID) throws SQLException {
+        return clarinLicenseResourceUserAllowanceDAO.findByEPersonIdAndBitstreamId(context, userID, bitstreamID);
     }
 }

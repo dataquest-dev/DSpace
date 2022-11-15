@@ -70,11 +70,11 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
     @Override
     @PreAuthorize("permitAll()")
     public ClarinLicenseRest findOne(Context context, Integer idValue) {
-        ClarinLicense clarinLicense = null;
+        ClarinLicense clarinLicense;
         try {
             clarinLicense = clarinLicenseService.find(context, idValue);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
         }
 
         if (Objects.isNull(clarinLicense)) {

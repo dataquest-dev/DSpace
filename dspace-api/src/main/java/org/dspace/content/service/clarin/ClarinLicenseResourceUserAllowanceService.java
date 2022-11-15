@@ -18,9 +18,11 @@ import org.dspace.core.Context;
 public interface ClarinLicenseResourceUserAllowanceService {
     ClarinLicenseResourceUserAllowance create(Context context) throws SQLException, AuthorizeException;
     ClarinLicenseResourceUserAllowance find(Context context, int valueId) throws SQLException;
+    List<ClarinLicenseResourceUserAllowance> findAll(Context context) throws SQLException, AuthorizeException;
     void delete(Context context, ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance)
             throws SQLException, AuthorizeException;
     boolean verifyToken(Context context, UUID resourceID, String token) throws SQLException;
     boolean isUserAllowedToAccessTheResource(Context context, UUID userId, UUID resourceId) throws SQLException;
     List<ClarinLicenseResourceUserAllowance> findByEPersonId(Context context, UUID userID) throws SQLException;
+    List<ClarinLicenseResourceUserAllowance> findByEPersonIdAndBitstreamId(Context context, UUID userID, UUID bitstreamID) throws SQLException;
 }

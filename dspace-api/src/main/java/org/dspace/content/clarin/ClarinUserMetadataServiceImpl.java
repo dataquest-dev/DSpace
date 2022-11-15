@@ -8,6 +8,7 @@
 package org.dspace.content.clarin;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -46,6 +47,11 @@ public class ClarinUserMetadataServiceImpl implements ClarinUserMetadataService 
     @Override
     public ClarinUserMetadata find(Context context, int valueId) throws SQLException {
         return clarinUserMetadataDAO.findByID(context, ClarinUserMetadata.class, valueId);
+    }
+
+    @Override
+    public List<ClarinUserMetadata> findAll(Context context) throws SQLException {
+        return clarinUserMetadataDAO.findAll(context, ClarinUserMetadata.class);
     }
 
     @Override

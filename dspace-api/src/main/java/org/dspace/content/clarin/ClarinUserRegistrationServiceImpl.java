@@ -8,6 +8,7 @@
 package org.dspace.content.clarin;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang.NullArgumentException;
@@ -77,6 +78,16 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
     @Override
     public ClarinUserRegistration find(Context context, int valueId) throws SQLException {
         return clarinUserRegistrationDAO.findByID(context, ClarinUserRegistration.class, valueId);
+    }
+
+    @Override
+    public List<ClarinUserRegistration> findAll(Context context) throws SQLException, AuthorizeException {
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException(
+                    "You must be an admin to get all Clarin user registrations");
+        }
+
+        return clarinUserRegistrationDAO.findAll(context, ClarinUserRegistration.class);
     }
 
     @Override
