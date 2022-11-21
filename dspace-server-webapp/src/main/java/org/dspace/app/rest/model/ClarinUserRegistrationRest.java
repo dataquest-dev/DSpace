@@ -31,8 +31,8 @@ public class ClarinUserRegistrationRest extends BaseObjectRest<Integer> {
     public static final String NAME = "clarinuserregistration";
     public static final String CATEGORY = RestAddressableModel.CORE;
 
-    public static final String CLARIN_LICENSES = ClarinLicenseRest.NAME;
-    public static final String USER_METADATA = ClarinUserMetadataRest.NAME;
+    public static final String CLARIN_LICENSES = "clarinLicenses";
+    public static final String USER_METADATA = "userMetadata";
 
     public UUID ePersonID;
     public String email;

@@ -15,7 +15,7 @@ public class ClarinLicenseResourceMappingRest extends BaseObjectRest<Integer> {
     public static final String NAME = "clarinlicenseresourcemapping";
     public static final String CATEGORY = RestAddressableModel.CORE;
 
-    public static final String CLARIN_LICENSE = ClarinLicenseRest.NAME;
+    public static final String CLARIN_LICENSE = "clarinLicense";
 
     public UUID bitstreamID;
 

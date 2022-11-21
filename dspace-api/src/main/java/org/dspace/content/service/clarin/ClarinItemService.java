@@ -5,17 +5,17 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.content.dao.clarin;
+package org.dspace.content.service.clarin;
 
-import org.dspace.content.clarin.ClarinUserRegistration;
+import org.dspace.content.Item;
+import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
 import org.dspace.core.Context;
-import org.dspace.core.GenericDAO;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
-public interface ClarinUserRegistrationDAO extends GenericDAO<ClarinUserRegistration> {
+public interface ClarinItemService {
 
-    List<ClarinUserRegistration> findByEPersonUUID(Context context, UUID epersonUUID) throws SQLException;
+    List<Item> findByBitstreamUUID(Context context, UUID bitstreamUUID) throws SQLException;
 }

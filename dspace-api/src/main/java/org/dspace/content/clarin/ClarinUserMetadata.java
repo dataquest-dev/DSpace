@@ -25,7 +25,7 @@ import org.dspace.core.ReloadableEntity;
 
 @Entity
 @Table(name = "user_metadata")
-public class ClarinUserMetadata  implements ReloadableEntity<Integer> {
+public class ClarinUserMetadata implements ReloadableEntity<Integer> {
 
     private static Logger log = Logger.getLogger(ClarinUserMetadata.class);
     @Id

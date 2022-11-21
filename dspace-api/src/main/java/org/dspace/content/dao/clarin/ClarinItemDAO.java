@@ -7,15 +7,13 @@
  */
 package org.dspace.content.dao.clarin;
 
-import org.dspace.content.clarin.ClarinUserRegistration;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
-import org.dspace.core.GenericDAO;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
-public interface ClarinUserRegistrationDAO extends GenericDAO<ClarinUserRegistration> {
-
-    List<ClarinUserRegistration> findByEPersonUUID(Context context, UUID epersonUUID) throws SQLException;
+public interface ClarinItemDAO {
+    List<Item> findByBitstreamUUID(Context context, UUID bitstreamUUID) throws SQLException;
 }

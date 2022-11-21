@@ -7,11 +7,16 @@
  */
 package org.dspace.app.rest.repository;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.dspace.app.rest.Parameter;
+import org.dspace.app.rest.SearchRestMethod;
+import org.dspace.app.rest.model.ClarinLicenseResourceMappingRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.app.rest.model.ClarinUserRegistrationRest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
@@ -24,6 +29,7 @@ import org.springframework.stereotype.Component;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * This is the repository responsible to manage Clarin User Registration Rest object
@@ -60,6 +66,21 @@ public class ClarinUserRegistrationRestRepository extends DSpaceRestRepository<C
         } catch (SQLException | AuthorizeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    @SearchRestMethod(name = "byEPerson")
+    public Page<ClarinUserRegistrationRest> findByEPerson(@Parameter(value = "userUUID", required = true) UUID
+                                                                      userUUID,
+                                                              Pageable pageable) throws SQLException {
+        Context context = obtainContext();
+
+        List<ClarinUserRegistration> clarinUserRegistrationList =
+                clarinUserRegistrationService.findByEPersonUUID(context, userUUID);
+        if (CollectionUtils.isEmpty(clarinUserRegistrationList)) {
+            return null;
+        }
+
+        return converter.toRestPage(clarinUserRegistrationList, pageable, utils.obtainProjection());
     }
 
     @Override

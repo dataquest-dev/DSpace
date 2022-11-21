@@ -39,6 +39,7 @@ public class ClarinLicenseResourceUserAllowanceRestRepository
     ClarinLicenseResourceUserAllowanceService clarinLicenseResourceUserAllowanceService;
 
     @Override
+    @PreAuthorize("permitAll()")
     public ClarinLicenseResourceUserAllowanceRest findOne(Context context, Integer integer) {
         ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance;
         try {

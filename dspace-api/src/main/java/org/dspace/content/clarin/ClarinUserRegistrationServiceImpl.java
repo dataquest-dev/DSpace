@@ -10,6 +10,7 @@ package org.dspace.content.clarin;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;
@@ -88,6 +89,11 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
         }
 
         return clarinUserRegistrationDAO.findAll(context, ClarinUserRegistration.class);
+    }
+
+    @Override
+    public List<ClarinUserRegistration> findByEPersonUUID(Context context, UUID epersonUUID) throws SQLException {
+        return clarinUserRegistrationDAO.findByEPersonUUID(context, epersonUUID);
     }
 
     @Override
