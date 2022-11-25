@@ -7,7 +7,9 @@
  */
 package org.dspace.authorize;
 
-import org.dspace.authorize.AuthorizeException;
+/**
+ * If the token for downloading the bitstream with attached Clarin License is expired.
+ */
 public class DownloadTokenExpiredException extends AuthorizeException {
     public static String NAME = "DownloadTokenExpiredException";
 

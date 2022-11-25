@@ -37,7 +37,6 @@ import org.dspace.workflow.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
-/**
  * Service implementation for the WorkspaceItem object.
  * This class is responsible for all business logic calls for the WorkspaceItem object and is autowired by spring.
  * This class should never be accessed directly.

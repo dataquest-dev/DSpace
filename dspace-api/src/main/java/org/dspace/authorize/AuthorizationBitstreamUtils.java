@@ -7,9 +7,14 @@
  */
 package org.dspace.authorize;
 
+import javax.servlet.http.HttpServletRequest;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
@@ -17,27 +22,18 @@ import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
-import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
-import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.service.GroupService;
 import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
-//import static org.dspace.app.rest.model.hateoas.ClarinLicenseLabelResource.ACADEMIC_USE_LABEL;
-//import static org.dspace.app.rest.model.hateoas.ClarinLicenseLabelResource.RESTRICTED_LABEL;
-
+/**
+ * Authorize the user if could download the Item's bitstream.
+ */
 @Component
 public class AuthorizationBitstreamUtils {
 
@@ -73,15 +69,11 @@ public class AuthorizationBitstreamUtils {
         EPerson currentUser = context.getCurrentUser();
         // Load the current user ID or if the user do not exist set ID to null
         UUID userID = null; // user not logged in
-        Integer userLegacyId = null;
         if (Objects.nonNull(currentUser)) {
             userID = currentUser.getID();
-            userLegacyId = currentUser.getLegacyId();
         }
 
         UUID bitstreamUUID = bitstream.getID();
-        String bitstreamID = Objects.isNull(bitstreamUUID) ? null : bitstreamUUID.toString();
-
         // 1. If the current user is submitter of the item where the current bitstream is -> the user is authorized.
         if (userIsSubmitter(context, bitstream, currentUser, userID)) {
             return true;
@@ -97,6 +89,13 @@ public class AuthorizationBitstreamUtils {
         return isUserAllowedToAccessTheResource(context, userID, bitstreamUUID);
     }
 
+    /**
+     * If the bitstream has RES or ACA license and the user is Anonymous do not authorize that user.
+     * The user will be redirected to the login.
+     * @param context DSpace context object
+     * @param bitstreamID downloading Bitstream UUID
+     * @return if the current user is authorized
+     */
     public boolean authorizeLicenseWithUser(Context context, UUID bitstreamID) throws SQLException {
         // If the current user is null that means that the user is not signed in and cannot download the bitstream
         // with RES or ACA license
@@ -158,7 +157,7 @@ public class AuthorizationBitstreamUtils {
         return false;
     }
 
-    public boolean isTokenVerified(Context context, UUID bitstreamID) throws DownloadTokenExpiredException,
+    private boolean isTokenVerified(Context context, UUID bitstreamID) throws DownloadTokenExpiredException,
             SQLException {
         // Load the current request.
         HttpServletRequest request = new DSpace().getRequestService().getCurrentRequest()
@@ -192,6 +191,13 @@ public class AuthorizationBitstreamUtils {
         }
     }
 
+    /**
+     * Check if the Clarin License attached to the downloading bitstream requires custom user information and
+     * check if the current user has filled in that required info in the past.
+     * @param context DSpace context object
+     * @param userID UUID of the current user
+     * @param bitstreamID UUID of the downloading bitstream
+     */
     private boolean isUserAllowedToAccessTheResource(Context context, UUID userID, UUID bitstreamID)
             throws MissingLicenseAgreementException, SQLException {
         boolean allowed = clarinLicenseResourceUserAllowanceService
@@ -202,5 +208,4 @@ public class AuthorizationBitstreamUtils {
         }
         return true;
     }
-
 }

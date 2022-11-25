@@ -7,7 +7,10 @@
  */
 package org.dspace.authorize;
 
-import org.dspace.authorize.AuthorizeException;
+/**
+ * If the Clarin License which the bitstream is attached to needs the required info which the current user
+ * hasn't filled in.
+ */
 public class MissingLicenseAgreementException extends AuthorizeException {
     public static String NAME = "MissingLicenseAgreementException";
     public MissingLicenseAgreementException(String message) {

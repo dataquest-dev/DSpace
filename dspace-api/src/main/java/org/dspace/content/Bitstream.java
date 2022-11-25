@@ -39,7 +39,6 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @Entity
 @Table(name = "bitstream")
 public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport {
-
     @Column(name = "bitstream_id", insertable = false, updatable = false)
     private Integer legacyId;
 
