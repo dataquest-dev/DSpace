@@ -8,10 +8,12 @@
 package org.dspace.builder;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
@@ -66,6 +68,13 @@ public class ClarinUserRegistrationBuilder extends AbstractBuilder<ClarinUserReg
             c.turnOffAuthorisationSystem();
             // Ensure object and any related objects are reloaded before checking to see what needs cleanup
             clarinUserRegistration = c.reloadEntity(clarinUserRegistration);
+            if (Objects.nonNull(clarinUserRegistration)) {
+                List<ClarinUserMetadata> clarinUserMetadataList = clarinUserRegistration.getUserMetadata();
+                for (ClarinUserMetadata clarinUserMetadata : clarinUserMetadataList) {
+                    clarinUserMetadata = c.reloadEntity(clarinUserMetadata);
+                    clarinUserMetadataService.delete(c, clarinUserMetadata);
+                }
+            }
             delete(c, clarinUserRegistration);
             c.complete();
             indexingService.commit();

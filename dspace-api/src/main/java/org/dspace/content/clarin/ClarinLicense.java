@@ -47,6 +47,11 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
 
     private static Logger log = Logger.getLogger(ClarinLicense.class);
 
+    /**
+     * Required info key word.
+     */
+    public static final String SEND_TOKEN = "SEND_TOKEN";
+
     @Id
     @Column(name = "license_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "license_definition_license_id_seq")

@@ -25,7 +25,7 @@ CREATE TABLE license_definition (
     label_id integer,
     created_on timestamp,
     confirmation integer DEFAULT 0,
-    required_info varchar(64)
+    required_info varchar(256)
 );
 
 ALTER TABLE public.license_definition OWNER TO dspace;

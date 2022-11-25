@@ -12,6 +12,7 @@ import java.util.Objects;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinUserMetadata;
+import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinUserMetadataService;
 import org.dspace.core.Context;
 
@@ -27,6 +28,11 @@ public class ClarinUserMetadataBuilder extends AbstractBuilder<ClarinUserMetadat
     public static ClarinUserMetadataBuilder createClarinUserMetadata(final Context context) {
         ClarinUserMetadataBuilder builder = new ClarinUserMetadataBuilder(context);
         return builder.create(context);
+    }
+
+    public ClarinUserMetadataBuilder withUserRegistration(ClarinUserRegistration clarinUserRegistration) {
+        clarinUserMetadata.setEperson(clarinUserRegistration);
+        return this;
     }
 
     private ClarinUserMetadataBuilder create(final Context context) {

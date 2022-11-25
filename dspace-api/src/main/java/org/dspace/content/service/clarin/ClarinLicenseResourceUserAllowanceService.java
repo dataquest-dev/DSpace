@@ -13,12 +13,15 @@ import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
+import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.core.Context;
 
 public interface ClarinLicenseResourceUserAllowanceService {
-    ClarinLicenseResourceUserAllowance create(Context context) throws SQLException, AuthorizeException;
+    ClarinLicenseResourceUserAllowance create(Context context) throws SQLException;
     ClarinLicenseResourceUserAllowance find(Context context, int valueId) throws SQLException;
     List<ClarinLicenseResourceUserAllowance> findAll(Context context) throws SQLException, AuthorizeException;
+    void update(Context context, ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance)
+            throws SQLException;
     void delete(Context context, ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance)
             throws SQLException, AuthorizeException;
     boolean verifyToken(Context context, UUID resourceID, String token) throws SQLException;

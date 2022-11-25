@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.dao.clarin.ClarinLicenseResourceUserAllowanceDAO;
@@ -20,6 +21,7 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
+import org.hibernate.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +37,7 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
     ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     @Override
-    public ClarinLicenseResourceUserAllowance create(Context context) throws SQLException, AuthorizeException {
-        if (!authorizeService.isAdmin(context)) {
-            throw new AuthorizeException(
-                    "You must be an admin to create an Clarin license resource user allowance");
-        }
+    public ClarinLicenseResourceUserAllowance create(Context context) throws SQLException {
         // Create a table row
         ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance =
                 clarinLicenseResourceUserAllowanceDAO.create(context,
@@ -68,6 +66,24 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
     }
 
     @Override
+    public void update(Context context, ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance)
+            throws SQLException {
+        if (Objects.isNull(clarinLicenseResourceUserAllowance)) {
+            throw new NullArgumentException("Cannot update clarinLicenseResourceUserAllowance because the " +
+                    "new clarinLicenseResourceUserAllowance is null");
+        }
+
+        ClarinLicenseResourceUserAllowance foundClrua = find(context, clarinLicenseResourceUserAllowance.getID());
+        if (Objects.isNull(foundClrua)) {
+            throw new ObjectNotFoundException(clarinLicenseResourceUserAllowance.getID(),
+                    "Cannot update the clarinLicenseResourceUserAllowance because the " +
+                            "clarinLicenseResourceUserAllowance wasn't found in the database.");
+        }
+
+        clarinLicenseResourceUserAllowanceDAO.save(context, clarinLicenseResourceUserAllowance);
+    }
+
+    @Override
     public void delete(Context context, ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance)
             throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
@@ -91,7 +107,7 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
                 clarinLicenseResourceMappingService.getLicenseToAgree(context, userId, resourceId);
 
         // If the list is empty there are none licenses to agree -> the user is authorized.
-        return Objects.isNull(clarinLicenseToAgree);
+            return Objects.isNull(clarinLicenseToAgree);
     }
 
     @Override

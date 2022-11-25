@@ -76,10 +76,6 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
         this.ePersonID = ePersonID;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
     public void setId(Integer id) {
         this.id = id;
     }
