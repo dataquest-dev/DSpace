@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-@Component
 public class ClarinLicenseRest extends BaseObjectRest<Integer> {
 
     public static final String NAME = "clarinlicense";

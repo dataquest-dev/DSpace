@@ -23,14 +23,15 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.Bitstream;
-import org.dspace.content.logic.condition.MetadataValueMatchCondition;
 import org.dspace.core.ReloadableEntity;
+
 
 /**
  * Class representing a clarin license in DSpace.
@@ -44,7 +45,12 @@ import org.dspace.core.ReloadableEntity;
 @Table(name = "license_definition")
 public class ClarinLicense implements ReloadableEntity<Integer> {
 
-    private static Logger log = Logger.getLogger(MetadataValueMatchCondition.class);
+    private static Logger log = Logger.getLogger(ClarinLicense.class);
+
+    /**
+     * Required info key word.
+     */
+    public static final String SEND_TOKEN = "SEND_TOKEN";
 
     @Id
     @Column(name = "license_id")
@@ -61,10 +67,11 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "license", cascade = CascadeType.PERSIST)
-    private final List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = new ArrayList<>();
+    private List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = new ArrayList<>();
 
-//    @Column(name = "eperson_id")
-//    private Integer epersonId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+    @JoinColumn(name = "user_registration_id")
+    private ClarinUserRegistration eperson;
 
     @Column(name = "name")
     private String name = null;
@@ -164,5 +171,21 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     @Override
     public Integer getID() {
         return id;
+    }
+
+    public Set<ClarinLicenseLabel> getClarinLicenseLabels() {
+        return clarinLicenseLabels;
+    }
+
+    public void setClarinLicenseLabels(Set<ClarinLicenseLabel> clarinLicenseLabels) {
+        this.clarinLicenseLabels = clarinLicenseLabels;
+    }
+
+    public ClarinUserRegistration getEperson() {
+        return eperson;
+    }
+
+    public void setEperson(ClarinUserRegistration eperson) {
+        this.eperson = eperson;
     }
 }

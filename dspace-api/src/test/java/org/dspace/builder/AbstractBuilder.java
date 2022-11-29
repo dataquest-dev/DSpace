@@ -39,7 +39,10 @@ import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.content.service.clarin.ClarinUserMetadataService;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexingService;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -104,6 +107,9 @@ public abstract class AbstractBuilder<T, S> {
     static ClarinLicenseLabelService clarinLicenseLabelService;
     static ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
     static HandleClarinService handleClarinService;
+    static ClarinUserRegistrationService clarinUserRegistrationService;
+    static ClarinUserMetadataService clarinUserMetadataService;
+    static ClarinLicenseResourceUserAllowanceService clarinLicenseResourceUserAllowanceService;
 
     protected Context context;
 
@@ -165,6 +171,10 @@ public abstract class AbstractBuilder<T, S> {
         clarinLicenseResourceMappingService = ClarinServiceFactory.getInstance().
                 getClarinLicenseResourceMappingService();
         handleClarinService = ClarinServiceFactory.getInstance().getClarinHandleService();
+        clarinUserRegistrationService = ClarinServiceFactory.getInstance().getClarinUserRegistration();
+        clarinUserMetadataService = ClarinServiceFactory.getInstance().getClarinUserMetadata();
+        clarinLicenseResourceUserAllowanceService = ClarinServiceFactory.getInstance()
+                .getClarinLicenseResourceUserAllowance();
     }
 
 
@@ -201,6 +211,9 @@ public abstract class AbstractBuilder<T, S> {
         clarinLicenseLabelService = null;
         clarinLicenseResourceMappingService = null;
         handleClarinService = null;
+        clarinUserRegistrationService = null;
+        clarinUserMetadataService = null;
+        clarinLicenseResourceUserAllowanceService = null;
 
     }
 

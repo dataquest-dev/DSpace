@@ -7,6 +7,8 @@
  */
 package org.dspace.content.clarin;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,6 +18,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
@@ -43,9 +46,8 @@ public class ClarinLicenseResourceMapping implements ReloadableEntity<Integer> {
     @JoinColumn(name = "bitstream_uuid", referencedColumnName = "uuid")
     private Bitstream bitstream;
 
-//    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
-//    @JoinColumn(name = "mapping_id")
-//    private ClarinLicenseResourceUserAllowance licenseResourceUserAllowance;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "licenseResourceMapping", cascade = CascadeType.PERSIST)
+    private List<ClarinLicenseResourceUserAllowance> licenseResourceUserAllowances = new ArrayList<>();
 
     @Override
     public Integer getID() {
@@ -72,11 +74,12 @@ public class ClarinLicenseResourceMapping implements ReloadableEntity<Integer> {
         this.license = license;
     }
 
-//    public ClarinLicenseResourceUserAllowance getLicenseResourceUserAllowance() {
-//        return licenseResourceUserAllowance;
-//    }
-//
-//    public void setLicenseResourceUserAllowance(ClarinLicenseResourceUserAllowance licenseResourceUserAllowance) {
-//        this.licenseResourceUserAllowance = licenseResourceUserAllowance;
-//    }
+    public List<ClarinLicenseResourceUserAllowance> getLicenseResourceUserAllowances() {
+        return licenseResourceUserAllowances;
+    }
+
+    public void setLicenseResourceUserAllowances(List<ClarinLicenseResourceUserAllowance>
+                                                         licenseResourceUserAllowances) {
+        this.licenseResourceUserAllowances = licenseResourceUserAllowances;
+    }
 }

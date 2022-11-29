@@ -26,6 +26,7 @@ public interface ClarinLicenseResourceMappingService {
             throws SQLException, AuthorizeException;
 
     ClarinLicenseResourceMapping find(Context context, int valueId) throws SQLException;
+    List<ClarinLicenseResourceMapping> findAll(Context context) throws SQLException;
     List<ClarinLicenseResourceMapping> findAllByLicenseId(Context context, Integer licenseId) throws SQLException;
 
     void update(Context context, ClarinLicenseResourceMapping newClarinLicenseResourceMapping) throws SQLException;
@@ -36,4 +37,8 @@ public interface ClarinLicenseResourceMappingService {
 
     void attachLicense(Context context, ClarinLicense clarinLicense, Bitstream bitstream)
             throws SQLException, AuthorizeException;
+
+    List<ClarinLicenseResourceMapping> findByBitstreamUUID(Context context, UUID bitstreamID) throws SQLException;
+
+    ClarinLicense getLicenseToAgree(Context context, UUID userId, UUID resourceID) throws SQLException;
 }

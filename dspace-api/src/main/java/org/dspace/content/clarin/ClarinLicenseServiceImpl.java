@@ -132,22 +132,22 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
             List<MetadataValue> dcRightsUri =
                     itemService.getMetadata(item, "dc", "rights", "uri", Item.ANY);
 
-            String licenseUri = null;
+            String licenseName = null;
             // If the item bitstreams has license
             if (CollectionUtils.isNotEmpty(dcRights)) {
                 if ( dcRights.size() != dcRightsUri.size() ) {
                     log.warn( String.format("Harvested bitstream [%s / %s] has different length of " +
                             "dc_rights and dc_rights_uri", bitstream.getName(), bitstream.getHandle()));
-                    licenseUri = "unknown";
+                    licenseName = "unknown";
                 } else {
-                    licenseUri = Objects.requireNonNull(dcRights.get(0)).getValue();
+                    licenseName = Objects.requireNonNull(dcRights.get(0)).getValue();
                 }
             }
 
-            ClarinLicense clarinLicense = this.clarinLicenseService.findByName(context, licenseUri);
+            ClarinLicense clarinLicense = this.clarinLicenseService.findByName(context, licenseName);
             // The item bitstreams doesn't have the license
             if (Objects.isNull(clarinLicense)) {
-                log.info("Cannot find clarin license with name: " + licenseUri);
+                log.info("Cannot find clarin license with name: " + licenseName);
                 return;
             }
 
