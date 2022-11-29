@@ -33,6 +33,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Authorize the user if could download the Item's bitstream.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 @Component
 public class AuthorizationBitstreamUtils {

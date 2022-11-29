@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -228,25 +235,6 @@ public class ClarinUserMetadataRestController {
 
         // Create ClarinResourceUserAllowance record to generate token.
         this.createClrua(context, clarinLicenseResourceMapping, clarinUserMetadataList, downloadToken, null);
-//        ClarinLicenseResourceUserAllowance clrua =
-//                clarinLicenseResourceUserAllowanceService.create(context);
-//        clrua.setLicenseResourceMapping(clarinLicenseResourceMapping);
-//        clrua.setUserMetadata(clarinUserMetadataList);
-//        clrua.setCreatedOn(Calendar.getInstance().getTime());
-//        // Generate token to download the bitstream. The token is sent by the response or by the e-mail.
-//        clrua.setToken(downloadToken);
-//        clarinLicenseResourceUserAllowanceService.update(context, clrua);
-//        boolean shouldEmailToken = this.shouldEmailToken(context, bitstreamUUID, clarinLicenseResourceMapping);
-//        context.commit();
-
-//        if (shouldEmailToken) {
-//            // If yes - send token to e-mail
-//            // @TODO send download token to e-mail
-//            return ResponseEntity.ok().body(CHECK_EMAIL_RESPONSE_CONTENT);
-//        } else {
-//            // If no - send token in the response to download the bitstream immediately
-//            return ResponseEntity.ok().body(downloadToken);
-//        }
     }
 
     private String generateToken() {

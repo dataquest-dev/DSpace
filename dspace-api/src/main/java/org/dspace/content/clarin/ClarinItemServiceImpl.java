@@ -17,6 +17,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service implementation for the Item object.
+ * This service is enhancement of the ItemService service for Clarin project purposes.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinItemServiceImpl implements ClarinItemService {
 
     @Autowired

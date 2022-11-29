@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -198,14 +205,8 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
         List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
         clarinUserMetadataRestList.add(clarinUserMetadata1);
         clarinUserMetadataRestList.add(clarinUserMetadata2);
-//        ClarinUserRegistration clarinUserRegistration =
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-//        // There should not exist records in the UserMetadata table
-//        getClient(adminToken).perform(get("/api/core/clarinusermetadatas")
-//                        .contentType(contentType))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.page.totalElements", is(0)));
 
         // There should exist record in the UserRegistration table
         getClient(adminToken).perform(get("/api/core/clarinuserregistrations")
@@ -249,14 +250,8 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
         List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
         clarinUserMetadataRestList.add(clarinUserMetadata1);
         clarinUserMetadataRestList.add(clarinUserMetadata2);
-//        ClarinUserRegistration clarinUserRegistration =
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-//        // There should not exist records in the UserMetadata table
-//        getClient(adminToken).perform(get("/api/core/clarinusermetadatas")
-//                        .contentType(contentType))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.page.totalElements", is(0)));
 
         // There should exist record in the UserRegistration table
         getClient(adminToken).perform(get("/api/core/clarinuserregistrations")
@@ -306,11 +301,6 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
         clarinUserMetadataRestList.add(clarinUserMetadata2);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-//        // There should exist one record in the UserMetadata table
-//        getClient(adminToken).perform(get("/api/core/clarinusermetadatas")
-//                        .contentType(contentType))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.page.totalElements", is(1)));
 
         // There should exist record in the UserRegistration table
         getClient(adminToken).perform(get("/api/core/clarinuserregistrations")
@@ -331,12 +321,6 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                         .contentType(contentType))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
-
-//        // There should exist two records in the UserMetadata table
-//        getClient(adminToken).perform(get("/api/core/clarinusermetadatas")
-//                        .contentType(contentType))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.page.totalElements", is(3)));
 
         ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
@@ -366,11 +350,6 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
         clarinUserMetadataRestList.add(clarinUserMetadata2);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-//        // There should exist one record in the UserMetadata table
-//        getClient(adminToken).perform(get("/api/core/clarinusermetadatas")
-//                        .contentType(contentType))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.page.totalElements", is(1)));
 
         // There should exist record in the UserRegistration table
         getClient(adminToken).perform(get("/api/core/clarinuserregistrations")
@@ -391,12 +370,6 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                         .contentType(contentType))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
-
-//        // There should exist two records in the UserMetadata table
-//        getClient(adminToken).perform(get("/api/core/clarinusermetadatas")
-//                        .contentType(contentType))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.page.totalElements", is(3)));
 
         ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
@@ -451,7 +424,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
         clarinLicense.setRequiredInfo(requiredInfo);
         clarinLicense.setName(name);
 
-        // add ClarinLicenseLabels to the ClarinLicense
+        // Add ClarinLicenseLabels to the ClarinLicense
         HashSet<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
         ClarinLicenseLabel clarinLicenseLabel = createClarinLicenseLabel("lbl", false, "Test Title");
         clarinLicenseLabels.add(clarinLicenseLabel);

@@ -218,7 +218,6 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
             wsi.getErrors().addAll(errors);
         }
 
-
         context.commit();
         return wsi;
     }

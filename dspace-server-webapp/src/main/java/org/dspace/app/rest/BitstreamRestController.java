@@ -101,9 +101,6 @@ public class BitstreamRestController {
     @Autowired
     Utils utils;
 
-    @Autowired
-    AuthorizationBitstreamUtils authorizationBitstreamUtils;
-
     @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ')")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")
     public ResponseEntity retrieve(@PathVariable UUID uuid, HttpServletResponse response,
@@ -164,6 +161,7 @@ public class BitstreamRestController {
             if (dispositionThreshold >= 0 && filesize > dispositionThreshold) {
                 httpHeadersInitializer.withDisposition(HttpHeadersInitializer.CONTENT_DISPOSITION_ATTACHMENT);
             }
+
 
             org.dspace.app.rest.utils.BitstreamResource bitstreamResource =
                 new org.dspace.app.rest.utils.BitstreamResource(

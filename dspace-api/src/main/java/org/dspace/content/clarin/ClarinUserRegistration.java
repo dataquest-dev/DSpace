@@ -63,11 +63,6 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
     public ClarinUserRegistration() {
     }
 
-//    protected ClarinUserRegistration(UUID uuid) {
-//        this.predefineUID = uuid;
-//    }
-
-
     public UUID getPersonID() {
         return ePersonID;
     }
