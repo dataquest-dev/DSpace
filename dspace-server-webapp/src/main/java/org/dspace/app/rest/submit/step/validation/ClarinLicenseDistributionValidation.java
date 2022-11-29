@@ -21,8 +21,16 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Constants;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * This submission validation check that the license has been grant for the inprogress submission looking for the
+ * presence of a license bitstream in the license bundle,
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
+ */
 public class ClarinLicenseDistributionValidation extends AbstractValidation {
     private static final String ERROR_VALIDATION_LICENSEREQUIRED = "error.validation.license.notgranted";
 
@@ -31,14 +39,20 @@ public class ClarinLicenseDistributionValidation extends AbstractValidation {
     @Autowired
     private BitstreamService bitstreamService;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     @Override
     public List<ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj,
                                     SubmissionStepConfig config) throws DCInputsReaderException, SQLException {
 
         this.getErrors().clear();
+
+        boolean isRequired =
+                configurationService.getBooleanProperty("webui.submit.distribution.license.required", true);
         Bitstream bitstream = bitstreamService
                 .getBitstreamByName(obj.getItem(), Constants.LICENSE_BUNDLE_NAME, Constants.LICENSE_BITSTREAM_NAME);
-        if (bitstream == null) {
+        if (isRequired && bitstream == null) {
             addError(ERROR_VALIDATION_LICENSEREQUIRED,
                     "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + config.getId());
         }

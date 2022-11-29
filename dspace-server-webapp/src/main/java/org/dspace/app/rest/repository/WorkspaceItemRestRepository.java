@@ -465,8 +465,15 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         }
     }
 
-    private void maintainLicensesForItem(Context context, WorkspaceItem source,
-                                         Operation op) throws SQLException, AuthorizeException {
+    /**
+     * Detach the clarin license from the bitstreams and if the clarin license is not null attach the
+     * new clarin license to the bitstream.
+     * @param context DSpace context object
+     * @param source WorkspaceItem object
+     * @param op should be ReplaceOperation, if it is not - do nothing
+     */
+    private void maintainLicensesForItem(Context context, WorkspaceItem source, Operation op)
+            throws SQLException, AuthorizeException {
         // Get item
         Item item = source.getItem();
         if (Objects.isNull(item)) {
@@ -479,25 +486,25 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
             return;
         }
 
-        String clarinLicenseDefinition;
+        String clarinLicenseName;
         if (op.getValue() instanceof String) {
-            clarinLicenseDefinition = (String) op.getValue();
+            clarinLicenseName = (String) op.getValue();
         } else {
             JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) op.getValue();
             // replace operation has value wrapped in the ObjectNode
             JsonNode jsonNodeValue = jsonValEvaluator.getValueNode().get("value");
             if (ObjectUtils.isEmpty(jsonNodeValue)) {
-                log.info("Cannot get clarin license definition value from the ReplaceOperation.");
+                log.info("Cannot get clarin license name value from the ReplaceOperation.");
                 return;
             }
-            clarinLicenseDefinition = jsonNodeValue.asText();
+            clarinLicenseName = jsonNodeValue.asText();
         }
 
         // Get clarin license by definition
-        ClarinLicense clarinLicense = clarinLicenseService.findByName(context, clarinLicenseDefinition);
-        if (StringUtils.isNotBlank(clarinLicenseDefinition) && Objects.isNull(clarinLicense)) {
+        ClarinLicense clarinLicense = clarinLicenseService.findByName(context, clarinLicenseName);
+        if (StringUtils.isNotBlank(clarinLicenseName) && Objects.isNull(clarinLicense)) {
             throw new ClarinLicenseNotFoundException("Cannot patch workspace item with id: " + source.getID() + "," +
-                    " because the clarin license with definition: " + clarinLicenseDefinition + " isn't supported in" +
+                    " because the clarin license with name: " + clarinLicenseName + " isn't supported in" +
                     " the CLARIN/DSpace");
         }
 
