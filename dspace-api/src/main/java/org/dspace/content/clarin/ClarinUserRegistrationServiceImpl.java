@@ -37,7 +37,7 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
     public ClarinUserRegistration create(Context context) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create a Clarin user registration");
+                    "You must be an admin to create a CLARIN user registration");
         }
         // Create a table row
         ClarinUserRegistration clarinUserRegistration = clarinUserRegistrationDAO.create(context,
@@ -54,7 +54,7 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
            ClarinUserRegistration clarinUserRegistration) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create a Clarin user registration");
+                    "You must be an admin to create a CLARIN user registration");
         }
 
         return clarinUserRegistrationDAO.create(context, clarinUserRegistration);
@@ -69,7 +69,7 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
     public List<ClarinUserRegistration> findAll(Context context) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to get all Clarin user registrations");
+                    "You must be an admin to get all CLARIN user registrations");
         }
 
         return clarinUserRegistrationDAO.findAll(context, ClarinUserRegistration.class);
@@ -85,7 +85,7 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
             throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin user registration");
+                    "You must be an admin to create an CLARIN user registration");
         }
         clarinUserRegistrationDAO.delete(context, clarinUserRegistration);
     }

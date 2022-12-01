@@ -45,7 +45,7 @@ public class ClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService 
     public ClarinLicenseLabel create(Context context) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License Label");
+                    "You must be an admin to create an CLARIN License Label");
         }
 
         // Create a table row
@@ -61,7 +61,7 @@ public class ClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService 
             AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License Label");
+                    "You must be an admin to create an CLARIN License Label");
         }
 
         return clarinLicenseLabelDAO.create(context, clarinLicenseLabel);
@@ -81,7 +81,7 @@ public class ClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService 
     public void delete(Context context, ClarinLicenseLabel license) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License Label");
+                    "You must be an admin to create an CLARIN License Label");
         }
 
         clarinLicenseLabelDAO.delete(context, license);
@@ -92,7 +92,7 @@ public class ClarinLicenseLabelServiceImpl implements ClarinLicenseLabelService 
             AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License Label");
+                    "You must be an admin to create an CLARIN License Label");
         }
 
         if (Objects.isNull(newClarinLicenseLabel)) {

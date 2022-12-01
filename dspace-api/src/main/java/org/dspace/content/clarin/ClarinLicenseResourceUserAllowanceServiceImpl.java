@@ -88,7 +88,7 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
             throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin license resource user allowance");
+                    "You must be an admin to create an CLARIN license resource user allowance");
         }
         clarinLicenseResourceUserAllowanceDAO.delete(context, clarinLicenseResourceUserAllowance);
     }

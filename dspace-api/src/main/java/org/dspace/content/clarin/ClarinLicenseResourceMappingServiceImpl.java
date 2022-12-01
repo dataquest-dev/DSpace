@@ -163,7 +163,7 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
             throw new NotFoundException("Cannot create the ClarinLicenseResourceMapping.");
         }
         if (Objects.isNull(clarinLicense) || Objects.isNull(bitstream)) {
-            throw new NullArgumentException("Clarin License or Bitstream cannot be null.");
+            throw new NullArgumentException("CLARIN License or Bitstream cannot be null.");
         }
 
         clarinLicenseResourceMapping.setBitstream(bitstream);

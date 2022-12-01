@@ -45,7 +45,7 @@ public class CUserRegistrationCLicenseLinkRepository extends AbstractDSpaceRestR
         Context context = obtainContext();
         ClarinUserRegistration clarinUserRegistration = clarinUserRegistrationService.find(context, userRegistrationID);
         if (Objects.isNull(clarinUserRegistration)) {
-            throw new ResourceNotFoundException("The Clarin User Registration for id: " + userRegistrationID +
+            throw new ResourceNotFoundException("The CLARIN User Registration for id: " + userRegistrationID +
                     " couldn't be found");
         }
         Pageable pageable = utils.getPageable(optionalPageable);

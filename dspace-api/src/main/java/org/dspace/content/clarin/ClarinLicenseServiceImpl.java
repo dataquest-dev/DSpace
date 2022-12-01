@@ -54,7 +54,7 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
     public ClarinLicense create(Context context) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License");
+                    "You must be an admin to create an CLARIN License");
         }
 
         // Create a table row
@@ -70,7 +70,7 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
     public ClarinLicense create(Context context, ClarinLicense clarinLicense) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License");
+                    "You must be an admin to create an CLARIN License");
         }
 
         return clarinLicenseDAO.create(context, clarinLicense);
@@ -89,7 +89,7 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
     @Override
     public void addLicenseMetadataToItem(Context context, ClarinLicense clarinLicense, Item item) throws SQLException {
         if (Objects.isNull(clarinLicense) || Objects.isNull(item)) {
-            log.error("Cannot add clarin license to the item metadata because the Item or the Clarin License is null.");
+            log.error("Cannot add clarin license to the item metadata because the Item or the CLARIN License is null.");
         }
         if (Objects.isNull(clarinLicense.getDefinition()) ||
                 Objects.isNull(clarinLicense.getNonExtendedClarinLicenseLabel()) ||
@@ -175,7 +175,7 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
     public List<ClarinLicense> findAll(Context context) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                     "You must be an admin to create an Clarin License");
+                     "You must be an admin to create an CLARIN License");
         }
 
         return clarinLicenseDAO.findAll(context, ClarinLicense.class);
@@ -186,7 +186,7 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
     public void delete(Context context, ClarinLicense clarinLicense) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License");
+                    "You must be an admin to create an CLARIN License");
         }
 
         clarinLicenseDAO.delete(context, clarinLicense);
@@ -196,7 +196,7 @@ public class ClarinLicenseServiceImpl implements ClarinLicenseService {
     public void update(Context context, ClarinLicense newClarinLicense) throws SQLException, AuthorizeException {
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "You must be an admin to create an Clarin License");
+                    "You must be an admin to create an CLARIN License");
         }
 
         if (Objects.isNull(newClarinLicense)) {
