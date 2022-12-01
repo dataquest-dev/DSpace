@@ -25,6 +25,7 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.services.model.Request;
 import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,10 +163,12 @@ public class AuthorizationBitstreamUtils {
     private boolean isTokenVerified(Context context, UUID bitstreamID) throws DownloadTokenExpiredException,
             SQLException {
         // Load the current request.
-        HttpServletRequest request = new DSpace().getRequestService().getCurrentRequest()
-                .getHttpServletRequest();
+        Request currentRequest = new DSpace().getRequestService().getCurrentRequest();
+        if (Objects.isNull(currentRequest)) {
+            return false;
+        }
 
-
+        HttpServletRequest request = currentRequest.getHttpServletRequest();
         if (Objects.isNull(request)) {
             return false;
         }
