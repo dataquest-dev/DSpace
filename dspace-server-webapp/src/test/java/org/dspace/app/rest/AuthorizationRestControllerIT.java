@@ -9,12 +9,16 @@ package org.dspace.app.rest;
 
 import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.http.MediaType.TEXT_PLAIN;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.matchers.JsonPathMatchers;
+import org.apache.http.entity.ContentType;
 import org.dspace.authorize.DownloadTokenExpiredException;
 import org.dspace.authorize.MissingLicenseAgreementException;
 import java.io.InputStream;
@@ -60,6 +64,7 @@ import org.springframework.http.HttpStatus;
 public class AuthorizationRestControllerIT extends AbstractControllerIntegrationTest {
 
     private static final String CLARIN_LICENSE_NAME = "Test Clarin License";
+    private static final String TEXT_PLAIN_UTF_8 = "text/plain;charset=UTF-8";
 
     @Autowired
     ClarinLicenseService clarinLicenseService;
@@ -110,9 +115,8 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         Bitstream bitstream = item.getBundles().get(0).getBitstreams().get(0);
         getClient(authTokenAdmin).perform(get("/api/authrn/" + bitstream.getID().toString()))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.errorName", Matchers.is("")))
-                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.OK.value())));;
+                .andExpect(content().contentType(TEXT_PLAIN_UTF_8))
+                .andExpect(jsonPath("$", JsonPathMatchers.hasNoJsonPath("$.errorName")));
     }
 
     // DownloadTokenExpiredException, 401
@@ -125,10 +129,8 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         Bitstream bitstream = item.getBundles().get(0).getBitstreams().get(0);
         getClient(authTokenAdmin).perform(get("/api/authrn/" +
                         bitstream.getID().toString() + "?dtoken=wrongToken"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.errorName", Matchers.is(DownloadTokenExpiredException.NAME)))
-                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.UNAUTHORIZED.value())));
+                .andExpect(status().isUnauthorized())
+                .andExpect(status().reason(is(Matchers.is(DownloadTokenExpiredException.NAME))));
     }
 
     // Download by token, 200
@@ -160,9 +162,8 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         getClient(authTokenAdmin).perform(get("/api/authrn/" +
                         bitstream.getID().toString() + "?dtoken=" + token))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.errorName", Matchers.is("")))
-                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.OK.value())));
+                .andExpect(content().contentType(TEXT_PLAIN_UTF_8))
+                .andExpect(jsonPath("$", JsonPathMatchers.hasNoJsonPath("$.errorName")));
 
     }
 
@@ -200,10 +201,8 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         // The admin should be authorized to download the bitstream with token
         getClient(authTokenAdmin).perform(get("/api/authrn/" +
                         bitstream.getID().toString() + "?dtoken=" + token))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.errorName", Matchers.is(DownloadTokenExpiredException.NAME)))
-                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.UNAUTHORIZED.value())));
+                .andExpect(status().isUnauthorized())
+                .andExpect(status().reason(is(Matchers.is(DownloadTokenExpiredException.NAME))));
     }
 
     // User metadata are filled in, 200
@@ -235,9 +234,8 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
         getClient(authTokenAdmin).perform(get("/api/authrn/" + bitstream.getID().toString()))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.errorName", Matchers.is("")))
-                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.OK.value())));
+                .andExpect(content().contentType(TEXT_PLAIN_UTF_8))
+                .andExpect(jsonPath("$", JsonPathMatchers.hasNoJsonPath("$.errorName")));
     }
 
     // User metadata are NOT filled in, MissingLicenseAgreementException
@@ -262,10 +260,8 @@ public class AuthorizationRestControllerIT extends AbstractControllerIntegration
         // Admin is not the submitter
         String authTokenAdmin = getAuthToken(admin.getEmail(), password);
         getClient(authTokenAdmin).perform(get("/api/authrn/" + bitstream.getID().toString()))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.errorName", Matchers.is(MissingLicenseAgreementException.NAME)))
-                .andExpect(jsonPath("$.responseStatusCode", Matchers.is(HttpStatus.UNAUTHORIZED.value())));
+                .andExpect(status().isUnauthorized())
+                .andExpect(status().reason(is(Matchers.is(MissingLicenseAgreementException.NAME))));
     }
 
     // 400

@@ -142,7 +142,7 @@ public class AuthorizationBitstreamUtils {
                 submitter = item.getSubmitter();
             }
 
-            if (Objects.nonNull(submitter) || Objects.nonNull(userID)) {
+            if (Objects.nonNull(submitter) && Objects.nonNull(userID)) {
                 if (Objects.nonNull(currentUser) &&
                         StringUtils.equals(submitter.getID().toString(), userID.toString())) {
                     return true;
