@@ -32,9 +32,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.w3c.dom.CDATASection;
+import org.w3c.dom.Document;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.NotFoundException;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalTime;
@@ -70,7 +74,7 @@ public class ClarinUserMetadataRestController {
     @PreAuthorize("permitAll()")
     public ResponseEntity manageUserMetadata(@RequestParam("bitstreamUUID") UUID bitstreamUUID,
                                                      HttpServletRequest request)
-            throws SQLException, ParseException, IOException, AuthorizeException {
+            throws SQLException, ParseException, IOException, AuthorizeException, ParserConfigurationException {
 
         // Get context from the request
         Context context = obtainContext(request);
