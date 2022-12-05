@@ -1,4 +1,4 @@
-/**
+    /**
  * The contents of this file are subject to the license and copyright
  * detailed in the LICENSE and NOTICE files at the root of the source
  * tree and available online at
@@ -11,7 +11,6 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -28,11 +27,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.servlet.http.HttpServletResponse;
 
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -149,26 +148,26 @@ public class ClarinDiscoJuiceFeedsController implements InitializingBean {
         String feedsContent = "";
         Set<String> processedEntities = new HashSet<>();
         //loop through disco cdn feeds
-        for(String feed : feedsConfig){
+        for (String feed : feedsConfig) {
             Map<String, JSONObject> feedMap = toMap(
                     ClarinDiscoJuiceFeedsController.downloadJSON(discojuiceURL + feed.trim()));
             //loop through entities in one feed
-            for (Map.Entry<String, JSONObject> entry: feedMap.entrySet()){
+            for (Map.Entry<String, JSONObject> entry: feedMap.entrySet()) {
                 String entityID = entry.getKey();
                 JSONObject cdnEntity = entry.getValue();
                 //keep only entities from shibboleth, add only once, but copy geo, icon, country
-                if(shibDiscoEntities.containsKey(entityID) && !processedEntities.contains(entityID)){
+                if (shibDiscoEntities.containsKey(entityID) && !processedEntities.contains(entityID)) {
                     JSONObject geo = (JSONObject) cdnEntity.get("geo");
                     String icon = (String) cdnEntity.get("icon");
                     String country = (String) cdnEntity.get("country");
                     JSONObject shibEntity = shibDiscoEntities.get(entityID);
-                    if(geo != null){
+                    if (geo != null) {
                         shibEntity.put("geo", geo);
                     }
-                    if(icon != null){
+                    if (icon != null) {
                         shibEntity.put("icon", icon);
                     }
-                    if(country != null){
+                    if (country != null) {
                         shibEntity.put("country", country);
                     }
                     processedEntities.add(entityID);
@@ -177,9 +176,9 @@ public class ClarinDiscoJuiceFeedsController implements InitializingBean {
         }
 
         //loop through shib entities, we show these...
-        for (JSONObject shibEntity : shibDiscoEntities.values()){
+        for (JSONObject shibEntity : shibDiscoEntities.values()) {
             //rewrite or guess countries
-            if(rewriteCountries.contains(shibEntity.get("entityID")) || isBlank((String)shibEntity.get("country"))){
+            if (rewriteCountries.contains(shibEntity.get("entityID")) || isBlank((String)shibEntity.get("country"))) {
                 String old_country = (String)shibEntity.remove("country");
                 String new_country = guessCountry(shibEntity);
                 shibEntity.put("country", new_country);
@@ -188,10 +187,10 @@ public class ClarinDiscoJuiceFeedsController implements InitializingBean {
             }
         }
 
-        if(shibDiscoEntities.isEmpty()){
+        if (shibDiscoEntities.isEmpty()) {
             response.sendError(HttpServletResponse.SC_NO_CONTENT);
             return null;
-        }else {
+        } else {
             JSONArray ret = new JSONArray();
             ret.addAll(shibDiscoEntities.values());
             feedsContent = ret.toJSONString();
@@ -203,32 +202,32 @@ public class ClarinDiscoJuiceFeedsController implements InitializingBean {
                 .body(responseString);
     }
 
-    private static Map<String, JSONObject> toMap(JSONArray jsonArray){
+    private static Map<String, JSONObject> toMap(JSONArray jsonArray) {
         Map<String, JSONObject> map = new HashMap<>();
-        for(Object entityO : jsonArray){
+        for (Object entityO : jsonArray) {
             JSONObject entity = (JSONObject) entityO;
             String entityID = (String) entity.get("entityID");
-            if(!map.containsKey(entityID)){
+            if (!map.containsKey(entityID)) {
                 map.put(entityID, entity);
             }
         }
         return map;
     }
 
-    private static JSONArray shrink(JSONArray jsonArray){
-        for(Object entityO : jsonArray){
+    private static JSONArray shrink(JSONArray jsonArray) {
+        for (Object entityO : jsonArray) {
             JSONObject entity = (JSONObject) entityO;
             // if there are DisplayNames only the first one will be used in title copy the rest
             // to keywords
             // copy any value in Keywords and Description to keywords
-            for(String key: new String[]{"DisplayNames", "Keywords", "Descriptions"}) {
+            for (String key: new String[]{"DisplayNames", "Keywords", "Descriptions"}) {
                 if (entity.containsKey(key)) {
                     JSONArray keyObjects = (JSONArray) entity.get(key);
                     List<String> values = getValues(keyObjects);
                     if (!values.isEmpty()) {
-                        if("DisplayNames".equals(key)){
+                        if ("DisplayNames".equals(key)) {
                             entity.put("title", values.remove(0));
-                            if(values.isEmpty()){
+                            if (values.isEmpty()) {
                                 continue;
                             }
                         }
@@ -244,28 +243,30 @@ public class ClarinDiscoJuiceFeedsController implements InitializingBean {
             // The same for InformationURLs, Descriptions, PrivacyStatementURLs
             // Can be configured
             String[] toRemove = new DSpace().getConfigurationService().getPropertyAsType("discojuice" +
-                    ".remove_from_shib_feed_object", new String[]{"Logos", "InformationURLs",
-                    "Descriptions", "PrivacyStatementURLs", "DisplayNames", "Keywords"});
-            for(String key : toRemove){
+                    ".remove_from_shib_feed_object", new String[]
+                    {
+                        "Logos", "InformationURLs", "Descriptions", "PrivacyStatementURLs", "DisplayNames",
+                        "Keywords"
+                    });
+            for (String key : toRemove) {
                 entity.remove(key);
             }
         }
         return jsonArray;
     }
 
-    private static List<String> getValues(JSONArray array){
+    private static List<String> getValues(JSONArray array) {
         ArrayList<String> res = new ArrayList<>(array.size());
-        for(Object obj : array){
+        for (Object obj : array) {
             JSONObject jObj = (JSONObject) obj;
-            if(jObj.containsKey("value")){
+            if (jObj.containsKey("value")) {
                 res.add((String)jObj.get("value"));
             }
-
         }
         return res;
     }
 
-    private static JSONArray downloadJSON(String url){
+    private static JSONArray downloadJSON(String url) {
         JSONParser parser = new JSONParser();
         try {
             URLConnection conn = new URL(url).openConnection();
@@ -274,47 +275,46 @@ public class ClarinDiscoJuiceFeedsController implements InitializingBean {
             //Caution does not follow redirects, and even if you set it to http->https is not possible
             Object obj = parser.parse(new InputStreamReader(conn.getInputStream()));
             return (JSONArray) obj;
-        }catch (IOException | ParseException e){
-            log.error("Failed to obtain/parse "+ url + "\nCheck timeouts, redirects, shibboleth config.\n" + e);
+        } catch (IOException | ParseException e) {
+            log.error("Failed to obtain/parse " + url + "\nCheck timeouts, redirects, shibboleth config.\n" + e);
         }
         return new JSONArray();
     }
 
-    private static String guessCountry(JSONObject entity){
-        if(locationService != null && entity.containsKey("InformationURLs")){
+    private static String guessCountry(JSONObject entity) {
+        if (locationService != null && entity.containsKey("InformationURLs")) {
             JSONArray informationURLs = (JSONArray)entity.get("InformationURLs");
-            if(informationURLs.size() > 0){
-                String informationURL = (String)((JSONObject)informationURLs.get(0)).get("value");
-                try{
+            if (informationURLs.size() > 0) {
+                String informationURL = (String) ((JSONObject)informationURLs.get(0)).get("value");
+                try {
                     CityResponse cityResponse = locationService.city(
                             InetAddress.getByName(new URL(informationURL).getHost()));
-                    if(cityResponse != null && cityResponse.getCountry() != null &&
-                            isNotBlank(cityResponse.getCountry().getIsoCode())){
+                    if (cityResponse != null && cityResponse.getCountry() != null &&
+                            isNotBlank(cityResponse.getCountry().getIsoCode())) {
                         String code = cityResponse.getCountry().getIsoCode();
                         log.debug("Found code " + code + " for " + informationURL);
                         return code;
-                    }else{
+                    } else {
                         log.info("Country or location is null for " + informationURL);
                     }
-                }catch(IOException | GeoIp2Exception e){
+                } catch (IOException | GeoIp2Exception e) {
                     log.debug(e);
                 }
-
             }
         }
-        String entityID = (String)entity.get("entityID");
-        //entityID not necessarily an URL
-        try{
+        String entityID = (String) entity.get("entityID");
+        // entityID not necessarily an URL
+        try {
             URL url = new URL(entityID);
             String host = url.getHost();
-            String topLevel = host.substring(host.lastIndexOf('.')+1);
-            if(topLevel.length() == 2 && !topLevel.equalsIgnoreCase("eu")){
-                //assume country code
+            String topLevel = host.substring(host.lastIndexOf('.') + 1);
+            if (topLevel.length() == 2 && !topLevel.equalsIgnoreCase("eu")) {
+                // assume country code
                 return topLevel.toUpperCase();
             }
-        }catch(MalformedURLException e){
-
+        } catch (MalformedURLException e) {
+            log.error(e.getMessage());
         }
-        return "_all_"; //by default add "_all_", better search in dj
+        return "_all_"; // by default add "_all_", better search in dj
     }
 }
