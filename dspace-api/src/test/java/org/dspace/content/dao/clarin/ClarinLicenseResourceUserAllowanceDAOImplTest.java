@@ -28,9 +28,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.fail;
+
 public class ClarinLicenseResourceUserAllowanceDAOImplTest extends AbstractIntegrationTest {
 
-    private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
     private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService =
             ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
@@ -52,13 +53,20 @@ public class ClarinLicenseResourceUserAllowanceDAOImplTest extends AbstractInteg
         }
     }
 
+    /**
+     * Delete all initalized DSpace objects after each test
+     */
     @After
     @Override
     public void destroy() {
-        clarinLicenseResourceUserAllowance = null;
-        clarinLicenseResourceUserAllowanceDAO = null;
-        clarinLicenseResourceMappingService = null;
-        bitstreamService = null;
+        try {
+            context.turnOffAuthorisationSystem();
+            clarinLicenseResourceUserAllowanceDAO.delete(context, clarinLicenseResourceUserAllowance);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+        super.destroy();
+
     }
 
     @Test
