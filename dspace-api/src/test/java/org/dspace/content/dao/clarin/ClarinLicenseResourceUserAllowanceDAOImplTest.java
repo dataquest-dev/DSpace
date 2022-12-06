@@ -7,6 +7,8 @@
  */
 package org.dspace.content.dao.clarin;
 
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.sql.SQLException;
@@ -21,14 +23,10 @@ import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-
-import static org.junit.Assert.fail;
 
 public class ClarinLicenseResourceUserAllowanceDAOImplTest extends AbstractIntegrationTest {
 
