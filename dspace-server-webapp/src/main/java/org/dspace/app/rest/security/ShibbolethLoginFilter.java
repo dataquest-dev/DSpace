@@ -8,6 +8,7 @@
 package org.dspace.app.rest.security;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -17,10 +18,18 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.rest.security.clarin.ShibHeaders;
+import org.dspace.app.rest.utils.ClarinShibAuthentication;
 import org.dspace.authenticate.ShibAuthentication;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinVerificationToken;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.service.clarin.ClarinVerificationTokenService;
+import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.web.ContextUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -55,6 +64,8 @@ public class ShibbolethLoginFilter extends StatelessLoginFilter {
     private static final Logger log = LogManager.getLogger(ShibbolethLoginFilter.class);
 
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    private ClarinVerificationTokenService clarinVerificationTokenService = ClarinServiceFactory.getInstance()
+            .getClarinVerificationTokenService();
 
     public ShibbolethLoginFilter(String url, AuthenticationManager authenticationManager,
                                  RestAuthenticationService restAuthenticationService) {
@@ -70,12 +81,35 @@ public class ShibbolethLoginFilter extends StatelessLoginFilter {
             throw new ProviderNotFoundException("Shibboleth is disabled.");
         }
 
+        ShibHeaders shibheaders = new ShibHeaders(req);
+
+        String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
+        String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
+
+        ClarinShibAuthentication clarinShibAuthentication = new ClarinShibAuthentication();
+        // TODO uncomment
+        //        String netid = clarinShibAuthentication.findSingleAttribute(req, netidHeader);
+        String netid = req.getHeader(netidHeader);
+        Context context = ContextUtil.obtainCurrentRequestContext();
+        ClarinVerificationToken clarinVerificationToken = new ClarinVerificationToken();
+        clarinVerificationToken.setePersonNetID(netid);
+        clarinVerificationToken.setShibHeaders(shibheaders.toString());
+        try {
+            clarinVerificationTokenService.create(context, clarinVerificationToken);
+            context.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (AuthorizeException e) {
+            e.printStackTrace();
+        }
+
         // In the case of Shibboleth, this method does NOT actually authenticate us. The authentication
         // has already happened in Shibboleth. So, this call to "authenticate()" is just triggering
         // ShibAuthentication.authenticate() to check for a valid Shibboleth login, and if found, the current user
         // is considered authenticated via Shibboleth.
         // NOTE: because this authentication is implicit, we pass in an empty DSpaceAuthentication
-        return authenticationManager.authenticate(new DSpaceAuthentication());
+//        return authenticationManager.authenticate(new DSpaceAuthentication());
+        return null;
     }
 
     @Override

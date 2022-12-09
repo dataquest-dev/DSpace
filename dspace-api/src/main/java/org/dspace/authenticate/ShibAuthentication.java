@@ -75,6 +75,7 @@ import org.springframework.stereotype.Component;
  * @author <a href="mailto:kli@melcoe.mq.edu.au">Xiang Kevin Li, MELCOE</a>
  * @author <a href="http://www.scottphillips.com">Scott Phillips</a>
  */
+@Component
 public class ShibAuthentication implements AuthenticationMethod {
     /**
      * log4j category
@@ -1054,11 +1055,20 @@ public class ShibAuthentication implements AuthenticationMethod {
             String header = metadataParts[0].trim();
             String name = metadataParts[1].trim().toLowerCase();
 
-            boolean valid = checkIfEpersonMetadataFieldExists(context, name);
+            // `name` is not just name of the metadata field like `phone` but is like `eperson.phone` and the method
+            // which find if the metadata field exists doesn't work with name in that type.
+            String[] schemaAndField = name.split("\\.");
+            if (schemaAndField.length != 2) {
+                log.error("Unable to parse schema and field string from name: '" + name + "'");
+                continue;
+            }
+
+            String fieldName = schemaAndField[1];
+            boolean valid = checkIfEpersonMetadataFieldExists(context, fieldName);
 
             if (!valid && autoCreate) {
                 // CHANGE method autoCreateEpersonMetadataField
-                valid = autoCreateEpersonMetadataField(context, name);
+                valid = autoCreateEpersonMetadataField(context, fieldName);
                 // CHANGE autoCreateEpersonMetadataField
             }
 

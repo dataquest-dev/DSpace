@@ -2,14 +2,22 @@ package org.dspace.app.rest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.checkerframework.checker.units.qual.A;
+import org.checkerframework.checker.units.qual.C;
 import org.dspace.app.rest.model.AuthnRest;
 import org.dspace.app.rest.model.hateoas.AuthnResource;
+import org.dspace.app.rest.security.clarin.ShibHeaders;
 import org.dspace.authenticate.ShibAuthentication;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
+import org.dspace.content.clarin.ClarinVerificationToken;
+import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.Utils;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.web.ContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +32,7 @@ import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Objects;
@@ -36,18 +45,30 @@ public class ClarinAutoRegistrationController {
 
     @Autowired
     ConfigurationService configurationService;
+    @Autowired
+    ClarinVerificationTokenService clarinVerificationTokenService;
+    @Autowired
+    EPersonService ePersonService;
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity sendEmail(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam("netid") String netid,
                                     @RequestParam("email") String email,
                                     @RequestParam("fname") String fname,
-                                    @RequestParam("lname") String lname) throws IOException, MessagingException {
+                                    @RequestParam("lname") String lname) throws IOException,
+            SQLException, AuthorizeException {
 
         Context context = ContextUtil.obtainCurrentRequestContext();
         if (Objects.isNull(context)) {
             log.error("Cannot obtain the context from the request");
             throw new RuntimeException("Cannot obtain the context from the request");
+        }
+
+        ClarinVerificationToken clarinVerificationToken = clarinVerificationTokenService.findByNetID(context, netid);
+        if (Objects.isNull(clarinVerificationToken)) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot load the clarin verification " +
+                    "token class by net id: " + netid);
+            return null;
         }
 
         String uiUrl = configurationService.getProperty("dspace.ui.url");
@@ -56,8 +77,15 @@ public class ClarinAutoRegistrationController {
             throw new RuntimeException("Cannot load the `dspace.ui.url` property from the cfg.");
         }
 
-        String autoregistrationURL = uiUrl + "/login/autoregistration?netid=" + netid + "&email=" + email +
-                "&fname=" + fname + "&lname=" + lname;
+        // Generate token and create ClarinVerificationToken record with the token and user email.
+        String verificationToken = Utils.generateHexKey();
+        clarinVerificationToken.setePersonNetID(netid);
+        clarinVerificationToken.setEmail(email);
+        clarinVerificationToken.setToken(verificationToken);
+        clarinVerificationTokenService.update(context, clarinVerificationToken);
+        context.commit();
+
+        String autoregistrationURL = uiUrl + "/login/autoregistration?verification-token=" + verificationToken;
         try {
             Locale locale = context.getCurrentLocale();
             Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale, "clarin_autoregistration"));
@@ -71,22 +99,51 @@ public class ClarinAutoRegistrationController {
         }
 
         return ResponseEntity.ok().build();
-
-        // Generate token
-        // Combine the URL request
-        // Send e-mail
-        // Return the response
     }
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity confirmEmail(HttpServletRequest request, HttpServletResponse response,
-                                       @RequestParam("netid") String netid,
-                                       @RequestParam("email") String email,
-                                       @RequestParam("fname") String fname,
-                                       @RequestParam("lname") String lname) {
+                                       @RequestParam("token") String token) throws IOException,
+            SQLException {
+        Context context = ContextUtil.obtainCurrentRequestContext();
+        if (Objects.isNull(context)) {
+            log.error("Cannot obtain the context from the request");
+            throw new RuntimeException("Cannot obtain the context from the request");
+        }
+
+        // Check if the token is valid
+        ClarinVerificationToken clarinVerificationToken = clarinVerificationTokenService.findByToken(context, token);
+        if (Objects.isNull(clarinVerificationToken)) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Verification token doesn't exists.");
+            return null;
+        }
+
+        try {
+            new ShibAuthentication().authenticate(context, "", "", "", request);
+        } catch (SQLException e) {
+            log.error("Cannot authenticate the user by an autoregistration URL because: " + e.getSQLState());
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Cannot authenticate the user by an autoregistration URL.");
+            // Remove the verification token record
+            clarinVerificationTokenService.delete(context, clarinVerificationToken);
+            return null;
+        }
+
+        // Remove the verification token
+        clarinVerificationTokenService.delete(context, clarinVerificationToken);
+        context.commit();
+
+        // If the Authentication was successful the Eperson should be found, because authentication register a new
+        // user if he doesn't exist.
+        EPerson ePerson = ePersonService.findByNetid(context, clarinVerificationToken.getePersonNetID());
+        if (Objects.isNull(ePerson)) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "The user wasn't successfully registered!");
+            return null;
+        }
 
         // Register the new user - call Shibboleth authenticate method
         // Send response
-        return null;
+        return ResponseEntity.ok().build();
     }
 }

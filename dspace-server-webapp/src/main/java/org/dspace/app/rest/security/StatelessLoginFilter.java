@@ -134,6 +134,8 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
         String fnameHeader = configurationService.getProperty("authentication-shibboleth.firstname-header");
         String lnameHeader = configurationService.getProperty("authentication-shibboleth.lastname-header");
 
+
+
         // Store header values in the ShibHeaders because of String issues.
         ShibHeaders shib_headers = new ShibHeaders(req);
 //        String netid = shib_headers.get_single(netidHeader);
