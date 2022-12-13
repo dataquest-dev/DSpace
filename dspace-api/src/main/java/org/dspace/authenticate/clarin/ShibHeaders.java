@@ -1,5 +1,5 @@
 /* Created for LINDAT/CLARIN */
-package org.dspace.app.rest.security.clarin;
+package org.dspace.authenticate.clarin;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -40,6 +40,10 @@ public class ShibHeaders
     public ShibHeaders(HttpServletRequest request) {
         initialise(request, null);
     }
+
+    public ShibHeaders(String shibHeaders) {
+        initialise(shibHeaders);
+    }
     
     // inits
     //
@@ -47,6 +51,11 @@ public class ShibHeaders
     public void initialise(HttpServletRequest request, List<String> interesting) 
     {
         headers_ = new Headers(request, header_separator_, interesting);
+    }
+
+    public void initialise(String shibHeaders)
+    {
+        headers_ = new Headers(shibHeaders, header_separator_);
     }
     
     //

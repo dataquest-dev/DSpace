@@ -17,9 +17,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.A;
-import org.dspace.app.rest.security.clarin.ShibHeaders;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.slf4j.Logger;
@@ -41,7 +38,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  */
 public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter {
     private static final Logger log = LoggerFactory.getLogger(StatelessLoginFilter.class);
-    private static final String USER_WITHOUT_EMAIL_EXCEPTION = "UserWithoutEmailException";
 
     protected AuthenticationManager authenticationManager;
 
@@ -81,15 +77,6 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
         String user = req.getParameter("user");
         String password = req.getParameter("password");
 
-        // If the Idp doesn't send the email in the request header, send the redirect order to the FE for the user
-        // to fill in the email.
-//        String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
-        // For testing
-        String emailHeader = "";
-        if (StringUtils.isBlank(emailHeader)) {
-            this.redirectToStaticPage(req, res);
-            return null;
-        }
 
         // Attempt to authenticate by passing user & password (if provided) to AuthenticationProvider class(es)
         // NOTE: This method will check if the user was already authenticated by StatelessAuthenticationFilter,
@@ -122,47 +109,6 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
         DSpaceAuthentication dSpaceAuthentication = (DSpaceAuthentication) auth;
         log.debug("Authentication successful for EPerson {}", dSpaceAuthentication.getName());
         restAuthenticationService.addAuthenticationDataForUser(req, res, dSpaceAuthentication, false);
-    }
-
-    protected void redirectToStaticPage(HttpServletRequest req,
-                                            HttpServletResponse res) throws IOException, ServletException {
-        String authenticateHeaderValue = restAuthenticationService.getWwwAuthenticateHeaderValue(req, res);
-
-        // Load header keys from cfg
-        String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
-        String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
-        String fnameHeader = configurationService.getProperty("authentication-shibboleth.firstname-header");
-        String lnameHeader = configurationService.getProperty("authentication-shibboleth.lastname-header");
-
-
-
-        // Store header values in the ShibHeaders because of String issues.
-        ShibHeaders shib_headers = new ShibHeaders(req);
-//        String netid = shib_headers.get_single(netidHeader);
-//        String email = shib_headers.get_single(emailHeader);
-//        String fname = shib_headers.get_single(fnameHeader);
-//        String lname = shib_headers.get_single(lnameHeader);
-
-        // For testing
-        String netid = "123456";
-        String email = "";
-        String fname = "Marcel";
-        String lname = "Pospisil";
-
-        // Create a new eperson with netid, firstname, lastname
-        // Create token
-        // Set eperson for the token
-
-        // Send the token in the request
-
-        // Add header values to the error message to retrieve them in the FE. That headers are needed for the
-        // next processing.
-        String separator = ",";
-        String[] headers = new String[] {USER_WITHOUT_EMAIL_EXCEPTION, netid, email, fname, lname};
-        String errorMessage = StringUtils.join(headers, separator);
-
-        res.setHeader("WWW-Authenticate", authenticateHeaderValue);
-        res.sendError(HttpServletResponse.SC_UNAUTHORIZED, errorMessage);
     }
 
     /**

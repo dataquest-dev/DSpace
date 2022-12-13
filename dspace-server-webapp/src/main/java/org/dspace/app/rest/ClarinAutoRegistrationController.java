@@ -2,14 +2,9 @@ package org.dspace.app.rest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.checkerframework.checker.units.qual.A;
-import org.checkerframework.checker.units.qual.C;
-import org.dspace.app.rest.model.AuthnRest;
-import org.dspace.app.rest.model.hateoas.AuthnResource;
-import org.dspace.app.rest.security.clarin.ShibHeaders;
-import org.dspace.authenticate.ShibAuthentication;
+import org.dspace.authenticate.clarin.ClarinShibAuthentication;
+import org.dspace.authenticate.clarin.ShibHeaders;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.Context;
@@ -26,14 +21,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -53,10 +45,7 @@ public class ClarinAutoRegistrationController {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity sendEmail(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam("netid") String netid,
-                                    @RequestParam("email") String email,
-                                    @RequestParam("fname") String fname,
-                                    @RequestParam("lname") String lname) throws IOException,
-            SQLException, AuthorizeException {
+                                    @RequestParam("email") String email) throws IOException, SQLException {
 
         Context context = ContextUtil.obtainCurrentRequestContext();
         if (Objects.isNull(context)) {
@@ -118,8 +107,9 @@ public class ClarinAutoRegistrationController {
             return null;
         }
 
+        request.setAttribute("shib.headers", clarinVerificationToken.getShibHeaders());
         try {
-            new ShibAuthentication().authenticate(context, "", "", "", request);
+            new ClarinShibAuthentication().authenticate(context, "", "", "", request);
         } catch (SQLException e) {
             log.error("Cannot authenticate the user by an autoregistration URL because: " + e.getSQLState());
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,

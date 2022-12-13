@@ -1,8 +1,9 @@
 /* Created for LINDAT/CLARIN */
-package org.dspace.app.rest.security.clarin;
+package org.dspace.authenticate.clarin;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,11 @@ public class Headers
 	public Headers(HttpServletRequest request, String header_separator )
 	{
 		initialise(request, header_separator, null);
+	}
+
+	public Headers(String shibHeaders, String header_separator )
+	{
+		initialise(shibHeaders, header_separator);
 	}
 	
 	public Headers(HttpServletRequest request, String header_separator, List<String> interesting )
@@ -57,10 +63,22 @@ public class Headers
     		headers_.put(key.toLowerCase(), vals);
     	}
 	}
-	
-	
-	//
-	//
+
+	public void initialise(String shibHeaders, String header_separator)
+	{
+		header_separator_ = header_separator;
+		//
+		for (String line : shibHeaders.split("\n")) {
+			String key = " ";
+			try {
+				String key_value[] = line.split("=");
+				key = key_value[0].trim();
+				headers_.put(key, List.of(key_value[1]));
+			}catch(Exception ex) {
+
+			}
+		}
+	}
 	
 	public String toString(){
 		StringBuilder ret = new StringBuilder();

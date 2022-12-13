@@ -1,14 +1,9 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE and NOTICE files at the root of the source
- * tree and available online at
- *
- * http://www.dspace.org/license/
- */
-package org.dspace.app.rest.security;
+package org.dspace.app.rest.security.clarin;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Objects;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -17,10 +12,20 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.dspace.authenticate.ShibAuthentication;
+import org.dspace.app.rest.security.DSpaceAuthentication;
+import org.dspace.app.rest.security.RestAuthenticationService;
+import org.dspace.app.rest.security.StatelessLoginFilter;
+import org.dspace.authenticate.clarin.ClarinShibAuthentication;
+import org.dspace.authenticate.clarin.ShibHeaders;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinVerificationToken;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.service.clarin.ClarinVerificationTokenService;
+import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.web.ContextUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -31,7 +36,7 @@ import org.springframework.security.core.AuthenticationException;
  * <P>
  * The overall Shibboleth login process is as follows:
  *   1. When Shibboleth plugin is enabled, client/UI receives Shibboleth's absolute URL in WWW-Authenticate header.
- *      See {@link org.dspace.authenticate.ShibAuthentication} loginPageURL() method.
+ *      See {@link ClarinShibAuthentication} loginPageURL() method.
  *   2. Client sends the user to that URL when they select Shibboleth authentication.
  *   3. User logs in using Shibboleth
  *   4. If successful, they are redirected by Shibboleth to the path where this Filter is "listening" (that path
@@ -49,25 +54,54 @@ import org.springframework.security.core.AuthenticationException;
  *
  * @author Giuseppe Digilio (giuseppe dot digilio at 4science dot it)
  * @author Tim Donohue
- * @see org.dspace.authenticate.ShibAuthentication
+ * @see ClarinShibAuthentication
  */
-public class ShibbolethLoginFilter extends StatelessLoginFilter {
-    private static final Logger log = LogManager.getLogger(ShibbolethLoginFilter.class);
+public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
+    public static final String USER_WITHOUT_EMAIL_EXCEPTION = "UserWithoutEmailException";
+    public static final String MISSING_HEADERS_FROM_IDP = "MissingHeadersFromIpd";
+
+    private static final Logger log = LogManager.getLogger(org.dspace.app.rest.security.ShibbolethLoginFilter.class);
 
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    private ClarinVerificationTokenService clarinVerificationTokenService = ClarinServiceFactory.getInstance()
+            .getClarinVerificationTokenService();
 
-    public ShibbolethLoginFilter(String url, AuthenticationManager authenticationManager,
+    public ClarinShibbolethLoginFilter(String url, AuthenticationManager authenticationManager,
                                  RestAuthenticationService restAuthenticationService) {
         super(url, authenticationManager, restAuthenticationService);
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest req,
-                                                HttpServletResponse res) throws AuthenticationException {
+                                                HttpServletResponse res) throws AuthenticationException, ServletException, IOException {
         // First, if Shibboleth is not enabled, throw an immediate ProviderNotFoundException
         // This tells Spring Security that authentication failed
-        if (!ShibAuthentication.isEnabled()) {
+        if (!ClarinShibAuthentication.isEnabled()) {
             throw new ProviderNotFoundException("Shibboleth is disabled.");
+        }
+
+        // If the Idp doesn't send the email in the request header, send the redirect order to the FE for the user
+        // to fill in the email.
+        String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
+        String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
+
+        ShibHeaders shib_headers = new ShibHeaders(req);
+        // Retrieve the netid and email values from the header.
+        String netid = shib_headers.get_single(netidHeader);
+        String idp = shib_headers.get_idp();
+        String email = shib_headers.get_single(emailHeader);
+
+        if (StringUtils.isEmpty(netid) || StringUtils.isEmpty(idp)) {
+            log.error("Cannot load the netid or idp from the request headers.");
+            this.redirectToMissingHeadersPage(res);
+            return null;
+        }
+
+        // The Idp doesn't send the email - the user will be redirected to the page where he must fill in that
+        // missing email
+        if (StringUtils.isBlank(email)) {
+            this.redirectToWriteEmailPage(req, res);
+            return null;
         }
 
         // In the case of Shibboleth, this method does NOT actually authenticate us. The authentication
@@ -87,7 +121,7 @@ public class ShibbolethLoginFilter extends StatelessLoginFilter {
 
         DSpaceAuthentication dSpaceAuthentication = (DSpaceAuthentication) auth;
         log.debug("Shib authentication successful for EPerson {}. Sending back temporary auth cookie",
-                  dSpaceAuthentication.getName());
+                dSpaceAuthentication.getName());
         // OVERRIDE DEFAULT behavior of StatelessLoginFilter to return a temporary authentication cookie containing
         // the Auth Token (JWT). This Cookie is required because we *redirect* the user back to the client/UI after
         // a successful Shibboleth login. Headers cannot be sent via a redirect, so a Cookie must be sent to provide
@@ -154,10 +188,55 @@ public class ShibbolethLoginFilter extends StatelessLoginFilter {
             response.sendRedirect(redirectUrl);
         } else {
             log.error("Invalid Shibboleth redirectURL=" + redirectUrl +
-                          ". URL doesn't match hostname of server or UI!");
+                    ". URL doesn't match hostname of server or UI!");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                               "Invalid redirectURL! Must match server or ui hostname.");
+                    "Invalid redirectURL! Must match server or ui hostname.");
         }
     }
 
+    protected void redirectToMissingHeadersPage(HttpServletResponse res) throws IOException {
+        res.sendError(HttpServletResponse.SC_UNAUTHORIZED, MISSING_HEADERS_FROM_IDP);
+    }
+
+    protected void redirectToWriteEmailPage(HttpServletRequest req,
+                                            HttpServletResponse res) throws IOException {
+        Context context = ContextUtil.obtainCurrentRequestContext();
+        String authenticateHeaderValue = restAuthenticationService.getWwwAuthenticateHeaderValue(req, res);
+
+        // Load header keys from cfg
+        String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
+
+        // Store the header which the Idp has sent to the ShibHeaders object and save that header into the table
+        // `verification_token` because after successful authentication the Idp headers will be showed for the user in
+        // the another page.
+        // Store header values in the ShibHeaders because of String issues.
+        ShibHeaders shib_headers = new ShibHeaders(req);
+        String netid = shib_headers.get_single(netidHeader);
+
+        // Store the Idp headers associated with the current netid.
+        try {
+            ClarinVerificationToken clarinVerificationToken =
+                    clarinVerificationTokenService.findByNetID(context, netid);
+            if (Objects.isNull(clarinVerificationToken)) {
+                clarinVerificationToken = clarinVerificationTokenService.create(context);
+                clarinVerificationToken.setePersonNetID(netid);
+            }
+            clarinVerificationToken.setShibHeaders(shib_headers.toString());
+            clarinVerificationTokenService.update(context, clarinVerificationToken);
+            context.commit();
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException("Cannot create or update the Clarin Verification Token because: "
+                    + e.getMessage());
+        }
+
+        // Add header values to the error message to retrieve them in the FE. That headers are needed for the
+        // next processing.
+        String separator = ",";
+        String[] headers = new String[] {USER_WITHOUT_EMAIL_EXCEPTION, netid};
+        String errorMessage = StringUtils.join(headers, separator);
+
+        res.setHeader("WWW-Authenticate", authenticateHeaderValue);
+        res.sendError(HttpServletResponse.SC_UNAUTHORIZED, errorMessage);
+    }
 }
+
