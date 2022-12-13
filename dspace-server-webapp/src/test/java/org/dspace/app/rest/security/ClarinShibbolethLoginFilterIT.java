@@ -40,7 +40,6 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     @Before
     public void setup() throws Exception {
         super.setUp();
-
         // Add a second trusted host for some tests
         configurationService.setProperty("rest.cors.allowed-origins",
                 "${dspace.ui.url}, http://anotherdspacehost:4000");
@@ -92,7 +91,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         String netId = "123456";
         String email = "test@mail.epic";
         String firstname = "Test";
-        String lastname = "Guy";
+        String lastname = "Buddy";
         String idp = "Test Idp";
 
         // Try to authenticate but the Shibboleth doesn't send the email in the header, so the user won't be registered

@@ -92,7 +92,7 @@ public class ClarinAutoRegistrationController {
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity confirmEmail(HttpServletRequest request, HttpServletResponse response,
-                                       @RequestParam("token") String token) throws IOException,
+                                       @RequestParam("verification-token") String token) throws IOException,
             SQLException {
         Context context = ContextUtil.obtainCurrentRequestContext();
         if (Objects.isNull(context)) {
