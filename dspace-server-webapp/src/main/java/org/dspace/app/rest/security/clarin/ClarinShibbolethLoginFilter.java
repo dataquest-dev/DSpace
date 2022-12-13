@@ -100,6 +100,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         // The Idp doesn't send the email - the user will be redirected to the page where he must fill in that
         // missing email
         if (StringUtils.isBlank(email)) {
+            log.error("Cannot load the shib email header from the request headers.");
             this.redirectToWriteEmailPage(req, res);
             return null;
         }
