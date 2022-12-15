@@ -9,6 +9,7 @@ package org.dspace.app.rest;
 
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.io.IOException;
@@ -20,13 +21,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.jena.atlas.json.JSON;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.BitstreamRest;
+import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.app.rest.model.hateoas.BitstreamResource;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.HttpHeadersInitializer;
@@ -34,6 +38,7 @@ import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
+import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
@@ -49,8 +54,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -100,6 +107,7 @@ public class BitstreamRestController {
     @Autowired
     Utils utils;
 
+//    @PreAuthorize("permitAll()")
     @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ')")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")
     public ResponseEntity retrieve(@PathVariable UUID uuid, HttpServletResponse response,
@@ -242,4 +250,5 @@ public class BitstreamRestController {
         BitstreamRest bitstreamRest = converter.toRest(context.reloadEntity(bitstream), utils.obtainProjection());
         return converter.toResource(bitstreamRest);
     }
+
 }

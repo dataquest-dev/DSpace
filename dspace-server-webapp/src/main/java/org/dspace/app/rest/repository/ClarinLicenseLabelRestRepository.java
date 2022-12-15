@@ -90,7 +90,6 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
         return converter.toRest(clarinLicenseLabel, utils.obtainProjection());
     }
 
-
     @Override
     public Class<ClarinLicenseLabelRest> getDomainClass() {
         return ClarinLicenseLabelRest.class;

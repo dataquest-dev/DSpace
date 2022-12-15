@@ -38,7 +38,8 @@ import org.dspace.core.ReloadableEntity;
  */
 @Entity
 @Table(name = "license_definition")
-public class ClarinLicense implements ReloadableEntity<Integer> {
+public class
+ClarinLicense implements ReloadableEntity<Integer> {
 
     @Id
     @Column(name = "license_id")
