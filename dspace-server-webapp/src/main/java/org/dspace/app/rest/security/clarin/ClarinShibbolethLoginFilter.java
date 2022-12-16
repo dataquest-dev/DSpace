@@ -23,6 +23,9 @@ import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.web.ContextUtil;
@@ -66,6 +69,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
     private ClarinVerificationTokenService clarinVerificationTokenService = ClarinServiceFactory.getInstance()
             .getClarinVerificationTokenService();
+    private EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
     public ClarinShibbolethLoginFilter(String url, AuthenticationManager authenticationManager,
                                  RestAuthenticationService restAuthenticationService) {
@@ -118,13 +122,22 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         String email = Objects.isNull(clarinVerificationToken) ?
                 shib_headers.get_single(emailHeader) : clarinVerificationToken.getEmail();
 
+        // If email is null and netid exist try to find the eperson by netid and load its email
+        if (StringUtils.isEmpty(email) && StringUtils.isNotEmpty(netid)) {
+            try {
+                EPerson ePerson = ePersonService.findByNetid(context, netid);
+                email = Objects.isNull(email) ? null : ePerson.getEmail();
+            } catch (SQLException ignored) {
+            }
+        }
+
         if (StringUtils.isEmpty(netid) || StringUtils.isEmpty(idp)) {
             log.error("Cannot load the netid or idp from the request headers.");
             this.redirectToMissingHeadersPage(res);
             return null;
         }
 
-        // The Idp doesn't send the email - the user will be redirected to the page where he must fill in that
+        // The Idp hasn't sent the email - the user will be redirected to the page where he must fill in that
         // missing email
         if (StringUtils.isBlank(email)) {
             log.error("Cannot load the shib email header from the request headers.");
@@ -218,8 +231,6 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
 
         if (StringUtils.equalsAnyIgnoreCase(redirectHostName, allowedHostNames.toArray(new String[0]))) {
             log.debug("Shibboleth redirecting to " + redirectUrl);
-            // TODO change
-            response.setHeader("access-control-allow-origin", "http://localhost:4000");
             response.sendRedirect(redirectUrl);
         } else {
             log.error("Invalid Shibboleth redirectURL=" + redirectUrl +

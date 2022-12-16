@@ -135,63 +135,14 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-NETID", netId)
                         .header("verification-token", clarinVerificationToken.getToken()))
                 .andExpect(status().isOk());
-    }
 
-    @Test
-    public void epersonExistAndTryLoginByShib() throws Exception {
-        String netId = "123456";
-        String email = "test@mail.epic";
-        String firstname = "Test";
-        String lastname = "Buddy";
-        String idp = "Test Idp";
-
-        // Try to authenticate but the Shibboleth doesn't send the email in the header, so the user won't be registered
-        // but the user will be redirected to the page where he will fill in the user email.
+        // Try to sign in the user by the email if the eperson exist
         getClient().perform(get("/api/authn/shibboleth")
                         .header("Shib-Identity-Provider", idp)
                         .header("SHIB-NETID", netId)
                         .header("SHIB-GIVENNAME", firstname)
-                        .header("SHIB-SURNAME", lastname))
-                .andExpect(status().isUnauthorized())
-                .andExpect(status().reason(USER_WITHOUT_EMAIL_EXCEPTION + "," + netId));
-
-        // Send the email with the verification token.
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(post("/api/autoregistration?netid=" + netId + "&email=" + email)
-                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isOk());
-
-        // Load the created verification token.
-        ClarinVerificationToken clarinVerificationToken = clarinVerificationTokenService.findByNetID(context, netId);
-        assertTrue(Objects.nonNull(clarinVerificationToken));
-
-        context.turnOffAuthorisationSystem();
-        EPersonBuilder.createEPerson(context)
-                .withNetId(netId)
-                .withCanLogin(false)
-                .withEmail(email)
-                .withNameInMetadata(firstname, lastname)
-                .build();
-        context.restoreAuthSystemState();
-
-        // Check if was created a user with such email and netid.
-        EPerson ePerson = ePersonService.findByNetid(context, netId);
-        assertTrue(Objects.nonNull(ePerson));
-        assertEquals(ePerson.getEmail(), email);
-        assertEquals(ePerson.getFirstName(), firstname);
-        assertEquals(ePerson.getLastName(), lastname);
-
-        // Register the user by the verification token.
-        getClient(tokenAdmin).perform(get("/api/autoregistration?verification-token=" +
-                        clarinVerificationToken.getToken())
-                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isOk());
-
-        // The user is registered now log him
-        getClient().perform(get("/api/authn/shibboleth")
-                        .header("Shib-Identity-Provider", idp)
-                        .header("SHIB-NETID", netId)
-                        .header("verification-token", clarinVerificationToken.getToken()))
-                .andExpect(status().isOk());
+                        .header("SHIB-SURNAME", lastname)
+                        .header("SHIB-MAIL", email))
+                .andExpect(status().isFound());
     }
 }
