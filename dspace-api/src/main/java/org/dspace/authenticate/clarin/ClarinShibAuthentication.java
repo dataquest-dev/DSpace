@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.authenticate.clarin;
 
 import org.apache.commons.lang3.StringUtils;
@@ -28,8 +35,6 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.web.ContextUtil;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,7 +54,9 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Shibboleth authentication for DSpace
+ * Shibboleth authentication for CLARIN-DSpace
+ *
+ * This class is customized ShibAuthentication class.
  *
  * Shibboleth is a distributed authentication system for securely authenticating
  * users and passing attributes about the user from one or more identity
@@ -70,8 +77,8 @@ import java.util.UUID;
  * @author <a href="mailto:bliong@melcoe.mq.edu.au">Bruc Liong, MELCOE</a>
  * @author <a href="mailto:kli@melcoe.mq.edu.au">Xiang Kevin Li, MELCOE</a>
  * @author <a href="http://www.scottphillips.com">Scott Phillips</a>
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-@Component
 public class ClarinShibAuthentication implements AuthenticationMethod {
     /**
      * log4j category
@@ -213,7 +220,6 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         // Shib headers could be loaded from the request header or request attribute. The shib headers are in the
         // request attribute only if the user is trying to authenticate by `verification token`.
         String shibHeadersAttr = (String) request.getAttribute("shib.headers");
-        ;
         if (StringUtils.isNotEmpty(shibHeadersAttr)) {
             shibheaders = new ShibHeaders(shibHeadersAttr);
         } else {
@@ -228,6 +234,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         }
 
         // The user e-mail is not stored in the `shibheaders` but in the `clarinVerificationToken`.
+        // The email was added to the `clarinVerificationToken` in the ClarinShibbolethFilter.
         String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
         clarinVerificationToken = clarinVerificationTokenService.findByNetID(context,
                 shibheaders.get_single(netidHeader));
@@ -591,6 +598,10 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
      *    The NetID-based method is superior because users may change their email
      *    address with the identity provider. When this happens DSpace will not be
      *    able to associate their new address with their old account.
+     *    CLARIN
+     *    Sometimes if the user with netid exists the epersonService.findByNetid cannot find it. This is happening
+     *    only if the user is authenticated with `verification-token`. This problem is fixed.
+     *    CLARIN
      *
      * 2) Email address from Shibboleth Header (okay)
      *    In the case where a NetID header is not available or not found DSpace
