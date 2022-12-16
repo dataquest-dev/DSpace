@@ -28,6 +28,7 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.web.ContextUtil;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -184,7 +185,6 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
     @Override
     public int authenticate(Context context, String username, String password,
                             String realm, HttpServletRequest request) throws SQLException {
-
         // Check if sword compatibility is allowed, and if so see if we can
         // authenticate based upon a username and password. This is really helpful
         // if your repo uses Shibboleth but you want some accounts to be able use
@@ -650,7 +650,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         // 2) Second, look for an email header.
         if (eperson == null && emailHeader != null) {
             String email = findSingleAttribute(request, emailHeader);
-            if (StringUtils.isEmpty(email)) {
+            if (StringUtils.isEmpty(email) && Objects.nonNull(clarinVerificationToken)) {
                 email = clarinVerificationToken.getEmail();
             }
 
@@ -669,7 +669,10 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                                     ".");
                 }
 
-                if (eperson != null && eperson.getNetid() != null) {
+                // The condition `Objects.isNull(clarinVerificationToken)` was added because ePersonService couldn't
+                // find the eperson by netid when he exists. Otherwise the service find the user correctly
+                // but in that case when the clarinVerificationToken is not null it cannot find him. Do not know why.
+                if (eperson != null && eperson.getNetid() != null && Objects.isNull(clarinVerificationToken)) {
                     // If the user has a netID it has been locked to that netid, don't let anyone else try and steal
                     // the account.
                     log.error(
@@ -769,7 +772,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         if (StringUtils.isEmpty(netid)) {
             netid = shibheaders.get_single(netidHeader);
         }
-        if (StringUtils.isEmpty(email)) {
+        if (StringUtils.isEmpty(email) && Objects.nonNull(clarinVerificationToken)) {
             email = clarinVerificationToken.getEmail();
         }
         if (StringUtils.isEmpty(fname)) {
@@ -900,7 +903,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         if (StringUtils.isEmpty(netid)) {
             netid = shibheaders.get_single(netidHeader);
         }
-        if (StringUtils.isEmpty(email)) {
+        if (StringUtils.isEmpty(email) && Objects.nonNull(clarinVerificationToken)) {
             email = clarinVerificationToken.getEmail();
         }
         if (StringUtils.isEmpty(fname)) {

@@ -123,6 +123,9 @@ public class ShibHeaders
         StringBuilder sb = new StringBuilder();
         for ( Map.Entry<String, List<String>> i : headers_.get().entrySet() )
         {
+            if (StringUtils.equals("cookie", i.getKey())) {
+                continue;
+            }
             sb.append(String.format("%s=%s\n", 
                     i.getKey(), StringUtils.join(i.getValue().toArray(), ",") ));
         }

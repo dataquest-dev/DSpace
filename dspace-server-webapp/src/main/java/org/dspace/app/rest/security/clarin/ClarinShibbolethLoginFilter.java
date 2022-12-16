@@ -59,6 +59,7 @@ import org.springframework.security.core.AuthenticationException;
 public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
     public static final String USER_WITHOUT_EMAIL_EXCEPTION = "UserWithoutEmailException";
     public static final String MISSING_HEADERS_FROM_IDP = "MissingHeadersFromIpd";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
 
     private static final Logger log = LogManager.getLogger(org.dspace.app.rest.security.ShibbolethLoginFilter.class);
 
@@ -85,11 +86,37 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
         String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
 
-        ShibHeaders shib_headers = new ShibHeaders(req);
+        Context context = ContextUtil.obtainContext(req);
+        if (Objects.isNull(context)) {
+            throw new RuntimeException("Cannot load the context");
+        }
+
+        // If the verification token is not null the user wants to login.
+        String verificationToken = req.getHeader("verification-token");
+        ClarinVerificationToken clarinVerificationToken;
+        try {
+            clarinVerificationToken = clarinVerificationTokenService.findByToken(context, verificationToken);
+        } catch (SQLException e) {
+            throw new RuntimeException("Cannot find clarin verification token by token: " + verificationToken + "" +
+                    " because: " + e.getSQLState());
+        }
+
+        // Load ShibHeader from request or from clarin verification token object.
+        ShibHeaders shib_headers;
+        if (Objects.nonNull(clarinVerificationToken)) {
+            // Set request attribute for authentication method.
+            req.setAttribute("shib.headers", clarinVerificationToken.getShibHeaders());
+            shib_headers = new ShibHeaders(clarinVerificationToken.getShibHeaders());
+        } else {
+            shib_headers = new ShibHeaders(req);
+        }
+
         // Retrieve the netid and email values from the header.
         String netid = shib_headers.get_single(netidHeader);
         String idp = shib_headers.get_idp();
-        String email = shib_headers.get_single(emailHeader);
+        // If the clarin verification object is not null load the email from there otherwise from header.
+        String email = Objects.isNull(clarinVerificationToken) ?
+                shib_headers.get_single(emailHeader) : clarinVerificationToken.getEmail();
 
         if (StringUtils.isEmpty(netid) || StringUtils.isEmpty(idp)) {
             log.error("Cannot load the netid or idp from the request headers.");
@@ -130,8 +157,13 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         // Auth token is only used in the Header from that point forward.
         restAuthenticationService.addAuthenticationDataForUser(req, res, dSpaceAuthentication, true);
 
-        // redirect user after completing Shibboleth authentication, sending along the temporary auth cookie
-        redirectAfterSuccess(req, res);
+        String verificationToken = req.getHeader("verification-token");
+        if (StringUtils.isEmpty(verificationToken)) {
+            // redirect user after completing Shibboleth authentication, sending along the temporary auth cookie
+            redirectAfterSuccess(req, res);
+        } else {
+            res.getWriter().write(res.getHeader(AUTHORIZATION_HEADER));
+        }
     }
 
     /**
@@ -186,6 +218,8 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
 
         if (StringUtils.equalsAnyIgnoreCase(redirectHostName, allowedHostNames.toArray(new String[0]))) {
             log.debug("Shibboleth redirecting to " + redirectUrl);
+            // TODO change
+            response.setHeader("access-control-allow-origin", "http://localhost:4000");
             response.sendRedirect(redirectUrl);
         } else {
             log.error("Invalid Shibboleth redirectURL=" + redirectUrl +
@@ -201,7 +235,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
 
     protected void redirectToWriteEmailPage(HttpServletRequest req,
                                             HttpServletResponse res) throws IOException {
-        Context context = ContextUtil.obtainCurrentRequestContext();
+        Context context = ContextUtil.obtainContext(req);
         String authenticateHeaderValue = restAuthenticationService.getWwwAuthenticateHeaderValue(req, res);
 
         // Load header keys from cfg

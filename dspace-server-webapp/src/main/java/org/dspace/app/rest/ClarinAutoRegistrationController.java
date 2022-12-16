@@ -114,13 +114,8 @@ public class ClarinAutoRegistrationController {
             log.error("Cannot authenticate the user by an autoregistration URL because: " + e.getSQLState());
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Cannot authenticate the user by an autoregistration URL.");
-            // Remove the verification token record
-            clarinVerificationTokenService.delete(context, clarinVerificationToken);
             return null;
         }
-
-        // Remove the verification token
-        clarinVerificationTokenService.delete(context, clarinVerificationToken);
         context.commit();
 
         // If the Authentication was successful the Eperson should be found, because authentication register a new
