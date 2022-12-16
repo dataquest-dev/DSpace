@@ -198,21 +198,26 @@ public class ShibAuthentication implements AuthenticationMethod {
             return BAD_ARGS;
         }
 
-        // CHANGE
-//        // Log all headers received if debugging is turned on. This is enormously
-//        // helpful when debugging shibboleth related problems.
-//        if (log.isDebugEnabled()) {
-//            log.debug("Starting Shibboleth Authentication");
-//        }
-//        ShibHeaders shibheaders = new ShibHeaders(request);
-//        shibheaders.log_headers();
-//
-//        String organization = shibheaders.get_idp();
-//        if (organization == null) {
-//            log.info("Exiting shibboleth authenticate because no idp set");
-//            return BAD_ARGS;
-//        }
-        // CHANGE
+
+        // Log all headers received if debugging is turned on. This is enormously
+        // helpful when debugging shibboleth related problems.
+        if (log.isDebugEnabled()) {
+            log.debug("Starting Shibboleth Authentication");
+
+            String message = "Received the following headers:\n";
+            @SuppressWarnings("unchecked")
+            Enumeration<String> headerNames = request.getHeaderNames();
+            while (headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
+                @SuppressWarnings("unchecked")
+                Enumeration<String> headerValues = request.getHeaders(headerName);
+                while (headerValues.hasMoreElements()) {
+                    String headerValue = headerValues.nextElement();
+                    message += "" + headerName + "='" + headerValue + "'\n";
+                }
+            }
+            log.debug(message);
+        }
 
         // Initialize the additional EPerson metadata.
         initialize(context);
@@ -628,20 +633,6 @@ public class ShibAuthentication implements AuthenticationMethod {
 
         // 2) Second, look for an email header.
         if (eperson == null && emailHeader != null) {
-
-            // CHANGE - MAYBE NOT this should be fixed by the method findSingleAttribute
-            /* <UFAL>
-             *
-             * Checking for a valid email address.
-             *
-             */
-
-//            IFunctionalities functionalityManager = DSpaceApi.getFunctionalityManager();
-//            email = functionalityManager.getEmailAcceptedOrNull ( email );
-
-            /* </UFAL> */
-            // Change
-
             String email = findSingleAttribute(request, emailHeader);
 
             if (email != null) {
@@ -741,12 +732,6 @@ public class ShibAuthentication implements AuthenticationMethod {
         String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
         String fnameHeader = configurationService.getProperty("authentication-shibboleth.firstname-header");
         String lnameHeader = configurationService.getProperty("authentication-shibboleth.lastname-header");
-        // CHANGE
-        // Instead of this - load the header from the configurationService.getProperty("authentication-shibboleth.lastname-header");
-//        String org = shib_headers.get_idp();
-//        if ( org == null ) {
-//            return null;
-//        }
 
         // Header values
         String netid = findSingleAttribute(request, netidHeader);
@@ -1067,9 +1052,7 @@ public class ShibAuthentication implements AuthenticationMethod {
             boolean valid = checkIfEpersonMetadataFieldExists(context, fieldName);
 
             if (!valid && autoCreate) {
-                // CHANGE method autoCreateEpersonMetadataField
                 valid = autoCreateEpersonMetadataField(context, fieldName);
-                // CHANGE autoCreateEpersonMetadataField
             }
 
             if (valid) {
@@ -1233,7 +1216,7 @@ public class ShibAuthentication implements AuthenticationMethod {
      * @param name    The name of the header
      * @return The value of the header requested, or null if none found.
      */
-    public String findSingleAttribute(HttpServletRequest request, String name) {
+    protected String findSingleAttribute(HttpServletRequest request, String name) {
         if (name == null) {
             return null;
         }
