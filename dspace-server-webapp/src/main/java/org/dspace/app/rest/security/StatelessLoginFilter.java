@@ -43,8 +43,6 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
     protected RestAuthenticationService restAuthenticationService;
 
-    private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-
     @Override
     public void afterPropertiesSet() {
     }
@@ -71,12 +69,10 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
      */
     @Override
     public Authentication attemptAuthentication(HttpServletRequest req,
-                                                HttpServletResponse res) throws AuthenticationException,
-            ServletException, IOException {
+                                                HttpServletResponse res) throws AuthenticationException {
 
         String user = req.getParameter("user");
         String password = req.getParameter("password");
-
 
         // Attempt to authenticate by passing user & password (if provided) to AuthenticationProvider class(es)
         // NOTE: This method will check if the user was already authenticated by StatelessAuthenticationFilter,

@@ -78,7 +78,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest req,
-                                                HttpServletResponse res) throws AuthenticationException, ServletException, IOException {
+                                                HttpServletResponse res) throws AuthenticationException {
         // First, if Shibboleth is not enabled, throw an immediate ProviderNotFoundException
         // This tells Spring Security that authentication failed
         if (!ClarinShibAuthentication.isEnabled()) {
@@ -131,18 +131,23 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
             }
         }
 
-        if (StringUtils.isEmpty(netid) || StringUtils.isEmpty(idp)) {
-            log.error("Cannot load the netid or idp from the request headers.");
-            this.redirectToMissingHeadersPage(res);
-            return null;
-        }
+        try {
+            if (StringUtils.isEmpty(netid) || StringUtils.isEmpty(idp)) {
+                log.error("Cannot load the netid or idp from the request headers.");
+                this.redirectToMissingHeadersPage(res);
+                return null;
+            }
 
-        // The Idp hasn't sent the email - the user will be redirected to the page where he must fill in that
-        // missing email
-        if (StringUtils.isBlank(email)) {
-            log.error("Cannot load the shib email header from the request headers.");
-            this.redirectToWriteEmailPage(req, res);
-            return null;
+            // The Idp hasn't sent the email - the user will be redirected to the page where he must fill in that
+            // missing email
+            if (StringUtils.isBlank(email)) {
+                log.error("Cannot load the shib email header from the request headers.");
+                this.redirectToWriteEmailPage(req, res);
+                return null;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot redirect the user to the Shibboleth authentication error page" +
+                    " because: " + e.getMessage());
         }
 
         // In the case of Shibboleth, this method does NOT actually authenticate us. The authentication
