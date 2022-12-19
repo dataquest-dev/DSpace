@@ -27,7 +27,7 @@ public class ClarinVerificationTokenServiceImpl implements ClarinVerificationTok
     AuthorizeService authorizeService;
 
     @Override
-    public ClarinVerificationToken create(Context context) throws SQLException, AuthorizeException {
+    public ClarinVerificationToken create(Context context) throws SQLException {
         ClarinVerificationToken clarinVerificationToken = clarinVerificationTokenDAO.create(context,
                 new ClarinVerificationToken());
 
@@ -35,18 +35,6 @@ public class ClarinVerificationTokenServiceImpl implements ClarinVerificationTok
                 "clarin_verification_token_id="+ clarinVerificationToken.getID()));
 
         return clarinVerificationToken;
-    }
-
-    @Override
-    public ClarinVerificationToken create(Context context, ClarinVerificationToken clarinVerificationToken)
-            throws SQLException, AuthorizeException {
-        ClarinVerificationToken newClarinVerificationToken = clarinVerificationTokenDAO.create(context,
-                clarinVerificationToken);
-
-        log.info(LogHelper.getHeader(context, "create_clarin_verification_token",
-                "clarin_verification_token_id="+ newClarinVerificationToken.getID()));
-
-        return newClarinVerificationToken;
     }
 
     @Override

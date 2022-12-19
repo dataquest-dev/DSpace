@@ -270,7 +270,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
             clarinVerificationToken.setShibHeaders(shib_headers.toString());
             clarinVerificationTokenService.update(context, clarinVerificationToken);
             context.commit();
-        } catch (SQLException | AuthorizeException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("Cannot create or update the Clarin Verification Token because: "
                     + e.getMessage());
         }
