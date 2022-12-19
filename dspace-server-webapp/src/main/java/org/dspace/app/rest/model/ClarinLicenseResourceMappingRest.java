@@ -1,9 +1,9 @@
 package org.dspace.app.rest.model;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
-
-import java.util.UUID;
 
 @LinksRest(links = {
         @LinkRest(

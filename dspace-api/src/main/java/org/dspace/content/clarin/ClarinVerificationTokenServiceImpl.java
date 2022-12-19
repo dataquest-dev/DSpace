@@ -7,10 +7,13 @@
  */
 package org.dspace.content.clarin;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
+
 import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.dao.clarin.ClarinLicenseDAO;
 import org.dspace.content.dao.clarin.ClarinVerificationTokenDAO;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.Context;
@@ -19,10 +22,6 @@ import org.hibernate.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Service implementation for the ClarinVerificationToken object.
@@ -46,7 +45,7 @@ public class ClarinVerificationTokenServiceImpl implements ClarinVerificationTok
                 new ClarinVerificationToken());
 
         log.info(LogHelper.getHeader(context, "create_clarin_verification_token",
-                "clarin_verification_token_id="+ clarinVerificationToken.getID()));
+                "clarin_verification_token_id=" + clarinVerificationToken.getID()));
 
         return clarinVerificationToken;
     }

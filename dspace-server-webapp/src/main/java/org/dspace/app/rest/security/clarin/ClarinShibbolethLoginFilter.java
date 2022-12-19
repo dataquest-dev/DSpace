@@ -24,7 +24,6 @@ import org.dspace.app.rest.security.RestAuthenticationService;
 import org.dspace.app.rest.security.StatelessLoginFilter;
 import org.dspace.authenticate.clarin.ClarinShibAuthentication;
 import org.dspace.authenticate.clarin.ShibHeaders;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
@@ -141,6 +140,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
                 EPerson ePerson = ePersonService.findByNetid(context, netid);
                 email = Objects.isNull(email) ? this.getEpersonEmail(ePerson) : null;
             } catch (SQLException ignored) {
+                //
             }
         }
 

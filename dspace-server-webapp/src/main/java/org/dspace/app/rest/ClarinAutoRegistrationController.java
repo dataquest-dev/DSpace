@@ -7,11 +7,16 @@
  */
 package org.dspace.app.rest;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Locale;
+import java.util.Objects;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authenticate.clarin.ClarinShibAuthentication;
-import org.dspace.authenticate.clarin.ShibHeaders;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.Context;
@@ -28,13 +33,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Locale;
-import java.util.Objects;
 
 /**
  * If the Shibboleth authentication failed because the IdP hasn't sent the `SHIB-EMAIL` header.

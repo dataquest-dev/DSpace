@@ -7,13 +7,13 @@
  */
 package org.dspace.authenticate;
 
-import org.dspace.AbstractUnitTest;
-import org.dspace.authenticate.clarin.ShibHeaders;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
+import org.dspace.AbstractUnitTest;
+import org.dspace.authenticate.clarin.ShibHeaders;
+import org.junit.Test;
 
 /**
  * Unit test for the class ShibHeaders. In this class is testing the added constructor the create the ShibHeaders

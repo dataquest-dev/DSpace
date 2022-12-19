@@ -7,8 +7,6 @@
  */
 package org.dspace.content.clarin;
 
-import org.dspace.core.ReloadableEntity;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,6 +14,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+
+import org.dspace.core.ReloadableEntity;
 
 /**
  * If the Shibboleth authentication failed because IdP hasn't sent the SHIB_EMAIL header.

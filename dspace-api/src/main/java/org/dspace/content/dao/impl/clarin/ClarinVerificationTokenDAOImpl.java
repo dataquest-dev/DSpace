@@ -7,15 +7,13 @@
  */
 package org.dspace.content.dao.impl.clarin;
 
-import org.dspace.content.clarin.ClarinLicense;
+import java.sql.SQLException;
+import javax.persistence.Query;
+
 import org.dspace.content.clarin.ClarinVerificationToken;
-import org.dspace.content.dao.clarin.ClarinLicenseDAO;
 import org.dspace.content.dao.clarin.ClarinVerificationTokenDAO;
 import org.dspace.core.AbstractHibernateDAO;
 import org.dspace.core.Context;
-
-import javax.persistence.Query;
-import java.sql.SQLException;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the ClarinVerificationToken object.

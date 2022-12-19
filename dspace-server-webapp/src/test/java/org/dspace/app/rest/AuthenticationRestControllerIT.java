@@ -17,7 +17,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -26,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.InputStream;
@@ -233,8 +231,8 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 //        // In this situation, we are mocking how Shibboleth works from our UI (see also ShibbolethLoginFilter):
 //        // (1) The UI sends the user to Shibboleth to login
 //        // (2) After a successful login, Shibboleth redirects user to /api/authn/shibboleth?redirectUrl=[url]
-//        // (3) That triggers generation of the auth token (JWT), and redirects the user to 'redirectUrl', sending along
-//        //     a temporary cookie containing the auth token.
+//        // (3) That triggers generation of the auth token (JWT), and redirects the user to 'redirectUrl',
+//        // sending along a temporary cookie containing the auth token.
 //        // In below call, we're sending a GET request (as that's what a redirect is), with a Referer of a "fake"
 //        // Shibboleth server to simulate this request coming back from Shibboleth (after a successful login).
 //        // We are then verifying the user will be redirected to the 'redirectUrl' with a single-use auth cookie
@@ -246,8 +244,9 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 //                .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
 //                .andExpect(status().is3xxRedirection())
 //                .andExpect(redirectedUrl(uiURL))
-//                // Verify that the CSRF token has NOT been changed. Creating the auth cookie should NOT change our CSRF
-//                // token. The CSRF token should only change when we call /login with the cookie (see later in this test)
+//                // Verify that the CSRF token has NOT been changed. Creating the auth cookie should NOT change our
+//                // CSRF token. The CSRF token should only change when we call /login with the cookie
+//                // (see later in this test)
 //                .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
 //                .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"))
 //                .andExpect(cookie().exists(AUTHORIZATION_COOKIE))
@@ -257,7 +256,8 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 //        assertNotNull(authCookie);
 //        String token = authCookie.getValue();
 //
-//        // This step is _not required_ to successfully authenticate, but it mocks the behavior of our UI & HAL Browser.
+//        // This step is _not required_ to successfully authenticate, but it mocks the behavior of our UI & HAL
+//        // Browser.
 //        // We'll send a "/status" request to the REST API with our auth cookie. This should return that we have a
 //        // *valid* authentication (as auth cookie is valid), however the cookie will remain. To complete the login
 //        // process we MUST call the "/login" endpoint (see the next step in this test).

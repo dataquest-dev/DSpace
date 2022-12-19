@@ -7,10 +7,8 @@
  */
 package org.dspace.app.rest.converter;
 
-import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.app.rest.model.ClarinVerificationTokenRest;
 import org.dspace.app.rest.projection.Projection;
-import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.springframework.stereotype.Component;
 

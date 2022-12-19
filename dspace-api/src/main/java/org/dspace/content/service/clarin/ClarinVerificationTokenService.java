@@ -7,15 +7,12 @@
  */
 package org.dspace.content.service.clarin;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.clarin.ClarinLicense;
-import org.dspace.content.clarin.ClarinUserRegistration;
-import org.dspace.content.clarin.ClarinVerificationToken;
-import org.dspace.core.Context;
-
 import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinVerificationToken;
+import org.dspace.core.Context;
 
 /**
  * Service interface class for the ClarinVerificationToken object.

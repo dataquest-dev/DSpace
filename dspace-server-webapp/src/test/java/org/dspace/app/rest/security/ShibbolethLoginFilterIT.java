@@ -7,29 +7,17 @@
  */
 package org.dspace.app.rest.security;
 
-import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.ArrayList;
-import java.util.List;
-import javax.ws.rs.core.MediaType;
 
 import org.dspace.app.rest.authorization.AuthorizationFeature;
 import org.dspace.app.rest.authorization.AuthorizationFeatureService;
 import org.dspace.app.rest.authorization.impl.CanChangePasswordFeature;
 import org.dspace.app.rest.converter.EPersonConverter;
 import org.dspace.app.rest.model.EPersonRest;
-import org.dspace.app.rest.model.patch.AddOperation;
-import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
-import org.dspace.builder.EPersonBuilder;
-import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.junit.Before;
 import org.junit.Test;
