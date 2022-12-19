@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 /* Created for LINDAT/CLARIN */
 package org.dspace.authenticate.clarin;
 
@@ -13,8 +20,10 @@ import java.util.Map;
 
 /**
  * Shibboleth authentication header abstraction for DSpace
- * 
+ *
  * Parses all headers in ctor.
+ * Class is copied from UFAL/CLARIN-DSPACE (https://github.com/ufal/clarin-dspace) and modified by
+ * @author Milan Majchrak (milan.majchrak at dataquest dot sk)
  */
 public class ShibHeaders
 {
@@ -115,10 +124,7 @@ public class ShibHeaders
         return keys;
     }    
     
-    /**
-     * 
-     */
-    public String toString() 
+    public String toString()
     {
         StringBuilder sb = new StringBuilder();
         for ( Map.Entry<String, List<String>> i : headers_.get().entrySet() )

@@ -50,7 +50,6 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.springframework.stereotype.Component;
 
 /**
  * Shibboleth authentication for DSpace
@@ -75,7 +74,6 @@ import org.springframework.stereotype.Component;
  * @author <a href="mailto:kli@melcoe.mq.edu.au">Xiang Kevin Li, MELCOE</a>
  * @author <a href="http://www.scottphillips.com">Scott Phillips</a>
  */
-@Component
 public class ShibAuthentication implements AuthenticationMethod {
     /**
      * log4j category
@@ -198,6 +196,8 @@ public class ShibAuthentication implements AuthenticationMethod {
             return BAD_ARGS;
         }
 
+        // Initialize the additional EPerson metadata.
+        initialize(context);
 
         // Log all headers received if debugging is turned on. This is enormously
         // helpful when debugging shibboleth related problems.
@@ -218,9 +218,6 @@ public class ShibAuthentication implements AuthenticationMethod {
             }
             log.debug(message);
         }
-
-        // Initialize the additional EPerson metadata.
-        initialize(context);
 
         // Should we auto register new users.
         boolean autoRegister = configurationService.getBooleanProperty("authentication-shibboleth.autoregister", true);

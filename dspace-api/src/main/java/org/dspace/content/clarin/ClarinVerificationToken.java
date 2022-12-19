@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
 
 import org.dspace.core.ReloadableEntity;
@@ -11,7 +18,9 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 /**
- * TODO
+ * If the Shibboleth authentication failed because IdP hasn't sent the SHIB_EMAIL header.
+ * The user retrieve the verification token to the email for registration and login.
+ * In the case of the Shibboleth Auth failure the IdP headers are stored as the string into the `shib_headers` column.
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
@@ -27,15 +36,27 @@ public class ClarinVerificationToken implements ReloadableEntity<Integer> {
             allocationSize = 1)
     private Integer id;
 
+    /**
+     * Value of the Shibboleth `SHIB-NETID` header.
+     */
     @Column(name = "eperson_netid")
     private String ePersonNetID = null;
 
+    /**
+     * The email filled in by the user.
+     */
     @Column(name = "email")
     private String email = null;
 
+    /**
+     * In the case of the Shibboleth Auth failure the IdP headers are stored as the string into this column.
+     */
     @Column(name = "shib_headers")
     private String shibHeaders = null;
 
+    /**
+     * Generated verification token which is sent to the email.
+     */
     @Column(name = "token")
     private String token = null;
 
