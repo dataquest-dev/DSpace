@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
 
 import org.apache.commons.lang.NullArgumentException;
@@ -17,6 +24,13 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Service implementation for the ClarinVerificationToken object.
+ * This class is responsible for all business logic calls for the ClarinVerificationToken object and
+ * is autowired by spring. This class should never be accessed directly.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinVerificationTokenServiceImpl implements ClarinVerificationTokenService {
 
     private static final Logger log = LoggerFactory.getLogger(ClarinVerificationTokenServiceImpl.class);
