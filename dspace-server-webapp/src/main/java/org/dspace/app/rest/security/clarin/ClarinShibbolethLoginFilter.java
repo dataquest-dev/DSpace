@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.security.clarin;
 
 import java.io.IOException;
@@ -17,7 +24,6 @@ import org.dspace.app.rest.security.RestAuthenticationService;
 import org.dspace.app.rest.security.StatelessLoginFilter;
 import org.dspace.authenticate.clarin.ClarinShibAuthentication;
 import org.dspace.authenticate.clarin.ShibHeaders;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
@@ -35,6 +41,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 /**
+ * This class is copied from `ShibbolethLoginFilter` and modified by the
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk).
+ *
  * This class will filter Shibboleth requests to see if the user has been authenticated via Shibboleth.
  * <P>
  * The overall Shibboleth login process is as follows:
@@ -44,14 +53,17 @@ import org.springframework.security.core.AuthenticationException;
  *   3. User logs in using Shibboleth
  *   4. If successful, they are redirected by Shibboleth to the path where this Filter is "listening" (that path
  *      is passed to Shibboleth as a URL param in step 1)
- *   5. This filter then intercepts the request in order to check for a valid Shibboleth login (see
+ *   4.1. This filter then intercepts the request in order to check for a valid Shibboleth login (see
  *      ShibAuthentication.authenticate()) and stores that user info in a JWT. It also saves that JWT in a *temporary*
  *      authentication cookie.
- *   6. This filter then looks for a "redirectUrl" param (also a part of the original URL from step 1), and redirects
- *      the user to that location (after verifying it's a trusted URL). Usually this is a redirect back to the
- *      Client/UI page where the User started.
- *   7. At that point, the client reads the JWT from the Cookie, and sends it back in a request to /api/authn/login,
+ *   4.2. At that point, the client reads the JWT from the Cookie, and sends it back in a request to /api/authn/login,
  *      which triggers the server-side to destroy the Cookie and move the JWT into a Header
+ *   5. If not successful:
+ *   5.1. The IdP hasn't sent the `Shib-Identity-Provider` or `SHIB-NETID` header. The user is redirected to the
+ *      static error page.
+ *   5.2. The IdP hasn't sent the `SHIB-EMAIL` header.
+ *      The request headers passed by IdP are stored into the `verification_token` table the `shib_headers` column.
+ *      The user is redirected to the page when he must fill his email.
  * <P>
  * This Shibboleth Authentication process is tested in AuthenticationRestControllerIT.
  *
@@ -245,10 +257,20 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         }
     }
 
+    /**
+     * The IdP hasn't sent the `Shib-Identity-Provider` or `SHIB-NETID` header. The user is redirected to the
+     * static error page (The UI process error message).
+     */
     protected void redirectToMissingHeadersPage(HttpServletResponse res) throws IOException {
         res.sendError(HttpServletResponse.SC_UNAUTHORIZED, MISSING_HEADERS_FROM_IDP);
     }
 
+    /**
+     * The IdP hasn't sent the `SHIB-EMAIL` header. The user is redirected to the page where he must fill in his
+     * email. (The UI process error message).
+     * The request headers passed by IdP are stored into the `verification_token` table the `shib_headers` column
+     * for later usage. After successful signing in the `verification_token` record is removed from the DB.
+     */
     protected void redirectToWriteEmailPage(HttpServletRequest req,
                                             HttpServletResponse res) throws IOException {
         Context context = ContextUtil.obtainContext(req);
