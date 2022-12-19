@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -39,6 +46,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * This is the repository responsible to manage ClarinVerificationToken Rest object
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Component(ClarinVerificationTokenRest.CATEGORY + "." + ClarinVerificationTokenRest.NAME)
 public class ClarinVerificationTokenRestRepository extends DSpaceRestRepository<ClarinVerificationTokenRest, Integer> {
     private static final Logger log = LogManager.getLogger(ClarinVerificationTokenRestRepository.class);
