@@ -176,7 +176,6 @@ public class ShibAuthentication implements AuthenticationMethod {
     @Override
     public int authenticate(Context context, String username, String password,
                             String realm, HttpServletRequest request) throws SQLException {
-
         // Check if sword compatibility is allowed, and if so see if we can
         // authenticate based upon a username and password. This is really helpful
         // if your repo uses Shibboleth but you want some accounts to be able use
