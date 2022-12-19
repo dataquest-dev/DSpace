@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.security;
 
 import org.dspace.app.rest.authorization.AuthorizationFeature;
@@ -26,6 +33,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * The test class for the customized Shibboleth Authentication Process.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk).
+ */
 public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegrationTest {
 
     public static final String[] SHIB_ONLY = {"org.dspace.authenticate.clarin.ClarinShibAuthentication"};
@@ -50,6 +62,9 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", SHIB_ONLY);
     }
 
+    /**
+     * Test the IdP hasn't sent the `Shib-Identity-Provider` or `SHIB-NETID` header.
+     */
     @Test
     public void shouldReturnMissingHeadersFromIdpExceptionBecauseOfMissingIdp() throws Exception {
         String netId = "123456";
@@ -62,6 +77,9 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(status().reason(MISSING_HEADERS_FROM_IDP));
     }
 
+    /**
+     * Test the IdP hasn't sent the `Shib-Identity-Provider` or `SHIB-NETID` header.
+     */
     @Test
     public void shouldReturnMissingHeadersFromIdpExceptionBecauseOfMissingNetId() throws Exception {
         String idp = "Test Idp";
@@ -74,6 +92,12 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(status().reason(MISSING_HEADERS_FROM_IDP));
     }
 
+    /**
+     * Test:
+     * The IdP hasn't sent the `SHIB-EMAIL` header.
+     * The request headers passed by IdP are stored into the `verification_token` table the `shib_headers` column.
+     * The user is redirected to the page when he must fill his email.
+     */
     @Test
     public void shouldReturnUserWithoutEmailException() throws Exception {
         String netId = "123456";
@@ -88,6 +112,16 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(status().reason(USER_WITHOUT_EMAIL_EXCEPTION + "," + netId));
     }
 
+    /**
+     * Test the authentication process:
+     * 1. The IdP hasn't sent the `SHIB-EMAIL` header and the user is redirected to the page to fill in his email.
+     * 2. Test to `ClarinAutoregistrationController.sendEmail` method to send the verification email to the users
+     * email.
+     * 3. Validate the users verification token and authenticate the user by the verification token. The user is
+     * automatically registered and signed in.
+     * 4. If the user is registered he is automatically signed in by the NETID which is passed from the IdP.
+     * @throws Exception
+     */
     @Test
     public void userFillInEmailAndShouldBeRegisteredByVerificationToken() throws Exception {
         String netId = "123456";
@@ -143,6 +177,14 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-GIVENNAME", firstname)
                         .header("SHIB-SURNAME", lastname)
                         .header("SHIB-MAIL", email))
+                .andExpect(status().isFound());
+
+        // Try to sign in the user by the netid if the eperson exist
+        getClient().perform(get("/api/authn/shibboleth")
+                        .header("Shib-Identity-Provider", idp)
+                        .header("SHIB-NETID", netId)
+                        .header("SHIB-GIVENNAME", firstname)
+                        .header("SHIB-SURNAME", lastname))
                 .andExpect(status().isFound());
     }
 }

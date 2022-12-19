@@ -40,6 +40,8 @@ import java.util.Objects;
  * If the Shibboleth authentication failed because the IdP hasn't sent the `SHIB-EMAIL` header.
  * Controller for sending the email with verification token to the user and confirming the token by it.
  *
+ * This Shibboleth Authentication process is tested in ClarinShibbolethLoginFilterIT.
+ *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 @RequestMapping(value = "/api/autoregistration")

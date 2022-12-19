@@ -24,6 +24,7 @@ import org.dspace.app.rest.security.RestAuthenticationService;
 import org.dspace.app.rest.security.StatelessLoginFilter;
 import org.dspace.authenticate.clarin.ClarinShibAuthentication;
 import org.dspace.authenticate.clarin.ShibHeaders;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
@@ -65,7 +66,7 @@ import org.springframework.security.core.AuthenticationException;
  *      The request headers passed by IdP are stored into the `verification_token` table the `shib_headers` column.
  *      The user is redirected to the page when he must fill his email.
  * <P>
- * This Shibboleth Authentication process is tested in AuthenticationRestControllerIT.
+ * This Shibboleth Authentication process is tested in ClarinShibbolethLoginFilterIT.
  *
  * @author Giuseppe Digilio (giuseppe dot digilio at 4science dot it)
  * @author Tim Donohue
@@ -138,7 +139,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         if (StringUtils.isEmpty(email) && StringUtils.isNotEmpty(netid)) {
             try {
                 EPerson ePerson = ePersonService.findByNetid(context, netid);
-                email = Objects.isNull(email) ? null : ePerson.getEmail();
+                email = Objects.isNull(email) ? this.getEpersonEmail(ePerson) : null;
             } catch (SQLException ignored) {
             }
         }
@@ -310,6 +311,13 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
 
         res.setHeader("WWW-Authenticate", authenticateHeaderValue);
         res.sendError(HttpServletResponse.SC_UNAUTHORIZED, errorMessage);
+    }
+
+    private String getEpersonEmail(EPerson ePerson) {
+        if (Objects.isNull(ePerson)) {
+            return null;
+        }
+        return ePerson.getEmail();
     }
 }
 
