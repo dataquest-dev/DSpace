@@ -7,7 +7,7 @@
         "lang": "en"
       },
       {
-        "value": "Arcibiskupské gymnázium v Kroměříži - Knihovna",
+        "value": "Arcibiskupsk gymnzium v Kromi - Knihovna",
         "lang": "cs"
       }
     ],
@@ -17,7 +17,7 @@
         "lang": "en"
       },
       {
-        "value": "Identity Provider pro zaměstnance a čtenáře knihovny Arcibiskupského gymnázia v Kroměříži",
+        "value": "Identity Provider pro zamstnance a tene knihovny Arcibiskupskho gymnzia v Kromi",
         "lang": "cs"
       }
     ],
@@ -43,21 +43,21 @@
     "entityID": "https://aleph.svkhk.cz/idp/shibboleth",
     "DisplayNames": [
       {
-        "value": "The Research Library in Hradec Králové",
+        "value": "The Research Library in Hradec Krlov",
         "lang": "en"
       },
       {
-        "value": "Studijní a vědecká knihovna v Hradci Králové",
+        "value": "Studijn a vdeck knihovna v Hradci Krlov",
         "lang": "cs"
       }
     ],
     "Descriptions": [
       {
-        "value": "Identity Provider for patrons and staff of the Research Library in Hradec Králové",
+        "value": "Identity Provider for patrons and staff of the Research Library in Hradec Krlov",
         "lang": "en"
       },
       {
-        "value": "Identity Provider pro čtenáře a zaměstance Studijní a vědecké knihovny v Hradci Králové",
+        "value": "Identity Provider pro tene a zamstance Studijn a vdeck knihovny v Hradci Krlov",
         "lang": "cs"
       }
     ],
@@ -92,17 +92,17 @@
         "lang": "en"
       },
       {
-        "value": "Ústav zemědělské ekonomiky a informací",
+        "value": "stav zemdlsk ekonomiky a informac",
         "lang": "cs"
       }
     ],
     "Descriptions": [
       {
-        "value": "Identity Provider for staff of the Institute of Agricultural Economics and Information and patrons of the Antonín Švehla Library",
+        "value": "Identity Provider for staff of the Institute of Agricultural Economics and Information and patrons of the Antonn vehla Library",
         "lang": "en"
       },
       {
-        "value": "Identity Provider pro zaměstnance ÚZEI a čtenáře Knihovny Antonína Švehly",
+        "value": "Identity Provider pro zamstnance ZEI a tene Knihovny Antonna vehly",
         "lang": "cs"
       }
     ],

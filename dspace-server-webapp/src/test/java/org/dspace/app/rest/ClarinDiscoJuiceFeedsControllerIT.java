@@ -34,20 +34,19 @@ public class ClarinDiscoJuiceFeedsControllerIT extends AbstractControllerIntegra
         // Expected response created from the test file: `discofeedResponse.json`
         // Wrapped to the `callback` string = `dj_md_1`
         String responseString = "dj_md_1([{\"country\":\"CZ\",\"keywords\":[\"Identity Provider for employees and " +
-                "readers of the Archiepiscopal Gymnasium in Kromeriz - Library\",\"Identity Provider pro" +
-                " zamÄ\\u203Astnance a ÄŤtenĂˇĹ™e knihovny ArcibiskupskĂ©ho gymnĂˇzia v KromÄ\\u203AĹ™Ă\u00ADĹľi\"," +
-                "\"ArcibiskupskĂ© gymnĂˇzium v KromÄ\\u203AĹ™Ă\u00ADĹľi - Knihovna\"],\"entityID\":\"https:" +
-                "\\/\\/agkm.cz\\/idp\\/shibboleth\",\"title\":\"Archiepiscopal Gymnasium in Kromeriz - Library\"}," +
-                "{\"country\":\"CZ\",\"keywords\":[\"Identity Provider for staff of the Institute of Agricultural " +
-                "Economics and Information and patrons of the AntonĂ\u00ADn Ĺ vehla Library\",\"Identity Provider" +
-                " pro zamÄ\\u203Astnance ĂšZEI a ÄŤtenĂˇĹ™e Knihovny AntonĂ\u00ADna Ĺ vehly\",\"Ăšstav " +
-                "zemÄ\\u203AdÄ\\u203AlskĂ© ekonomiky a informacĂ\u00AD\"],\"entityID\":\"https:\\/\\/aleph" +
-                ".uzei.cz\\/idp\\/shibboleth\",\"title\":\"Institute of Agricultural Economics and Information\"}," +
-                "{\"country\":\"CZ\",\"keywords\":[\"Identity Provider for patrons and staff of the Research Library" +
-                " in Hradec KrĂˇlovĂ©\",\"Identity Provider pro ÄŤtenĂˇĹ™e a zamÄ\\u203Astance StudijnĂ\u00AD a" +
-                " vÄ\\u203AdeckĂ© knihovny v Hradci KrĂˇlovĂ©\",\"StudijnĂ\u00AD a vÄ\\u203AdeckĂˇ knihovna v" +
-                " Hradci KrĂˇlovĂ©\"],\"entityID\":\"https:\\/\\/aleph.svkhk.cz\\/idp\\/shibboleth\",\"title\":" +
-                "\"The Research Library in Hradec KrĂˇlovĂ©\"}])";
+                "readers of the Archiepiscopal Gymnasium in Kromeriz - Library\",\"Identity Provider pro zamstnance " +
+                "a tene knihovny Arcibiskupskho gymnzia v Kromi\",\"Arcibiskupsk gymnzium v Kromi - " +
+                "Knihovna\"],\"entityID\":\"https:\\/\\/agkm.cz\\/idp\\/shibboleth\",\"title\":\"Archiepiscopal " +
+                "Gymnasium in Kromeriz - Library\"},{\"country\":\"CZ\",\"keywords\":[\"Identity Provider for staff " +
+                "of the Institute of Agricultural Economics and Information and patrons of the Antonn vehla " +
+                "Library\",\"Identity Provider pro zamstnance ZEI a tene Knihovny Antonna vehly\",\"stav " +
+                "zemdlsk ekonomiky a informac\"],\"entityID\":\"https:\\/\\/aleph.uzei.cz\\/idp\\/shibboleth\"," +
+                "\"title\":\"Institute of Agricultural Economics and Information\"},{\"country\":\"CZ\",\"" +
+                "keywords\":[\"Identity Provider for patrons and staff of the Research Library in Hradec Krlov\"," +
+                "\"Identity Provider pro tene a zamstance Studijn a vdeck knihovny v Hradci Krlov\"," +
+                "\"Studijn a vdeck knihovna v Hradci Krlov\"],\"entityID\":\"https:\\/\\/aleph.svkhk.cz\\" +
+                "/idp\\/shibboleth\",\"title\":\"The Research Library in Hradec Krlov\"}])";
+
 
         // Load bitstream from the item.
         // Request with callback
