@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -37,7 +45,7 @@ import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
-@RequestMapping("/api/licenses/licens")
+@RequestMapping("/api/licenses/import")
 public class ClarinLicenseImportRestController {
 
     private static final Logger log = org.apache.logging.log4j.LogManager
@@ -52,8 +60,8 @@ public class ClarinLicenseImportRestController {
     @Autowired
     ClarinLicenseService clarinLicenseService;
 
-    @RequestMapping(method = POST)
-    @PreAuthorize("permitAll()")
+    @RequestMapping(method = RequestMethod.POST, value = "/labels")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity importLincenseLabels(@RequestBody(required = false) List<JsonNode> licenseLabels,
                                               HttpServletRequest request, HttpServletResponse response)
             throws SQLException, AuthorizeException {
@@ -77,8 +85,7 @@ public class ClarinLicenseImportRestController {
                     throw new UnprocessableEntityException("Error parsing request body", e1);
                 }
 
-                if (isBlank(inputLicenseLabel.getLabel()) || isBlank(inputLicenseLabel.getTitle()) ||
-                        ArrayUtils.isEmpty(inputLicenseLabel.getIcon())) {
+                if (isBlank(inputLicenseLabel.getLabel()) || isBlank(inputLicenseLabel.getTitle())) {
                     throw new UnprocessableEntityException("Clarin License Label title, label, icon cannot be null or empty");
                 }
 
@@ -96,8 +103,8 @@ public class ClarinLicenseImportRestController {
         return new ResponseEntity<>("Import License Labels were successful", HttpStatus.OK);
     }
 
-    @RequestMapping(method = POST)
-    @PreAuthorize("permitAll()")
+    @RequestMapping(method = RequestMethod.POST, value = "/extendedMapping")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity importLincenseLabelExtendedMapping(@RequestBody(required = false) List<JsonNode> licenseLabelExtendedMappings,
                                           HttpServletRequest request, HttpServletResponse response)
             throws SQLException, AuthorizeException {
@@ -120,7 +127,7 @@ public class ClarinLicenseImportRestController {
                 }
                 ClarinLicenseLabel clarinLicenseLabel = null;
                 try {
-                    Integer licenseLabelID = this.licenseLabelsIds.get(jsonLicenseLabelExtendedMapping.get("label_id"));
+                    Integer licenseLabelID = this.licenseLabelsIds.get(jsonLicenseLabelExtendedMapping.get("label_id").asInt());
                     if (licenseLabelID == null) {
                         //May I throw this error? maybe the first control is not necessary
                         return new ResponseEntity<>("License label doesn't exist", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -139,8 +146,8 @@ public class ClarinLicenseImportRestController {
         return new ResponseEntity<>("Import License label extended mappings were successful", HttpStatus.OK);
     }
 
-    @RequestMapping(method = POST)
-    @PreAuthorize("permitAll()")
+    @RequestMapping(method = RequestMethod.POST, value = "/licenses")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity importLincenses(@RequestBody(required = false) List<JsonNode> licenses,
                                                HttpServletRequest request, HttpServletResponse response)
             throws SQLException, AuthorizeException {
