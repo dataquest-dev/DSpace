@@ -18,14 +18,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import javax.ws.rs.core.NoContentException;
 
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
@@ -110,13 +111,6 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
         if (ArrayUtils.isEmpty(feedsConfig)) {
             throw new RuntimeException("Cannot load the property `discojuice.feeds` from the configuration " +
                     "file, maybe it is not set in the configuration file");
-        }
-
-        // For test load the DiscoFeed response from the test file. The property must start with `TEST:` prefix.
-        if (StringUtils.startsWith(shibbolethDiscoFeedUrl,"TEST:")) {
-            Path resourceDirectory = Paths.get("src","test","resources");
-            String absolutePath = resourceDirectory.toFile().getAbsolutePath();
-            shibbolethDiscoFeedUrl = "file:/" + absolutePath + "/org/dspace/app/rest/discofeedResponse.json";
         }
 
         String old_value = System.getProperty("jsse.enableSNIExtension");
@@ -244,10 +238,30 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
         return res;
     }
 
+    /**
+     * Open Connection for the test file or URL defined in the cfg.
+     */
+    private static URLConnection openURLConnection(String url) throws IOException {
+        // If is not test.
+        if (!StringUtils.startsWith(url,"TEST:")) {
+            return new URL(url).openConnection();
+        }
+
+        URL testFileURL = null;
+        // For test load the DiscoFeed response from the test file. The property must start with `TEST:` prefix.
+        testFileURL = ClarinDiscoJuiceFeedsDownloadService.class.getResource("discofeedResponse.json");
+        if (Objects.isNull(testFileURL)) {
+            throw new NoContentException("Cannot open the test `discofeedResponse.json` file.");
+        }
+        return testFileURL.openConnection();
+    }
+
     private static JSONArray downloadJSON(String url) {
+
+
         JSONParser parser = new JSONParser();
         try {
-            URLConnection conn = new URL(url).openConnection();
+            URLConnection conn = openURLConnection(url);
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(10000);
             //Caution does not follow redirects, and even if you set it to http->https is not possible
