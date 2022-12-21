@@ -1,4 +1,28 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.authenticate.clarin;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -28,27 +52,11 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.springframework.stereotype.Component;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 
 /**
- * Shibboleth authentication for DSpace
+ * Shibboleth authentication for CLARIN-DSpace
+ *
+ * This class is customized ShibAuthentication class.
  *
  * Shibboleth is a distributed authentication system for securely authenticating
  * users and passing attributes about the user from one or more identity
@@ -69,8 +77,8 @@ import java.util.UUID;
  * @author <a href="mailto:bliong@melcoe.mq.edu.au">Bruc Liong, MELCOE</a>
  * @author <a href="mailto:kli@melcoe.mq.edu.au">Xiang Kevin Li, MELCOE</a>
  * @author <a href="http://www.scottphillips.com">Scott Phillips</a>
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-@Component
 public class ClarinShibAuthentication implements AuthenticationMethod {
     /**
      * log4j category
@@ -184,7 +192,6 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
     @Override
     public int authenticate(Context context, String username, String password,
                             String realm, HttpServletRequest request) throws SQLException {
-
         // Check if sword compatibility is allowed, and if so see if we can
         // authenticate based upon a username and password. This is really helpful
         // if your repo uses Shibboleth but you want some accounts to be able use
@@ -213,7 +220,6 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         // Shib headers could be loaded from the request header or request attribute. The shib headers are in the
         // request attribute only if the user is trying to authenticate by `verification token`.
         String shibHeadersAttr = (String) request.getAttribute("shib.headers");
-        ;
         if (StringUtils.isNotEmpty(shibHeadersAttr)) {
             shibheaders = new ShibHeaders(shibHeadersAttr);
         } else {
@@ -228,6 +234,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         }
 
         // The user e-mail is not stored in the `shibheaders` but in the `clarinVerificationToken`.
+        // The email was added to the `clarinVerificationToken` in the ClarinShibbolethFilter.
         String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
         clarinVerificationToken = clarinVerificationTokenService.findByNetID(context,
                 shibheaders.get_single(netidHeader));
@@ -265,7 +272,8 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
             return AuthenticationMethod.SUCCESS;
         } catch (Throwable t) {
             // Log the error, and undo the authentication before returning a failure.
-            log.error("Unable to successfully authenticate using shibboleth for user because of an exception.", t);
+            log.error("Unable to successfully authenticate using shibboleth for user because of " +
+                    "an exception.", t);
             context.setCurrentUser(null);
             return AuthenticationMethod.NO_SUCH_USER;
         }
@@ -329,7 +337,8 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
             }
 
             log.debug("Starting to determine special groups");
-            String[] defaultRoles = configurationService.getArrayProperty("authentication-shibboleth.default-roles");
+            String[] defaultRoles =
+                    configurationService.getArrayProperty("authentication-shibboleth.default-roles");
             String roleHeader = configurationService.getProperty("authentication-shibboleth.role-header");
             boolean ignoreScope = configurationService
                     .getBooleanProperty("authentication-shibboleth.role-header.ignore-scope", true);
@@ -338,10 +347,10 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
             if (ignoreScope && ignoreValue) {
                 throw new IllegalStateException(
-                        "Both config parameters for ignoring an roll attributes scope and value are turned on, this is " +
-                                "not a permissable configuration. (Note: ignore-scope defaults to true) The configuration " +
-                                "parameters are: 'authentication.shib.role-header.ignore-scope' and 'authentication.shib" +
-                                ".role-header.ignore-value'");
+                        "Both config parameters for ignoring an roll attributes scope and value are turned on," +
+                                " this is not a permissable configuration. (Note: ignore-scope defaults to true) " +
+                                "The configuration parameters are: 'authentication.shib.role-header.ignore-scope' " +
+                                "and 'authentication.shib.role-header.ignore-value'");
             }
 
             // Get the Shib supplied affiliation or use the default affiliation
@@ -351,9 +360,8 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                     affiliations = Arrays.asList(defaultRoles);
                 }
                 log.debug(
-                        "Failed to find Shibboleth role header, '" + roleHeader + "', falling back to the default roles: " +
-                                "'" + StringUtils
-                                .join(defaultRoles, ",") + "'");
+                        "Failed to find Shibboleth role header, '" + roleHeader + "', falling back" +
+                                " to the default roles: '" + StringUtils.join(defaultRoles, ",") + "'");
             } else {
                 log.debug("Found Shibboleth role header: '" + roleHeader + "' = '" + affiliations + "'");
             }
@@ -388,12 +396,13 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                     if (groupNames == null) {
                         log.debug(
                                 "Unable to find role mapping for the value, '" + affiliation + "', there should be a " +
-                                        "mapping in config/modules/authentication-shibboleth.cfg:  role." + affiliation + " =" +
-                                        " <some group name>");
+                                        "mapping in config/modules/authentication-shibboleth.cfg:  role." +
+                                        affiliation + " = <some group name>");
                         continue;
                     } else {
                         log.debug(
-                                "Mapping role affiliation to DSpace group: '" + StringUtils.join(groupNames, ",") + "'");
+                                "Mapping role affiliation to DSpace group: '" + StringUtils.join(groupNames,
+                                        ",") + "'");
                     }
 
                     // Add each group to the list.
@@ -407,9 +416,8 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                             }
                         } catch (SQLException sqle) {
                             log.error(
-                                    "Exception thrown while trying to lookup affiliation role for group name: '" +
-                                            groupNames[i]
-                                                    .trim() + "'", sqle);
+                                    "Exception thrown while trying to lookup affiliation role for" +
+                                            " group name: '" + groupNames[i].trim() + "'", sqle);
                         }
                     } // for each groupNames
                 } // foreach affiliations
@@ -591,6 +599,10 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
      *    The NetID-based method is superior because users may change their email
      *    address with the identity provider. When this happens DSpace will not be
      *    able to associate their new address with their old account.
+     *    CLARIN
+     *    Sometimes if the user with netid exists the epersonService.findByNetid cannot find it. This is happening
+     *    only if the user is authenticated with `verification-token`. This problem is fixed.
+     *    CLARIN
      *
      * 2) Email address from Shibboleth Header (okay)
      *    In the case where a NetID header is not available or not found DSpace
@@ -641,8 +653,8 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                                     netid + "'.");
                 } else {
                     log.debug(
-                            "Identified EPerson based upon Shibboleth netid header: '" + netidHeader + "'='" + netid + "'" +
-                                    ".");
+                            "Identified EPerson based upon Shibboleth netid header: '" + netidHeader + "'='" +
+                                    netid + "'" + ".");
                 }
             }
         }
@@ -650,7 +662,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         // 2) Second, look for an email header.
         if (eperson == null && emailHeader != null) {
             String email = findSingleAttribute(request, emailHeader);
-            if (StringUtils.isEmpty(email)) {
+            if (StringUtils.isEmpty(email) && Objects.nonNull(clarinVerificationToken)) {
                 email = clarinVerificationToken.getEmail();
             }
 
@@ -665,19 +677,22 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                                     email + "'.");
                 } else {
                     log.info(
-                            "Identified EPerson based upon Shibboleth email header: '" + emailHeader + "'='" + email + "'" +
-                                    ".");
+                            "Identified EPerson based upon Shibboleth email header: '" + emailHeader + "'='"
+                                    + email + "'" + ".");
                 }
 
-                if (eperson != null && eperson.getNetid() != null) {
+                // The condition `Objects.isNull(clarinVerificationToken)` was added because ePersonService couldn't
+                // find the eperson by netid when he exists. Otherwise the service find the user correctly
+                // but in that case when the clarinVerificationToken is not null it cannot find him. Do not know why.
+                if (eperson != null && eperson.getNetid() != null && Objects.isNull(clarinVerificationToken)) {
                     // If the user has a netID it has been locked to that netid, don't let anyone else try and steal
                     // the account.
                     log.error(
-                            "The identified EPerson based upon Shibboleth email header, '" + emailHeader + "'='" + email
-                                    + "', is locked to another netid: '" + eperson
-                                    .getNetid() + "'. This might be a possible hacking attempt to steal another users " +
-                                    "credentials. If the user's netid has changed you will need to manually change it to the " +
-                                    "correct value or unset it in the database.");
+                            "The identified EPerson based upon Shibboleth email header, '" + emailHeader + "'='"
+                                    + email + "', is locked to another netid: '" + eperson.getNetid() +
+                                    "'. This might be a possible hacking attempt to steal another users " +
+                                    "credentials. If the user's netid has changed you will need to manually " +
+                                    "change it to the correct value or unset it in the database.");
                     eperson = null;
                 }
             }
@@ -704,9 +719,9 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                     log.error(
                             "The identified EPerson based upon Tomcat's remote user, '" + email + "', is locked to " +
                                     "another netid: '" + eperson
-                                    .getNetid() + "'. This might be a possible hacking attempt to steal another users " +
-                                    "credentials. If the user's netid has changed you will need to manually change it to the " +
-                                    "correct value or unset it in the database.");
+                                    .getNetid() + "'. This might be a possible hacking attempt to steal another" +
+                                    " users credentials. If the user's netid has changed you will need to manually" +
+                                    " change it to the correct value or unset it in the database.");
                     eperson = null;
                 }
             }
@@ -714,8 +729,8 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
         if (!foundNetID && !foundEmail && !foundRemoteUser) {
             log.error(
-                    "Shibboleth authentication was not able to find a NetId, Email, or Tomcat Remote user for which to " +
-                            "indentify a user from.");
+                    "Shibboleth authentication was not able to find a NetId, Email, or Tomcat Remote user for " +
+                            "which to indentify a user from.");
         }
 
 
@@ -769,7 +784,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         if (StringUtils.isEmpty(netid)) {
             netid = shibheaders.get_single(netidHeader);
         }
-        if (StringUtils.isEmpty(email)) {
+        if (StringUtils.isEmpty(email) && Objects.nonNull(clarinVerificationToken)) {
             email = clarinVerificationToken.getEmail();
         }
         if (StringUtils.isEmpty(fname)) {
@@ -832,7 +847,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
          *
          */
         // if no email the registration is postponed after entering and confirming mail
-        if(Objects.nonNull(email)) {
+        if (Objects.nonNull(email)) {
             try {
                 ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
                 clarinUserRegistration.setConfirmation(true);
@@ -842,7 +857,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                 clarinUserRegistrationService.create(context, clarinUserRegistration);
                 eperson.setCanLogIn(false);
                 ePersonService.update(context, eperson);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 throw new AuthorizeException("User has not been added among registred users!") ;
             }
         }
@@ -900,7 +915,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         if (StringUtils.isEmpty(netid)) {
             netid = shibheaders.get_single(netidHeader);
         }
-        if (StringUtils.isEmpty(email)) {
+        if (StringUtils.isEmpty(email) && Objects.nonNull(clarinVerificationToken)) {
             email = clarinVerificationToken.getEmail();
         }
         if (StringUtils.isEmpty(fname)) {
@@ -1012,20 +1027,20 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         if (eperson == null) {
             // lookup failed.
             log.error(
-                    "Shibboleth-based password authentication failed for user " + username + " because no such user " +
-                            "exists.");
+                    "Shibboleth-based password authentication failed for user " + username +
+                            " because no such user exists.");
             return NO_SUCH_USER;
         } else if (!eperson.canLogIn()) {
             // cannot login this way
             log.error(
-                    "Shibboleth-based password authentication failed for user " + username + " because the eperson object" +
-                            " is not allowed to login.");
+                    "Shibboleth-based password authentication failed for user " + username +
+                            " because the eperson object is not allowed to login.");
             return BAD_ARGS;
         } else if (eperson.getRequireCertificate()) {
             // this user can only login with x.509 certificate
             log.error(
-                    "Shibboleth-based password authentication failed for user " + username + " because the eperson object" +
-                            " requires a certificate to authenticate..");
+                    "Shibboleth-based password authentication failed for user " + username +
+                            " because the eperson object requires a certificate to authenticate..");
             return CERT_REQUIRED;
         } else if (ePersonService.checkPassword(context, eperson, password)) {
             // Password matched
@@ -1038,8 +1053,8 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         } else {
             // Passsword failure
             log.error(
-                    "Shibboleth-based password authentication failed for user " + username + " because a bad password was" +
-                            " supplied.");
+                    "Shibboleth-based password authentication failed for user " + username +
+                            " because a bad password was supplied.");
             return BAD_CREDENTIALS;
         }
 

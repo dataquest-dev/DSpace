@@ -8,17 +8,11 @@
 package org.dspace.app.rest.security;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,8 +36,6 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
     protected AuthenticationManager authenticationManager;
 
     protected RestAuthenticationService restAuthenticationService;
-
-    private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     @Override
     public void afterPropertiesSet() {
@@ -71,12 +63,10 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
      */
     @Override
     public Authentication attemptAuthentication(HttpServletRequest req,
-                                                HttpServletResponse res) throws AuthenticationException,
-            ServletException, IOException {
+                                                HttpServletResponse res) throws AuthenticationException {
 
         String user = req.getParameter("user");
         String password = req.getParameter("password");
-
 
         // Attempt to authenticate by passing user & password (if provided) to AuthenticationProvider class(es)
         // NOTE: This method will check if the user was already authenticated by StatelessAuthenticationFilter,

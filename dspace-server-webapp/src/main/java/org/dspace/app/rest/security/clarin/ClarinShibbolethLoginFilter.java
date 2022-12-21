@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.security.clarin;
 
 import java.io.IOException;
@@ -17,12 +24,14 @@ import org.dspace.app.rest.security.RestAuthenticationService;
 import org.dspace.app.rest.security.StatelessLoginFilter;
 import org.dspace.authenticate.clarin.ClarinShibAuthentication;
 import org.dspace.authenticate.clarin.ShibHeaders;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.web.ContextUtil;
@@ -32,6 +41,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 /**
+ * This class is copied from `ShibbolethLoginFilter` and modified by the
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk).
+ *
  * This class will filter Shibboleth requests to see if the user has been authenticated via Shibboleth.
  * <P>
  * The overall Shibboleth login process is as follows:
@@ -41,16 +53,19 @@ import org.springframework.security.core.AuthenticationException;
  *   3. User logs in using Shibboleth
  *   4. If successful, they are redirected by Shibboleth to the path where this Filter is "listening" (that path
  *      is passed to Shibboleth as a URL param in step 1)
- *   5. This filter then intercepts the request in order to check for a valid Shibboleth login (see
+ *   4.1. This filter then intercepts the request in order to check for a valid Shibboleth login (see
  *      ShibAuthentication.authenticate()) and stores that user info in a JWT. It also saves that JWT in a *temporary*
  *      authentication cookie.
- *   6. This filter then looks for a "redirectUrl" param (also a part of the original URL from step 1), and redirects
- *      the user to that location (after verifying it's a trusted URL). Usually this is a redirect back to the
- *      Client/UI page where the User started.
- *   7. At that point, the client reads the JWT from the Cookie, and sends it back in a request to /api/authn/login,
+ *   4.2. At that point, the client reads the JWT from the Cookie, and sends it back in a request to /api/authn/login,
  *      which triggers the server-side to destroy the Cookie and move the JWT into a Header
+ *   5. If not successful:
+ *   5.1. The IdP hasn't sent the `Shib-Identity-Provider` or `SHIB-NETID` header. The user is redirected to the
+ *      static error page.
+ *   5.2. The IdP hasn't sent the `SHIB-EMAIL` header.
+ *      The request headers passed by IdP are stored into the `verification_token` table the `shib_headers` column.
+ *      The user is redirected to the page when he must fill his email.
  * <P>
- * This Shibboleth Authentication process is tested in AuthenticationRestControllerIT.
+ * This Shibboleth Authentication process is tested in ClarinShibbolethLoginFilterIT.
  *
  * @author Giuseppe Digilio (giuseppe dot digilio at 4science dot it)
  * @author Tim Donohue
@@ -59,12 +74,14 @@ import org.springframework.security.core.AuthenticationException;
 public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
     public static final String USER_WITHOUT_EMAIL_EXCEPTION = "UserWithoutEmailException";
     public static final String MISSING_HEADERS_FROM_IDP = "MissingHeadersFromIpd";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
 
     private static final Logger log = LogManager.getLogger(org.dspace.app.rest.security.ShibbolethLoginFilter.class);
 
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
     private ClarinVerificationTokenService clarinVerificationTokenService = ClarinServiceFactory.getInstance()
             .getClarinVerificationTokenService();
+    private EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
     public ClarinShibbolethLoginFilter(String url, AuthenticationManager authenticationManager,
                                  RestAuthenticationService restAuthenticationService) {
@@ -73,7 +90,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest req,
-                                                HttpServletResponse res) throws AuthenticationException, ServletException, IOException {
+                                                HttpServletResponse res) throws AuthenticationException {
         // First, if Shibboleth is not enabled, throw an immediate ProviderNotFoundException
         // This tells Spring Security that authentication failed
         if (!ClarinShibAuthentication.isEnabled()) {
@@ -85,24 +102,65 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
         String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
 
-        ShibHeaders shib_headers = new ShibHeaders(req);
+        Context context = ContextUtil.obtainContext(req);
+        if (Objects.isNull(context)) {
+            throw new RuntimeException("Cannot load the context");
+        }
+
+        // If the verification token is not null the user wants to login.
+        String verificationToken = req.getHeader("verification-token");
+        ClarinVerificationToken clarinVerificationToken;
+        try {
+            clarinVerificationToken = clarinVerificationTokenService.findByToken(context, verificationToken);
+        } catch (SQLException e) {
+            throw new RuntimeException("Cannot find clarin verification token by token: " + verificationToken + "" +
+                    " because: " + e.getSQLState());
+        }
+
+        // Load ShibHeader from request or from clarin verification token object.
+        ShibHeaders shib_headers;
+        if (Objects.nonNull(clarinVerificationToken)) {
+            // Set request attribute for authentication method.
+            req.setAttribute("shib.headers", clarinVerificationToken.getShibHeaders());
+            shib_headers = new ShibHeaders(clarinVerificationToken.getShibHeaders());
+        } else {
+            shib_headers = new ShibHeaders(req);
+        }
+
         // Retrieve the netid and email values from the header.
         String netid = shib_headers.get_single(netidHeader);
         String idp = shib_headers.get_idp();
-        String email = shib_headers.get_single(emailHeader);
+        // If the clarin verification object is not null load the email from there otherwise from header.
+        String email = Objects.isNull(clarinVerificationToken) ?
+                shib_headers.get_single(emailHeader) : clarinVerificationToken.getEmail();
 
-        if (StringUtils.isEmpty(netid) || StringUtils.isEmpty(idp)) {
-            log.error("Cannot load the netid or idp from the request headers.");
-            this.redirectToMissingHeadersPage(res);
-            return null;
+        // If email is null and netid exist try to find the eperson by netid and load its email
+        if (StringUtils.isEmpty(email) && StringUtils.isNotEmpty(netid)) {
+            try {
+                EPerson ePerson = ePersonService.findByNetid(context, netid);
+                email = Objects.isNull(email) ? this.getEpersonEmail(ePerson) : null;
+            } catch (SQLException ignored) {
+                //
+            }
         }
 
-        // The Idp doesn't send the email - the user will be redirected to the page where he must fill in that
-        // missing email
-        if (StringUtils.isBlank(email)) {
-            log.error("Cannot load the shib email header from the request headers.");
-            this.redirectToWriteEmailPage(req, res);
-            return null;
+        try {
+            if (StringUtils.isEmpty(netid) || StringUtils.isEmpty(idp)) {
+                log.error("Cannot load the netid or idp from the request headers.");
+                this.redirectToMissingHeadersPage(res);
+                return null;
+            }
+
+            // The Idp hasn't sent the email - the user will be redirected to the page where he must fill in that
+            // missing email
+            if (StringUtils.isBlank(email)) {
+                log.error("Cannot load the shib email header from the request headers.");
+                this.redirectToWriteEmailPage(req, res);
+                return null;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot redirect the user to the Shibboleth authentication error page" +
+                    " because: " + e.getMessage());
         }
 
         // In the case of Shibboleth, this method does NOT actually authenticate us. The authentication
@@ -130,8 +188,13 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         // Auth token is only used in the Header from that point forward.
         restAuthenticationService.addAuthenticationDataForUser(req, res, dSpaceAuthentication, true);
 
-        // redirect user after completing Shibboleth authentication, sending along the temporary auth cookie
-        redirectAfterSuccess(req, res);
+        String verificationToken = req.getHeader("verification-token");
+        if (StringUtils.isEmpty(verificationToken)) {
+            // redirect user after completing Shibboleth authentication, sending along the temporary auth cookie
+            redirectAfterSuccess(req, res);
+        } else {
+            res.getWriter().write(res.getHeader(AUTHORIZATION_HEADER));
+        }
     }
 
     /**
@@ -195,13 +258,23 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         }
     }
 
+    /**
+     * The IdP hasn't sent the `Shib-Identity-Provider` or `SHIB-NETID` header. The user is redirected to the
+     * static error page (The UI process error message).
+     */
     protected void redirectToMissingHeadersPage(HttpServletResponse res) throws IOException {
         res.sendError(HttpServletResponse.SC_UNAUTHORIZED, MISSING_HEADERS_FROM_IDP);
     }
 
+    /**
+     * The IdP hasn't sent the `SHIB-EMAIL` header. The user is redirected to the page where he must fill in his
+     * email. (The UI process error message).
+     * The request headers passed by IdP are stored into the `verification_token` table the `shib_headers` column
+     * for later usage. After successful signing in the `verification_token` record is removed from the DB.
+     */
     protected void redirectToWriteEmailPage(HttpServletRequest req,
                                             HttpServletResponse res) throws IOException {
-        Context context = ContextUtil.obtainCurrentRequestContext();
+        Context context = ContextUtil.obtainContext(req);
         String authenticateHeaderValue = restAuthenticationService.getWwwAuthenticateHeaderValue(req, res);
 
         // Load header keys from cfg
@@ -225,7 +298,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
             clarinVerificationToken.setShibHeaders(shib_headers.toString());
             clarinVerificationTokenService.update(context, clarinVerificationToken);
             context.commit();
-        } catch (SQLException | AuthorizeException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("Cannot create or update the Clarin Verification Token because: "
                     + e.getMessage());
         }
@@ -238,6 +311,13 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
 
         res.setHeader("WWW-Authenticate", authenticateHeaderValue);
         res.sendError(HttpServletResponse.SC_UNAUTHORIZED, errorMessage);
+    }
+
+    private String getEpersonEmail(EPerson ePerson) {
+        if (Objects.isNull(ePerson)) {
+            return null;
+        }
+        return ePerson.getEmail();
     }
 }
 

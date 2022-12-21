@@ -100,30 +100,6 @@ public class ShibbolethLoginFilter extends StatelessLoginFilter {
     }
 
     /**
-     * If the above attemptAuthentication() call was unsuccessful, then ensure that the response is a 401 Unauthorized
-     * AND it includes a WWW-Authentication header. We use this header in DSpace to return all the enabled
-     * authentication options available to the UI (along with the path to the login URL for each option)
-     * @param request current request
-     * @param response current response
-     * @param failed exception that was thrown by attemptAuthentication()
-     * @throws IOException
-     * @throws ServletException
-     */
-    @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request,
-                                              HttpServletResponse response, AuthenticationException failed)
-            throws IOException, ServletException {
-
-        String authenticateHeaderValue = restAuthenticationService.getWwwAuthenticateHeaderValue(request, response);
-
-        response.setHeader("WWW-Authenticate", authenticateHeaderValue);
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed!");
-        log.error("Authentication failed (status:{})",
-                HttpServletResponse.SC_UNAUTHORIZED, failed);
-    }
-
-
-    /**
      * After successful login, redirect to the DSpace URL specified by this Shibboleth request (in the "redirectUrl"
      * request parameter). If that 'redirectUrl' is not valid or trusted for this DSpace site, then return a 400 error.
      * @param request
@@ -159,5 +135,4 @@ public class ShibbolethLoginFilter extends StatelessLoginFilter {
                                "Invalid redirectURL! Must match server or ui hostname.");
         }
     }
-
 }

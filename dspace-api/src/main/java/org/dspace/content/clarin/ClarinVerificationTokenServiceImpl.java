@@ -1,9 +1,19 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content.clarin;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.dao.clarin.ClarinLicenseDAO;
 import org.dspace.content.dao.clarin.ClarinVerificationTokenDAO;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.Context;
@@ -13,10 +23,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
-
+/**
+ * Service implementation for the ClarinVerificationToken object.
+ * This class is responsible for all business logic calls for the ClarinVerificationToken object and
+ * is autowired by spring. This class should never be accessed directly.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinVerificationTokenServiceImpl implements ClarinVerificationTokenService {
 
     private static final Logger log = LoggerFactory.getLogger(ClarinVerificationTokenServiceImpl.class);
@@ -27,26 +40,14 @@ public class ClarinVerificationTokenServiceImpl implements ClarinVerificationTok
     AuthorizeService authorizeService;
 
     @Override
-    public ClarinVerificationToken create(Context context) throws SQLException, AuthorizeException {
+    public ClarinVerificationToken create(Context context) throws SQLException {
         ClarinVerificationToken clarinVerificationToken = clarinVerificationTokenDAO.create(context,
                 new ClarinVerificationToken());
 
         log.info(LogHelper.getHeader(context, "create_clarin_verification_token",
-                "clarin_verification_token_id="+ clarinVerificationToken.getID()));
+                "clarin_verification_token_id=" + clarinVerificationToken.getID()));
 
         return clarinVerificationToken;
-    }
-
-    @Override
-    public ClarinVerificationToken create(Context context, ClarinVerificationToken clarinVerificationToken)
-            throws SQLException, AuthorizeException {
-        ClarinVerificationToken newClarinVerificationToken = clarinVerificationTokenDAO.create(context,
-                clarinVerificationToken);
-
-        log.info(LogHelper.getHeader(context, "create_clarin_verification_token",
-                "clarin_verification_token_id="+ newClarinVerificationToken.getID()));
-
-        return newClarinVerificationToken;
     }
 
     @Override

@@ -50,7 +50,6 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.springframework.stereotype.Component;
 
 /**
  * Shibboleth authentication for DSpace
@@ -75,7 +74,6 @@ import org.springframework.stereotype.Component;
  * @author <a href="mailto:kli@melcoe.mq.edu.au">Xiang Kevin Li, MELCOE</a>
  * @author <a href="http://www.scottphillips.com">Scott Phillips</a>
  */
-@Component
 public class ShibAuthentication implements AuthenticationMethod {
     /**
      * log4j category
@@ -178,7 +176,6 @@ public class ShibAuthentication implements AuthenticationMethod {
     @Override
     public int authenticate(Context context, String username, String password,
                             String realm, HttpServletRequest request) throws SQLException {
-
         // Check if sword compatibility is allowed, and if so see if we can
         // authenticate based upon a username and password. This is really helpful
         // if your repo uses Shibboleth but you want some accounts to be able use
@@ -198,24 +195,28 @@ public class ShibAuthentication implements AuthenticationMethod {
             return BAD_ARGS;
         }
 
-        // CHANGE
-//        // Log all headers received if debugging is turned on. This is enormously
-//        // helpful when debugging shibboleth related problems.
-//        if (log.isDebugEnabled()) {
-//            log.debug("Starting Shibboleth Authentication");
-//        }
-//        ShibHeaders shibheaders = new ShibHeaders(request);
-//        shibheaders.log_headers();
-//
-//        String organization = shibheaders.get_idp();
-//        if (organization == null) {
-//            log.info("Exiting shibboleth authenticate because no idp set");
-//            return BAD_ARGS;
-//        }
-        // CHANGE
-
         // Initialize the additional EPerson metadata.
         initialize(context);
+
+        // Log all headers received if debugging is turned on. This is enormously
+        // helpful when debugging shibboleth related problems.
+        if (log.isDebugEnabled()) {
+            log.debug("Starting Shibboleth Authentication");
+
+            String message = "Received the following headers:\n";
+            @SuppressWarnings("unchecked")
+            Enumeration<String> headerNames = request.getHeaderNames();
+            while (headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
+                @SuppressWarnings("unchecked")
+                Enumeration<String> headerValues = request.getHeaders(headerName);
+                while (headerValues.hasMoreElements()) {
+                    String headerValue = headerValues.nextElement();
+                    message += "" + headerName + "='" + headerValue + "'\n";
+                }
+            }
+            log.debug(message);
+        }
 
         // Should we auto register new users.
         boolean autoRegister = configurationService.getBooleanProperty("authentication-shibboleth.autoregister", true);
@@ -628,20 +629,6 @@ public class ShibAuthentication implements AuthenticationMethod {
 
         // 2) Second, look for an email header.
         if (eperson == null && emailHeader != null) {
-
-            // CHANGE - MAYBE NOT this should be fixed by the method findSingleAttribute
-            /* <UFAL>
-             *
-             * Checking for a valid email address.
-             *
-             */
-
-//            IFunctionalities functionalityManager = DSpaceApi.getFunctionalityManager();
-//            email = functionalityManager.getEmailAcceptedOrNull ( email );
-
-            /* </UFAL> */
-            // Change
-
             String email = findSingleAttribute(request, emailHeader);
 
             if (email != null) {
@@ -741,12 +728,6 @@ public class ShibAuthentication implements AuthenticationMethod {
         String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
         String fnameHeader = configurationService.getProperty("authentication-shibboleth.firstname-header");
         String lnameHeader = configurationService.getProperty("authentication-shibboleth.lastname-header");
-        // CHANGE
-        // Instead of this - load the header from the configurationService.getProperty("authentication-shibboleth.lastname-header");
-//        String org = shib_headers.get_idp();
-//        if ( org == null ) {
-//            return null;
-//        }
 
         // Header values
         String netid = findSingleAttribute(request, netidHeader);
@@ -807,8 +788,8 @@ public class ShibAuthentication implements AuthenticationMethod {
          *
          */
         // if no email the registration is postponed after entering and confirming mail
-        if(Objects.nonNull(email)){
-            try{
+        if (Objects.nonNull(email)) {
+            try {
                 ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
                 clarinUserRegistration.setConfirmation(true);
                 clarinUserRegistration.setEmail(email);
@@ -817,8 +798,8 @@ public class ShibAuthentication implements AuthenticationMethod {
                 clarinUserRegistrationService.create(context, clarinUserRegistration);
                 eperson.setCanLogIn(false);
                 ePersonService.update(context, eperson);
-            }catch(Exception e){
-                throw new AuthorizeException("User has not been added among registred users!") ;
+            } catch (Exception e) {
+                throw new AuthorizeException("User has not been added among registred users!");
             }
         }
 
@@ -1067,9 +1048,7 @@ public class ShibAuthentication implements AuthenticationMethod {
             boolean valid = checkIfEpersonMetadataFieldExists(context, fieldName);
 
             if (!valid && autoCreate) {
-                // CHANGE method autoCreateEpersonMetadataField
                 valid = autoCreateEpersonMetadataField(context, fieldName);
-                // CHANGE autoCreateEpersonMetadataField
             }
 
             if (valid) {
@@ -1233,7 +1212,7 @@ public class ShibAuthentication implements AuthenticationMethod {
      * @param name    The name of the header
      * @return The value of the header requested, or null if none found.
      */
-    public String findSingleAttribute(HttpServletRequest request, String name) {
+    protected String findSingleAttribute(HttpServletRequest request, String name) {
         if (name == null) {
             return null;
         }
