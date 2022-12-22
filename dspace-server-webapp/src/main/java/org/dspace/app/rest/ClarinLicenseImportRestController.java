@@ -171,6 +171,7 @@ public class ClarinLicenseImportRestController {
                 throw new UnprocessableEntityException("Error parsing request body", e1);
             }
             Set<ClarinLicenseLabel> licenseLabels = this.licenseToLicenseLabel.get(inputLicense.getID());
+            licenseLabels.add(inputLicense.getLicenseLabels().get(0));
             if (licenseLabels == null) {
                 //the status???
                 return new ResponseEntity<>("License labels for license haven't imported yet", HttpStatus.INTERNAL_SERVER_ERROR);

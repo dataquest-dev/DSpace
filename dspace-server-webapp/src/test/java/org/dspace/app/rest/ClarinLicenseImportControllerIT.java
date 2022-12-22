@@ -15,10 +15,12 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -26,8 +28,10 @@ import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -36,6 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrationTest {
 
     private JsonNodeFactory jsonNodeFactory = new JsonNodeFactory(true);
+
+    @Autowired
+    private ClarinLicenseLabelService clarinLicenseLabelService;
 
     @Test
     public void importLicenses() throws Exception {
@@ -143,6 +150,9 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             license.setName(jsonObject.get("name").toString());
             license.setDefinition(jsonObject.get("definition").toString());
             //license.setEpersonID(Integer.parseInt(jsonObject.get("eperson_id").toString()));
+            Set<ClarinLicenseLabel> labels = new HashSet<>();
+            labels.add(this.clarinLicenseLabelService.find(context, Integer.parseInt(jsonObject.get("label_id").toString())));
+            license.setLicenseLabels(labels);
             license.setConfirmation(Integer.parseInt(jsonObject.get("confirmation").toString()));
             license.setRequiredInfo(jsonObject.get("required_info") != null ? jsonObject.get("required_info").toString() : null);
             licenses.add(license);

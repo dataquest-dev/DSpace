@@ -92,6 +92,13 @@ public class ClarinLicenseLabel implements ReloadableEntity<Integer> {
         this.licenses = licenses;
     }
 
+    public void addLicense(ClarinLicense license) {
+        if (this.licenses == null) {
+            this.licenses = new ArrayList<>();
+        }
+        this.licenses.add(license);
+    }
+
     public byte[] getIcon() {
         return icon;
     }
