@@ -26,6 +26,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.dspace.core.ReloadableEntity;
 
 /**
@@ -36,6 +37,7 @@ import org.dspace.core.ReloadableEntity;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Table(name = "license_definition")
 public class ClarinLicense implements ReloadableEntity<Integer> {
@@ -87,6 +89,9 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
         this.id = id;
     }
 
+//    public void setEpersonID(Integer epersonID) {
+//        this.epersonID = epersonID;
+//    }
     public String getDefinition() {
         return definition;
     }

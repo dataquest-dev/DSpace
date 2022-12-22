@@ -1,4 +1,3 @@
-row_to_json
 {"mapping_id":991125,"license_id":21,"label_id":7}
 {"mapping_id":991126,"license_id":21,"label_id":5}
 {"mapping_id":991134,"license_id":18,"label_id":18}
@@ -129,4 +128,3 @@ row_to_json
 {"mapping_id":991247,"license_id":84,"label_id":15}
 {"mapping_id":991248,"license_id":85,"label_id":12}
 {"mapping_id":991249,"license_id":85,"label_id":4}
-(130 rows)
