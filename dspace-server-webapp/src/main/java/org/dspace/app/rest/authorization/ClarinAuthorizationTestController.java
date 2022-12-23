@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RequestMapping(value = "/api/test/auth")
 @RestController
-public class AuthorizationTestController {
+public class ClarinAuthorizationTestController {
 
     // If the user has the authority `AUTHENTICATED`
     @PreAuthorize("hasAuthority('AUTHENTICATED')")

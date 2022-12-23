@@ -7,6 +7,16 @@
  */
 package org.dspace.authenticate.clarin;
 /* Created for LINDAT/CLARIN */
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,16 +28,6 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
-
 /**
  * Try to refactor the Shibboleth mess.
  *
@@ -37,8 +37,7 @@ import java.util.UUID;
  * Class is copied from UFAL/CLARIN-DSPACE (https://github.com/ufal/clarin-dspace) and modified by
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-public class ShibGroup
-{
+public class ShibGroup {
     // variables
     //
     private static final Logger log = LogManager.getLogger(ShibGroup.class);
@@ -55,13 +54,12 @@ public class ShibGroup
     // ctor
     //
 
-    public ShibGroup(ShibHeaders shib_headers, Context context)
-    {
+    public ShibGroup(ShibHeaders shib_headers, Context context) {
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         groupService = EPersonServiceFactory.getInstance().getGroupService();
 
         defaultRoles = configurationService.getProperty("authentication-shibboleth.default-roles");
-            roleHeader = configurationService.getProperty("authentication-shibboleth.role-header");
+        roleHeader = configurationService.getProperty("authentication-shibboleth.role-header");
         ignoreScope = configurationService
                 .getBooleanProperty("authentication-shibboleth.role-header.ignore-scope", true);
         ignoreValue = configurationService
@@ -70,8 +68,7 @@ public class ShibGroup
         shib_headers_ = shib_headers;
         context_ = context;
 
-        if (ignoreScope && ignoreValue)
-        {
+        if (ignoreScope && ignoreValue) {
             throw new IllegalStateException(
                     "Both config parameters for ignoring attributes scope and value are turned on, " +
                     "this is not a permissable configuration. (Note: ignore-scope defaults to true) " +
@@ -87,8 +84,7 @@ public class ShibGroup
      *
      */
 
-    public List<UUID> get()
-    {
+    public List<UUID> get() {
         try {
             log.debug("Starting to determine special groups");
 
@@ -108,32 +104,32 @@ public class ShibGroup
 
             // If none affiliation was loaded
             if (affiliations.isEmpty()) {
-                if (defaultRoles != null)
+                if (defaultRoles != null) {
                     affiliations = Arrays.asList(defaultRoles.split(","));
-                log.debug("Failed to find Shibboleth role header, '"+roleHeader+"', " +
-                        "falling back to the default roles: '"+defaultRoles+"'");
+                }
+                log.debug("Failed to find Shibboleth role header, '" + roleHeader + "', " +
+                        "falling back to the default roles: '" + defaultRoles + "'");
             } else {
-                log.debug("Found Shibboleth role header: '"+roleHeader+"' = '"+affiliations+"'");
+                log.debug("Found Shibboleth role header: '" + roleHeader + "' = '" + affiliations + "'");
             }
 
             // Loop through each affiliation
             //
             Set<UUID> groups = new HashSet<UUID>();
-            if (affiliations != null)
-            {
-                for ( String affiliation : affiliations)
-                {
+            if (affiliations != null) {
+                for ( String affiliation : affiliations) {
                     // populate the organisation name
                     affiliation = populate_affiliation(affiliation, ignoreScope, ignoreValue);
                     // try to get the group names from authentication-shibboleth.cfg
                     String groupNames = get_group_names_from_affiliation(affiliation);
 
                     if (groupNames == null) {
-                        log.debug("Unable to find role mapping for the value, '"+affiliation+"', " +
-                                "there should be a mapping in the dspace.cfg:  authentication.shib.role."+affiliation+" = <some group name>");
+                        log.debug("Unable to find role mapping for the value, '" + affiliation + "', " +
+                                "there should be a mapping in the dspace.cfg:  authentication.shib.role."
+                                + affiliation + " = <some group name>");
                         continue;
                     } else {
-                        log.debug("Mapping role affiliation to DSpace group: '"+groupNames+"'");
+                        log.debug("Mapping role affiliation to DSpace group: '" + groupNames + "'");
                     }
 
                     // get the group ids
@@ -150,12 +146,12 @@ public class ShibGroup
             final String lookFor = "authentication-shibboleth.header.";
             ConfigurationService configurationService = new DSpace().getConfigurationService();
             Properties allShibbolethProperties = configurationService.getProperties();
-            for(String propertyName : allShibbolethProperties.stringPropertyNames()){
+            for (String propertyName : allShibbolethProperties.stringPropertyNames()) {
                 //look for properties in authentication shibboleth that start with "header."
-                if(propertyName.startsWith(lookFor)){
+                if (propertyName.startsWith(lookFor)) {
                     String headerName = propertyName.substring(lookFor.length());
                     List<String> presentHeaderValues = shib_headers_.get(headerName);
-                    if(!CollectionUtils.isEmpty(presentHeaderValues)) {
+                    if (!CollectionUtils.isEmpty(presentHeaderValues)) {
                         //if shibboleth sent any attributes under the headerName
                         String[] values2groups = configurationService.getPropertyAsType(
                                 propertyName, String[].class);
@@ -163,7 +159,7 @@ public class ShibGroup
                             String[] value2groupParts = value2group.split("=>", 2);
                             String headerValue = value2groupParts[0].trim();
                             String assignedGroup = value2groupParts[1].trim();
-                            if(presentHeaderValues.contains(headerValue)){
+                            if (presentHeaderValues.contains(headerValue)) {
                                 //our configured header value is present so add a group
                                 groups.addAll(string2groups(assignedGroup));
                             }
@@ -193,32 +189,28 @@ public class ShibGroup
 
     //
     //
-    private List<String> get_affilations_from_roles(String roleHeader)
-    {
+    private List<String> get_affilations_from_roles(String roleHeader) {
         List<String> roleHeaderValues = shib_headers_.get(roleHeader);
         List<String> affiliations = new ArrayList<String>();
 
         // Get the Shib supplied affiliation or use the default affiliation
         // e.g., we can use 'entitlement' shibboleth header
-        if(roleHeaderValues!=null) {
-            for(String roleHeaderValue : roleHeaderValues) {
+        if (roleHeaderValues != null) {
+            for (String roleHeaderValue : roleHeaderValues) {
                 affiliations.addAll(string2values(roleHeaderValue));
             }
         }
         return affiliations;
     }
 
-    private List<String> get_affilations_from_shib_mappings()
-    {
+    private List<String> get_affilations_from_shib_mappings() {
         List<String> ret = new ArrayList<String>();
         String organization = shib_headers_.get_idp();
         // Try to get email based on utilities mapping database table
         //
-        if(organization != null)
-        {
+        if (organization != null) {
             String email_header = configurationService.getProperty("authentication-shibboleth.email-header");
-            if (email_header != null)
-            {
+            if (email_header != null) {
                 String email = shib_headers_.get_single(email_header);
                 if (email != null) {
                     ret = string2values(email);
@@ -232,8 +224,7 @@ public class ShibGroup
         return ret;
     }
 
-    private String populate_affiliation(String affiliation, boolean ignoreScope, boolean ignoreValue)
-    {
+    private String populate_affiliation(String affiliation, boolean ignoreScope, boolean ignoreValue) {
         // If we ignore the affilation's scope then strip the scope if it exists.
         if (ignoreScope) {
             int index = affiliation.indexOf('@');
@@ -245,27 +236,24 @@ public class ShibGroup
         if (ignoreValue) {
             int index = affiliation.indexOf('@');
             if (index != -1) {
-                affiliation = affiliation.substring(index+1, affiliation.length());
+                affiliation = affiliation.substring(index + 1, affiliation.length());
             }
         }
 
         return affiliation;
     }
 
-    private String get_group_names_from_affiliation(String affiliation)
-    {
+    private String get_group_names_from_affiliation(String affiliation) {
         String groupNames = configurationService.getProperty(
                 "authentication-shibboleth.role." + affiliation);
-        if (groupNames == null || groupNames.trim().length() == 0)
-        {
+        if (groupNames == null || groupNames.trim().length() == 0) {
             groupNames = configurationService.getProperty(
                 "authentication-shibboleth.role." + affiliation.toLowerCase());
         }
         return groupNames;
     }
 
-    private List<UUID> string2groups(String groupNames)
-    {
+    private List<UUID> string2groups(String groupNames) {
         List<UUID> groups = new ArrayList<UUID>();
         // Add each group to the list.
         String[] names = groupNames.split(",");
@@ -275,34 +263,32 @@ public class ShibGroup
                 Group group = groupService.findByName(context_, names[i].trim());
                 if (group != null) {
                     groups.add(group.getID());
-                }else {
-                    log.debug("Unable to find group: '"+names[i].trim()+"'");
+                } else {
+                    log.debug("Unable to find group: '" + names[i].trim() + "'");
                 }
-
             } catch (SQLException sqle) {
                 log.error(
-                    "Exception thrown while trying to lookup affiliation role for group name: '"+names[i].trim()+"'",
-                    sqle);
+                    "Exception thrown while trying to lookup affiliation role for group name: '"
+                            + names[i].trim() + "'", sqle);
             }
         } // for each groupNames
         return groups;
     }
 
-    private Group get_default_group()
-    {
+    private Group get_default_group() {
         String defaultAuthGroup = configurationService.getProperty(
                 "authentication-shibboleth.default.auth.group");
-        if(defaultAuthGroup != null && defaultAuthGroup.trim().length()!=0){
+        if (defaultAuthGroup != null && defaultAuthGroup.trim().length() != 0) {
             try {
                 Group group = groupService.findByName(context_,defaultAuthGroup.trim());
                 if (group != null) {
                     return group;
-                }else {
-                    log.debug("Unable to find default group: '"+defaultAuthGroup.trim()+"'");
+                } else {
+                    log.debug("Unable to find default group: '" + defaultAuthGroup.trim() + "'");
                 }
             } catch (SQLException sqle) {
                 log.error("Exception thrown while trying to lookup shibboleth " +
-                        "default authentication group with name: '"+defaultAuthGroup.trim()+"'",sqle);
+                        "default authentication group with name: '" + defaultAuthGroup.trim() + "'",sqle);
             }
         }
 
@@ -318,6 +304,4 @@ public class ShibGroup
         }
         return Arrays.asList(string.split(",|;"));
     }
-
-
 }

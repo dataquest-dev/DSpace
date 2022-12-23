@@ -13,14 +13,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.dspace.app.rest.converter.EPersonConverter;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.GroupBuilder;
-import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.I18nUtil;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.service.EPersonService;
 import org.dspace.services.ConfigurationService;
 import org.junit.Before;
 import org.junit.Test;
