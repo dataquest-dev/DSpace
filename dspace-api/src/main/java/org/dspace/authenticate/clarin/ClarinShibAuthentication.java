@@ -265,7 +265,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
             // Step 4: Log the user in.
             context.setCurrentUser(eperson);
-            request.setAttribute("shib.authenticated", true);
+            request.getSession().setAttribute("shib.authenticated", true);
             AuthenticateServiceFactory.getInstance().getAuthenticationService().initEPerson(context, request, eperson);
 
             log.info(eperson.getEmail() + " has been authenticated via shibboleth.");
@@ -340,10 +340,17 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
             List<UUID> groupIds = new ShibGroup(new ShibHeaders(request), context).get();
             // Cache the special groups, so we don't have to recalculate them again
             // for this session.
-            request.setAttribute("shib.specialgroup", groupIds);
+            request.getSession().setAttribute("shib.specialgroup", groupIds);
 
-            // TODO Create the array list of Groups based on the group IDs
-            return new ArrayList<>();
+            List<Group> groups = new ArrayList<>();
+            for (UUID uuid : groupIds) {
+                Group foundGroup = groupService.find(context, uuid);
+                if (Objects.isNull(foundGroup)) {
+                    continue;
+                }
+                groups.add(foundGroup);
+            }
+            return groups;
         } catch (Throwable t) {
             log.error("Unable to validate any sepcial groups this user may belong too because of an exception.", t);
             return Collections.EMPTY_LIST;
@@ -1308,7 +1315,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
     public boolean isUsed(final Context context, final HttpServletRequest request) {
         if (request != null &&
                 context.getCurrentUser() != null &&
-                request.getAttribute("shib.authenticated") != null) {
+                request.getSession().getAttribute("shib.authenticated") != null) {
             return true;
         }
         return false;

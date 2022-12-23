@@ -1,5 +1,13 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.authenticate.clarin;
 /* Created for LINDAT/CLARIN */
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.core.Context;
@@ -25,6 +33,9 @@ import java.util.UUID;
  *
  * Get groups a user should be put into according to several Shibboleth headers
  * and default configuration values.
+ *
+ * Class is copied from UFAL/CLARIN-DSPACE (https://github.com/ufal/clarin-dspace) and modified by
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public class ShibGroup
 {
@@ -50,7 +61,7 @@ public class ShibGroup
         groupService = EPersonServiceFactory.getInstance().getGroupService();
 
         defaultRoles = configurationService.getProperty("authentication-shibboleth.default-roles");
-        roleHeader = configurationService.getProperty("authentication-shibboleth.role-header");
+            roleHeader = configurationService.getProperty("authentication-shibboleth.role-header");
         ignoreScope = configurationService
                 .getBooleanProperty("authentication-shibboleth.role-header.ignore-scope", true);
         ignoreValue = configurationService
@@ -81,10 +92,12 @@ public class ShibGroup
         try {
             log.debug("Starting to determine special groups");
 
+            // Get afill from `authentication-shibboleth.header.entitlement` and from EmAIL HEADER
             /* <UFAL>
              * lets be evil and hack the email to the entitlement field
              */
             List<String> affiliations = new ArrayList<String>();
+
             affiliations.addAll(
                     get_affilations_from_roles(roleHeader));
             affiliations.addAll(
@@ -93,6 +106,7 @@ public class ShibGroup
             /* </UFAL> */
 
 
+            // If none affiliation was loaded
             if (affiliations.isEmpty()) {
                 if (defaultRoles != null)
                     affiliations = Arrays.asList(defaultRoles.split(","));
@@ -141,10 +155,10 @@ public class ShibGroup
                 if(propertyName.startsWith(lookFor)){
                     String headerName = propertyName.substring(lookFor.length());
                     List<String> presentHeaderValues = shib_headers_.get(headerName);
-                    if(!presentHeaderValues.isEmpty()) {
+                    if(!CollectionUtils.isEmpty(presentHeaderValues)) {
                         //if shibboleth sent any attributes under the headerName
                         String[] values2groups = configurationService.getPropertyAsType(
-                                "authentication-shibboleth." + propertyName, String[].class);
+                                propertyName, String[].class);
                         for (String value2group : values2groups) {
                             String[] value2groupParts = value2group.split("=>", 2);
                             String headerValue = value2groupParts[0].trim();
@@ -167,18 +181,9 @@ public class ShibGroup
             }
             /* </UFAL> */
 
-
-
             log.info("Added current EPerson to special groups: " + groups);
-
-            // Convert from a Java Set to primitive int array
-            List<UUID> groupIds = new ArrayList<>(groups.size());
-            Iterator<UUID> it = groups.iterator();
-            for (int i = 0; it.hasNext(); i++) {
-                groupIds.set(i, it.next());
-            }
-
-            return groupIds;
+            // Convert from a Java Set to primitive ArrayList array
+            return new ArrayList<>(groups);
         } catch (Throwable t) {
             log.error(
                     "Unable to validate any special groups this user may belong too because of an exception.",t);
