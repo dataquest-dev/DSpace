@@ -17,6 +17,7 @@ import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.license.service.CreativeCommonsService;
@@ -40,6 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
+import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataStringEndsWith;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
@@ -71,6 +73,9 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
 
     @Autowired
     private CreativeCommonsService creativeCommonsService;
+
+    @Autowired
+    private ItemService itemService;
 
     Item item;
 
@@ -171,6 +176,7 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
         AtomicReference<Integer> idVersionRef = new AtomicReference<Integer>();
         AtomicReference<String> idNewItemRef = new AtomicReference<String>();
         AtomicReference<String> handleNewItemRef = new AtomicReference<String>();
+        AtomicReference<String> identifierUriPrevItemRef = new AtomicReference<String>();
         try {
             String adminToken = getAuthToken(admin.getEmail(), password);
 
@@ -203,6 +209,8 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
             getClient(adminToken).perform(get("/api/versioning/versions/2/item"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id", not(item.getID())))
+                    .andDo(result -> identifierUriPrevItemRef.set(read(result.getResponse().getContentAsString(),
+                            "$.metadata['dc.identifier.uri'][0].value")))
                     .andDo(result -> handleNewItemRef.set(read(result.getResponse().getContentAsString(),
                             "$.handle")))
                     .andDo(result -> idNewItemRef.set(read(result.getResponse().getContentAsString(),
@@ -220,7 +228,8 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.metadata", Matchers.allOf(
                             matchMetadata("dc.relation.replaces",
-                                    item.getHandle()))));
+                                    itemService.getMetadataFirstValue(item, "dc", "identifier",
+                                            "uri", Item.ANY)))));
 
             // 6. Get the first version item and check if it has the handle of the new version item in the
             // metadata`dc.relation.isreplacedby`
@@ -228,7 +237,7 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.metadata", Matchers.allOf(
                             matchMetadata("dc.relation.isreplacedby",
-                                    handleNewItemRef.get()))));
+                                    identifierUriPrevItemRef.get()))));
 
         } finally {
             VersionBuilder.delete(idVersionRef.get());

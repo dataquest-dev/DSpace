@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
@@ -18,6 +19,7 @@ import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
+import org.dspace.handle.service.HandleService;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.service.IdentifierService;
 import org.dspace.versioning.service.VersionHistoryService;
@@ -44,6 +46,8 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
     protected VersioningService versioningService;
     @Autowired(required = true)
     protected IdentifierService identifierService;
+    @Autowired(required = true)
+    protected HandleService handleService;
 
     @Override
     public Item createNewItemAndAddItInWorkspace(Context context, Item nativeItem) {
@@ -109,12 +113,9 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
                 authorizeService.findPoliciesByDSOAndType(c, previousItem, ResourcePolicy.TYPE_CUSTOM);
             authorizeService.addPolicies(c, policies, itemNew);
 
-            // Add metadata `dc.relation.replaces` = <HANDLE_OF_PREVIOUS_ITEM> to the new item
-            itemService.addMetadata(c, itemNew, "dc", "relation", "replaces", null,
-                    previousItem.getHandle());
-            // Add metadata `dc.relation.isreplacedby` = <HANDLE_OF_NEW_ITEM> to the previous item
-            itemService.addMetadata(c, previousItem, "dc", "relation", "isreplacedby", null,
-                    itemNew.getHandle());
+            // Add metadata `dc.relation.replaces` to the new item and
+            // add metadata `dc.relation.isreplacedby` to the previous item.
+            manageRelationMetadata(c, itemNew, previousItem);
 
             itemService.update(c, previousItem);
             itemService.update(c, itemNew);
@@ -122,5 +123,30 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
         } catch (IOException | SQLException | AuthorizeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Add metadata `dc.relation.replaces` to the new item and add metadata `dc.relation.isreplacedby`
+     * to the previous item.
+     */
+    private void manageRelationMetadata(Context c, Item itemNew, Item previousItem) throws SQLException {
+        // Remove copied `dc.relation.replaces` metadata for the new item
+        itemService.clearMetadata(c, itemNew, "dc", "relation", "replaces", null);
+
+        // Add metadata `dc.relation.replaces` to the new item.
+        // The metadata value is: `dc.identifier.uri` from the previous item.
+        String identifierUriPrevItem = itemService.getMetadataFirstValue(previousItem, "dc",
+                "identifier","uri", Item.ANY);
+        itemService.addMetadata(c, itemNew, "dc", "relation", "replaces", null,
+                identifierUriPrevItem);
+
+        // Add metadata `dc.relation.isreplacedby` to the previous item.
+        // The metadata value is: `dc.identifier.uri` from the new item.
+        String handleref = handleService.getCanonicalForm(itemNew.getHandle());
+        if (StringUtils.isBlank(handleref)) {
+            throw new RuntimeException("Cannot get handle in canonical form.");
+        }
+        itemService.addMetadata(c, previousItem, "dc", "relation", "isreplacedby", null,
+                handleref);
     }
 }
