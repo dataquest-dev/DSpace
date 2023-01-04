@@ -1,4 +1,15 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.identifier;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -11,25 +22,24 @@ import org.dspace.core.Context;
 import org.dspace.identifier.doi.DOIConnector;
 import org.dspace.identifier.doi.DOIIdentifierException;
 import org.dspace.services.ConfigurationService;
-import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
 import org.dspace.versioning.service.VersionHistoryService;
 import org.dspace.versioning.service.VersioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
+ * This class is copied from the VersionedDOIIdentifierProvider. The main difference is that was removed code
+ * where is created the handle based on the history.
+ *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  * @author Marsa Haoua
  * @author Pascal-Nicolas Becker (dspace at pascal dash becker dot de)
  */
-public class ClarinVersionedDOIIdentifierProvider extends DOIIdentifierProvider {/**
- * log4j category
- */
-private static final Logger log = LogManager.getLogger(VersionedDOIIdentifierProvider.class);
+public class ClarinVersionedDOIIdentifierProvider extends DOIIdentifierProvider {
+    /**
+     * log4j category
+     */
+    private static final Logger log = LogManager.getLogger(VersionedDOIIdentifierProvider.class);
 
     protected DOIConnector connector;
 
@@ -108,7 +118,8 @@ private static final Logger log = LogManager.getLogger(VersionedDOIIdentifierPro
                     loadOrCreateDOI(context, dso, versionedDOI);
                 } catch (SQLException ex) {
                     log.error(
-                            "A problem with the database connection occurd while processing DOI " + versionedDOI + ".", ex);
+                            "A problem with the database connection occurd while processing DOI " +
+                                    versionedDOI + ".", ex);
                     throw new RuntimeException("A problem with the database connection occured.", ex);
                 }
                 return versionedDOI;
