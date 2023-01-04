@@ -108,6 +108,15 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
             List<ResourcePolicy> policies =
                 authorizeService.findPoliciesByDSOAndType(c, previousItem, ResourcePolicy.TYPE_CUSTOM);
             authorizeService.addPolicies(c, policies, itemNew);
+
+            // Add metadata `dc.relation.replaces` = <HANDLE_OF_PREVIOUS_ITEM> to the new item
+            itemService.addMetadata(c, itemNew, "dc", "relation", "replaces", null,
+                    previousItem.getHandle());
+            // Add metadata `dc.relation.isreplacedby` = <HANDLE_OF_NEW_ITEM> to the previous item
+            itemService.addMetadata(c, previousItem, "dc", "relation", "isreplacedby", null,
+                    itemNew.getHandle());
+
+            itemService.update(c, previousItem);
             itemService.update(c, itemNew);
             return itemNew;
         } catch (IOException | SQLException | AuthorizeException e) {

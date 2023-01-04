@@ -267,19 +267,8 @@ public class ClarinVersionedHandleIdentifierProvider extends IdentifierProvider 
         }
 
         try {
-            String handleId = null;
-            VersionHistory history = null;
-            if (dso instanceof Item) {
-                history = versionHistoryService.findByItem(context, (Item) dso);
-            }
-
-            if (history != null) {
-                handleId = makeIdentifierBasedOnHistory(context, dso, history);
-            } else {
-                handleId = createNewIdentifier(context, dso, null);
-            }
-            return handleId;
-        } catch (SQLException | AuthorizeException e) {
+            return createNewIdentifier(context, dso, null);
+        } catch (SQLException e) {
             log.error(LogHelper.getHeader(context,
                     "Error while attempting to create handle",
                     "Item id: " + dso.getID()), e);
@@ -358,44 +347,6 @@ public class ClarinVersionedHandleIdentifierProvider extends IdentifierProvider 
         } else {
             return handleService.createHandle(context, dso, handleId);
         }
-    }
-
-    protected String makeIdentifierBasedOnHistory(Context context, DSpaceObject dso, VersionHistory history)
-            throws AuthorizeException, SQLException {
-        if (!(dso instanceof Item)) {
-            throw new IllegalStateException("Cannot create versioned handle for "
-                    + "objects other then item: Currently versioning supports "
-                    + "items only.");
-        }
-        Item item = (Item) dso;
-
-        // The first version will have a handle like 12345/100 to be backward compatible
-        // to DSpace installation that started without versioning.
-        // Mint foreach new VERSION an identifier like: 12345/100.versionNumber.
-
-        Version version = versionService.getVersion(context, item);
-        Version firstVersion = versionHistoryService.getFirstVersion(context, history);
-
-        String bareHandle = firstVersion.getItem().getHandle();
-        if (bareHandle.matches(".*/.*\\.\\d+")) {
-            bareHandle = bareHandle.substring(0, bareHandle.lastIndexOf(DOT));
-        }
-
-        // add a new Identifier for new item: 12345/100.x
-        int versionNumber = version.getVersionNumber();
-        String identifier = bareHandle;
-
-        if (versionNumber > 1) {
-            identifier = identifier.concat(String.valueOf(DOT)).concat(String.valueOf(versionNumber));
-        }
-
-        // Ensure this handle does not exist already.
-        if (handleService.resolveToObject(context, identifier) == null) {
-            handleService.createHandle(context, dso, identifier);
-        } else {
-            throw new IllegalStateException("A versioned handle is used for another version already!");
-        }
-        return identifier;
     }
 
     protected void populateHandleMetadata(Context context, DSpaceObject dso, String handle)
