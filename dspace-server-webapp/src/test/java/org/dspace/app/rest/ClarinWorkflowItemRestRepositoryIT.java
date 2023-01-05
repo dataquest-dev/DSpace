@@ -99,6 +99,7 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
     public void createNewVersionOfItemWithHandleNotBasedOnHistory() throws Exception {
                 // hold the id of the item version
         AtomicReference<Integer> idVersionRef = new AtomicReference<Integer>();
+        AtomicReference<Integer> idWorkspaceItemRef = new AtomicReference<Integer>();
         AtomicReference<String> idNewItemRef = new AtomicReference<String>();
         AtomicReference<String> handleNewItemRef = new AtomicReference<String>();
         try {
@@ -115,21 +116,28 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
                             hasJsonPath("$.type", is("version")))))
                     .andDo(result -> idVersionRef.set(read(result.getResponse().getContentAsString(), "$.id")));
 
-            // Creating of the item version history creates the new workspaceitem - it should have the id = 2
-            getClient(adminToken).perform(get("/api/submission/workspaceitems/2"))
+            // Get id of created workspaceitem
+            getClient(adminToken).perform(get("/api/submission/workspaceitems"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id", is(2)));
-            String wsiID = "2";
+                    .andDo(result -> idWorkspaceItemRef.set(read(result.getResponse().getContentAsString(),
+                            "$._embedded.workspaceitems[0].id")));
+
+            // 2. Check if was created the new workspace item - creating of the item version history creates
+            // the new workspaceitem - it should have the id = 2
+            getClient(adminToken).perform(get("/api/submission/workspaceitems/" + idWorkspaceItemRef.get()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id", is(idWorkspaceItemRef.get())));
+
 
             // Create a new version of the item
             getClient(adminToken)
                     .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
-                            .content("/api/submission/workspaceitems/" + wsiID)
+                            .content("/api/submission/workspaceitems/" + idWorkspaceItemRef.get())
                             .contentType(textUriContentType))
                     .andExpect(status().isCreated());
 
             // Get a new version of the item
-            getClient(adminToken).perform(get("/api/versioning/versions/2/item"))
+            getClient(adminToken).perform(get("/api/versioning/versions/" + idVersionRef.get() + "/item"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id", not(item.getID())))
                     .andDo(result -> handleNewItemRef.set(read(result.getResponse().getContentAsString(),
@@ -146,7 +154,7 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
         } finally {
             VersionBuilder.delete(idVersionRef.get());
             ItemBuilder.deleteItem(UUID.fromString(idNewItemRef.get()));
-            WorkspaceItemBuilder.deleteWorkspaceItem(2);
+            WorkspaceItemBuilder.deleteWorkspaceItem(idWorkspaceItemRef.get());
         }
     }
 
@@ -163,6 +171,7 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
         // metadata`dc.relation.isreplacedby`
 
         AtomicReference<Integer> idVersionRef = new AtomicReference<Integer>();
+        AtomicReference<Integer> idWorkspaceItemRef = new AtomicReference<Integer>();
         AtomicReference<String> idNewItemRef = new AtomicReference<String>();
         AtomicReference<String> handleNewItemRef = new AtomicReference<String>();
         AtomicReference<String> identifierUriPrevItemRef = new AtomicReference<String>();
@@ -180,22 +189,27 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
                             hasJsonPath("$.type", is("version")))))
                     .andDo(result -> idVersionRef.set(read(result.getResponse().getContentAsString(), "$.id")));
 
+            // Get id of created workspaceitem
+            getClient(adminToken).perform(get("/api/submission/workspaceitems"))
+                    .andExpect(status().isOk())
+                    .andDo(result -> idWorkspaceItemRef.set(read(result.getResponse().getContentAsString(),
+                            "$._embedded.workspaceitems[0].id")));
+
             // 2. Check if was created the new workspace item - creating of the item version history creates
             // the new workspaceitem - it should have the id = 2
-            getClient(adminToken).perform(get("/api/submission/workspaceitems/2"))
+            getClient(adminToken).perform(get("/api/submission/workspaceitems/" + idWorkspaceItemRef.get()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id", is(2)));
-            String wsiID = "2";
+                    .andExpect(jsonPath("$.id", is(idWorkspaceItemRef.get())));
 
             // 3. Create a new version of the item
             getClient(adminToken)
                     .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
-                            .content("/api/submission/workspaceitems/" + wsiID)
+                            .content("/api/submission/workspaceitems/" + idWorkspaceItemRef.get())
                             .contentType(textUriContentType))
                     .andExpect(status().isCreated());
 
             // 4. Get handle and id of the new version of the item
-            getClient(adminToken).perform(get("/api/versioning/versions/2/item"))
+            getClient(adminToken).perform(get("/api/versioning/versions/" + idVersionRef.get() + "/item"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id", not(item.getID())))
                     .andDo(result -> identifierUriPrevItemRef.set(read(result.getResponse().getContentAsString(),
@@ -231,7 +245,7 @@ public class ClarinWorkflowItemRestRepositoryIT extends AbstractControllerIntegr
         } finally {
             VersionBuilder.delete(idVersionRef.get());
             ItemBuilder.deleteItem(UUID.fromString(idNewItemRef.get()));
-            WorkspaceItemBuilder.deleteWorkspaceItem(2);
+            WorkspaceItemBuilder.deleteWorkspaceItem(idWorkspaceItemRef.get());
         }
     }
 }

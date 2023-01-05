@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
@@ -113,11 +112,10 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
                 authorizeService.findPoliciesByDSOAndType(c, previousItem, ResourcePolicy.TYPE_CUSTOM);
             authorizeService.addPolicies(c, policies, itemNew);
 
-            // Add metadata `dc.relation.replaces` to the new item and
-            // add metadata `dc.relation.isreplacedby` to the previous item.
+            // Add metadata `dc.relation.replaces` to the new item. The metadata `dc.relation.isreplacedby`
+            // are added to the previous item in the VersionRestRepository.
             manageRelationMetadata(c, itemNew, previousItem);
 
-            itemService.update(c, previousItem);
             itemService.update(c, itemNew);
             return itemNew;
         } catch (IOException | SQLException | AuthorizeException e) {
@@ -126,11 +124,10 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
     }
 
     /**
-     * Add metadata `dc.relation.replaces` to the new item and add metadata `dc.relation.isreplacedby`
-     * to the previous item.
+     * Add metadata `dc.relation.replaces` to the new item.
      */
     private void manageRelationMetadata(Context c, Item itemNew, Item previousItem) throws SQLException {
-        // Remove copied `dc.relation.replaces` metadata for the new item
+        // Remove copied `dc.relation.replaces` metadata for the new item.
         itemService.clearMetadata(c, itemNew, "dc", "relation", "replaces", null);
 
         // Add metadata `dc.relation.replaces` to the new item.
@@ -139,14 +136,5 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
                 "identifier","uri", Item.ANY);
         itemService.addMetadata(c, itemNew, "dc", "relation", "replaces", null,
                 identifierUriPrevItem);
-
-        // Add metadata `dc.relation.isreplacedby` to the previous item.
-        // The metadata value is: `dc.identifier.uri` from the new item.
-        String handleref = handleService.getCanonicalForm(itemNew.getHandle());
-        if (StringUtils.isBlank(handleref)) {
-            throw new RuntimeException("Cannot get handle in canonical form.");
-        }
-        itemService.addMetadata(c, previousItem, "dc", "relation", "isreplacedby", null,
-                handleref);
     }
 }
