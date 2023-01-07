@@ -42,21 +42,6 @@ public class VersionHistoryBuilder extends AbstractBuilder<VersionHistory, Versi
         return this;
     }
 
-//    public static void deleteVersionHistory(Integer id) throws Exception {
-//        if (Objects.isNull(id)) {
-//            return;
-//        }
-//        try (Context c = new Context()) {
-//            c.turnOffAuthorisationSystem();
-//            VersionHistory versionHistory = versionHistoryService.find(c, id);
-//
-//            if (versionHistory != null) {
-//                versionHistoryService.delete(c, versionHistory);
-//            }
-//            c.complete();
-//        }
-//    }
-
     @Override
     public void cleanup() throws Exception {
         try (Context c = new Context()) {

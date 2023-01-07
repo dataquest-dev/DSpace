@@ -78,8 +78,8 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
         //** GIVEN **
         //1. A community-collection structure with one parent community with sub-community and two collections.
         parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
+                            .withName("Parent Community")
+                            .build();
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                 .withName("Sub Community")
                 .build();
@@ -94,13 +94,6 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
                 .build();
         context.restoreAuthSystemState();
     }
-
-//    @After
-//    public void cleanup() throws Exception {
-//        context.turnOffAuthorisationSystem();
-//        VersionHistoryBuilder.deleteVersionHistory(versionHistory.getID());
-//        context.restoreAuthSystemState();
-//    }
 
     @Test
     public void findOnePublicVersionHistoryTest() throws Exception {
