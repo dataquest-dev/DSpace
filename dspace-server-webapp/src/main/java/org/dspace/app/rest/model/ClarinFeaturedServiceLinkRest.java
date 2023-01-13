@@ -1,8 +1,19 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.model;
 
-import org.dspace.app.rest.ClarinRefBoxController;
 import org.dspace.app.rest.RestResourceController;
 
+/**
+ * The FeaturedServiceLink REST Resource
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinFeaturedServiceLinkRest extends BaseObjectRest<Integer> {
 
     public static final String NAME = "featuredservicelink";
