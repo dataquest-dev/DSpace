@@ -33,12 +33,14 @@ import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.builder.EPersonBuilder;
+import org.dspace.content.authority.DCInputAuthority;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.I18nUtil;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.services.ConfigurationService;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,6 +94,14 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .withNetId("123456789")
                 .build();
         context.restoreAuthSystemState();
+    }
+
+    @Override
+    @After
+    public void destroy() throws Exception {
+        // Remove the created user manually because some tests are failing
+        EPersonBuilder.deleteEPerson(clarinEperson.getID());
+        super.destroy();
     }
 
     /**
