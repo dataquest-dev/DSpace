@@ -33,7 +33,6 @@ import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.builder.EPersonBuilder;
-import org.dspace.content.authority.DCInputAuthority;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.I18nUtil;
