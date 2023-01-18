@@ -24,6 +24,7 @@ import org.bouncycastle.util.Arrays;
 
 /**
  * Serves as proxy for call from XSL engine.
+ * @author Marian Berger (marian.berger at dataquest.sk)
  */
 public abstract class ListXslFunction implements ExtensionFunction {
 

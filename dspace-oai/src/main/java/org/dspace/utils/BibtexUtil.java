@@ -20,6 +20,9 @@ import java.util.StringTokenizer;
 /**
  * Escaping from the old oai-bibtex crosswalk
  * Meant to be called from xsl
+ *
+ *  Class is copied from the LINDAT/CLARIAH-CZ (https://github.com/ufal/clarin-dspace) and modified by
+ *  @author Marian Berger (marian.berger at dataquest.sk)
  */
 public class BibtexUtil {
 

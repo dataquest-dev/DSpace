@@ -10,6 +10,9 @@ package org.dspace.xoai.services.impl.resources.functions;
 
 import org.dspace.utils.BibtexUtil;
 
+/**
+ *  @author Marian Berger (marian.berger at dataquest.sk)
+ */
 public class BibtexifyFn extends ListXslFunction {
     @Override
     protected String getFnName() {

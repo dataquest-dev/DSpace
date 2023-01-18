@@ -10,6 +10,7 @@ package org.dspace.xoai.services.impl.resources.functions;
 
 /**
  * Serves as proxy for call from XSL engine. Replaces http:// with https://
+ * @author Marian Berger (marian.berger at dataquest.sk)
  */
 public class StringReplaceFn extends StringXSLFunction {
 
