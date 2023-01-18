@@ -1,0 +1,128 @@
+package org.dspace.app.statistics.clarin;
+
+import org.apache.log4j.Logger;
+import org.dspace.content.clarin.ClarinUserMetadata;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.matomo.java.tracking.MatomoException;
+import org.matomo.java.tracking.MatomoTracker;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+
+
+public abstract class AbstractMatomoTracker implements Tracker {
+    protected AbstractMatomoTracker() {
+    }
+
+    /** log4j category */
+    private static Logger log = Logger.getLogger(AbstractMatomoTracker.class);
+
+    private final ConfigurationService configurationService =
+            DSpaceServicesFactory.getInstance().getConfigurationService();
+
+    private MatomoTracker tracker = ClarinServiceFactory.getInstance().getMatomoTracker();
+    private String authToken;
+
+    public void trackPage(HttpServletRequest request, String pageName)
+    {
+        log.debug("Piwik tracks " + pageName);
+        String pageURL = getFullURL(request);
+//        tracker.setPageUrl(pageURL);
+
+        preTrack(request);
+        URL url = null;
+//        URL url = tracker.getPageTrackURL(pageName);
+        try {
+            url = new URL(url.toString() + "&bots=1");
+        } catch(MalformedURLException e){}
+        sendTrackingRequest(url);
+    }
+//
+//    public void trackDownload(HttpServletRequest request)
+//    {
+//        String downloadURL = getFullURL(request);
+//
+//        preTrack(request);
+//        URL url = tracker.getDownloadTrackURL(downloadURL);
+//        try {
+//            url = new URL(url.toString() + "&bots=1");
+//        } catch(MalformedURLException e){}
+//        sendTrackingRequest(url);
+//    }
+//
+    public void sendTrackingRequest(URL url)
+    {
+        try
+        {
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.connect();
+            int responseCode = conn.getResponseCode();
+
+            if (responseCode != 200)
+            {
+                log.error("Invalid response code from Piwik tracker API: "
+                        + responseCode);
+            }
+
+        }
+        catch (IOException e) {
+            log.error(e);
+        }
+    }
+//
+    protected String getFullURL(HttpServletRequest request)
+    {
+        StringBuilder url = new StringBuilder();
+        url.append(request.getScheme());
+        url.append("://");
+        url.append(request.getServerName());
+        url.append("http".equals(request.getScheme())
+                && request.getServerPort() == 80
+                || "https".equals(request.getScheme())
+                && request.getServerPort() == 443 ? "" : ":" + request.getServerPort());
+        url.append(request.getRequestURI());
+        url.append(request.getQueryString() != null ? "?"
+                + request.getQueryString() : "");
+        return url.toString();
+    }
+//
+    protected void preTrack(HttpServletRequest request)
+    {
+//        tracker.setIp(getIpAddress(request));
+//        // referrer
+//        try {
+//            tracker.setUrlReferrer(request.getHeader("referer"));
+//        } catch (PiwikException e) {
+//        }
+//        // user agent
+//        if ( null != request.getHeader("user-agent") ) {
+//            tracker.setUserAgent(request.getHeader("user-agent"));
+//        }
+//        // accept language
+//        if ( null != request.getHeader("accept-language") ) {
+//            tracker.setAcceptLanguage(request.getHeader("accept-language"));
+//        }
+    }
+//
+    protected String getIpAddress(HttpServletRequest request)
+    {
+        String ip = "";
+        String header = request.getHeader("X-Forwarded-For");
+        if(header == null) {
+            header = request.getRemoteAddr();
+        }
+        if(header != null) {
+            String[] ips = header.split(", ");
+            ip = ips.length > 0 ? ips[0] : "";
+        }
+        return ip;
+    }
+}

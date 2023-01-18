@@ -16,6 +16,7 @@ import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.matomo.java.tracking.MatomoTracker;
 
 /**
  * Abstract factory to get services for the clarin package, use ClarinServiceFactory.getInstance() to retrieve an
@@ -40,6 +41,8 @@ public abstract class ClarinServiceFactory {
     public abstract ClarinLicenseResourceUserAllowanceService getClarinLicenseResourceUserAllowance();
 
     public abstract ClarinVerificationTokenService getClarinVerificationTokenService();
+
+    public abstract MatomoTracker getMatomoTracker();
 
     public static ClarinServiceFactory getInstance() {
         return DSpaceServicesFactory.getInstance().getServiceManager()
