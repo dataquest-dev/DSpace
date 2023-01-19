@@ -227,6 +227,9 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-GIVENNAME", firstname)
                         .header("SHIB-SURNAME", lastname))
                 .andExpect(status().isFound());
+
+        // Delete created eperson - clean after the test
+        EPersonBuilder.deleteEPerson(ePerson.getID());
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
