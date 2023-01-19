@@ -67,7 +67,7 @@ public class ClarinUserMetadataRestController {
     @PreAuthorize("permitAll()")
     public ResponseEntity manageUserMetadata(@RequestParam("bitstreamUUID") UUID bitstreamUUID,
                                                      HttpServletRequest request)
-            throws SQLException, ParseException, IOException, AuthorizeException {
+            throws SQLException, ParseException, IOException, AuthorizeException, ParserConfigurationException {
 
         // Get context from the request
         Context context = obtainContext(request);

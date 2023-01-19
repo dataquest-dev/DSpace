@@ -62,10 +62,11 @@ public class ClarinLicenseResourceUserAllowanceRestRepository
     }
 
     @SearchRestMethod(name = "byBitstreamAndUser")
-    public Page<ClarinLicenseResourceUserAllowanceRest> findByValue(@Parameter(value = "bitstreamUUID", required = true)
-                                                                                UUID bitstreamUUID,
-                                                      @Parameter(value = "userUUID", required = true) UUID userUUID,
-                                                      Pageable pageable) throws SQLException {
+    public Page<ClarinLicenseResourceUserAllowanceRest> findByValue(
+            @Parameter(value = "bitstreamUUID", required = true) UUID bitstreamUUID,
+            @Parameter(value = "userUUID", required = true) UUID userUUID,
+            Pageable pageable) throws SQLException {
+
         Context context = obtainContext();
 
         List<ClarinLicenseResourceUserAllowance> clarinLicenseResourceUserAllowance =
