@@ -156,7 +156,7 @@
         <!-- TODO change me -->
         <constructor-arg value="http://localhost/matomo.php"/>
     </bean>
-    <bean class="org.dspace.app.statistics.clarin.MatomoBitstreamTrackerImpl"/>
+    <bean class="org.dspace.app.statistics.clarin.MatomoBitstreamTracker"/>
 
 </beans>
 

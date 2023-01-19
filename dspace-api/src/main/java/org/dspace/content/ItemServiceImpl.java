@@ -9,7 +9,6 @@ package org.dspace.content;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
@@ -30,10 +29,10 @@ import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.ws.addressing.ContextUtils;
 import org.apache.http.HttpResponse;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.statistics.clarin.MatomoBitstreamTracker;
-import org.dspace.app.statistics.clarin.MatomoBitstreamTrackerImpl;
 import org.dspace.app.util.AuthorizeUtil;
 import org.dspace.authorize.AuthorizeConfiguration;
 import org.dspace.authorize.AuthorizeException;
@@ -65,12 +64,18 @@ import org.dspace.harvest.service.HarvestedItemService;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.service.IdentifierService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.RequestService;
+import org.dspace.services.model.Request;
+import org.dspace.utils.DSpace;
 import org.dspace.versioning.service.VersioningService;
+import org.dspace.web.ContextUtil;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 import org.matomo.java.tracking.MatomoRequest;
 import org.matomo.java.tracking.MatomoTracker;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Service implementation for the Item object.
@@ -131,7 +136,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     private RelationshipMetadataService relationshipMetadataService;
 
     @Autowired(required = true)
-    MatomoBitstreamTrackerImpl matomoBitstreamTracker;
+    MatomoBitstreamTracker matomoBitstreamTracker;
 
     protected ItemServiceImpl() {
         super();
@@ -210,31 +215,29 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         }
         workspaceItem.setItem(item);
 
-        MatomoTracker tracker = new MatomoTracker("http://localhost/matomo.php");
-        MatomoRequest request = MatomoRequest.builder()
-                .siteId(1)
-                .actionUrl("http://example.org/landing.html?pk_campaign=Email-Nov2011&pk_kwd=LearnMore") // include the query parameters to the url
-                .actionName("LearnMore")
-                .build();
+//        MatomoTracker tracker = new MatomoTracker("http://localhost/matomo.php");
+////        MatomoRequest request = MatomoRequest.builder()
+//                .siteId(1)
+//                .actionUrl("http://example.org/landing.html?pk_campaign=Email-Nov2011&pk_kwd=LearnMore") // include the query parameters to the url
+//                .actionName("LearnMore")
+//                .build();
 
-        try {
-            matomoBitstreamTracker.sendTrackingRequest(new URL("http://localhost/matomo.php"));
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        RequestService requestService = new DSpace().getRequestService();
+        Request currentRequest = requestService.getCurrentRequest();
+        matomoBitstreamTracker.trackPage(currentRequest.getHttpServletRequest(), "Bitstream Download / Single File");
 
-        try {
-            Future<HttpResponse> response = tracker.sendRequestAsync(request);
-            // usually not needed:
-            HttpResponse httpResponse = response.get();
-            int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode > 399) {
-                // problem
-                System.out.println("Problem");
-            }
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException("Error while getting response", e);
-        }
+//        try {
+//            Future<HttpResponse> response = tracker.sendRequestAsync(request);
+//            // usually not needed:
+//            HttpResponse httpResponse = response.get();
+//            int statusCode = httpResponse.getStatusLine().getStatusCode();
+//            if (statusCode > 399) {
+//                // problem
+//                System.out.println("Problem");
+//            }
+//        } catch (ExecutionException | InterruptedException e) {
+//            throw new RuntimeException("Error while getting response", e);
+//        }
 
         log.info(LogHelper.getHeader(context, "create_item", "item_id="
                 + item.getID()));

@@ -1,11 +1,15 @@
 package org.dspace.app.statistics.clarin;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
 import org.apache.log4j.Logger;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.matomo.java.tracking.MatomoException;
+import org.matomo.java.tracking.MatomoRequest;
 import org.matomo.java.tracking.MatomoTracker;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -15,7 +19,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public abstract class AbstractMatomoTracker implements Tracker {
     protected AbstractMatomoTracker() {
@@ -28,21 +34,43 @@ public abstract class AbstractMatomoTracker implements Tracker {
             DSpaceServicesFactory.getInstance().getConfigurationService();
 
     private MatomoTracker tracker = ClarinServiceFactory.getInstance().getMatomoTracker();
-    private String authToken;
 
-    public void trackPage(HttpServletRequest request, String pageName)
-    {
-        log.debug("Piwik tracks " + pageName);
+    public void trackPage(HttpServletRequest request, String pageName) {
+        log.debug("Matomo tracks " + pageName);
         String pageURL = getFullURL(request);
-//        tracker.setPageUrl(pageURL);
 
-        preTrack(request);
-        URL url = null;
-//        URL url = tracker.getPageTrackURL(pageName);
+        MatomoRequest matomoRequest = null;
         try {
-            url = new URL(url.toString() + "&bots=1");
-        } catch(MalformedURLException e){}
-        sendTrackingRequest(url);
+            matomoRequest = MatomoRequest.builder()
+                    .siteId(1)
+                    .actionUrl(pageURL) // include the query parameters to the url
+                    .actionName(pageName)
+                    .authToken(configurationService.getProperty("matomo.auth.token"))
+                    .visitorIp(getIpAddress(request))
+                    .build();
+        } catch (MatomoException e) {
+            log.error("Cannot create Matomo Request because: " + e.getMessage());
+        }
+
+        if (Objects.isNull(matomoRequest)) {
+            return;
+        }
+
+        if (StringUtils.isNotBlank(request.getHeader("referer"))) {
+            matomoRequest.setHeaderUserAgent(request.getHeader("referer"));
+        }
+        if (StringUtils.isNotBlank(request.getHeader("user-agent"))) {
+            matomoRequest.setHeaderUserAgent(request.getHeader("user-agent"));
+        }
+        if (StringUtils.isNotBlank(request.getHeader("accept-language"))) {
+            matomoRequest.setHeaderUserAgent(request.getHeader("accept-language"));
+        }
+
+//        URL url = tracker.getPageTrackURL(pageName);
+//        try {
+//            url = new URL(url.toString() + "&bots=1");
+//        } catch(MalformedURLException e){}
+        sendTrackingRequest(matomoRequest);
     }
 //
 //    public void trackDownload(HttpServletRequest request)
@@ -57,24 +85,32 @@ public abstract class AbstractMatomoTracker implements Tracker {
 //        sendTrackingRequest(url);
 //    }
 //
-    public void sendTrackingRequest(URL url)
+    public void sendTrackingRequest(MatomoRequest request)
     {
-        try
-        {
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.connect();
-            int responseCode = conn.getResponseCode();
-
-            if (responseCode != 200)
-            {
-                log.error("Invalid response code from Piwik tracker API: "
-                        + responseCode);
+        try {
+            Future<HttpResponse> response = tracker.sendRequestAsync(request);
+            // usually not needed:
+            HttpResponse httpResponse = response.get();
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            if (statusCode > 399) {
+                // problem
+                log.error("Matomo tracker error the response has status code: " + statusCode);
             }
+//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//            conn.setRequestMethod("GET");
+//            conn.connect();
+//            int responseCode = conn.getResponseCode();
+//
+//            if (responseCode != 200)
+//            {
+//                log.error("Invalid response code from Piwik tracker API: "
+//                        + responseCode);
+//            }
 
-        }
-        catch (IOException e) {
-            log.error(e);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 //
@@ -93,25 +129,7 @@ public abstract class AbstractMatomoTracker implements Tracker {
                 + request.getQueryString() : "");
         return url.toString();
     }
-//
-    protected void preTrack(HttpServletRequest request)
-    {
-//        tracker.setIp(getIpAddress(request));
-//        // referrer
-//        try {
-//            tracker.setUrlReferrer(request.getHeader("referer"));
-//        } catch (PiwikException e) {
-//        }
-//        // user agent
-//        if ( null != request.getHeader("user-agent") ) {
-//            tracker.setUserAgent(request.getHeader("user-agent"));
-//        }
-//        // accept language
-//        if ( null != request.getHeader("accept-language") ) {
-//            tracker.setAcceptLanguage(request.getHeader("accept-language"));
-//        }
-    }
-//
+
     protected String getIpAddress(HttpServletRequest request)
     {
         String ip = "";
