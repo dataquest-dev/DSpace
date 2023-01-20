@@ -30,7 +30,7 @@ import com.lyncode.xoai.dataprovider.exceptions.OAIException;
 import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.logging.log4j.Logger;
-import org.dspace.app.statistics.clarin.MatomoOAITracker;
+import org.dspace.app.statistics.clarin.ClarinMatomoOAITracker;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.xoai.services.api.cache.XOAICacheService;
@@ -75,7 +75,7 @@ public class DSpaceOAIDataProvider {
     @Autowired
     ConfigurationService configurationService;
     @Autowired
-    MatomoOAITracker matomoOAITracker;
+    ClarinMatomoOAITracker matomoOAITracker;
 
     private DSpaceResumptionTokenFormatter resumptionTokenFormat = new DSpaceResumptionTokenFormatter();
 

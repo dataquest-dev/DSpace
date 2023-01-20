@@ -1,46 +1,55 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.statistics.clarin;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Calendar;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.log4j.Logger;
-import org.apache.tika.utils.DateUtils;
-import org.apache.tools.ant.taskdefs.condition.Http;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
-import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.matomo.java.tracking.MatomoException;
 import org.matomo.java.tracking.MatomoRequest;
-import org.matomo.java.tracking.MatomoTracker;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
-public class AbstractMatomoTracker implements Tracker {
-    AbstractMatomoTracker() {
+/**
+ * The statistics Tracker for Matomo. This class prepare and send the track GET request to the `/matomo.php`
+ *
+ * The class is copied from UFAL/CLARIN-DSPACE (https://github.com/ufal/clarin-dspace) and modified by
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
+public class ClarinMatomoTracker implements Tracker {
+    ClarinMatomoTracker() {
     }
 
     /** log4j category */
-    private static Logger log = Logger.getLogger(AbstractMatomoTracker.class);
+    private static Logger log = Logger.getLogger(ClarinMatomoTracker.class);
 
     private final ConfigurationService configurationService =
             DSpaceServicesFactory.getInstance().getConfigurationService();
 
-    private MatomoTracker tracker = ClarinServiceFactory.getInstance().getMatomoTracker();
+    private org.matomo.java.tracking.MatomoTracker tracker = ClarinServiceFactory.getInstance().getMatomoTracker();
 
+    /**
+     * Create, prepare and send the track request
+     *
+     * @param context DSpace context object  - can be null
+     * @param request current request
+     * @param item downloading item - can be null
+     * @param pageName - action name
+     */
     public void trackPage(Context context, HttpServletRequest request, Item item, String pageName) {
         log.debug("Matomo tracks " + pageName);
         // `&bots=1` because we want to track downloading by bots
@@ -56,6 +65,14 @@ public class AbstractMatomoTracker implements Tracker {
         sendTrackingRequest(matomoRequest);
     }
 
+    /**
+     * Create the Matomo Request for the Matomo endpoint. This object is send in the tracking request.
+     *
+     * @param request currrent request
+     * @param pageName action name
+     * @param pageURL item handle or OAI harvesting current page URL
+     * @return MatomoRequest object or null
+     */
     protected MatomoRequest createMatomoRequest(HttpServletRequest request, String pageName, String pageURL) {
         MatomoRequest matomoRequest = null;
         try {
@@ -72,6 +89,14 @@ public class AbstractMatomoTracker implements Tracker {
         return matomoRequest;
     }
 
+    /**
+     * Prepare the Matomo Request for sending - add the request parameters to the Matomo object
+     *
+     * @param context DSpace context object
+     * @param matomoRequest Matomo request object where will be added request parameters
+     * @param item from where the bitstream is downloading or null
+     * @param request current request
+     */
     protected void preTrack(Context context, MatomoRequest matomoRequest, Item item, HttpServletRequest request) {
         if (StringUtils.isNotBlank(request.getHeader("referer"))) {
             matomoRequest.setHeaderUserAgent(request.getHeader("referer"));
@@ -86,6 +111,7 @@ public class AbstractMatomoTracker implements Tracker {
         // Creating a calendar using getInstance method
         Calendar now = Calendar.getInstance();
 
+        // Add request parameters to the MatomoRequest object
         matomoRequest.setCurrentHour(now.get(Calendar.HOUR_OF_DAY));
         matomoRequest.setCurrentMinute(now.get(Calendar.MINUTE));
         matomoRequest.setCurrentSecond(now.get(Calendar.SECOND));
@@ -103,9 +129,13 @@ public class AbstractMatomoTracker implements Tracker {
         matomoRequest.setDeviceResolution("1920x1080");
     }
 
-    public void sendTrackingRequest(MatomoRequest request) {
+    /**
+     * Send the Track request and process the response
+     * @param matomoRequest prepared MatomoRequest for sending
+     */
+    public void sendTrackingRequest(MatomoRequest matomoRequest) {
         try {
-            Future<HttpResponse> response = tracker.sendRequestAsync(request);
+            Future<HttpResponse> response = tracker.sendRequestAsync(matomoRequest);
             // usually not needed:
             HttpResponse httpResponse = response.get();
             int statusCode = httpResponse.getStatusLine().getStatusCode();
@@ -113,13 +143,11 @@ public class AbstractMatomoTracker implements Tracker {
                 // problem
                 log.error("Matomo tracker error the response has status code: " + statusCode);
             }
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
     }
-//
+
     protected String getFullURL(HttpServletRequest request)
     {
         StringBuilder url = new StringBuilder();

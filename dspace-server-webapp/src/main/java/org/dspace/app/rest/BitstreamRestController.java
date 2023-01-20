@@ -34,22 +34,19 @@ import org.dspace.app.rest.model.hateoas.BitstreamResource;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.HttpHeadersInitializer;
 import org.dspace.app.rest.utils.Utils;
-import org.dspace.app.statistics.clarin.MatomoBitstreamTracker;
+import org.dspace.app.statistics.clarin.ClarinMatomoBitstreamTracker;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
-import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
-import org.dspace.content.service.BundleService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
 import org.dspace.disseminate.service.CitationDocumentService;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.EventService;
-import org.dspace.services.model.Request;
 import org.dspace.usage.UsageEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -110,7 +107,7 @@ public class BitstreamRestController {
     Utils utils;
 
     @Autowired
-    MatomoBitstreamTracker matomoBitstreamTracker;
+    ClarinMatomoBitstreamTracker matomoBitstreamTracker;
 
     @Autowired
     ClarinItemService clarinItemService;

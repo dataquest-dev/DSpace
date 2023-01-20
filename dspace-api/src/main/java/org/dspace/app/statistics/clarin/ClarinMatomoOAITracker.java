@@ -1,4 +1,14 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.statistics.clarin;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
@@ -9,20 +19,19 @@ import org.matomo.java.tracking.CustomVariable;
 import org.matomo.java.tracking.MatomoException;
 import org.matomo.java.tracking.MatomoRequest;
 
-import javax.servlet.http.HttpServletRequest;
-import java.net.URL;
-import java.util.Objects;
-
-public class MatomoOAITracker extends AbstractMatomoTracker {
+/**
+ *
+ */
+public class ClarinMatomoOAITracker extends ClarinMatomoTracker {
     /** log4j category */
-    private static Logger log = Logger.getLogger(MatomoOAITracker.class);
+    private static Logger log = Logger.getLogger(ClarinMatomoOAITracker.class);
 
     private final ConfigurationService configurationService =
             DSpaceServicesFactory.getInstance().getConfigurationService();
 
     private int siteId;
 
-    public MatomoOAITracker() {
+    public ClarinMatomoOAITracker() {
         super();
         siteId = configurationService.getIntProperty("matomo.tracker.oai.site_id");
     }
