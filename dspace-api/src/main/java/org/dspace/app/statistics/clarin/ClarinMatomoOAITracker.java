@@ -7,8 +7,8 @@
  */
 package org.dspace.app.statistics.clarin;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Objects;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
@@ -70,8 +70,7 @@ public class ClarinMatomoOAITracker extends ClarinMatomoTracker {
      * @param pageName - action name
      */
     @Override
-    public void trackPage(Context context, HttpServletRequest request, Item item, String pageName)
-    {
+    public void trackPage(Context context, HttpServletRequest request, Item item, String pageName) {
         pageName = expandPageName(request, pageName);
         log.debug("Matomo tracks " + pageName);
         String pageURL = getFullURL(request);
@@ -95,7 +94,7 @@ public class ClarinMatomoOAITracker extends ClarinMatomoTracker {
      */
     private String expandPageName(HttpServletRequest request, String pageName) {
         String[] metadataPrefix = request.getParameterValues("metadataPrefix");
-        if(metadataPrefix != null && metadataPrefix.length > 0) {
+        if (metadataPrefix != null && metadataPrefix.length > 0) {
             pageName = pageName + "/" + metadataPrefix[0];
         }
         return pageName;

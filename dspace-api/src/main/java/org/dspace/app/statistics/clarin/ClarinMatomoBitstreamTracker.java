@@ -7,10 +7,10 @@
  */
 package org.dspace.app.statistics.clarin;
 
-import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;

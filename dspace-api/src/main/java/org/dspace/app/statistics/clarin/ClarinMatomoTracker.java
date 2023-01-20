@@ -7,11 +7,11 @@
  */
 package org.dspace.app.statistics.clarin;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Calendar;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -30,7 +30,7 @@ import org.matomo.java.tracking.MatomoRequest;
  * The class is copied from UFAL/CLARIN-DSPACE (https://github.com/ufal/clarin-dspace) and modified by
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-public class ClarinMatomoTracker implements Tracker {
+public class ClarinMatomoTracker {
     ClarinMatomoTracker() {
     }
 
@@ -148,8 +148,7 @@ public class ClarinMatomoTracker implements Tracker {
         }
     }
 
-    protected String getFullURL(HttpServletRequest request)
-    {
+    protected String getFullURL(HttpServletRequest request) {
         StringBuilder url = new StringBuilder();
         url.append(request.getScheme());
         url.append("://");
@@ -170,14 +169,13 @@ public class ClarinMatomoTracker implements Tracker {
      * @param request current request
      * @return
      */
-    protected String getIpAddress(HttpServletRequest request)
-    {
+    protected String getIpAddress(HttpServletRequest request) {
         String ip = "";
         String header = request.getHeader("X-Forwarded-For");
-        if(header == null) {
+        if (header == null) {
             header = request.getRemoteAddr();
         }
-        if(header != null) {
+        if (header != null) {
             String[] ips = header.split(", ");
             ip = ips.length > 0 ? ips[0] : "";
         }
