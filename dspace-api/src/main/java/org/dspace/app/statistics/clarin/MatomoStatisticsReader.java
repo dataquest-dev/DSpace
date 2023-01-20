@@ -47,13 +47,13 @@ public class MatomoStatisticsReader {
                         + "&token_auth=" + authToken
 //                        + "&segment=pageUrl=@" + dspaceURL + "/handle/" + item.getHandle()
                         + "&showColumns=label,url,nb_visits,nb_hits";
-        String downloadUrlParams =
-                "&date=" + df.format(startDate) + "," + df.format(endDate)
-                        + "&period=" + period
-                        + "&idSite=" + PIWIK_DOWNLOAD_SITE_ID
-                        + "&token_auth=" + PIWIK_AUTH_TOKEN
-                        + "&segment=pageUrl=@" + dspaceURL + "/bitstream/handle/" + item.getHandle()
-                        + "&showColumns=label,url,nb_visits,nb_hits";
+//        String downloadUrlParams =
+//                "&date=" + df.format(startDate) + "," + df.format(endDate)
+//                        + "&period=" + period
+//                        + "&idSite=" + PIWIK_DOWNLOAD_SITE_ID
+//                        + "&token_auth=" + PIWIK_AUTH_TOKEN
+//                        + "&segment=pageUrl=@" + dspaceURL + "/bitstream/handle/" + item.getHandle()
+//                        + "&showColumns=label,url,nb_visits,nb_hits";
     }
 
     // Send request

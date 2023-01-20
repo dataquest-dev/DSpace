@@ -7,6 +7,7 @@
  */
 package org.dspace.content.factory;
 
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
@@ -49,6 +50,9 @@ public class ClarinServiceFactoryImpl extends ClarinServiceFactory {
 
     @Autowired(required = true)
     private ClarinVerificationTokenService clarinVerificationTokenService;
+
+    @Autowired(required = true)
+    private ClarinItemService clarinItemService;
 
     @Autowired(required = true)
     private MatomoTracker matomoTracker;
@@ -96,5 +100,10 @@ public class ClarinServiceFactoryImpl extends ClarinServiceFactory {
     @Override
     public MatomoTracker getMatomoTracker() {
         return matomoTracker;
+    }
+
+    @Override
+    public ClarinItemService getClarinItemService() {
+        return clarinItemService;
     }
 }

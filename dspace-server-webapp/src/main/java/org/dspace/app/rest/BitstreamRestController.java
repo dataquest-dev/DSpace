@@ -15,12 +15,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 
 import org.apache.catalina.connector.ClientAbortException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Logger;
@@ -31,16 +33,22 @@ import org.dspace.app.rest.model.hateoas.BitstreamResource;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.HttpHeadersInitializer;
 import org.dspace.app.rest.utils.Utils;
+import org.dspace.app.statistics.clarin.MatomoBitstreamTracker;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
+import org.dspace.content.Bundle;
+import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
 import org.dspace.disseminate.service.CitationDocumentService;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.EventService;
+import org.dspace.services.model.Request;
 import org.dspace.usage.UsageEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -99,6 +107,12 @@ public class BitstreamRestController {
 
     @Autowired
     Utils utils;
+
+    @Autowired
+    MatomoBitstreamTracker matomoBitstreamTracker;
+
+    @Autowired
+    ClarinItemService clarinItemService;
 
     @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ')")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")
@@ -166,6 +180,9 @@ public class BitstreamRestController {
                 new org.dspace.app.rest.utils.BitstreamResource(
                     bit, name, uuid, filesize, currentUser != null ? currentUser.getID() : null);
 
+            // Track the download statistics
+            trackBitstreamDownload(context, request, bit);
+
             //We have all the data we need, close the connection to the database so that it doesn't stay open during
             //download/streaming
             context.complete();
@@ -183,6 +200,30 @@ public class BitstreamRestController {
             throw e;
         }
         return null;
+    }
+
+    private void trackBitstreamDownload(Context context, HttpServletRequest request, Bitstream bit) throws SQLException {
+        // We only track a download request when serving a request without Range header. Do not track the
+        // download if the downloading continues.
+        if (StringUtils.isNotBlank(request.getHeader("Range"))) {
+            return;
+        }
+
+        List<Item> items = clarinItemService.findByBitstreamUUID(context, bit.getID());
+        if (CollectionUtils.isEmpty(items)) {
+            log.error("Cannot find the Item for the bitstream with ID: " + bit.getID() +
+                    " - the statistics cannot be logged.");
+            return;
+        }
+
+        // The bitstream is assigned only into one Item.
+        Item item = items.get(0);
+        if (Objects.isNull(item)) {
+            log.error("Cannot get the Item from the bitstream - the statistics cannot be logged.");
+            return;
+        }
+
+        matomoBitstreamTracker.trackPage(context, request, item, "Bitstream Download / Single File");
     }
 
     private String getBitstreamName(Bitstream bit, BitstreamFormat format) {

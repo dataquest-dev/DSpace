@@ -3,9 +3,13 @@ package org.dspace.app.statistics.clarin;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.log4j.Logger;
+import org.apache.tika.utils.DateUtils;
+import org.apache.tools.ant.taskdefs.condition.Http;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.matomo.java.tracking.MatomoException;
@@ -19,12 +23,14 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public abstract class AbstractMatomoTracker implements Tracker {
-    protected AbstractMatomoTracker() {
+public class AbstractMatomoTracker implements Tracker {
+    AbstractMatomoTracker() {
     }
 
     /** log4j category */
@@ -35,7 +41,7 @@ public abstract class AbstractMatomoTracker implements Tracker {
 
     private MatomoTracker tracker = ClarinServiceFactory.getInstance().getMatomoTracker();
 
-    public void trackPage(HttpServletRequest request, String pageName) {
+    public void trackPage(Context context, HttpServletRequest request, Item item, String pageName) {
         log.debug("Matomo tracks " + pageName);
         String pageURL = getFullURL(request);
 
@@ -56,6 +62,17 @@ public abstract class AbstractMatomoTracker implements Tracker {
             return;
         }
 
+        // Add some headers and parameters to the request
+        preTrack(context, matomoRequest, item, request);
+
+//        URL url = tracker.getPageTrackURL(pageName);
+//        try {
+//            url = new URL(url.toString() + "&bots=1");
+//        } catch(MalformedURLException e){}
+        sendTrackingRequest(matomoRequest);
+    }
+
+    protected void preTrack(Context context, MatomoRequest matomoRequest, Item item, HttpServletRequest request) {
         if (StringUtils.isNotBlank(request.getHeader("referer"))) {
             matomoRequest.setHeaderUserAgent(request.getHeader("referer"));
         }
@@ -66,11 +83,24 @@ public abstract class AbstractMatomoTracker implements Tracker {
             matomoRequest.setHeaderUserAgent(request.getHeader("accept-language"));
         }
 
-//        URL url = tracker.getPageTrackURL(pageName);
-//        try {
-//            url = new URL(url.toString() + "&bots=1");
-//        } catch(MalformedURLException e){}
-        sendTrackingRequest(matomoRequest);
+        // Creating a calendar using getInstance method
+        Calendar now = Calendar.getInstance();
+
+        matomoRequest.setCurrentHour(now.get(Calendar.HOUR_OF_DAY));
+        matomoRequest.setCurrentMinute(now.get(Calendar.MINUTE));
+        matomoRequest.setCurrentSecond(now.get(Calendar.SECOND));
+        matomoRequest.setReferrerUrl(configurationService.getProperty("dspace.ui.url"));
+        matomoRequest.setPluginPDF(true);
+        matomoRequest.setPluginQuicktime(false);
+        matomoRequest.setPluginRealPlayer(false);
+        matomoRequest.setPluginWindowsMedia(false);
+        matomoRequest.setPluginDirector(false);
+        matomoRequest.setPluginFlash(false);
+        matomoRequest.setPluginJava(false);
+        matomoRequest.setPluginGears(false);
+        matomoRequest.setPluginSilverlight(false);
+        matomoRequest.setParameter("cookie", 1);
+        matomoRequest.setDeviceResolution("1920x1080");
     }
 //
 //    public void trackDownload(HttpServletRequest request)
@@ -85,8 +115,7 @@ public abstract class AbstractMatomoTracker implements Tracker {
 //        sendTrackingRequest(url);
 //    }
 //
-    public void sendTrackingRequest(MatomoRequest request)
-    {
+    public void sendTrackingRequest(MatomoRequest request) {
         try {
             Future<HttpResponse> response = tracker.sendRequestAsync(request);
             // usually not needed:
