@@ -8,14 +8,19 @@
 package org.dspace.app.statistics.clarin;
 
 import javax.servlet.http.HttpServletRequest;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -40,6 +45,12 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
     @Autowired
     ItemService itemService;
 
+    @Autowired
+    ClarinItemService clarinItemService;
+
+    /**
+     * Site ID for the Bitstream downloading statistics
+     */
     private int siteId;
 
     public ClarinMatomoBitstreamTracker() {
@@ -87,5 +98,38 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
             return "";
         }
         return mv.get(0).getValue();
+    }
+
+    /**
+     * Track the bitstream downloading event only if the downloading has started (Range header is null).
+     * Get the Item from where the bitstream is downloading because the Item handle must be added into the request.
+     *
+     * @param context DSpace context object
+     * @param request current request
+     * @param bit Bitstream which is downloading
+     */
+    public void trackBitstreamDownload(Context context, HttpServletRequest request, Bitstream bit) throws SQLException {
+        // We only track a download request when serving a request without Range header. Do not track the
+        // download if the downloading continues or the tracking is not allowed by the configuration.
+        if (StringUtils.isNotBlank(request.getHeader("Range")) &&
+                BooleanUtils.isFalse(configurationService.getBooleanProperty("matomo.track.enabled"))) {
+            return;
+        }
+
+        List<Item> items = clarinItemService.findByBitstreamUUID(context, bit.getID());
+        if (CollectionUtils.isEmpty(items)) {
+            log.error("Cannot find the Item for the bitstream with ID: " + bit.getID() +
+                    " - the statistics cannot be logged.");
+            return;
+        }
+
+        // The bitstream is assigned only into one Item.
+        Item item = items.get(0);
+        if (Objects.isNull(item)) {
+            log.error("Cannot get the Item from the bitstream - the statistics cannot be logged.");
+            return;
+        }
+
+        trackPage(context, request, item, "Bitstream Download / Single File");
     }
 }

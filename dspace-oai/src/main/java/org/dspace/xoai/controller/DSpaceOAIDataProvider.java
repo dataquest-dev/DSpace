@@ -92,16 +92,12 @@ public class DSpaceOAIDataProvider {
         return "index";
     }
 
-    private void trackOAIStatistics(HttpServletRequest request) {
-        matomoOAITracker.trackPage(null, request, null, "Repository OAI-PMH Data Provider Endpoint");
-    }
-
     @RequestMapping("/{context}")
     public String contextAction(Model model, HttpServletRequest request, HttpServletResponse response,
                                 @PathVariable("context") String xoaiContext) throws IOException, ServletException {
         // Track OAI statistics
         if (BooleanUtils.isTrue(configurationService.getBooleanProperty("matomo.track.enabled"))) {
-            trackOAIStatistics(request);
+            matomoOAITracker.trackOAIStatistics(request);
         }
 
         Context context = null;

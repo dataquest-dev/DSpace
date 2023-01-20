@@ -109,9 +109,6 @@ public class BitstreamRestController {
     @Autowired
     ClarinMatomoBitstreamTracker matomoBitstreamTracker;
 
-    @Autowired
-    ClarinItemService clarinItemService;
-
     @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ')")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")
     public ResponseEntity retrieve(@PathVariable UUID uuid, HttpServletResponse response,
@@ -178,8 +175,8 @@ public class BitstreamRestController {
                 new org.dspace.app.rest.utils.BitstreamResource(
                     bit, name, uuid, filesize, currentUser != null ? currentUser.getID() : null);
 
-            // Track the download statistics
-            trackBitstreamDownload(context, request, bit);
+            // Track the download statistics - only if the downloading has started (the condition is inside the method)
+            matomoBitstreamTracker.trackBitstreamDownload(context, request, bit);
 
             //We have all the data we need, close the connection to the database so that it doesn't stay open during
             //download/streaming
@@ -198,31 +195,6 @@ public class BitstreamRestController {
             throw e;
         }
         return null;
-    }
-
-    private void trackBitstreamDownload(Context context, HttpServletRequest request, Bitstream bit) throws SQLException {
-        // We only track a download request when serving a request without Range header. Do not track the
-        // download if the downloading continues or the tracking is not allowed by the configuration.
-        if (StringUtils.isNotBlank(request.getHeader("Range")) &&
-                BooleanUtils.isFalse(configurationService.getBooleanProperty("matomo.track.enabled"))) {
-            return;
-        }
-
-        List<Item> items = clarinItemService.findByBitstreamUUID(context, bit.getID());
-        if (CollectionUtils.isEmpty(items)) {
-            log.error("Cannot find the Item for the bitstream with ID: " + bit.getID() +
-                    " - the statistics cannot be logged.");
-            return;
-        }
-
-        // The bitstream is assigned only into one Item.
-        Item item = items.get(0);
-        if (Objects.isNull(item)) {
-            log.error("Cannot get the Item from the bitstream - the statistics cannot be logged.");
-            return;
-        }
-
-        matomoBitstreamTracker.trackPage(context, request, item, "Bitstream Download / Single File");
     }
 
     private String getBitstreamName(Bitstream bit, BitstreamFormat format) {

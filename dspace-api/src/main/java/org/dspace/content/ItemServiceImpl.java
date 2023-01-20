@@ -200,6 +200,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             item = createItem(context);
         }
         workspaceItem.setItem(item);
+
+
         log.info(LogHelper.getHeader(context, "create_item", "item_id="
                 + item.getID()));
 

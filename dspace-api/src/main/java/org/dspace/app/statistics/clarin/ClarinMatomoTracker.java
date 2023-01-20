@@ -164,6 +164,12 @@ public class ClarinMatomoTracker implements Tracker {
         return url.toString();
     }
 
+    /**
+     * Get IpAddress of the current user which throws this statistic event
+     *
+     * @param request current request
+     * @return
+     */
     protected String getIpAddress(HttpServletRequest request)
     {
         String ip = "";
