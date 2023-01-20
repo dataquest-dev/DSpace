@@ -28,8 +28,11 @@ import com.lyncode.xoai.dataprovider.core.XOAIManager;
 import com.lyncode.xoai.dataprovider.exceptions.InvalidContextException;
 import com.lyncode.xoai.dataprovider.exceptions.OAIException;
 import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.statistics.clarin.MatomoOAITracker;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
 import org.dspace.xoai.services.api.cache.XOAICacheService;
 import org.dspace.xoai.services.api.config.XOAIManagerResolver;
 import org.dspace.xoai.services.api.config.XOAIManagerResolverException;
@@ -69,6 +72,10 @@ public class DSpaceOAIDataProvider {
     IdentifyResolver identifyResolver;
     @Autowired
     SetRepositoryResolver setRepositoryResolver;
+    @Autowired
+    ConfigurationService configurationService;
+    @Autowired
+    MatomoOAITracker matomoOAITracker;
 
     private DSpaceResumptionTokenFormatter resumptionTokenFormat = new DSpaceResumptionTokenFormatter();
 
@@ -85,9 +92,18 @@ public class DSpaceOAIDataProvider {
         return "index";
     }
 
+    private void trackOAIStatistics(HttpServletRequest request) {
+        matomoOAITracker.trackPage(null, request, null, "Repository OAI-PMH Data Provider Endpoint");
+    }
+
     @RequestMapping("/{context}")
     public String contextAction(Model model, HttpServletRequest request, HttpServletResponse response,
                                 @PathVariable("context") String xoaiContext) throws IOException, ServletException {
+        // Track OAI statistics
+        if (BooleanUtils.isTrue(configurationService.getBooleanProperty("matomo.track.enabled"))) {
+            trackOAIStatistics(request);
+        }
+
         Context context = null;
         try {
             request.setCharacterEncoding("UTF-8");

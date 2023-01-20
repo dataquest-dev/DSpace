@@ -50,15 +50,15 @@ public class MatomoBitstreamTracker extends AbstractMatomoTracker {
     @Override
     protected void preTrack(Context context, MatomoRequest matomoRequest, Item item, HttpServletRequest request) {
         super.preTrack(context, matomoRequest, item, request);
-        log.debug("Logging to site " + matomoRequest.getSiteId());
 
         matomoRequest.setSiteId(siteId);
+        log.debug("Logging to site " + matomoRequest.getSiteId());
         String itemIdentifier = getItemIdentifier(item);
         if (StringUtils.isBlank(itemIdentifier)) {
             log.error("Cannot track the item without Identifier URI.");
         } else {
             // Set PageURL to handle identifier
-            matomoRequest.setDownloadUrl(itemIdentifier);
+            matomoRequest.setDownloadUrl(getFullURL(request));
             matomoRequest.setActionUrl(itemIdentifier);
         }
         try {
@@ -69,38 +69,6 @@ public class MatomoBitstreamTracker extends AbstractMatomoTracker {
     }
 
     private String getItemIdentifier(Item item) {
-//        if (Objects.isNull(context)) {
-//            log.error("The context is null.");
-//            return "";
-//        }
-//
-//        String requestPath = request.getServletPath();
-//        if (StringUtils.isBlank(requestPath)) {
-//            log.error("Request Context Path is null");
-//            return "";
-//        }
-//
-//        // /api/core/bitstreams/cc5e7724-b0b3-4b22-ab05-b5d296791a39/content
-//        requestPath = StringUtils.substringBeforeLast(requestPath, "/");
-//        String bitstreamUUID = StringUtils.substringAfterLast(requestPath, "/");
-//
-//        Item item = null;
-//        try {
-//            List<Item> itemList = clarinItemService.findByBitstreamUUID(context, UUID.fromString(bitstreamUUID));
-//            if (CollectionUtils.isEmpty(itemList)) {
-//                log.error("Cannot find the Item by the bitstream UUID: " + bitstreamUUID);
-//                return "";
-//            }
-//            item = itemList.get(0);
-//        } catch (SQLException e) {
-//            log.error("Cannot find the Item by the bitstream UUID: " + bitstreamUUID + ", because: " + e.getSQLState());
-//            return "";
-//        }
-//
-//        if (Objects.isNull(item)) {
-//            return "";
-//        }
-
         List<MetadataValue> mv = itemService.getMetadata(item, "dc", "identifier", "uri", Item.ANY, false);
         if (CollectionUtils.isEmpty(mv)) {
             log.error("The item doesn't have the metadata `dc.identifier.uri` - something went wrong.");

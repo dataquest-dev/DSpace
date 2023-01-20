@@ -23,6 +23,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Logger;
@@ -204,8 +205,9 @@ public class BitstreamRestController {
 
     private void trackBitstreamDownload(Context context, HttpServletRequest request, Bitstream bit) throws SQLException {
         // We only track a download request when serving a request without Range header. Do not track the
-        // download if the downloading continues.
-        if (StringUtils.isNotBlank(request.getHeader("Range"))) {
+        // download if the downloading continues or the tracking is not allowed by the configuration.
+        if (StringUtils.isNotBlank(request.getHeader("Range")) &&
+                BooleanUtils.isFalse(configurationService.getBooleanProperty("matomo.track.enabled"))) {
             return;
         }
 

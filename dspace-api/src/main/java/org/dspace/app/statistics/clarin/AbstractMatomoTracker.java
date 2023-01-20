@@ -43,8 +43,20 @@ public class AbstractMatomoTracker implements Tracker {
 
     public void trackPage(Context context, HttpServletRequest request, Item item, String pageName) {
         log.debug("Matomo tracks " + pageName);
-        String pageURL = getFullURL(request);
+        // `&bots=1` because we want to track downloading by bots
+        String pageURL = getFullURL(request) + "&bots=1";
 
+        MatomoRequest matomoRequest = createMatomoRequest(request, pageName, pageURL);
+        if (Objects.isNull(matomoRequest)) {
+            return;
+        }
+
+        // Add some headers and parameters to the request
+        preTrack(context, matomoRequest, item, request);
+        sendTrackingRequest(matomoRequest);
+    }
+
+    protected MatomoRequest createMatomoRequest(HttpServletRequest request, String pageName, String pageURL) {
         MatomoRequest matomoRequest = null;
         try {
             matomoRequest = MatomoRequest.builder()
@@ -57,19 +69,7 @@ public class AbstractMatomoTracker implements Tracker {
         } catch (MatomoException e) {
             log.error("Cannot create Matomo Request because: " + e.getMessage());
         }
-
-        if (Objects.isNull(matomoRequest)) {
-            return;
-        }
-
-        // Add some headers and parameters to the request
-        preTrack(context, matomoRequest, item, request);
-
-//        URL url = tracker.getPageTrackURL(pageName);
-//        try {
-//            url = new URL(url.toString() + "&bots=1");
-//        } catch(MalformedURLException e){}
-        sendTrackingRequest(matomoRequest);
+        return matomoRequest;
     }
 
     protected void preTrack(Context context, MatomoRequest matomoRequest, Item item, HttpServletRequest request) {
@@ -102,19 +102,7 @@ public class AbstractMatomoTracker implements Tracker {
         matomoRequest.setParameter("cookie", 1);
         matomoRequest.setDeviceResolution("1920x1080");
     }
-//
-//    public void trackDownload(HttpServletRequest request)
-//    {
-//        String downloadURL = getFullURL(request);
-//
-//        preTrack(request);
-//        URL url = tracker.getDownloadTrackURL(downloadURL);
-//        try {
-//            url = new URL(url.toString() + "&bots=1");
-//        } catch(MalformedURLException e){}
-//        sendTrackingRequest(url);
-//    }
-//
+
     public void sendTrackingRequest(MatomoRequest request) {
         try {
             Future<HttpResponse> response = tracker.sendRequestAsync(request);
@@ -125,17 +113,6 @@ public class AbstractMatomoTracker implements Tracker {
                 // problem
                 log.error("Matomo tracker error the response has status code: " + statusCode);
             }
-//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//            conn.setRequestMethod("GET");
-//            conn.connect();
-//            int responseCode = conn.getResponseCode();
-//
-//            if (responseCode != 200)
-//            {
-//                log.error("Invalid response code from Piwik tracker API: "
-//                        + responseCode);
-//            }
-
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

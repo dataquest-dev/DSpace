@@ -214,31 +214,6 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             item = createItem(context);
         }
         workspaceItem.setItem(item);
-
-//        MatomoTracker tracker = new MatomoTracker("http://localhost/matomo.php");
-////        MatomoRequest request = MatomoRequest.builder()
-//                .siteId(1)
-//                .actionUrl("http://example.org/landing.html?pk_campaign=Email-Nov2011&pk_kwd=LearnMore") // include the query parameters to the url
-//                .actionName("LearnMore")
-//                .build();
-
-        RequestService requestService = new DSpace().getRequestService();
-        Request currentRequest = requestService.getCurrentRequest();
-        matomoBitstreamTracker.trackPage(currentRequest.getHttpServletRequest(), "Bitstream Download / Single File");
-
-//        try {
-//            Future<HttpResponse> response = tracker.sendRequestAsync(request);
-//            // usually not needed:
-//            HttpResponse httpResponse = response.get();
-//            int statusCode = httpResponse.getStatusLine().getStatusCode();
-//            if (statusCode > 399) {
-//                // problem
-//                System.out.println("Problem");
-//            }
-//        } catch (ExecutionException | InterruptedException e) {
-//            throw new RuntimeException("Error while getting response", e);
-//        }
-
         log.info(LogHelper.getHeader(context, "create_item", "item_id="
                 + item.getID()));
 
