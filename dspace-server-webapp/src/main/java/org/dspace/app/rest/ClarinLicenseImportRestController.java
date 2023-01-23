@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
+import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicense;
@@ -76,29 +77,30 @@ public class ClarinLicenseImportRestController {
             return new ResponseEntity<>("Context is null", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        ClarinLicenseLabel inputLicenseLabel, licenseLabel;
+        ClarinLicenseLabelRest inputLicenseLabelRest;
+        ClarinLicenseLabel licenseLabel;
 
             for (JsonNode jsonLicenseLabel : licenseLabels) {
                 try {
                 ObjectMapper mapper = new ObjectMapper();
-                inputLicenseLabel = mapper.readValue(jsonLicenseLabel.toString(), ClarinLicenseLabel.class);
+                    inputLicenseLabelRest = mapper.readValue(jsonLicenseLabel.toString(), ClarinLicenseLabelRest.class);
                 } catch (IOException e1) {
                     throw new UnprocessableEntityException("Error parsing request body", e1);
                 }
 
-                if (isBlank(inputLicenseLabel.getLabel()) || isBlank(inputLicenseLabel.getTitle())) {
+                if (isBlank(inputLicenseLabelRest.getLabel()) || isBlank(inputLicenseLabelRest.getTitle())) {
                     throw new UnprocessableEntityException("Clarin License Label title, label, icon cannot be null or empty");
                 }
 
                 // create
                 licenseLabel = clarinLicenseLabelService.create(context);
-                licenseLabel.setLabel(inputLicenseLabel.getLabel());
-                licenseLabel.setTitle(inputLicenseLabel.getTitle());
-                licenseLabel.setExtended(inputLicenseLabel.isExtended());
+                licenseLabel.setLabel(inputLicenseLabelRest.getLabel());
+                licenseLabel.setTitle(inputLicenseLabelRest.getTitle());
+                licenseLabel.setExtended(inputLicenseLabelRest.isExtended());
 
                 clarinLicenseLabelService.update(context, licenseLabel);
 
-                this.licenseLabelsIds.put(inputLicenseLabel.getID(), licenseLabel.getID());
+                this.licenseLabelsIds.put(inputLicenseLabelRest.getId(), licenseLabel.getID());
             }
         context.commit();
         return new ResponseEntity<>("Import License Labels were successful", HttpStatus.OK);
@@ -130,7 +132,6 @@ public class ClarinLicenseImportRestController {
                 try {
                     Integer licenseLabelID = this.licenseLabelsIds.get(jsonLicenseLabelExtendedMapping.get("label_id").asInt());
                     if (licenseLabelID == null) {
-                        //May I throw this error? maybe the first control is not necessary
                         return new ResponseEntity<>("License label doesn't exist", HttpStatus.UNPROCESSABLE_ENTITY);
                     }
                     clarinLicenseLabel = clarinLicenseLabelService.find(context,licenseLabelID);
