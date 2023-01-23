@@ -12,10 +12,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import org.dspace.app.rest.converter.ClarinLicenseConverter;
+import org.dspace.app.rest.converter.ConverterService;
+import org.dspace.app.rest.converter.DSpaceConverter;
+import org.dspace.app.rest.model.ClarinLicenseRest;
+import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.hibernate.Session;
 import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -44,54 +51,64 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
     @Autowired
     private ClarinLicenseLabelService clarinLicenseLabelService;
 
+    @Autowired
+    private ClarinLicenseConverter clarinLicenseConverter;
+
+
+
+//    private DSpaceConverter<ClarinLicense, ClarinLicenseRest> clarinLicenseConverter =
+//            converter.getConverter(ClarinLicense.class);
+//
     @Test
     public void importLicenses() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        String json = new String(Files.readAllBytes(Paths.get("C:/DSpace-Clarin/jm.license_label.json")));
-        String[] labels = json.split("\n");
-
-        List<ClarinLicenseLabel> clarinLabels = new ArrayList<>();
-        ClarinLicenseLabel clarinLicenseLabel = null;
-        for (int i = 1; i < labels.length - 1; i++) {
-            String[] label = labels[i].split(",");
-            clarinLicenseLabel = new ClarinLicenseLabel();
-            clarinLicenseLabel.setId(Integer.parseInt(label[0].split(":")[1]));
-            clarinLicenseLabel.setLabel(label[1].split(":")[1]);
-            clarinLicenseLabel.setTitle(label[2].split(":")[1]);
-            clarinLicenseLabel.setExtended(Boolean.parseBoolean(label[3].split(":")[1]));
-            clarinLabels.add(clarinLicenseLabel);
-        }
-
-        String adminToken = getAuthToken(admin.getEmail(), password);
-        getClient(adminToken).perform(post("/api/licenses/import/labels")
-                        .content(mapper.writeValueAsBytes(clarinLabels))
-                        .contentType(contentType))
-                .andExpect(status().isOk());
-
-        //extendedMapping
-        mapper = new ObjectMapper();
-        json = new String(Files.readAllBytes(Paths.get("C:/DSpace-Clarin/jm.license_label_extended_mapping.json")));
-        String[] extendedMapings = json.split("\n");
-
-        List<JsonNode> nodes = new ArrayList<>();
-        for (int i = 1; i < labels.length - 1; i++) {
-            String[] extendedMapping = labels[i].split(",");
-            ObjectNode node = jsonNodeFactory.objectNode();
-            node.set("mapping_id", jsonNodeFactory.textNode(extendedMapping[0].split(":")[1]));
-            node.set("license_id", jsonNodeFactory.textNode(extendedMapping[1].split(":")[1]));
-            node.set("label_id", jsonNodeFactory.textNode(extendedMapping[2].split(":")[1]));
-            nodes.add(node);
-        }
-
-        getClient(adminToken).perform(post("/api/licenses/import/extendedMapping")
-                        .content(mapper.writeValueAsBytes(nodes))
-                        .contentType(contentType))
-                .andExpect(status().isOk());
+//        ObjectMapper mapper = new ObjectMapper();
+//        String json = new String(Files.readAllBytes(Paths.get("C:/DSpace-Clarin/jm.license_label.json")));
+//        String[] labels = json.split("\n");
+//
+//        List<ClarinLicenseLabel> clarinLabels = new ArrayList<>();
+//        ClarinLicenseLabel clarinLicenseLabel = null;
+//        for (int i = 1; i < labels.length - 1; i++) {
+//            String[] label = labels[i].split(",");
+//            clarinLicenseLabel = new ClarinLicenseLabel();
+//            clarinLicenseLabel.setId(Integer.parseInt(label[0].split(":")[1]));
+//            clarinLicenseLabel.setLabel(label[1].split(":")[1]);
+//            clarinLicenseLabel.setTitle(label[2].split(":")[1]);
+//            clarinLicenseLabel.setExtended(Boolean.parseBoolean(label[3].split(":")[1]));
+//            clarinLabels.add(clarinLicenseLabel);
+//        }
+//
+//        String adminToken = getAuthToken(admin.getEmail(), password);
+//        getClient(adminToken).perform(post("/api/licenses/import/labels")
+//                        .content(mapper.writeValueAsBytes(clarinLabels))
+//                        .contentType(contentType))
+//                .andExpect(status().isOk());
+//
+//        //extendedMapping
+//        mapper = new ObjectMapper();
+//        json = new String(Files.readAllBytes(Paths.get("C:/DSpace-Clarin/jm.license_label_extended_mapping.json")));
+//        String[] extendedMapings = json.split("\n");
+//
+//        List<JsonNode> nodes = new ArrayList<>();
+//        for (int i = 1; i < labels.length - 1; i++) {
+//            String[] extendedMapping = labels[i].split(",");
+//            ObjectNode node = jsonNodeFactory.objectNode();
+//            node.set("mapping_id", jsonNodeFactory.textNode(extendedMapping[0].split(":")[1]));
+//            node.set("license_id", jsonNodeFactory.textNode(extendedMapping[1].split(":")[1]));
+//            node.set("label_id", jsonNodeFactory.textNode(extendedMapping[2].split(":")[1]));
+//            nodes.add(node);
+//        }
+//
+//        getClient(adminToken).perform(post("/api/licenses/import/extendedMapping")
+//                        .content(mapper.writeValueAsBytes(nodes))
+//                        .contentType(contentType))
+//                .andExpect(status().isOk());
     }
 
     @Test
     public void importLicensesTest() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+       // mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS);
+
         JSONParser parser = new JSONParser();
         BufferedReader bufferReader = new BufferedReader(new FileReader("C:/DSpace-Clarin/jm.license_label.json"));
 
@@ -131,16 +148,18 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             node.set("label_id", jsonNodeFactory.textNode(jsonObject.get("label_id").toString()));
             nodes.add(node);
         }
-
+        context.isValid();
         getClient(adminToken).perform(post("/api/licenses/import/extendedMapping")
                         .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().isOk());
 
+        context.isValid();
         //licenses
         bufferReader = new BufferedReader(new FileReader("C:/DSpace-Clarin/jm.license_definition.json"));
 
         List<ClarinLicense> licenses = new ArrayList<>();
+        List<ClarinLicenseRest> licensesRest = new ArrayList<>();
         ClarinLicense license;
         while ((line = bufferReader.readLine()) != null) {
             obj = parser.parse(line);
@@ -156,10 +175,11 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             license.setConfirmation(Integer.parseInt(jsonObject.get("confirmation").toString()));
             license.setRequiredInfo(jsonObject.get("required_info") != null ? jsonObject.get("required_info").toString() : null);
             licenses.add(license);
+            licensesRest.add(clarinLicenseConverter.convert(license, DefaultProjection.DEFAULT));
         }
-
+        context.isValid();
         getClient(adminToken).perform(post("/api/licenses/import/licenses")
-                        .content(mapper.writeValueAsBytes(licenses))
+                        .content(mapper.writeValueAsBytes(licensesRest))
                         .contentType(contentType))
                 .andExpect(status().isOk());
     }

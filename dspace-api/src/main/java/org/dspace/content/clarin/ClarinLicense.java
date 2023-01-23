@@ -26,8 +26,10 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.dspace.core.ReloadableEntity;
+import org.hibernate.annotations.Proxy;
 
 /**
  * Class representing a clarin license in DSpace.

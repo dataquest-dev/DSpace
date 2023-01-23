@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
+import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
@@ -96,10 +97,10 @@ public class ClarinLicenseImportRestController {
                 licenseLabel.setExtended(inputLicenseLabel.isExtended());
 
                 clarinLicenseLabelService.update(context, licenseLabel);
-                context.commit();
 
                 this.licenseLabelsIds.put(inputLicenseLabel.getID(), licenseLabel.getID());
             }
+        context.commit();
         return new ResponseEntity<>("Import License Labels were successful", HttpStatus.OK);
     }
 
@@ -161,31 +162,35 @@ public class ClarinLicenseImportRestController {
             return new ResponseEntity<>("Context is null", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        ClarinLicense inputLicense, license;
+        ClarinLicenseRest inputLicenseRest;
+        ClarinLicense license;
 
         for (JsonNode jsonLicense : licenses) {
             try {
                 ObjectMapper mapper = new ObjectMapper();
-                inputLicense = mapper.readValue(jsonLicense.toString(), ClarinLicense.class);
+                inputLicenseRest = mapper.readValue(jsonLicense.toString(), ClarinLicenseRest.class);
             } catch (IOException e1) {
                 throw new UnprocessableEntityException("Error parsing request body", e1);
             }
-            Set<ClarinLicenseLabel> licenseLabels = this.licenseToLicenseLabel.get(inputLicense.getID());
-            licenseLabels.add(inputLicense.getLicenseLabels().get(0));
+            Set<ClarinLicenseLabel> licenseLabels = this.licenseToLicenseLabel.get(inputLicenseRest.getId());
+            if (licenseLabels == null) {
+                licenseLabels = new HashSet<>();
+            }
+            licenseLabels.add(this.clarinLicenseLabelService.find(context,inputLicenseRest.getClarinLicenseLabel().getId()));
             if (licenseLabels == null) {
                 //the status???
                 return new ResponseEntity<>("License labels for license haven't imported yet", HttpStatus.INTERNAL_SERVER_ERROR);
             }
             license = clarinLicenseService.create(context);
-            license.setName(inputLicense.getName());
+            license.setName(inputLicenseRest.getName());
             license.setLicenseLabels(licenseLabels);
-            license.setDefinition(inputLicense.getDefinition());
-            license.setConfirmation(inputLicense.getConfirmation());
-            license.setRequiredInfo(inputLicense.getRequiredInfo());
+            license.setDefinition(inputLicenseRest.getDefinition());
+            license.setConfirmation(inputLicenseRest.getConfirmation());
+            license.setRequiredInfo(inputLicenseRest.getRequiredInfo());
 
             clarinLicenseService.update(context, license);
-            context.commit();
         }
+        context.commit();
 
         return new ResponseEntity<>("Import Licenses were successful", HttpStatus.OK);
     }
