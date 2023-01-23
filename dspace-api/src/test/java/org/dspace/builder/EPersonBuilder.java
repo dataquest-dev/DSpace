@@ -132,7 +132,8 @@ public class EPersonBuilder extends AbstractDSpaceObjectBuilder<EPerson> {
         return this;
     }
 
-    private static void deleteUserRegistration(Context context, EPerson eperson) throws SQLException, AuthorizeException {
+    private static void deleteUserRegistration(Context context, EPerson eperson)
+            throws SQLException, AuthorizeException {
         if (Objects.isNull(eperson)) {
             return;
         }
