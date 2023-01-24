@@ -11,22 +11,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import org.dspace.app.rest.converter.ClarinLicenseConverter;
 import org.dspace.app.rest.converter.ClarinLicenseLabelConverter;
-import org.dspace.app.rest.converter.ConverterService;
-import org.dspace.app.rest.converter.DSpaceConverter;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
 import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
-import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
-import org.hibernate.Session;
-import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
@@ -34,18 +28,13 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
-
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -73,7 +62,6 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
     @Test
     public void importLicensesTest() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-       // mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS);
 
         JSONParser parser = new JSONParser();
         BufferedReader bufferReader = new BufferedReader(new FileReader("C:/DSpace-Clarin/jm.license_label.json"));
@@ -159,8 +147,6 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .contentType(contentType))
                 .andExpect(status().isOk());
 
-
-
         //check
         context.turnOffAuthorisationSystem();
         List<ClarinLicense> clarinLicenses = this.clarinLicenseService.findAll(context);
@@ -168,20 +154,23 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         //control of the license mapping
         for (ClarinLicense clarinLicense: clarinLicenses) {
             ClarinLicense oldLicense = licenseDictionary.get(clarinLicense.getName());
-            Assert.assertNull(oldLicense);
+            Assert.assertNotNull(oldLicense);
             Assert.assertEquals(clarinLicense.getConfirmation(), oldLicense.getConfirmation());
             Assert.assertEquals(clarinLicense.getDefinition(), oldLicense.getDefinition());
             Assert.assertEquals(clarinLicense.getRequiredInfo(), oldLicense.getRequiredInfo());
             Assert.assertEquals(clarinLicense.getLicenseLabels().size(), extendedMappingDictionary.get(oldLicense.getID()).size());
             List<ClarinLicenseLabel> clarinLicenseLabels = clarinLicense.getLicenseLabels();
             for (ClarinLicenseLabel label: clarinLicenseLabels) {
-                Assert.assertEquals(label.getLabel(), licenseLabelDictionary.get(label.getLabel()));
+                ClarinLicenseLabel oldLabel = licenseLabelDictionary.get(label.getLabel());
+                Assert.assertEquals(label.getLabel(), oldLabel.getLabel());
+                Assert.assertEquals(label.getTitle(), oldLabel.getTitle());
+                Assert.assertEquals(label.isExtended(), oldLabel.isExtended());
             }
         }
 
         //control of the license label mapping
         List<ClarinLicenseLabel> clarinLicenseLabels = this.clarinLicenseLabelService.findAll(context);
-        Assert.assertEquals(clarinLicenses.size(), licenseLabelDictionary.size());
+        Assert.assertEquals(clarinLicenseLabels.size(), licenseLabelDictionary.size());
         for (ClarinLicenseLabel label: clarinLicenseLabels) {
             ClarinLicenseLabel oldLabel = licenseLabelDictionary.get(label.getLabel());
             Assert.assertNotNull(oldLabel);

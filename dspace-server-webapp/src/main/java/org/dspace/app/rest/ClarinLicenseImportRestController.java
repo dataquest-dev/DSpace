@@ -9,7 +9,6 @@ package org.dspace.app.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
@@ -44,7 +43,6 @@ import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @RequestMapping("/api/licenses/import")
@@ -60,7 +58,7 @@ public class ClarinLicenseImportRestController {
     private ClarinLicenseLabelService clarinLicenseLabelService;
 
     @Autowired
-    ClarinLicenseService clarinLicenseService;
+    private ClarinLicenseService clarinLicenseService;
 
     @RequestMapping(method = RequestMethod.POST, value = "/labels")
     @PreAuthorize("hasAuthority('ADMIN')")
