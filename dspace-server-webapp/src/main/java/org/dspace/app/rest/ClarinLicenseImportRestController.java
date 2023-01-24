@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
@@ -75,30 +76,27 @@ public class ClarinLicenseImportRestController {
             return new ResponseEntity<>("Context is null", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        ClarinLicenseLabelRest inputLicenseLabelRest;
         ClarinLicenseLabel licenseLabel;
 
             for (JsonNode jsonLicenseLabel : licenseLabels) {
-                try {
-                ObjectMapper mapper = new ObjectMapper();
-                    inputLicenseLabelRest = mapper.readValue(jsonLicenseLabel.toString(), ClarinLicenseLabelRest.class);
-                } catch (IOException e1) {
-                    throw new UnprocessableEntityException("Error parsing request body", e1);
-                }
 
-                if (isBlank(inputLicenseLabelRest.getLabel()) || isBlank(inputLicenseLabelRest.getTitle())) {
-                    throw new UnprocessableEntityException("Clarin License Label title, label, icon cannot be null or empty");
+                Integer id = jsonLicenseLabel.get("label_id").asInt();
+                String label = jsonLicenseLabel.get("label").isNull() ? null : jsonLicenseLabel.get("label").asText();
+                String title = jsonLicenseLabel.get("title").isNull() ? null : jsonLicenseLabel.get("title").asText();
+                boolean is_extended = jsonLicenseLabel.get("title").isNull() ? null : jsonLicenseLabel.get("title").asBoolean();
+                if (label == null) {
+                    break;
                 }
 
                 // create
                 licenseLabel = clarinLicenseLabelService.create(context);
-                licenseLabel.setLabel(inputLicenseLabelRest.getLabel());
-                licenseLabel.setTitle(inputLicenseLabelRest.getTitle());
-                licenseLabel.setExtended(inputLicenseLabelRest.isExtended());
+                licenseLabel.setLabel(label);
+                licenseLabel.setTitle(title);
+                licenseLabel.setExtended(is_extended);
 
                 clarinLicenseLabelService.update(context, licenseLabel);
 
-                this.licenseLabelsIds.put(inputLicenseLabelRest.getId(), licenseLabel.getID());
+                this.licenseLabelsIds.put(id, licenseLabel.getID());
             }
         context.commit();
         return new ResponseEntity<>("Import License Labels were successful", HttpStatus.OK);
@@ -161,31 +159,33 @@ public class ClarinLicenseImportRestController {
             return new ResponseEntity<>("Context is null", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        ClarinLicenseRest inputLicenseRest;
-        ClarinLicense license;
+       ClarinLicense license;
 
         for (JsonNode jsonLicense : licenses) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                inputLicenseRest = mapper.readValue(jsonLicense.toString(), ClarinLicenseRest.class);
-            } catch (IOException e1) {
-                throw new UnprocessableEntityException("Error parsing request body", e1);
-            }
-            Set<ClarinLicenseLabel> licenseLabels = this.licenseToLicenseLabel.get(inputLicenseRest.getId());
+
+            Integer id = jsonLicense.get("license_id").asInt();
+            String name = jsonLicense.get("name").isNull() ? null : jsonLicense.get("name").asText();
+            String definition = jsonLicense.get("definition").isNull() ? null : jsonLicense.get("definition").asText();
+            Integer eperson_id = jsonLicense.get("eperson_id").isNull() ? null : jsonLicense.get("eperson_id").asInt();
+            Integer label_id = jsonLicense.get("label_id").asInt();
+            Integer confirmation = jsonLicense.get("confirmation").isNull() ? null : jsonLicense.get("confirmation").asInt();
+            String required_info = jsonLicense.get("required_info").isNull() ? null : jsonLicense.get("required_info").asText();
+
+            Set<ClarinLicenseLabel> licenseLabels = this.licenseToLicenseLabel.get(id);
             if (licenseLabels == null) {
                 licenseLabels = new HashSet<>();
             }
-            licenseLabels.add(this.clarinLicenseLabelService.find(context,inputLicenseRest.getClarinLicenseLabel().getId()));
+            licenseLabels.add(this.clarinLicenseLabelService.find(context,label_id));
             if (licenseLabels == null) {
                 //the status???
                 return new ResponseEntity<>("License labels for license haven't imported yet", HttpStatus.INTERNAL_SERVER_ERROR);
             }
             license = clarinLicenseService.create(context);
-            license.setName(inputLicenseRest.getName());
+            license.setName(name);
             license.setLicenseLabels(licenseLabels);
-            license.setDefinition(inputLicenseRest.getDefinition());
-            license.setConfirmation(inputLicenseRest.getConfirmation());
-            license.setRequiredInfo(inputLicenseRest.getRequiredInfo());
+            license.setDefinition(definition);
+            license.setConfirmation(confirmation);
+            license.setRequiredInfo(required_info);
 
             clarinLicenseService.update(context, license);
         }
