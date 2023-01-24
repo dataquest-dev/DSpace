@@ -62,7 +62,7 @@ public class ClarinLicenseImportRestController {
 
     @RequestMapping(method = RequestMethod.POST, value = "/labels")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity importLincenseLabels(@RequestBody(required = false) List<JsonNode> licenseLabels,
+    public ResponseEntity importLicenseLabels(@RequestBody(required = false) List<JsonNode> licenseLabels,
                                               HttpServletRequest request, HttpServletResponse response)
             throws SQLException, AuthorizeException {
 
@@ -106,7 +106,7 @@ public class ClarinLicenseImportRestController {
 
     @RequestMapping(method = RequestMethod.POST, value = "/extendedMapping")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity importLincenseLabelExtendedMapping(@RequestBody(required = false) List<JsonNode> licenseLabelExtendedMappings,
+    public ResponseEntity importLicenseLabelExtendedMapping(@RequestBody(required = false) List<JsonNode> licenseLabelExtendedMappings,
                                           HttpServletRequest request, HttpServletResponse response)
             throws SQLException, AuthorizeException {
 
@@ -148,7 +148,7 @@ public class ClarinLicenseImportRestController {
 
     @RequestMapping(method = RequestMethod.POST, value = "/licenses")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity importLincenses(@RequestBody(required = false) List<JsonNode> licenses,
+    public ResponseEntity importLicenses(@RequestBody(required = false) List<JsonNode> licenses,
                                                HttpServletRequest request, HttpServletResponse response)
             throws SQLException, AuthorizeException {
 
