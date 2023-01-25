@@ -13,9 +13,6 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.dspace.app.rest.converter.ClarinLicenseConverter;
 import org.dspace.app.rest.converter.ClarinLicenseLabelConverter;
-import org.dspace.app.rest.model.ClarinLicenseLabelRest;
-import org.dspace.app.rest.model.ClarinLicenseRest;
-import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
@@ -68,33 +65,40 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
 
         Object obj;
         String line;
-        ClarinLicenseLabel clarinLicenseLabel;
+        ObjectNode node;
         JSONObject jsonObject;
-        List<ClarinLicenseLabel> clarinLabels = new ArrayList<>();
-        List<ClarinLicenseLabelRest> clarinLabelsRest = new ArrayList<>();
+        ClarinLicenseLabel clarinLicenseLabel;
+        List<JsonNode> nodes = new ArrayList<>();
+
         while ((line = bufferReader.readLine()) != null) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
+            node = jsonNodeFactory.objectNode();
+            node.set("label_id", jsonNodeFactory.textNode(jsonObject.get("label_id").toString()));
+            node.set("label", jsonNodeFactory.textNode(jsonObject.get("label").toString()));
+            node.set("title", jsonNodeFactory.textNode(jsonObject.get("title").toString()));
+            node.set("is_extended", jsonNodeFactory.textNode(jsonObject.get("is_extended").toString()));
+            nodes.add(node);
+
+            //for test control
             clarinLicenseLabel = new ClarinLicenseLabel();
             clarinLicenseLabel.setId(Integer.parseInt(jsonObject.get("label_id").toString()));
             clarinLicenseLabel.setLabel(jsonObject.get("label").toString());
             clarinLicenseLabel.setTitle(jsonObject.get("title").toString());
             clarinLicenseLabel.setExtended(Boolean.parseBoolean(jsonObject.get("is_extended").toString()));
             licenseLabelDictionary.put(clarinLicenseLabel.getLabel(), clarinLicenseLabel);
-            clarinLabelsRest.add(clarinLicenseLabelConverter.convert(clarinLicenseLabel, DefaultProjection.DEFAULT));
         }
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(post("/api/licenses/import/labels")
-                        .content(mapper.writeValueAsBytes(clarinLabelsRest))
+                        .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().isOk());
 
         //extendedMapping
         bufferReader = new BufferedReader(new FileReader("C:/DSpace-Clarin/jm.license_label_extended_mapping.json"));
+        nodes = new ArrayList<>();
 
-        List<JsonNode> nodes = new ArrayList<>();
-        ObjectNode node;
         while ((line = bufferReader.readLine()) != null) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
@@ -114,16 +118,28 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .contentType(contentType))
                 .andExpect(status().isOk());
 
-
         //licenses
         bufferReader = new BufferedReader(new FileReader("C:/DSpace-Clarin/jm.license_definition.json"));
 
-        List<ClarinLicense> licenses = new ArrayList<>();
-        List<ClarinLicenseRest> licensesRest = new ArrayList<>();
         ClarinLicense license;
+
+
+        nodes = new ArrayList<>();
+
         while ((line = bufferReader.readLine()) != null) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
+            node = jsonNodeFactory.objectNode();
+            node.set("license_id", jsonNodeFactory.textNode(jsonObject.get("license_id").toString()));
+            node.set("name", jsonNodeFactory.textNode(jsonObject.get("name").toString()));
+            node.set("definition", jsonNodeFactory.textNode(jsonObject.get("definition").toString()));
+            node.set("eperson_id", jsonNodeFactory.textNode(jsonObject.get("eperson_id").toString()));
+            node.set("label_id", jsonNodeFactory.textNode(jsonObject.get("label_id").toString()));
+            node.set("confirmation", jsonNodeFactory.textNode(jsonObject.get("confirmation").toString()));
+            node.set("required_info", jsonNodeFactory.textNode(jsonObject.get("required_info") == null ? null : jsonObject.get("required_info").toString()));
+            nodes.add(node);
+
+            //for test control
             license = new ClarinLicense();
             license.setId(Integer.parseInt(jsonObject.get("license_id").toString()));
             license.setName(jsonObject.get("name").toString());
@@ -133,17 +149,16 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             labels.add(this.clarinLicenseLabelService.find(context, Integer.parseInt(jsonObject.get("label_id").toString())));
             license.setLicenseLabels(labels);
             license.setConfirmation(Integer.parseInt(jsonObject.get("confirmation").toString()));
-            license.setRequiredInfo(jsonObject.get("required_info") != null ? jsonObject.get("required_info").toString() : null);
+            license.setRequiredInfo(jsonObject.get("required_info") == null ? null : jsonObject.get("required_info").toString());
             licenseDictionary.put(license.getName(), license);
             if (extendedMappingDictionary.get(license.getID()) == null) {
                 extendedMappingDictionary.put(license.getID(), new HashSet<>());
             }
             extendedMappingDictionary.get(license.getID()).add(license.getLicenseLabels().get(0).getID());
-            licensesRest.add(clarinLicenseConverter.convert(license, DefaultProjection.DEFAULT));
         }
 
         getClient(adminToken).perform(post("/api/licenses/import/licenses")
-                        .content(mapper.writeValueAsBytes(licensesRest))
+                        .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().isOk());
 
