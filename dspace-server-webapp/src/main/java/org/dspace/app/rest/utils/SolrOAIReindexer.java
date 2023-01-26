@@ -297,29 +297,29 @@ public class SolrOAIReindexer {
     }
 
     public void reindexItem(Item item) {
-        if (Objects.isNull(item.getHandle())) {
-            //we cannot put such item into solr
-            return;
-        }
-        try {
-            SolrInputDocument solrInput = index(item);
-            solrServerResolver.getServer().add(solrInput);
-            solrServerResolver.getServer().commit();
-            cacheService.deleteAll();
-            itemCacheService.deleteAll();
-        } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
-            e.printStackTrace();
-        }
+//        if (Objects.isNull(item.getHandle())) {
+//            we cannot put such item into solr
+//            return;
+//        }
+//        try {
+//            SolrInputDocument solrInput = index(item);
+//            solrServerResolver.getServer().add(solrInput);
+//            solrServerResolver.getServer().commit();
+//            cacheService.deleteAll();
+//            itemCacheService.deleteAll();
+//        } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public void deleteItem(Item item) {
-        try {
-            solrServerResolver.getServer().deleteByQuery("item.id:" + item.getID().toString());
-            solrServerResolver.getServer().commit();
-            cacheService.deleteAll();
-            itemCacheService.deleteAll();
-        } catch (SolrServerException | IOException e) {
-            throw new RuntimeException("Cannot delete item");
-        }
+//        try {
+//            solrServerResolver.getServer().deleteByQuery("item.id:" + item.getID().toString());
+//            solrServerResolver.getServer().commit();
+//            cacheService.deleteAll();
+//            itemCacheService.deleteAll();
+//        } catch (SolrServerException | IOException e) {
+//            throw new RuntimeException("Cannot delete item");
+//        }
     }
 }
