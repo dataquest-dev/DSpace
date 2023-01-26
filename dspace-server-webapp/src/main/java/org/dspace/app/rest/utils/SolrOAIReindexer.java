@@ -297,19 +297,19 @@ public class SolrOAIReindexer {
     }
 
     public void reindexItem(Item item) {
-//        if (Objects.isNull(item.getHandle())) {
+        if (Objects.isNull(item.getHandle())) {
 //            we cannot put such item into solr
-//            return;
-//        }
-//        try {
-//            SolrInputDocument solrInput = index(item);
-//            solrServerResolver.getServer().add(solrInput);
-//            solrServerResolver.getServer().commit();
-//            cacheService.deleteAll();
-//            itemCacheService.deleteAll();
-//        } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
-//            e.printStackTrace();
-//        }
+            return;
+        }
+        try {
+            SolrInputDocument solrInput = index(item);
+            solrServerResolver.getServer().add(solrInput);
+            solrServerResolver.getServer().commit();
+            cacheService.deleteAll();
+            itemCacheService.deleteAll();
+        } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
+            e.printStackTrace();
+        }
     }
 
     public void deleteItem(Item item) {
