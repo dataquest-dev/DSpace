@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
 
 import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
@@ -296,6 +297,10 @@ public class SolrOAIReindexer {
     }
 
     public void reindexItem(Item item) {
+        if (Objects.isNull(item.getHandle())) {
+            //we cannot put such item into solr
+            return;
+        }
         try {
             SolrInputDocument solrInput = index(item);
             solrServerResolver.getServer().add(solrInput);
