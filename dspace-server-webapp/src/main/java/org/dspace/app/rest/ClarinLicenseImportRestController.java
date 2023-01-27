@@ -243,7 +243,7 @@ public class ClarinLicenseImportRestController {
                 if (jsonLicense.has("name") && jsonLicense.has("definition")
                         && jsonLicense.has("eperson_id") && jsonLicense.has("label_id") &&
                         jsonLicense.has("confirmation") && jsonLicense.has("required_info")) {
-                    
+
                     Integer id = jsonLicense.get("license_id").asInt();
                     //the name has to be unique too
                     String name = jsonLicense.get("name").isNull() ? null : jsonLicense.get("name").asText();
