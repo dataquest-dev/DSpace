@@ -12,6 +12,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.ArrayUtils;
@@ -40,8 +41,17 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
     ClarinLicenseLabelService clarinLicenseLabelService;
 
     @Override
-    public ClarinLicenseLabelRest findOne(Context context, Integer integer) {
-        return null;
+    public ClarinLicenseLabelRest findOne(Context context, Integer id) {
+        ClarinLicenseLabel clarinLicenseLabel;
+        try {
+            clarinLicenseLabel = clarinLicenseLabelService.find(context, id);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        if (Objects.isNull(clarinLicenseLabel)) {
+            return null;
+        }
+        return converter.toRest(clarinLicenseLabel, utils.obtainProjection());
     }
 
     @Override
@@ -74,12 +84,15 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
         // validate fields
         if (isBlank(clarinLicenseLabelRest.getLabel()) || isBlank(clarinLicenseLabelRest.getTitle()) ||
                 ArrayUtils.isEmpty(clarinLicenseLabelRest.getIcon())) {
-            throw new UnprocessableEntityException("Clarin License Label title, label, icon cannot be null or empty");
+            throw new UnprocessableEntityException("CLARIN License Label title, label, icon cannot be null or empty");
         }
 
         // create
         ClarinLicenseLabel clarinLicenseLabel;
         clarinLicenseLabel = clarinLicenseLabelService.create(context);
+//        if (Objects.nonNull(clarinLicenseLabelRest.getId())) {
+//            clarinLicenseLabel.setId(clarinLicenseLabelRest.getId());
+//        }
         clarinLicenseLabel.setLabel(clarinLicenseLabelRest.getLabel());
         clarinLicenseLabel.setTitle(clarinLicenseLabelRest.getTitle());
         clarinLicenseLabel.setIcon(clarinLicenseLabelRest.getIcon());
@@ -89,6 +102,7 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
         // return
         return converter.toRest(clarinLicenseLabel, utils.obtainProjection());
     }
+
 
     @Override
     public Class<ClarinLicenseLabelRest> getDomainClass() {

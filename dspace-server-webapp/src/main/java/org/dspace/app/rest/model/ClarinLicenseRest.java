@@ -12,7 +12,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.RestResourceController;
-import org.springframework.stereotype.Component;
 
 /**
  * The Clarin License REST Resource
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-@Component
 public class ClarinLicenseRest extends BaseObjectRest<Integer> {
 
     public static final String NAME = "clarinlicense";

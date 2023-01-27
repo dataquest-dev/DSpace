@@ -18,10 +18,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.dspace.core.ReloadableEntity;
-import org.hibernate.annotations.Proxy;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Class representing a clarin license label of the clarin license. The clarin license could have one
@@ -30,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-
 @Entity
 @Table(name = "license_label")
 public class ClarinLicenseLabel implements ReloadableEntity<Integer> {

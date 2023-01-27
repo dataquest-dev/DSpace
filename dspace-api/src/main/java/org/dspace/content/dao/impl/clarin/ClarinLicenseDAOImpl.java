@@ -28,12 +28,12 @@ public class ClarinLicenseDAOImpl extends AbstractHibernateDAO<ClarinLicense> im
     }
 
     @Override
-    public ClarinLicense findByDefinition(Context context, String definition) throws SQLException {
+    public ClarinLicense findByName(Context context, String name) throws SQLException {
         Query query = createQuery(context, "SELECT cl " +
                 "FROM ClarinLicense cl " +
-                "WHERE cl.definition = :definition");
+                "WHERE cl.name = :name");
 
-        query.setParameter("definition", definition);
+        query.setParameter("name", name);
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
 
         return singleResult(query);

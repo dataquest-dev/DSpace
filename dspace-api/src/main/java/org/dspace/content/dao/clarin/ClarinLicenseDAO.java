@@ -23,6 +23,6 @@ import org.dspace.core.GenericDAO;
  */
 public interface ClarinLicenseDAO extends GenericDAO<ClarinLicense> {
 
-    ClarinLicense findByDefinition(Context context, String definition) throws SQLException;
+    ClarinLicense findByName(Context context, String name) throws SQLException;
 
 }

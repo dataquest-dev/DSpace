@@ -11,6 +11,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -21,13 +22,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.rest.Parameter;
+import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ClarinLicenseLabelRest;
 import org.dspace.app.rest.model.ClarinLicenseRest;
+import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,23 +54,51 @@ import org.springframework.stereotype.Component;
 @Component(ClarinLicenseRest.CATEGORY + "." + ClarinLicenseRest.NAME)
 public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLicenseRest, Integer> {
 
+    public static final String OPERATION_PATH_LICENSE_RESOURCE = "license";
+
+    public static final String OPERATION_PATH_LICENSE_GRANTED = "granted-license";
+
     @Autowired
     ClarinLicenseService clarinLicenseService;
+
+    @Autowired
+    WorkspaceItemService wis;
+
+    @Autowired
+    ItemService itemService;
 
     @Override
     @PreAuthorize("permitAll()")
     public ClarinLicenseRest findOne(Context context, Integer idValue) {
-        ClarinLicense clarinLicense = null;
+        ClarinLicense clarinLicense;
         try {
             clarinLicense = clarinLicenseService.find(context, idValue);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
         }
 
         if (Objects.isNull(clarinLicense)) {
             return null;
         }
         return converter.toRest(clarinLicense, utils.obtainProjection());
+    }
+
+    @SearchRestMethod(name = "byName")
+    public Page<ClarinLicenseRest> findByName(@Parameter(value = "name", required = true) String name,
+                                              Pageable pageable) {
+        List<ClarinLicense> clarinLicenseList = new ArrayList<>();
+        ClarinLicense clarinLicense;
+        try {
+            Context context = obtainContext();
+            clarinLicense = clarinLicenseService.findByName(context, name);
+            if (Objects.isNull(clarinLicense)) {
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        clarinLicenseList.add(clarinLicense);
+        return converter.toRestPage(clarinLicenseList, pageable, utils.obtainProjection());
     }
 
     @Override
@@ -110,6 +147,18 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
         clarinLicenseService.update(context, clarinLicense);
         // return
         return converter.toRest(clarinLicense, utils.obtainProjection());
+    }
+
+    @Override
+    public void patch(Context context, HttpServletRequest request, String apiCategory, String model, Integer id,
+                                   Patch patch) throws SQLException, AuthorizeException {
+        // load
+        List<Operation> operations = patch.getOperations();
+        WorkspaceItem source = wis.find(context, id);
+        Item item = source.getItem();
+        itemService.setMetadataSingleValue(context, item, "dc", "rights","license", null, "license");
+        itemService.update(context, item);
+        wis.update(context, source);
     }
 
     @Override

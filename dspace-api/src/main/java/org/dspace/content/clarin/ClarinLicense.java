@@ -7,6 +7,7 @@
  */
 package org.dspace.content.clarin;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,14 +23,16 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.apache.log4j.Logger;
+import org.dspace.content.Bitstream;
 import org.dspace.core.ReloadableEntity;
-import org.hibernate.annotations.Proxy;
+
 
 /**
  * Class representing a clarin license in DSpace.
@@ -43,6 +46,13 @@ import org.hibernate.annotations.Proxy;
 @Entity
 @Table(name = "license_definition")
 public class ClarinLicense implements ReloadableEntity<Integer> {
+
+    private static Logger log = Logger.getLogger(ClarinLicense.class);
+
+    /**
+     * Required info key word.
+     */
+    public static final String SEND_TOKEN = "SEND_TOKEN";
 
     @Id
     @Column(name = "license_id")
@@ -59,10 +69,11 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     Set<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "license", cascade = CascadeType.PERSIST)
-    private final List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = new ArrayList<>();
+    private List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = new ArrayList<>();
 
-//    @Column(name = "eperson_id")
-//    private Integer epersonId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+    @JoinColumn(name = "user_registration_id")
+    private ClarinUserRegistration eperson;
 
     @Column(name = "name")
     private String name = null;
@@ -91,9 +102,6 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
         this.id = id;
     }
 
-//    public void setEpersonID(Integer epersonID) {
-//        this.epersonID = epersonID;
-//    }
     public String getDefinition() {
         return definition;
     }
@@ -131,6 +139,28 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
         return clarinLicenseResourceMappings;
     }
 
+    /**
+     * The bitstream is not removed from the database after deleting the item, but is set as `deleted`.
+     * Do not count deleted bitstreams for the clarin license.
+     * @return count of the non deleted bitstream assigned to the current clarin license.
+     */
+    public int getNonDeletedBitstreams() {
+        int counter = 0;
+
+        for (ClarinLicenseResourceMapping clrm : clarinLicenseResourceMappings) {
+            Bitstream bitstream = clrm.getBitstream();
+            try {
+                if (bitstream.isDeleted()) {
+                    continue;
+                }
+                counter++;
+            } catch (SQLException e) {
+                log.error("Cannot find out if the bitstream: " + bitstream.getID() + " is deleted.");
+            }
+        }
+        return counter;
+    }
+
     public ClarinLicenseLabel getNonExtendedClarinLicenseLabel() {
         for (ClarinLicenseLabel cll : getLicenseLabels()) {
             if (!cll.isExtended()) {
@@ -143,5 +173,21 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
     @Override
     public Integer getID() {
         return id;
+    }
+
+    public Set<ClarinLicenseLabel> getClarinLicenseLabels() {
+        return clarinLicenseLabels;
+    }
+
+    public void setClarinLicenseLabels(Set<ClarinLicenseLabel> clarinLicenseLabels) {
+        this.clarinLicenseLabels = clarinLicenseLabels;
+    }
+
+    public ClarinUserRegistration getEperson() {
+        return eperson;
+    }
+
+    public void setEperson(ClarinUserRegistration eperson) {
+        this.eperson = eperson;
     }
 }

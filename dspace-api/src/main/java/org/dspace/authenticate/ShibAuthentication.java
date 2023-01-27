@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
@@ -34,9 +35,12 @@ import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.NonUniqueMetadataException;
+import org.dspace.content.clarin.ClarinUserRegistration;
+import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.eperson.EPerson;
@@ -98,6 +102,8 @@ public class ShibAuthentication implements AuthenticationMethod {
     protected MetadataSchemaService metadataSchemaService = ContentServiceFactory.getInstance()
                                                                                  .getMetadataSchemaService();
     protected ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    protected ClarinUserRegistrationService clarinUserRegistrationService =
+            ClarinServiceFactory.getInstance().getClarinUserRegistration();
 
 
     /**
@@ -170,7 +176,6 @@ public class ShibAuthentication implements AuthenticationMethod {
     @Override
     public int authenticate(Context context, String username, String password,
                             String realm, HttpServletRequest request) throws SQLException {
-
         // Check if sword compatibility is allowed, and if so see if we can
         // authenticate based upon a username and password. This is really helpful
         // if your repo uses Shibboleth but you want some accounts to be able use
@@ -777,6 +782,29 @@ public class ShibAuthentication implements AuthenticationMethod {
         ePersonService.update(context, eperson);
         context.dispatchEvents();
 
+        /* CLARIN
+         *
+         * Register User in the CLARIN license database
+         *
+         */
+        // if no email the registration is postponed after entering and confirming mail
+        if (Objects.nonNull(email)) {
+            try {
+                ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
+                clarinUserRegistration.setConfirmation(true);
+                clarinUserRegistration.setEmail(email);
+                clarinUserRegistration.setPersonID(eperson.getID());
+                clarinUserRegistration.setOrganization(netid);
+                clarinUserRegistrationService.create(context, clarinUserRegistration);
+                eperson.setCanLogIn(false);
+                ePersonService.update(context, eperson);
+            } catch (Exception e) {
+                throw new AuthorizeException("User has not been added among registred users!");
+            }
+        }
+
+        /* CLARIN */
+
         // Turn authorizations back on.
         context.restoreAuthSystemState();
 
@@ -1008,10 +1036,19 @@ public class ShibAuthentication implements AuthenticationMethod {
             String header = metadataParts[0].trim();
             String name = metadataParts[1].trim().toLowerCase();
 
-            boolean valid = checkIfEpersonMetadataFieldExists(context, name);
+            // `name` is not just name of the metadata field like `phone` but is like `eperson.phone` and the method
+            // which find if the metadata field exists doesn't work with name in that type.
+            String[] schemaAndField = name.split("\\.");
+            if (schemaAndField.length != 2) {
+                log.error("Unable to parse schema and field string from name: '" + name + "'");
+                continue;
+            }
+
+            String fieldName = schemaAndField[1];
+            boolean valid = checkIfEpersonMetadataFieldExists(context, fieldName);
 
             if (!valid && autoCreate) {
-                valid = autoCreateEpersonMetadataField(context, name);
+                valid = autoCreateEpersonMetadataField(context, fieldName);
             }
 
             if (valid) {
