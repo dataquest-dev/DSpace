@@ -25,10 +25,13 @@ import javax.xml.stream.XMLStreamException;
 import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
 import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
+import org.dspace.app.rest.repository.ItemRestRepository;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
@@ -67,6 +70,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class SolrOAIReindexer {
+
+    private static final Logger log = LogManager.getLogger(SolrOAIReindexer.class);
 
     private final XOAICacheService cacheService;
     private final XOAIItemCacheService itemCacheService;
@@ -308,18 +313,19 @@ public class SolrOAIReindexer {
             cacheService.deleteAll();
             itemCacheService.deleteAll();
         } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
-            e.printStackTrace();
+            log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
         }
     }
 
     public void deleteItem(Item item) {
-//        try {
-//            solrServerResolver.getServer().deleteByQuery("item.id:" + item.getID().toString());
-//            solrServerResolver.getServer().commit();
-//            cacheService.deleteAll();
-//            itemCacheService.deleteAll();
-//        } catch (SolrServerException | IOException e) {
-//            throw new RuntimeException("Cannot delete item");
-//        }
+        try {
+            solrServerResolver.getServer().deleteByQuery("item.id:" + item.getID().toString());
+            solrServerResolver.getServer().commit();
+            cacheService.deleteAll();
+            itemCacheService.deleteAll();
+        } catch (SolrServerException | IOException e) {
+            log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
+                    " because: " + e.getMessage());
+        }
     }
 }
