@@ -9,6 +9,7 @@ package org.dspace.content.clarin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -93,7 +94,7 @@ public class ClarinLicenseLabel implements ReloadableEntity<Integer> {
     }
 
     public void addLicense(ClarinLicense license) {
-        if (this.licenses == null) {
+        if (Objects.isNull(this.licenses)) {
             this.licenses = new ArrayList<>();
         }
         this.licenses.add(license);

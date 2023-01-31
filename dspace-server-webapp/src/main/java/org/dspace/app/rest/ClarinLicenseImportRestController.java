@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicense;
@@ -76,7 +77,7 @@ public class ClarinLicenseImportRestController {
                                               HttpServletRequest request, HttpServletResponse response)
             throws SQLException, AuthorizeException {
 
-        if (Objects.isNull(licenseLabels) || licenseLabels.size() < 1) {
+        if (Objects.isNull(licenseLabels) || CollectionUtils.isEmpty(licenseLabels)) {
             throw new BadRequestException("The new license labels should be included as " +
                     "json in the body of this request");
         }
@@ -145,7 +146,7 @@ public class ClarinLicenseImportRestController {
                                                                         licenseLabelExtendedMappings,
                                           HttpServletRequest request, HttpServletResponse response) {
 
-        if (Objects.isNull(licenseLabelExtendedMappings) || licenseLabelExtendedMappings.isEmpty()) {
+        if (Objects.isNull(licenseLabelExtendedMappings) || CollectionUtils.isEmpty(licenseLabelExtendedMappings)) {
             throw new BadRequestException("The new license label extended mappings should be included as " +
                     "json in the body of this request");
         }
@@ -223,7 +224,7 @@ public class ClarinLicenseImportRestController {
                                                HttpServletRequest request, HttpServletResponse response)
             throws SQLException, AuthorizeException {
 
-        if (Objects.isNull(licenses) || licenses.size() < 1) {
+        if (Objects.isNull(licenses) || CollectionUtils.isEmpty(licenses)) {
             throw new BadRequestException("The new licenses should be included as json in the body of this request");
         }
 
