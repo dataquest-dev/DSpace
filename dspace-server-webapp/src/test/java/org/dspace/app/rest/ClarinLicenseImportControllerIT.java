@@ -7,11 +7,14 @@
  */
 package org.dspace.app.rest;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashSet;
@@ -26,10 +29,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.dspace.app.rest.converter.ClarinLicenseConverter;
 import org.dspace.app.rest.converter.ClarinLicenseLabelConverter;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.core.Context;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
@@ -71,6 +77,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
     private ClarinLicenseLabelConverter clarinLicenseLabelConverter;
 
     private Dictionary<String, ClarinLicenseLabel> licenseLabelDictionary = new Hashtable<>();
+    private Dictionary<Integer, ClarinLicenseLabel> licenseLabelIDDictionary = new Hashtable<>();
     private Dictionary<String, ClarinLicense> licenseDictionary = new Hashtable<>();
     private Dictionary<Integer, Set<Integer>> extendedMappingDictionary = new Hashtable<>();
 
@@ -103,6 +110,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             clarinLicenseLabel.setTitle(jsonObject.get("title").toString());
             clarinLicenseLabel.setExtended(Boolean.parseBoolean(jsonObject.get("is_extended").toString()));
             licenseLabelDictionary.put(clarinLicenseLabel.getLabel(), clarinLicenseLabel);
+            licenseLabelIDDictionary.put(clarinLicenseLabel.getID(), clarinLicenseLabel);
         }
 
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -156,14 +164,15 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             nodes.add(node);
 
             //for test control
+
+
             license = new ClarinLicense();
             license.setId(Integer.parseInt(jsonObject.get("license_id").toString()));
             license.setName(jsonObject.get("name").toString());
             license.setDefinition(jsonObject.get("definition").toString());
             //license.setEpersonID(Integer.parseInt(jsonObject.get("eperson_id").toString()));
             Set<ClarinLicenseLabel> labels = new HashSet<>();
-            labels.add(this.clarinLicenseLabelService.find(context, Integer.parseInt(
-                    jsonObject.get("label_id").toString())));
+            labels.add(this.licenseLabelIDDictionary.get(Integer.parseInt(jsonObject.get("label_id").toString())));
             license.setLicenseLabels(labels);
             license.setConfirmation(Integer.parseInt(jsonObject.get("confirmation").toString()));
             license.setRequiredInfo(jsonObject.get("required_info") == null ?
@@ -212,6 +221,8 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             Assert.assertEquals(label.getIcon(), oldLabel.getIcon());
         }
         context.restoreAuthSystemState();
+        this.cleanAll(context);
+        System.out.println();
     }
 
     @Test
@@ -241,6 +252,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().is(422));
+        this.cleanAll(context);
     }
 
     @Test
@@ -271,6 +283,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().is(422));
+        this.cleanAll(context);
     }
 
     @Test
@@ -300,6 +313,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().is(409));
+        this.cleanAll(context);
     }
 
     @Test
@@ -328,6 +342,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().is(422));
+        this.cleanAll(context);
     }
 
     @Test
@@ -357,6 +372,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().is(409));
+        this.cleanAll(context);
     }
 
     @Test
@@ -390,7 +406,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().is(422));
-
+        this.cleanAll(context);
     }
 
     @Test
@@ -425,7 +441,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().is(422));
-
+        this.cleanAll(context);
     }
 
     @Test
@@ -458,7 +474,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().is(409));
-
+        this.cleanAll(context);
     }
 
     public void licenseLabelDoesntExist() throws Exception {
@@ -491,6 +507,19 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
                         .content(mapper.writeValueAsBytes(nodes))
                         .contentType(contentType))
                 .andExpect(status().is(409));
+        this.cleanAll(context);
+    }
 
+    private void cleanAll(Context context) throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        List<ClarinLicense> licenses = clarinLicenseService.findAll(context);
+        List<ClarinLicenseLabel> labels = clarinLicenseLabelService.findAll(context);
+        for (ClarinLicense license: licenses) {
+            clarinLicenseService.delete(context, license);
+        }
+        for (ClarinLicenseLabel label: labels) {
+            clarinLicenseLabelService.delete(context, label);
+        }
+        context.restoreAuthSystemState();
     }
 }
