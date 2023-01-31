@@ -256,7 +256,7 @@ public class ClarinLicenseImportRestController {
                     String required_info = jsonLicense.get("required_info").isNull() ?
                             null : jsonLicense.get("required_info").asText();
 
-                    if (Objects.isNull(clarinLicenseService.findByName(context, name))) {
+                    if (Objects.nonNull(clarinLicenseService.findByName(context, name))) {
                         errors.add(label_id);
                         continue;
                     }
