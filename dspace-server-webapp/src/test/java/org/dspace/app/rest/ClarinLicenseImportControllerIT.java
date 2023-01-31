@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.jsonldjava.utils.Obj;
 import org.dspace.app.rest.converter.ClarinLicenseConverter;
 import org.dspace.app.rest.converter.ClarinLicenseLabelConverter;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -129,7 +128,8 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             node.set("mapping_id", jsonNodeFactory.textNode(jsonObject.get("mapping_id").toString()));
             node.set("license_id", jsonNodeFactory.textNode(jsonObject.get("license_id").toString()));
             node.set("label_id", jsonNodeFactory.textNode(jsonObject.get("label_id").toString()));
-            if (Objects.isNull(extendedMappingDictionary.get(Integer.parseInt(jsonObject.get("license_id").toString())))) {
+            if (Objects.isNull(extendedMappingDictionary.get(Integer.parseInt(jsonObject.get("license_id")
+                    .toString())))) {
                 extendedMappingDictionary.put(Integer.parseInt(jsonObject.get("license_id").toString()),
                         new HashSet<>());
             }

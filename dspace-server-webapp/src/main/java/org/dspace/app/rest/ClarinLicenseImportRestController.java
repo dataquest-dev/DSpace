@@ -17,7 +17,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import javax.management.ObjectName;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
@@ -293,7 +292,8 @@ public class ClarinLicenseImportRestController {
                     errors.add(jsonLicense.get("license_id").asInt());
                 }
             } else {
-                return new ResponseEntity<>("License id has to be entered and it cannot be null! Name has to be unique!",
+                return new ResponseEntity<>("License id has to be entered and it cannot be null!" +
+                        " Name has to be unique!",
                         HttpStatus.UNPROCESSABLE_ENTITY);
             }
         }
