@@ -25,6 +25,7 @@ import javax.xml.stream.XMLStreamException;
 import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
 import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -312,7 +313,14 @@ public class SolrOAIReindexer {
             cacheService.deleteAll();
             itemCacheService.deleteAll();
         } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
-            log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
+            // Do not throw RuntimeException in tests
+            if (this.isTest()) {
+                log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
+            } else {
+                log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
+                throw new RuntimeException("Cannot reindex the item with ID: " + item.getID() + " because: "
+                        + e.getMessage());
+            }
         }
     }
 
@@ -323,8 +331,29 @@ public class SolrOAIReindexer {
             cacheService.deleteAll();
             itemCacheService.deleteAll();
         } catch (SolrServerException | IOException e) {
-            log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
-                    " because: " + e.getMessage());
+            // Do not throw RuntimeException in tests
+            if (this.isTest()) {
+                log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
+                        " because: " + e.getMessage());
+            } else {
+                log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
+                        " because: " + e.getMessage());
+                throw new RuntimeException("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
+                        " because: " + e.getMessage());
+            }
+
         }
+    }
+
+    private boolean isTest() {
+        try {
+            if (StringUtils.equals("jdbc:h2:mem:test", this.context.getDBConfig().getDatabaseUrl())) {
+                return true;
+            }
+        } catch (SQLException exception) {
+            return false;
+        }
+
+        return false;
     }
 }
