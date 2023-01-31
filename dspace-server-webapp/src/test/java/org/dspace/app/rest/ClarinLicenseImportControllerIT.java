@@ -7,8 +7,6 @@
  */
 package org.dspace.app.rest;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,7 +28,6 @@ import org.dspace.app.rest.converter.ClarinLicenseConverter;
 import org.dspace.app.rest.converter.ClarinLicenseLabelConverter;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
