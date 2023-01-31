@@ -18,12 +18,14 @@ import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.jsonldjava.utils.Obj;
 import org.dspace.app.rest.converter.ClarinLicenseConverter;
 import org.dspace.app.rest.converter.ClarinLicenseLabelConverter;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -90,7 +92,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         JSONObject jsonObject;
         ClarinLicenseLabel clarinLicenseLabel;
         List<JsonNode> nodes = new ArrayList<>();
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull(line = bufferReader.readLine())) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
@@ -120,14 +122,14 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         bufferReader = new BufferedReader(new FileReader(getClass().getResource(EXTENDED_MAPPINGS).getFile()));
         nodes = new ArrayList<>();
 
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull(line = bufferReader.readLine())) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
             node.set("mapping_id", jsonNodeFactory.textNode(jsonObject.get("mapping_id").toString()));
             node.set("license_id", jsonNodeFactory.textNode(jsonObject.get("license_id").toString()));
             node.set("label_id", jsonNodeFactory.textNode(jsonObject.get("label_id").toString()));
-            if (extendedMappingDictionary.get(Integer.parseInt(jsonObject.get("license_id").toString())) == null) {
+            if (Objects.isNull(extendedMappingDictionary.get(Integer.parseInt(jsonObject.get("license_id").toString())))) {
                 extendedMappingDictionary.put(Integer.parseInt(jsonObject.get("license_id").toString()),
                         new HashSet<>());
             }
@@ -146,7 +148,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         ClarinLicense license;
         nodes = new ArrayList<>();
 
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull(line = bufferReader.readLine())) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
@@ -156,7 +158,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             node.set("eperson_id", jsonNodeFactory.textNode(jsonObject.get("eperson_id").toString()));
             node.set("label_id", jsonNodeFactory.textNode(jsonObject.get("label_id").toString()));
             node.set("confirmation", jsonNodeFactory.textNode(jsonObject.get("confirmation").toString()));
-            node.set("required_info", jsonNodeFactory.textNode(jsonObject.get("required_info") == null ?
+            node.set("required_info", jsonNodeFactory.textNode(Objects.isNull(jsonObject.get("required_info")) ?
                     null : jsonObject.get("required_info").toString()));
             nodes.add(node);
 
@@ -172,10 +174,10 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             labels.add(this.licenseLabelIDDictionary.get(Integer.parseInt(jsonObject.get("label_id").toString())));
             license.setLicenseLabels(labels);
             license.setConfirmation(Integer.parseInt(jsonObject.get("confirmation").toString()));
-            license.setRequiredInfo(jsonObject.get("required_info") == null ?
+            license.setRequiredInfo(Objects.isNull(jsonObject.get("required_info")) ?
                     null : jsonObject.get("required_info").toString());
             licenseDictionary.put(license.getName(), license);
-            if (extendedMappingDictionary.get(license.getID()) == null) {
+            if (Objects.isNull(extendedMappingDictionary.get(license.getID()))) {
                 extendedMappingDictionary.put(license.getID(), new HashSet<>());
             }
             extendedMappingDictionary.get(license.getID()).add(license.getLicenseLabels().get(0).getID());
@@ -234,7 +236,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         JSONObject jsonObject;
         List<JsonNode> nodes = new ArrayList<>();
 
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull(line = bufferReader.readLine())) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
@@ -264,7 +266,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         JSONObject jsonObject;
         List<JsonNode> nodes = new ArrayList<>();
 
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull(line = bufferReader.readLine())) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
@@ -295,7 +297,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         JSONObject jsonObject;
         List<JsonNode> nodes = new ArrayList<>();
 
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull((line = bufferReader.readLine()))) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
@@ -325,7 +327,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         JSONObject jsonObject;
         List<JsonNode> nodes = new ArrayList<>();
 
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull(line = bufferReader.readLine())) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
@@ -354,7 +356,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         JSONObject jsonObject;
         List<JsonNode> nodes = new ArrayList<>();
 
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull(line = bufferReader.readLine())) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
@@ -384,7 +386,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         JSONObject jsonObject;
         List<JsonNode> nodes = new ArrayList<>();
 
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull(line = bufferReader.readLine())) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
@@ -393,7 +395,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             node.set("eperson_id", jsonNodeFactory.textNode(jsonObject.get("eperson_id").toString()));
             node.set("label_id", jsonNodeFactory.textNode(jsonObject.get("label_id").toString()));
             node.set("confirmation", jsonNodeFactory.textNode(jsonObject.get("confirmation").toString()));
-            node.set("required_info", jsonNodeFactory.textNode(jsonObject.get("required_info") == null ?
+            node.set("required_info", jsonNodeFactory.textNode(Objects.isNull(jsonObject.get("required_info")) ?
                     null : jsonObject.get("required_info").toString()));
             nodes.add(node);
         }
@@ -418,7 +420,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         JSONObject jsonObject;
         List<JsonNode> nodes = new ArrayList<>();
 
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull(line = bufferReader.readLine())) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
@@ -428,7 +430,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             node.set("eperson_id", jsonNodeFactory.textNode(jsonObject.get("eperson_id").toString()));
             node.set("label_id", jsonNodeFactory.textNode(jsonObject.get("label_id").toString()));
             node.set("confirmation", jsonNodeFactory.textNode(jsonObject.get("confirmation").toString()));
-            node.set("required_info", jsonNodeFactory.textNode(jsonObject.get("required_info") == null ?
+            node.set("required_info", jsonNodeFactory.textNode(Objects.isNull(jsonObject.get("required_info")) ?
                     null : jsonObject.get("required_info").toString()));
             nodes.add(node);
         }
@@ -461,7 +463,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             node.set("eperson_id", jsonNodeFactory.textNode(jsonObject.get("eperson_id").toString()));
             node.set("label_id", jsonNodeFactory.textNode(jsonObject.get("label_id").toString()));
             node.set("confirmation", jsonNodeFactory.textNode(jsonObject.get("confirmation").toString()));
-            node.set("required_info", jsonNodeFactory.textNode(jsonObject.get("required_info") == null ?
+            node.set("required_info", jsonNodeFactory.textNode(Objects.isNull(jsonObject.get("required_info")) ?
                     null : jsonObject.get("required_info").toString()));
             nodes.add(node);
         }
@@ -485,7 +487,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
         JSONObject jsonObject;
         List<JsonNode> nodes = new ArrayList<>();
 
-        while ((line = bufferReader.readLine()) != null) {
+        while (Objects.nonNull(line = bufferReader.readLine())) {
             obj = parser.parse(line);
             jsonObject = (JSONObject)obj;
             node = jsonNodeFactory.objectNode();
@@ -494,7 +496,7 @@ public class ClarinLicenseImportControllerIT extends AbstractControllerIntegrati
             node.set("eperson_id", jsonNodeFactory.textNode(jsonObject.get("eperson_id").toString()));
             node.set("label_id", jsonNodeFactory.textNode("1000"));
             node.set("confirmation", jsonNodeFactory.textNode(jsonObject.get("confirmation").toString()));
-            node.set("required_info", jsonNodeFactory.textNode(jsonObject.get("required_info") == null ?
+            node.set("required_info", jsonNodeFactory.textNode(Objects.isNull(jsonObject.get("required_info")) ?
                     null : jsonObject.get("required_info").toString()));
             nodes.add(node);
         }

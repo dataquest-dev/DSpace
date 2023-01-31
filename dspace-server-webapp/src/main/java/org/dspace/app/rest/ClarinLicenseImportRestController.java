@@ -17,6 +17,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import javax.management.ObjectName;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
@@ -76,7 +77,7 @@ public class ClarinLicenseImportRestController {
                                               HttpServletRequest request, HttpServletResponse response)
             throws SQLException, AuthorizeException {
 
-        if (licenseLabels == null || licenseLabels.size() < 1) {
+        if (Objects.isNull(licenseLabels) || licenseLabels.size() < 1) {
             throw new BadRequestException("The new license labels should be included as " +
                     "json in the body of this request");
         }
@@ -100,7 +101,6 @@ public class ClarinLicenseImportRestController {
                     String title = jsonLicenseLabel.get("title").isNull() ?
                             null : jsonLicenseLabel.get("title").asText();
                     boolean is_extended = jsonLicenseLabel.get("is_extended").asBoolean();
-
                     // create
                     licenseLabel = clarinLicenseLabelService.create(context);
                     licenseLabel.setLabel(label);
@@ -112,7 +112,6 @@ public class ClarinLicenseImportRestController {
                 } else {
                     //if any argument is missing, we create log and move to the next label
                     errors.add(jsonLicenseLabel.get("label_id").asInt());
-                    break;
                 }
             } else {
                 return new ResponseEntity<>("Label id has to be entered and it cannot be null!",
@@ -147,7 +146,7 @@ public class ClarinLicenseImportRestController {
                                                                         licenseLabelExtendedMappings,
                                           HttpServletRequest request, HttpServletResponse response) {
 
-        if (licenseLabelExtendedMappings == null || licenseLabelExtendedMappings.size() < 1) {
+        if (Objects.isNull(licenseLabelExtendedMappings) || licenseLabelExtendedMappings.isEmpty()) {
             throw new BadRequestException("The new license label extended mappings should be included as " +
                     "json in the body of this request");
         }
@@ -167,31 +166,30 @@ public class ClarinLicenseImportRestController {
 
                 Set<ClarinLicenseLabel> licenseLabels = this.licenseToLicenseLabel.get(
                         jsonLicenseLabelExtendedMapping.get("license_id").asInt());
-                if (licenseLabels == null) {
+                if (Objects.isNull(licenseLabels)) {
                     licenseLabels = new HashSet<>();
                     this.licenseToLicenseLabel.put(jsonLicenseLabelExtendedMapping.get(
                             "license_id").asInt(), licenseLabels);
                 }
-
-                ClarinLicenseLabel clarinLicenseLabel = null;
+                ClarinLicenseLabel clarinLicenseLabel;
                 try {
                     Integer licenseLabelID = this.licenseLabelsIds.get(jsonLicenseLabelExtendedMapping.get(
                             "label_id").asInt());
-                    if (licenseLabelID == null) {
+                    if (Objects.isNull(licenseLabelID)) {
                         //if label_id doesn't exist, we create log and move to the next extended mapping
                         errors.add(jsonLicenseLabelExtendedMapping.get("label_id").asInt());
-                        break;
+                        continue;
                     }
                     clarinLicenseLabel = clarinLicenseLabelService.find(context,licenseLabelID);
                     if (Objects.isNull(clarinLicenseLabel)) {
                         //if label_id doesn't exist, we create log and move to the next extended mapping
                         errors.add(licenseLabelID);
-                        break;
+                        continue;
                     }
+                    licenseLabels.add(clarinLicenseLabel);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-                licenseLabels.add(clarinLicenseLabel);
             } else {
                 return new ResponseEntity<>("Label id and license id have to be entered and it cannot be null!",
                         HttpStatus.UNPROCESSABLE_ENTITY);
@@ -226,7 +224,7 @@ public class ClarinLicenseImportRestController {
                                                HttpServletRequest request, HttpServletResponse response)
             throws SQLException, AuthorizeException {
 
-        if (licenses == null || licenses.size() < 1) {
+        if (Objects.isNull(licenses) || licenses.size() < 1) {
             throw new BadRequestException("The new licenses should be included as json in the body of this request");
         }
 
@@ -259,19 +257,24 @@ public class ClarinLicenseImportRestController {
                     String required_info = jsonLicense.get("required_info").isNull() ?
                             null : jsonLicense.get("required_info").asText();
 
+                    if (Objects.isNull(clarinLicenseService.findByName(context, name))) {
+                        errors.add(label_id);
+                        continue;
+                    }
+
                     ClarinLicenseLabel label = null;
-                    if (label_id != null && this.licenseLabelsIds.get(label_id) != null) {
+                    if (Objects.nonNull(label_id) && Objects.nonNull(this.licenseLabelsIds.get(label_id))) {
                         label = this.clarinLicenseLabelService.find(context, this.licenseLabelsIds.get(label_id));
                     }
 
-                    if (label_id == null || label == null) {
+                    if (Objects.isNull(label_id) || Objects.isNull(label)) {
                         //if label_id doesn't exist, we create log and move to the next extended mapping
                         errors.add(label_id);
-                        break;
+                        continue;
                     }
 
                     Set<ClarinLicenseLabel> licenseLabels = this.licenseToLicenseLabel.get(id);
-                    if (licenseLabels == null) {
+                    if (Objects.isNull(licenseLabels)) {
                         licenseLabels = new HashSet<>();
                     }
                     licenseLabels.add(label);
@@ -288,10 +291,9 @@ public class ClarinLicenseImportRestController {
                 } else {
                     //if any argument is missing, we create log and move to the next label
                     errors.add(jsonLicense.get("license_id").asInt());
-                    break;
                 }
             } else {
-                return new ResponseEntity<>("License id has to be entered and it cannot be null!",
+                return new ResponseEntity<>("License id has to be entered and it cannot be null! Name has to be unique!",
                         HttpStatus.UNPROCESSABLE_ENTITY);
             }
         }
