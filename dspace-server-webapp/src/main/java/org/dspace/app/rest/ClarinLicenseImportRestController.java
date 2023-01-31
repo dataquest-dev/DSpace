@@ -239,7 +239,8 @@ public class ClarinLicenseImportRestController {
         for (JsonNode jsonLicense : licenses) {
             if (jsonLicense.has("license_id") && !jsonLicense.get("license_id").isNull()) {
                 if (jsonLicense.has("name") && jsonLicense.has("definition")
-                        && jsonLicense.has("eperson_id") && jsonLicense.has("label_id") &&
+                        //&& jsonLicense.has("eperson_id")
+                        && jsonLicense.has("label_id") &&
                         jsonLicense.has("confirmation") && jsonLicense.has("required_info")) {
 
                     Integer id = jsonLicense.get("license_id").asInt();
@@ -247,8 +248,9 @@ public class ClarinLicenseImportRestController {
                     String name = jsonLicense.get("name").isNull() ? null : jsonLicense.get("name").asText();
                     String definition = jsonLicense.get("definition").isNull() ?
                             null : jsonLicense.get("definition").asText();
-                    Integer eperson_id = jsonLicense.get("eperson_id").isNull() ?
-                            null : jsonLicense.get("eperson_id").asInt();
+                    //eperson_id is only require if the license iswas reated by an andmin and not imported
+                    //Integer eperson_id = jsonLicense.get("eperson_id").isNull() ?
+                    //        null : jsonLicense.get("eperson_id").asInt();
                     Integer label_id = jsonLicense.get("label_id").isNull() ?
                             null : jsonLicense.get("label_id").asInt();
 
