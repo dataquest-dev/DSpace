@@ -58,7 +58,7 @@
     </bean>
     -->
     <bean id="org.dspace.identifier.DOIIdentifierProvider"
-        class="org.dspace.identifier.VersionedDOIIdentifierProvider"
+        class="org.dspace.identifier.ClarinVersionedDOIIdentifierProvider"
         scope="singleton">
         <property name="configurationService"
             ref="org.dspace.services.ConfigurationService" />
