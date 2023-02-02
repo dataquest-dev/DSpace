@@ -31,6 +31,7 @@ import org.w3c.dom.Node;
 
 /**
  * Serves as proxy for call from XSL engine.
+ * @author Marian Berger (marian.berger at dataquest.sk)
  */
 public abstract class NodeXslFunction implements ExtensionFunction {
 
