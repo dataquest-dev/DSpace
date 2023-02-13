@@ -4,7 +4,7 @@
     <groupId>org.dspace</groupId>
     <artifactId>dspace-parent</artifactId>
     <packaging>pom</packaging>
-    <version>7.2</version>
+    <version>7.2.1</version>
     <name>DSpace Parent Project</name>
     <description>
    	DSpace open source software is a turnkey institutional repository application.
@@ -19,7 +19,7 @@
     <properties>
         <!--=== GENERAL / DSPACE-API DEPENDENCIES ===-->
         <java.version>11</java.version>
-        <spring.version>5.2.5.RELEASE</spring.version>
+        <spring.version>5.2.20.RELEASE</spring.version>
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
         <spring-security.version>5.2.2.RELEASE</spring-security.version> <!-- sync with version used by spring-boot-->
         <hibernate.version>5.4.10.Final</hibernate.version>
@@ -155,7 +155,6 @@
                             <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
                             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
                             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
-                            <arg>-Xpkginfo:always</arg>
                         </compilerArgs>
                         <annotationProcessorPaths>
                             <path>
@@ -869,14 +868,14 @@
                    <dependency>
                        <groupId>org.dspace</groupId>
                        <artifactId>dspace-rest</artifactId>
-                       <version>7.2</version>
+                       <version>7.2.1</version>
                        <type>jar</type>
                        <classifier>classes</classifier>
                    </dependency>
                    <dependency>
                        <groupId>org.dspace</groupId>
                        <artifactId>dspace-rest</artifactId>
-                       <version>7.2</version>
+                       <version>7.2.1</version>
                        <type>war</type>
                    </dependency>
                </dependencies>
@@ -1027,69 +1026,69 @@
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-api</artifactId>
-                <version>7.2</version>
+                <version>7.2.1</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-api</artifactId>
                 <type>test-jar</type>
-                <version>7.2</version>
+                <version>7.2.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.dspace.modules</groupId>
                 <artifactId>additions</artifactId>
-                <version>7.2</version>
+                <version>7.2.1</version>
             </dependency>
 
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-sword</artifactId>
-                <version>7.2</version>
+                <version>7.2.1</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-swordv2</artifactId>
-                <version>7.2</version>
+                <version>7.2.1</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-oai</artifactId>
-                <version>7.2</version>
+                <version>7.2.1</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-services</artifactId>
-                <version>7.2</version>
+                <version>7.2.1</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-server-webapp</artifactId>
                 <type>test-jar</type>
-                <version>7.2</version>
+                <version>7.2.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-rdf</artifactId>
-                <version>7.2</version>
+                <version>7.2.1</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-iiif</artifactId>
-                <version>7.2</version>
+                <version>7.2.1</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-server-webapp</artifactId>
-                <version>7.2</version>
+                <version>7.2.1</version>
                 <type>jar</type>
                 <classifier>classes</classifier>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-server-webapp</artifactId>
-                <version>7.2</version>
+                <version>7.2.1</version>
                 <type>war</type>
             </dependency>
             <!-- DSpace API Localization Packages -->
@@ -1216,6 +1215,12 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-expression</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context-support</artifactId>
                 <version>${spring.version}</version>
             </dependency>
 
@@ -1564,6 +1569,11 @@
                 <version>3.1.0</version>
             </dependency>
             <dependency>
+                <groupId>xalan</groupId>
+                <artifactId>xalan</artifactId>
+                <version>2.7.0</version>
+            </dependency>
+            <dependency>
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>2.12.0</version>
@@ -1585,18 +1595,10 @@
                 <artifactId>ojdbc6</artifactId>
                 <version>11.2.0.4.0</version>
             </dependency>
-            <!-- Codebase at https://github.com/OCLC-Research/oaiharvester2/ -->
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>oclc-harvester2</artifactId>
                 <version>0.1.12</version>
-            </dependency>
-            <!-- Xalan is REQUIRED by 'oclc-harvester2' listed above (OAI harvesting fails without it).
-                 Please do NOT use Xalan in DSpace codebase as it is not well maintained. -->
-            <dependency>
-                <groupId>xalan</groupId>
-                <artifactId>xalan</artifactId>
-                <version>2.7.2</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
@@ -1881,7 +1883,7 @@
         <connection>scm:git:git@github.com:DSpace/DSpace.git</connection>
         <developerConnection>scm:git:git@github.com:DSpace/DSpace.git</developerConnection>
         <url>git@github.com:DSpace/DSpace.git</url>
-        <tag>dspace-7.2</tag>
+        <tag>dspace-7.2.1</tag>
     </scm>
 
 
