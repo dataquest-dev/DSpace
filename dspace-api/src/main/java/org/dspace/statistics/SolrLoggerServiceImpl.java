@@ -1517,13 +1517,14 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 QueryResponse queryResponse = solr.query(solrParams);
                 SolrDocumentList docs = queryResponse.getResults();
 
-                File exportOutput = new File(tempDirectory.getPath() + File.separatorChar + "usagestats_" + i + ".csv");
+                File exportOutput = new File(tempDirectory.getPath() + File.separatorChar +
+                        "usagestats_" + i + ".csv");
                 exportOutput.delete();
 
                 //export docs
                 addDocumentsToFile(context, docs, exportOutput);
                 System.out.println(
-                        "Export hits [" + i + " - " + String.valueOf(i + 9999) + "] to " + exportOutput.getCanonicalPath());
+                    "Export hits [" + i + " - " + String.valueOf(i + 9999) + "] to " + exportOutput.getCanonicalPath());
             }
         } catch (Exception e) {
             log.error("Error while exporting SOLR data", e);
