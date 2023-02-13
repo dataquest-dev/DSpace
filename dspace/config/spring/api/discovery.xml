@@ -40,7 +40,7 @@
     <!-- Additional indexing plugin enables searching by filenames and by file descriptions for files in ORIGINAL bundle -->
     <bean id="solrServiceFileInfoPlugin" class="org.dspace.discovery.SolrServiceFileInfoPlugin"/>
 
-    <!-- TODO -->
+    <!-- Additional indexing plugin enables searching by Items communities. -->
     <bean id="itemsOwningCommunityPlugin" class="org.dspace.discovery.ClarinSolrItemsCommunityIndexPlugin"/>
 
     <!--Bean that is used for mapping communities/collections to certain discovery configurations.-->
