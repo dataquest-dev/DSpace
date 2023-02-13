@@ -1,5 +1,9 @@
 package org.dspace.discovery;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
@@ -8,10 +12,6 @@ import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.indexobject.IndexableItem;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
 
 public class ClarinSolrItemsCommunityIndexPlugin implements SolrServiceIndexPlugin {
 
