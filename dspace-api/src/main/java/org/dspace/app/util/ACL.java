@@ -32,8 +32,6 @@ import org.springframework.stereotype.Component;
  * Class is copied from the LINDAT/CLARIAH-CZ (https://github.com/ufal/clarin-dspace) and modified by
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-
-@Component
 public class ACL {
 
     /** Logger */
