@@ -23,7 +23,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
-import org.springframework.stereotype.Component;
 
 /**
  * Class that represents Access Control List
