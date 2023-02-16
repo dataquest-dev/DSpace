@@ -480,3 +480,6 @@ ALTER TABLE eperson
 
 ALTER TABLE metadatafieldregistry
     ALTER COLUMN element TYPE character varying(128);
+
+ALTER TABLE handle
+    ALTER COLUMN url TYPE text;
