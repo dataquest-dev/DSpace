@@ -23,7 +23,6 @@ import java.util.Objects;
 import java.util.UUID;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 
@@ -38,7 +37,6 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
-import org.dspace.content.clarin.ClarinLicenseServiceImpl;
 import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.BitstreamService;
@@ -190,8 +188,7 @@ public class ClarinUserMetadataRestController {
             bean.addArgument(clarinLicense.getDefinition());
             bean.addRecipient(email);
             bean.send();
-        }
-        catch (MessagingException e) {
+        } catch (MessagingException e) {
             log.error("Cannot send the email because: " + e.getMessage());
             throw new MessagingException(e.getMessage());
         }
