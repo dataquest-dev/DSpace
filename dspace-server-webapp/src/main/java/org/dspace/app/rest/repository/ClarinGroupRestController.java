@@ -13,6 +13,7 @@ import org.dspace.app.rest.utils.Utils;
 import org.dspace.app.util.AuthorizeUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
@@ -57,7 +58,6 @@ public class ClarinGroupRestController {
 
     /**
      * Method to add one or more subgroups to a group.
-     * The subgroups to be added should be provided in the request body as a uri-list.
      * Note that only the 'AUTHENTICATED' state will be checked in PreAuthorize, a more detailed check will be done by
      * using the 'checkAuthorization' method.
      *
@@ -99,6 +99,48 @@ public class ClarinGroupRestController {
         response.setStatus(SC_NO_CONTENT);
     }
 
+    /**
+     * Method to add one or more members to a group.
+     * Note that only the 'AUTHENTICATED' state will be checked in PreAuthorize, a more detailed check will be done by
+     * using the 'checkAuthorization' method.
+     *
+     * @param uuid the uuid of the group to add the members to
+     */
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
+    @RequestMapping(method = POST, path = "/{uuid}/epersons")
+    public void addMembers(@PathVariable UUID uuid, HttpServletResponse response, HttpServletRequest request)
+            throws SQLException, AuthorizeException {
+
+        Context context = obtainContext(request);
+
+        Group parentGroup = groupService.find(context, uuid);
+        if (parentGroup == null) {
+            throw new ResourceNotFoundException("parent group is not found for uuid: " + uuid);
+        }
+
+        AuthorizeUtil.authorizeManageGroup(context, parentGroup);
+
+        List<String> memberLinks = utils.getStringListFromRequest(request);
+
+        List<EPerson> members = new ArrayList<>();
+        for (String memberLink : memberLinks) {
+            memberLink = memberLink.replace("\"", "");
+            Optional<EPerson> member = findEPerson(context, memberLink);
+            if (!member.isPresent()) {
+                throw new UnprocessableEntityException("cannot add child group: " + memberLink);
+            }
+            members.add(member.get());
+        }
+
+        for (EPerson member : members) {
+            groupService.addMember(context, parentGroup, member);
+        }
+
+        context.complete();
+
+        response.setStatus(SC_NO_CONTENT);
+    }
+
     private Optional<Group> findGroup(Context context, String groupLink) throws SQLException {
 
         Group group = null;
@@ -110,6 +152,19 @@ public class ClarinGroupRestController {
         }
 
         return Optional.ofNullable(group);
+    }
+
+    private Optional<EPerson> findEPerson(Context context, String groupLink) throws SQLException {
+
+        EPerson ePerson = null;
+
+        Pattern linkPattern = compile("^.*/(" + REGEX_UUID + ")/?$");
+        Matcher matcher = linkPattern.matcher(groupLink);
+        if (matcher.matches()) {
+            ePerson = ePersonService.find(context, UUID.fromString(matcher.group(1)));
+        }
+
+        return Optional.ofNullable(ePerson);
     }
 
     private boolean canAddGroup(Context context, Group parentGroup, Group childGroup) throws SQLException {
