@@ -7,7 +7,7 @@
 --
 
 -- HANDLE TABLE
-ALTER TABLE handle ADD url varchar(2048);
+ALTER TABLE handle ADD url varchar;
 ALTER TABLE handle ADD dead BOOL;
 ALTER TABLE handle ADD dead_since TIMESTAMP WITH TIME ZONE;
 
@@ -480,6 +480,3 @@ ALTER TABLE eperson
 
 ALTER TABLE metadatafieldregistry
     ALTER COLUMN element TYPE character varying(128);
-
-ALTER TABLE handle
-    ALTER COLUMN url TYPE character varying(8192);
