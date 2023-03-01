@@ -19,9 +19,9 @@ public class ClarinWorkspaceItemServiceImpl implements ClarinWorkspaceItemServic
 
     @Override
     public WorkspaceItem create(Context context, Collection collection, boolean multipleTitles, boolean publishedBefore,
-                                boolean multipleFiles, Integer stageReached, Integer pageReached, UUID uuid,
+                                boolean multipleFiles, Integer stageReached, Integer pageReached,
                                 boolean template) throws AuthorizeException, SQLException {
-        WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, uuid, template);
+        WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, template);
         workspaceItem.setPublishedBefore(publishedBefore);
         workspaceItem.setMultipleFiles(multipleFiles);
         workspaceItem.setMultipleTitles(multipleFiles);
