@@ -1,4 +1,4 @@
-package org.dspace.content.service;
+package org.dspace.content.service.clarin;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
