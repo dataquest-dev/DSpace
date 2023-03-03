@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.model.ItemRest;
+import org.dspace.app.rest.model.WorkspaceItemRest;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
@@ -34,6 +35,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,10 +49,11 @@ public class ClarinWorkspaceItemControllerIT extends AbstractControllerIntegrati
     private CollectionService collectionService;
 
     @Autowired
-    private ItemService itemService;
+    private WorkspaceItemService workspaceItemService;
 
     @Autowired
-    private WorkspaceItemService workspaceItemService;
+    private ItemService itemService;
+
     private Collection col;
     private Item item;
     @Test
@@ -69,15 +72,19 @@ public class ClarinWorkspaceItemControllerIT extends AbstractControllerIntegrati
         ObjectMapper mapper = new ObjectMapper();
         String token = getAuthToken(admin.getEmail(), password);
 
-        getClient(token).perform(post("/api/clarin/submission/workspaceitem"))
-                //.content(mapper.writeValueAsBytes(node))
-                //.param("owningCollection", col.getID().toString())
-                //.param("multipleTitles", "true")
-                //.param("publishedBefore", "false")
-                //.param("multipleFiles", "false")
-                //.param("stageReached", "1")
-                //.param("pageReached", "123"))
+        getClient(token).perform(post("/api/clarin/submission/workspaceitems/import")
+                .content(mapper.writeValueAsBytes(node))
+                .param("owningCollection", col.getID().toString())
+                .param("multipleTitles", "true")
+                .param("publishedBefore", "false")
+                .param("multipleFiles", "false")
+                .param("stageReached", "1")
+                .param("pageReached", "123"))
                 .andExpect(status().isCreated());
+
+        List<WorkspaceItem> workspaceItems = workspaceItemService.findAll(context);
+        assertEquals(workspaceItems.size(), 1);
+        getClient(token).perform(get("/api/clarin/submission/workspaceitems/" + workspaceItems.get(0))).andExpect(status().isOk());
 
         this.cleanAll(context);
     }

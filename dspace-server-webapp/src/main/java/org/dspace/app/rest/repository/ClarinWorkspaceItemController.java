@@ -13,6 +13,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinWorkspaceItemService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.InstallItemService;
@@ -24,6 +25,7 @@ import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -44,10 +46,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  * This will be the entry point for the api/clarin/core/items endpoint with additional paths to it
  */
 @RestController
-@RequestMapping("/api/clarin/submission/workspaceitem")
+@RequestMapping("/api/clarin/" + WorkspaceItemRest.CATEGORY + "/workspaceitems")
 public class ClarinWorkspaceItemController {
-
-    private RequestService requestService = new DSpace().getRequestService();
 
     @Autowired
     private CollectionService collectionService;
@@ -56,10 +56,9 @@ public class ClarinWorkspaceItemController {
     private ClarinWorkspaceItemService clarinWorkspaceItemService;
 
     @Autowired
-    private MetadataConverter metadataConverter;
-
+    private WorkspaceItemService workspaceItemService;
     @Autowired
-    private InstallItemService installItemService;
+    private MetadataConverter metadataConverter;
 
     @Autowired
     private ConverterService converter;
@@ -74,9 +73,9 @@ public class ClarinWorkspaceItemController {
     private HandleClarinService handleService;
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @RequestMapping(method = RequestMethod.POST)
-    public WorkspaceItemRest createAndReturn(@RequestBody(required = false) HttpServletRequest request,
-                                    HttpServletResponse response) throws AuthorizeException, SQLException {
+    @RequestMapping(method = RequestMethod.POST, value = "/import")
+    public WorkspaceItemRest importWorkspaceItemAndItem(HttpServletRequest request)
+            throws AuthorizeException, SQLException {
 
         Context context = obtainContext(request);
         if (Objects.isNull(context)) {
@@ -118,34 +117,49 @@ public class ClarinWorkspaceItemController {
         if (itemRest.getWithdrawn()) {
             itemService.withdraw(context, item);
         }
+        //maybe update item in database...
         item.setArchived(itemRest.getInArchive());
         item.setOwningCollection(collection);
         item.setDiscoverable(itemRest.getDiscoverable());
         item.setLastModified(itemRest.getLastModified());
         metadataConverter.setMetadata(context, item, itemRest.getMetadata());
         //maybe we don't need to do with handle nothing
-        item.addHandle(handleService.findByHandle(context, itemRest.getHandle()));
-        installItemService.installItem(context, workspaceItem);
+        if (!Objects.isNull(itemRest.getHandle())) {
+            item.addHandle(handleService.findByHandle(context, itemRest.getHandle()));
+        }
+        // save changes
+        workspaceItemService.update(context, workspaceItem);
+        itemService.update(context, item);
 
-        return converter.toRest(workspaceItem, utils.obtainProjection());
+        WorkspaceItemRest workspaceItemRest = converter.toRest(workspaceItem, utils.obtainProjection());
+        context.complete();
+
+        return workspaceItemRest;
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @RequestMapping(method = RequestMethod.GET, path = "/{id}/item")
+    public ItemRest getWorkspaceitemItem(@PathVariable int id, HttpServletRequest request) throws SQLException {
+        Context context = obtainContext(request);
+        if (Objects.isNull(context)) {
+            throw new RuntimeException("Contex is null!");
+        }
+        WorkspaceItem workspaceItem = workspaceItemService.find(context, id);
+        return converter.toRest(workspaceItem.getItem(), utils.obtainProjection());
     }
 
     private boolean getBooleanFromString(String value) {
         boolean output = false;
         if (StringUtils.isNotBlank(value)) {
             output = Boolean.parseBoolean(value);
-        } else {
-            throw new IllegalArgumentException("The value converted to boolean cannot be blank.");
         }
         return output;
     }
 
     private Integer getIntegerFromString(String value) {
-        Integer output = null;
+        Integer output = -1;
         if (StringUtils.isNotBlank(value)) {
             output = Integer.parseInt(value);
-        } else {
-            throw new IllegalArgumentException("The value converted to Integer cannot be blank.");
         }
         return output;
     }
