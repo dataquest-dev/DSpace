@@ -5,9 +5,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.converter.MetadataConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
+import org.dspace.app.rest.exception.RESTAuthorizationException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ItemRest;
+import org.dspace.app.rest.model.WorkflowItemRest;
 import org.dspace.app.rest.model.WorkspaceItemRest;
+import org.dspace.app.rest.submit.SubmissionService;
+import org.dspace.app.rest.utils.SolrOAIReindexer;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
@@ -16,38 +20,36 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinWorkspaceItemService;
 import org.dspace.content.service.CollectionService;
-import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleClarinService;
-import org.dspace.services.RequestService;
 import org.dspace.util.UUIDUtils;
-import org.dspace.utils.DSpace;
+import org.dspace.workflow.WorkflowException;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * This will be the entry point for the api/clarin/core/items endpoint with additional paths to it
  */
 @RestController
-@RequestMapping("/api/clarin/" + WorkspaceItemRest.CATEGORY + "/workspaceitems")
-public class ClarinWorkspaceItemController {
+@RequestMapping("/api/clarin/import")
+public class ClarinItemImportController {
 
     @Autowired
     private CollectionService collectionService;
@@ -72,8 +74,14 @@ public class ClarinWorkspaceItemController {
     @Autowired
     private HandleClarinService handleService;
 
+    @Autowired
+    SubmissionService submissionService;
+
+    @Autowired
+    private SolrOAIReindexer solrOAIReindexer;
+
     @PreAuthorize("hasAuthority('ADMIN')")
-    @RequestMapping(method = RequestMethod.POST, value = "/import")
+    @RequestMapping(method = RequestMethod.POST, value = "/workspaceitem")
     public WorkspaceItemRest importWorkspaceItemAndItem(HttpServletRequest request)
             throws AuthorizeException, SQLException {
 
@@ -146,6 +154,37 @@ public class ClarinWorkspaceItemController {
         }
         WorkspaceItem workspaceItem = workspaceItemService.find(context, id);
         return converter.toRest(workspaceItem.getItem(), utils.obtainProjection());
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @RequestMapping(method = RequestMethod.POST, value = "/workflowitem")
+    public WorkflowItemRest importWorkflowItem(HttpServletRequest request) {
+        Context context = obtainContext(request);
+        if (Objects.isNull(context)) {
+            throw new RuntimeException("Contex is null!");
+        }
+
+        String workspaceUrlString = request.getParameter("workspaceUrl");
+        XmlWorkflowItem source;
+        try {
+
+            source = submissionService.createWorkflowItem(context, workspaceUrlString);
+        } catch (AuthorizeException e) {
+            throw new RESTAuthorizationException(e);
+        } catch (WorkflowException e) {
+            throw new UnprocessableEntityException(
+                    "Invalid workflow action: " + e.getMessage(), e);
+        } catch (SQLException e) {
+            throw new RuntimeException("SQLException in " + this.getClass() + "#findBySubmitter trying to create " +
+                    "a workflow and adding it to db.", e);
+        }
+
+        solrOAIReindexer.reindexItem(source.getItem());
+        //if the item go directly in published status we have to manage a status code 204 with no content
+        if (source.getItem().isArchived()) {
+            return null;
+        }
+        return converter.toRest(source, utils.obtainProjection());
     }
 
     private boolean getBooleanFromString(String value) {

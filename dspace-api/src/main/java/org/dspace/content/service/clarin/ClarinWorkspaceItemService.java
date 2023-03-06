@@ -16,4 +16,6 @@ public interface ClarinWorkspaceItemService {
                                 boolean multipleFiles, Integer stageReached,
                                 Integer pageReached, boolean template)
             throws AuthorizeException, SQLException;
+
+    public WorkspaceItem find(Context context, UUID uuid) throws SQLException;
 }
