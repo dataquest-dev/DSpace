@@ -3,6 +3,7 @@ package org.dspace.content.service.clarin;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.service.InProgressSubmissionService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -14,7 +15,7 @@ public interface ClarinWorkspaceItemService {
     public WorkspaceItem create(Context context, Collection collection,
                                 boolean multipleTitles, boolean publishedBefore,
                                 boolean multipleFiles, Integer stageReached,
-                                Integer pageReached, boolean template)
+                                Integer pageReached, boolean template, UUID uuid)
             throws AuthorizeException, SQLException;
 
     public WorkspaceItem find(Context context, UUID uuid) throws SQLException;

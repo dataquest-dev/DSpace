@@ -13,7 +13,9 @@ import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
@@ -25,6 +27,8 @@ import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
+import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -61,8 +65,21 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     private Collection col;
     private Item item;
+
+    @Before
+    @Override
+    public void setUp() throws Exception {
+
+        super.setUp();
+
+        //disable file upload mandatory
+        configurationService.setProperty("webui.submit.upload.required", false);
+    }
 
     @Test
     public void importWorkspaceItemAndItemTest() throws Exception {
@@ -71,6 +88,12 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
                 .withName("Parent Community")
                 .build();
         col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+        //2. create a normal user to use as submitter
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                .withEmail("submitter@example.com")
+                .withPassword("dspace")
+                .build();
+
         ObjectNode node = jsonNodeFactory.objectNode();
         node.set("discoverable", jsonNodeFactory.textNode("false"));
         node.set("inArchive", jsonNodeFactory.textNode("true"));
@@ -88,7 +111,8 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
                 .param("publishedBefore", "false")
                 .param("multipleFiles", "false")
                 .param("stageReached", "1")
-                .param("pageReached", "123"))
+                .param("pageReached", "123")
+                .param("epersonUUID", submitter.getID().toString()))
                 .andExpect(status().isOk());
 
         List<WorkspaceItem> workspaceItems = workspaceItemService.findAll(context);
@@ -102,7 +126,17 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
-        col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+        col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1")
+                .withWorkflowGroup(1, admin).build();
+//        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, col)
+//                .withTitle("Submission Item")
+//                .withIssueDate("2017-10-17")
+//                .build();
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                .withEmail("submitter@example.com")
+                .withPassword("dspace")
+                .build();
+
         ObjectNode node = jsonNodeFactory.objectNode();
         node.set("discoverable", jsonNodeFactory.textNode("false"));
         node.set("inArchive", jsonNodeFactory.textNode("true"));
@@ -120,14 +154,15 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
                         .param("publishedBefore", "false")
                         .param("multipleFiles", "false")
                         .param("stageReached", "1")
-                        .param("pageReached", "123"))
+                        .param("pageReached", "123")
+                        .param("epersonUUID", submitter.getID().toString()))
                 .andExpect(status().isOk());
-
         List<WorkspaceItem> workspaceItems = workspaceItemService.findAll(context);
-        WorkspaceItem workspaceItem = workspaceItems.get(0);
-        getClient(token).perform(post("api/clarin/import/workflowitem")
-                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON)
-                .param("workspaceUrl", "/api/submission/workspaceitems/" + workspaceItem.getID()))
+        // get the submitter auth token
+       // String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(post("/api/clarin/import/workflowitem")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("id", Integer.toString(workspaceItems.get(0).getID())))
                 .andExpect(status().isOk());
     }
 

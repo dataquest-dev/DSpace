@@ -14,6 +14,8 @@ import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.rest.utils.SolrOAIReindexer;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
@@ -21,10 +23,17 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinWorkspaceItemService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.discovery.IndexingService;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.handle.service.HandleClarinService;
+import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
 import org.dspace.workflow.WorkflowException;
+import org.dspace.workflow.WorkflowItem;
+import org.dspace.xmlworkflow.service.XmlWorkflowService;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -75,11 +84,21 @@ public class ClarinItemImportController {
     private HandleClarinService handleService;
 
     @Autowired
+    XmlWorkflowService workflowService;
+
+    @Autowired
     SubmissionService submissionService;
 
     @Autowired
     private SolrOAIReindexer solrOAIReindexer;
+    @Autowired
+    private ConfigurationService configurationService;
 
+    @Autowired(required = true)
+    protected AuthorizeService authorizeService;
+
+    @Autowired
+    private EPersonService ePersonService;
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method = RequestMethod.POST, value = "/workspaceitem")
     public WorkspaceItemRest importWorkspaceItemAndItem(HttpServletRequest request)
@@ -118,8 +137,16 @@ public class ClarinItemImportController {
         Integer stageReached = getIntegerFromString(stageReachedString);
         Integer pageReached = getIntegerFromString(pageReachedString);
 
+        EPerson currUser = context.getCurrentUser();
+        String epersonUUIDString = request.getParameter("epersonUUID");
+        UUID epersonUUID = UUIDUtils.fromString(epersonUUIDString);
+        EPerson eperson = ePersonService.find(context, epersonUUID);
+        context.setCurrentUser(eperson);
+
         WorkspaceItem workspaceItem = clarinWorkspaceItemService.create(context, collection, multipleTitles,
                 publishedBefore, multipleFiles, stageReached, pageReached,false);
+
+        context.setCurrentUser(currUser);
         Item item = workspaceItem.getItem();
         //the method set withdraw to true and isArchived to false
         if (itemRest.getWithdrawn()) {
@@ -130,6 +157,7 @@ public class ClarinItemImportController {
         item.setOwningCollection(collection);
         item.setDiscoverable(itemRest.getDiscoverable());
         item.setLastModified(itemRest.getLastModified());
+
         metadataConverter.setMetadata(context, item, itemRest.getMetadata());
         //maybe we don't need to do with handle nothing
         if (!Objects.isNull(itemRest.getHandle())) {
@@ -138,7 +166,6 @@ public class ClarinItemImportController {
         // save changes
         workspaceItemService.update(context, workspaceItem);
         itemService.update(context, item);
-
         WorkspaceItemRest workspaceItemRest = converter.toRest(workspaceItem, utils.obtainProjection());
         context.complete();
 
@@ -158,33 +185,16 @@ public class ClarinItemImportController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method = RequestMethod.POST, value = "/workflowitem")
-    public WorkflowItemRest importWorkflowItem(HttpServletRequest request) {
+    public WorkflowItemRest importWorkflowItem(HttpServletRequest request) throws SQLException, AuthorizeException, WorkflowException, IOException {
         Context context = obtainContext(request);
         if (Objects.isNull(context)) {
             throw new RuntimeException("Contex is null!");
         }
 
-        String workspaceUrlString = request.getParameter("workspaceUrl");
-        XmlWorkflowItem source;
-        try {
-
-            source = submissionService.createWorkflowItem(context, workspaceUrlString);
-        } catch (AuthorizeException e) {
-            throw new RESTAuthorizationException(e);
-        } catch (WorkflowException e) {
-            throw new UnprocessableEntityException(
-                    "Invalid workflow action: " + e.getMessage(), e);
-        } catch (SQLException e) {
-            throw new RuntimeException("SQLException in " + this.getClass() + "#findBySubmitter trying to create " +
-                    "a workflow and adding it to db.", e);
-        }
-
-        solrOAIReindexer.reindexItem(source.getItem());
-        //if the item go directly in published status we have to manage a status code 204 with no content
-        if (source.getItem().isArchived()) {
-            return null;
-        }
-        return converter.toRest(source, utils.obtainProjection());
+        String workspaceIdString = request.getParameter("id");
+        WorkspaceItem wsi = workspaceItemService.find(context, Integer.parseInt(workspaceIdString));
+        XmlWorkflowItem wf = workflowService.start(context, wsi);
+        return converter.toRest(wf, utils.obtainProjection());
     }
 
     private boolean getBooleanFromString(String value) {

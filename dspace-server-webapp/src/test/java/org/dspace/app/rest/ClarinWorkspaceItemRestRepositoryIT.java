@@ -639,7 +639,8 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                 .andExpect(status().isOk());
 
         // 4. Check if the Clarin License name was added to the Item's metadata `dc.rights`
-        getClient(tokenAdmin).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+        getClient(tokenAdmin).perform(get("/api/submission/workspaceit" +
+                        "ems/" + witem.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.rights'][0].value", is(clarinLicenseName)));
 
