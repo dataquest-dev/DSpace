@@ -19,6 +19,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinWorkspaceItemService;
 import org.dspace.content.service.CollectionService;
@@ -36,6 +37,7 @@ import org.dspace.workflow.WorkflowItem;
 import org.dspace.xmlworkflow.service.XmlWorkflowService;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -99,10 +101,15 @@ public class ClarinItemImportController {
 
     @Autowired
     private EPersonService ePersonService;
+
+    @Autowired
+    InstallItemService installItemService;
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method = RequestMethod.POST, value = "/workspaceitem")
-    public WorkspaceItemRest importWorkspaceItemAndItem(HttpServletRequest request)
+    public WorkspaceItemRest importWorkspaceItem(HttpServletRequest request)
             throws AuthorizeException, SQLException {
+
 
         Context context = obtainContext(request);
         if (Objects.isNull(context)) {
@@ -142,19 +149,19 @@ public class ClarinItemImportController {
         UUID epersonUUID = UUIDUtils.fromString(epersonUUIDString);
         EPerson eperson = ePersonService.find(context, epersonUUID);
         context.setCurrentUser(eperson);
-
+        context.turnOffAuthorisationSystem();
         WorkspaceItem workspaceItem = clarinWorkspaceItemService.create(context, collection, multipleTitles,
                 publishedBefore, multipleFiles, stageReached, pageReached,false);
-
+        context.restoreAuthSystemState();
         context.setCurrentUser(currUser);
         Item item = workspaceItem.getItem();
+        item.setOwningCollection(collection);
         //the method set withdraw to true and isArchived to false
         if (itemRest.getWithdrawn()) {
             itemService.withdraw(context, item);
         }
         //maybe update item in database...
         item.setArchived(itemRest.getInArchive());
-        item.setOwningCollection(collection);
         item.setDiscoverable(itemRest.getDiscoverable());
         item.setLastModified(itemRest.getLastModified());
 
@@ -185,7 +192,7 @@ public class ClarinItemImportController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method = RequestMethod.POST, value = "/workflowitem")
-    public WorkflowItemRest importWorkflowItem(HttpServletRequest request) throws SQLException, AuthorizeException, WorkflowException, IOException {
+    public ResponseEntity importWorkflowItem(HttpServletRequest request) throws SQLException, AuthorizeException, WorkflowException, IOException {
         Context context = obtainContext(request);
         if (Objects.isNull(context)) {
             throw new RuntimeException("Contex is null!");
@@ -194,7 +201,70 @@ public class ClarinItemImportController {
         String workspaceIdString = request.getParameter("id");
         WorkspaceItem wsi = workspaceItemService.find(context, Integer.parseInt(workspaceIdString));
         XmlWorkflowItem wf = workflowService.start(context, wsi);
-        return converter.toRest(wf, utils.obtainProjection());
+        context.commit();
+        return new ResponseEntity<>("Import workflowitem was successful", HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @RequestMapping(method = RequestMethod.POST, value = "/item")
+    public ItemRest importItem(HttpServletRequest request) throws SQLException, AuthorizeException {
+        Context context = obtainContext(request);
+        if (Objects.isNull(context)) {
+            throw new RuntimeException("Contex is null!");
+        }
+
+        String owningCollectionUuidString = request.getParameter("owningCollection");
+        ObjectMapper mapper = new ObjectMapper();
+        ItemRest itemRest = null;
+        try {
+            ServletInputStream input = request.getInputStream();
+            itemRest = mapper.readValue(input, ItemRest.class);
+        } catch (IOException e1) {
+            throw new UnprocessableEntityException("Error parsing request body", e1);
+        }
+
+        UUID owningCollectionUuid = UUIDUtils.fromString(owningCollectionUuidString);
+        Collection collection = collectionService.find(context, owningCollectionUuid);
+        if (collection == null) {
+            throw new DSpaceBadRequestException("The given owningCollection parameter is invalid: "
+                    + owningCollectionUuid);
+        }
+
+        EPerson currUser = context.getCurrentUser();
+        String epersonUUIDString = request.getParameter("epersonUUID");
+        UUID epersonUUID = UUIDUtils.fromString(epersonUUIDString);
+        EPerson eperson = ePersonService.find(context, epersonUUID);
+        context.setCurrentUser(eperson);
+        context.turnOffAuthorisationSystem();
+        WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, false);
+        context.restoreAuthSystemState();
+        context.setCurrentUser(currUser);
+
+        Item item = workspaceItem.getItem();
+        item.setOwningCollection(collection);
+        //the method set withdraw to true and isArchived to false
+        if (itemRest.getWithdrawn()) {
+            context.setCurrentUser(eperson);
+            context.turnOffAuthorisationSystem();
+            itemService.withdraw(context, item);
+            context.restoreAuthSystemState();
+            context.setCurrentUser(currUser);
+        }
+        item.setDiscoverable(itemRest.getDiscoverable());
+        item.setLastModified(itemRest.getLastModified());
+        metadataConverter.setMetadata(context, item, itemRest.getMetadata());
+        //maybe we don't need to do with handle nothing
+        if (!Objects.isNull(itemRest.getHandle())) {
+            item.addHandle(handleService.findByHandle(context, itemRest.getHandle()));
+        }
+        //remove workspaceitem and create collection2item
+        Item itemToReturn = installItemService.installItem(context, workspaceItem);
+        //set isArchived back to false
+        itemToReturn.setArchived(itemRest.getInArchive());
+        itemService.update(context, itemToReturn);
+        itemRest = converter.toRest(itemToReturn, utils.obtainProjection());
+        context.complete();
+        return itemRest;
     }
 
     private boolean getBooleanFromString(String value) {

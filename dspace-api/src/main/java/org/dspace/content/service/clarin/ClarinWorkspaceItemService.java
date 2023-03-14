@@ -15,7 +15,7 @@ public interface ClarinWorkspaceItemService {
     public WorkspaceItem create(Context context, Collection collection,
                                 boolean multipleTitles, boolean publishedBefore,
                                 boolean multipleFiles, Integer stageReached,
-                                Integer pageReached, boolean template, UUID uuid)
+                                Integer pageReached, boolean template)
             throws AuthorizeException, SQLException;
 
     public WorkspaceItem find(Context context, UUID uuid) throws SQLException;
