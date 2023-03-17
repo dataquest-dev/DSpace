@@ -53,13 +53,14 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     /**
      * log4j logger
      */
-    private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataFieldServiceImpl.class);
+    private static Logger log = org.apache.logging.log4j.LogManager.getLogger(HandleClarinServiceImpl.class);
 
     @Autowired(required = true)
     protected HandleDAO handleDAO;
 
     @Autowired(required = true)
     protected HandleClarinDAO handleClarinDAO;
+
     protected SiteService siteService;
 
     @Autowired(required = true)
