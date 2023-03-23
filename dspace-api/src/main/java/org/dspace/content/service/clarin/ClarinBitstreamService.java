@@ -12,4 +12,7 @@ import java.sql.SQLException;
 
 public interface ClarinBitstreamService {
     public Bitstream create(Context context, Bundle bundle) throws SQLException, AuthorizeException;
+
+    public boolean addExistingFile(Context context, Bitstream bitstream, Long expectedSizeBytes,
+                                  String expectedCheckSum, String expectedChecksumAlgorithm)  throws IOException, SQLException, AuthorizeException ;
 }

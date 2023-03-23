@@ -4,15 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.converter.MetadataConverter;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.BundleRest;
+import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
+import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
@@ -29,8 +33,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -62,11 +68,17 @@ public class ClarinBundleImportBitstreamController {
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private BitstreamFormatService bitstreamFormatService;
+    @Autowired
+    private ConverterService converter;
+    @Autowired
+    private Utils utils;
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method =  RequestMethod.POST)
     public BitstreamRest importBitstreamForExistingFile(HttpServletRequest request,
-             @PathVariable UUID uuid,
-             @RequestParam(value = "properties") String properties) {
+             @PathVariable UUID uuid) {
         Context context = obtainContext(request);
         if (Objects.isNull(context)) {
             throw new RuntimeException("Contex is null!");
@@ -94,53 +106,68 @@ public class ClarinBundleImportBitstreamController {
             }
             //process bitstream creation
             ObjectMapper mapper = new ObjectMapper();
-            try {
-                bitstreamRest = mapper.readValue(properties, BitstreamRest.class);
-            } catch (Exception e) {
-                throw new UnprocessableEntityException("The properties parameter was incorrect: " + properties);
-            }
-            //DO VALIDATION
-
+            bitstreamRest = mapper.readValue(request.getInputStream(), BitstreamRest.class);
             //create empty bitstream
             bitstream = clarinBitstreamService.create(context, bundle);
-            //set bitstream values based on bitstreamrest
-            String name = bitstreamRest.getName();
-            //filename FIXME
-//            if (StringUtils.isNotBlank(name)) {
-//                bitstream.setName(context, name);
-//            } else {
-//                bitstream.setName(context, originalFilename);
-//            }
-            if (bitstreamRest.getMetadata() != null) {
-                metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
-            }
-            bitstream.setSizeBytes(bitstreamRest.getSizeBytes());
-            bitstream.setChecksum(bitstream.getChecksum());
-            //bitstream.setChecksumAlgorithm();
+            //internal_id contains path to file
             String internalId = request.getParameter("internal_id");
             bitstream.setInternalId(internalId);
-            String deletedString = request.getParameter("deleted");
-            bitstream.setDeleted(getBooleanFromString(deletedString));
             String storeNumberString = request.getParameter("storeNumber");
             bitstream.setStoreNumber(getIntegerFromString(storeNumberString));
-            bitstream.setSequenceID(bitstreamRest.getSequenceId());
-            bitstreamService.update(context, bitstream);
+            String sequenceIdString = request.getParameter("sequenceId");
+            Integer sequenceId = getIntegerFromString(sequenceIdString);
+            bitstream.setSequenceID(sequenceId);
+            bitstream.setName(context, bitstreamRest.getName());
+            //add bitstream Format
+            String bitstreamFormatIdString = request.getParameter("bitstreamFormat");
+            Integer bitstreamFormatId = getIntegerFromString(bitstreamFormatIdString);
+            BitstreamFormat bitstreamFormat = bitstreamFormatService.find(context, bitstreamFormatId);
+            if (Objects.isNull(bitstreamFormat)) {
+                log.debug("Cannot add bitstream format with id: " + bitstreamFormatId +
+                        " because the format doesn't exist. The bitstream with internal_id: " +
+                        internalId + " is not imported!");
+                bitstreamService.expunge(context, bitstream);
+            } else {
+                bitstream.setFormat(context, bitstreamFormat);
+            }
+            String deletedString = request.getParameter("deleted");
+            boolean addedFile = true;
+            if (!getBooleanFromString(deletedString)) {
+                //add existed file
+                //internal_id and store_number must be added to bitstream before
+                if (clarinBitstreamService.addExistingFile(context, bitstream, bitstreamRest.getSizeBytes(),
+                        bitstreamRest.getCheckSum().getValue(), bitstreamRest.getCheckSum().getCheckSumAlgorithm())) {
+                    if (bitstreamRest.getMetadata() != null) {
+                        metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
+                    }
+                    bitstreamService.update(context, bitstream);
+                }
+            } else {
+                bitstream.setSizeBytes(bitstreamRest.getSizeBytes());
+                bitstream.setChecksum(bitstreamRest.getCheckSum().getValue());
+                bitstream.setChecksumAlgorithm(bitstreamRest.getCheckSum().getCheckSumAlgorithm());
+                bitstreamService.delete(context, bitstream);
+                bitstream = null;
+            }
             if (item != null) {
                 itemService.update(context, item);
             }
-
-
             bundleService.update(context, bundle);
+            if (Objects.nonNull(bitstream)) {
+                bitstreamRest = converter.toRest(bitstream, utils.obtainProjection());
+            } else {
+                bitstreamRest = null;
+            }
             context.commit();
-        } catch (AuthorizeException | SQLException e) {
-            //| IOException
-//            String message = "Something went wrong with trying to create the single bitstream for file with filename: "
-//                    + fileName
-//                    + " for item with uuid: " + bundle.getID() + " and possible properties: " + properties;
+        } catch (AuthorizeException | SQLException | IOException e) {
+            String message = "Something went wrong with trying to create the single bitstream for file with internal_id: "
+                    + request.getParameter("internal_id")
+                    + " for bundle with uuid: " + bundle.getID();
             log.error("message", e);
             throw new RuntimeException("message", e);
         }
-        return null;
+
+        return bitstreamRest;
     }
 
     private boolean getBooleanFromString(String value) {
