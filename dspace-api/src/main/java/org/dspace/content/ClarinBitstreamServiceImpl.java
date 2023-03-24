@@ -18,9 +18,16 @@ import org.dspace.storage.bitstore.BitStoreService;
 import org.dspace.storage.bitstore.DSBitStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.DigestInputStream;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.Objects;
+
+import java.security.MessageDigest;
 
 //If this class wants to catch the Bitstream protected constructor, it must be in this package!
 public class ClarinBitstreamServiceImpl implements ClarinBitstreamService{
@@ -28,6 +35,9 @@ public class ClarinBitstreamServiceImpl implements ClarinBitstreamService{
      * log4j logger
      */
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(ClarinBitstreamServiceImpl.class);
+
+    // Checksum algorithm
+    private static final String CSA = "MD5";
 
     @Autowired
     private DSBitStoreService storeService;
@@ -69,7 +79,7 @@ public class ClarinBitstreamServiceImpl implements ClarinBitstreamService{
             throw new IllegalStateException(
                     "Cannot add file to bitstream because it is entered incorrectly.");
         }
-        storeService.put(bitstream, storeService.get(bitstream));
+        storeService.put(bitstream, new ByteArrayInputStream(storeService.get(bitstream).readAllBytes()));
         if (!valid(bitstream, expectedSizeBytes, expectedCheckSum, expectedChecksumAlgorithm)) {
             bitstreamService.delete(context, bitstream);
             bitstreamService.expunge(context, bitstream);

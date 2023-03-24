@@ -126,38 +126,29 @@ public class ClarinBundleImportBitstreamController {
                 log.debug("Cannot add bitstream format with id: " + bitstreamFormatId +
                         " because the format doesn't exist. The bitstream with internal_id: " +
                         internalId + " is not imported!");
+                bitstreamService.delete(context, bitstream);
                 bitstreamService.expunge(context, bitstream);
+                return null;
             } else {
                 bitstream.setFormat(context, bitstreamFormat);
             }
             String deletedString = request.getParameter("deleted");
-            boolean addedFile = true;
-            if (!getBooleanFromString(deletedString)) {
-                //add existed file
-                //internal_id and store_number must be added to bitstream before
-                if (clarinBitstreamService.addExistingFile(context, bitstream, bitstreamRest.getSizeBytes(),
-                        bitstreamRest.getCheckSum().getValue(), bitstreamRest.getCheckSum().getCheckSumAlgorithm())) {
-                    if (bitstreamRest.getMetadata() != null) {
-                        metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
-                    }
-                    bitstreamService.update(context, bitstream);
+            if (clarinBitstreamService.addExistingFile(context, bitstream, bitstreamRest.getSizeBytes(),
+                    bitstreamRest.getCheckSum().getValue(), bitstreamRest.getCheckSum().getCheckSumAlgorithm())) {
+                if (bitstreamRest.getMetadata() != null) {
+                    metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
                 }
+                bitstream.setDeleted(Boolean.parseBoolean(deletedString));
+                bitstreamService.update(context, bitstream);
             } else {
-                bitstream.setSizeBytes(bitstreamRest.getSizeBytes());
-                bitstream.setChecksum(bitstreamRest.getCheckSum().getValue());
-                bitstream.setChecksumAlgorithm(bitstreamRest.getCheckSum().getCheckSumAlgorithm());
-                bitstreamService.delete(context, bitstream);
-                bitstream = null;
+                return null;
             }
+
             if (item != null) {
                 itemService.update(context, item);
             }
             bundleService.update(context, bundle);
-            if (Objects.nonNull(bitstream)) {
-                bitstreamRest = converter.toRest(bitstream, utils.obtainProjection());
-            } else {
-                bitstreamRest = null;
-            }
+            bitstreamRest = converter.toRest(bitstream, utils.obtainProjection());
             context.commit();
         } catch (AuthorizeException | SQLException | IOException e) {
             String message = "Something went wrong with trying to create the single bitstream for file with internal_id: "

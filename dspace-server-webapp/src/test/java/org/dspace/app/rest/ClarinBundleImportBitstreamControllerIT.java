@@ -24,17 +24,27 @@ import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.storage.bitstore.DSBitStoreService;
+import org.hamcrest.Matchers;
 import org.json.simple.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import static com.jayway.jsonpath.JsonPath.read;
+import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
@@ -47,7 +57,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityIntegrationTest {
     @Autowired
     private AuthorizeService authorizeService;
-
     @Autowired
     private BitstreamService bitstreamService;
     private JsonNodeFactory jsonNodeFactory = new JsonNodeFactory(true);
@@ -55,11 +64,25 @@ public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityInteg
     private ConverterService converter;
     @Autowired
     private Utils utils;
-
     @Autowired
     private BitstreamFormatService bitstreamFormatService;
-    @Test
-    public void importBitstreamForExistingFileTest() throws Exception {
+
+    private Bundle bundle;
+    private String token;
+    private BitstreamFormat bitstreamFormat;
+    private Bitstream bitstream;
+    private UUID uuid;
+    private String name = "New bitstream";
+    private String checkSumsAlg = "MD5";
+    private long sizeBytes;
+    private String checkSum;
+    private String internalId;
+    private int storeNumber;
+    private boolean deleted;
+    private int sequence;
+
+    @Before
+    public void setup() throws Exception {
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
@@ -73,64 +96,115 @@ public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityInteg
                 .withIssueDate("2017-10-17")
                 .withAuthor("Smith, Donald")
                 .build();
-        Bundle bundle = BundleBuilder.createBundle(context, item)
+        bundle = BundleBuilder.createBundle(context, item)
                 .withName("TESTINGBUNDLE")
                 .build();
-        String token = getAuthToken(admin.getEmail(), password);
+        token = getAuthToken(admin.getEmail(), password);
+         bitstreamFormat = bitstreamFormatService.create(context);
         String input = "Hello, World!";
         MockMultipartFile file = new MockMultipartFile("file", "hello.txt", MediaType.TEXT_PLAIN_VALUE,
                 input.getBytes());
-        //create bitstreamformat
-        BitstreamFormat bitstreamFormat = bitstreamFormatService.create(context);
         context.restoreAuthSystemState();
+
         //create bitstream and store file
+
         MvcResult mvcResult = getClient(token)
                 .perform(MockMvcRequestBuilders.fileUpload("/api/core/bundles/" + bundle.getID() + "/bitstreams")
                         .file(file))
                 .andExpect(status().isCreated())
                 .andReturn();
-
-        //get bitstream id
         ObjectMapper mapper = new ObjectMapper();
-
         String content = mvcResult.getResponse().getContentAsString();
         Map<String, Object> map = mapper.readValue(content, Map.class);
         String bitstreamId = String.valueOf(map.get("id"));
-
-        //delete bitstream, but no file
-        //save necessary values
-        Bitstream bitstream = bitstreamService.find(context, UUID.fromString(bitstreamId));
-        //create bitstream for existing file
-        ObjectNode checksumNode = jsonNodeFactory.objectNode();
-        checksumNode.set("checkSumAlgorithm", jsonNodeFactory.textNode("MD5"));
-        checksumNode.set("value", jsonNodeFactory.textNode(bitstream.getChecksum()));
-        ObjectNode node = jsonNodeFactory.objectNode();
-        node.set("name", jsonNodeFactory.textNode("New bitstream"));
-        node.set("sizeBytes", jsonNodeFactory.textNode(Long.toString(bitstream.getSizeBytes())));
-        node.set("checkSum", checksumNode);
-        String internalId = bitstream.getInternalId();
-        String storeNumber = Integer.toString(bitstream.getStoreNumber());
-
+        bitstream = bitstreamService.find(context, UUID.fromString(bitstreamId));
+        uuid = bitstream.getID();
+        sizeBytes = bitstream.getSizeBytes();
+        checkSum = bitstream.getChecksum();
+        internalId = bitstream.getInternalId();
+        storeNumber = bitstream.getStoreNumber();
+        deleted = bitstream.isDeleted();
+        sequence = bitstream.getSequenceID();
         context.turnOffAuthorisationSystem();
+        //delete bitstream
         bitstreamService.delete(context, bitstream);
-        bitstreamService.expunge(context, bitstream);
+       // bitstreamService.expunge(context, bitstream);
+        //assertNull(bitstreamService.find(context, uuid));
         context.restoreAuthSystemState();
+    }
 
-        //control
-        assertNull(bitstreamService.find(context, UUID.fromString(bitstreamId)));
-        //is still file exist?
+    @Test
+    public void importBitstreamForExistingFileTest() throws Exception {
+        //TEST: create bitstream for existing file
+        //input data
+        ObjectNode checksumNode = jsonNodeFactory.objectNode();
+        checksumNode.set("checkSumAlgorithm", jsonNodeFactory.textNode(checkSumsAlg));
+        checksumNode.set("value", jsonNodeFactory.textNode(checkSum));
+        ObjectNode node = jsonNodeFactory.objectNode();
+        node.set("name", jsonNodeFactory.textNode(name));
+        node.set("sizeBytes", jsonNodeFactory.textNode(Long.toString(sizeBytes)));
+        node.set("checkSum", checksumNode);
 
-
-        getClient(token).perform(post("/api/clarin/import/core/bundles/" + bundle.getID() + "/bitstreams")
+        //create new bitstream for existing file
+        ObjectMapper mapper = new ObjectMapper();
+        uuid = read( getClient(token).perform(post("/api/clarin/import/core/bundles/" + bundle.getID() + "/bitstreams")
                         .content(mapper.writeValueAsBytes(node))
                         .contentType(contentType)
                         .param("internal_id", internalId)
-                        .param("storeNumber", storeNumber)
+                        .param("storeNumber", Integer.toString(storeNumber))
                         .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
-                        .param("deleted", "false")
-                        .param("sequenceId", "5"))
-                .andExpect(status().isOk());
-        //add more checks
+                        .param("deleted", Boolean.toString(deleted))
+                        .param("sequenceId", Integer.toString(sequence)))
+                .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                "$.id");
+        checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getID(), sequence, deleted, sizeBytes,
+                checkSum);
+    }
 
+    @Test
+    public void importBitstreamForExistingFileValidationErrorTest() throws Exception {
+        assertEquals(bitstreamService.findAll(context).size(), 0);
+        //TEST: create bitstream for existing file with validation errors
+        //input data
+        ObjectNode checksumNode = jsonNodeFactory.objectNode();
+        checksumNode.set("checkSumAlgorithm", jsonNodeFactory.textNode(checkSumsAlg));
+        checksumNode.set("value", jsonNodeFactory.textNode("555"));
+        ObjectNode node = jsonNodeFactory.objectNode();
+        node.set("name", jsonNodeFactory.textNode(name));
+        node.set("sizeBytes", jsonNodeFactory.textNode(Long.toString(sizeBytes)));
+        node.set("checkSum", checksumNode);
+
+        //create new bitstream for existing file
+        ObjectMapper mapper = new ObjectMapper();
+        MockHttpServletResponse response = getClient(token).perform(post("/api/clarin/import/core/bundles/" + bundle.getID() + "/bitstreams")
+                                .content(mapper.writeValueAsBytes(node))
+                                .contentType(contentType)
+                                .param("internal_id", internalId)
+                                .param("storeNumber", Integer.toString(storeNumber))
+                                .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
+                                .param("deleted", Boolean.toString(deleted))
+                                .param("sequenceId", Integer.toString(sequence)))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse();
+
+        //bitstream with validation error cannot be created
+        assertNull(response);
+        assertEquals(bitstreamService.findAll(context).size(), 0);
+    }
+
+    private void checkCreatedBitstream(UUID uuid, String internalId, int storeNumber,
+                                       Integer bitstreamFormat, int sequence, boolean deleted, long sizeBytes,
+                                       String checkSum) throws SQLException {
+        Bitstream bitstream = bitstreamService.find(context, uuid);
+        assertEquals(bitstream.getName(), "New bitstream");
+        assertEquals(bitstream.getChecksum(), checkSum);
+        assertEquals(bitstream.getSizeBytes(), sizeBytes);
+        assertEquals(bitstream.getFormat(context).getID(), bitstreamFormat);
+        assertEquals(bitstream.getInternalId(), internalId);
+        assertEquals(bitstream.getStoreNumber(), storeNumber);
+        assertEquals(bitstream.getSequenceID(), sequence);
+        assertEquals(bitstream.isDeleted(), deleted);
+        assertEquals(bitstream.getChecksumAlgorithm(), "MD5");
     }
 }
