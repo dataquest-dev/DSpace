@@ -39,6 +39,7 @@
     <bean class="org.dspace.content.CollectionServiceImpl"/>
     <bean class="org.dspace.content.BitstreamFormatServiceImpl"/>
     <bean class="org.dspace.content.BitstreamServiceImpl"/>
+    <bean class="org.dspace.content.ClarinBitstreamServiceImpl"/>
     <bean class="org.dspace.content.BundleServiceImpl"/>
     <bean class="org.dspace.content.CommunityServiceImpl"/>
     <bean class="org.dspace.content.InstallItemServiceImpl"/>
