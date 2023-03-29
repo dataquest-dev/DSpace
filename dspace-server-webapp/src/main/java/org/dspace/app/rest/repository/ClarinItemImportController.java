@@ -5,16 +5,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.converter.MetadataConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
-import org.dspace.app.rest.exception.RESTAuthorizationException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ItemRest;
-import org.dspace.app.rest.model.WorkflowItemRest;
 import org.dspace.app.rest.model.WorkspaceItemRest;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.rest.utils.SolrOAIReindexer;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
@@ -24,16 +21,13 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinWorkspaceItemService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.discovery.IndexingService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
 import org.dspace.workflow.WorkflowException;
-import org.dspace.workflow.WorkflowItem;
 import org.dspace.xmlworkflow.service.XmlWorkflowService;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +43,6 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -155,7 +148,6 @@ public class ClarinItemImportController {
         context.restoreAuthSystemState();
         context.setCurrentUser(currUser);
         Item item = workspaceItem.getItem();
-        item.setOwningCollection(collection);
         //the method set withdraw to true and isArchived to false
         if (itemRest.getWithdrawn()) {
             itemService.withdraw(context, item);
@@ -241,7 +233,6 @@ public class ClarinItemImportController {
         context.setCurrentUser(currUser);
 
         Item item = workspaceItem.getItem();
-        item.setOwningCollection(collection);
         //the method set withdraw to true and isArchived to false
         if (itemRest.getWithdrawn()) {
             context.setCurrentUser(eperson);

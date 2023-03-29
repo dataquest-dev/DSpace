@@ -6,7 +6,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.converter.MetadataConverter;
-import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.BundleRest;
 import org.dspace.app.rest.utils.Utils;
@@ -30,13 +29,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -117,7 +113,6 @@ public class ClarinBundleImportBitstreamController {
             String sequenceIdString = request.getParameter("sequenceId");
             Integer sequenceId = getIntegerFromString(sequenceIdString);
             bitstream.setSequenceID(sequenceId);
-            bitstream.setName(context, bitstreamRest.getName());
             //add bitstream Format
             String bitstreamFormatIdString = request.getParameter("bitstreamFormat");
             Integer bitstreamFormatId = getIntegerFromString(bitstreamFormatIdString);
@@ -135,7 +130,7 @@ public class ClarinBundleImportBitstreamController {
             String deletedString = request.getParameter("deleted");
             if (clarinBitstreamService.addExistingFile(context, bitstream, bitstreamRest.getSizeBytes(),
                     bitstreamRest.getCheckSum().getValue(), bitstreamRest.getCheckSum().getCheckSumAlgorithm())) {
-                if (bitstreamRest.getMetadata() != null) {
+                if (bitstreamRest.getMetadata().getMap().size() > 0) {
                     metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
                 }
                 bitstream.setDeleted(Boolean.parseBoolean(deletedString));

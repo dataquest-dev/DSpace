@@ -47,7 +47,7 @@ public class ClarinWorkspaceItemServiceImpl implements ClarinWorkspaceItemServic
         WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, false);
         workspaceItem.setPublishedBefore(publishedBefore);
         workspaceItem.setMultipleFiles(multipleFiles);
-        workspaceItem.setMultipleTitles(multipleFiles);
+        workspaceItem.setMultipleTitles(multipleTitles);
         workspaceItem.setPageReached(pageReached);
         workspaceItem.setStageReached(stageReached);
         return workspaceItem;

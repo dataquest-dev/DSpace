@@ -3,15 +3,11 @@ package org.dspace.app.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.jsonldjava.utils.Obj;
 import org.dspace.app.rest.converter.ConverterService;
-import org.dspace.app.rest.matcher.CommunityMatcher;
-import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.test.AbstractEntityIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
-import org.dspace.app.util.factory.UtilServiceFactory;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.BundleBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -24,34 +20,24 @@ import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
-import org.dspace.storage.bitstore.DSBitStoreService;
-import org.hamcrest.Matchers;
-import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static com.jayway.jsonpath.JsonPath.read;
-import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityIntegrationTest {
@@ -72,7 +58,6 @@ public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityInteg
     private BitstreamFormat bitstreamFormat;
     private Bitstream bitstream;
     private UUID uuid;
-    private String name = "New bitstream";
     private String checkSumsAlg = "MD5";
     private long sizeBytes;
     private String checkSum;
@@ -125,12 +110,13 @@ public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityInteg
         storeNumber = bitstream.getStoreNumber();
         deleted = bitstream.isDeleted();
         sequence = bitstream.getSequenceID();
-        context.turnOffAuthorisationSystem();
+
         //delete bitstream
-        bitstreamService.delete(context, bitstream);
-       // bitstreamService.expunge(context, bitstream);
-        //assertNull(bitstreamService.find(context, uuid));
+        context.turnOffAuthorisationSystem();
+        BitstreamBuilder.deleteBitstream(bitstream.getID());
         context.restoreAuthSystemState();
+        bitstream = bitstreamService.find(context, UUID.fromString(bitstreamId));
+        assertNull(bitstream);
     }
 
     @Test
@@ -141,13 +127,12 @@ public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityInteg
         checksumNode.set("checkSumAlgorithm", jsonNodeFactory.textNode(checkSumsAlg));
         checksumNode.set("value", jsonNodeFactory.textNode(checkSum));
         ObjectNode node = jsonNodeFactory.objectNode();
-        node.set("name", jsonNodeFactory.textNode(name));
         node.set("sizeBytes", jsonNodeFactory.textNode(Long.toString(sizeBytes)));
         node.set("checkSum", checksumNode);
 
         //create new bitstream for existing file
         ObjectMapper mapper = new ObjectMapper();
-        uuid = read( getClient(token).perform(post("/api/clarin/import/core/bundles/" + bundle.getID() + "/bitstreams")
+        uuid = UUID.fromString(read( getClient(token).perform(post("/api/clarin/import/core/bundles/" + bundle.getID() + "/bitstreams")
                         .content(mapper.writeValueAsBytes(node))
                         .contentType(contentType)
                         .param("internal_id", internalId)
@@ -157,9 +142,15 @@ public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityInteg
                         .param("sequenceId", Integer.toString(sequence)))
                 .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
-                "$.id");
+                "$.id"));
+
         checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getID(), sequence, deleted, sizeBytes,
                 checkSum);
+
+        //clean all
+        context.turnOffAuthorisationSystem();
+        BitstreamBuilder.deleteBitstream(uuid);
+        context.restoreAuthSystemState();
     }
 
     @Test
@@ -171,25 +162,24 @@ public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityInteg
         checksumNode.set("checkSumAlgorithm", jsonNodeFactory.textNode(checkSumsAlg));
         checksumNode.set("value", jsonNodeFactory.textNode("555"));
         ObjectNode node = jsonNodeFactory.objectNode();
-        node.set("name", jsonNodeFactory.textNode(name));
         node.set("sizeBytes", jsonNodeFactory.textNode(Long.toString(sizeBytes)));
         node.set("checkSum", checksumNode);
 
         //create new bitstream for existing file
         ObjectMapper mapper = new ObjectMapper();
-        MockHttpServletResponse response = getClient(token).perform(post("/api/clarin/import/core/bundles/" + bundle.getID() + "/bitstreams")
-                                .content(mapper.writeValueAsBytes(node))
-                                .contentType(contentType)
-                                .param("internal_id", internalId)
-                                .param("storeNumber", Integer.toString(storeNumber))
-                                .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
-                                .param("deleted", Boolean.toString(deleted))
-                                .param("sequenceId", Integer.toString(sequence)))
-                        .andExpect(status().isOk())
-                        .andReturn().getResponse();
+        boolean emptyResponse = getClient(token).perform(post("/api/clarin/import/core/bundles/" + bundle.getID() + "/bitstreams")
+                        .content(mapper.writeValueAsBytes(node))
+                        .contentType(contentType)
+                        .param("internal_id", internalId)
+                        .param("storeNumber", Integer.toString(storeNumber))
+                        .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
+                        .param("deleted", Boolean.toString(deleted))
+                        .param("sequenceId", Integer.toString(sequence)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString().isEmpty();
 
         //bitstream with validation error cannot be created
-        assertNull(response);
+        assertTrue(emptyResponse);
         assertEquals(bitstreamService.findAll(context).size(), 0);
     }
 
@@ -197,7 +187,6 @@ public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityInteg
                                        Integer bitstreamFormat, int sequence, boolean deleted, long sizeBytes,
                                        String checkSum) throws SQLException {
         Bitstream bitstream = bitstreamService.find(context, uuid);
-        assertEquals(bitstream.getName(), "New bitstream");
         assertEquals(bitstream.getChecksum(), checkSum);
         assertEquals(bitstream.getSizeBytes(), sizeBytes);
         assertEquals(bitstream.getFormat(context).getID(), bitstreamFormat);
