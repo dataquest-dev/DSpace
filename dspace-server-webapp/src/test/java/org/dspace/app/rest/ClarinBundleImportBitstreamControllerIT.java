@@ -139,7 +139,8 @@ public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityInteg
                         .param("storeNumber", Integer.toString(storeNumber))
                         .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
                         .param("deleted", Boolean.toString(deleted))
-                        .param("sequenceId", Integer.toString(sequence)))
+                        .param("sequenceId", Integer.toString(sequence))
+                        .param("primaryBitstream", "false"))
                 .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 "$.id"));
@@ -174,7 +175,8 @@ public class ClarinBundleImportBitstreamControllerIT extends AbstractEntityInteg
                         .param("storeNumber", Integer.toString(storeNumber))
                         .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
                         .param("deleted", Boolean.toString(deleted))
-                        .param("sequenceId", Integer.toString(sequence)))
+                        .param("sequenceId", Integer.toString(sequence))
+                        .param("primaryBitstream", "false"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString().isEmpty();
 

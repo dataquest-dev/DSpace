@@ -122,6 +122,7 @@ public class ClarinBundleImportBitstreamController {
                         " because the format doesn't exist. The bitstream with internal_id: " +
                         internalId + " is not imported!");
                 bitstreamService.delete(context, bitstream);
+                //we ha
                 bitstreamService.expunge(context, bitstream);
                 return null;
             } else {
@@ -133,8 +134,18 @@ public class ClarinBundleImportBitstreamController {
                 if (bitstreamRest.getMetadata().getMap().size() > 0) {
                     metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
                 }
-                bitstream.setDeleted(Boolean.parseBoolean(deletedString));
+                if (Boolean.parseBoolean(deletedString)) {
+                    bitstreamService.delete(context, bitstream);
+                } else {
+                    //set bitstream as primary
+                    String primaryBitstream = request.getParameter("primaryBitstream");
+                    if (Boolean.parseBoolean(primaryBitstream)) {
+                        bundle.setPrimaryBitstreamID(bitstream);
+                    }
+                }
                 bitstreamService.update(context, bitstream);
+                //add bitstream as primary bitstream to bundle
+                //we can do that just when we are sure, that bitstream
             } else {
                 return null;
             }
