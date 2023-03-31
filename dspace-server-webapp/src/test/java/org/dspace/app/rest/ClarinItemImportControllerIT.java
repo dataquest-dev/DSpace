@@ -7,6 +7,7 @@ import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
@@ -174,6 +175,84 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
         //clean all
         context.turnOffAuthorisationSystem();
         WorkflowItemBuilder.deleteWorkflowItem(workflowItem.getID());
+        context.restoreAuthSystemState();
+    }
+
+    @Test
+    public void importWithdrawnItemTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        ObjectNode node = jsonNodeFactory.objectNode();
+        node.set("withdrawn", jsonNodeFactory.textNode("true"));
+        node.set("isArchived", jsonNodeFactory.textNode("false"));
+        node.set("discoverable", jsonNodeFactory.textNode("true"));
+        node.set("handle", jsonNodeFactory.textNode("123"));
+        context.restoreAuthSystemState();
+
+        ObjectMapper mapper = new ObjectMapper();
+        String token = getAuthToken(admin.getEmail(), password);
+
+        UUID uuid = UUID.fromString(read(getClient(token).perform(post("/api/clarin/import/item")
+                                .content(mapper.writeValueAsBytes(node))
+                                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                                .param("owningCollection", col.getID().toString())
+                                .param("epersonUUID", submitter.getID().toString()))
+                        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(),
+                "$.id"));
+
+        //workspaceitem should nt exist
+        List<WorkspaceItem> workflowItems = workspaceItemService.findAll(context);
+        assertEquals(workflowItems.size(), 0);
+        //contoling of the created item
+        Item item = itemService.find(context, uuid);
+        assertTrue(item.isWithdrawn());
+        assertFalse(item.isArchived());
+        assertTrue(item.isDiscoverable());
+        assertEquals(item.getHandle(), "123");
+        assertEquals(item.getSubmitter().getID(), submitter.getID());
+        assertEquals(item.getOwningCollection().getID(), col.getID());
+
+        //clean all
+        context.turnOffAuthorisationSystem();
+        ItemBuilder.deleteItem(uuid);
+        context.restoreAuthSystemState();
+    }
+
+    @Test
+    public void importArchivedItemTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        ObjectNode node = jsonNodeFactory.objectNode();
+        node.set("withdrawn", jsonNodeFactory.textNode("false"));
+        node.set("isArchived", jsonNodeFactory.textNode("true"));
+        node.set("discoverable", jsonNodeFactory.textNode("false"));
+        node.set("handle", jsonNodeFactory.textNode("123"));
+        context.restoreAuthSystemState();
+
+        ObjectMapper mapper = new ObjectMapper();
+        String token = getAuthToken(admin.getEmail(), password);
+
+        UUID uuid = UUID.fromString(read(getClient(token).perform(post("/api/clarin/import/item")
+                                .content(mapper.writeValueAsBytes(node))
+                                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                                .param("owningCollection", col.getID().toString())
+                                .param("epersonUUID", submitter.getID().toString()))
+                        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(),
+                "$.id"));
+
+        //workspaceitem should nt exist
+        List<WorkspaceItem> workflowItems = workspaceItemService.findAll(context);
+        assertEquals(workflowItems.size(), 0);
+        //contoling of the created item
+        Item item = itemService.find(context, uuid);
+        assertFalse(item.isWithdrawn());
+        assertTrue(item.isArchived());
+        assertFalse(item.isDiscoverable());
+        assertEquals(item.getHandle(), "123");
+        assertEquals(item.getSubmitter().getID(), submitter.getID());
+        assertEquals(item.getOwningCollection().getID(), col.getID());
+
+        //clean all
+        context.turnOffAuthorisationSystem();
+        ItemBuilder.deleteItem(uuid);
         context.restoreAuthSystemState();
     }
 }

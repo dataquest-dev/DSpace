@@ -202,7 +202,7 @@ public class ClarinItemImportController {
     public ItemRest importItem(HttpServletRequest request) throws SQLException, AuthorizeException {
         Context context = obtainContext(request);
         if (Objects.isNull(context)) {
-            throw new RuntimeException("Contex is null!");
+            throw new RuntimeException("Context is null!");
         }
 
         String owningCollectionUuidString = request.getParameter("owningCollection");
@@ -244,7 +244,6 @@ public class ClarinItemImportController {
         item.setDiscoverable(itemRest.getDiscoverable());
         item.setLastModified(itemRest.getLastModified());
         metadataConverter.setMetadata(context, item, itemRest.getMetadata());
-        //maybe we don't need to do with handle nothing
         if (!Objects.isNull(itemRest.getHandle())) {
             item.addHandle(handleService.findByHandle(context, itemRest.getHandle()));
         }
