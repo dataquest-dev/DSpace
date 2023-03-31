@@ -3,7 +3,10 @@ package org.dspace.app.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
@@ -15,6 +18,7 @@ import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.workflow.WorkflowItem;
@@ -22,6 +26,7 @@ import org.dspace.workflow.WorkflowItemService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.ws.rs.core.MediaType;
 import java.util.List;
@@ -33,6 +38,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,7 +59,15 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
     private ItemService itemService;
 
     @Autowired
+    private AuthorizeService authorizeService;
+    @Autowired
     private ConfigurationService configurationService;
+
+    /**
+     * Spy of AuthorizeService to use for tests
+     * (initialized / setup in @Before method)
+     */
+    private AuthorizeService authorizeServiceSpy;
 
     private Collection col;
     private EPerson submitter;
@@ -180,10 +196,11 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
 
     @Test
     public void importWithdrawnItemTest() throws Exception {
+
         context.turnOffAuthorisationSystem();
         ObjectNode node = jsonNodeFactory.objectNode();
         node.set("withdrawn", jsonNodeFactory.textNode("true"));
-        node.set("isArchived", jsonNodeFactory.textNode("false"));
+        node.set("inArchive", jsonNodeFactory.textNode("false"));
         node.set("discoverable", jsonNodeFactory.textNode("true"));
         node.set("handle", jsonNodeFactory.textNode("123"));
         context.restoreAuthSystemState();
@@ -222,7 +239,7 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
         context.turnOffAuthorisationSystem();
         ObjectNode node = jsonNodeFactory.objectNode();
         node.set("withdrawn", jsonNodeFactory.textNode("false"));
-        node.set("isArchived", jsonNodeFactory.textNode("true"));
+        node.set("inArchive", jsonNodeFactory.textNode("true"));
         node.set("discoverable", jsonNodeFactory.textNode("false"));
         node.set("handle", jsonNodeFactory.textNode("123"));
         context.restoreAuthSystemState();
