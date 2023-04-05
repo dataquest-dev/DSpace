@@ -233,6 +233,7 @@ public class ClarinItemImportController {
         context.setCurrentUser(currUser);
 
         Item item = workspaceItem.getItem();
+        item.setOwningCollection(collection);
         //the method set withdraw to true and isArchived to false
         if (itemRest.getWithdrawn()) {
             context.setCurrentUser(eperson);

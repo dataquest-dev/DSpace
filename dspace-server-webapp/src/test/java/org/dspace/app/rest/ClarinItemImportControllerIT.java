@@ -10,6 +10,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.HandleBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
@@ -38,9 +39,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -196,13 +194,11 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
 
     @Test
     public void importWithdrawnItemTest() throws Exception {
-
         context.turnOffAuthorisationSystem();
         ObjectNode node = jsonNodeFactory.objectNode();
         node.set("withdrawn", jsonNodeFactory.textNode("true"));
         node.set("inArchive", jsonNodeFactory.textNode("false"));
         node.set("discoverable", jsonNodeFactory.textNode("true"));
-        node.set("handle", jsonNodeFactory.textNode("123"));
         context.restoreAuthSystemState();
 
         ObjectMapper mapper = new ObjectMapper();
@@ -224,7 +220,6 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
         assertTrue(item.isWithdrawn());
         assertFalse(item.isArchived());
         assertTrue(item.isDiscoverable());
-        assertEquals(item.getHandle(), "123");
         assertEquals(item.getSubmitter().getID(), submitter.getID());
         assertEquals(item.getOwningCollection().getID(), col.getID());
 
@@ -241,7 +236,6 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
         node.set("withdrawn", jsonNodeFactory.textNode("false"));
         node.set("inArchive", jsonNodeFactory.textNode("true"));
         node.set("discoverable", jsonNodeFactory.textNode("false"));
-        node.set("handle", jsonNodeFactory.textNode("123"));
         context.restoreAuthSystemState();
 
         ObjectMapper mapper = new ObjectMapper();
@@ -263,7 +257,6 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
         assertFalse(item.isWithdrawn());
         assertTrue(item.isArchived());
         assertFalse(item.isDiscoverable());
-        assertEquals(item.getHandle(), "123");
         assertEquals(item.getSubmitter().getID(), submitter.getID());
         assertEquals(item.getOwningCollection().getID(), col.getID());
 
