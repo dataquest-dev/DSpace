@@ -21,6 +21,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  *  Class is copied from the LINDAT/CLARIAH-CZ (This class is taken from UFAL-clarin. https://github.com/ufal/clarin-dspace/blob
@@ -198,31 +199,42 @@ public class LicenseUtil {
         return "available-restrictedUse";
     }
 
-    public static org.w3c.dom.NodeList uriToRestrictions(String uri) throws ParserConfigurationException {
+    public static org.w3c.dom.NodeList uriToRestrictions(String uri, Document doc, Element root)
+            throws ParserConfigurationException {
+
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
 
-        Document doc = builder.newDocument();
-        Element root = doc.createElement("restrictions");
-
         String restrictions = _uri2restrictions.get(uri);
-        if (Objects.nonNull(restrictions)) {
+        if(restrictions == null){
             restrictions = "other";
         }
 
-        for (String restriction : restrictions.split(",")) {
+        for(String restriction : restrictions.split(",")){
             Element res = doc.createElement("restriction");
             res.appendChild(doc.createTextNode(restriction));
             root.appendChild(res);
         }
 
         return root.getElementsByTagName("restriction");
-
     }
 
     public static void main(String[] args) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        javax.xml.parsers.DocumentBuilder builder;
+        try {
+            builder = factory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+//            log.error("Cannot create Document Builder because: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+
+        Document doc = builder.newDocument();
+        Element root = doc.createElement("restrictions");
+
         System.out.println(uriToMetashare("http://creativecommons.org/licenses/by-nc/3.0/"));
         System.out.println(uriToAvailability("http://creativecommons.org/licenses/by-nc/3.0/"));
+        System.out.println(uriToRestrictions("http://creativecommons.org/licenses/by-nc/3.0/", doc, root));
     }
 
 }

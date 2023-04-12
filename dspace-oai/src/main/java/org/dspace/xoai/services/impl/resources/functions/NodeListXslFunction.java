@@ -26,6 +26,8 @@ import net.sf.saxon.s9api.SequenceType;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
 import org.bouncycastle.util.Arrays;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -38,7 +40,7 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
 
     protected abstract String getFnName();
 
-    protected abstract NodeList getNodeList(String param);
+    protected abstract NodeList getNodeList(String param, Document doc, Element element);
 
     @Override
     final public QName getName() {
@@ -62,26 +64,46 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
         if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues)) {
             return new XdmAtomicValue("");
         }
-        NodeList nodeList = getNodeList(xdmValues[0].itemAt(0).getStringValue());
-        DocumentBuilder db = new Processor(false).newDocumentBuilder();
-        if (Objects.isNull(nodeList)) {
-            try {
-                nodeList = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument().getChildNodes();
-            } catch (ParserConfigurationException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-        Node parent = null;
+
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        javax.xml.parsers.DocumentBuilder builder;
         try {
-            parent = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                parent.appendChild(nodeList.item(i));
-            }
-            return db.build(new DOMSource(parent));
+            builder = factory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-            return null;
+//            log.error("Cannot create Document Builder because: " + e.getMessage());
+            throw new RuntimeException(e);
         }
+
+        Document doc = builder.newDocument();
+        Element root = doc.createElement("restrictions");
+        NodeList nodeList = getNodeList(xdmValues[0].itemAt(0).getStringValue(), doc, root);
+        Node oneNode = nodeList.item(0);
+
+        DocumentBuilder db = new Processor(false).newDocumentBuilder();
+        var res = db.build(new DOMSource(oneNode));
+        return res;
+//        if (Objects.isNull(nodeList)) {
+//            try {
+//                nodeList = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument().getChildNodes();
+//            } catch (ParserConfigurationException e) {
+//                e.printStackTrace();
+//                return null;
+//            }
+//        }
+//        Node parent = null;
+//        try {
+//            parent = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+//            for (int i = 0; i < nodeList.getLength(); i++) {
+//                Node importedNode = parent.getOwnerDocument().importNode(nodeList.item(i), true);
+//                parent.appendChild(importedNode);
+//            }
+//
+////            Node nn = new DOMSource(parent).getNode();
+//
+//        return db.wrap(new DOMSource(parent));
+//        } catch (ParserConfigurationException e) {
+//            e.printStackTrace();
+//            return null;
+//        }
     }
 }
