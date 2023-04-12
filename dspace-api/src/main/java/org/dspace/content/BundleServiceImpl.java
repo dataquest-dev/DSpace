@@ -31,8 +31,6 @@ import org.dspace.content.dao.BundleDAO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
-import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
-import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
@@ -64,10 +62,6 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     protected AuthorizeService authorizeService;
     @Autowired(required = true)
     protected ResourcePolicyService resourcePolicyService;
-    @Autowired(required = true)
-    protected ClarinLicenseService clarinLicenseService;
-    @Autowired(required = true)
-    protected ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     protected BundleServiceImpl() {
         super();
@@ -164,6 +158,11 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         }
 
         bundle.addBitstream(bitstream);
+        // If a bitstream is moved from one bundle to another it may be temporarily flagged as deleted
+        // (when removed from the original bundle)
+        if (bitstream.isDeleted()) {
+            bitstream.setDeleted(false);
+        }
         bitstream.getBundles().add(bundle);
 
 
@@ -175,9 +174,6 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         // FIXME: multiple inclusion is affected by this...
         authorizeService.inheritPolicies(context, bundle, bitstream);
         bitstreamService.update(context, bitstream);
-
-        // Add clarin license to the bitstream and clarin license values to the item metadata
-        clarinLicenseService.addClarinLicenseToBitstream(context, owningItem, bundle, bitstream);
     }
 
     @Override

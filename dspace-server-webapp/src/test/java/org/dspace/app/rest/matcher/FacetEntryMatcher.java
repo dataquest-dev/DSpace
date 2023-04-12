@@ -67,6 +67,17 @@ public class FacetEntryMatcher {
         );
     }
 
+    public static Matcher<? super Object> supervisedByFacet(boolean hasNext) {
+        return allOf(
+            hasJsonPath("$.name", is("supervisedBy")),
+            hasJsonPath("$.facetType", is("authority")),
+            hasJsonPath("$.facetLimit", any(Integer.class)),
+            hasJsonPath("$._links.self.href", containsString("api/discover/facets/supervisedBy")),
+            hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/supervisedBy"))
+
+        );
+    }
+
     public static Matcher<? super Object> dateIssuedFacet(boolean hasNext) {
         return allOf(
             hasJsonPath("$.name", is("dateIssued")),
@@ -96,38 +107,6 @@ public class FacetEntryMatcher {
             hasJsonPath("$.facetLimit", any(Integer.class)),
             hasJsonPath("$._links.self.href", containsString("api/discover/facets/has_content_in_original_bundle")),
             hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/has_content_in_original_bundle"))
-        );
-    }
-
-    public static Matcher<? super Object> clarinLicenseRightsFacet(boolean hasNext) {
-        return allOf(
-                hasJsonPath("$.name", is("rights")),
-                hasJsonPath("$.facetType", is("standard")),
-                hasJsonPath("$.facetLimit", any(Integer.class)),
-                hasJsonPath("$._links.self.href", containsString("api/discover/facets/rights")),
-                hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/rights"))
-        );
-    }
-
-    public static Matcher<? super Object> clarinItemsLanguageFacet(boolean hasNext) {
-        return allOf(
-                hasJsonPath("$.name", is("language")),
-                hasJsonPath("$.facetType", is("standard")),
-                hasJsonPath("$.facetLimit", any(Integer.class)),
-                hasJsonPath("$._links.self.href", containsString("api/discover/facets/language")),
-                hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/language"))
-        );
-    }
-
-    public static Matcher<? super Object> clarinItemsCommunityFacet(boolean hasNext) {
-        return allOf(
-                hasJsonPath("$.name", is("items_owning_community")),
-                hasJsonPath("$.facetType", is("standard")),
-                hasJsonPath("$.facetLimit", any(Integer.class)),
-                hasJsonPath("$._links.self.href",
-                        containsString("api/discover/facets/items_owning_community")),
-                hasJsonPath("$._links", matchNextLink(hasNext,
-                        "api/discover/facets/items_owning_community"))
         );
     }
 
