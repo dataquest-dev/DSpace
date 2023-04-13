@@ -25,9 +25,9 @@ public class UriToRestrictionsFn extends NodeListXslFunction {
     }
 
     @Override
-    protected org.w3c.dom.NodeList getNodeList(String param, Document doc, Element element) {
+    protected org.w3c.dom.NodeList getNodeList(String param) {
         try {
-            return LicenseUtil.uriToRestrictions(param, doc, element);
+            return LicenseUtil.uriToRestrictions(param);
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }

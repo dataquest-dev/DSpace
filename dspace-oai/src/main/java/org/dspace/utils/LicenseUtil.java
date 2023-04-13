@@ -199,15 +199,22 @@ public class LicenseUtil {
         return "available-restrictedUse";
     }
 
-    public static org.w3c.dom.NodeList uriToRestrictions(String uri, Document doc, Element root)
+    public static org.w3c.dom.NodeList uriToRestrictions(String uri)
             throws ParserConfigurationException {
 
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        javax.xml.parsers.DocumentBuilder builder;
+        builder = factory.newDocumentBuilder();
+
+        Document doc = builder.newDocument();
+        Element root = doc.createElement("restrictions");
+
         String restrictions = _uri2restrictions.get(uri);
-        if(restrictions == null){
+        if (Objects.isNull(restrictions)) {
             restrictions = "other";
         }
 
-        for(String restriction : restrictions.split(",")){
+        for (String restriction : restrictions.split(",")) {
             Element res = doc.createElement("restriction");
             res.appendChild(doc.createTextNode(restriction));
             root.appendChild(res);
@@ -217,21 +224,8 @@ public class LicenseUtil {
     }
 
     public static void main(String[] args) throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        javax.xml.parsers.DocumentBuilder builder;
-        try {
-            builder = factory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-//            log.error("Cannot create Document Builder because: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-
-        Document doc = builder.newDocument();
-        Element root = doc.createElement("restrictions");
-
         System.out.println(uriToMetashare("http://creativecommons.org/licenses/by-nc/3.0/"));
         System.out.println(uriToAvailability("http://creativecommons.org/licenses/by-nc/3.0/"));
-        System.out.println(uriToRestrictions("http://creativecommons.org/licenses/by-nc/3.0/", doc, root));
     }
 
 }

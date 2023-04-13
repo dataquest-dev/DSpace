@@ -42,7 +42,7 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
 
     protected abstract String getFnName();
 
-    protected abstract NodeList getNodeList(String param, Document doc, Element element);
+    protected abstract NodeList getNodeList(String param);
 
     private static final Logger log = getLogger(NodeListXslFunction.class);
 
@@ -69,18 +69,7 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
             return new XdmAtomicValue("");
         }
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        javax.xml.parsers.DocumentBuilder builder;
-        try {
-            builder = factory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            log.error("Cannot create Document Builder because: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-
-        Document doc = builder.newDocument();
-        Element root = doc.createElement("restrictions");
-        NodeList nodeList = getNodeList(xdmValues[0].itemAt(0).getStringValue(), doc, root);
+        NodeList nodeList = getNodeList(xdmValues[0].itemAt(0).getStringValue());
         Node oneNode = nodeList.item(0);
 
         DocumentBuilder db = new Processor(false).newDocumentBuilder();
