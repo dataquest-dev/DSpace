@@ -12,8 +12,6 @@ import static org.apache.logging.log4j.LogManager.getLogger;
 import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunction.BASE;
 
 import java.util.Objects;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
 
 import net.sf.saxon.s9api.DocumentBuilder;
@@ -28,15 +26,15 @@ import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.Arrays;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 
 /**
  * Serves as proxy for call from XSL engine.
+ *
  * @author Marian Berger (marian.berger at dataquest.sk)
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public abstract class NodeListXslFunction implements ExtensionFunction {
 

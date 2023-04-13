@@ -11,8 +11,6 @@ package org.dspace.xoai.services.impl.resources.functions;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.dspace.utils.LicenseUtil;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * Serves as proxy for call from XSL engine. Calls LicenseUtil

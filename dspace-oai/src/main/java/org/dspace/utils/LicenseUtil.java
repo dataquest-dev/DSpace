@@ -15,18 +15,19 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
- *  Class is copied from the LINDAT/CLARIAH-CZ (This class is taken from UFAL-clarin. https://github.com/ufal/clarin-dspace/blob
+ *  Class is copied from the LINDAT/CLARIAH-CZ (This class is taken from UFAL-clarin.
+ *  https://github.com/ufal/clarin-dspace/blob
  *  * /si-master-origin/dspace-oai/src/main/java/cz/cuni/mff/ufal/utils/LicenseUtil.java) and modified by
+ *
  *  @author Marian Berger (marian.berger at dataquest.sk)
+ *  @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public class LicenseUtil {
 
