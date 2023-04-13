@@ -202,9 +202,6 @@ public class LicenseUtil {
     public static org.w3c.dom.NodeList uriToRestrictions(String uri, Document doc, Element root)
             throws ParserConfigurationException {
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-
         String restrictions = _uri2restrictions.get(uri);
         if(restrictions == null){
             restrictions = "other";

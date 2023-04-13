@@ -96,9 +96,9 @@
            <ms:availability><xsl:value-of select="fn:uriToAvailability($rightsUri)"/></ms:availability>
             <ms:licenceInfo>
                 <ms:licence><xsl:value-of select="fn:uriToMetashare($rightsUri)"/></ms:licence>
-<!--                <xsl:for-each select="fn:uriToRestrictions($rightsUri)">-->
-<!--                        <ms:restrictionsOfUse><xsl:value-of select="."/></ms:restrictionsOfUse>-->
-<!--                </xsl:for-each>-->
+                <xsl:for-each select="fn:uriToRestrictions($rightsUri)">
+                        <ms:restrictionsOfUse><xsl:value-of select="."/></ms:restrictionsOfUse>
+                </xsl:for-each>
                     <xsl:choose>
                         <xsl:when test="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#DistributionInfo#LicenseInfo']/doc:element[@name='distributionAccessMedium']/doc:element/doc:field[@name='value']">
                                 <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#DistributionInfo#LicenseInfo']/doc:element[@name='distributionAccessMedium']/doc:element/doc:field[@name='value']">
