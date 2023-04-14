@@ -106,7 +106,7 @@ public class ClarinItemImportController {
 
         Context context = obtainContext(request);
         if (Objects.isNull(context)) {
-            throw new RuntimeException("Contex is null!");
+            throw new RuntimeException("Context is null!");
         }
 
         ObjectMapper mapper = new ObjectMapper();

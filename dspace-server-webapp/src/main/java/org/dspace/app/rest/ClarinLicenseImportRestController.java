@@ -53,7 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/licenses/import")
 public class ClarinLicenseImportRestController {
     private static final Logger log = org.apache.logging.log4j.LogManager
-            .getLogger(BitstreamRestController.class);
+            .getLogger(ClarinLicenseImportRestController.class);
     private Dictionary<Integer, Integer> licenseLabelsIds = new Hashtable<>();
     private Dictionary<Integer, Set<ClarinLicenseLabel>> licenseToLicenseLabel = new Hashtable<>();
     @Autowired
