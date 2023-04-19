@@ -82,6 +82,11 @@
             <scope visibility="hidden" visibilityOutside="hidden">submission</scope>
         </step-definition>
 
+        <step-definition id="clarin-notice">
+            <heading>submit.progressbar.clarin-notice</heading>
+            <processing-class>org.dspace.app.rest.submit.step.ClarinNoticeStep</processing-class>
+            <type>clarin-notice</type>
+        </step-definition>
         <!-- The following set of DescribeStep <step-definition>s all point to forms (of the same name) which are
              defined in submission-forms.xml -->
         <step-definition id="traditionalpageone" mandatory="true">
@@ -233,6 +238,7 @@
 
             <step id="collection"/>
 
+            <step id="clarin-notice"/>
             <!--Step will be to Describe the item. -->
             <step id="traditionalpageone"/>
             <step id="traditionalpagetwo"/>
