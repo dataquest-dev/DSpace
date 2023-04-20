@@ -11,6 +11,7 @@ import org.dspace.app.rest.model.BundleRest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.checker.service.MostRecentChecksumService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
@@ -43,9 +44,8 @@ import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
 
 @RestController
-@RequestMapping("/api/clarin/import/" + BundleRest.CATEGORY + "/" + BundleRest.PLURAL_NAME + "/" +
-        REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID + "/" + BitstreamRest.PLURAL_NAME)
-public class ClarinBundleImportBitstreamController {
+@RequestMapping("/api/clarin/import/" + BitstreamRest.CATEGORY)
+public class ClarinBitstreamImportController {
     private static final Logger log = LogManager.getLogger();
     @Autowired
     private BundleService bundleService;
@@ -71,35 +71,30 @@ public class ClarinBundleImportBitstreamController {
     @Autowired
     private Utils utils;
 
+    @Autowired
+    private MostRecentChecksumService checksumService;
+
     @PreAuthorize("hasAuthority('ADMIN')")
-    @RequestMapping(method =  RequestMethod.POST)
-    public BitstreamRest importBitstreamForExistingFile(HttpServletRequest request,
-             @PathVariable UUID uuid) {
+    @RequestMapping(method =  RequestMethod.POST, value = "/bitstream")
+    public BitstreamRest importBitstreamForExistingFile(HttpServletRequest request) {
         Context context = obtainContext(request);
         if (Objects.isNull(context)) {
-            throw new RuntimeException("Contex is null!");
+            throw new RuntimeException("Context is null!");
         }
         Bundle bundle = null;
-        try {
-            bundle = bundleService.find(context, uuid);
-        } catch (SQLException e) {
-            log.error("Something went wrong trying to find the Bundle with uuid: " + uuid, e);
+        String bundleUUIDString = request.getParameter("bundle_id");
+        if (StringUtils.isNotBlank(bundleUUIDString)) {
+            UUID bundleUUID = UUID.fromString(bundleUUIDString);
+            try {
+                bundle = bundleService.find(context, bundleUUID);
+            } catch (SQLException e) {
+                log.error("Something went wrong trying to find the Bundle with uuid: " + bundleUUID, e);
+            }
         }
-        if (bundle == null) {
-            throw new ResourceNotFoundException("The given uuid did not resolve to a Bundle on the server: " + uuid);
-        }
-        BitstreamRest bitstreamRest = null;
-        Bitstream bitstream = null;
+        BitstreamRest bitstreamRest;
+        Bitstream bitstream;
         Item item = null;
         try {
-            List<Item> items = bundle.getItems();
-            if (!items.isEmpty()) {
-                item = items.get(0);
-            }
-            if (item != null && !(authorizeService.authorizeActionBoolean(context, item, Constants.WRITE)
-                    && authorizeService.authorizeActionBoolean(context, item, Constants.ADD))) {
-                throw new AccessDeniedException("You do not have write rights to update the Bundle's item");
-            }
             //process bitstream creation
             ObjectMapper mapper = new ObjectMapper();
             bitstreamRest = mapper.readValue(request.getInputStream(), BitstreamRest.class);
@@ -116,18 +111,11 @@ public class ClarinBundleImportBitstreamController {
             //add bitstream Format
             String bitstreamFormatIdString = request.getParameter("bitstreamFormat");
             Integer bitstreamFormatId = getIntegerFromString(bitstreamFormatIdString);
-            BitstreamFormat bitstreamFormat = bitstreamFormatService.find(context, bitstreamFormatId);
-            if (Objects.isNull(bitstreamFormat)) {
-                log.debug("Cannot add bitstream format with id: " + bitstreamFormatId +
-                        " because the format doesn't exist. The bitstream with internal_id: " +
-                        internalId + " is not imported!");
-                bitstreamService.delete(context, bitstream);
-                //we ha
-                bitstreamService.expunge(context, bitstream);
-                return null;
-            } else {
-                bitstream.setFormat(context, bitstreamFormat);
+            BitstreamFormat bitstreamFormat = null;
+            if (!Objects.isNull(bitstreamFormatId)) {
+                 bitstreamFormat = bitstreamFormatService.find(context, bitstreamFormatId);
             }
+            bitstream.setFormat(context, bitstreamFormat);
             String deletedString = request.getParameter("deleted");
             if (clarinBitstreamService.addExistingFile(context, bitstream, bitstreamRest.getSizeBytes(),
                     bitstreamRest.getCheckSum().getValue(), bitstreamRest.getCheckSum().getCheckSumAlgorithm())) {
@@ -144,16 +132,23 @@ public class ClarinBundleImportBitstreamController {
                     }
                 }
                 bitstreamService.update(context, bitstream);
-                //add bitstream as primary bitstream to bundle
-                //we can do that just when we are sure, that bitstream
             } else {
                 return null;
             }
-
-            if (item != null) {
-                itemService.update(context, item);
+            if (bundle != null) {
+                List<Item> items = bundle.getItems();
+                if (!items.isEmpty()) {
+                    item = items.get(0);
+                }
+                if (item != null && !(authorizeService.authorizeActionBoolean(context, item, Constants.WRITE)
+                        && authorizeService.authorizeActionBoolean(context, item, Constants.ADD))) {
+                    throw new AccessDeniedException("You do not have write rights to update the Bundle's item");
+                }
+                if (item != null) {
+                    itemService.update(context, item);
+                }
+                bundleService.update(context, bundle);
             }
-            bundleService.update(context, bundle);
             bitstreamRest = converter.toRest(bitstream, utils.obtainProjection());
             context.commit();
         } catch (AuthorizeException | SQLException | IOException e) {
@@ -163,17 +158,19 @@ public class ClarinBundleImportBitstreamController {
             log.error("message", e);
             throw new RuntimeException("message", e);
         }
-
         return bitstreamRest;
     }
 
-    private boolean getBooleanFromString(String value) {
-        boolean output = false;
-        if (StringUtils.isNotBlank(value)) {
-            output = Boolean.parseBoolean(value);
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @RequestMapping(method =  RequestMethod.POST, value = "/bitstream/checksum")
+    public void doUpdateBitstreamsChecksum(HttpServletRequest request) throws SQLException {
+        Context context = obtainContext(request);
+        if (Objects.isNull(context)) {
+            throw new RuntimeException("Context is null!");
         }
-        return output;
+        checksumService.updateMissingBitstreams(context);
     }
+
 
     private Integer getIntegerFromString(String value) {
         Integer output = null;

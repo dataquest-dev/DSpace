@@ -11,8 +11,10 @@ import org.dspace.content.dao.BitstreamDAO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.clarin.ClarinBitstreamService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.event.Event;
 import org.dspace.handle.HandleClarinServiceImpl;
 import org.dspace.storage.bitstore.BitStoreService;
 import org.dspace.storage.bitstore.DSBitStoreService;
@@ -63,8 +65,15 @@ public class ClarinBitstreamServiceImpl implements ClarinBitstreamService{
         }
         //create empty bundle
         Bitstream bitstream = bitstreamDAO.create(context, new Bitstream());
-        bundleService.addBitstream(context, bundle, bitstream);
-        bitstreamService.update(context, bitstream);
+
+        // Set the format to "unknown"
+        bitstreamService.setFormat(context, bitstream, null);
+        context.addEvent(
+                new Event(Event.CREATE, Constants.BITSTREAM, bitstream.getID(), null, bitstreamService.getIdentifiers(context, bitstream)));
+
+        if (bundle != null) {
+            bundleService.addBitstream(context, bundle, bitstream);
+        }
         log.debug("Created new empty Bitstream with id: " + bitstream.getID());
         return bitstream;
     }
