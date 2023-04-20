@@ -143,6 +143,63 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
         }
     }
 
+    @Test
+    public void createEpersonWithUserRegistrationDifferentLastActiveFormatTest() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        EPersonRest data = new EPersonRest();
+        MetadataRest metadataRest = new MetadataRest();
+        data.setEmail("createtest@example.com");
+        data.setCanLogIn(true);
+        MetadataValueRest surname = new MetadataValueRest();
+        surname.setValue("Doe");
+        metadataRest.put("eperson.lastname", surname);
+        MetadataValueRest firstname = new MetadataValueRest();
+        firstname.setValue("John");
+        metadataRest.put("eperson.firstname", firstname);
+        data.setMetadata(metadataRest);
+
+        AtomicReference<UUID> idRef = new AtomicReference<UUID>();
+
+        String authToken = getAuthToken(admin.getEmail(), password);
+
+        try {
+            getClient(authToken).perform(post("/api/clarin/import/eperson")
+                            .content(mapper.writeValueAsBytes(data))
+                            .contentType(contentType)
+                            .param("projection", "full")
+                            .param("selfRegistered", "true")
+                            .param("lastActive", "2018-02-10T13:21:29")
+                            .param("userRegistration", "true")
+                            .param("organization", "https://test.com")
+                            .param("confirmation", "false"))
+                    .andExpect(status().isOk())
+                    .andDo(result -> idRef
+                            .set(UUID.fromString(read(result.getResponse().getContentAsString(), "$.id"))));
+
+            EPerson createdEperson = ePersonService.find(context, idRef.get());
+
+            assertEquals(getStringFromDate(createdEperson.getLastActive()), "2018-02-10T13:21:29.733");
+            assertTrue(createdEperson.getSelfRegistered());
+            assertEquals(createdEperson.getEmail(),"createtest@example.com");
+            assertTrue(createdEperson.canLogIn());
+            assertFalse(createdEperson.getRequireCertificate());
+            assertEquals(createdEperson.getFirstName(), "John");
+            assertEquals(createdEperson.getLastName(), "Doe");
+
+            //control the creation of the user registration
+            List<ClarinUserRegistration> userRegistrations = clarinUserRegistrationService.findByEPersonUUID(context, idRef.get());
+            assertEquals(userRegistrations.size(), 1);
+            ClarinUserRegistration userRegistration = userRegistrations.get(0);
+            assertEquals(userRegistration.getEmail(), "createtest@example.com");
+            assertEquals(userRegistration.getOrganization(), "https://test.com");
+            assertFalse(userRegistration.isConfirmation());
+            //clean all
+            ClarinUserRegistrationBuilder.deleteClarinUserRegistration(userRegistration.getID());
+        } finally {
+            EPersonBuilder.deleteEPerson(idRef.get());
+        }
+    }
+
     private String getStringFromDate(Date value) throws ParseException {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
         return df.format(value);

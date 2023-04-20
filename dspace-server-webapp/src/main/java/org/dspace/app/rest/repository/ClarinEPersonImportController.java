@@ -106,8 +106,14 @@ public class ClarinEPersonImportController {
     private Date getDateFromString(String value) throws ParseException {
         Date output = null;
         if (StringUtils.isNotBlank(value)) {
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-            output = df.parse(value);
+            DateFormat df;
+            df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+            try {
+                output = df.parse(value);
+            } catch (ParseException e) {
+                df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                output = df.parse(value);
+            }
         }
         return output;
     }
