@@ -295,12 +295,14 @@ public class MetadataValueRestRepositoryIT extends AbstractControllerIntegration
      */
     @Test
     public void shouldReturnOneSuggestionWhenInputHasMoreMetadataValues() throws Exception {
+        context.turnOffAuthorisationSystem();
         Item cuteItem = ItemBuilder.createItem(context, col)
                 .withAuthor(AUTHOR)
                 .withAuthor("second author")
                 .withAuthor("third author")
                 .withMetadata(SPONSOR_SCHEMA, SPONSOR_ELEMENT, null, SPONSOR_VALUE )
                 .build();
+        context.restoreAuthSystemState();
 
         MetadataValue titleMetadataValue = itemService.getMetadataByMetadataString(cuteItem,
                 StringUtils.join(Arrays.asList(SCHEMA, ELEMENT, QUALIFIER),".")).get(0);
