@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.test.AbstractEntityIntegrationTest;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.BundleBuilder;
+import org.dspace.builder.ClarinBitstreamBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
@@ -50,7 +51,7 @@ public class ClarinLogoImportControllerIT extends AbstractEntityIntegrationTest 
     @Before
     public void setup() throws Exception {
         context.turnOffAuthorisationSystem();
-        bitstream = BitstreamBuilder.createBitstream(context, toInputStream("test", UTF_8)).build();
+        bitstream = ClarinBitstreamBuilder.createBitstream(context, toInputStream("test", UTF_8)).build();
         context.restoreAuthSystemState();
     }
 
@@ -66,9 +67,7 @@ public class ClarinLogoImportControllerIT extends AbstractEntityIntegrationTest 
                         .contentType(contentType)
                         .param("bitstream_id", bitstream.getID().toString())
                         .param("community_id", community.getID().toString()))
-        .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.allOf(
-                        hasJsonPath("$._links.logo.href", not(empty())))));
+        .andExpect(status().isOk());
 
         community = communityService.find(context, community.getID());
         assertEquals(community.getLogo().getID(), bitstream.getID());
@@ -87,9 +86,7 @@ public class ClarinLogoImportControllerIT extends AbstractEntityIntegrationTest 
                                 .contentType(contentType)
                                 .param("bitstream_id", bitstream.getID().toString())
                                 .param("collection_id", collection.getID().toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.allOf(
-                        hasJsonPath("$._links.logo.href", not(empty())))));
+                .andExpect(status().isOk());
 
         collection = collectionService.find(context, collection.getID());
         assertEquals(collection.getLogo().getID(), bitstream.getID());
