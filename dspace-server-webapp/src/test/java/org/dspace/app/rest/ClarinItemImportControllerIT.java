@@ -1,37 +1,11 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.dspace.app.rest.model.ItemRest;
-import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
-import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.builder.CollectionBuilder;
-import org.dspace.builder.CommunityBuilder;
-import org.dspace.builder.EPersonBuilder;
-import org.dspace.builder.HandleBuilder;
-import org.dspace.builder.ItemBuilder;
-import org.dspace.builder.WorkflowItemBuilder;
-import org.dspace.builder.WorkspaceItemBuilder;
-import org.dspace.content.Collection;
-import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
-import org.dspace.content.service.ItemService;
-import org.dspace.content.service.WorkspaceItemService;
-import org.dspace.core.Constants;
-import org.dspace.eperson.EPerson;
-import org.dspace.services.ConfigurationService;
-import org.dspace.workflow.WorkflowItem;
-import org.dspace.workflow.WorkflowItemService;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import javax.ws.rs.core.MediaType;
-import java.util.List;
-import java.util.UUID;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static org.junit.Assert.assertEquals;
@@ -43,29 +17,48 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+import java.util.UUID;
+import javax.ws.rs.core.MediaType;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.WorkflowItemBuilder;
+import org.dspace.builder.WorkspaceItemBuilder;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.eperson.EPerson;
+import org.dspace.services.ConfigurationService;
+import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.WorkflowItemService;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+/**
+ * Integration test to test the /api/clarin/import/* endpoints
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class ClarinItemImportControllerIT extends AbstractControllerIntegrationTest {
-
     private JsonNodeFactory jsonNodeFactory = new JsonNodeFactory(true);
-
     @Autowired
     private WorkspaceItemService workspaceItemService;
-
     @Autowired
     private WorkflowItemService workflowItemService;
-
     @Autowired
     private ItemService itemService;
-
-    @Autowired
-    private AuthorizeService authorizeService;
     @Autowired
     private ConfigurationService configurationService;
-
-    /**
-     * Spy of AuthorizeService to use for tests
-     * (initialized / setup in @Before method)
-     */
-    private AuthorizeService authorizeServiceSpy;
 
     private Collection col;
     private EPerson submitter;
@@ -73,7 +66,6 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
     @Before
     @Override
     public void setUp() throws Exception {
-
         super.setUp();
         //disable file upload mandatory
         configurationService.setProperty("webui.submit.upload.required", false);

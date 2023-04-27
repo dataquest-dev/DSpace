@@ -1,13 +1,27 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
+
+import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.converter.MetadataConverter;
 import org.dspace.app.rest.model.BitstreamRest;
-import org.dspace.app.rest.model.BundleRest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -24,56 +38,54 @@ import org.dspace.content.service.clarin.ClarinBitstreamService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
-import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
-import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
-
+/**
+ * Specialized controller created for Clarin-Dspace import bitstream.
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 @RestController
 @RequestMapping("/api/clarin/import/" + BitstreamRest.CATEGORY)
 public class ClarinBitstreamImportController {
-    private static final Logger log = LogManager.getLogger();
+    private static final Logger log = org.apache.logging.log4j.LogManager
+            .getLogger(ClarinBitstreamImportController.class);
     @Autowired
     private BundleService bundleService;
-
     @Autowired
     private ClarinBitstreamService clarinBitstreamService;
-
     @Autowired
     private BitstreamService bitstreamService;
     @Autowired
     private AuthorizeService authorizeService;
-
     @Autowired
     private MetadataConverter metadataConverter;
-
     @Autowired
     private ItemService itemService;
-
     @Autowired
     private BitstreamFormatService bitstreamFormatService;
     @Autowired
     private ConverterService converter;
     @Autowired
     private Utils utils;
-
     @Autowired
     private MostRecentChecksumService checksumService;
 
+    /**
+     * Endpoint for import bitstream, whose file already exists in assetstore under internal_id
+     * from request param.
+     * The mapping for requested endpoint, for example
+     * <pre>
+     * {@code
+     * https://<dspace.server.url>/api/clarin/import/core/bitstream
+     * }
+     * </pre>
+     * @param request request
+     * @return created bitstream converted to rest object
+     */
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method =  RequestMethod.POST, value = "/bitstream")
     public BitstreamRest importBitstreamForExistingFile(HttpServletRequest request) {
@@ -82,6 +94,7 @@ public class ClarinBitstreamImportController {
             throw new RuntimeException("Context is null!");
         }
         Bundle bundle = null;
+        //bundle2bitstream
         String bundleUUIDString = request.getParameter("bundle_id");
         if (StringUtils.isNotBlank(bundleUUIDString)) {
             UUID bundleUUID = UUID.fromString(bundleUUIDString);
@@ -108,15 +121,16 @@ public class ClarinBitstreamImportController {
             String sequenceIdString = request.getParameter("sequenceId");
             Integer sequenceId = getIntegerFromString(sequenceIdString);
             bitstream.setSequenceID(sequenceId);
-            //add bitstream Format
+            //add bitstream format
             String bitstreamFormatIdString = request.getParameter("bitstreamFormat");
             Integer bitstreamFormatId = getIntegerFromString(bitstreamFormatIdString);
             BitstreamFormat bitstreamFormat = null;
             if (!Objects.isNull(bitstreamFormatId)) {
-                 bitstreamFormat = bitstreamFormatService.find(context, bitstreamFormatId);
+                bitstreamFormat = bitstreamFormatService.find(context, bitstreamFormatId);
             }
             bitstream.setFormat(context, bitstreamFormat);
             String deletedString = request.getParameter("deleted");
+            //join created bitstream with file stored in assetstore
             if (clarinBitstreamService.addExistingFile(context, bitstream, bitstreamRest.getSizeBytes(),
                     bitstreamRest.getCheckSum().getValue(), bitstreamRest.getCheckSum().getCheckSumAlgorithm())) {
                 if (bitstreamRest.getMetadata().getMap().size() > 0) {
@@ -125,16 +139,25 @@ public class ClarinBitstreamImportController {
                 if (Boolean.parseBoolean(deletedString)) {
                     bitstreamService.delete(context, bitstream);
                 } else {
-                    //set bitstream as primary
-                    String primaryBitstream = request.getParameter("primaryBitstream");
-                    if (Boolean.parseBoolean(primaryBitstream)) {
-                        bundle.setPrimaryBitstreamID(bitstream);
+                    //set bitstream as primary bitstream for bundle
+                    //if bitstream is not primary bitstream, bundle is null
+                    String primaryBundleUUIDString = request.getParameter("primaryBundle_id");
+                    if (StringUtils.isNotBlank(primaryBundleUUIDString)) {
+                        UUID primaryBundleUUID = UUID.fromString(primaryBundleUUIDString);
+                        try {
+                            Bundle primaryBundle = bundleService.find(context, primaryBundleUUID);
+                            primaryBundle.setPrimaryBitstreamID(bitstream);
+                        } catch (SQLException e) {
+                            log.error("Something went wrong trying to find the Bundle with uuid: " +
+                                    primaryBundleUUID, e);
+                        }
                     }
                 }
                 bitstreamService.update(context, bitstream);
             } else {
                 return null;
             }
+
             if (bundle != null) {
                 List<Item> items = bundle.getItems();
                 if (!items.isEmpty()) {
@@ -152,15 +175,27 @@ public class ClarinBitstreamImportController {
             bitstreamRest = converter.toRest(bitstream, utils.obtainProjection());
             context.commit();
         } catch (AuthorizeException | SQLException | IOException e) {
-            String message = "Something went wrong with trying to create the single bitstream for file with internal_id: "
+            String message = "Something went wrong with trying to create the single bitstream for file " +
+                    "with internal_id: "
                     + request.getParameter("internal_id")
                     + " for bundle with uuid: " + bundle.getID();
-            log.error("message", e);
+            log.error(message, e);
             throw new RuntimeException("message", e);
         }
         return bitstreamRest;
     }
 
+    /**
+     * Update bitstream checksum for bitstream, whose are not yet updated.
+     * The mapping for requested endpoint, for example
+     * <pre>
+     * {@code
+     * https://<dspace.server.url>/api/clarin/import/core/bitstream/checksum
+     * }
+     * </pre>
+     * @param request request
+     * @throws SQLException if database error
+     */
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method =  RequestMethod.POST, value = "/bitstream/checksum")
     public void doUpdateBitstreamsChecksum(HttpServletRequest request) throws SQLException {
@@ -171,7 +206,11 @@ public class ClarinBitstreamImportController {
         checksumService.updateMissingBitstreams(context);
     }
 
-
+    /**
+     * Convert String value to Integer.
+     * @param value input value
+     * @return input value converted to Integer
+     */
     private Integer getIntegerFromString(String value) {
         Integer output = null;
         if (StringUtils.isNotBlank(value)) {

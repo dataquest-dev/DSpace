@@ -7,6 +7,22 @@
  */
 package org.dspace.app.rest.repository;
 
+import static java.util.regex.Pattern.compile;
+import static org.apache.http.HttpStatus.SC_NO_CONTENT;
+import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
+import static org.dspace.app.rest.utils.RegexUtils.REGEX_UUID;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.GroupRest;
 import org.dspace.app.rest.utils.Utils;
@@ -24,44 +40,35 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static java.util.regex.Pattern.compile;
-import static org.apache.http.HttpStatus.SC_NO_CONTENT;
-import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
-import static org.dspace.app.rest.utils.RegexUtils.REGEX_UUID;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
 /**
- * This will be the entry point for the api/clarin/eperson/groups endpoint with additional paths to it
+ * Specialized controller created for Clarin-Dspace group import.
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
 @RestController
 @RequestMapping("/api/clarin/" + GroupRest.CATEGORY + "/" + GroupRest.GROUPS)
 public class ClarinGroupRestController {
-
     @Autowired
     private GroupService groupService;
-
     @Autowired
     private EPersonService ePersonService;
-
     @Autowired
     Utils utils;
 
     /**
      * Method to add one or more subgroups to a group.
-     * Note that only the 'AUTHENTICATED' state will be checked in PreAuthorize, a more detailed check will be done by
-     * using the 'checkAuthorization' method.
-     *
-     * @param uuid the uuid of the group to add the subgroups to
+     * This method is similar with method addChildGroups in GroupRestController,
+     * but here we remove from incorrectly input grouplink letter \".
+     * The mapping for requested endpoint, for example
+     * <pre>
+     * {@code
+     * https://<dspace.server.url>/api/clarin/eperson/groups/26453b4d-e513-44e8-8d5b-395f62972eff/subgroups
+     * }
+     * </pre>
+     * @param uuid     the uuid of the group to add the subgroups to
+     * @param response response
+     * @param request  request
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
     @PreAuthorize("hasAuthority('AUTHENTICATED')")
     @RequestMapping(method = POST, path = "/{uuid}/subgroups")
@@ -69,14 +76,12 @@ public class ClarinGroupRestController {
             throws SQLException, AuthorizeException {
 
         Context context = obtainContext(request);
-
         Group parentGroup = groupService.find(context, uuid);
         if (parentGroup == null) {
             throw new ResourceNotFoundException("parent group is not found for uuid: " + uuid);
         }
 
         AuthorizeUtil.authorizeManageGroup(context, parentGroup);
-
         List<String> groupLinks = utils.getStringListFromRequest(request);
 
         List<Group> childGroups = new ArrayList<>();
@@ -101,10 +106,19 @@ public class ClarinGroupRestController {
 
     /**
      * Method to add one or more members to a group.
-     * Note that only the 'AUTHENTICATED' state will be checked in PreAuthorize, a more detailed check will be done by
-     * using the 'checkAuthorization' method.
-     *
-     * @param uuid the uuid of the group to add the members to
+     * This method is similar with method addMembers in GroupRestController,
+     * but here we remove from incorrectly input grouplink letter \".
+     * The mapping for requested endpoint, for example
+     * <pre>
+     * {@code
+     * https://<dspace.server.url>/api/clarin/eperson/groups/26453b4d-e513-44e8-8d5b-395f62972eff/epersons
+     * }
+     * </pre>
+     * @param uuid     the uuid of the group to add the members to
+     * @param response response
+     * @param request  request
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
      */
     @PreAuthorize("hasAuthority('AUTHENTICATED')")
     @RequestMapping(method = POST, path = "/{uuid}/epersons")
@@ -168,7 +182,6 @@ public class ClarinGroupRestController {
     }
 
     private boolean canAddGroup(Context context, Group parentGroup, Group childGroup) throws SQLException {
-
         return !groupService.isParentOf(context, childGroup, parentGroup);
     }
 }

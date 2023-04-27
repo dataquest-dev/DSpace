@@ -1,4 +1,19 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
+
+import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
+import java.sql.SQLException;
+import java.util.Objects;
+import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,20 +32,13 @@ import org.dspace.content.service.CommunityService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.sql.SQLException;
-import java.util.Objects;
-import java.util.UUID;
-
-import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
-import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
+/**
+ * Specialized controller created for Clarin-Dspace import logos for communities and collections.
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 @RestController
 @RequestMapping("/api/clarin/import/logo/")
 public class ClarinLogoImportController {
@@ -47,6 +55,19 @@ public class ClarinLogoImportController {
     @Autowired
     private Utils utils;
 
+    /**
+     * The endpoint for connecting community with its logo, which is already stored in database as a bitstream.
+     * The mapping for requested endpoint, for example
+     * <pre>
+     * {@code
+     * https://<dspace.server.url>/api/clarin/import/logo/community
+     * }
+     * </pre>
+     * @param request request
+     * @return community converted to the rest
+     * @throws SQLException if database error
+     * @throws AuthorizeException if authorization error
+     */
     @PreAuthorize("hasAuthority('AUTHENTICATED')")
     @RequestMapping(method = POST, path = "/community")
     public CommunityRest addCommunityLogo(HttpServletRequest request) throws SQLException, AuthorizeException {
@@ -90,6 +111,19 @@ public class ClarinLogoImportController {
         return communityRest;
     }
 
+    /**
+     * The endpoint for connecting collection with its logo, which is already stored in database as a bitstream.
+     * The mapping for requested endpoint, for example
+     * <pre>
+     * {@code
+     * https://<dspace.server.url>/api/clarin/import/logo/collection
+     * }
+     * </pre>
+     * @param request request
+     * @return collection converted to the rest
+     * @throws SQLException if database error
+     * @throws AuthorizeException if authorization error
+     */
     @PreAuthorize("hasAuthority('AUTHENTICATED')")
     @RequestMapping(method = POST, path = "/collection")
     public CollectionRest addCollectionLogo(HttpServletRequest request) throws SQLException, AuthorizeException {
@@ -103,7 +137,7 @@ public class ClarinLogoImportController {
         String bitstreamUUIDString = request.getParameter("bitstream_id");
         UUID bitstreamUUID = UUID.fromString(bitstreamUUIDString);
 
-        //find community and bitstream
+        //find collection and bitstream
         Collection collection = collectionService.find(context, collectionUUID);
         Bitstream newLogo = bitstreamService.find(context, bitstreamUUID);
 
@@ -121,7 +155,7 @@ public class ClarinLogoImportController {
                     "The collection with the given uuid already has a logo: " + collection.getID());
         }
 
-        //add logo to community
+        //add logo to collection
         collectionService.addLogo(context, collection, newLogo);
         collectionService.update(context, collection);
         bitstreamService.update(context, newLogo);

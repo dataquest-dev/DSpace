@@ -136,8 +136,8 @@ public interface CollectionService
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    public void addLogo(Context context, Collection collection, Bitstream newLogo) throws SQLException, AuthorizeException;
-
+    public void addLogo(Context context, Collection collection, Bitstream newLogo)
+            throws SQLException, AuthorizeException;
     /**
      * Create a workflow group for the given step if one does not already exist.
      * Returns either the newly created group or the previously existing one.

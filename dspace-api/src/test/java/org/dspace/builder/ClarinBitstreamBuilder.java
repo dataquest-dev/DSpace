@@ -1,17 +1,25 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.builder;
-
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
-import org.dspace.content.Item;
-import org.dspace.content.service.BitstreamService;
-import org.dspace.content.service.DSpaceObjectService;
-import org.dspace.core.Context;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.core.Context;
+
+/**
+ * Builder class to build bitstreams in test cases.
+ * This builder was created  for Clarin-Dspace import.
+ */
 public class ClarinBitstreamBuilder extends AbstractDSpaceObjectBuilder<Bitstream> {
 
     private Bitstream bitstream;

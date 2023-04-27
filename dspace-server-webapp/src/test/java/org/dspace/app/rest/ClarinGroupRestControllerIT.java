@@ -7,6 +7,12 @@
  */
 package org.dspace.app.rest;
 
+import static org.junit.Assert.assertTrue;
+import static org.springframework.data.rest.webmvc.RestMediaTypes.TEXT_URI_LIST_VALUE;
+import static org.springframework.http.MediaType.parseMediaType;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -20,12 +26,11 @@ import org.dspace.eperson.service.GroupService;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
-import static org.springframework.data.rest.webmvc.RestMediaTypes.TEXT_URI_LIST_VALUE;
-import static org.springframework.http.MediaType.parseMediaType;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+/**
+ * Integration test to test the /api/clarin/eperson/groups/* endpoints.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class ClarinGroupRestControllerIT extends AbstractControllerIntegrationTest {
     Collection collection;
 
@@ -40,7 +45,6 @@ public class ClarinGroupRestControllerIT extends AbstractControllerIntegrationTe
 
     @Test
     public void addChildGroupTest() throws Exception {
-
         GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
         context.turnOffAuthorisationSystem();
         EPerson member = EPersonBuilder.createEPerson(context).build();

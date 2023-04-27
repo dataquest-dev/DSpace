@@ -115,7 +115,8 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
         // of 'anonymous' READ
         Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
 
-        authorizeService.createResourcePolicy(context, newCommunity, anonymousGroup, null, Constants.READ, null);
+        authorizeService.createResourcePolicy(context, newCommunity, anonymousGroup,
+                null, Constants.READ, null);
 
         communityDAO.save(context, newCommunity);
 
@@ -246,7 +247,8 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
     }
 
     @Override
-    public void addLogo(Context context, Community community, Bitstream newLogo) throws SQLException, AuthorizeException {
+    public void addLogo(Context context, Community community, Bitstream newLogo)
+            throws SQLException, AuthorizeException {
         community.setLogo(newLogo);
 
         // now create policy for logo bitstream

@@ -1,11 +1,27 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
+
+import static com.jayway.jsonpath.JsonPath.read;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.test.AbstractEntityIntegrationTest;
-import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.BundleBuilder;
@@ -28,28 +44,17 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import static com.jayway.jsonpath.JsonPath.read;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.junit.Assert.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+/**
+ * Integration test to test the /api/clarin/import/core/* endpoints
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegrationTest {
     @Autowired
     private AuthorizeService authorizeService;
     @Autowired
     private BitstreamService bitstreamService;
     private JsonNodeFactory jsonNodeFactory = new JsonNodeFactory(true);
-    @Autowired
-    private ConverterService converter;
-    @Autowired
-    private Utils utils;
     @Autowired
     private BitstreamFormatService bitstreamFormatService;
 
@@ -87,14 +92,15 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
         token = getAuthToken(admin.getEmail(), password);
         bitstreamFormat = bitstreamFormatService.create(context);
         String input = "Hello, World!";
-        MockMultipartFile file = new MockMultipartFile("file", "hello.txt", MediaType.TEXT_PLAIN_VALUE,
+        MockMultipartFile file = new MockMultipartFile("file", "hello.txt",
+                MediaType.TEXT_PLAIN_VALUE,
                 input.getBytes());
         context.restoreAuthSystemState();
 
         //create bitstream and store file
-
         MvcResult mvcResult = getClient(token)
-                .perform(MockMvcRequestBuilders.fileUpload("/api/core/bundles/" + bundle.getID() + "/bitstreams")
+                .perform(MockMvcRequestBuilders.fileUpload("/api/core/bundles/" +
+                                bundle.getID() + "/bitstreams")
                         .file(file))
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -121,7 +127,6 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
 
     @Test
     public void importBitstreamForExistingFileWithBundleTest() throws Exception {
-        //TEST: create bitstream for existing file
         //input data
         ObjectNode checksumNode = jsonNodeFactory.objectNode();
         checksumNode.set("checkSumAlgorithm", jsonNodeFactory.textNode(checkSumsAlg));
@@ -140,7 +145,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                         .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
                         .param("deleted", Boolean.toString(deleted))
                         .param("sequenceId", Integer.toString(sequence))
-                        .param("primaryBitstream", "false")
+                        .param("primaryBundle_id", null)
                         .param("bitstream_id", bundle.getID().toString()))
                 .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -157,7 +162,6 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
 
     @Test
     public void importBitstreamForExistingFileWithoutBundleTest() throws Exception {
-        //TEST: create bitstream for existing file
         //input data
         ObjectNode checksumNode = jsonNodeFactory.objectNode();
         checksumNode.set("checkSumAlgorithm", jsonNodeFactory.textNode(checkSumsAlg));
@@ -176,7 +180,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                                 .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
                                 .param("deleted", Boolean.toString(deleted))
                                 .param("sequenceId", Integer.toString(sequence))
-                                .param("primaryBitstream", "false")
+                                .param("primaryBundle_id", null)
                                 .param("bitstream_id", null))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -191,11 +195,44 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
         context.restoreAuthSystemState();
     }
 
+    @Test
+    public void importBitstreamForExistingFileAsPrimaryBitstreamOfBundleTest() throws Exception {
+        //input data
+        ObjectNode checksumNode = jsonNodeFactory.objectNode();
+        checksumNode.set("checkSumAlgorithm", jsonNodeFactory.textNode(checkSumsAlg));
+        checksumNode.set("value", jsonNodeFactory.textNode(checkSum));
+        ObjectNode node = jsonNodeFactory.objectNode();
+        node.set("sizeBytes", jsonNodeFactory.textNode(Long.toString(sizeBytes)));
+        node.set("checkSum", checksumNode);
+
+        //create new bitstream for existing file
+        ObjectMapper mapper = new ObjectMapper();
+        uuid = UUID.fromString(read( getClient(token).perform(post("/api/clarin/import/core/bitstreams")
+                                .content(mapper.writeValueAsBytes(node))
+                                .contentType(contentType)
+                                .param("internal_id", internalId)
+                                .param("storeNumber", Integer.toString(storeNumber))
+                                .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
+                                .param("deleted", Boolean.toString(deleted))
+                                .param("sequenceId", Integer.toString(sequence))
+                                .param("primaryBundle_id", bundle.getID().toString())
+                                .param("bitstream_id", null))
+                        .andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(),
+                "$.id"));
+
+        checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getID(), sequence, deleted, sizeBytes,
+                checkSum);
+
+        //clean all
+        context.turnOffAuthorisationSystem();
+        BitstreamBuilder.deleteBitstream(uuid);
+        context.restoreAuthSystemState();
+    }
 
     @Test
     public void importBitstreamForExistingFileValidationErrorTest() throws Exception {
         assertEquals(bitstreamService.findAll(context).size(), 0);
-        //TEST: create bitstream for existing file with validation errors
         //input data
         ObjectNode checksumNode = jsonNodeFactory.objectNode();
         checksumNode.set("checkSumAlgorithm", jsonNodeFactory.textNode(checkSumsAlg));
@@ -206,7 +243,8 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
 
         //create new bitstream for existing file
         ObjectMapper mapper = new ObjectMapper();
-        boolean emptyResponse = getClient(token).perform(post("/api/clarin/import/core/bundles/" + bundle.getID() + "/bitstreams")
+        boolean emptyResponse = getClient(token).perform(post("/api/clarin/import/core/bundles/" +
+                        bundle.getID() + "/bitstreams")
                         .content(mapper.writeValueAsBytes(node))
                         .contentType(contentType)
                         .param("internal_id", internalId)
@@ -214,7 +252,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                         .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
                         .param("deleted", Boolean.toString(deleted))
                         .param("sequenceId", Integer.toString(sequence))
-                        .param("primaryBitstream", "false")
+                        .param("primaryBundle_id", null)
                         .param("bitstream_id", bundle.getID().toString()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString().isEmpty();

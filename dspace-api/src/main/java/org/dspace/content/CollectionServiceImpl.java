@@ -372,7 +372,8 @@ public class CollectionServiceImpl extends DSpaceObjectServiceImpl<Collection> i
     }
 
     @Override
-    public void addLogo(Context context, Collection collection, Bitstream newLogo) throws SQLException, AuthorizeException {
+    public void addLogo(Context context, Collection collection, Bitstream newLogo)
+            throws SQLException, AuthorizeException {
         collection.setLogo(newLogo);
 
         // now create policy for logo bitstream
