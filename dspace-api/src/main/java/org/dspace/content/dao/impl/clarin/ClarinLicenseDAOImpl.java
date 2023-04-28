@@ -14,8 +14,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-import org.dspace.content.clarin.ClarinLicense_;
 import org.dspace.content.clarin.ClarinLicense;
+import org.dspace.content.clarin.ClarinLicense_;
 import org.dspace.content.dao.clarin.ClarinLicenseDAO;
 import org.dspace.core.AbstractHibernateDAO;
 import org.dspace.core.Context;
