@@ -147,6 +147,7 @@ public class ClarinBitstreamImportController {
                         try {
                             Bundle primaryBundle = bundleService.find(context, primaryBundleUUID);
                             primaryBundle.setPrimaryBitstreamID(bitstream);
+                            bundleService.update(context, primaryBundle);
                         } catch (SQLException e) {
                             log.error("Something went wrong trying to find the Bundle with uuid: " +
                                     primaryBundleUUID, e);

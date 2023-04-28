@@ -137,7 +137,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
 
         //create new bitstream for existing file
         ObjectMapper mapper = new ObjectMapper();
-        uuid = UUID.fromString(read( getClient(token).perform(post("/api/clarin/import/core/bitstreams")
+        uuid = UUID.fromString(read( getClient(token).perform(post("/api/clarin/import/core/bitstream")
                         .content(mapper.writeValueAsBytes(node))
                         .contentType(contentType)
                         .param("internal_id", internalId)
@@ -145,7 +145,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                         .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
                         .param("deleted", Boolean.toString(deleted))
                         .param("sequenceId", Integer.toString(sequence))
-                        .param("primaryBundle_id", null)
+                        .param("primaryBundle_id", "")
                         .param("bitstream_id", bundle.getID().toString()))
                 .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -172,7 +172,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
 
         //create new bitstream for existing file
         ObjectMapper mapper = new ObjectMapper();
-        uuid = UUID.fromString(read( getClient(token).perform(post("/api/clarin/import/core/bitstreams")
+        uuid = UUID.fromString(read( getClient(token).perform(post("/api/clarin/import/core/bitstream")
                                 .content(mapper.writeValueAsBytes(node))
                                 .contentType(contentType)
                                 .param("internal_id", internalId)
@@ -180,8 +180,8 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                                 .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
                                 .param("deleted", Boolean.toString(deleted))
                                 .param("sequenceId", Integer.toString(sequence))
-                                .param("primaryBundle_id", null)
-                                .param("bitstream_id", null))
+                                .param("primaryBundle_id", "")
+                                .param("bitstream_id", ""))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 "$.id"));
@@ -207,7 +207,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
 
         //create new bitstream for existing file
         ObjectMapper mapper = new ObjectMapper();
-        uuid = UUID.fromString(read( getClient(token).perform(post("/api/clarin/import/core/bitstreams")
+        uuid = UUID.fromString(read( getClient(token).perform(post("/api/clarin/import/core/bitstream")
                                 .content(mapper.writeValueAsBytes(node))
                                 .contentType(contentType)
                                 .param("internal_id", internalId)
@@ -216,13 +216,14 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                                 .param("deleted", Boolean.toString(deleted))
                                 .param("sequenceId", Integer.toString(sequence))
                                 .param("primaryBundle_id", bundle.getID().toString())
-                                .param("bitstream_id", null))
+                                .param("bitstream_id", ""))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 "$.id"));
 
         checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getID(), sequence, deleted, sizeBytes,
                 checkSum);
+        assertEquals(bundle.getPrimaryBitstream().getID(), bitstream.getID());
 
         //clean all
         context.turnOffAuthorisationSystem();
@@ -243,8 +244,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
 
         //create new bitstream for existing file
         ObjectMapper mapper = new ObjectMapper();
-        boolean emptyResponse = getClient(token).perform(post("/api/clarin/import/core/bundles/" +
-                        bundle.getID() + "/bitstreams")
+        boolean emptyResponse = getClient(token).perform(post("/api/clarin/import/core/bitstream")
                         .content(mapper.writeValueAsBytes(node))
                         .contentType(contentType)
                         .param("internal_id", internalId)
@@ -252,7 +252,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                         .param("bitstreamFormat", Integer.toString(bitstreamFormat.getID()))
                         .param("deleted", Boolean.toString(deleted))
                         .param("sequenceId", Integer.toString(sequence))
-                        .param("primaryBundle_id", null)
+                        .param("primaryBundle_id", "")
                         .param("bitstream_id", bundle.getID().toString()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString().isEmpty();

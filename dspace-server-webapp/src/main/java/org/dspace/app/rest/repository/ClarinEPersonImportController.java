@@ -9,14 +9,14 @@ package org.dspace.app.rest.repository;
 
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 
-import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.Date;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.converter.ConverterService;
