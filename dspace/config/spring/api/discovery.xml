@@ -179,6 +179,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item OR search.resourcetype:Collection OR search.resourcetype:Community</value>
+                <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
         <!--The configuration for the recent submissions-->
