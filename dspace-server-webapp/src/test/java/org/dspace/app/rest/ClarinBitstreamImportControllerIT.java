@@ -36,6 +36,7 @@ import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,8 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
     private AuthorizeService authorizeService;
     @Autowired
     private BitstreamService bitstreamService;
+    @Autowired
+    private BundleService bundleService;
     private JsonNodeFactory jsonNodeFactory = new JsonNodeFactory(true);
     @Autowired
     private BitstreamFormatService bitstreamFormatService;
@@ -70,6 +73,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
     private int storeNumber;
     private boolean deleted;
     private int sequence;
+
 
     @Before
     public void setup() throws Exception {
@@ -146,7 +150,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                         .param("deleted", Boolean.toString(deleted))
                         .param("sequenceId", Integer.toString(sequence))
                         .param("primaryBundle_id", "")
-                        .param("bitstream_id", bundle.getID().toString()))
+                        .param("bundle_id", bundle.getID().toString()))
                 .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 "$.id"));
@@ -181,7 +185,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                                 .param("deleted", Boolean.toString(deleted))
                                 .param("sequenceId", Integer.toString(sequence))
                                 .param("primaryBundle_id", "")
-                                .param("bitstream_id", ""))
+                                .param("bundle_id", ""))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 "$.id"));
@@ -216,16 +220,19 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                                 .param("deleted", Boolean.toString(deleted))
                                 .param("sequenceId", Integer.toString(sequence))
                                 .param("primaryBundle_id", bundle.getID().toString())
-                                .param("bitstream_id", ""))
+                                .param("bundle_id", ""))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 "$.id"));
 
         checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getID(), sequence, deleted, sizeBytes,
                 checkSum);
+        bundle = bundleService.find(context, bundle.getID());
         assertEquals(bundle.getPrimaryBitstream().getID(), bitstream.getID());
 
         //clean all
+        bundle.setPrimaryBitstreamID(null);
+        bundleService.update(context, bundle);
         context.turnOffAuthorisationSystem();
         BitstreamBuilder.deleteBitstream(uuid);
         context.restoreAuthSystemState();
@@ -253,7 +260,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                         .param("deleted", Boolean.toString(deleted))
                         .param("sequenceId", Integer.toString(sequence))
                         .param("primaryBundle_id", "")
-                        .param("bitstream_id", bundle.getID().toString()))
+                        .param("bundle_id", bundle.getID().toString()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString().isEmpty();
 
@@ -265,7 +272,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
     private void checkCreatedBitstream(UUID uuid, String internalId, int storeNumber,
                                        Integer bitstreamFormat, int sequence, boolean deleted, long sizeBytes,
                                        String checkSum) throws SQLException {
-        Bitstream bitstream = bitstreamService.find(context, uuid);
+        bitstream = bitstreamService.find(context, uuid);
         assertEquals(bitstream.getChecksum(), checkSum);
         assertEquals(bitstream.getSizeBytes(), sizeBytes);
         assertEquals(bitstream.getFormat(context).getID(), bitstreamFormat);

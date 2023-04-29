@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Specialized controller created for Clarin-Dspace group import.
+ *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
 @RestController

@@ -21,12 +21,19 @@ import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Service interface class for the WorkspaceItem object created for Clarin-Dspace import.
+ * Contains methods needed to import bitstream when dspace5 migrating to dspace7.
+ * The implementation of this class is autowired by spring.
+ * This class should never be accessed directly.
+ *
+ * @author Michaela Paurikova(michaela.paurikova at dataquest.sk)
+ */
 public class ClarinWorkspaceItemServiceImpl implements ClarinWorkspaceItemService {
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(
             ClarinWorkspaceItemServiceImpl.class);
     @Autowired
     private WorkspaceItemService workspaceItemService;
-
     @Autowired
     private WorkspaceItemDAO workspaceItemDAO;
 

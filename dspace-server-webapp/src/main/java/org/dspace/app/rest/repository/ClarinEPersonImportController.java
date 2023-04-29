@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Specialized controller created for Clarin-Dspace eperson import.
+ *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
 @RestController

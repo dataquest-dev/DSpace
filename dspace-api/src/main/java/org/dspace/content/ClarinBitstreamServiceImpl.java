@@ -26,6 +26,14 @@ import org.dspace.event.Event;
 import org.dspace.storage.bitstore.DSBitStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Service interface class for the Bitstream object created for Clarin-Dspace import.
+ * Contains methods needed to import bitstream when dspace5 migrating to dspace7.
+ * The implementation of this class is autowired by spring.
+ * This class should never be accessed directly.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 //If this class wants to catch the Bitstream protected constructor, it must be in this package!
 public class ClarinBitstreamServiceImpl implements ClarinBitstreamService {
     /**
@@ -40,16 +48,13 @@ public class ClarinBitstreamServiceImpl implements ClarinBitstreamService {
     private DSBitStoreService storeService;
     protected ClarinBitstreamServiceImpl() {
     }
-    @Autowired(required = true)
+    @Autowired
     protected BitstreamDAO bitstreamDAO;
-
-    @Autowired(required = true)
+    @Autowired
     protected AuthorizeService authorizeService;
-
-    @Autowired(required = true)
+    @Autowired
     protected BundleService bundleService;
-
-    @Autowired(required = true)
+    @Autowired
     protected BitstreamService bitstreamService;
 
     @Override

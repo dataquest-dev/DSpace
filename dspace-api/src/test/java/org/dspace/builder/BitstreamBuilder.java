@@ -237,6 +237,7 @@ public class BitstreamBuilder extends AbstractDSpaceObjectBuilder<Bitstream> {
                 try {
                     bitstreamService.delete(c, bitstream);
                     bitstreamService.expunge(c, bitstream);
+                    c.commit();
                 } catch (AuthorizeException e) {
                     throw new RuntimeException(e);
                 }

@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Specialized controller created for Clarin-Dspace import bitstream.
+ *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
 @RestController

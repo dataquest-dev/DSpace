@@ -54,6 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Specialized controller created for Clarin-Dspace import item, workspace item and workflow item.
+ *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
 @RestController
