@@ -176,7 +176,7 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
                             .contentType(contentType)
                             .param("projection", "full")
                             .param("selfRegistered", "true")
-                            .param("lastActive", "2018-02-10T13:21:29")
+                            .param("lastActive", "2018-02-10T13:21:29.733")
                             .param("userRegistration", "true")
                             .param("organization", "https://test.com")
                             .param("confirmation", "false"))
