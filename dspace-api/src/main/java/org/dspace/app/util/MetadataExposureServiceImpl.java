@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.util.service.MetadataExposureService;
 import org.dspace.authorize.service.AuthorizeService;
@@ -67,6 +68,11 @@ public class MetadataExposureServiceImpl implements MetadataExposureService {
 
     protected final String CONFIG_PREFIX = "metadata.hide.";
 
+    /**
+     * You can define hidden metadata could be seen by the submitter.
+     */
+    private final String SUBMITTER_CONST = "submitter";
+
     @Autowired(required = true)
     protected AuthorizeService authorizeService;
 
@@ -111,7 +117,8 @@ public class MetadataExposureServiceImpl implements MetadataExposureService {
         }
 
         // The user is not administrator, but he could be a submitter
-        if (hidden && Objects.nonNull(context) && Objects.nonNull(item)) {
+        if (hidden && Objects.nonNull(context) && Objects.nonNull(item) &&
+                this.submitterShouldSee(schema, element, qualifier)) {
             // the submitters override
             hidden = !item.getSubmitter().equals(context.getCurrentUser());
         }
@@ -144,7 +151,9 @@ public class MetadataExposureServiceImpl implements MetadataExposureService {
             List<String> propertyKeys = configurationService.getPropertyKeys();
             for (String key : propertyKeys) {
                 if (key.startsWith(CONFIG_PREFIX)) {
-                    if (configurationService.getBooleanProperty(key, true)) {
+                    // hidden property could be boolean or a string (`submitter`)
+                    if (StringUtils.equals(configurationService.getProperty(key), SUBMITTER_CONST) ||
+                            configurationService.getBooleanProperty(key, true)) {
                         String mdField = key.substring(CONFIG_PREFIX.length());
                         String segment[] = mdField.split("\\.", 3);
 
@@ -172,5 +181,15 @@ public class MetadataExposureServiceImpl implements MetadataExposureService {
                 }
             }
         }
+    }
+
+    private boolean submitterShouldSee(String schema, String element, String qualifier) {
+        String composedMetadataField = schema + "." + element;
+        if (StringUtils.isNotBlank(qualifier)) {
+            composedMetadataField += "." + qualifier;
+        }
+
+        String hiddenPropertyValue = this.configurationService.getProperty(CONFIG_PREFIX + composedMetadataField);
+        return StringUtils.equals(hiddenPropertyValue, SUBMITTER_CONST);
     }
 }
