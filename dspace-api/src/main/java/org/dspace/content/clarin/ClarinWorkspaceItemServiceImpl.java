@@ -8,6 +8,7 @@
 package org.dspace.content.clarin;
 
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.logging.log4j.Logger;
@@ -59,13 +60,11 @@ public class ClarinWorkspaceItemServiceImpl implements ClarinWorkspaceItemServic
         WorkspaceItem workspaceItem = workspaceItemDAO.findByID(context, WorkspaceItem.class, uuid);
 
         //create log if the workspace item is not found
-        if (workspaceItem == null) {
-            if (log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
+            if (Objects.nonNull(workspaceItem)) {
                 log.debug(LogHelper.getHeader(context, "find_workspace_item",
                         "not_found,workspace_item_uuid=" + uuid));
-            }
-        } else {
-            if (log.isDebugEnabled()) {
+            } else {
                 log.debug(LogHelper.getHeader(context, "find_workspace_item",
                         "workspace_item_uuid=" + uuid));
             }
