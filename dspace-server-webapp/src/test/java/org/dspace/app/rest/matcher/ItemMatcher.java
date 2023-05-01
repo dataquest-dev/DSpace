@@ -10,6 +10,7 @@ package org.dspace.app.rest.matcher;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.rest.matcher.HalMatcher.matchEmbeds;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
+import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataDoesNotExist;
 import static org.dspace.app.rest.test.AbstractControllerIntegrationTest.REST_SERVER_URL;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.is;
@@ -56,6 +57,44 @@ public class ItemMatcher {
                         matchMetadata("dc.title", title),
                         matchMetadata("local.approximateDate.issued", approximateDateIssued),
                         matchMetadata("dc.date.issued", approximateDateIssued))),
+
+                //Check links
+                matchLinks(item.getID())
+        );
+    }
+
+    /**
+     * The item has the metadata `local.submission.note`
+     */
+    public static Matcher<? super Object> matchItemWithTitleAndLocalNote(Item item, String title,
+                                                                                     String localNote) {
+        return allOf(
+                //Check item properties
+                matchItemProperties(item),
+
+                //Check core metadata (the JSON Path expression evaluates to a collection so we have to use contains)
+                hasJsonPath("$.metadata", allOf(
+                        matchMetadata("dc.title", title),
+                        matchMetadata("local.submission.note", localNote))),
+
+                //Check links
+                matchLinks(item.getID())
+        );
+    }
+
+    /**
+     * The item doesn't have the metadata `local.submission.note`
+     */
+    public static Matcher<? super Object> notMatchItemWithTitleAndLocalNote(Item item, String title,
+                                                                         String localNote) {
+        return allOf(
+                //Check item properties
+                matchItemProperties(item),
+
+                //Check core metadata (the JSON Path expression evaluates to a collection so we have to use contains)
+                hasJsonPath("$.metadata", allOf(
+                        matchMetadata("dc.title", title),
+                        matchMetadataDoesNotExist("local.submission.note"))),
 
                 //Check links
                 matchLinks(item.getID())

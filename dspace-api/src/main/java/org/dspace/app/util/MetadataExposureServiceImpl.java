@@ -12,11 +12,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.util.service.MetadataExposureService;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +80,12 @@ public class MetadataExposureServiceImpl implements MetadataExposureService {
     @Override
     public boolean isHidden(Context context, String schema, String element, String qualifier)
         throws SQLException {
+        return this.isHidden(context, schema, element, qualifier, null);
+    }
+
+    @Override
+    public boolean isHidden(Context context, String schema, String element, String qualifier, Item item)
+            throws SQLException {
         boolean hidden = false;
 
         // for schema.element, just check schema->elementSet
@@ -100,6 +108,12 @@ public class MetadataExposureServiceImpl implements MetadataExposureService {
         if (hidden && context != null) {
             // the administrator's override
             hidden = !authorizeService.isAdmin(context);
+        }
+
+        // The user is not administrator, but he could be a submitter
+        if (hidden && Objects.nonNull(context) && Objects.nonNull(item)) {
+            // the submitters override
+            hidden = !item.getSubmitter().equals(context.getCurrentUser());
         }
 
         return hidden;

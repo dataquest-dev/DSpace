@@ -4390,4 +4390,67 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .andExpect(jsonPath("$", publicItemMatcher));
     }
 
+    @Test
+    public void submitterShouldSeeLocalNoteMetadata() throws Exception {
+        // Admin - should see `local.submission.note`
+        // Submitter - should see `local.submission.note`
+        // Anonymous user - should not see `local.submission.note`
+
+        final String NOTE = "This is note";
+        final String EPERSON_PASSWORD = "qwerty01";
+
+        context.turnOffAuthorisationSystem();
+        // Create Submitter user - Admin and Anonymous user (eperson) is already created
+
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                .withEmail("clarin@mail.com")
+                .withPassword(EPERSON_PASSWORD)
+                .build();
+
+        context.setCurrentUser(submitter);
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community and one collection
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection").build();
+
+        //2. Create Item with submitter person, with `local.submission.note` metadata
+        Item publicItem = ItemBuilder.createItem(context, col)
+                .withTitle("Public item")
+                .withIssueDate("2021-04-27")
+                .withMetadata("local", "submission", "note", NOTE)
+                .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                .withSubject("ExtraEntry")
+                .build();
+
+        context.restoreAuthSystemState();
+        Matcher<? super Object> notExistNoteLocalMetadataMatcher =
+                ItemMatcher.notMatchItemWithTitleAndLocalNote(publicItem,"Public item", NOTE);
+
+        Matcher<? super Object> existNoteLocalMetadataMatcher = ItemMatcher.matchItemWithTitleAndLocalNote(publicItem,
+                "Public item", NOTE);
+
+        // Anonymous user - shouldn't see `local.submission.note`
+        getClient().perform(get("/api/core/items/" + publicItem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", HalMatcher.matchNoEmbeds()))
+                .andExpect(jsonPath("$", notExistNoteLocalMetadataMatcher));
+
+        String submitterToken = getAuthToken(submitter.getEmail(), EPERSON_PASSWORD);
+        // Submitter user - should see `local.submission.note`
+        getClient(submitterToken).perform(get("/api/core/items/" + publicItem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", HalMatcher.matchNoEmbeds()))
+                .andExpect(jsonPath("$", existNoteLocalMetadataMatcher));
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        // Admin - should see `local.submission.note`
+        getClient(adminToken).perform(get("/api/core/items/" + publicItem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", HalMatcher.matchNoEmbeds()))
+                .andExpect(jsonPath("$", existNoteLocalMetadataMatcher));
+    }
+
 }
