@@ -66,15 +66,13 @@ public class ItemMatcher {
     /**
      * The item has the metadata `local.submission.note`
      */
-    public static Matcher<? super Object> matchItemWithTitleAndLocalNote(Item item, String title,
-                                                                                     String localNote) {
+    public static Matcher<? super Object> matchItemWithLocalNote(Item item, String localNote) {
         return allOf(
                 //Check item properties
                 matchItemProperties(item),
 
                 //Check core metadata (the JSON Path expression evaluates to a collection so we have to use contains)
                 hasJsonPath("$.metadata", allOf(
-                        matchMetadata("dc.title", title),
                         matchMetadata("local.submission.note", localNote))),
 
                 //Check links
@@ -85,16 +83,48 @@ public class ItemMatcher {
     /**
      * The item doesn't have the metadata `local.submission.note`
      */
-    public static Matcher<? super Object> notMatchItemWithTitleAndLocalNote(Item item, String title,
-                                                                         String localNote) {
+    public static Matcher<? super Object> notMatchItemWithLocalNote(Item item) {
         return allOf(
                 //Check item properties
                 matchItemProperties(item),
 
                 //Check core metadata (the JSON Path expression evaluates to a collection so we have to use contains)
                 hasJsonPath("$.metadata", allOf(
-                        matchMetadata("dc.title", title),
                         matchMetadataDoesNotExist("local.submission.note"))),
+
+                //Check links
+                matchLinks(item.getID())
+        );
+    }
+
+    /**
+     * The item doesn't have the metadata `dc.description.provenance`
+     */
+    public static Matcher<? super Object> matchItemWithDescriptionProvenance(Item item, String provenance) {
+        return allOf(
+                //Check item properties
+                matchItemProperties(item),
+
+                //Check core metadata (the JSON Path expression evaluates to a collection so we have to use contains)
+                hasJsonPath("$.metadata", allOf(
+                        matchMetadata("dc.description.provenance", provenance))),
+
+                //Check links
+                matchLinks(item.getID())
+        );
+    }
+
+    /**
+     * The item doesn't have the metadata `dc.description.provenance`
+     */
+    public static Matcher<? super Object> notMatchItemWithDescriptionProvenance(Item item) {
+        return allOf(
+                //Check item properties
+                matchItemProperties(item),
+
+                //Check core metadata (the JSON Path expression evaluates to a collection so we have to use contains)
+                hasJsonPath("$.metadata", allOf(
+                        matchMetadataDoesNotExist("dc.description.provenance"))),
 
                 //Check links
                 matchLinks(item.getID())

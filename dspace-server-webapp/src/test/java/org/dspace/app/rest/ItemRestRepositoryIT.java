@@ -4392,10 +4392,11 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void submitterShouldSeeLocalNoteMetadata() throws Exception {
-        // Admin - should see `local.submission.note`
-        // Submitter - should see `local.submission.note`
-        // Anonymous user - should not see `local.submission.note`
+        // Admin - should see `local.submission.note` and `dc.description.provenance`
+        // Submitter - should see `local.submission.note` but not `dc.local.provenance`
+        // Anonymous user - should not see `local.submission.note` and `dc.description.provenance` also
 
+        final String PROVENANCE = "This is provenance";
         final String NOTE = "This is note";
         final String EPERSON_PASSWORD = "qwerty01";
 
@@ -4421,36 +4422,45 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .withTitle("Public item")
                 .withIssueDate("2021-04-27")
                 .withMetadata("local", "submission", "note", NOTE)
+                .withMetadata("dc", "description", "provenance", PROVENANCE)
                 .withAuthor("Smith, Donald").withAuthor("Doe, John")
                 .withSubject("ExtraEntry")
                 .build();
 
         context.restoreAuthSystemState();
         Matcher<? super Object> notExistNoteLocalMetadataMatcher =
-                ItemMatcher.notMatchItemWithTitleAndLocalNote(publicItem,"Public item", NOTE);
+                ItemMatcher.notMatchItemWithLocalNote(publicItem);
 
-        Matcher<? super Object> existNoteLocalMetadataMatcher = ItemMatcher.matchItemWithTitleAndLocalNote(publicItem,
-                "Public item", NOTE);
+        Matcher<? super Object> existNoteLocalMetadataMatcher = ItemMatcher.matchItemWithLocalNote(publicItem, NOTE);
 
-        // Anonymous user - shouldn't see `local.submission.note`
+        Matcher<? super Object> notExistDescriptionProvenanceMetadataMatcher =
+                ItemMatcher.notMatchItemWithDescriptionProvenance(publicItem);
+
+        Matcher<? super Object> existDescriptionProvenanceMetadataMatcher = ItemMatcher
+                .matchItemWithDescriptionProvenance(publicItem,PROVENANCE);
+
+        // Anonymous user - should not see `local.submission.note` and `dc.description.provenance` also
         getClient().perform(get("/api/core/items/" + publicItem.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", HalMatcher.matchNoEmbeds()))
-                .andExpect(jsonPath("$", notExistNoteLocalMetadataMatcher));
+                .andExpect(jsonPath("$", notExistNoteLocalMetadataMatcher))
+                .andExpect(jsonPath("$", notExistDescriptionProvenanceMetadataMatcher));
 
         String submitterToken = getAuthToken(submitter.getEmail(), EPERSON_PASSWORD);
-        // Submitter user - should see `local.submission.note`
+        // Submitter user - should see `local.submission.note` but not `dc.local.provenance`
         getClient(submitterToken).perform(get("/api/core/items/" + publicItem.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", HalMatcher.matchNoEmbeds()))
-                .andExpect(jsonPath("$", existNoteLocalMetadataMatcher));
+                .andExpect(jsonPath("$", existNoteLocalMetadataMatcher))
+                .andExpect(jsonPath("$", notExistDescriptionProvenanceMetadataMatcher));
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        // Admin - should see `local.submission.note`
+        // Admin - should see `local.submission.note` and `dc.description.provenance`
         getClient(adminToken).perform(get("/api/core/items/" + publicItem.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", HalMatcher.matchNoEmbeds()))
-                .andExpect(jsonPath("$", existNoteLocalMetadataMatcher));
+                .andExpect(jsonPath("$", existNoteLocalMetadataMatcher))
+                .andExpect(jsonPath("$", existDescriptionProvenanceMetadataMatcher));
     }
 
 }
