@@ -16,6 +16,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -78,7 +79,7 @@ public class ClarinGroupRestController {
 
         Context context = obtainContext(request);
         Group parentGroup = groupService.find(context, uuid);
-        if (parentGroup == null) {
+        if (Objects.isNull(parentGroup)) {
             throw new ResourceNotFoundException("parent group is not found for uuid: " + uuid);
         }
 

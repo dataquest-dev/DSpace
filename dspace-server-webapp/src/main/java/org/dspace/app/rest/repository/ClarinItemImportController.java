@@ -126,7 +126,7 @@ public class ClarinItemImportController {
 
         UUID owningCollectionUuid = UUIDUtils.fromString(owningCollectionUuidString);
         Collection collection = collectionService.find(context, owningCollectionUuid);
-        if (collection == null) {
+        if (Objects.isNull(collection)) {
             throw new DSpaceBadRequestException("The given owningCollection parameter is invalid: "
                     + owningCollectionUuid);
         }

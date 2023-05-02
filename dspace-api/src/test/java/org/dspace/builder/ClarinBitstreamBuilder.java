@@ -19,6 +19,8 @@ import org.dspace.core.Context;
 /**
  * Builder class to build bitstreams in test cases.
  * This builder was created  for Clarin-Dspace import.
+ *
+ * @author Michaela Paurikova(michaela.paurikova at dataquest.sk)
  */
 public class ClarinBitstreamBuilder extends AbstractDSpaceObjectBuilder<Bitstream> {
 

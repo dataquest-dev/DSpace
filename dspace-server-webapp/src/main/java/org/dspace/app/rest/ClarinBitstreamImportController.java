@@ -132,33 +132,33 @@ public class ClarinBitstreamImportController {
             bitstream.setFormat(context, bitstreamFormat);
             String deletedString = request.getParameter("deleted");
             //join created bitstream with file stored in assetstore
-            if (clarinBitstreamService.addExistingFile(context, bitstream, bitstreamRest.getSizeBytes(),
+            if (!clarinBitstreamService.addExistingFile(context, bitstream, bitstreamRest.getSizeBytes(),
                     bitstreamRest.getCheckSum().getValue(), bitstreamRest.getCheckSum().getCheckSumAlgorithm())) {
-                if (bitstreamRest.getMetadata().getMap().size() > 0) {
-                    metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
-                }
-                if (Boolean.parseBoolean(deletedString)) {
-                    bitstreamService.delete(context, bitstream);
-                } else {
-                    //set bitstream as primary bitstream for bundle
-                    //if bitstream is not primary bitstream, bundle is null
-                    String primaryBundleUUIDString = request.getParameter("primaryBundle_id");
-                    if (StringUtils.isNotBlank(primaryBundleUUIDString)) {
-                        UUID primaryBundleUUID = UUID.fromString(primaryBundleUUIDString);
-                        try {
-                            Bundle primaryBundle = bundleService.find(context, primaryBundleUUID);
-                            primaryBundle.setPrimaryBitstreamID(bitstream);
-                            bundleService.update(context, primaryBundle);
-                        } catch (SQLException e) {
-                            log.error("Something went wrong trying to find the Bundle with uuid: " +
-                                    primaryBundleUUID, e);
-                        }
-                    }
-                }
-                bitstreamService.update(context, bitstream);
-            } else {
                 return null;
             }
+
+            if (bitstreamRest.getMetadata().getMap().size() > 0) {
+                metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
+            }
+            if (Boolean.parseBoolean(deletedString)) {
+                bitstreamService.delete(context, bitstream);
+            } else {
+                //set bitstream as primary bitstream for bundle
+                //if bitstream is not primary bitstream, bundle is null
+                String primaryBundleUUIDString = request.getParameter("primaryBundle_id");
+                if (StringUtils.isNotBlank(primaryBundleUUIDString)) {
+                    UUID primaryBundleUUID = UUID.fromString(primaryBundleUUIDString);
+                    try {
+                        Bundle primaryBundle = bundleService.find(context, primaryBundleUUID);
+                        primaryBundle.setPrimaryBitstreamID(bitstream);
+                        bundleService.update(context, primaryBundle);
+                    } catch (SQLException e) {
+                        log.error("Something went wrong trying to find the Bundle with uuid: " +
+                                primaryBundleUUID, e);
+                    }
+                }
+            }
+            bitstreamService.update(context, bitstream);
 
             if (bundle != null) {
                 List<Item> items = bundle.getItems();

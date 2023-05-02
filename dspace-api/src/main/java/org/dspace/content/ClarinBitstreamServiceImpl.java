@@ -46,8 +46,6 @@ public class ClarinBitstreamServiceImpl implements ClarinBitstreamService {
 
     @Autowired
     private DSBitStoreService storeService;
-    protected ClarinBitstreamServiceImpl() {
-    }
     @Autowired
     protected BitstreamDAO bitstreamDAO;
     @Autowired
@@ -56,6 +54,9 @@ public class ClarinBitstreamServiceImpl implements ClarinBitstreamService {
     protected BundleService bundleService;
     @Autowired
     protected BitstreamService bitstreamService;
+
+    protected ClarinBitstreamServiceImpl() {
+    }
 
     @Override
     public Bitstream create(Context context, Bundle bundle) throws SQLException, AuthorizeException {
@@ -73,7 +74,7 @@ public class ClarinBitstreamServiceImpl implements ClarinBitstreamService {
                         null, bitstreamService.getIdentifiers(context, bitstream)));
 
         //add bitstream to bundle if the bundle is entered
-        if (bundle != null) {
+        if (Objects.nonNull(bundle)) {
             bundleService.addBitstream(context, bundle, bitstream);
         }
         log.debug("Created new empty Bitstream with id: " + bitstream.getID());
