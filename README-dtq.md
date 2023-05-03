@@ -12,13 +12,29 @@ DSpace uses GitHub to track issues:
 * Frontend (User Interface) issues: https://github.com/DSpace/dspace-angular/issues
 
 
-## Missing or unfinished features - migration issues
+# Missing or unfinished features - migration issues
 - License labels are missing icons, so you won't see license icons in the Item. Issue: https://github.com/dataquest-dev/DSpace/issues/262
 - Item View is missing history table, that means you won't see other versions of the Item. Issue: https://github.com/dataquest-dev/DSpace/issues/256
 - Item's metadata has wrong separator in the metadata field, it should be `;`, but it is `@@`. Issue: https://github.com/dataquest-dev/DSpace/issues/261
 - Item has imported only one type. Issue: https://github.com/dataquest-dev/DSpace/issues/255
 - Publisher metadata value is imported into wrong metadata field, it is `creativework.publisher` instead of `dc.publisher`. Issue: https://github.com/dataquest-dev/DSpace/issues/254
 - Language is not properly showed in the Item View, it is `ces, zxx` instead of `Czech, Nolinguistic content`. Issue: https://github.com/dataquest-dev/DSpace/issues/253
+
+### Tables which are not migrated yet:
+- resurcepolicy, 
+- schema_version, 
+- subscription, 
+- tasklistitem, 
+- webapp, 
+- license_ressource_user_allowance, 
+- user_metadata, 
+- verification_token
+
+### Tables which are missing in the DSpace7.*., but they are in the CLARIN-DSpace5.* (they are not planned to migrate)
+- userconnection, 
+- license_file_download_statistic, 
+- piwik_reposr, 
+- shibboleth_attribute_mapping
 
 
 ## Testing
