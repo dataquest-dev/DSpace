@@ -45,6 +45,7 @@ public class GeoIpService {
             return new DatabaseReader.Builder(dbFile).build();
         } catch (FileNotFoundException fe) {
             throw new IllegalStateException(
+<<<<<<< HEAD
                     "The GeoLite Database file is missing (" + dbPath + ")! Solr Statistics cannot generate location " +
                         "based reports! Please see the DSpace installation instructions for instructions to install " +
                         "this file.",fe);
@@ -55,3 +56,15 @@ public class GeoIpService {
         }
     }
 }
+=======
+                "The GeoLite Database file is missing (" + dbPath + ")! Solr Statistics cannot generate location " +
+                    "based reports! Please see the DSpace installation instructions for instructions to install " +
+                    "this file.",fe);
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                "Unable to load GeoLite Database file (" + dbPath + ")! You may need to reinstall it. See the " +
+                    "DSpace installation instructions for more details.", e);
+        }
+    }
+}
+>>>>>>> dspace-7.5

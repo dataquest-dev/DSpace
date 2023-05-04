@@ -15,7 +15,9 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Item;
+import org.dspace.content.Relationship;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
@@ -46,7 +48,11 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
     @Autowired(required = true)
     protected IdentifierService identifierService;
     @Autowired(required = true)
+<<<<<<< HEAD
     protected HandleService handleService;
+=======
+    protected RelationshipService relationshipService;
+>>>>>>> dspace-7.5
 
     @Override
     public Item createNewItemAndAddItInWorkspace(Context context, Item nativeItem) {
@@ -92,10 +98,18 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
         }
     }
 
+    /**
+     * Copy all data (minus a few exceptions) from the old item to the new item.
+     * @param c the DSpace context.
+     * @param itemNew the new version of the item.
+     * @param previousItem the old version of the item.
+     * @return the new version of the item, with data from the old item.
+     */
     @Override
     public Item updateItemState(Context c, Item itemNew, Item previousItem) {
         try {
             copyMetadata(c, itemNew, previousItem);
+            copyRelationships(c, itemNew, previousItem);
             createBundlesAndAddBitstreams(c, itemNew, previousItem);
             try {
                 identifierService.reserve(c, itemNew);
@@ -124,6 +138,7 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
     }
 
     /**
+<<<<<<< HEAD
      * Add metadata `dc.relation.replaces` to the new item.
      */
     private void manageRelationMetadata(Context c, Item itemNew, Item previousItem) throws SQLException {
@@ -137,4 +152,49 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
         itemService.addMetadata(c, itemNew, "dc", "relation", "replaces", null,
                 identifierUriPrevItem);
     }
+=======
+     * Copy all relationships of the old item to the new item.
+     * At this point in the lifecycle of the item-version (before archival), only the opposite item receives
+     * "latest" status. On item archival of the item-version, the "latest" status of the relevant relationships
+     * will be updated.
+     * @param context the DSpace context.
+     * @param newItem the new version of the item.
+     * @param oldItem the old version of the item.
+     */
+    protected void copyRelationships(
+        Context context, Item newItem, Item oldItem
+    ) throws SQLException, AuthorizeException {
+        List<Relationship> oldRelationships = relationshipService.findByItem(context, oldItem, -1, -1, false, true);
+        for (Relationship oldRelationship : oldRelationships) {
+            if (oldRelationship.getLeftItem().equals(oldItem)) {
+                // current item is on left side of this relationship
+                relationshipService.create(
+                    context,
+                    newItem,  // new item
+                    oldRelationship.getRightItem(),
+                    oldRelationship.getRelationshipType(),
+                    oldRelationship.getLeftPlace(),
+                    oldRelationship.getRightPlace(),
+                    oldRelationship.getLeftwardValue(),
+                    oldRelationship.getRightwardValue(),
+                    Relationship.LatestVersionStatus.RIGHT_ONLY // only mark the opposite side as "latest" for now
+                );
+            } else if (oldRelationship.getRightItem().equals(oldItem)) {
+                // current item is on right side of this relationship
+                relationshipService.create(
+                    context,
+                    oldRelationship.getLeftItem(),
+                    newItem, // new item
+                    oldRelationship.getRelationshipType(),
+                    oldRelationship.getLeftPlace(),
+                    oldRelationship.getRightPlace(),
+                    oldRelationship.getLeftwardValue(),
+                    oldRelationship.getRightwardValue(),
+                    Relationship.LatestVersionStatus.LEFT_ONLY // only mark the opposite side as "latest" for now
+                );
+            }
+        }
+    }
+
+>>>>>>> dspace-7.5
 }

@@ -181,7 +181,11 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                    .andExpect(jsonPath("$.rows[0].fields", contains(
                         SubmissionFormFieldMatcher.matchFormFieldDefinition("name", "Author", null,
                           null, true,"Add an author", "dc.contributor.author"))))
+<<<<<<< HEAD
                    .andExpect(jsonPath("$.rows[1].fields", not(contains(
+=======
+                   .andExpect(jsonPath("$.rows[1].fields", contains(
+>>>>>>> dspace-7.5
                         SubmissionFormFieldMatcher.matchFormFieldDefinition("onebox", "Title", null,
                                 "You must enter a main title for this item.", false,
                                 "Enter the main title of the item.", "dc.title")))))

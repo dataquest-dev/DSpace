@@ -36,6 +36,7 @@ public class EPersonBuilder extends AbstractDSpaceObjectBuilder<EPerson> {
     @Override
     public void cleanup() throws Exception {
         try (Context c = new Context()) {
+            c.setDispatcher("noindex");
             c.turnOffAuthorisationSystem();
             // Ensure object and any related objects are reloaded before checking to see what needs cleanup
             ePerson = c.reloadEntity(ePerson);
@@ -132,6 +133,7 @@ public class EPersonBuilder extends AbstractDSpaceObjectBuilder<EPerson> {
         return this;
     }
 
+<<<<<<< HEAD
     private static void deleteUserRegistration(Context context, EPerson eperson)
             throws SQLException, AuthorizeException {
         if (Objects.isNull(eperson)) {
@@ -152,6 +154,16 @@ public class EPersonBuilder extends AbstractDSpaceObjectBuilder<EPerson> {
         context.turnOffAuthorisationSystem();
         clarinUserRegistrationService.delete(context, userRegistration);
         context.restoreAuthSystemState();
+=======
+    public EPersonBuilder withOrcid(final String orcid) {
+        setMetadataSingleValue(ePerson, "eperson", "orcid", null, orcid);
+        return this;
+    }
+
+    public EPersonBuilder withOrcidScope(final String scope) {
+        addMetadataValue(ePerson, "eperson", "orcid", "scope", scope);
+        return this;
+>>>>>>> dspace-7.5
     }
 
     public static void deleteEPerson(UUID uuid) throws SQLException, IOException {

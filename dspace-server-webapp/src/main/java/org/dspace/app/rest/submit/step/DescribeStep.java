@@ -46,7 +46,10 @@ import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+<<<<<<< HEAD
 import org.springframework.util.ObjectUtils;
+=======
+>>>>>>> dspace-7.5
 
 /**
  * Describe step for DSpace Spring Rest. Expose and allow patching of the in progress submission metadata. It is

@@ -8,6 +8,7 @@
 package org.dspace.app.rest.submit.step.validation;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
@@ -41,15 +42,20 @@ public class UploadValidation extends AbstractValidation {
     public List<ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj,
                                     SubmissionStepConfig config) throws DCInputsReaderException, SQLException {
         //TODO MANAGE METADATA
-
+        List<ErrorRest> errors = new ArrayList<>();
         UploadConfiguration uploadConfig = uploadConfigurationService.getMap().get(config.getId());
+<<<<<<< HEAD
         if (uploadConfig.isRequired() && !itemService.hasUploadedFiles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME) &&
                 !itemService.hasUploadedFiles(obj.getItem(), Constants.METADATA_BUNDLE_NAME)) {
             addError(ERROR_VALIDATION_FILEREQUIRED,
+=======
+        if (uploadConfig.isRequired() && !itemService.hasUploadedFiles(obj.getItem())) {
+            addError(errors, ERROR_VALIDATION_FILEREQUIRED,
+>>>>>>> dspace-7.5
                      "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/"
                          + config.getId());
         }
-        return getErrors();
+        return errors;
     }
 
     public ItemService getItemService() {

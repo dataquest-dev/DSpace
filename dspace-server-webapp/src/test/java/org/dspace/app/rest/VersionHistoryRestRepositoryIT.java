@@ -456,11 +456,20 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
                 .build();
 
         Item item = ItemBuilder.createItem(context, col)
+<<<<<<< HEAD
                 .withTitle("Public test item")
                 .withIssueDate("2021-04-27")
                 .withAuthor("Doe, John")
                 .withSubject("ExtraEntry")
                 .build();
+=======
+                               .withTitle("Public test item")
+                               .withIssueDate("2021-04-27")
+                               .withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .grantLicense()
+                               .build();
+>>>>>>> dspace-7.5
 
         Version version = VersionBuilder.createVersion(context, item, "test").build();
         VersionHistory vh = versionHistoryService.findByItem(context, version.getItem());
@@ -589,11 +598,20 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
                 .build();
 
         Item item = ItemBuilder.createItem(context, col)
+<<<<<<< HEAD
                 .withTitle("Public test item")
                 .withIssueDate("2021-03-20")
                 .withAuthor("Doe, John")
                 .withSubject("ExtraEntry")
                 .build();
+=======
+                               .withTitle("Public test item")
+                               .withIssueDate("2021-03-20")
+                               .withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .grantLicense()
+                               .build();
+>>>>>>> dspace-7.5
 
         Version v2 = VersionBuilder.createVersion(context, item, "test").build();
         VersionHistory versionHistory = versionHistoryService.findByItem(context, item);
