@@ -82,8 +82,7 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
         }
 
         // validate fields
-        if (isBlank(clarinLicenseLabelRest.getLabel()) || isBlank(clarinLicenseLabelRest.getTitle()) ||
-                ArrayUtils.isEmpty(clarinLicenseLabelRest.getIcon())) {
+        if (isBlank(clarinLicenseLabelRest.getLabel()) || isBlank(clarinLicenseLabelRest.getTitle())) {
             throw new UnprocessableEntityException("CLARIN License Label title, label, icon cannot be null or empty");
         }
 
