@@ -35,10 +35,13 @@ import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
+import org.dspace.core.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -61,6 +64,8 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
 
     @Autowired
     ClarinLicenseService clarinLicenseService;
+    @Autowired
+    ClarinUserRegistrationService userRegistrationService;
 
     @Autowired
     WorkspaceItemService wis;
@@ -151,6 +156,13 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
                     "license label cannot be null or empty");
         }
 
+        List<ClarinUserRegistration> userRegistrations = userRegistrationService.findByEPersonUUID(context, context.getCurrentUser().getID());
+        if (CollectionUtils.isEmpty(userRegistrations)) {
+            throw new UnprocessableEntityException("Clarin License user registration, " +
+                    "cannot be null");
+        }
+        ClarinUserRegistration userRegistration = userRegistrations.get(0);
+
         // create
         ClarinLicense clarinLicense;
         clarinLicense = clarinLicenseService.create(context);
@@ -160,6 +172,7 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
         clarinLicense.setDefinition(clarinLicenseRest.getDefinition());
         clarinLicense.setConfirmation(clarinLicenseRest.getConfirmation());
         clarinLicense.setRequiredInfo(clarinLicenseRest.getRequiredInfo());
+        clarinLicense.setEperson(userRegistration);
 
         clarinLicenseService.update(context, clarinLicense);
         // return
