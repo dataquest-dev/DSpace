@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.security;
 
+import static org.dspace.app.rest.security.ShibbolethLoginFilterIT.PASS_ONLY;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -322,6 +323,80 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(jsonPath("$.page.totalElements", is(0)))
                 .andExpect(jsonPath("$._embedded").doesNotExist());
 
+    }
+
+    // This test is copied from the `AuthenticationRestControllerIT` and modified following the Clarin updates.
+    @Test
+    public void testShibbolethEndpointCannotBeUsedWithShibDisabled() throws Exception {
+        // Enable only password login
+        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", PASS_ONLY);
+
+        String uiURL = configurationService.getProperty("dspace.ui.url");
+
+        // Verify /api/authn/shibboleth endpoint does not work
+        // NOTE: this is the same call as in testStatusShibAuthenticatedWithCookie())
+        String token = getClient().perform(get("/api/authn/shibboleth")
+                        .header("Referer", "https://myshib.example.com")
+                        .param("redirectUrl", uiURL)
+                        .requestAttr("SHIB-MAIL", eperson.getEmail())
+                        .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
+                .andExpect(status().isFound())
+                .andReturn().getResponse().getHeader("Authorization");
+
+        getClient(token).perform(get("/api/authn/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authenticated", is(false)))
+                .andExpect(jsonPath("$.authenticationMethod").doesNotExist());
+
+        getClient(token).perform(
+                        get("/api/authz/authorizations/search/object")
+                                .param("embed", "feature")
+                                .param("feature", feature)
+                                .param("uri", utils.linkToSingleResource(ePersonRest, "self").getHref()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(0)))
+                .andExpect(jsonPath("$._embedded").doesNotExist());
+    }
+
+    // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Test
+    public void testNoRedirectIfInvalidShibAttributes() throws Exception {
+        // In this request, we use a SHIB-MAIL attribute which does NOT match an EPerson.
+        getClient().perform(get("/api/authn/shibboleth")
+                        .requestAttr("SHIB-MAIL", "not-an-eperson@example.com"))
+                .andExpect(status().isFound());
+    }
+
+    // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Test
+    public void testNoRedirectIfShibbolethDisabled() throws Exception {
+        // Enable Password authentication ONLY
+        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", PASS_ONLY);
+
+        // Test redirecting to a trusted URL (same as previous test).
+        // This time we should be unauthorized as Shibboleth is disabled.
+        getClient().perform(get("/api/authn/shibboleth")
+                        .param("redirectUrl", "http://localhost:8080/server/api/authn/status")
+                        .requestAttr("SHIB-MAIL", eperson.getEmail()))
+                .andExpect(status().isFound());
+    }
+
+    // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Test
+    public void testRedirectRequiresShibAttributes2() throws Exception {
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        // Verify this endpoint also doesn't work using a regular auth token (again if SHIB-* attributes missing)
+        getClient(token).perform(get("/api/authn/shibboleth"))
+                .andExpect(status().isFound());
+    }
+
+    // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Test
+    public void testRedirectRequiresShibAttributes() throws Exception {
+        // Verify this endpoint doesn't work if no SHIB-* attributes are set
+        getClient().perform(get("/api/authn/shibboleth"))
+                .andExpect(status().isFound());
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
