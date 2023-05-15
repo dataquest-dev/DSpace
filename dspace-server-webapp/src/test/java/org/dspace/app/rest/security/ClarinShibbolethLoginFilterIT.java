@@ -114,8 +114,9 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         // but the user will be redirected to the page where he will fill in the user email.
         getClient().perform(get("/api/authn/shibboleth")
                         .header("SHIB-NETID", netId))
-                .andExpect(status().isUnauthorized())
-                .andExpect(status().reason(MISSING_HEADERS_FROM_IDP));
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?errorName="
+                        + MISSING_HEADERS_FROM_IDP));
     }
 
     /**
@@ -129,8 +130,9 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         // but the user will be redirected to the page where he will fill in the user email.
         getClient().perform(get("/api/authn/shibboleth")
                         .header("Shib-Identity-Provider", idp))
-                .andExpect(status().isUnauthorized())
-                .andExpect(status().reason(MISSING_HEADERS_FROM_IDP));
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?errorName="
+                        + MISSING_HEADERS_FROM_IDP));
     }
 
     /**
@@ -139,6 +141,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
      * The request headers passed by IdP are stored into the `verification_token` table the `shib_headers` column.
      * The user is redirected to the page when he must fill his email.
      */
+    // HERE
     @Test
     public void shouldReturnUserWithoutEmailException() throws Exception {
         String netId = "123456";
@@ -149,8 +152,9 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         getClient().perform(get("/api/authn/shibboleth")
                         .header("SHIB-NETID", netId)
                         .header("Shib-Identity-Provider", idp))
-                .andExpect(status().isUnauthorized())
-                .andExpect(status().reason(USER_WITHOUT_EMAIL_EXCEPTION + "," + netId));
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?errorName="
+                        + USER_WITHOUT_EMAIL_EXCEPTION + "&netId=" + netId));
     }
 
     /**
@@ -178,8 +182,9 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-NETID", netId)
                         .header("SHIB-GIVENNAME", firstname)
                         .header("SHIB-SURNAME", lastname))
-                .andExpect(status().isUnauthorized())
-                .andExpect(status().reason(USER_WITHOUT_EMAIL_EXCEPTION + "," + netId));
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?errorName="
+                        + USER_WITHOUT_EMAIL_EXCEPTION + "&netId=" + netId));
 
         // Send the email with the verification token.
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
