@@ -7,8 +7,6 @@
  */
 package org.dspace.app.rest.security;
 
-import static org.dspace.app.rest.security.clarin.ClarinShibbolethLoginFilter.MISSING_HEADERS_FROM_IDP;
-import static org.dspace.app.rest.security.clarin.ClarinShibbolethLoginFilter.USER_WITHOUT_EMAIL_EXCEPTION;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
