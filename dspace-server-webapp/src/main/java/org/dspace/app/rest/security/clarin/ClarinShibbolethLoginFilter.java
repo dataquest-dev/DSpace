@@ -101,6 +101,10 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest req,
                                                 HttpServletResponse res) throws AuthenticationException {
+        // Reset properties in every login request
+        this.setMissingHeadersFromIdp(false);
+        this.netId = "";
+
         // First, if Shibboleth is not enabled, throw an immediate ProviderNotFoundException
         // This tells Spring Security that authentication failed
         if (!ClarinShibAuthentication.isEnabled()) {
@@ -233,17 +237,20 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         }
 
 
-        String loginAuthFailedPath = "/login/auth-failed";
-        String redirectUrlParams = "?errorName=";
-        // Redirect the user with proper message - netId is set if the user doesn't have the email
+        String loginUrl = "/login/";
+        redirectUrl += loginUrl;
+
+        String missingHeadersUrl = "missing-headers";
+        String userWithoutEmailUrl = "auth-failed";
+
+        // Compose the redirect URL
         if (this.isMissingHeadersFromIdp) {
-            redirectUrlParams += MISSING_HEADERS_FROM_IDP;
+            redirectUrl += missingHeadersUrl;
         } else if (StringUtils.isNotEmpty(this.netId)) {
-            redirectUrlParams += USER_WITHOUT_EMAIL_EXCEPTION + "&netId=" + this.netId;
+            // netId is set if the user doesn't have the email
+            redirectUrl += userWithoutEmailUrl + "?netid=" + this.netId;
         }
 
-        // Componse redirect path and call the redirection.
-        redirectUrl += loginAuthFailedPath + redirectUrlParams;
         response.sendRedirect(redirectUrl);
         log.error("Authentication failed (status:{})",
                 HttpServletResponse.SC_UNAUTHORIZED, failed);

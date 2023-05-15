@@ -115,8 +115,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         getClient().perform(get("/api/authn/shibboleth")
                         .header("SHIB-NETID", netId))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?errorName="
-                        + MISSING_HEADERS_FROM_IDP));
+                .andExpect(redirectedUrl("http://localhost:4000/login/missing-headers"));
     }
 
     /**
@@ -131,8 +130,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         getClient().perform(get("/api/authn/shibboleth")
                         .header("Shib-Identity-Provider", idp))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?errorName="
-                        + MISSING_HEADERS_FROM_IDP));
+                .andExpect(redirectedUrl("http://localhost:4000/login/missing-headers"));
     }
 
     /**
@@ -153,8 +151,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-NETID", netId)
                         .header("Shib-Identity-Provider", idp))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?errorName="
-                        + USER_WITHOUT_EMAIL_EXCEPTION + "&netId=" + netId));
+                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?netid=" + netId));
     }
 
     /**
@@ -183,8 +180,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-GIVENNAME", firstname)
                         .header("SHIB-SURNAME", lastname))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?errorName="
-                        + USER_WITHOUT_EMAIL_EXCEPTION + "&netId=" + netId));
+                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?netid=" + netId));
 
         // Send the email with the verification token.
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
