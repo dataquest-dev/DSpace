@@ -157,6 +157,8 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
 
         List<ClarinUserRegistration> userRegistrations = userRegistrationService.findByEPersonUUID(context,
                 context.getCurrentUser().getID());
+        // Do not allow to create a license by the user which doesn't have data in the `user_registration` table
+        // because that could mean he is not logged in. That is not-logical situation, by theory it shouldn't happen.
         if (CollectionUtils.isEmpty(userRegistrations)) {
             throw new UnprocessableEntityException("Clarin License user registration, " +
                     "cannot be null");
