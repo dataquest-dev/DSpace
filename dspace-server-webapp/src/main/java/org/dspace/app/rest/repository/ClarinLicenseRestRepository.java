@@ -41,7 +41,6 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
-import org.dspace.core.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -156,7 +155,8 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
                     "license label cannot be null or empty");
         }
 
-        List<ClarinUserRegistration> userRegistrations = userRegistrationService.findByEPersonUUID(context, context.getCurrentUser().getID());
+        List<ClarinUserRegistration> userRegistrations = userRegistrationService.findByEPersonUUID(context,
+                context.getCurrentUser().getID());
         if (CollectionUtils.isEmpty(userRegistrations)) {
             throw new UnprocessableEntityException("Clarin License user registration, " +
                     "cannot be null");
