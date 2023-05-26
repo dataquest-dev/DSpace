@@ -120,8 +120,11 @@ public class ClarinBitstreamImportController {
             String storeNumberString = request.getParameter("storeNumber");
             bitstream.setStoreNumber(getIntegerFromString(storeNumberString));
             String sequenceIdString = request.getParameter("sequenceId");
-            Integer sequenceId = getIntegerFromString(sequenceIdString);
-            bitstream.setSequenceID(sequenceId);
+            // Update sequenceId only if it is not `null`, sequenceId is set up to -1 by default.
+            if (StringUtils.isNotBlank(sequenceIdString)) {
+                Integer sequenceId = getIntegerFromString(sequenceIdString);
+                bitstream.setSequenceID(sequenceId);
+            }
             //add bitstream format
             String bitstreamFormatIdString = request.getParameter("bitstreamFormat");
             Integer bitstreamFormatId = getIntegerFromString(bitstreamFormatIdString);
@@ -145,25 +148,27 @@ public class ClarinBitstreamImportController {
             if (bitstreamRest.getMetadata().getMap().size() > 0) {
                 metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
             }
-            if (Boolean.parseBoolean(deletedString)) {
-                bitstreamService.delete(context, bitstream);
-            } else {
-                //set bitstream as primary bitstream for bundle
-                //if bitstream is not primary bitstream, bundle is null
-                String primaryBundleUUIDString = request.getParameter("primaryBundle_id");
-                if (StringUtils.isNotBlank(primaryBundleUUIDString)) {
-                    UUID primaryBundleUUID = UUID.fromString(primaryBundleUUIDString);
-                    try {
-                        Bundle primaryBundle = bundleService.find(context, primaryBundleUUID);
-                        primaryBundle.setPrimaryBitstreamID(bitstream);
-                        bundleService.update(context, primaryBundle);
-                    } catch (SQLException e) {
-                        log.error("Something went wrong trying to find the Bundle with uuid: " +
-                                primaryBundleUUID, e);
-                    }
+
+            // set bitstream as primary bitstream for bundle
+            // if bitstream is not primary bitstream, bundle is null
+            String primaryBundleUUIDString = request.getParameter("primaryBundle_id");
+            if (StringUtils.isNotBlank(primaryBundleUUIDString)) {
+                UUID primaryBundleUUID = UUID.fromString(primaryBundleUUIDString);
+                try {
+                    Bundle primaryBundle = bundleService.find(context, primaryBundleUUID);
+                    primaryBundle.setPrimaryBitstreamID(bitstream);
+                    bundleService.update(context, primaryBundle);
+                } catch (SQLException e) {
+                    log.error("Something went wrong trying to find the Bundle with uuid: " +
+                            primaryBundleUUID, e);
                 }
             }
             bitstreamService.update(context, bitstream);
+
+            // If bitstream is deleted make it deleted
+            if (Boolean.parseBoolean(deletedString)) {
+                bitstreamService.delete(context, bitstream);
+            }
 
             if (bundle != null) {
                 List<Item> items = bundle.getItems();
