@@ -9,7 +9,6 @@ package org.dspace.app.rest;
 
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
@@ -23,7 +22,6 @@ import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.converter.MetadataConverter;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.utils.Utils;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.checker.service.MostRecentChecksumService;
 import org.dspace.content.Bitstream;
@@ -189,8 +187,7 @@ public class ClarinBitstreamImportController {
             context.commit();
         } catch (Exception e) {
             String message = "Something went wrong with trying to create the single bitstream for file "
-            + "with internal_id: "
-                    + request.getParameter("internal_id");
+                    + "with internal_id: " + request.getParameter("internal_id");
             if (!Objects.isNull(bundle)) {
                 message += " for bundle with uuid: " + bundle.getID();
             }
