@@ -168,9 +168,10 @@ public class ClarinBitstreamImportController {
             // If bitstream is deleted make it deleted
             if (Boolean.parseBoolean(deletedString)) {
                 bitstreamService.delete(context, bitstream);
+                log.info("Bitstream with id: " + bitstream.getID() + " is deleted!");
             }
 
-            if (bundle != null) {
+            if (!Objects.isNull(bundle)) {
                 List<Item> items = bundle.getItems();
                 if (!items.isEmpty()) {
                     item = items.get(0);
@@ -186,11 +187,13 @@ public class ClarinBitstreamImportController {
             }
             bitstreamRest = converter.toRest(bitstream, utils.obtainProjection());
             context.commit();
-        } catch (AuthorizeException | SQLException | IOException e) {
-            String message = "Something went wrong with trying to create the single bitstream for file " +
-                    "with internal_id: "
-                    + request.getParameter("internal_id")
-                    + " for bundle with uuid: " + bundle.getID();
+        } catch (Exception e) {
+            String message = "Something went wrong with trying to create the single bitstream for file "
+            + "with internal_id: "
+                    + request.getParameter("internal_id");
+            if (!Objects.isNull(bundle)) {
+                message += " for bundle with uuid: " + bundle.getID();
+            }
             log.error(message, e);
             throw new RuntimeException("message", e);
         }
