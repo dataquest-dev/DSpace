@@ -96,11 +96,8 @@ public class ClarinUserMetadataImportController {
         }
         Date createdOn = getDateFromString(createdOnString);
 
+        //we don't control token, because it can be null
         String token = request.getParameter("token");
-        if (Objects.isNull(token)) {
-            log.error("Required parameter token is null!");
-            throw new RuntimeException("Token is null!");
-        }
 
         //set current user and turn off the authorization system
         EPerson ePerson = ePersonService.find(context, epersonUUID);
@@ -169,8 +166,13 @@ public class ClarinUserMetadataImportController {
         try {
             output = sdf.parse(value);
         } catch (java.text.ParseException e) {
-            log.error("Cannot convert date: " + value + " from String to Date in format yyyy-MM-dd'T'HH:mm:ss.SSSSSS.");
-            throw new RuntimeException("Cannot convert date: " + value + " from String to Date.");
+            try {
+                sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSS");
+                output = sdf.parse(value);
+            } catch (java.text.ParseException e1) {
+                sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS");
+                output = sdf.parse(value);
+            }
         }
         return output;
     }
