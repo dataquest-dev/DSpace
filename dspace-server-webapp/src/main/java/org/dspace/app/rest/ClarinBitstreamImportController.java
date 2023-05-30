@@ -114,6 +114,7 @@ public class ClarinBitstreamImportController {
             bitstream = clarinBitstreamService.create(context, bundle);
             //internal_id contains path to file
             String internalId = request.getParameter("internal_id");
+            log.info("Going to process Bitstream with internal_id: " + internalId);
             bitstream.setInternalId(internalId);
             String storeNumberString = request.getParameter("storeNumber");
             bitstream.setStoreNumber(getIntegerFromString(storeNumberString));
@@ -122,6 +123,8 @@ public class ClarinBitstreamImportController {
             if (StringUtils.isNotBlank(sequenceIdString)) {
                 Integer sequenceId = getIntegerFromString(sequenceIdString);
                 bitstream.setSequenceID(sequenceId);
+            } else {
+                log.info("SequenceId is null. Bitstream UUID: " + bitstream.getID());
             }
             //add bitstream format
             String bitstreamFormatIdString = request.getParameter("bitstreamFormat");
@@ -140,6 +143,7 @@ public class ClarinBitstreamImportController {
             bitstream.setChecksumAlgorithm(bitstreamRest.getCheckSum().getCheckSumAlgorithm());
             //do validation between input fields and calculated fields based on file from assetstore
             if (!clarinBitstreamService.validation(context, bitstream)) {
+                log.info("Validation failed - return null. Bitstream UUID: " + bitstream.getID());
                 return null;
             }
 
@@ -151,6 +155,7 @@ public class ClarinBitstreamImportController {
             // if bitstream is not primary bitstream, bundle is null
             String primaryBundleUUIDString = request.getParameter("primaryBundle_id");
             if (StringUtils.isNotBlank(primaryBundleUUIDString)) {
+                log.info("Bitstream has primaryBundleUUIDString. Bistream UUID: " + bitstream.getID() );
                 UUID primaryBundleUUID = UUID.fromString(primaryBundleUUIDString);
                 try {
                     Bundle primaryBundle = bundleService.find(context, primaryBundleUUID);
@@ -161,6 +166,7 @@ public class ClarinBitstreamImportController {
                             primaryBundleUUID, e);
                 }
             }
+            log.info("Going to update bitstream with UUID: " + bitstream.getID());
             bitstreamService.update(context, bitstream);
 
             // If bitstream is deleted make it deleted
@@ -176,6 +182,7 @@ public class ClarinBitstreamImportController {
                 }
                 if (item != null && !(authorizeService.authorizeActionBoolean(context, item, Constants.WRITE)
                         && authorizeService.authorizeActionBoolean(context, item, Constants.ADD))) {
+                    log.info("You do not have write rights to update the Bundle's item.");
                     throw new AccessDeniedException("You do not have write rights to update the Bundle's item");
                 }
                 if (item != null) {
