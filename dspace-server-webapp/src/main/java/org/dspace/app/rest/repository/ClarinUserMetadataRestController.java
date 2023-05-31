@@ -204,7 +204,7 @@ public class ClarinUserMetadataRestController {
         return email;
     }
 
-    public void processSignedInUser(Context context, EPerson currentUser,
+    public List<ClarinUserMetadata>  processSignedInUser(Context context, EPerson currentUser,
                                               List<ClarinUserMetadataRest> clarinUserMetadataRestList,
                                               ClarinLicenseResourceMapping clarinLicenseResourceMapping,
                                               UUID bitstreamUUID, String downloadToken)
@@ -275,6 +275,7 @@ public class ClarinUserMetadataRestController {
             clarinUserMetadata.setTransaction(clrua);
             clarinUserMetadataService.update(context, clarinUserMetadata);
         }
+        return newClarinUserMetadataList;
     }
 
     private ClarinLicenseResourceUserAllowance createClrua(Context context,
@@ -316,7 +317,7 @@ public class ClarinUserMetadataRestController {
         return UUID.randomUUID().toString();
     }
 
-    private ClarinLicenseResourceMapping getLicenseResourceMapping(Context context, UUID bitstreamUUID)
+    public ClarinLicenseResourceMapping getLicenseResourceMapping(Context context, UUID bitstreamUUID)
             throws SQLException {
         // Get ClarinLicense to check if it needs to generate the token
         List<ClarinLicenseResourceMapping> clarinLicenseResourceMappingList =
