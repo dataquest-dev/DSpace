@@ -1,4 +1,30 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
+
+import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
@@ -29,31 +55,11 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
-import java.io.InputStream;
-import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static com.jayway.jsonpath.JsonPath.read;
-import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
-import static org.dspace.app.rest.repository.ClarinUserMetadataRestController.CHECK_EMAIL_RESPONSE_CONTENT;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+/**
+ * Integration test to test the /api/clarin/import/* endpoints
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrationTest {
 
     @Autowired
@@ -145,18 +151,22 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
                         .param("token", "111"))
                 .andExpect(status().isOk());
 
-        //find created data
+        //find created data and control it
         ClarinUserMetadata clarinUserMetadata = clarinUserMetadataService.findAll(context).get(0);
         assertEquals(clarinUserMetadata.getMetadataKey(), "NAME");
         assertEquals(clarinUserMetadata.getMetadataValue(), "Test");
         assertEquals(clarinUserMetadata.getEperson().getPersonID(), admin.getID());
-        assertEquals(clarinUserMetadata.getTransaction().getCreatedOn().getTime(), getDateFromString("2012-09-19T10:30:03.741633").getTime());
+        assertEquals(clarinUserMetadata.getTransaction().getCreatedOn().getTime(),
+                getDateFromString("2012-09-19T10:30:03.741633").getTime());
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
 
         //clean all
         ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
+    /**
+     * Create Workspace item with file.
+     */
     private WorkspaceItem createWorkspaceItemWithFile() {
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
@@ -217,6 +227,9 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         return clarinLicense;
     }
 
+    /**
+     * Convert String date to Date.
+     */
     private Date getDateFromString(String value) throws java.text.ParseException {
         Date output = null;
         if (StringUtils.isBlank(value)) {
