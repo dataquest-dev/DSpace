@@ -149,6 +149,9 @@ public class ClarinBitstreamImportController {
                     log.info("Validation failed - return null. Bitstream UUID: " + bitstream.getID());
                     return null;
                 }
+            } else {
+                log.info("Validation is not checked for deleted bitstream id: " + bitstream.getID() +
+                        ", because it may not exist in assetstore.");
             }
             if (bitstreamRest.getMetadata().getMap().size() > 0) {
                 metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
