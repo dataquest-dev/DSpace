@@ -14,16 +14,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.PoolTaskBuilder;
-import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -75,14 +71,14 @@ public class ClarinGroupRestControllerIT extends AbstractControllerIntegrationTe
                         .content(REST_SERVER_URL + "eperson/groups/" + childGroup1.getID() + "/\n"
                                 + REST_SERVER_URL + "eperson/groups/" + childGroup2.getID()
                         )
-        ).andExpect(status().isNoContent());
+        ).andExpect(status().isOk());
         getClient(authToken).perform(
                 post("/api/clarin/eperson/groups/" + parentGroupWithPreviousSubgroup.getID() + "/subgroups")
                         .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
                         .content(REST_SERVER_URL + "eperson/groups/" + childGroup1.getID() + "/\n"
                                 + REST_SERVER_URL + "eperson/groups/" + childGroup2.getID()
                         )
-        ).andExpect(status().isNoContent());
+        ).andExpect(status().isOk());
 
         parentGroup = context.reloadEntity(parentGroup);
         parentGroupWithPreviousSubgroup = context.reloadEntity(parentGroupWithPreviousSubgroup);
@@ -129,7 +125,13 @@ public class ClarinGroupRestControllerIT extends AbstractControllerIntegrationTe
                 .withPassword("dspace")
                 .build();
         //create pooltask with workflowitem
-        PoolTask poolTask = PoolTaskBuilder.createPoolTask(context, collection, admin)
+        EPerson reviewer1 = EPersonBuilder.createEPerson(context)
+                .withEmail("reviewer1@example.com")
+                .withPassword(password).build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection 1")
+                .withWorkflowGroup(1, reviewer1, admin).build();
+        PoolTask poolTask = PoolTaskBuilder.createPoolTask(context, col1, reviewer1)
                 .withTitle("Test Metaphysics")
                 .withIssueDate("2017-10-17")
                 .withAuthor("Smith, Donald")
@@ -143,13 +145,11 @@ public class ClarinGroupRestControllerIT extends AbstractControllerIntegrationTe
         getClient(token).perform(post("/api/clarin/eperson/groups/tasklistitem")
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                         .param("workflowitem_id", wf.getID().toString())
-                        .param("epersonUUID", eperson.getID().toString()))
+                        .param("epersonUUID", ePerson.getID().toString()))
                 .andExpect(status().isOk());
 
         //control if eperson is added to correct group
-
-
-
-
+        poolTask = poolTaskService.find(context, poolTask.getID());
+        assertTrue(poolTask.getGroup().getMembers().contains(ePerson));
     }
 }

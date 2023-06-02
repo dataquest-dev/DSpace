@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
-import org.dspace.app.rest.ClarinBitstreamImportController;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.GroupRest;
 import org.dspace.app.rest.utils.Utils;
@@ -40,7 +39,6 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
-import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItemServiceImpl;
 import org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService;
 import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,8 +173,6 @@ public class ClarinGroupRestController {
 
     /**
      * Method to add eperson to group based on workflowitem.
-     * Workflowitem is connected with group based on pooltask.
-     * After adding an eperson to the group, the eperson gets rights to manipulate with workflowitem.
      * This method exists because in dspace7 the epersons don't have rights to manipulate with workflowitems.
      * Only groups have these rights, so we add epersons into correcponding groups.
      * In dspace5, the epersons with these rights were in table tasklistitem.
@@ -200,7 +196,7 @@ public class ClarinGroupRestController {
             throw new RuntimeException("Context is null!");
         }
 
-        //get workflowitem from request based its id
+        //get workflowitem from request based on its id
         String wfString = request.getParameter("workflowitem_id");
         if (StringUtils.isBlank(wfString)) {
             log.error("Cannot add eperson to group based on workflowitem, " +
@@ -242,6 +238,7 @@ public class ClarinGroupRestController {
                 continue;
             }
             groupService.addMember(context, group, ePerson);
+            groupService.update(context, group);
         }
 
         context.complete();
