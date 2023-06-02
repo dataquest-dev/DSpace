@@ -237,8 +237,10 @@ public class ClarinGroupRestController {
             if (Objects.isNull(group)) {
                 continue;
             }
-            groupService.addMember(context, group, ePerson);
-            groupService.update(context, group);
+            if (!ePerson.getGroups().contains(group)) {
+                groupService.addMember(context, group, ePerson);
+                groupService.update(context, group);
+            }
         }
 
         context.complete();
