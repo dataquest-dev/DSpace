@@ -144,14 +144,14 @@ public class ClarinBitstreamImportController {
             bitstream.setChecksumAlgorithm(bitstreamRest.getCheckSum().getCheckSumAlgorithm());
             //do validation between input fields and calculated fields based on file from assetstore
             //we do validation only if the bitstream is not deleted
-            if (!deleted) {
+            if (deleted) {
+                log.info("Validation is not checked for deleted bitstream id: " + bitstream.getID() +
+                        ", because it may not exist in assetstore.");
+            } else {
                 if (!clarinBitstreamService.validation(context, bitstream)) {
                     log.info("Validation failed - return null. Bitstream UUID: " + bitstream.getID());
                     return null;
                 }
-            } else {
-                log.info("Validation is not checked for deleted bitstream id: " + bitstream.getID() +
-                        ", because it may not exist in assetstore.");
             }
             if (bitstreamRest.getMetadata().getMap().size() > 0) {
                 metadataConverter.setMetadata(context, bitstream, bitstreamRest.getMetadata());
