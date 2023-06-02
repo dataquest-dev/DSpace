@@ -80,7 +80,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport {
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "epeople")
     private final List<Group> groups = new ArrayList<>();
 
-    @Column(name = "welcome_info", length = 32)
+    @Column(name = "welcome_info")
     private String welcomeInfo;
 
     @Column(name = "can_edit_submission_metadata")
