@@ -124,8 +124,8 @@ public class ClarinUserMetadataImportController {
 
         EPerson ePerson = ePersonService.find(context, epersonUUID);
         if (Objects.isNull(ePerson)) {
-            log.error("Eperson with id: " + userRegistration.getPersonID() + " doesn't exist!");
-            throw new RuntimeException("Eperson with id: " + ePerson.getID() + " doesn't exist!");
+            log.error("Eperson with id: " + epersonUUID+ " doesn't exist!");
+            throw new RuntimeException("Eperson with id: " + epersonUUID + " doesn't exist!");
         }
 
         // Get ClarinUserMetadataRest Array from the request body
@@ -133,19 +133,19 @@ public class ClarinUserMetadataImportController {
                 new ObjectMapper().readValue(request.getInputStream(), ClarinUserMetadataRest[].class);
         if (ArrayUtils.isEmpty(clarinUserMetadataRestArray)) {
             log.error("Cannot get clarinUserMetadataRestArray from request for eperson with id: "
-                    + ePerson.getID() +
+                    + epersonUUID) +
                     " and bitstream with id: " + bitstreamUUID);
             throw new RuntimeException("Cannot get clarinUserMetadataRestArray from request for eperson with id: "
-                    + ePerson.getID() + " and bitstream with id: " + bitstreamUUID);
+                    + epersonUUID + " and bitstream with id: " + bitstreamUUID);
         }
         // Convert Array to the List
         List<ClarinUserMetadataRest> clarinUserMetadataRestList = Arrays.asList(clarinUserMetadataRestArray);
         if (CollectionUtils.isEmpty(clarinUserMetadataRestList)) {
             log.error("Cannot convert clarinUserMetadataRestArray to array for eperson with id: "
-                    + ePerson.getID() +
+                    + epersonUUID +
                     " and bitstream id: " + bitstreamUUID);
             throw new RuntimeException("Cannot get clarinUserMetadataRestArray from request for eperson with id: "
-                    + ePerson.getID() + " and bitstream with id: " + bitstreamUUID);
+                    + epersonUUID + " and bitstream with id: " + bitstreamUUID);
         }
 
         try {
@@ -177,11 +177,11 @@ public class ClarinUserMetadataImportController {
 
             return clarinUserMetadataRest;
         } catch (Exception e) {
-            log.error("Something is very very very wrong with eperson: " + ePerson.getID()
+            log.error("Something is very very very wrong with eperson: " + epersonUUID
                     + " and bitstream: "
                     + bitstreamUUID + ". Excemption: " + e.getMessage());
             throw new RuntimeException("Something is very very very wrong with eperson: "
-                    + ePerson.getID()
+                    + epersonUUID
                     + " and bitstream: " + bitstreamUUID + ". Excemption: " + e.getMessage());
         }
     }
