@@ -145,7 +145,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         getClient(adminToken).perform(post("/api/clarin/import/usermetadata")
                         .content(mapper.writeValueAsBytes(clarinUserMetadataRestList.toArray()))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .param("epersonId", admin.getID().toString())
+                        .param("epersonUUID", admin.getID().toString())
                         .param("bitstreamUUID", bitstream.getID().toString())
                         .param("createdOn", "2012-09-19T10:30:03.741633")
                         .param("token", "111"))
