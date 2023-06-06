@@ -211,6 +211,7 @@ public class ClarinBitstreamImportController {
             throw new RuntimeException("Context is null!");
         }
         checksumService.updateMissingBitstreams(context);
+        context.commit();
     }
 
     /**

@@ -90,12 +90,12 @@ public class ClarinUserMetadataImportController {
         if (Objects.isNull(context)) {
             throw new RuntimeException("Context is null!");
         }
-        String userRegistrationIdString = request.getParameter("userRegistrationId");
-        if (StringUtils.isBlank(userRegistrationIdString)) {
-            log.error("Required parameter userRegistration id is null!");
-            throw new RuntimeException("UserRegistration id is null!");
+        String epersonUUIDString = request.getParameter("epersonUUID");
+        if (StringUtils.isBlank(epersonUUIDString)) {
+            log.error("Required parameter eperson id is null!");
+            throw new RuntimeException("Eperson id is null!");
         }
-        Integer userRegistrationId = Integer.parseInt(userRegistrationIdString);
+        UUID epersonUUID = UUID.fromString(epersonUUIDString);
 
         String bitstreamUUIDString = request.getParameter("bitstreamUUID");
         if (StringUtils.isBlank(bitstreamUUIDString)) {
@@ -104,7 +104,7 @@ public class ClarinUserMetadataImportController {
         }
         UUID bitstreamUUID = UUID.fromString(bitstreamUUIDString);
 
-        log.info("processing user registration id: " + userRegistrationId + " and bitstream UUID: " + bitstreamUUID);
+        log.info("processing eperson id: " + epersonUUID + " and bitstream UUID: " + bitstreamUUID);
 
         String createdOnString = request.getParameter("createdOn");
         if (StringUtils.isBlank(createdOnString)) {
@@ -116,16 +116,16 @@ public class ClarinUserMetadataImportController {
         //we don't control token, because it can be null
         String token = request.getParameter("token");
 
-        ClarinUserRegistration userRegistration = clarinUserRegistrationService.find(context, userRegistrationId);
+        ClarinUserRegistration userRegistration = clarinUserRegistrationService.findByEPersonUUID(context, epersonUUID).get(0);
         if (Objects.isNull(userRegistration)) {
             log.error("User registration with id: " + userRegistration + " doesn't exist!");
             throw new RuntimeException("User registration with id: " + userRegistration + " doesn't exist!");
         }
 
-        EPerson ePerson = ePersonService.find(context, userRegistration.getPersonID());
+        EPerson ePerson = ePersonService.find(context, epersonUUID);
         if (Objects.isNull(ePerson)) {
             log.error("Eperson with id: " + userRegistration.getPersonID() + " doesn't exist!");
-            throw new RuntimeException("Eperson with id: " + userRegistration.getPersonID() + " doesn't exist!");
+            throw new RuntimeException("Eperson with id: " + ePerson.getID() + " doesn't exist!");
         }
 
         // Get ClarinUserMetadataRest Array from the request body
@@ -133,19 +133,19 @@ public class ClarinUserMetadataImportController {
                 new ObjectMapper().readValue(request.getInputStream(), ClarinUserMetadataRest[].class);
         if (ArrayUtils.isEmpty(clarinUserMetadataRestArray)) {
             log.error("Cannot get clarinUserMetadataRestArray from request for eperson with id: "
-                    + userRegistration.getPersonID() +
+                    + ePerson.getID() +
                     " and bitstream with id: " + bitstreamUUID);
             throw new RuntimeException("Cannot get clarinUserMetadataRestArray from request for eperson with id: "
-                    + userRegistration.getPersonID() + " and bitstream with id: " + bitstreamUUID);
+                    + ePerson.getID() + " and bitstream with id: " + bitstreamUUID);
         }
         // Convert Array to the List
         List<ClarinUserMetadataRest> clarinUserMetadataRestList = Arrays.asList(clarinUserMetadataRestArray);
         if (CollectionUtils.isEmpty(clarinUserMetadataRestList)) {
             log.error("Cannot convert clarinUserMetadataRestArray to array for eperson with id: "
-                    + userRegistration.getPersonID() +
+                    + ePerson.getID() +
                     " and bitstream id: " + bitstreamUUID);
             throw new RuntimeException("Cannot get clarinUserMetadataRestArray from request for eperson with id: "
-                    + userRegistration.getPersonID() + " and bitstream with id: " + bitstreamUUID);
+                    + ePerson.getID() + " and bitstream with id: " + bitstreamUUID);
         }
 
         try {
@@ -163,8 +163,7 @@ public class ClarinUserMetadataImportController {
             List<ClarinUserMetadata> newClarinUserMetadataList = clarinUserMetadataRestController.processSignedInUser(
                     context, ePerson, clarinUserMetadataRestList, clarinLicenseResourceMapping, bitstreamUUID, token);
             //set eperson_id (user registration) in user_metadata
-            newClarinUserMetadataList.get(0).setEperson(clarinUserRegistrationService.find(context,
-                    userRegistrationId));
+            newClarinUserMetadataList.get(0).setEperson(userRegistration);
             //set created_on for created license_resource_user_allowance
             //created list has to contain minimally one record
             ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance =
@@ -178,11 +177,11 @@ public class ClarinUserMetadataImportController {
 
             return clarinUserMetadataRest;
         } catch (Exception e) {
-            log.error("Something is very very very wrong with eperson: " + userRegistration.getPersonID()
+            log.error("Something is very very very wrong with eperson: " + ePerson.getID()
                     + " and bitstream: "
                     + bitstreamUUID + ". Excemption: " + e.getMessage());
             throw new RuntimeException("Something is very very very wrong with eperson: "
-                    + userRegistration.getPersonID()
+                    + ePerson.getID()
                     + " and bitstream: " + bitstreamUUID + ". Excemption: " + e.getMessage());
         }
     }
