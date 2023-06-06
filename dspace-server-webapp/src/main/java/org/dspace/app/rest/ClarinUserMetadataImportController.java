@@ -116,7 +116,8 @@ public class ClarinUserMetadataImportController {
         //we don't control token, because it can be null
         String token = request.getParameter("token");
 
-        ClarinUserRegistration userRegistration = clarinUserRegistrationService.findByEPersonUUID(context, epersonUUID).get(0);
+        ClarinUserRegistration userRegistration = clarinUserRegistrationService.findByEPersonUUID(context,
+                epersonUUID).get(0);
         if (Objects.isNull(userRegistration)) {
             log.error("User registration with id: " + userRegistration + " doesn't exist!");
             throw new RuntimeException("User registration with id: " + userRegistration + " doesn't exist!");
@@ -124,7 +125,7 @@ public class ClarinUserMetadataImportController {
 
         EPerson ePerson = ePersonService.find(context, epersonUUID);
         if (Objects.isNull(ePerson)) {
-            log.error("Eperson with id: " + epersonUUID+ " doesn't exist!");
+            log.error("Eperson with id: " + epersonUUID + " doesn't exist!");
             throw new RuntimeException("Eperson with id: " + epersonUUID + " doesn't exist!");
         }
 
@@ -133,7 +134,7 @@ public class ClarinUserMetadataImportController {
                 new ObjectMapper().readValue(request.getInputStream(), ClarinUserMetadataRest[].class);
         if (ArrayUtils.isEmpty(clarinUserMetadataRestArray)) {
             log.error("Cannot get clarinUserMetadataRestArray from request for eperson with id: "
-                    + epersonUUID) +
+                    + epersonUUID +
                     " and bitstream with id: " + bitstreamUUID);
             throw new RuntimeException("Cannot get clarinUserMetadataRestArray from request for eperson with id: "
                     + epersonUUID + " and bitstream with id: " + bitstreamUUID);
