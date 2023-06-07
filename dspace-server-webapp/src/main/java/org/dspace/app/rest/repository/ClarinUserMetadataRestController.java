@@ -204,7 +204,7 @@ public class ClarinUserMetadataRestController {
         return email;
     }
 
-    public List<ClarinUserMetadata>  processSignedInUser(Context context, EPerson currentUser,
+    public List<ClarinUserMetadata> processSignedInUser(Context context, EPerson currentUser,
                                               List<ClarinUserMetadataRest> clarinUserMetadataRestList,
                                               ClarinLicenseResourceMapping clarinLicenseResourceMapping,
                                               UUID bitstreamUUID, String downloadToken)
@@ -299,7 +299,7 @@ public class ClarinUserMetadataRestController {
         return clrua;
     }
 
-    private void processNonSignedInUser(Context context,
+    public List<ClarinUserMetadata> processNonSignedInUser(Context context,
                                                   List<ClarinUserMetadataRest> clarinUserMetadataRestList,
                                                   ClarinLicenseResourceMapping clarinLicenseResourceMapping,
                                                   UUID bitstreamUUID,
@@ -310,7 +310,13 @@ public class ClarinUserMetadataRestController {
                 clarinUserMetadataRestList);
 
         // Create ClarinResourceUserAllowance record to generate token.
-        this.createClrua(context, clarinLicenseResourceMapping, clarinUserMetadataList, downloadToken, null);
+        ClarinLicenseResourceUserAllowance clrua = this.createClrua(context, clarinLicenseResourceMapping, clarinUserMetadataList, downloadToken, null);
+        // Add Clarin License Resource Allowance to the user metadata records
+        for (ClarinUserMetadata clarinUserMetadata : clarinUserMetadataList) {
+            clarinUserMetadata.setTransaction(clrua);
+            clarinUserMetadataService.update(context, clarinUserMetadata);
+        }
+        return clarinUserMetadataList;
     }
 
     private String generateToken() {

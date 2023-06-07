@@ -119,7 +119,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
     }
 
     @Test
-    public void importUserMetadataTest() throws Exception {
+    public void importUserMetadataWithEpersonTest() throws Exception {
         this.prepareEnvironment("NAME");
         context.turnOffAuthorisationSystem();
         ClarinUserRegistration clarinUserRegistration = ClarinUserRegistrationBuilder
@@ -145,7 +145,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         getClient(adminToken).perform(post("/api/clarin/import/usermetadata")
                         .content(mapper.writeValueAsBytes(clarinUserMetadataRestList.toArray()))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .param("epersonUUID", admin.getID().toString())
+                        .param("userRegistrationId", clarinUserRegistration.getID().toString())
                         .param("bitstreamUUID", bitstream.getID().toString())
                         .param("createdOn", "2012-09-19T10:30:03.741633")
                         .param("token", "111"))
@@ -156,6 +156,53 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         assertEquals(clarinUserMetadata.getMetadataKey(), "NAME");
         assertEquals(clarinUserMetadata.getMetadataValue(), "Test");
         assertEquals(clarinUserMetadata.getEperson().getPersonID(), admin.getID());
+        assertEquals(clarinUserMetadata.getTransaction().getCreatedOn().getTime(),
+                getDateFromString("2012-09-19T10:30:03.741633").getTime());
+        assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
+
+        //clean all
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+    }
+
+    @Test
+    public void importUserMetadataWithoutEpersonTest() throws Exception {
+        this.prepareEnvironment("NAME");
+        context.turnOffAuthorisationSystem();
+        ClarinUserRegistration clarinUserRegistration = ClarinUserRegistrationBuilder
+                .createClarinUserRegistration(context).withEPersonID(admin.getID()).build();
+        clarinUserRegistration.setPersonID(null);
+        context.restoreAuthSystemState();
+        ObjectMapper mapper = new ObjectMapper();
+        ClarinUserMetadataRest clarinUserMetadata1 = new ClarinUserMetadataRest();
+        clarinUserMetadata1.setMetadataKey("NAME");
+        clarinUserMetadata1.setMetadataValue("Test");
+
+        List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
+        clarinUserMetadataRestList.add(clarinUserMetadata1);
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        // There should exist record in the UserRegistration table
+        getClient(adminToken).perform(get("/api/core/clarinuserregistrations")
+                        .contentType(contentType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(1)));
+
+        // Manage UserMetadata and get token
+        getClient(adminToken).perform(post("/api/clarin/import/usermetadata")
+                        .content(mapper.writeValueAsBytes(clarinUserMetadataRestList.toArray()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("userRegistrationId", clarinUserRegistration.getID().toString())
+                        .param("bitstreamUUID", bitstream.getID().toString())
+                        .param("createdOn", "2012-09-19T10:30:03.741633")
+                        .param("token", "111"))
+                .andExpect(status().isOk());
+
+        //find created data and control it
+        ClarinUserMetadata clarinUserMetadata = clarinUserMetadataService.findAll(context).get(0);
+        assertEquals(clarinUserMetadata.getMetadataKey(), "NAME");
+        assertEquals(clarinUserMetadata.getMetadataValue(), "Test");
+        assertEquals(clarinUserMetadata.getEperson().getPersonID(), null);
         assertEquals(clarinUserMetadata.getTransaction().getCreatedOn().getTime(),
                 getDateFromString("2012-09-19T10:30:03.741633").getTime());
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
