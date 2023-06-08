@@ -310,7 +310,8 @@ public class ClarinUserMetadataRestController {
                 clarinUserMetadataRestList);
 
         // Create ClarinResourceUserAllowance record to generate token.
-        ClarinLicenseResourceUserAllowance clrua = this.createClrua(context, clarinLicenseResourceMapping, clarinUserMetadataList, downloadToken, null);
+        ClarinLicenseResourceUserAllowance clrua = this.createClrua(context, clarinLicenseResourceMapping,
+                clarinUserMetadataList, downloadToken, null);
         // Add Clarin License Resource Allowance to the user metadata records
         for (ClarinUserMetadata clarinUserMetadata : clarinUserMetadataList) {
             clarinUserMetadata.setTransaction(clrua);
