@@ -1387,7 +1387,7 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
 
     @Test
     public void discoverSearchObjectsTestWithBasicQuery() throws Exception {
-//We turn off the authorization system in order to create the structure defined below
+        //We turn off the authorization system in order to create the structure defined below
         context.turnOffAuthorisationSystem();
 
         //** GIVEN **
@@ -1460,7 +1460,6 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                         FacetEntryMatcher.clarinLicenseRightsFacet(false),
                         FacetEntryMatcher.clarinItemsLanguageFacet(false),
                         FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.dateIssuedFacet(false),
                         FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
@@ -2072,7 +2071,6 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                         FacetEntryMatcher.clarinLicenseRightsFacet(false),
                         FacetEntryMatcher.clarinItemsLanguageFacet(false),
                         FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.dateIssuedFacet(false),
                         FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false)
                 )))
