@@ -2071,6 +2071,7 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                         FacetEntryMatcher.clarinLicenseRightsFacet(false),
                         FacetEntryMatcher.clarinItemsLanguageFacet(false),
                         FacetEntryMatcher.clarinItemsCommunityFacet(false),
+                        FacetEntryMatcher.dateIssuedFacet(false),
                         FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false)
                 )))
