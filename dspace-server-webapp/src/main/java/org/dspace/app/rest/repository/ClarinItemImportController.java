@@ -101,10 +101,10 @@ public class ClarinItemImportController {
      * https://<dspace.server.url>/api/clarin/import/workspaceitem
      * }
      * </pre>
-     * @param request
-     * @return
-     * @throws AuthorizeException
-     * @throws SQLException
+     * @param request request
+     * @return workslaceitem converted to rest
+     * @throws AuthorizeException if authorization error
+     * @throws SQLException       if database error
      */
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method = RequestMethod.POST, value = "/workspaceitem")
