@@ -267,7 +267,7 @@ public class ClarinItemImportController {
      */
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method = RequestMethod.POST, value = "/item")
-    public ItemRest importItem(HttpServletRequest request) throws SQLException, AuthorizeException {
+    public ItemRest importItem(HttpServletRequest request) throws SQLException, AuthorizeException, IOException {
         Context context = obtainContext(request);
         if (Objects.isNull(context)) {
             throw new RuntimeException("Context is null!");
@@ -336,7 +336,7 @@ public class ClarinItemImportController {
         }
 
         //remove workspaceitem and create collection2item
-        Item itemToReturn = installItemService.installItem(context, workspaceItem);
+        Item itemToReturn = installItemService.installItem(context, workspaceItem, itemRest.getHandle());
         //set isArchived back to false
         itemToReturn.setArchived(itemRest.getInArchive());
 
