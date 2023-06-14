@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
 
 import static org.junit.Assert.assertEquals;
@@ -5,9 +12,9 @@ import static org.junit.Assert.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.model.HandleRest;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.handle.Handle;
@@ -36,7 +43,7 @@ public class ClarinHandleImportControllerIT extends AbstractControllerIntegratio
         MvcResult mvcResult = getClient(adminToken).perform(post("/api/clarin/import/handle")
                         .content(mapper.writeValueAsBytes(handleRest))
                         .contentType(contentType))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andReturn();
 
         String content = mvcResult.getResponse().getContentAsString();

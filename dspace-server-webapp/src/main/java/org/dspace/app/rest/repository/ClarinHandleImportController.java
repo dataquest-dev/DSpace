@@ -1,14 +1,21 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.repository;
 
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Objects;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.HandleRest;
@@ -75,8 +82,7 @@ public class ClarinHandleImportController {
             // Save created handle
             handleClarinService.save(context, handle);
         } catch (SQLException e) {
-            throw new RuntimeException
-                    ("Error while trying to create new Handle and update it", e);
+            throw new RuntimeException("Error while trying to create new Handle and update it", e);
         }
         handleRest = converter.toRest(handle, utils.obtainProjection());
         context.commit();
