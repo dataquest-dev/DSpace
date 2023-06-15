@@ -43,6 +43,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -127,6 +128,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     public void setUp() throws Exception {
         super.setUp();
         context.turnOffAuthorisationSystem();
+        Locale.setDefault(new Locale.Builder().setLanguage("en").setRegion("US").build());
         this.groupService = EPersonServiceFactory.getInstance().getGroupService();
 
         embargoedGroups = GroupBuilder.createGroup(context)
@@ -3748,6 +3750,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         //disable file upload mandatory
         configurationService.setProperty("webui.submit.upload.required", false);
+        // enable distribution license validation
+        configurationService.setProperty("webui.submit.distribution.license.required", true);
 
         context.restoreAuthSystemState();
 
