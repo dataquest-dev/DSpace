@@ -24,6 +24,10 @@ jobs:
       # Also specify version of Java to use (this can allow us to optionally run tests on multiple JDKs in future)
       matrix:
         include:
+          - type: "Maven version"
+            java: 11
+            mvnflags: "-version"
+            resultsdir: "**/target/surefire-reports/**"
           # NOTE: Unit Tests include deprecated REST API v6 (as it has unit tests)
           #  - surefire.rerunFailingTestsCount => try again for flakey tests, and keep track of/report on number of retries
           - type: "Unit Tests"
