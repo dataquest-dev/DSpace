@@ -60,7 +60,7 @@ public class ClarinHandleImportControllerIT extends AbstractControllerIntegratio
         //clean all
         context.turnOffAuthorisationSystem();
         List<Handle> handles = handleService.findAll(context);
-        for(Handle h: handles) {
+        for (Handle h: handles) {
             handleService.delete(context, h);
         }
         context.restoreAuthSystemState();
