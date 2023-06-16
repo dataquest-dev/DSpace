@@ -34,7 +34,7 @@ public class ClarinHandleImportControllerIT extends AbstractControllerIntegratio
     private HandleClarinService handleService;
 
     @Test
-    public void createHandleTest() throws Exception {
+    public void createHandleWithoutDSpaceObjectTest() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         HandleRest handleRest = new HandleRest();
         handleRest.setHandle("123456789/1");
