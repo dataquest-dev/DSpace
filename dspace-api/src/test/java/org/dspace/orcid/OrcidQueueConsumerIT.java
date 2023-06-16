@@ -164,11 +164,6 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(queueRecords, hasSize(2));
         assertThat(queueRecords, hasItem(matches(profile, profile, "KEYWORDS", null,
             "dc.subject::test", "test", INSERT)));
-        boolean yes = true;
-        if (yes) {
-            throw new RuntimeException("I wanna be sure we are running latest version");
-        }
-
         assertThat(queueRecords, hasItem(matches(profile, "RESEARCHER_URLS", null,
             "dc.identifier.uri::http://localhost:4000/handle/fake-handle/190",
             "http://localhost:4000/handle/fake-handle/190", INSERT)));
