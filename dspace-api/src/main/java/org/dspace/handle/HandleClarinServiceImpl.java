@@ -440,7 +440,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
 
         String handleId;
         // Do we want to generate the new handleId or use entered handleStr?
-        if(StringUtils.isNotBlank(handleStr)) {
+        if (StringUtils.isNotBlank(handleStr)) {
             // We use handleStr entered by use
             handleId = handleStr;
         } else {
