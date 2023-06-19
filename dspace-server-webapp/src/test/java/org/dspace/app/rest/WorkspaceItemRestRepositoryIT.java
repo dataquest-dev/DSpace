@@ -128,7 +128,6 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     public void setUp() throws Exception {
         super.setUp();
         context.turnOffAuthorisationSystem();
-        Locale.setDefault(new Locale.Builder().setLanguage("en").setRegion("US").build());
         this.groupService = EPersonServiceFactory.getInstance().getGroupService();
 
         embargoedGroups = GroupBuilder.createGroup(context)
@@ -146,7 +145,6 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .build();
 
         anonymousGroup = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
-
         context.restoreAuthSystemState();
     }
 
@@ -4880,6 +4878,10 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         String patchBody = getPatchContent(addId);
 
+        // Set the Locale because if the Locale isn't `en` the date couldn't be converted.
+        Locale defaultValue = Locale.getDefault();
+        Locale.setDefault(new Locale.Builder().setLanguage("en").setRegion("US").build());
+
         getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
                 .content(patchBody)
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
@@ -4992,6 +4994,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(jsonPath("$.sections.traditionalpagetwo['dc.description.abstract'][0].value",
                     is(Matchers.notNullValue())))
             ;
+
+        Locale.setDefault(defaultValue);
 
     }
 
