@@ -432,7 +432,6 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ADMIN')")
     public Handle createHandle(Context context, String handleStr) throws SQLException, AuthorizeException {
         // Check authorisation: Only admins may create DC types
         if (!authorizeService.isAdmin(context)) {
