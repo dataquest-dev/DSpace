@@ -218,6 +218,7 @@ public interface HandleClarinService {
 
     /**
      * Create handle without dspace object.
+     * This method is created for migration purposes.
      * @param context  context
      * @param handle   handle of Handle object
      * @return created Handle

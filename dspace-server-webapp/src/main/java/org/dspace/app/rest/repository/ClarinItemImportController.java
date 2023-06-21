@@ -109,7 +109,7 @@ public class ClarinItemImportController {
      * }
      * </pre>
      * @param request request
-     * @return workslaceitem converted to rest
+     * @return workspaceitem converted to rest
      * @throws AuthorizeException if authorization error
      * @throws SQLException       if database error
      */

@@ -440,7 +440,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
 
         String handleId;
         // Do we want to generate the new handleId or use entered handleStr?
-        if (!(StringUtils.isBlank(handleStr))) {
+        if (StringUtils.isNotBlank(handleStr)) {
             // We use handleStr entered by use
             handleId = handleStr;
         } else {
@@ -449,14 +449,10 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         }
 
         Handle handle = handleDAO.create(context, new Handle());
-
         // Set handleId
         handle.setHandle(handleId);
-
         this.save(context, handle);
-
         log.debug("Created new Handle with handle " + handleId);
-
         return handle;
     }
 
