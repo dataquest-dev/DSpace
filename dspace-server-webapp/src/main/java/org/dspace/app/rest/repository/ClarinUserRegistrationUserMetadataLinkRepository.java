@@ -47,12 +47,12 @@ public class ClarinUserRegistrationUserMetadataLinkRepository extends AbstractDS
                     " couldn't be found");
         }
 
-        List<ClarinUserMetadata> clarinUserMetadata = clarinUserRegistration.getUserMetadata();
-        if (CollectionUtils.isEmpty(clarinUserMetadata)) {
-            throw new ResourceNotFoundException("The ClarinUserMetadata for ClarinLicenseResourceUserAllowance " +
-                    "with id: " + userRegistrationID + "doesn't exists.");
-        }
+//        List<ClarinUserMetadata> clarinUserMetadata = clarinUserRegistration.getUserMetadata();
+//        if (CollectionUtils.isEmpty(clarinUserMetadata)) {
+//            throw new ResourceNotFoundException("The ClarinUserMetadata for ClarinLicenseResourceUserAllowance " +
+//                    "with id: " + userRegistrationID + "doesn't exists.");
+//        }
 
-        return converter.toRestPage(clarinUserMetadata, optionalPageable, projection);
+        return converter.toRestPage(clarinUserRegistration.getUserMetadata(), optionalPageable, projection);
     }
 }
