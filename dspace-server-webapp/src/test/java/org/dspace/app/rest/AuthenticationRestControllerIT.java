@@ -18,8 +18,6 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -50,7 +48,6 @@ import org.dspace.app.rest.matcher.AuthorizationMatcher;
 import org.dspace.app.rest.matcher.EPersonMatcher;
 import org.dspace.app.rest.matcher.GroupMatcher;
 import org.dspace.app.rest.matcher.HalMatcher;
-import org.dspace.app.rest.model.AuthnRest;
 import org.dspace.app.rest.model.EPersonRest;
 import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -69,7 +66,6 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-import org.dspace.orcid.client.OrcidClient;
 import org.dspace.orcid.client.OrcidConfiguration;
 import org.dspace.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.services.ConfigurationService;
@@ -455,37 +451,40 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 //                        .andExpect(status().isNoContent());
 //    }
 
-    @Test
-    public void testShibbolethEndpointCannotBeUsedWithShibDisabled() throws Exception {
-        // Enable only password login
-        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", PASS_ONLY);
-
-        String uiURL = configurationService.getProperty("dspace.ui.url");
-
-        // Verify /api/authn/shibboleth endpoint does not work
-        // NOTE: this is the same call as in testStatusShibAuthenticatedWithCookie())
-        String token = getClient().perform(get("/api/authn/shibboleth")
-                .header("Referer", "https://myshib.example.com")
-                .param("redirectUrl", uiURL)
-                .requestAttr("SHIB-MAIL", eperson.getEmail())
-                .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
-                .andExpect(status().isUnauthorized())
-                .andReturn().getResponse().getHeader("Authorization");
-
-        getClient(token).perform(get("/api/authn/status"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.authenticated", is(false)))
-                        .andExpect(jsonPath("$.authenticationMethod").doesNotExist());
-
-        getClient(token).perform(
-                get("/api/authz/authorizations/search/object")
-                        .param("embed", "feature")
-                        .param("feature", feature)
-                        .param("uri", utils.linkToSingleResource(ePersonRest, "self").getHref()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.page.totalElements", is(0)))
-                   .andExpect(jsonPath("$._embedded").doesNotExist());
-    }
+    // Note: This test was commented because the Shibboleth Authentication was customized following the Clarin
+    // requirements. This test was copied and updated following the Clarin updates to the
+    // `ClarinAuthenticationRestControllerIT#testShibbolethEndpointCannotBeUsedWithShibDisabled` method.
+//    @Test
+//    public void testShibbolethEndpointCannotBeUsedWithShibDisabled() throws Exception {
+//        // Enable only password login
+//        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", PASS_ONLY);
+//
+//        String uiURL = configurationService.getProperty("dspace.ui.url");
+//
+//        // Verify /api/authn/shibboleth endpoint does not work
+//        // NOTE: this is the same call as in testStatusShibAuthenticatedWithCookie())
+//        String token = getClient().perform(get("/api/authn/shibboleth")
+//                .header("Referer", "https://myshib.example.com")
+//                .param("redirectUrl", uiURL)
+//                .requestAttr("SHIB-MAIL", eperson.getEmail())
+//                .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
+//                .andExpect(status().isUnauthorized())
+//                .andReturn().getResponse().getHeader("Authorization");
+//
+//        getClient(token).perform(get("/api/authn/status"))
+//                        .andExpect(status().isOk())
+//                        .andExpect(jsonPath("$.authenticated", is(false)))
+//                        .andExpect(jsonPath("$.authenticationMethod").doesNotExist());
+//
+//        getClient(token).perform(
+//                get("/api/authz/authorizations/search/object")
+//                        .param("embed", "feature")
+//                        .param("feature", feature)
+//                        .param("uri", utils.linkToSingleResource(ePersonRest, "self").getHref()))
+//                   .andExpect(status().isOk())
+//                   .andExpect(jsonPath("$.page.totalElements", is(0)))
+//                   .andExpect(jsonPath("$._embedded").doesNotExist());
+//    }
 
     // NOTE: This test is similar to testStatusShibAuthenticatedWithCookie(), but proves the same process works
     // for Password Authentication in theory (NOTE: at this time, there's no way to create an auth cookie via the
