@@ -139,7 +139,7 @@ public class CommunityRestRepository extends DSpaceObjectRestRepository<Communit
         Community community;
 
         try {
-            community = cs.create(parent, context, communityRest.getHandle());
+            community = cs.create(parent, context);
             cs.update(context, community);
             metadataConverter.mergeMetadata(context, community, communityRest.getMetadata());
         } catch (SQLException e) {
