@@ -89,7 +89,7 @@ public class S3BitStoreService extends BaseBitStoreService {
     protected static final int directoryLevels = 3;
     
     private boolean enabled = false;
-    
+
     private String awsAccessKey;
     private String awsSecretKey;
     private String awsRegionName;
