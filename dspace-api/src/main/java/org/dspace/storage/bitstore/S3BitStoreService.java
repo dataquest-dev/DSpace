@@ -87,9 +87,8 @@ public class S3BitStoreService extends BaseBitStoreService {
     // to find your existing data.
     protected static final int digitsPerLevel = 2;
     protected static final int directoryLevels = 3;
-    
+
     private boolean enabled = false;
-    
     private String awsAccessKey;
     private String awsSecretKey;
     private String awsRegionName;
