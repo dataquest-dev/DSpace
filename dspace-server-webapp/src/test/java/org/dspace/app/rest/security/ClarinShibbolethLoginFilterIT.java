@@ -32,6 +32,7 @@ import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
+import org.dspace.app.util.Util;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
@@ -151,7 +152,8 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-NETID", netId)
                         .header("Shib-Identity-Provider", idp))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?netid=" + netId));
+                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?netid=" +
+                        Util.formatNetId(netId, idp)));
     }
 
     /**
@@ -166,8 +168,8 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
      */
     @Test
     public void userFillInEmailAndShouldBeRegisteredByVerificationToken() throws Exception {
-        String netId = "123456";
         String email = "test@mail.epic";
+        String netId = email;
         String idp = "Test Idp";
 
         // Try to authenticate but the Shibboleth doesn't send the email in the header, so the user won't be registered
@@ -176,7 +178,8 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("Shib-Identity-Provider", idp)
                         .header("SHIB-NETID", netId))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?netid=" + netId));
+                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?netid=" +
+                        Util.formatNetId(netId, idp)));
 
         // Send the email with the verification token.
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
@@ -195,9 +198,10 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(status().isOk());
 
         // Check if was created a user with such email and netid.
-        EPerson ePerson = ePersonService.findByNetid(context, netId);
+        EPerson ePerson = ePersonService.findByNetid(context, Util.formatNetId(netId, idp));
         assertTrue(Objects.nonNull(ePerson));
         assertEquals(ePerson.getEmail(), email);
+        assertEquals(ePerson.getNetid(), Util.formatNetId(netId, idp));
 
         // The user is registered now log him
         getClient().perform(post("/api/authn/shibboleth")
@@ -220,6 +224,34 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         // Delete created eperson - clean after the test
         EPersonBuilder.deleteEPerson(ePerson.getID());
     }
+
+
+//    @Test
+//    public void userShouldBeRegisteredByPassingIdpAndNetId() throws Exception {
+//        String email = "test@mail.epic";
+//        String netId = email;
+//        String idp = "Test Idp";
+//
+//        // login through shibboleth
+//        String token = getClient().perform(get("/api/authn/shibboleth")
+//                        .header("SHIB-MAIL", clarinEperson.getEmail())
+//                        .header("Shib-Identity-Provider", "Test idp"))
+//                .andExpect(status().is3xxRedirection())
+//                .andExpect(redirectedUrl("http://localhost:4000"))
+//                .andReturn().getResponse().getHeader("Authorization");
+//
+//
+//        getClient(token).perform(get("/api/authn/status"))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.authenticated", is(true)))
+//                .andExpect(jsonPath("$.authenticationMethod", is("shibboleth")));
+//
+//        // Check if was created a user with such email and netid.
+////        EPerson ePerson = ePersonService.findByNetid(context, Util.formatNetId(netId, idp));
+////        assertTrue(Objects.nonNull(ePerson));
+////        assertEquals(ePerson.getEmail(), email);
+////        assertEquals(ePerson.getNetid(), Util.formatNetId(netId, idp));
+//    }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
     @Test

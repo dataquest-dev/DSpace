@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.util.Util;
 import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.authorize.AuthorizeException;
@@ -550,7 +551,8 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
         // 1) First, look for a netid header.
         if (netidHeader != null) {
-            String netid = findSingleAttribute(request, netidHeader);
+            String org = shibheaders.get_idp();
+            String netid = Util.formatNetId(findSingleAttribute(request, netidHeader), org);
             if (StringUtils.isEmpty(netid)) {
                 netid = shibheaders.get_single(netidHeader);
             }
@@ -687,7 +689,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         // CLARIN
 
         // Header values
-        String netid = findSingleAttribute(request, netidHeader);
+        String netid = Util.formatNetId(findSingleAttribute(request, netidHeader), org);
         String email = findSingleAttribute(request, emailHeader);
         String fname = findSingleAttribute(request, fnameHeader);
         String lname = findSingleAttribute(request, lnameHeader);
@@ -809,7 +811,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         String fnameHeader = configurationService.getProperty("authentication-shibboleth.firstname-header");
         String lnameHeader = configurationService.getProperty("authentication-shibboleth.lastname-header");
 
-        String netid = findSingleAttribute(request, netidHeader);
+        String netid = Util.formatNetId(findSingleAttribute(request, netidHeader), shibheaders.get_idp());
         String email = findSingleAttribute(request, emailHeader);
         String fname = findSingleAttribute(request, fnameHeader);
         String lname = findSingleAttribute(request, lnameHeader);
