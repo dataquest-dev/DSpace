@@ -53,6 +53,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegrationTest {
 
     public static final String[] SHIB_ONLY = {"org.dspace.authenticate.clarin.ClarinShibAuthentication"};
+    private static final String NET_ID_TEST_EPERSON = "123456789";
+    private static final String IDP_TEST_EPERSON = "Test Idp";
 
     private EPersonRest ePersonRest;
     private final String feature = CanChangePasswordFeature.NAME;
@@ -91,7 +93,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .withEmail("clarin@email.com")
                 .withNameInMetadata("first", "last")
                 .withLanguage(I18nUtil.getDefaultLocale().getLanguage())
-                .withNetId("123456789")
+                .withNetId(Util.formatNetId("123456789", "Test Idp"))
                 .build();
         context.restoreAuthSystemState();
     }
@@ -109,12 +111,10 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
      */
     @Test
     public void shouldReturnMissingHeadersFromIdpExceptionBecauseOfMissingIdp() throws Exception {
-        String netId = "123456";
-
         // Try to authenticate but the Shibboleth doesn't send the email in the header, so the user won't be registered
         // but the user will be redirected to the page where he will fill in the user email.
         getClient().perform(get("/api/authn/shibboleth")
-                        .header("SHIB-NETID", netId))
+                        .header("SHIB-NETID", NET_ID_TEST_EPERSON))
                 .andExpect(status().isFound())
                 .andExpect(redirectedUrl("http://localhost:4000/login/missing-headers"));
     }
@@ -129,7 +129,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         // Try to authenticate but the Shibboleth doesn't send the email in the header, so the user won't be registered
         // but the user will be redirected to the page where he will fill in the user email.
         getClient().perform(get("/api/authn/shibboleth")
-                        .header("Shib-Identity-Provider", idp))
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON))
                 .andExpect(status().isFound())
                 .andExpect(redirectedUrl("http://localhost:4000/login/missing-headers"));
     }
@@ -143,17 +143,16 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     // HERE
     @Test
     public void shouldReturnUserWithoutEmailException() throws Exception {
-        String netId = "123456";
-        String idp = "Test Idp";
-
+        // Create a new netId because the user shouldn't exist
+        String netId  = NET_ID_TEST_EPERSON + 0;
         // Try to authenticate but the Shibboleth doesn't send the email in the header, so the user won't be registered
         // but the user will be redirected to the page where he will fill in the user email.
         getClient().perform(get("/api/authn/shibboleth")
                         .header("SHIB-NETID", netId)
-                        .header("Shib-Identity-Provider", idp))
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON))
                 .andExpect(status().isFound())
                 .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?netid=" +
-                        Util.formatNetId(netId, idp)));
+                        Util.formatNetId(netId, IDP_TEST_EPERSON)));
     }
 
     /**
@@ -259,8 +258,8 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         String token = getClient().perform(get("/api/authn/shibboleth")
                         .param("redirectUrl", "http://localhost:8080/server/api/authn/status")
                         .header("SHIB-MAIL", clarinEperson.getEmail())
-                        .header("Shib-Identity-Provider", "Test idp")
-                        .header("SHIB-NETID", clarinEperson.getNetid()))
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header("SHIB-NETID", NET_ID_TEST_EPERSON))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("http://localhost:8080/server/api/authn/status"))
                 .andReturn().getResponse().getHeader("Authorization");
@@ -294,8 +293,8 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         // login through shibboleth
         String token = getClient().perform(get("/api/authn/shibboleth")
                     .header("SHIB-MAIL", clarinEperson.getEmail())
-                    .header("Shib-Identity-Provider", "Test idp")
-                    .header("SHIB-NETID", clarinEperson.getNetid()))
+                    .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                    .header("SHIB-NETID", NET_ID_TEST_EPERSON))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("http://localhost:4000"))
                 .andReturn().getResponse().getHeader("Authorization");
@@ -323,8 +322,8 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         // In this test we are simply mocking that behavior by setting it to an existing EPerson.
         String token = getClient().perform(get("/api/authn/shibboleth")
                     .header("SHIB-MAIL", clarinEperson.getEmail())
-                    .header("Shib-Identity-Provider", "Test idp")
-                    .header("SHIB-NETID", clarinEperson.getNetid()))
+                    .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                    .header("SHIB-NETID", NET_ID_TEST_EPERSON))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("http://localhost:4000"))
                 .andReturn().getResponse().getHeader("Authorization");
@@ -426,8 +425,8 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         getClient().perform(get("/api/authn/shibboleth")
                         .param("redirectUrl", "http://anotherdspacehost:4000/home")
                         .header("SHIB-MAIL", clarinEperson.getEmail())
-                        .header("Shib-Identity-Provider", "Test idp")
-                        .header("SHIB-NETID", clarinEperson.getNetid()))
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header("SHIB-NETID", NET_ID_TEST_EPERSON))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("http://anotherdspacehost:4000/home"));
     }
@@ -441,8 +440,8 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         getClient().perform(get("/api/authn/shibboleth")
                         .param("redirectUrl", "http://dspace.org")
                         .header("SHIB-MAIL", clarinEperson.getEmail())
-                        .header("Shib-Identity-Provider", "Test idp")
-                        .header("SHIB-NETID", clarinEperson.getNetid()))
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header("SHIB-NETID", NET_ID_TEST_EPERSON))
                 .andExpect(status().isBadRequest());
     }
 }
