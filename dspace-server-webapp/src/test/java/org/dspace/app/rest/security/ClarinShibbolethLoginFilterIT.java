@@ -259,7 +259,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-NETID", netId)
                         .header("Shib-Identity-Provider", differentIdP))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user"))
+                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user?email=" + email))
                 .andReturn().getResponse().getHeader("Authorization");
 
         // Delete created eperson - clean after the test

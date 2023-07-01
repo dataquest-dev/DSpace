@@ -93,6 +93,11 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
      */
     private String netId = "";
 
+    /**
+     * If is duplicate user error send the redirect request with email param. Store that email into this variable.
+     */
+    private String email = "";
+
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
     private ClarinVerificationTokenService clarinVerificationTokenService = ClarinServiceFactory.getInstance()
             .getClarinVerificationTokenService();
@@ -110,6 +115,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         this.setMissingHeadersFromIdp(false);
         this.setEmailIsAssociated(false);
         this.netId = "";
+        this.email = "";
 
         // First, if Shibboleth is not enabled, throw an immediate ProviderNotFoundException
         // This tells Spring Security that authentication failed
@@ -179,6 +185,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
             if (ePerson != null && ePerson.getNetid() != null && Objects.isNull(clarinVerificationToken)) {
                 log.error("The users email is already associated with a different user");
                 this.setEmailIsAssociated(true);
+                this.email = email;
             }
 
             // The Idp hasn't sent the email - the user will be redirected to the page where he must fill in that
@@ -265,7 +272,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         if (this.isMissingHeadersFromIdp) {
             redirectUrl += missingHeadersUrl;
         } else if (this.isEmailIsAssociated) {
-            redirectUrl += duplicateUser;
+            redirectUrl += duplicateUser + "?email=" + this.email;
         } else if (StringUtils.isNotEmpty(this.netId)) {
             // netId is set if the user doesn't have the email
             redirectUrl += userWithoutEmailUrl + "?netid=" + this.netId;
