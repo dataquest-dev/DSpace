@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.app.util.Util;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.core.I18nUtil;
@@ -54,7 +55,7 @@ public class ClarinShibbolethAuthAssing2GroupsIT extends AbstractControllerInteg
                 .withEmail("clarin@email.com")
                 .withNameInMetadata("first", "last")
                 .withLanguage(I18nUtil.getDefaultLocale().getLanguage())
-                .withNetId("123456789")
+                .withNetId(Util.formatNetId("123456789", "Test Idp"))
                 .build();
         context.turnOffAuthorisationSystem();
     }
