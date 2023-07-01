@@ -528,6 +528,6 @@ public class Util {
         if (StringUtils.isBlank(netId)) {
             return null;
         }
-        return netId + "[" + organization +"]";
+        return netId + "[" + organization + "]";
     }
 }

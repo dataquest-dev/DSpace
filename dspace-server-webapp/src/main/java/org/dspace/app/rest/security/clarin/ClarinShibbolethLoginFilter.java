@@ -165,8 +165,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
                     // Try to get user by the email because of possible duplicate of the user email
                     ePerson = ePersonService.findByEmail(context, email);
                 }
-            }
-             catch (SQLException ignored) {
+            } catch (SQLException ignored) {
                 //
             }
         }
