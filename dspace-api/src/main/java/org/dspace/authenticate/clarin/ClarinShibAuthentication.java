@@ -83,6 +83,9 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
      */
     private static final Logger log = LogManager.getLogger(ClarinShibAuthentication.class);
 
+    // If the user which are in the login process has email already associated with a different users email.
+    private boolean isDuplicateUser = false;
+
     /**
      * Additional metadata mappings
      **/
@@ -250,7 +253,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
             EPerson eperson = findEPerson(context, request);
 
             // Step 2: Register New User, if necessary
-            if (eperson == null && autoRegister) {
+            if (eperson == null && autoRegister && !isDuplicateUser) {
                 eperson = registerNewEPerson(context, request);
             }
 
@@ -607,6 +610,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                                     "'. This might be a possible hacking attempt to steal another users " +
                                     "credentials. If the user's netid has changed you will need to manually " +
                                     "change it to the correct value or unset it in the database.");
+                    this.isDuplicateUser = true;
                     eperson = null;
                 }
             }

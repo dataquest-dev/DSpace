@@ -108,6 +108,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
                                                 HttpServletResponse res) throws AuthenticationException {
         // Reset properties in every login request
         this.setMissingHeadersFromIdp(false);
+        this.setEmailIsAssociated(false);
         this.netId = "";
 
         // First, if Shibboleth is not enabled, throw an immediate ProviderNotFoundException
@@ -154,12 +155,18 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
                 shib_headers.get_single(emailHeader) : clarinVerificationToken.getEmail();
 
         EPerson ePerson = null;
-        // If email is null and netid exist try to find the eperson by netid and load its email
-        if (StringUtils.isEmpty(email) && StringUtils.isNotEmpty(netid)) {
+        if (StringUtils.isNotEmpty(netid)) {
             try {
-                ePerson = ePersonService.findByNetid(context, netid);
-                email = Objects.isNull(email) ? this.getEpersonEmail(ePerson) : null;
-            } catch (SQLException ignored) {
+                // If email is null and netid exist try to find the eperson by netid and load its email
+                if (StringUtils.isEmpty(email)) {
+                    ePerson = ePersonService.findByNetid(context, netid);
+                    email = Objects.isNull(email) ? this.getEpersonEmail(ePerson) : null;
+                } else {
+                    // Try to get user by the email because of possible duplicate of the user email
+                    ePerson = ePersonService.findByEmail(context, email);
+                }
+            }
+             catch (SQLException ignored) {
                 //
             }
         }

@@ -224,33 +224,47 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         EPersonBuilder.deleteEPerson(ePerson.getID());
     }
 
+    @Test
+    public void testShouldReturnDuplicateUserError() throws Exception {
+        String email = "test@mail.epic";
+        String netId = email;
 
-//    @Test
-//    public void userShouldBeRegisteredByPassingIdpAndNetId() throws Exception {
-//        String email = "test@mail.epic";
-//        String netId = email;
-//        String idp = "Test Idp";
-//
-//        // login through shibboleth
-//        String token = getClient().perform(get("/api/authn/shibboleth")
-//                        .header("SHIB-MAIL", clarinEperson.getEmail())
-//                        .header("Shib-Identity-Provider", "Test idp"))
-//                .andExpect(status().is3xxRedirection())
-//                .andExpect(redirectedUrl("http://localhost:4000"))
-//                .andReturn().getResponse().getHeader("Authorization");
-//
-//
-//        getClient(token).perform(get("/api/authn/status"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.authenticated", is(true)))
-//                .andExpect(jsonPath("$.authenticationMethod", is("shibboleth")));
-//
-//        // Check if was created a user with such email and netid.
-////        EPerson ePerson = ePersonService.findByNetid(context, Util.formatNetId(netId, idp));
-////        assertTrue(Objects.nonNull(ePerson));
-////        assertEquals(ePerson.getEmail(), email);
-////        assertEquals(ePerson.getNetid(), Util.formatNetId(netId, idp));
-//    }
+        String differentIdP = "Different IdP";
+
+        // login through shibboleth
+        String token = getClient().perform(get("/api/authn/shibboleth")
+                        .header("SHIB-MAIL", email)
+                        .header("SHIB-NETID", netId)
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost:4000"))
+                .andReturn().getResponse().getHeader("Authorization");
+
+
+        getClient(token).perform(get("/api/authn/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authenticated", is(true)))
+                .andExpect(jsonPath("$.authenticationMethod", is("shibboleth")));
+
+        // Check if was created a user with such email and netid.
+        EPerson ePerson = ePersonService.findByNetid(context, Util.formatNetId(netId, IDP_TEST_EPERSON));
+        assertTrue(Objects.nonNull(ePerson));
+        assertEquals(ePerson.getEmail(), email);
+        assertEquals(ePerson.getNetid(), Util.formatNetId(netId, IDP_TEST_EPERSON));
+
+        // Try to login with the same email, but from the different IdP, the user should be redirected to the
+        // duplicate error page
+        getClient().perform(get("/api/authn/shibboleth")
+                        .header("SHIB-MAIL", email)
+                        .header("SHIB-NETID", netId)
+                        .header("Shib-Identity-Provider", differentIdP))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user"))
+                .andReturn().getResponse().getHeader("Authorization");
+
+        // Delete created eperson - clean after the test
+        EPersonBuilder.deleteEPerson(ePerson.getID());
+    }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
     @Test
