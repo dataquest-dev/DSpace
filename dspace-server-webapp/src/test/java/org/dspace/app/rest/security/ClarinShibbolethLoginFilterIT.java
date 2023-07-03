@@ -93,7 +93,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .withEmail("clarin@email.com")
                 .withNameInMetadata("first", "last")
                 .withLanguage(I18nUtil.getDefaultLocale().getLanguage())
-                .withNetId(Util.formatNetId("123456789", "Test Idp"))
+                .withNetId(Util.formatNetId(NET_ID_TEST_EPERSON, IDP_TEST_EPERSON))
                 .build();
         context.restoreAuthSystemState();
     }
@@ -144,7 +144,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     @Test
     public void shouldReturnUserWithoutEmailException() throws Exception {
         // Create a new netId because the user shouldn't exist
-        String netId  = NET_ID_TEST_EPERSON + 0;
+        String netId  = NET_ID_TEST_EPERSON + 986;
         // Try to authenticate but the Shibboleth doesn't send the email in the header, so the user won't be registered
         // but the user will be redirected to the page where he will fill in the user email.
         getClient().perform(get("/api/authn/shibboleth")

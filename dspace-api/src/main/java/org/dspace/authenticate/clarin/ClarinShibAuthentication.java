@@ -712,7 +712,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
             lname = shibheaders.get_single(lnameHeader);
         }
 
-        if ( email == null && netid == null) {
+        if ( email == null ) {
             // We require that there be an email, first name, and last name. If we
             // don't have at least these three pieces of information then we fail.
             String message = "Unable to register new eperson because we are unable to find an email address along " +
