@@ -6,14 +6,14 @@
 -- http://www.dspace.org/license/
 --
 
--- HANDLE TABLE
-ALTER TABLE handle ADD url varchar;
-ALTER TABLE handle ADD dead BOOL;
-ALTER TABLE handle ADD dead_since TIMESTAMP WITH TIME ZONE;
-
--- MetadataField table
--- Because of metashareSchema
-ALTER TABLE metadatafieldregistry ALTER COLUMN element TYPE VARCHAR(128);
+---- HANDLE TABLE
+--ALTER TABLE handle ADD url varchar;
+--ALTER TABLE handle ADD dead BOOL;
+--ALTER TABLE handle ADD dead_since TIMESTAMP WITH TIME ZONE;
+--
+---- MetadataField table
+---- Because of metashareSchema
+--ALTER TABLE metadatafieldregistry ALTER COLUMN element TYPE VARCHAR(128);
 
 -- LICENSES
 --
@@ -475,16 +475,16 @@ ALTER TABLE ONLY user_metadata
 ALTER TABLE ONLY user_metadata
     ADD CONSTRAINT user_registration_user_metadata_fk FOREIGN KEY (user_registration_id) REFERENCES user_registration(user_registration_id);
 
-ALTER TABLE eperson
-    ALTER COLUMN netid TYPE character varying(256);
-
-ALTER TABLE eperson
-        ALTER COLUMN email TYPE character varying(256);
-
-ALTER TABLE metadatafieldregistry
-
-ALTER COLUMN element TYPE character varying(128);
-
-ALTER TABLE eperson ADD welcome_info varchar(30);
-
-ALTER TABLE eperson ADD can_edit_submission_metadata BOOL;
+--ALTER TABLE eperson
+--    ALTER COLUMN netid TYPE character varying(256);
+--
+--ALTER TABLE eperson
+--        ALTER COLUMN email TYPE character varying(256);
+--
+--ALTER TABLE metadatafieldregistry
+--
+--ALTER COLUMN element TYPE character varying(128);
+--
+--ALTER TABLE eperson ADD welcome_info varchar(30);
+--
+--ALTER TABLE eperson ADD can_edit_submission_metadata BOOL;

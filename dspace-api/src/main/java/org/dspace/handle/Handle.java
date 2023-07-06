@@ -53,13 +53,13 @@ public class Handle implements ReloadableEntity<Integer> {
     @Column(name = "resource_type_id")
     private Integer resourceTypeId;
 
-    @Column(name = "url")
+//    @Column(name = "url")
     private String url;
 
-    @Column(name = "dead")
+//    @Column(name = "dead")
     private Boolean dead;
 
-    @Column(name = "dead_since")
+//    @Column(name = "dead_since")
     private Date deadSince;
 
     /**
