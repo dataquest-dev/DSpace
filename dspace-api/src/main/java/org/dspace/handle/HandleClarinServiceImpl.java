@@ -135,7 +135,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
 
         // When you add null to String, it converts null to "null"
         if (!(StringUtils.isBlank(url)) && !Objects.equals(url,"null")) {
-            handle.setUrl(url);
+//            handle.setUrl(url);
         } else {
             throw new RuntimeException("Cannot change url of handle object " +
                     "- the url has wrong value: 'null' or is blank");
@@ -198,7 +198,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         if (!isInternalResource(handleObject)) {
             // When you add null to String, it converts null to "null"
             if (!(StringUtils.isBlank(newUrl)) && !Objects.equals(newUrl,"null")) {
-                handleObject.setUrl(newUrl);
+//                handleObject.setUrl(newUrl);
             } else {
                 throw new RuntimeException("Cannot change url of handle object " +
                         "- the url has wrong value: 'null' or is blank");
@@ -244,7 +244,8 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     @Override
     public boolean isInternalResource(Handle handle) {
         // In internal handle is not entered url
-        return (Objects.isNull(handle.getUrl()) || handle.getUrl().isEmpty());
+//        return (Objects.isNull(handle.getUrl()) || handle.getUrl().isEmpty());
+        return true;
     }
 
     @Override
@@ -265,15 +266,15 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         }
 
         String url;
-        if (isInternalResource(handle)) {
+//        if (isInternalResource(handle)) {
             // Internal handle
             // Create url for internal handle
-            url = configurationService.getProperty("dspace.ui.url")
-                    + "/handle/" + handleStr;
-        } else {
-            // External handle
-            url = handle.getUrl();
-        }
+        url = configurationService.getProperty("dspace.ui.url")
+                + "/handle/" + handleStr;
+//        } else {
+//             External handle
+//            url = handle.getUrl();
+//        }
         String partIdentifier = extractPartIdentifier(handleStr);
         url = appendPartIdentifierToUrl(url, partIdentifier);
 
@@ -355,10 +356,10 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     @Override
     public List<org.dspace.handle.external.Handle> convertHandleWithMagicToExternalHandle(List<Handle> magicHandles) {
         List<org.dspace.handle.external.Handle> externalHandles = new ArrayList<>();
-        for (org.dspace.handle.Handle handleWithMagic: magicHandles) {
-            externalHandles.add(new org.dspace.handle.external.Handle(handleWithMagic.getHandle(),
-                    handleWithMagic.getUrl()));
-        }
+//        for (org.dspace.handle.Handle handleWithMagic: magicHandles) {
+//            externalHandles.add(new org.dspace.handle.external.Handle(handleWithMagic.getHandle(),
+//                    handleWithMagic.getUrl()));
+//        }
 
         return externalHandles;
     }
@@ -408,8 +409,8 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         return handleDAO.findAll(context, Handle.class)
                 .stream()
                 .filter(handle -> Objects.nonNull(handle))
-                .filter(handle -> Objects.nonNull(handle.getUrl()))
-                .filter(handle -> handle.getUrl().contains(MAGIC_BEAN))
+//                .filter(handle -> Objects.nonNull(handle.getUrl()))
+//                .filter(handle -> handle.getUrl().contains(MAGIC_BEAN))
                 .collect(Collectors.toList());
     }
 
@@ -417,14 +418,16 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     public boolean isDead(Context context, String handle) throws SQLException {
         String baseHandle = stripPartIdentifier(handle);
         Handle foundHandle = handleDAO.findByHandle(context, baseHandle);
-        return foundHandle.getDead();
+//        return foundHandle.getDead();
+        return false;
 
     }
     @Override
     public String getDeadSince(Context context, String handle) throws SQLException {
         String baseHandle = stripPartIdentifier(handle);
         Handle foundHandle = handleDAO.findByHandle(context, baseHandle);
-        Date timestamptz = foundHandle.getDeadSince();
+//        Date timestamptz = foundHandle.getDeadSince();
+        Date timestamptz = null;
 
         return Objects.nonNull(timestamptz) ? DateFormatUtils.ISO_8601_EXTENDED_DATETIME_TIME_ZONE_FORMAT.
                 format(timestamptz) : null;

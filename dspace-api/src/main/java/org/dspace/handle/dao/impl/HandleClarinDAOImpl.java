@@ -81,13 +81,13 @@ public class HandleClarinDAOImpl extends AbstractHibernateDAO<Handle> implements
                 }
                 criteriaQuery.where(criteriaBuilder.equal(handleRoot.get(Handle_.resourceTypeId), sortingValueInt));
                 break;
-            case Handle_.URL:
-                if (StringUtils.equals(sortingValue, EXTERNAL)) {
-                    criteriaQuery.where(criteriaBuilder.isNotNull(handleRoot.get(Handle_.url)));
-                } else {
-                    criteriaQuery.where(criteriaBuilder.isNull(handleRoot.get(Handle_.url)));
-                }
-                break;
+//            case Handle_.URL:
+//                if (StringUtils.equals(sortingValue, EXTERNAL)) {
+//                    criteriaQuery.where(criteriaBuilder.isNotNull(handleRoot.get(Handle_.url)));
+//                } else {
+//                    criteriaQuery.where(criteriaBuilder.isNull(handleRoot.get(Handle_.url)));
+//                }
+//                break;
             default:
                 criteriaQuery.where(criteriaBuilder.like(handleRoot.get(Handle_.handle), sortingValue + "%"));
                 break;

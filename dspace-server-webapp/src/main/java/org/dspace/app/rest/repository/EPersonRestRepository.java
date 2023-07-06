@@ -126,7 +126,7 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
             eperson.setEmail(epersonRest.getEmail());
             eperson.setNetid(epersonRest.getNetid());
 //            eperson.setWelcomeInfo(epersonRest.getWelcomeInfo());
-            eperson.setCanEditSubmissionMetadata(epersonRest.getCanEditSubmissionMetadata());
+//            eperson.setCanEditSubmissionMetadata(epersonRest.getCanEditSubmissionMetadata());
             if (epersonRest.getPassword() != null) {
                 if (!validatePasswordService.isPasswordValid(epersonRest.getPassword())) {
                     throw new PasswordNotValidException();

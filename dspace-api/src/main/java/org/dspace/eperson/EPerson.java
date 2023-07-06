@@ -83,8 +83,8 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport {
 //    @Column(name = "welcome_info")
 //    private String welcomeInfo;
 
-    @Column(name = "can_edit_submission_metadata")
-    private Boolean canEditSubmissionMetadata;
+//    @Column(name = "can_edit_submission_metadata")
+//    private Boolean canEditSubmissionMetadata;
 
     /**
      * The e-mail field (for sorting)
@@ -458,12 +458,12 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport {
 //    public void setWelcomeInfo(String welcomeInfo) {
 //        this.welcomeInfo = welcomeInfo;
 //    }
-    public Boolean getCanEditSubmissionMetadata() {
-        return canEditSubmissionMetadata;
-    }
-    public void setCanEditSubmissionMetadata(Boolean canEditSubmissionMetadata) {
-        this.canEditSubmissionMetadata = canEditSubmissionMetadata;
-    }
+//    public Boolean getCanEditSubmissionMetadata() {
+//        return canEditSubmissionMetadata;
+//    }
+//    public void setCanEditSubmissionMetadata(Boolean canEditSubmissionMetadata) {
+//        this.canEditSubmissionMetadata = canEditSubmissionMetadata;
+//    }
     public boolean hasPasswordSet() {
         return StringUtils.isNotBlank(getPassword());
     }

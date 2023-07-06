@@ -468,9 +468,9 @@ public class RoleDisseminator implements PackageDisseminator {
 //            writer.writeEmptyElement(WELCOME_INFO);
 //        }
 
-        if (Objects.nonNull(eperson.getCanEditSubmissionMetadata())) {
-            writer.writeEmptyElement(CAN_EDIT_SUBMISSION_METADATA);
-        }
+//        if (Objects.nonNull(eperson.getCanEditSubmissionMetadata())) {
+//            writer.writeEmptyElement(CAN_EDIT_SUBMISSION_METADATA);
+//        }
         writer.writeEndElement();
     }
 

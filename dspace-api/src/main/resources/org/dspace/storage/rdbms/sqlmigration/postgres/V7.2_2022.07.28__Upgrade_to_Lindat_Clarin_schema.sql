@@ -6,14 +6,14 @@
 -- http://www.dspace.org/license/
 --
 
----- HANDLE TABLE
+-- HANDLE TABLE
 --ALTER TABLE handle ADD url varchar;
 --ALTER TABLE handle ADD dead BOOL;
 --ALTER TABLE handle ADD dead_since TIMESTAMP WITH TIME ZONE;
---
----- MetadataField table
----- Because of metashareSchema
---ALTER TABLE metadatafieldregistry ALTER COLUMN element TYPE VARCHAR(128);
+
+-- MetadataField table
+-- Because of metashareSchema
+ALTER TABLE metadatafieldregistry ALTER COLUMN element TYPE VARCHAR(128);
 
 -- LICENSES
 --
@@ -480,10 +480,6 @@ ALTER TABLE ONLY user_metadata
 --
 --ALTER TABLE eperson
 --        ALTER COLUMN email TYPE character varying(256);
---
---ALTER TABLE metadatafieldregistry
---
---ALTER COLUMN element TYPE character varying(128);
 --
 --ALTER TABLE eperson ADD welcome_info varchar(30);
 --

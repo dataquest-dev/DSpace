@@ -34,7 +34,7 @@ public class HandleMatcher {
         return allOf(
                 hasJsonPath("$.handle", is(handle.getHandle())),
                 hasJsonPath("$.resourceTypeID", is(handle.getResourceTypeId())),
-                hasJsonPath("$.url", is(handle.getUrl())),
+//                hasJsonPath("$.url", is(handle.getUrl())),
                 hasJsonPath("$._links.self.href", Matchers.containsString("/api/core/handles"))
         );
     }

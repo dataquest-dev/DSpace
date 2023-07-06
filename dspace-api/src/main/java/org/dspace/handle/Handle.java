@@ -54,13 +54,13 @@ public class Handle implements ReloadableEntity<Integer> {
     private Integer resourceTypeId;
 
 //    @Column(name = "url")
-    private String url;
+//    private String url;
 
 //    @Column(name = "dead")
-    private Boolean dead;
+//    private Boolean dead;
 
 //    @Column(name = "dead_since")
-    private Date deadSince;
+//    private Date deadSince;
 
     /**
      * Protected constructor, create object using:
@@ -137,27 +137,27 @@ public class Handle implements ReloadableEntity<Integer> {
             .toHashCode();
     }
 
-    public String getUrl() {
-        return url;
-    }
+//    public String getUrl() {
+//        return url;
+//    }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+//    public void setUrl(String url) {
+//        this.url = url;
+//    }
 
-    public Boolean getDead() {
-        return dead;
-    }
+//    public Boolean getDead() {
+//        return dead;
+//    }
 
-    public void setDead(Boolean dead) {
-        this.dead = dead;
-    }
+//    public void setDead(Boolean dead) {
+//        this.dead = dead;
+//    }
 
-    public Date getDeadSince() {
-        return deadSince;
-    }
+//    public Date getDeadSince() {
+//        return deadSince;
+//    }
 
-    public void setDeadSince(Date deadSince) {
-        this.deadSince = deadSince;
-    }
+//    public void setDeadSince(Date deadSince) {
+//        this.deadSince = deadSince;
+//    }
 }
