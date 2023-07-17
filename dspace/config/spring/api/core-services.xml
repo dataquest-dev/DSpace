@@ -167,13 +167,12 @@
     <bean class="org.dspace.supervision.SupervisionOrderServiceImpl"/>
 
     <!-- Matomo statistics -->
-    <!-- Turned off for TUL -->
-<!--    <bean class="org.matomo.java.tracking.MatomoTracker">-->
-<!--        &lt;!&ndash; TODO change me &ndash;&gt;-->
-<!--        <constructor-arg value="http://dev-5.pc:8135/matomo.php"/>-->
-<!--    </bean>-->
-<!--    <bean class="org.dspace.app.statistics.clarin.ClarinMatomoBitstreamTracker"/>-->
-<!--    <bean class="org.dspace.app.statistics.clarin.ClarinMatomoOAITracker"/>-->
+    <bean class="org.matomo.java.tracking.MatomoTracker">
+        <!-- TODO change me -->
+        <constructor-arg value="http://url:port/matomo.php"/>
+    </bean>
+    <bean class="org.dspace.app.statistics.clarin.ClarinMatomoBitstreamTracker"/>
+    <bean class="org.dspace.app.statistics.clarin.ClarinMatomoOAITracker"/>
 
 </beans>
 
