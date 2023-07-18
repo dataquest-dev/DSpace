@@ -269,7 +269,7 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
             Object obj = parser.parse(new InputStreamReader(conn.getInputStream()));
             return (JSONArray) obj;
         } catch (IOException | ParseException e) {
-            log.debug("ERROR: Failed to obtain/parse " + url + "\nCheck timeouts, redirects, shibboleth config.\n" + e);
+            log.error("Failed to obtain/parse " + url + "\nCheck timeouts, redirects, shibboleth config.\n" + e);
         }
         return new JSONArray();
     }

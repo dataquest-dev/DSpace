@@ -59,7 +59,7 @@ public class ClarinDiscoJuiceFeedsUpdateScheduler implements InitializingBean {
         if (isNotBlank(newFeedsContent)) {
             feedsContent = newFeedsContent;
         } else {
-            log.debug("Failed to obtain discojuice feeds!");
+            log.error("Failed to obtain discojuice feeds!");
         }
     }
 
