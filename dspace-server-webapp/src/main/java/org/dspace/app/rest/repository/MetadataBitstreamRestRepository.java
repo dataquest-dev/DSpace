@@ -11,6 +11,7 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.MetadataBitstreamWrapper;
 import org.dspace.app.rest.model.MetadataBitstreamWrapperRest;
 import org.dspace.app.util.Util;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.*;
 import org.dspace.content.clarin.ClarinLicense;
@@ -32,6 +33,7 @@ import org.xml.sax.SAXException;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -55,6 +57,9 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
     ItemService itemService;
     @Autowired
     ClarinLicenseResourceMappingService licenseService;
+
+    @Autowired
+    BitstreamService bitstreamService;
 
     @Autowired
     AuthorizeService authorizeService;
@@ -105,6 +110,12 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
 
                 for (Bitstream bitstream :
                         bitstreams) {
+//                    try {
+//                        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+//                        log.error("inputStream: " + inputStream);
+//                    } catch (Exception e) {
+//                        throw new RuntimeException(e);
+//                    }
                     List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = licenseService.findByBitstreamUUID(context, bitstream.getID());
                     boolean canPreview = false;
                     if ( clarinLicenseResourceMappings != null && clarinLicenseResourceMappings.size() > 0) {
