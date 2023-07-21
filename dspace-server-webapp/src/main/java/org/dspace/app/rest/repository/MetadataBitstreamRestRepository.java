@@ -1,7 +1,7 @@
 package org.dspace.app.rest.repository;
 
 
-import org.apache.commons.lang3.StringUtils;
+import  org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
@@ -10,12 +10,14 @@ import org.dspace.app.rest.converter.MetadataBitstreamWrapperConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.MetadataBitstreamWrapper;
 import org.dspace.app.rest.model.MetadataBitstreamWrapperRest;
+import org.dspace.app.rest.model.MetadataValueWrapper;
 import org.dspace.app.util.Util;
-import org.dspace.content.service.BitstreamService;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.*;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
@@ -32,15 +34,14 @@ import org.xml.sax.SAXException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @Component(MetadataBitstreamWrapperRest.CATEGORY + "." + MetadataBitstreamWrapperRest.NAME)
 public class MetadataBitstreamRestRepository extends DSpaceRestRepository<MetadataBitstreamWrapperRest, Integer>{
@@ -59,19 +60,20 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
     ClarinLicenseResourceMappingService licenseService;
 
     @Autowired
-    BitstreamService bitstreamService;
+    AuthorizeService authorizeService;
 
     @Autowired
-    AuthorizeService authorizeService;
+    BitstreamService bitstreamService;
 
     @SearchRestMethod(name = "byHandle")
     public Page<MetadataBitstreamWrapperRest> findByHandle(@Parameter(value = "handle", required = true) String handle,
                                                            @Parameter(value = "fileGrpType", required = false) String fileGrpType,
                                                            Pageable pageable)
-            throws SQLException, ParserConfigurationException, IOException, SAXException {
+            throws SQLException, ParserConfigurationException, IOException, SAXException, AuthorizeException {
         if (StringUtils.isBlank(handle)) {
             throw new DSpaceBadRequestException("handle cannot be null!");
         }
+        List<MetadataBitstreamWrapper> metadataValueWrappers = new ArrayList<>();
         Context context = obtainContext();
         if (Objects.isNull(context)) {
             throw new RuntimeException("Cannot obtain the context from the request.");
@@ -110,12 +112,6 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
 
                 for (Bitstream bitstream :
                         bitstreams) {
-//                    try {
-//                        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
-//                        log.error("inputStream: " + inputStream);
-//                    } catch (Exception e) {
-//                        throw new RuntimeException(e);
-//                    }
                     List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = licenseService.findByBitstreamUUID(context, bitstream.getID());
                     boolean canPreview = false;
                     if ( clarinLicenseResourceMappings != null && clarinLicenseResourceMappings.size() > 0) {
@@ -123,43 +119,44 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                         ClarinLicense clarinLicense = licenseResourceMapping.getLicense();
                         canPreview = clarinLicense.getClarinLicenseLabels().stream().anyMatch(clarinLicenseLabel -> clarinLicenseLabel.getLabel().equals("PUB"));
                     }
-                    String identifier = null;
-                    if (item != null && item.getHandle() != null)
-                    {
-                        identifier = "handle/" + item.getHandle();
-                    }
-                    else if (item != null)
-                    {
-                        identifier = "item/" + item.getID();
-                    }
-                    else
-                    {
-                        identifier = "id/" + bitstream.getID();
-                    }
-                    String url = contextPath + "/bitstream/"+identifier+"/";
-                    try
-                    {
-                        if (bitstream.getName() != null)
-                        {
-                            url += Util.encodeBitstreamName(bitstream.getName(), "UTF-8");
-                        }
-                    }
-                    catch (UnsupportedEncodingException uee)
-                    {
-                        log.error("UnsupportedEncodingException", uee);
-                    }
-
-                    url += "?sequence="+bitstream.getSequenceID();
-
-                    String isAllowed = "n";
-                    try {
-                        if (authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ)) {
-                            isAllowed = "y";
-                        }
-                    } catch (SQLException e) {/* Do nothing */}
-
-                    url += "&isAllowed=" + isAllowed;
                     if (true) {
+                        String identifier = null;
+                        if (item != null && item.getHandle() != null)
+                        {
+                            identifier = "handle/" + item.getHandle();
+                        }
+                        else if (item != null)
+                        {
+                            identifier = "item/" + item.getID();
+                        }
+                        else
+                        {
+                            identifier = "id/" + bitstream.getID();
+                        }
+                        String url = contextPath + "/bitstream/"+identifier;
+                        try
+                        {
+                            if (bitstream.getName() != null)
+                            {
+                                url += "/" + Util.encodeBitstreamName(bitstream.getName(), "UTF-8");
+                            }
+                        }
+                        catch (UnsupportedEncodingException uee)
+                        {
+                            log.error("UnsupportedEncodingException", uee);
+                        }
+
+                        url += "?sequence="+bitstream.getSequenceID();
+
+                        String isAllowed = "n";
+                        try {
+                            if (authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ)) {
+                                isAllowed = "y";
+                            }
+                        } catch (SQLException e) {/* Do nothing */}
+
+                        url += "&isAllowed=" + isAllowed;
+
                         List<MetadataValue> metadataValues = bitstream.getMetadata();
                         // Filter out all metadata values that are not local to the bitstream
                         // Uncomment this if we want to show metadata values that are local to the bitstream
@@ -167,32 +164,41 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
 //                              match("local", "bitstream", "file", metadataValue.getMetadataField()))
 //                              .collect(Collectors.toList());
                         List<FileInfo> fileInfos = new ArrayList<>();
-                        if (bitstream.getFormat(context).getMIMEType().equals("text/plain")) {
-                            List<FileInfo> finalFileInfos = fileInfos;
-                            metadataValues.stream().map(MetadataValue::getValue).reduce((s, s2) -> s + s2)
-                                    .ifPresent(s -> finalFileInfos.add(new FileInfo(s, false)));
-                            fileInfos = finalFileInfos;
+                        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+                        if (bitstream.getFormat(context).getExtensions().contains("zip")) {
+                            String data = extractFile(inputStream, bitstream.getName().substring(0, bitstream.getName().lastIndexOf(".")));
+                            fileInfos = FileTreeViewGenerator.parse(data);
                         } else {
-                            StringBuilder sb = new StringBuilder();
-                            sb.append("<root>");
-                            for (MetadataValue metadataValue :
-                                    metadataValues) {
-                                sb.append("<element>");
-                                sb.append(metadataValue.getValue());
-                                sb.append("</element>");
-                            }
-                            sb.append("</root>");
-                            try {
-                                fileInfos = FileTreeViewGenerator.parse(sb.toString());
-                            } catch (Exception e) {
-                                fileInfos = null;
+                            if (bitstream.getFormat(context).getMIMEType().equals("text/plain")) {
+                                String data = getFileContent(inputStream);
+                                fileInfos.add(new FileInfo(data, false));
                             }
                         }
+//                        if (bitstream.getFormat(context).getMIMEType().equals("text/plain")) {
+//                            List<FileInfo> finalFileInfos = fileInfos;
+//                            metadataValues.stream().map(MetadataValue::getValue).reduce((s, s2) -> s + s2).ifPresent(s -> finalFileInfos.add(new FileInfo(s, false)));
+//                            fileInfos = finalFileInfos;
+//                        } else {
+//                            StringBuilder sb = new StringBuilder();
+//                            sb.append("<root>");
+//                            for (MetadataValue metadataValue :
+//                                    metadataValues) {
+//                                sb.append("<element>");
+//                                sb.append(metadataValue.getValue());
+//                                sb.append("</element>");
+//                            }
+//                            sb.append("</root>");
+//                            try {
+//                                fileInfos = FileTreeViewGenerator.parse(sb.toString());
+//                            } catch (Exception e) {
+//                                log.error(e.getMessage(), e);
+//                                fileInfos = null;
+//                            }
+//                        }
                         MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, fileInfos, bitstream.getFormat(context).getMIMEType(), bitstream.getFormatDescription(context), url, canPreview);
+                        metadataValueWrappers.add(bts);
                         rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
                     } else {
-                        MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, null, bitstream.getFormat(context).getMIMEType(), bitstream.getFormatDescription(context), url, canPreview);
-                        rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
                         continue;
                     }
                 }
@@ -259,6 +265,61 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return true;
     }
 
+
+    public String extractFile(InputStream inputStream, String folderRootName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<root>");
+        sb.append("<element>");
+        sb.append(folderRootName + "/|0");
+        sb.append("</element>");
+        try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
+            ZipEntry zipEntry;
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if (!zipEntry.isDirectory()) {
+                    String subFileName = zipEntry.getName();
+
+                    long uncompressedSize = calculateUncompressedSize(zipInputStream);
+                    if (uncompressedSize > 0) {
+                        sb.append("<element>");
+                        sb.append(subFileName + "|" + uncompressedSize);
+                        sb.append("</element>");
+                    }
+                } else {
+                    sb.append("<element>");
+                    sb.append(zipEntry.getName() + "|0");
+                    sb.append("</element>");
+                }
+                zipInputStream.closeEntry();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        sb.append("</root>");
+        return sb.toString();
+    }
+
+    private static long calculateUncompressedSize(InputStream inputStream) throws IOException {
+        byte[] buffer = new byte[4096];
+        long uncompressedSize = 0;
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            uncompressedSize += bytesRead;
+        }
+        return uncompressedSize;
+    }
+
+    public String getFileContent(InputStream inputStream) throws IOException {
+        StringBuilder content = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            content.append(line).append("\n");
+        }
+
+        reader.close();
+        return content.toString();
+    }
 
     @Override
     public MetadataBitstreamWrapperRest findOne(Context context, Integer integer) {
