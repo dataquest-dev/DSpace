@@ -17,6 +17,7 @@
             <Format ref="etdms"/>
             <Format ref="mods"/>
             <Format ref="qdc"/>
+            <Format ref="qdc_tul"/>
             <Format ref="marc"/>
             <Format ref="uketd_dc"/>
             <!--<Format ref="junii2" />-->
