@@ -10,6 +10,7 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.MetadataBitstreamWrapper;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.*;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
@@ -21,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.dspace.core.Constants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -46,7 +48,8 @@ public class MetadataBitstreamController {
 
     @Autowired
     HandleService handleService;
-
+    @Autowired
+    private AuthorizeService authorizeService;
     @GetMapping("/handle/{id}/{subId}/{fileName}")
     public ResponseEntity<Resource> downloadSingleFile(
             @PathVariable("id") String id,
@@ -77,6 +80,13 @@ public class MetadataBitstreamController {
                  bundles) {
                 for (Bitstream bitstream:
                      bundle.getBitstreams()) {
+                    try {
+                        authorizeService.authorizeAction(context, bitstream, Constants.READ);
+                    } catch (AuthorizeException e) {
+                        response.sendRedirect(request.getContextPath() + "/login");
+                    } catch (SQLException e) {
+                        response.sendRedirect(request.getContextPath() + "/login");
+                    }
                     String btName = bitstream.getName();
                     if (btName.equalsIgnoreCase(fileName)) {
                         try {
@@ -145,6 +155,13 @@ public class MetadataBitstreamController {
             for (Bundle original : bundles) {
                 List<Bitstream> bss = original.getBitstreams();
                 for (Bitstream bitstream : bss) {
+                    try {
+                        authorizeService.authorizeAction(context, bitstream, Constants.READ);
+                    } catch (AuthorizeException e) {
+                        response.sendRedirect(request.getContextPath() + "/login");
+                    } catch (SQLException e) {
+                        response.sendRedirect(request.getContextPath() + "/login");
+                    }
                     String filename = bitstream.getName();
                     ZipArchiveEntry ze = new ZipArchiveEntry(filename);
                     zip.putArchiveEntry(ze);
