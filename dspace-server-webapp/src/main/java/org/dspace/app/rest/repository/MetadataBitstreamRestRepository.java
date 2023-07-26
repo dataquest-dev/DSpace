@@ -30,16 +30,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.nio.file.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -119,44 +127,43 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                         ClarinLicense clarinLicense = licenseResourceMapping.getLicense();
                         canPreview = clarinLicense.getClarinLicenseLabels().stream().anyMatch(clarinLicenseLabel -> clarinLicenseLabel.getLabel().equals("PUB"));
                     }
-                    if (true) {
-                        String identifier = null;
-                        if (item != null && item.getHandle() != null)
+                    String identifier = null;
+                    if (item != null && item.getHandle() != null)
+                    {
+                        identifier = "handle/" + item.getHandle();
+                    }
+                    else if (item != null)
+                    {
+                        identifier = "item/" + item.getID();
+                    }
+                    else
+                    {
+                        identifier = "id/" + bitstream.getID();
+                    }
+                    String url = contextPath + "/bitstream/"+identifier;
+                    try
+                    {
+                        if (bitstream.getName() != null)
                         {
-                            identifier = "handle/" + item.getHandle();
+                            url += "/" + Util.encodeBitstreamName(bitstream.getName(), "UTF-8");
                         }
-                        else if (item != null)
-                        {
-                            identifier = "item/" + item.getID();
-                        }
-                        else
-                        {
-                            identifier = "id/" + bitstream.getID();
-                        }
-                        String url = contextPath + "/bitstream/"+identifier;
-                        try
-                        {
-                            if (bitstream.getName() != null)
-                            {
-                                url += "/" + Util.encodeBitstreamName(bitstream.getName(), "UTF-8");
-                            }
-                        }
-                        catch (UnsupportedEncodingException uee)
-                        {
-                            log.error("UnsupportedEncodingException", uee);
-                        }
+                    }
+                    catch (UnsupportedEncodingException uee)
+                    {
+                        log.error("UnsupportedEncodingException", uee);
+                    }
 
-                        url += "?sequence="+bitstream.getSequenceID();
+                    url += "?sequence="+bitstream.getSequenceID();
 
-                        String isAllowed = "n";
-                        try {
-                            if (authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ)) {
-                                isAllowed = "y";
-                            }
-                        } catch (SQLException e) {/* Do nothing */}
+                    String isAllowed = "n";
+                    try {
+                        if (authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ)) {
+                            isAllowed = "y";
+                        }
+                    } catch (SQLException e) {/* Do nothing */}
 
-                        url += "&isAllowed=" + isAllowed;
-
+                    url += "&isAllowed=" + isAllowed;
+                    if (canPreview) {
                         List<MetadataValue> metadataValues = bitstream.getMetadata();
                         // Filter out all metadata values that are not local to the bitstream
                         // Uncomment this if we want to show metadata values that are local to the bitstream
@@ -199,6 +206,9 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                         metadataValueWrappers.add(bts);
                         rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
                     } else {
+                        MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, new ArrayList<>(), bitstream.getFormat(context).getMIMEType(), bitstream.getFormatDescription(context), url, canPreview);
+                        metadataValueWrappers.add(bts);
+                        rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
                         continue;
                     }
                 }
@@ -267,34 +277,74 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
 
 
     public String extractFile(InputStream inputStream, String folderRootName) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<root>");
-        sb.append("<element>");
-        sb.append(folderRootName + "/|0");
-        sb.append("</element>");
-        try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
-            ZipEntry zipEntry;
-            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if (!zipEntry.isDirectory()) {
-                    String subFileName = zipEntry.getName();
+        List<String> filePaths = new ArrayList<>();
+        Path tempFile = null;
+        FileSystem zipFileSystem = null;
 
-                    long uncompressedSize = calculateUncompressedSize(zipInputStream);
-                    if (uncompressedSize > 0) {
-                        sb.append("<element>");
-                        sb.append(subFileName + "|" + uncompressedSize);
-                        sb.append("</element>");
-                    }
-                } else {
-                    sb.append("<element>");
-                    sb.append(zipEntry.getName() + "|0");
-                    sb.append("</element>");
-                }
-                zipInputStream.closeEntry();
-            }
+        try {
+            tempFile = Files.createTempFile("temp", ".zip");
+            Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+
+            zipFileSystem = FileSystems.newFileSystem(tempFile, (ClassLoader) null);
+            Path root = zipFileSystem.getPath("/");
+            Files.walk(root)
+                    .forEach(path -> {
+                        try {
+                            long fileSize = Files.size(path);
+                            if (Files.isDirectory(path)) {
+                                filePaths.add(path.toString().substring(1) + "/|" + fileSize );
+                            } else {
+                                filePaths.add(path.toString().substring(1) + "|" + fileSize );
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (zipFileSystem != null) {
+                try {
+                    zipFileSystem.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (tempFile != null) {
+                try {
+                    Files.delete(tempFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        sb.append("</root>");
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(("<root>"));
+        int count = 0;
+        List<String> allFiles = filePaths;
+        for (String filePath : allFiles) {
+            if (!filePath.isEmpty() && filePath.length() > 3) {
+                if (filePath.contains(".")) {
+                    count ++;
+                }
+                sb.append("<element>");
+                sb.append(filePath);
+                sb.append("</element>");
+
+                if (count > 10) {
+                    sb.append("<element>");
+                    sb.append("/|0");
+                    sb.append("</element>");
+                    sb.append("<element>");
+                    sb.append("...too many files...|0");
+                    sb.append("</element>");
+                    break;
+                }
+            }
+        }
+        sb.append(("</root>"));
         return sb.toString();
     }
 

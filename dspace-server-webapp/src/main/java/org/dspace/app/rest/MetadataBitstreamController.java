@@ -10,6 +10,7 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.MetadataBitstreamWrapper;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.*;
 import org.dspace.content.service.BitstreamService;
@@ -82,10 +83,12 @@ public class MetadataBitstreamController {
                      bundle.getBitstreams()) {
                     try {
                         authorizeService.authorizeAction(context, bitstream, Constants.READ);
+                    } catch (MissingLicenseAgreementException e) {
+                        response.sendRedirect("http://localhost:4000/bitstream/" + bitstream.getID() + "/download");
                     } catch (AuthorizeException e) {
-                        response.sendRedirect(request.getContextPath() + "/login");
+                        response.sendRedirect("http://localhost:4000" + "/login");
                     } catch (SQLException e) {
-                        response.sendRedirect(request.getContextPath() + "/login");
+                        response.sendRedirect("http://localhost:4000" + "/login");
                     }
                     String btName = bitstream.getName();
                     if (btName.equalsIgnoreCase(fileName)) {
@@ -158,9 +161,9 @@ public class MetadataBitstreamController {
                     try {
                         authorizeService.authorizeAction(context, bitstream, Constants.READ);
                     } catch (AuthorizeException e) {
-                        response.sendRedirect(request.getContextPath() + "/login");
+                        response.sendRedirect("http://localhost:4000" + "/login");
                     } catch (SQLException e) {
-                        response.sendRedirect(request.getContextPath() + "/login");
+                        response.sendRedirect("http://localhost:4000" + "/login");
                     }
                     String filename = bitstream.getName();
                     ZipArchiveEntry ze = new ZipArchiveEntry(filename);
