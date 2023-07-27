@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
 
 import org.apache.commons.codec.CharEncoding;
@@ -80,8 +87,7 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
 
     @Test
     public void downloadSingleFileNullPathVariable() throws Exception {
-        getClient().perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT))
-                .andExpect(status().isBadRequest());
+        getClient().perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT)).andExpect(status().isNotFound());
     }
 
     @Test

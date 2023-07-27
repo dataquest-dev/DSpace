@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
 
 
@@ -84,7 +91,7 @@ public class MetadataBitstreamController {
                     try {
                         authorizeService.authorizeAction(context, bitstream, Constants.READ);
                     } catch (MissingLicenseAgreementException e) {
-                        response.sendRedirect("http://localhost:4000/bitstream/" + bitstream.getID() + "/download");
+                        response.sendRedirect("http://localhost:4000/bitstream/" + bitstreamb.getID() + "/download");
                     } catch (AuthorizeException e) {
                         response.sendRedirect("http://localhost:4000" + "/login");
                     } catch (SQLException e) {
