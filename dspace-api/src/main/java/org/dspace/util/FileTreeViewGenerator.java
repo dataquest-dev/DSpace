@@ -10,9 +10,10 @@ package org.dspace.util;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -20,22 +21,24 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
+/**
+ * Generate a tree view of the file in a bitstream
+ *
+ * @author longtv
+ */
 public class FileTreeViewGenerator {
+    private FileTreeViewGenerator () {
+    }
 
     public static List<FileInfo> parse(String data) throws ParserConfigurationException, IOException, SAXException {
-
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document document = builder.parse(new InputSource(new StringReader(data)));
-
         Element rootElement = document.getDocumentElement();
         NodeList nl = rootElement.getChildNodes();
         FileInfo root = new FileInfo("root");
+        int limitFile = 100;
+        int countFile = 0;
         Node n = nl.item(0);
         do {
             String fileInfo = n.getFirstChild().getTextContent();
@@ -43,18 +46,17 @@ public class FileTreeViewGenerator {
             String fileName = "";
             String path = f[0];
             long size = Long.parseLong(f[1]);
-            if(!path.endsWith("/")) {
-                fileName = path.substring(path.lastIndexOf('/')+1);
-                if(path.lastIndexOf('/')!=-1) {
+            if (!path.endsWith("/")) {
+                fileName = path.substring(path.lastIndexOf('/') + 1);
+                if (path.lastIndexOf('/') != -1) {
                     path = path.substring(0, path.lastIndexOf('/'));
                 } else {
                     path = "";
                 }
             }
-
             FileInfo current = root;
-            for(String p : path.split("/")) {
-                if(current.sub.containsKey(p)) {
+            for (String p : path.split("/")) {
+                if (current.sub.containsKey(p)) {
                     current = current.sub.get(p);
                 } else {
                     FileInfo temp = new FileInfo(p);
@@ -62,19 +64,17 @@ public class FileTreeViewGenerator {
                     current = temp;
                 }
             }
-
-            if(!fileName.isEmpty()) {
+            if (!fileName.isEmpty()) {
                 FileInfo temp = new FileInfo(fileName, humanReadableFileSize(size));
                 current.sub.put(fileName, temp);
+                countFile++;
             }
-
-        } while((n=n.getNextSibling())!=null);
-
+        } while ((n = n.getNextSibling()) != null && countFile < limitFile);
         return new ArrayList<>(root.sub.values());
     }
     public static String humanReadableFileSize(long bytes) {
         int thresh = 1024;
-        if(Math.abs(bytes) < thresh) {
+        if (Math.abs(bytes) < thresh) {
             return bytes + " B";
         }
         String units[] = {"kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
@@ -82,9 +82,8 @@ public class FileTreeViewGenerator {
         do {
             bytes /= thresh;
             ++u;
-        } while(Math.abs(bytes) >= thresh && u < units.length - 1);
+        } while (Math.abs(bytes) >= thresh && u < units.length - 1);
         return bytes + " " + units[u];
     }
-
 }
 
