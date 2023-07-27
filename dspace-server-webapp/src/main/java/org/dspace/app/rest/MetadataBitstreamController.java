@@ -91,7 +91,7 @@ public class MetadataBitstreamController {
                     try {
                         authorizeService.authorizeAction(context, bitstream, Constants.READ);
                     } catch (MissingLicenseAgreementException e) {
-                        response.sendRedirect("http://localhost:4000/bitstream/" + bitstreamb.getID() + "/download");
+                        response.sendRedirect("http://localhost:4000/bitstream/" + bitstream.getID() + "/download");
                     } catch (AuthorizeException e) {
                         response.sendRedirect("http://localhost:4000" + "/login");
                     } catch (SQLException e) {
