@@ -178,3 +178,4 @@ jobs:
           https://api.github.com/repos/dataquest-dev/\
           dspace-angular/actions/workflows/deploy.yml/dispatches \
           --data "{\"ref\":\"refs/heads/customer/TUL\"}"
+

@@ -80,7 +80,6 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
 
     private static final Logger log = LogManager.getLogger(org.dspace.app.rest.security.clarin.
             ClarinShibbolethLoginFilter.class);
-
     /**
      * Property which handles information if the IdP send required information.
      */
