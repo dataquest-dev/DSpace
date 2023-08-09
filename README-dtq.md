@@ -28,8 +28,6 @@ DSpace uses GitHub to track issues:
 - license_file_download_statistic, 
 - piwik_reposr, 
 - shibboleth_attribute_mapping
-- verification_token
-- webapp
 
 
 ## Testing
