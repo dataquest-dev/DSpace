@@ -56,8 +56,7 @@ public class ItemMatcher {
                 hasJsonPath("$.metadata", allOf(
                         matchMetadata("dc.title", title),
                         matchMetadata("local.approximateDate.issued", approximateDateIssued),
-                        // It should be deleted from the `dc.date.issued`
-                        matchMetadataDoesNotExist("dc.date.issued"))),
+                        matchMetadata("dc.date.issued", approximateDateIssued))),
 
                 //Check links
                 matchLinks(item.getID())
