@@ -139,7 +139,7 @@ public class MetadataConverter implements DSpaceConverter<MetadataValueList, Met
             String qualifier = seq.length == 3 ? seq[2] : null;
             for (MetadataValueRest mvr: entry.getValue()) {
                 dsoService.addMetadata(context, dso, schema, element, qualifier, mvr.getLanguage(),
-                        mvr.getValue(), mvr.getAuthority(), mvr.getConfidence());
+                        mvr.getValue(), mvr.getAuthority(), mvr.getConfidence(), mvr.getPlace());
             }
         }
         dsoService.update(context, dso);
