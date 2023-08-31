@@ -26,6 +26,7 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -138,8 +139,17 @@ public class MetadataConverter implements DSpaceConverter<MetadataValueList, Met
             String element = seq[1];
             String qualifier = seq.length == 3 ? seq[2] : null;
             for (MetadataValueRest mvr: entry.getValue()) {
-                dsoService.addMetadata(context, dso, schema, element, qualifier, mvr.getLanguage(),
-                        mvr.getValue(), mvr.getAuthority(), mvr.getConfidence(), mvr.getPlace());
+                // Use `place` argument only for ItemService because some services doesn't have implemented
+                // `addMetadata` method with place argument.
+                // `place` is important because of importing Items. Without it the Items metadata could be in the
+                // wrong sequence e.g., files in the item.
+                if (dsoService instanceof ItemService) {
+                    dsoService.addMetadata(context, dso, schema, element, qualifier, mvr.getLanguage(),
+                            mvr.getValue(), mvr.getAuthority(), mvr.getConfidence(), mvr.getPlace());
+                } else {
+                    dsoService.addMetadata(context, dso, schema, element, qualifier, mvr.getLanguage(),
+                            mvr.getValue(), mvr.getAuthority(), mvr.getConfidence());
+                }
             }
         }
         dsoService.update(context, dso);
