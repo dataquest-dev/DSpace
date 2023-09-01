@@ -277,6 +277,14 @@ public class InstallItemServiceImpl implements InstallItemService {
         return myMessage.toString();
     }
 
+    /**
+     * Language is stored in the metadatavalue in the ISO format e.g., `fra, cse,..` and not in the human satisfying
+     * format e.g., `France, Czech`. This method converts ISO format into human satisfying format e.g., `cse -> Czech`
+     * and stores it into `local.language.name` metadata field.
+     * @param c
+     * @param item
+     * @throws SQLException
+     */
     private void addLanguageNameToMetadata(Context c, Item item) throws SQLException {
         itemService.clearMetadata(c, item, "local", "language", "name", null);
         List<MetadataValue> languageMetadata = itemService.getMetadataByMetadataString(item, "dc.language.iso");
