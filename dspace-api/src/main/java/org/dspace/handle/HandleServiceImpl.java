@@ -143,8 +143,8 @@ public class HandleServiceImpl implements HandleService {
     public String createHandle(Context context, DSpaceObject dso)
         throws SQLException {
         Handle handle = handleDAO.create(context, new Handle());
-//        String handleId = createId(context, dso);
-        String handleId = createId(context);
+        String handleId = createId(context, dso);
+//        String handleId = createId(context);
         handle.setHandle(handleId);
         handle.setDSpaceObject(dso);
         dso.addHandle(handle);
@@ -413,10 +413,11 @@ public class HandleServiceImpl implements HandleService {
             }
             return handleId;
         } else if (pidCommunityConfiguration.isLocal()) {
+            String prefix = pidCommunityConfiguration.getPrefix();
             String handleSubprefix = pidCommunityConfiguration.getSubprefix();
             if (Objects.nonNull(handleSubprefix) && !handleSubprefix.isEmpty()) {
-                //create local handle
-                return handlePrefix + (handlePrefix.endsWith("/") ? "" : "/")
+                // create local handle
+                return prefix + (handlePrefix.endsWith("/") ? "" : "/")
                         + handleSubprefix + "-" + handleSuffix.toString();
             }
         } else {
