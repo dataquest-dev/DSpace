@@ -73,6 +73,12 @@ public class InstallItemServiceImpl implements InstallItemService {
         AuthorizeException {
         Item item = is.getItem();
         Collection collection = is.getCollection();
+
+        // CLARIN
+        // The owning collection is needed for getting owning community and creating configured handle.
+        item.setOwningCollection(collection);
+        // CLARIN
+
         // Get map of filters to use for identifier types.
         Map<Class<? extends Identifier>, Filter> filters = FilterUtils.getIdentifierFilters(false);
         try {

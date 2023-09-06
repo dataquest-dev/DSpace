@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,9 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.api.DSpaceApi;
+import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.SiteService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.dao.HandleDAO;
@@ -62,6 +65,8 @@ public class HandleServiceImpl implements HandleService {
 
     @Autowired
     protected SiteService siteService;
+    @Autowired
+    protected ClarinItemService clarinItemService;
 
     private static final Pattern[] IDENTIFIER_PATTERNS = {
         Pattern.compile("^hdl:(.*)$"),
@@ -387,10 +392,15 @@ public class HandleServiceImpl implements HandleService {
             //create handle for another type of dspace objects
             return createdId;
         }
+        context.commit();
+
+        // Get owning communityID from the item
+        Community owningCommunity = clarinItemService.getOwningCommunity(context, dso);
+        UUID owningCommunityId = Objects.isNull(owningCommunity) ? null : owningCommunity.getID();
 
         //add subprefix for item handle
         PIDCommunityConfiguration pidCommunityConfiguration = PIDConfiguration
-                .getPIDCommunityConfiguration(dso.getID());
+                .getPIDCommunityConfiguration(owningCommunityId);
         //Which type is pis community configuration?
         if (pidCommunityConfiguration.isEpic()) {
             String handleId;
