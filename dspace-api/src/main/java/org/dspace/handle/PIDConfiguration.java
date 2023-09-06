@@ -78,8 +78,7 @@ public class PIDConfiguration {
         }
 
         pidCommunityConfigurations = new HashMap<UUID, PIDCommunityConfiguration>();
-        for (String pidCommunityConfigurationString : convertedProperties.split(";"))
-        {
+        for (String pidCommunityConfigurationString : convertedProperties.split(";")) {
             PIDCommunityConfiguration pidCommunityConfiguration = PIDCommunityConfiguration
                     .fromString(pidCommunityConfigurationString);
             pidCommunityConfigurations.put(
@@ -224,21 +223,22 @@ public class PIDConfiguration {
     public String convertPropertyToValidString(String[] pidCommunityConfigurationsArray) {
         String wholePccString = String.join(",", pidCommunityConfigurationsArray);
         String[] splittedByCommunity = wholePccString.split("community=");
-        Collection<String> ppcWithoutCommunity = Arrays.asList(splittedByCommunity);
+        Collection<String> pccWithoutCommunity = Arrays.asList(splittedByCommunity);
 
+        // pcc = pidCommunityConfigurations
         StringBuilder convertedPccString = new StringBuilder();
         // Add `community=` string into start of the property
-        for (String ppc : ppcWithoutCommunity) {
-            if (StringUtils.isEmpty(ppc)) {
+        for (String pcc : pccWithoutCommunity) {
+            if (StringUtils.isEmpty(pcc)) {
                 continue;
             }
-            ppc = "community=" + ppc;
+            pcc = "community=" + pcc;
             // If last character is `,` replace it with `;`
-            if (ppc.endsWith(",")) {
-                int indexToReplace = ppc.lastIndexOf(",");
-                ppc = ppc.substring(0, indexToReplace) + ";";
+            if (pcc.endsWith(",")) {
+                int indexToReplace = pcc.lastIndexOf(",");
+                pcc = pcc.substring(0, indexToReplace) + ";";
             }
-            convertedPccString.append(ppc);
+            convertedPccString.append(pcc);
         }
         return convertedPccString.toString();
     }

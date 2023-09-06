@@ -34,10 +34,10 @@ public interface ClarinItemService {
     List<Item> findByBitstreamUUID(Context context, UUID bitstreamUUID) throws SQLException;
 
     /**
-     * Get item's owning community
+     * Get item/collection/community's owning community
      * @param context DSpace context object
-     * @param item
+     * @param dso item/collection/community
      * @return owning community or null
      */
-    Community getOwningCommunity(Context context, DSpaceObject item);
+    Community getOwningCommunity(Context context, DSpaceObject dso);
 }

@@ -61,7 +61,7 @@ public class PIDConfigurationTest extends AbstractUnitTest {
         col = collectionService.create(context, subCom);
         WorkspaceItem workspaceItem = workspaceItemService.create(context, col, true);
         // 2. Create item and add it to the collection
-//        publicItem = installItemService.installItem(context, workspaceItem);
+        publicItem = installItemService.installItem(context, workspaceItem);
         context.restoreAuthSystemState();
     }
 
@@ -96,15 +96,16 @@ public class PIDConfigurationTest extends AbstractUnitTest {
     @Test
     public void testInitMultipleCommunityConfigs() {
         PIDConfiguration pidConfiguration = PIDConfiguration.getInstance();
-        // now check that we have 3 community configurations
-        assertEquals(3, pidConfiguration.getPIDCommunityConfigurations().size());
+        // now check that we have 2 community configurations in the test local.cfg
+        assertEquals(2, pidConfiguration.getPIDCommunityConfigurations().size());
     }
 //
     @Test
     public  void testInitCommunityConfigSubprefix() {
         PIDConfiguration pidConfiguration = PIDConfiguration.getInstance();
         // get the first one and check the subprefix is 1
-        PIDCommunityConfiguration pidCommunityConfiguration = pidConfiguration.getPIDCommunityConfiguration(UUID.fromString("47501cdc-e2eb-44e5-85e0-89a31dc8ceee"));
+        PIDCommunityConfiguration pidCommunityConfiguration = pidConfiguration.getPIDCommunityConfiguration(
+                UUID.fromString("47501cdc-e2eb-44e5-85e0-89a31dc8ceee"));
         assertEquals("Subprefix should be 1", "1", pidCommunityConfiguration.getSubprefix());
     }
 
@@ -112,7 +113,8 @@ public class PIDConfigurationTest extends AbstractUnitTest {
     public  void testInitCommunityConfigMapShouldNotBeShared() throws NoSuchFieldException, IllegalAccessException {
         PIDConfiguration pidConfiguration = PIDConfiguration.getInstance();
         PIDCommunityConfiguration pidCommunityConfiguration1 =
-                pidConfiguration.getPIDCommunityConfiguration(UUID.fromString("47501cdc-e2eb-44e5-85e0-89a31dc8ceee"));
+                pidConfiguration.getPIDCommunityConfiguration(
+                        UUID.fromString("47501cdc-e2eb-44e5-85e0-89a31dc8ceee"));
         PIDCommunityConfiguration pidCommunityConfiguration2 =
                 pidConfiguration.getPIDCommunityConfiguration(null);
         assertEquals("Com2 should have local type", "local", pidCommunityConfiguration2.getType());
@@ -120,7 +122,7 @@ public class PIDConfigurationTest extends AbstractUnitTest {
         Field field = PIDCommunityConfiguration.class.getDeclaredField("configMap");
         field.setAccessible(true);
         Map<String, String> configMap = (Map<String, String>) field.get(pidCommunityConfiguration1);
-        configMap.put("type", "DECAFBAD");
+        configMap.put("type", "epic");
         assertEquals("Com2 should still have local type", "local", pidCommunityConfiguration2.getType());
     }
 }

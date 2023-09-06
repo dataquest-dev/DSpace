@@ -122,21 +122,17 @@ public class PIDCommunityConfiguration {
         return communityID;
     }
 
-
     /**
      * Creates new AssignmentRules from given string
      *
      * @param s String with assignment rules
      * @return New instance of this class
      */
-    public static PIDCommunityConfiguration fromString(String s)
-    {
+    public static PIDCommunityConfiguration fromString(String s) {
         Map<String, String> configMap = new HashMap<String, String>();
-        for (String part : s.split(","))
-        {
+        for (String part : s.split(",")) {
             String[] keyValue = part.split("=", 2);
-            if (keyValue.length == 2)
-            {
+            if (keyValue.length == 2) {
                 String key = keyValue[0].trim();
                 String value = keyValue[1].trim();
                 configMap.put(key, value);
