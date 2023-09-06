@@ -392,7 +392,6 @@ public class HandleServiceImpl implements HandleService {
             //create handle for another type of dspace objects
             return createdId;
         }
-        context.commit();
 
         // Get owning communityID from the item
         Community owningCommunity = clarinItemService.getOwningCommunity(context, dso);

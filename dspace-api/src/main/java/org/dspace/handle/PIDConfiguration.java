@@ -242,4 +242,13 @@ public class PIDConfiguration {
         }
         return convertedPccString.toString();
     }
+
+    /**
+     * Reload community configuration. It is for testing purposes.
+     */
+    public void reloadPidCommunityConfigurations() {
+        pidCommunityConfigurations.clear();
+        pidCommunityConfigurations = null;
+        initialize();
+    }
 }
