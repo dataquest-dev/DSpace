@@ -149,7 +149,8 @@ public class HandleDAOImplTest extends AbstractUnitTest {
         context.commit();
 
         assertEquals(newPrefix + "/" + SUFFIX_1, itemService.find(context, item1.getID()).getHandle());
-        assertEquals(newPrefix + "/" + SUBPREFIX + "-" + SUFFIX_2, itemService.find(context, item2.getID()).getHandle());
+        assertEquals(newPrefix + "/" + SUBPREFIX + "-" + SUFFIX_2,
+                itemService.find(context, item2.getID()).getHandle());
         assertEquals(newPrefix + "/" + SUFFIX_3, itemService.find(context, item3.getID()).getHandle());
 
         //Ensure that records not matching the old prefix are not touched
