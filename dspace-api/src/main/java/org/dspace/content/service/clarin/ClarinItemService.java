@@ -40,4 +40,13 @@ public interface ClarinItemService {
      * @return owning community or null
      */
     Community getOwningCommunity(Context context, DSpaceObject dso);
+
+    /**
+     * Get owning community from the collection with UUID which is passed to the method.
+     * @param context DSpace context object
+     * @param owningCollectionId UUID of the collection to get the owning community
+     * @return owning community or null
+     * @throws SQLException
+     */
+    Community getOwningCommunity(Context context, UUID owningCollectionId) throws SQLException;
 }

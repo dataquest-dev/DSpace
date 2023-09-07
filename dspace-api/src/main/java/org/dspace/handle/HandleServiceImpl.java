@@ -7,10 +7,13 @@
  */
 package org.dspace.handle;
 
+import static org.dspace.content.InstallItemServiceImpl.SET_OWNING_COLLECTION_EVENT_DETAIL;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,6 +32,7 @@ import org.dspace.content.service.SiteService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.event.Event;
 import org.dspace.handle.dao.HandleDAO;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
@@ -392,12 +396,10 @@ public class HandleServiceImpl implements HandleService {
             //create handle for another type of dspace objects
             return createdId;
         }
-
-        // Get owning communityID from the item
-        Community owningCommunity = clarinItemService.getOwningCommunity(context, dso);
+        Community owningCommunity = getOwningCommunity(context, dso);
         UUID owningCommunityId = Objects.isNull(owningCommunity) ? null : owningCommunity.getID();
 
-        //add subprefix for item handle
+        // add subprefix for item handle
         PIDCommunityConfiguration pidCommunityConfiguration = PIDConfiguration
                 .getPIDCommunityConfiguration(owningCommunityId);
         //Which type is pis community configuration?
@@ -475,6 +477,48 @@ public class HandleServiceImpl implements HandleService {
             }
         }
 
+        return null;
+    }
+
+    /**
+     *
+     * @param context DSpace context
+     * @param dso DSpaceObject
+     * @return dso owning community
+     * @throws SQLException
+     */
+    private Community getOwningCommunity(Context context, DSpaceObject dso) throws SQLException {
+        // There is stored event with dso collection UUID in the context
+        Event setOwningCollectionEvent = getClarinSetOwningCollectionEvent(context);
+
+        String detail = Objects.isNull(setOwningCollectionEvent) ? "" : setOwningCollectionEvent.getDetail();
+        if (StringUtils.isNotBlank(detail)) {
+            int searchingCharIndex = detail.indexOf(":");
+            detail = detail.substring(searchingCharIndex + 1);
+            return clarinItemService.getOwningCommunity(context, UUID.fromString(detail));
+        }
+
+        return clarinItemService.getOwningCommunity(context, dso);
+    }
+
+    /**
+     * Context has a lot of events stored in the list. Fetch just that one with the special detail prefix.
+     * @param context DSpace context
+     * @return event with owningCollection UUID
+     */
+    private Event getClarinSetOwningCollectionEvent(Context context) {
+        int index = -1;
+        LinkedList<Event> allEvents = context.getEvents();
+        for (Event event: allEvents) {
+            index++;
+            if (StringUtils.isBlank(event.getDetail())) {
+                continue;
+            }
+            if (StringUtils.startsWith(event.getDetail(), SET_OWNING_COLLECTION_EVENT_DETAIL)) {
+                context.getEvents().remove(index);
+                return event;
+            }
+        }
         return null;
     }
 

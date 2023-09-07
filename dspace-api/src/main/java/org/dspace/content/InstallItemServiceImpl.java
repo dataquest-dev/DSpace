@@ -42,6 +42,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class InstallItemServiceImpl implements InstallItemService {
 
+    public static final String SET_OWNING_COLLECTION_EVENT_DETAIL = "setCollection:";
+
     @Autowired(required = true)
     protected ContentServiceFactory contentServiceFactory;
     @Autowired(required = true)
@@ -76,7 +78,8 @@ public class InstallItemServiceImpl implements InstallItemService {
 
         // CLARIN
         // The owning collection is needed for getting owning community and creating configured handle.
-        item.setOwningCollection(collection);
+        c.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(),
+                SET_OWNING_COLLECTION_EVENT_DETAIL + collection.getID()));
         // CLARIN
 
         // Get map of filters to use for identifier types.
