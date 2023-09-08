@@ -155,15 +155,7 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
                     "license label cannot be null or empty");
         }
 
-        List<ClarinUserRegistration> userRegistrations = userRegistrationService.findByEPersonUUID(context,
-                context.getCurrentUser().getID());
-        // Do not allow to create a license by the user which doesn't have data in the `user_registration` table
-        // because that could mean he is not logged in. That is not-logical situation, by theory it shouldn't happen.
-        if (CollectionUtils.isEmpty(userRegistrations)) {
-            throw new UnprocessableEntityException("Clarin License user registration, " +
-                    "cannot be null");
-        }
-        ClarinUserRegistration userRegistration = userRegistrations.get(0);
+        ClarinUserRegistration userRegistration = getUserRegistration(context);
 
         // create
         ClarinLicense clarinLicense;
@@ -271,6 +263,23 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
         clarinLicenseLabel.setIcon(clarinLicenseLabelRest.getIcon());
         clarinLicenseLabel.setId(clarinLicenseLabelRest.getId());
         return clarinLicenseLabel;
+    }
+
+    private ClarinUserRegistration getUserRegistration(Context context) throws SQLException {
+        List<ClarinUserRegistration> userRegistrations = userRegistrationService.findByEPersonUUID(context,
+                context.getCurrentUser().getID());
+
+        // Return the user registration record if it exists.
+        if (!CollectionUtils.isEmpty(userRegistrations)) {
+            return userRegistrations.get(0);
+        }
+
+        // In some special case after the migration the user could be inserted into the `eperson` table,
+        // but it is not in the `user_registration` table. Maybe the user was signed in via Shibboleth.
+        // Create a new ClarinUserRegistration record in this case.
+        throw new UnprocessableEntityException("Clarin License user registration, " +
+                "cannot be null");
+//        ClarinUserRegistration userRegistration = userRegistrations.get(0);
     }
 
 }
