@@ -871,6 +871,22 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
 
         Assert.assertNotNull(installedItem);
         Assert.assertTrue(installedItem.getHandle().startsWith("LRT/100"));
+
+        // Restore community configuration
+        context.turnOffAuthorisationSystem();
+        // Set property in the cfg
+        String restoreAllCommunityHandleDef = "community=*, prefix=123456789, " +
+                "type=local, canonical_prefix=http://hdl.handle.net/, subprefix=2";
+        String restoreSpecificCommunityHandleDef = "community=09f09b11-cba1-4c43-9e01-29fe919991ab, " +
+                "prefix=123456789, " + "type=local, canonical_prefix=http://hdl.handle.net/, subprefix=2";
+        ArrayList<String> configArrayCommunityConfig = new ArrayList<>(2);
+        configArrayCommunityConfig.add(restoreAllCommunityHandleDef);
+        configArrayCommunityConfig.add(restoreSpecificCommunityHandleDef);
+        configurationService.setProperty("lr.pid.community.configurations", configArrayCommunityConfig);
+
+        // Reload the set property in the hash map.
+        pidConfiguration.reloadPidCommunityConfigurations();
+        context.restoreAuthSystemState();
     }
 
     /**

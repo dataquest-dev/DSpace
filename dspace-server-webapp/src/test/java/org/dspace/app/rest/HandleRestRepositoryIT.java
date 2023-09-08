@@ -95,20 +95,6 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection").build();
 
-        // Set property in the cfg
-        String allCommunityHandleDef = "community=*, prefix=123456789, " +
-                "type=local, canonical_prefix=http://hdl.handle.net/, subprefix=2";
-        String specificCommunityHandleDef = "community=09f09b11-cba1-4c43-9e01-29fe919991ab, prefix=123456789, " +
-                "type=local, canonical_prefix=http://hdl.handle.net/, subprefix=2";
-        ArrayList<String> configArrayCommunityConfig = new ArrayList<>(2);
-        configArrayCommunityConfig.add(allCommunityHandleDef);
-        configArrayCommunityConfig.add(specificCommunityHandleDef);
-        configurationService.setProperty("lr.pid.community.configurations", configArrayCommunityConfig);
-
-        // Reload the set property in the hash map.
-        PIDConfiguration pidConfiguration = PIDConfiguration.getInstance();
-        pidConfiguration.reloadPidCommunityConfigurations();
-
         // 2. Create item and add it to the collection
         publicItem = ItemBuilder.createItem(context, col)
                 .withAuthor(AUTHOR)
@@ -529,6 +515,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         assertEquals(newItem.getHandle().split("/")[0], "987654321");
 
         this.cleanHandles();
+        this.restoreCommunityConfiguration();
     }
 
     @Test
@@ -619,6 +606,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         assertEquals(archivedExternalHandle2.getUrl(), externalHandle2.getUrl());
 
         this.cleanHandles();
+        this.restoreCommunityConfiguration();
     }
 
     // Clean handles of all created handles (items, cmmunity, collection, archived handles, external handles...)
@@ -653,5 +641,23 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
         //find created handle
         Handle handle = handleClarinService.findByID(context, handleId);
         return handle;
+    }
+
+    private void restoreCommunityConfiguration() {
+        context.turnOffAuthorisationSystem();
+        // Set property in the cfg
+        String allCommunityHandleDef = "community=*, prefix=123456789, " +
+                "type=local, canonical_prefix=http://hdl.handle.net/, subprefix=2";
+        String specificCommunityHandleDef = "community=09f09b11-cba1-4c43-9e01-29fe919991ab, prefix=123456789, " +
+                "type=local, canonical_prefix=http://hdl.handle.net/, subprefix=2";
+        ArrayList<String> configArrayCommunityConfig = new ArrayList<>(2);
+        configArrayCommunityConfig.add(allCommunityHandleDef);
+        configArrayCommunityConfig.add(specificCommunityHandleDef);
+        configurationService.setProperty("lr.pid.community.configurations", configArrayCommunityConfig);
+
+        // Reload the set property in the hash map.
+        PIDConfiguration pidConfiguration = PIDConfiguration.getInstance();
+        pidConfiguration.reloadPidCommunityConfigurations();
+        context.restoreAuthSystemState();
     }
 }
