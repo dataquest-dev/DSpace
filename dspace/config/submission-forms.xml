@@ -66,8 +66,8 @@
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
-                    <dc-element>creator</dc-element>
-                    <dc-qualifier></dc-qualifier>
+                    <dc-element>contributor</dc-element>
+                    <dc-qualifier>author</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Autor</label>
                     <input-type>name</input-type>
@@ -293,8 +293,8 @@
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
-                    <dc-element>creator</dc-element>
-                    <dc-qualifier></dc-qualifier>
+                    <dc-element>contributor</dc-element>
+                    <dc-qualifier>author</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Autor</label>
                     <input-type>name</input-type>
@@ -1629,12 +1629,24 @@
 
         <value-pairs value-pairs-name="common_identifiers" dc-term="identifier">
             <pair>
+                <displayed-value>ISBN</displayed-value>
+                <stored-value>isbn</stored-value>
+            </pair>
+            <pair>
                 <displayed-value>ISSN</displayed-value>
                 <stored-value>issn</stored-value>
             </pair>
             <pair>
                 <displayed-value>eISSN (online)</displayed-value>
                 <stored-value>eissn</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>DOI</displayed-value>
+                <stored-value>doi</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>URI</displayed-value>
+                <stored-value>uri</stored-value>
             </pair>
             <pair>
                 <displayed-value>Jiný</displayed-value>
@@ -1647,14 +1659,6 @@
             <pair>
                 <displayed-value>Gov't Doc #</displayed-value>
                 <stored-value>govdoc</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>URI</displayed-value>
-                <stored-value>uri</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>ISBN</displayed-value>
-                <stored-value>isbn</stored-value>
             </pair>
         </value-pairs>
 
