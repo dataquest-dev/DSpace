@@ -1652,14 +1652,6 @@
                 <displayed-value>Jiný</displayed-value>
                 <stored-value>other</stored-value>
             </pair>
-            <pair>
-                <displayed-value>ISMN</displayed-value>
-                <stored-value>ismn</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Gov't Doc #</displayed-value>
-                <stored-value>govdoc</stored-value>
-            </pair>
         </value-pairs>
 
         <value-pairs value-pairs-name="common_types" dc-term="type">
