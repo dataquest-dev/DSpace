@@ -41,6 +41,7 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -71,6 +72,9 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
 
     @Autowired
     ItemService itemService;
+
+    @Autowired
+    ClarinUserRegistrationService clarinUserRegistrationService;
 
     @Override
     @PreAuthorize("permitAll()")
@@ -155,6 +159,7 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
                     "license label cannot be null or empty");
         }
 
+        // Get user registration record according to current user or create a new record if it doesn't exist yet.
         ClarinUserRegistration userRegistration = getUserRegistration(context);
 
         // create
@@ -265,7 +270,13 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
         return clarinLicenseLabel;
     }
 
-    private ClarinUserRegistration getUserRegistration(Context context) throws SQLException {
+    /**
+     * The user is already authenticated, so he exists in the eperson table.
+     * @param context
+     * @return
+     * @throws SQLException
+     */
+    private ClarinUserRegistration getUserRegistration(Context context) throws SQLException, AuthorizeException {
         List<ClarinUserRegistration> userRegistrations = userRegistrationService.findByEPersonUUID(context,
                 context.getCurrentUser().getID());
 
@@ -275,11 +286,23 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
         }
 
         // In some special case after the migration the user could be inserted into the `eperson` table,
-        // but it is not in the `user_registration` table. Maybe the user was signed in via Shibboleth.
+        // but it is not inserted in the `user_registration` table. Maybe the user was signed in via Shibboleth.
         // Create a new ClarinUserRegistration record in this case.
-        throw new UnprocessableEntityException("Clarin License user registration, " +
-                "cannot be null");
-//        ClarinUserRegistration userRegistration = userRegistrations.get(0);
+
+        // Get current user
+        EPerson ePerson = context.getCurrentUser();
+        if (Objects.isNull(ePerson)) {
+            throw new UnprocessableEntityException("Cannot create a ClarinUserRegistration because the " +
+                    "current user from the context is null.");
+        }
+
+        ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
+        clarinUserRegistration.setConfirmation(true);
+        clarinUserRegistration.setEmail(ePerson.getEmail());
+        clarinUserRegistration.setPersonID(ePerson.getID());
+        clarinUserRegistration.setOrganization(ePerson.getNetid());
+        clarinUserRegistrationService.create(context, clarinUserRegistration);
+        return clarinUserRegistration;
     }
 
 }

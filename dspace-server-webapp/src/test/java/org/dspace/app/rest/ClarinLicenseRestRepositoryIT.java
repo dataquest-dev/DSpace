@@ -49,11 +49,13 @@ import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Integration tests for the Clarin License Rest Repository
@@ -73,6 +75,10 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
 
     @Autowired
     ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+
+    @Autowired
+    ClarinUserRegistrationService clarinUserRegistrationService;
+
     ClarinLicense firstCLicense;
     ClarinLicense secondCLicense;
 
@@ -492,6 +498,73 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + firstCLicense.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bitstreams", is(2)));
+    }
+
+    @Test
+    public void createUserRegistrationIfItDoesntExist() throws Exception {
+        context.setCurrentUser(admin);
+        ClarinLicenseRest clarinLicenseRest = new ClarinLicenseRest();
+        clarinLicenseRest.setName("name");
+        clarinLicenseRest.setBitstreams(0);
+        clarinLicenseRest.setConfirmation(4);
+        clarinLicenseRest.setRequiredInfo("Not required");
+        clarinLicenseRest.setDefinition("definition");
+        clarinLicenseConverter.setExtendedClarinLicenseLabels(clarinLicenseRest, firstCLicense.getLicenseLabels(),
+                Projection.DEFAULT);
+        clarinLicenseConverter.setClarinLicenseLabel(clarinLicenseRest, firstCLicense.getLicenseLabels(),
+                Projection.DEFAULT);
+        // id of created clarin license
+        AtomicReference<Integer> idRef = new AtomicReference<>();
+        String authTokenAdmin = getAuthToken(admin.getEmail(), password);
+        try {
+            getClient(authTokenAdmin).perform(post("/api/core/clarinlicenses")
+                            .content(new ObjectMapper().writeValueAsBytes(clarinLicenseRest))
+                            .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.name", is(clarinLicenseRest.getName())))
+                    .andExpect(jsonPath("$.definition",
+                            is(clarinLicenseRest.getDefinition())))
+                    .andExpect(jsonPath("$.confirmation",
+                            is(clarinLicenseRest.getConfirmation())))
+                    .andExpect(jsonPath("$.requiredInfo",
+                            is(clarinLicenseRest.getRequiredInfo())))
+                    .andExpect(jsonPath("$.bitstreams",
+                            is(clarinLicenseRest.getBitstreams())))
+                    .andExpect(jsonPath("$.type",
+                            is(ClarinLicenseRest.NAME)))
+
+                    .andExpect(jsonPath("$.clarinLicenseLabel.label",
+                            is(clarinLicenseRest.getClarinLicenseLabel().getLabel())))
+                    .andExpect(jsonPath("$.clarinLicenseLabel.title",
+                            is(clarinLicenseRest.getClarinLicenseLabel().getTitle())))
+                    .andExpect(jsonPath("$.clarinLicenseLabel.extended",
+                            is(clarinLicenseRest.getClarinLicenseLabel().isExtended())))
+                    .andExpect(jsonPath("$.clarinLicenseLabel.type",
+                            is(ClarinLicenseLabelRest.NAME)))
+
+                    .andExpect(jsonPath("$.extendedClarinLicenseLabels[0].label",
+                            is(clarinLicenseRest.getExtendedClarinLicenseLabels().get(0).getLabel())))
+                    .andExpect(jsonPath("$.extendedClarinLicenseLabels[0].title",
+                            is(clarinLicenseRest.getExtendedClarinLicenseLabels().get(0).getTitle())))
+                    .andExpect(jsonPath("$.extendedClarinLicenseLabels[0].extended",
+                            is(clarinLicenseRest.getExtendedClarinLicenseLabels().get(0).isExtended())))
+                    .andExpect(jsonPath("$.extendedClarinLicenseLabels[0].type",
+                            is(ClarinLicenseLabelRest.NAME)))
+                    .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(),
+                            "$.id")));
+        } finally {
+            if (Objects.nonNull(idRef.get())) {
+                // remove created clarin license
+                ClarinLicenseBuilder.deleteClarinLicense(idRef.get());
+            }
+        }
+
+        List<ClarinUserRegistration> userRegistrations = clarinUserRegistrationService.findByEPersonUUID(context,
+                context.getCurrentUser().getID());
+
+        Assert.assertFalse(CollectionUtils.isEmpty(userRegistrations));
+        // Remove the user registration record - it was created in the `getUserRegistration` method.
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(userRegistrations.get(0).getID());
     }
 
     private ClarinLicenseLabel getNonExtendedLicenseLabel(List<ClarinLicenseLabel> clarinLicenseLabelList) {
