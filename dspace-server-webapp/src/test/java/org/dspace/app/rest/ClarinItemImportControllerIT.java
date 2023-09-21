@@ -47,7 +47,6 @@ import org.dspace.workflow.WorkflowItemService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Integration test to test the /api/clarin/import/* endpoints
