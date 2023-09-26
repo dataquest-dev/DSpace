@@ -497,10 +497,11 @@ public class ClarinItemImportControllerIT extends AbstractControllerIntegrationT
                 .build();
         context.restoreAuthSystemState();
 
+        String startOfCollectionLink = "https://localhost:8080/spring-rest/api/core/collections/";
         // It is owning collection
-        String col1SelfLink = "https://localhost:8080/spring-rest/api/core/collections/" + col1.getID();
-        String col2SelfLink = "https://localhost:8080/spring-rest/api/core/collections/" + col2.getID();
-        String col3SelfLink = "https://localhost:8080/spring-rest/api/core/collections/" + col3.getID();
+        String col1SelfLink = startOfCollectionLink + col1.getID();
+        String col2SelfLink = startOfCollectionLink + col2.getID();
+        String col3SelfLink = startOfCollectionLink + col3.getID();
         List<String> collectionSelfLinksList = new ArrayList<>();
         collectionSelfLinksList.add(col1SelfLink);
         collectionSelfLinksList.add(col2SelfLink);

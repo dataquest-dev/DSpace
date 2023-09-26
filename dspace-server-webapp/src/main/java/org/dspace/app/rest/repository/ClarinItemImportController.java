@@ -23,6 +23,7 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.converter.MetadataConverter;
@@ -389,7 +390,7 @@ public class ClarinItemImportController {
     @RequestMapping(method = RequestMethod.POST, value = "/item" + REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID +
             "/mappedCollections")
     public void importItemCollections(@PathVariable UUID uuid, HttpServletRequest request) throws SQLException,
-            AuthorizeException, IOException {
+            AuthorizeException {
         Context context = ContextUtil.obtainContext(request);
         if (Objects.isNull(context)) {
             throw new RuntimeException("Context is null - cannot import item's mapped collections.");
@@ -400,6 +401,10 @@ public class ClarinItemImportController {
         JSONParser parser = new JSONParser();
         try {
             Object obj = parser.parse(new InputStreamReader(request.getInputStream()));
+
+            if (!(obj instanceof JSONArray)) {
+                throw new UnprocessableEntityException("The request is not a JSON Array");
+            }
 
             for (Object entity : (JSONArray) obj) {
                 String collectionSelfLink = entity.toString();
@@ -414,7 +419,7 @@ public class ClarinItemImportController {
         List<DSpaceObject> listDsoFoundInRequest
                 = utils.constructDSpaceObjectList(context, requestAsStringList);
 
-        if (listDsoFoundInRequest.size() < 1) {
+        if (CollectionUtils.isEmpty(listDsoFoundInRequest)) {
             throw new UnprocessableEntityException("Not a valid collection uuid.");
         }
 
@@ -473,6 +478,12 @@ public class ClarinItemImportController {
     }
 
     private boolean checkIfOwningCollection(Item item, UUID collectionID) {
+        if (Objects.isNull(item)) {
+            return false;
+        }
+        if (Objects.isNull(item.getOwningCollection())) {
+            return false;
+        }
         return item.getOwningCollection().getID().equals(collectionID);
     }
 }
