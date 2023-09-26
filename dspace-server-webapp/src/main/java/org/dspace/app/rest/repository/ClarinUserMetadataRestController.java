@@ -223,35 +223,10 @@ public class ClarinUserMetadataRestController {
                     currentUser.getID() + " is null.");
         }
 
-        List<ClarinUserMetadata> currentClarinUserMetadataList = clarinUserRegistration.getUserMetadata();
-        List<ClarinUserMetadata> newClarinUserMetadataList = new ArrayList<>(currentClarinUserMetadataList);
-        // If exists ClarinResourceUserAllowance - Clrua record in the table, create a new clrua with current
-        // resource mapping, user metadata, user registration
-//        if (CollectionUtils.isEmpty(currentClarinUserMetadataList)) {
-//            // The current user doesn't fill in any user metadata, create a new UserMetadata objects
-//            newClarinUserMetadataList = this.createUserMetadataFromRequest(context,
-//                    clarinUserMetadataRestList);
-//        } else {
-            // The current user has signed some user metadata, update actual UserMetadata objects and create
-            // the new one.
-            // Compare the old metadata value with the new one and if the value is changed or missing, create/update
-            // the metadata value.
-//            newClarinUserMetadataList = new ArrayList<>();
+        // Copy current user_metadata records into a list and append it by a new ones.
+        List<ClarinUserMetadata> newClarinUserMetadataList = new ArrayList<>(clarinUserRegistration.getUserMetadata());
+
         for (ClarinUserMetadataRest clarinUserMetadataRest : clarinUserMetadataRestList) {
-//                boolean shouldCreate = true;
-//                for (ClarinUserMetadata clarinUserMetadata: currentClarinUserMetadataList) {
-//                    if (StringUtils.equals(clarinUserMetadataRest.getMetadataKey(),
-//                            clarinUserMetadata.getMetadataKey())) {
-//                        shouldCreate = false;
-//                        // Set metadata value
-//                        clarinUserMetadata.setMetadataValue(clarinUserMetadataRest.getMetadataValue());
-//                        // Update the user metadata record
-//                        clarinUserMetadataService.update(context, clarinUserMetadata);
-//                        // Add userMetadata to the list of the new user metadata
-//                        newClarinUserMetadataList.add(clarinUserMetadata);
-//                    }
-//                }
-//                if (shouldCreate) {
             ClarinUserMetadata clarinUserMetadata = this.clarinUserMetadataService.create(context);
             clarinUserMetadata.setMetadataKey(clarinUserMetadataRest.getMetadataKey());
             clarinUserMetadata.setMetadataValue(clarinUserMetadataRest.getMetadataValue());
@@ -259,8 +234,6 @@ public class ClarinUserMetadataRestController {
             clarinUserMetadataService.update(context, clarinUserMetadata);
             // Add userMetadata to the list of the new user metadata
             newClarinUserMetadataList.add(clarinUserMetadata);
-//                }
-//            }
         }
 
         // Process clrua with the new clarin user metadata
@@ -308,7 +281,7 @@ public class ClarinUserMetadataRestController {
         List<ClarinUserMetadata> clarinUserMetadataList = this.createUserMetadataFromRequest(context,
                 clarinUserMetadataRestList);
 
-        // Get anonymous user registration
+        // Get anonymous user registration - user metadata should not have `user_registration_id = null`
         ClarinUserRegistration clarinUserRegistration = null;
         List<ClarinUserRegistration> clarinUserRegistrationList = clarinUserRegistrationService
                 .findByEmail(context, ANONYMOUS_USER_REGISTRATION);
