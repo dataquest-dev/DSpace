@@ -10,6 +10,7 @@ package org.dspace.app.rest.repository;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 import static org.dspace.content.clarin.ClarinLicense.SEND_TOKEN;
+import static org.dspace.content.clarin.ClarinUserRegistration.ANONYMOUS_USER_REGISTRATION;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.io.IOException;
@@ -223,43 +224,43 @@ public class ClarinUserMetadataRestController {
         }
 
         List<ClarinUserMetadata> currentClarinUserMetadataList = clarinUserRegistration.getUserMetadata();
-        List<ClarinUserMetadata> newClarinUserMetadataList;
+        List<ClarinUserMetadata> newClarinUserMetadataList = new ArrayList<>(currentClarinUserMetadataList);
         // If exists ClarinResourceUserAllowance - Clrua record in the table, create a new clrua with current
         // resource mapping, user metadata, user registration
-        if (CollectionUtils.isEmpty(currentClarinUserMetadataList)) {
-            // The current user doesn't fill in any user metadata, create a new UserMetadata objects
-            newClarinUserMetadataList = this.createUserMetadataFromRequest(context,
-                    clarinUserMetadataRestList);
-        } else {
-            // The current user does fill in any user metadata, update actual UserMetadata objects and create
-            // the new ones is some are missing.
+//        if (CollectionUtils.isEmpty(currentClarinUserMetadataList)) {
+//            // The current user doesn't fill in any user metadata, create a new UserMetadata objects
+//            newClarinUserMetadataList = this.createUserMetadataFromRequest(context,
+//                    clarinUserMetadataRestList);
+//        } else {
+            // The current user has signed some user metadata, update actual UserMetadata objects and create
+            // the new one.
             // Compare the old metadata value with the new one and if the value is changed or missing, create/update
             // the metadata value.
-            newClarinUserMetadataList = new ArrayList<>();
-            for (ClarinUserMetadataRest clarinUserMetadataRest : clarinUserMetadataRestList) {
-                boolean shouldCreate = true;
-                for (ClarinUserMetadata clarinUserMetadata: currentClarinUserMetadataList) {
-                    if (StringUtils.equals(clarinUserMetadataRest.getMetadataKey(),
-                            clarinUserMetadata.getMetadataKey())) {
-                        shouldCreate = false;
-                        // Set metadata value
-                        clarinUserMetadata.setMetadataValue(clarinUserMetadataRest.getMetadataValue());
-                        // Update the user metadata record
-                        clarinUserMetadataService.update(context, clarinUserMetadata);
-                        // Add userMetadata to the list of the new user metadata
-                        newClarinUserMetadataList.add(clarinUserMetadata);
-                    }
-                }
-                if (shouldCreate) {
-                    ClarinUserMetadata clarinUserMetadata = this.clarinUserMetadataService.create(context);
-                    clarinUserMetadata.setMetadataKey(clarinUserMetadataRest.getMetadataKey());
-                    clarinUserMetadata.setMetadataValue(clarinUserMetadataRest.getMetadataValue());
-                    clarinUserMetadata.setEperson(clarinUserRegistration);
-                    clarinUserMetadataService.update(context, clarinUserMetadata);
-                    // Add userMetadata to the list of the new user metadata
-                    newClarinUserMetadataList.add(clarinUserMetadata);
-                }
-            }
+//            newClarinUserMetadataList = new ArrayList<>();
+        for (ClarinUserMetadataRest clarinUserMetadataRest : clarinUserMetadataRestList) {
+//                boolean shouldCreate = true;
+//                for (ClarinUserMetadata clarinUserMetadata: currentClarinUserMetadataList) {
+//                    if (StringUtils.equals(clarinUserMetadataRest.getMetadataKey(),
+//                            clarinUserMetadata.getMetadataKey())) {
+//                        shouldCreate = false;
+//                        // Set metadata value
+//                        clarinUserMetadata.setMetadataValue(clarinUserMetadataRest.getMetadataValue());
+//                        // Update the user metadata record
+//                        clarinUserMetadataService.update(context, clarinUserMetadata);
+//                        // Add userMetadata to the list of the new user metadata
+//                        newClarinUserMetadataList.add(clarinUserMetadata);
+//                    }
+//                }
+//                if (shouldCreate) {
+            ClarinUserMetadata clarinUserMetadata = this.clarinUserMetadataService.create(context);
+            clarinUserMetadata.setMetadataKey(clarinUserMetadataRest.getMetadataKey());
+            clarinUserMetadata.setMetadataValue(clarinUserMetadataRest.getMetadataValue());
+            clarinUserMetadata.setEperson(clarinUserRegistration);
+            clarinUserMetadataService.update(context, clarinUserMetadata);
+            // Add userMetadata to the list of the new user metadata
+            newClarinUserMetadataList.add(clarinUserMetadata);
+//                }
+//            }
         }
 
         // Process clrua with the new clarin user metadata
@@ -289,6 +290,7 @@ public class ClarinUserMetadataRestController {
         clrua.setCreatedOn(Calendar.getInstance().getTime());
         // Generate token to download the bitstream. The token is sent by the response or by the e-mail.
         clrua.setToken(downloadToken);
+
         if (Objects.nonNull(clarinUserRegistration)) {
             clrua.setUserRegistration(clarinUserRegistration);
         }
@@ -306,12 +308,25 @@ public class ClarinUserMetadataRestController {
         List<ClarinUserMetadata> clarinUserMetadataList = this.createUserMetadataFromRequest(context,
                 clarinUserMetadataRestList);
 
+        // Get anonymous user registration
+        ClarinUserRegistration clarinUserRegistration = null;
+        List<ClarinUserRegistration> clarinUserRegistrationList = clarinUserRegistrationService
+                .findByEmail(context, ANONYMOUS_USER_REGISTRATION);
+        for (ClarinUserRegistration fetchedClarinuserRegistration : clarinUserRegistrationList) {
+            if (!StringUtils.equals(fetchedClarinuserRegistration.getOrganization(), ANONYMOUS_USER_REGISTRATION)) {
+                continue;
+            }
+            clarinUserRegistration = fetchedClarinuserRegistration;
+            break;
+        }
+
         // Create ClarinResourceUserAllowance record to generate token.
         ClarinLicenseResourceUserAllowance clrua = this.createClrua(context, clarinLicenseResourceMapping,
-                clarinUserMetadataList, downloadToken, null);
+                clarinUserMetadataList, downloadToken, clarinUserRegistration);
         // Add Clarin License Resource Allowance to the user metadata records
         for (ClarinUserMetadata clarinUserMetadata : clarinUserMetadataList) {
             clarinUserMetadata.setTransaction(clrua);
+            clarinUserMetadata.setEperson(clarinUserRegistration);
             clarinUserMetadataService.update(context, clarinUserMetadata);
         }
         return clarinUserMetadataList;
