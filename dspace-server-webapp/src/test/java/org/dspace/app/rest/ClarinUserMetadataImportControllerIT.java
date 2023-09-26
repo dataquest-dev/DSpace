@@ -255,7 +255,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
                 .andExpect(status().isOk());
 
         List<ClarinUserMetadata> allUserMetadata = clarinUserMetadataService.findAll(context);
-        // UserMetadata should be created a not updated
+        // UserMetadata should be created and not updated
         assertEquals(2, allUserMetadata.size());
 
         // get first created data and check it

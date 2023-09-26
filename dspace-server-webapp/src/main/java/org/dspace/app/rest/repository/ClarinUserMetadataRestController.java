@@ -223,9 +223,10 @@ public class ClarinUserMetadataRestController {
                     currentUser.getID() + " is null.");
         }
 
-        // Copy current user_metadata records into a list and append it by a new ones.
+        // Copy current user_metadata records into a list and append it by a new user metadata.
         List<ClarinUserMetadata> newClarinUserMetadataList = new ArrayList<>(clarinUserRegistration.getUserMetadata());
 
+        // Create user metadata records from request
         for (ClarinUserMetadataRest clarinUserMetadataRest : clarinUserMetadataRestList) {
             ClarinUserMetadata clarinUserMetadata = this.clarinUserMetadataService.create(context);
             clarinUserMetadata.setMetadataKey(clarinUserMetadataRest.getMetadataKey());
@@ -263,7 +264,6 @@ public class ClarinUserMetadataRestController {
         clrua.setCreatedOn(Calendar.getInstance().getTime());
         // Generate token to download the bitstream. The token is sent by the response or by the e-mail.
         clrua.setToken(downloadToken);
-
         if (Objects.nonNull(clarinUserRegistration)) {
             clrua.setUserRegistration(clarinUserRegistration);
         }
