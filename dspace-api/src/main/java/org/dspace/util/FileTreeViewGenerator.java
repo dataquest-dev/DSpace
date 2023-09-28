@@ -37,8 +37,6 @@ public class FileTreeViewGenerator {
         Element rootElement = document.getDocumentElement();
         NodeList nl = rootElement.getChildNodes();
         FileInfo root = new FileInfo("root");
-        int limitFile = 100;
-        int countFile = 0;
         Node n = nl.item(0);
         do {
             String fileInfo = n.getFirstChild().getTextContent();
@@ -67,9 +65,8 @@ public class FileTreeViewGenerator {
             if (!fileName.isEmpty()) {
                 FileInfo temp = new FileInfo(fileName, humanReadableFileSize(size));
                 current.sub.put(fileName, temp);
-                countFile++;
             }
-        } while ((n = n.getNextSibling()) != null && countFile < limitFile);
+        } while ((n = n.getNextSibling()) != null);
         return new ArrayList<>(root.sub.values());
     }
     public static String humanReadableFileSize(long bytes) {

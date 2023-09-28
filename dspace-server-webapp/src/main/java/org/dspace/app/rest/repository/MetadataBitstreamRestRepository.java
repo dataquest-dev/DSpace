@@ -61,6 +61,9 @@ import java.util.zip.ZipInputStream;
 @Component(MetadataBitstreamWrapperRest.CATEGORY + "." + MetadataBitstreamWrapperRest.NAME)
 public class MetadataBitstreamRestRepository extends DSpaceRestRepository<MetadataBitstreamWrapperRest, Integer>{
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataBitstreamRestRepository.class);
+
+    private final static int MAX_FILE_PREVIEW_COUNT = 1000;
+
     @Autowired
     HandleService handleService;
 
@@ -329,18 +332,18 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
 
         StringBuilder sb = new StringBuilder();
         sb.append(("<root>"));
-        int count = 0;
         List<String> allFiles = filePaths;
+        int fileCounter = 0;
         for (String filePath : allFiles) {
             if (!filePath.isEmpty() && filePath.length() > 3) {
                 if (filePath.contains(".")) {
-                    count ++;
+                    fileCounter++;
                 }
                 sb.append("<element>");
                 sb.append(filePath);
                 sb.append("</element>");
 
-                if (count > 10) {
+                if (fileCounter > MAX_FILE_PREVIEW_COUNT) {
                     sb.append("<element>");
                     sb.append("/|0");
                     sb.append("</element>");
@@ -377,6 +380,22 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         reader.close();
         return content.toString();
     }
+
+//    private void setFileCounter(int newFileCounter){
+//        this.fileCounter = newFileCounter;
+//    }
+//
+//    private int getFileCounter() {
+//        return this.fileCounter;
+//    }
+//
+//    private void resetFileCounter() {
+//        setFileCounter(0);
+//    }
+//
+//    private void increaseFileCounter(int valueToIncrease) {
+//        fileCounter += valueToIncrease;
+//    }
 
     @Override
     public MetadataBitstreamWrapperRest findOne(Context context, Integer integer) {
