@@ -8,6 +8,9 @@
 package org.dspace.app.rest.repository;
 
 
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import  org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
@@ -15,21 +18,27 @@ import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.BitstreamConverter;
 import org.dspace.app.rest.converter.MetadataBitstreamWrapperConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.MetadataBitstreamWrapper;
 import org.dspace.app.rest.model.MetadataBitstreamWrapperRest;
 import org.dspace.app.rest.model.MetadataValueWrapper;
 import org.dspace.app.util.Util;
+import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.*;
 import org.dspace.content.clarin.ClarinLicense;
+import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.event.Event;
 import org.dspace.handle.service.HandleService;
+import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.dspace.util.FileInfo;
 import org.dspace.util.FileTreeViewGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,13 +64,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import static org.dspace.content.clarin.ClarinLicense.HAMLEDT_LICENSE_NAME;
+import static org.dspace.content.clarin.ClarinLicenseLabel.PUB_LABEL_NAME;
 
 @Component(MetadataBitstreamWrapperRest.CATEGORY + "." + MetadataBitstreamWrapperRest.NAME)
 public class MetadataBitstreamRestRepository extends DSpaceRestRepository<MetadataBitstreamWrapperRest, Integer>{
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataBitstreamRestRepository.class);
-
     private final static int MAX_FILE_PREVIEW_COUNT = 1000;
 
     @Autowired
@@ -83,11 +95,17 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
     @Autowired
     BitstreamService bitstreamService;
 
+    @Autowired
+    BitstreamStorageService bitstreamStorageService;
+
+    @Autowired
+    AuthorizationBitstreamUtils authorizationBitstreamUtils;
+
     @SearchRestMethod(name = "byHandle")
     public Page<MetadataBitstreamWrapperRest> findByHandle(@Parameter(value = "handle", required = true) String handle,
                                                            @Parameter(value = "fileGrpType", required = false) String fileGrpType,
                                                            Pageable pageable)
-            throws SQLException, ParserConfigurationException, IOException, SAXException, AuthorizeException {
+            throws SQLException, ParserConfigurationException, IOException, SAXException, AuthorizeException, ArchiveException {
         if (StringUtils.isBlank(handle)) {
             throw new DSpaceBadRequestException("handle cannot be null!");
         }
@@ -107,121 +125,34 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             throw new RuntimeException("Cannot resolve handle: " + handle);
         }
 
-        if ( dso instanceof Item) {
-            Item item = (Item) dso;
-            List<String> fileGrpTypes = Arrays.asList(fileGrpType.split(","));
-            List<Bundle> bundles = findEnabledBundles(fileGrpTypes, item);
+        if (!(dso instanceof Item)) {
+            throw new UnprocessableEntityException("Cannot fetch bitstreams from different object than Item.");
+        }
 
-            for (Bundle bundle :
-                    bundles) {
-                List<Bitstream> bitstreams = new ArrayList<>();
-                String use = bundle.getName();
-                if ("THUMBNAIL".equals(use))
-                {
-                    Thumbnail thumbnail = itemService.getThumbnail(context, item, false);
-                    if(thumbnail != null) {
-                        bitstreams.add(thumbnail.getThumb());
-                    }
+        Item item = (Item) dso;
+        List<String> fileGrpTypes = Arrays.asList(fileGrpType.split(","));
+        List<Bundle> bundles = findEnabledBundles(fileGrpTypes, item);
+        for (Bundle bundle : bundles) {
+            List<Bitstream> bitstreams = bundle.getBitstreams();
+            String use = bundle.getName();
+            if (StringUtils.equals("THUMBNAIL", use)) {
+                Thumbnail thumbnail = itemService.getThumbnail(context, item, false);
+                if (Objects.nonNull(thumbnail)) {
+                    bitstreams = new ArrayList<>();
+                    bitstreams.add(thumbnail.getThumb());
                 }
-                else
-                {
-                    bitstreams = bundle.getBitstreams();
+            }
+
+            for (Bitstream bitstream : bitstreams) {
+                String url = composePreviewURL(context, item, bitstream, contextPath);
+                List<FileInfo> fileInfos = new ArrayList<>();
+                boolean canPreview = findOutCanPreview(context, bitstream);
+                if (canPreview) {
+                    fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
                 }
-
-                for (Bitstream bitstream :
-                        bitstreams) {
-                    List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = licenseService.findByBitstreamUUID(context, bitstream.getID());
-                    boolean canPreview = false;
-                    if ( clarinLicenseResourceMappings != null && clarinLicenseResourceMappings.size() > 0) {
-                        ClarinLicenseResourceMapping licenseResourceMapping = clarinLicenseResourceMappings.get(0);
-                        ClarinLicense clarinLicense = licenseResourceMapping.getLicense();
-                        canPreview = clarinLicense.getClarinLicenseLabels().stream().anyMatch(clarinLicenseLabel -> clarinLicenseLabel.getLabel().equals("PUB"));
-                    }
-                    String identifier = null;
-                    if (item != null && item.getHandle() != null)
-                    {
-                        identifier = "handle/" + item.getHandle();
-                    }
-                    else if (item != null)
-                    {
-                        identifier = "item/" + item.getID();
-                    }
-                    else
-                    {
-                        identifier = "id/" + bitstream.getID();
-                    }
-                    String url = contextPath + "/bitstream/"+identifier;
-                    try
-                    {
-                        if (bitstream.getName() != null)
-                        {
-                            url += "/" + Util.encodeBitstreamName(bitstream.getName(), "UTF-8");
-                        }
-                    }
-                    catch (UnsupportedEncodingException uee)
-                    {
-                        log.error("UnsupportedEncodingException", uee);
-                    }
-
-                    url += "?sequence="+bitstream.getSequenceID();
-
-                    String isAllowed = "n";
-                    try {
-                        if (authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ)) {
-                            isAllowed = "y";
-                        }
-                    } catch (SQLException e) {/* Do nothing */}
-
-                    url += "&isAllowed=" + isAllowed;
-                    if (canPreview) {
-                        List<MetadataValue> metadataValues = bitstream.getMetadata();
-                        // Filter out all metadata values that are not local to the bitstream
-                        // Uncomment this if we want to show metadata values that are local to the bitstream
-//                        metadataValues = metadataValues.stream().filter(metadataValue ->
-//                              match("local", "bitstream", "file", metadataValue.getMetadataField()))
-//                              .collect(Collectors.toList());
-                        List<FileInfo> fileInfos = new ArrayList<>();
-                        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
-                        if (bitstream.getFormat(context).getExtensions().contains("zip")) {
-                            String data = extractFile(inputStream, bitstream.getName().substring(0, bitstream.getName().lastIndexOf(".")));
-                            fileInfos = FileTreeViewGenerator.parse(data);
-                        } else {
-                            if (bitstream.getFormat(context).getMIMEType().equals("text/plain")) {
-                                String data = getFileContent(inputStream);
-                                fileInfos.add(new FileInfo(data, false));
-                            }
-                        }
-//                        if (bitstream.getFormat(context).getMIMEType().equals("text/plain")) {
-//                            List<FileInfo> finalFileInfos = fileInfos;
-//                            metadataValues.stream().map(MetadataValue::getValue).reduce((s, s2) -> s + s2).ifPresent(s -> finalFileInfos.add(new FileInfo(s, false)));
-//                            fileInfos = finalFileInfos;
-//                        } else {
-//                            StringBuilder sb = new StringBuilder();
-//                            sb.append("<root>");
-//                            for (MetadataValue metadataValue :
-//                                    metadataValues) {
-//                                sb.append("<element>");
-//                                sb.append(metadataValue.getValue());
-//                                sb.append("</element>");
-//                            }
-//                            sb.append("</root>");
-//                            try {
-//                                fileInfos = FileTreeViewGenerator.parse(sb.toString());
-//                            } catch (Exception e) {
-//                                log.error(e.getMessage(), e);
-//                                fileInfos = null;
-//                            }
-//                        }
-                        MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, fileInfos, bitstream.getFormat(context).getMIMEType(), bitstream.getFormatDescription(context), url, canPreview);
-                        metadataValueWrappers.add(bts);
-                        rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
-                    } else {
-                        MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, new ArrayList<>(), bitstream.getFormat(context).getMIMEType(), bitstream.getFormatDescription(context), url, canPreview);
-                        metadataValueWrappers.add(bts);
-                        rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
-                        continue;
-                    }
-                }
+                MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, fileInfos, bitstream.getFormat(context).getMIMEType(), bitstream.getFormatDescription(context), url, canPreview);
+                metadataValueWrappers.add(bts);
+                rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
             }
         }
 
@@ -233,17 +164,12 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         // Check if the user is requested a specific bundle or
         // the all bundles.
         List<Bundle> bundles;
-        if (fileGrpTypes.size() == 0)
-        {
+        if (fileGrpTypes.size() == 0) {
             bundles = item.getBundles();
-        }
-        else
-        {
+        } else {
             bundles = new ArrayList<Bundle>();
-            for (String fileGrpType : fileGrpTypes)
-            {
-                for (Bundle newBundle : item.getBundles(fileGrpType))
-                {
+            for (String fileGrpType : fileGrpTypes) {
+                for (Bundle newBundle : item.getBundles(fileGrpType)) {
                     bundles.add(newBundle);
                 }
             }
@@ -252,6 +178,77 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return bundles;
     }
 
+    private List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream, List<FileInfo> fileInfos)
+            throws SQLException, AuthorizeException, IOException, ParserConfigurationException,
+            ArchiveException, SAXException {
+        InputStream inputStream = null;
+        try {
+            inputStream = bitstreamService.retrieve(context, bitstream);
+        } catch (MissingLicenseAgreementException e) {
+            // Allow  the content of the file
+//                            inputStream = bitstreamStorageService.retrieve(context, bitstream);
+        }
+
+        if (Objects.nonNull(inputStream)) {
+            fileInfos = processInputStreamToFilePreview(context, bitstream, fileInfos, inputStream);
+        }
+        return fileInfos;
+    }
+
+    private List<FileInfo> processInputStreamToFilePreview(Context context, Bitstream bitstream,
+                                                           List<FileInfo> fileInfos, InputStream inputStream)
+            throws IOException, SQLException, ParserConfigurationException, SAXException, ArchiveException {
+        if (bitstream.getFormat(context).getMIMEType().equals("text/plain")) {
+            String data = getFileContent(inputStream);
+            fileInfos.add(new FileInfo(data, false));
+        } else {
+            String data = "";
+            if (bitstream.getFormat(context).getExtensions().contains("zip")) {
+                data = extractFile(inputStream, "zip");
+                fileInfos = FileTreeViewGenerator.parse(data);
+            } else if (bitstream.getFormat(context).getExtensions().contains("tar")) {
+                ArchiveInputStream is = new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR, inputStream);
+                data = extractFile(is, "tar");
+                fileInfos = FileTreeViewGenerator.parse(data);
+            }
+        }
+        return fileInfos;
+    }
+
+    private String composePreviewURL(Context context, Item item, Bitstream bitstream, String contextPath) {
+        String identifier = null;
+        if (Objects.nonNull(item) && Objects.nonNull(item.getHandle())) {
+            identifier = "handle/" + item.getHandle();
+        }
+        else if (Objects.nonNull(item)) {
+            identifier = "item/" + item.getID();
+        }
+        else {
+            identifier = "id/" + bitstream.getID();
+        }
+        String url = contextPath + "/bitstream/"+identifier;
+        try {
+            if (bitstream.getName() != null) {
+                url += "/" + Util.encodeBitstreamName(bitstream.getName(), "UTF-8");
+            }
+        } catch (UnsupportedEncodingException uee) {
+            log.error("UnsupportedEncodingException", uee);
+        }
+
+        url += "?sequence=" + bitstream.getSequenceID();
+
+        String isAllowed = "n";
+        try {
+            if (authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ)) {
+                isAllowed = "y";
+            }
+        } catch (SQLException e) {
+            log.error("Cannot authorize bitstream action because: " + e.getMessage());
+        }
+
+        url += "&isAllowed=" + isAllowed;
+        return url;
+    }
 
     private boolean match(String schema, String element, String qualifier, MetadataField field)
     {
@@ -286,13 +283,21 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
     }
 
 
-    public String extractFile(InputStream inputStream, String folderRootName) {
+    public String extractFile(InputStream inputStream, String fileType) {
         List<String> filePaths = new ArrayList<>();
         Path tempFile = null;
         FileSystem zipFileSystem = null;
 
         try {
-            tempFile = Files.createTempFile("temp", ".zip");
+            switch (fileType) {
+                case "tar":
+                    tempFile = Files.createTempFile("temp", ".tar");
+                    break;
+                default:
+                    tempFile = Files.createTempFile("temp", ".zip");
+
+            }
+
             Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
 
             zipFileSystem = FileSystems.newFileSystem(tempFile, (ClassLoader) null);
@@ -396,6 +401,25 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
 //    private void increaseFileCounter(int valueToIncrease) {
 //        fileCounter += valueToIncrease;
 //    }
+
+    private boolean findOutCanPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException {
+        try {
+            return authorizationBitstreamUtils.authorizeBitstream(context, bitstream);
+        } catch (MissingLicenseAgreementException e) {
+            return false;
+        }
+
+        // Do not preview Items with HamleDT license
+//        if (StringUtils.equals(HAMLEDT_LICENSE_NAME, clarinLicense.getName())) {
+//            return false;
+//        }
+//        for (ClarinLicenseLabel clarinLicenseLabel : clarinLicense.getLicenseLabels()) {
+//            if (StringUtils.equals(PUB_LABEL_NAME, clarinLicenseLabel.getLabel())) {
+//                return true;
+//            }
+//        }
+//        return false;
+    }
 
     @Override
     public MetadataBitstreamWrapperRest findOne(Context context, Integer integer) {

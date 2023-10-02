@@ -84,31 +84,19 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
         }
 
         String identifier = null;
-        if (publicItem != null && publicItem.getHandle() != null)
-        {
+        if (publicItem != null && publicItem.getHandle() != null) {
             identifier = "handle/" + publicItem.getHandle();
-        }
-        else if (publicItem != null)
-        {
+        } else if (publicItem != null) {
             identifier = "item/" + publicItem.getID();
-        }
-        else
-        {
+        } else {
             identifier = "id/" + bts.getID();
         }
         String url = "/bitstream/"+identifier+"/";
-        try
-        {
-            if (bts.getName() != null)
-            {
+        try {
+            if (bts.getName() != null) {
                 url += Util.encodeBitstreamName(bts.getName(), "UTF-8");
             }
-        }
-        catch (UnsupportedEncodingException uee)
-        {
-
-        }
-
+        } catch (UnsupportedEncodingException uee) { /* Do nothing */ }
         url += "?sequence=" + bts.getSequenceID();
 
         String isAllowed = "n";
