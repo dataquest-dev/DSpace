@@ -54,8 +54,6 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
      */
     public static final String SEND_TOKEN = "SEND_TOKEN";
 
-    public final static String HAMLEDT_LICENSE_NAME = "HamleDT 3.0 License Terms";
-
     @Id
     @Column(name = "license_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "license_definition_license_id_seq")

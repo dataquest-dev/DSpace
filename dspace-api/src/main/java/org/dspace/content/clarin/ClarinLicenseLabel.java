@@ -32,8 +32,6 @@ import org.dspace.core.ReloadableEntity;
 @Table(name = "license_label")
 public class ClarinLicenseLabel implements ReloadableEntity<Integer> {
 
-    public final static String PUB_LABEL_NAME = "PUB";
-
     @Id
     @Column(name = "label_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "license_label_label_id_seq")

@@ -302,17 +302,7 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     @Override
     public InputStream retrieve(Context context, Bitstream bitstream)
         throws IOException, SQLException, AuthorizeException {
-        // Maybe should return AuthorizeException??
-//        try {
         authorizeService.authorizeAction(context, bitstream, Constants.READ);
-//        } catch (MissingLicenseAgreementException e) {
-//             If the context contains `PREVIEW` action it should not throw an exception,
-//             but retrieve the content instead.
-//            if (!contextHasPreviewEvent(context)) {
-//                throw e;
-//            }
-            // Else remove event from context and retrieve the bitstream content.
-//        }
 
         return bitstreamStorageService.retrieve(context, bitstream);
     }
@@ -495,25 +485,5 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     @Override
     public Long getLastModified(Bitstream bitstream) throws IOException {
         return bitstreamStorageService.getLastModified(bitstream);
-    }
-
-    private boolean contextHasPreviewEvent(Context context) {
-        int id = 0;
-        for (Event event : context.getEvents()) {
-            if (!Objects.equals(event.getEventType(), Event.MODIFY)) {
-                return false;
-            }
-            if (Objects.equals(event.getDetail(), "PREVIEW")) {
-                // Remove Preview Event
-                removeEventFromContext(context, id);
-                return true;
-            }
-            id++;
-        }
-        return false;
-    }
-
-    private void removeEventFromContext(Context context, int eventID) {
-        context.getEvents().remove(eventID);
     }
 }
