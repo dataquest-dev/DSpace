@@ -36,8 +36,8 @@ import org.dspace.app.rest.converter.BitstreamConverter;
 import org.dspace.app.rest.converter.MetadataBitstreamWrapperConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
-import org.dspace.app.rest.model.MetadataBitstreamWrapper;
 import org.dspace.app.rest.model.MetadataBitstreamWrapperRest;
+import org.dspace.app.rest.model.wrapper.MetadataBitstreamWrapper;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
@@ -151,10 +151,10 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return new PageImpl<>(rs, pageable, rs.size());
     }
 
-    protected List<Bundle> findEnabledBundles(List<String> fileGrpTypes, Item item) throws SQLException
-    {
-        // Check if the user is requested a specific bundle or
-        // the all bundles.
+    /**
+     * Check if the user is requested a specific bundle or all bundles.
+     */
+    protected List<Bundle> findEnabledBundles(List<String> fileGrpTypes, Item item) {
         List<Bundle> bundles;
         if (fileGrpTypes.size() == 0) {
             bundles = item.getBundles();
@@ -231,6 +231,10 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return fileInfos;
     }
 
+    /**
+     * Compose download URL for calling `MetadataBitstreamController` to download single file or
+     * all files as a single ZIP file.
+     */
     private String composePreviewURL(Context context, Item item, Bitstream bitstream, String contextPath) {
         String identifier = null;
         if (Objects.nonNull(item) && Objects.nonNull(item.getHandle())) {

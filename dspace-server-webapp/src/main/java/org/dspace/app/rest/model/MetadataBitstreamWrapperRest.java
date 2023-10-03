@@ -7,13 +7,16 @@
  */
 package org.dspace.app.rest.model;
 
+import java.util.List;
+
 import org.dspace.app.rest.RestResourceController;
 import org.dspace.util.FileInfo;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
+/**
+ * The MetadataBitstreamWrapper REST Resource
+ *
+ * @author longtv
+ */
 public class MetadataBitstreamWrapperRest extends BaseObjectRest<String>{
     public static final String NAME = "metadatabitstream";
     public static final String CATEGORY = RestAddressableModel.CORE;

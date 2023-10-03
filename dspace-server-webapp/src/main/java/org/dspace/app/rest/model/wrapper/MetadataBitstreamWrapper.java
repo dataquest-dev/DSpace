@@ -5,13 +5,18 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.app.rest.model;
+package org.dspace.app.rest.model.wrapper;
 
 import org.dspace.content.Bitstream;
 import org.dspace.util.FileInfo;
 
 import java.util.List;
 
+/**
+ * Object which handles data for previewing the bitstream content in the Item View page.
+ *
+ * @author longtv
+ */
 public class MetadataBitstreamWrapper {
     private Bitstream bitstream;
     private List<FileInfo> fileInfo;
@@ -23,7 +28,8 @@ public class MetadataBitstreamWrapper {
     public MetadataBitstreamWrapper() {
     }
 
-    public MetadataBitstreamWrapper(Bitstream bitstream, List<FileInfo> fileInfo, String format, String description, String href, boolean canPreview) {
+    public MetadataBitstreamWrapper(Bitstream bitstream, List<FileInfo> fileInfo, String format, String description,
+                                    String href, boolean canPreview) {
         this.bitstream = bitstream;
         this.fileInfo = fileInfo;
         this.format = format;

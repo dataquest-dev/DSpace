@@ -11,6 +11,12 @@ import org.dspace.app.rest.model.MetadataBitstreamWrapperRest;
 import org.dspace.app.rest.model.hateoas.annotations.RelNameDSpaceResource;
 import org.dspace.app.rest.utils.Utils;
 
+/**
+ * MetadataBitstreamWrapper Rest HAL Resource. The HAL Resource wraps the REST Resource
+ * adding support for the links and embedded resources
+ *
+ * @author longtv
+ */
 @RelNameDSpaceResource(MetadataBitstreamWrapperRest.NAME)
 public class MetadataBitstreamWrapperResource extends DSpaceResource<MetadataBitstreamWrapperRest>{
     public MetadataBitstreamWrapperResource(MetadataBitstreamWrapperRest data, Utils utils) {

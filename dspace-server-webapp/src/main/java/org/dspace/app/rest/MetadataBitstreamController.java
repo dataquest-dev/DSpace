@@ -7,9 +7,16 @@
  */
 package org.dspace.app.rest;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
+import java.util.zip.Deflater;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
@@ -17,8 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
-import org.dspace.app.rest.model.MetadataBitstreamWrapper;
-import org.dspace.app.rest.repository.MetadataBitstreamRestRepository;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
@@ -27,6 +32,7 @@ import org.dspace.content.*;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -36,21 +42,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.dspace.core.Constants;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.Deflater;
-import java.util.zip.ZipOutputStream;
-
+/**
+ * This CLARIN Controller download a single file or a ZIP file from the Item's bitstream.
+ */
 @RestController
 @RequestMapping("/bitstream")
 public class MetadataBitstreamController {
@@ -58,12 +52,15 @@ public class MetadataBitstreamController {
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataBitstreamController.class);
 
     @Autowired
-    BitstreamService bitstreamService;
+    private BitstreamService bitstreamService;
 
     @Autowired
-    HandleService handleService;
+    private HandleService handleService;
     @Autowired
     private AuthorizeService authorizeService;
+    @Autowired
+    private ConfigurationService configurationService;
+
 
     @GetMapping("/handle/{id}/{subId}/{fileName}")
     public ResponseEntity<Resource> downloadSingleFile(@PathVariable("id") String id,
@@ -104,6 +101,7 @@ public class MetadataBitstreamController {
 
         Item item = (Item) dso;
         List<Bundle> bundles = item.getBundles();
+        // Find bitstream and start downloading.
         for (Bundle bundle: bundles) {
             for (Bitstream bitstream: bundle.getBitstreams()) {
                 // Authorize the action - it will send response redirect if something gets wrong.
@@ -118,6 +116,7 @@ public class MetadataBitstreamController {
                     // Check if the bitstream has some extensions e.g., `.txt, .jpg,..`
                     checkBitstreamExtensions(bitstreamFormat);
 
+                    // Get content of the bitstream
                     InputStream inputStream = bitstreamService.retrieve(context, bitstream);
                     InputStreamResource resource = new InputStreamResource(inputStream);
                     HttpHeaders header = new HttpHeaders();
@@ -140,6 +139,9 @@ public class MetadataBitstreamController {
         return null;
     }
 
+    /**
+     * Download all Item's bitstreams as single ZIP file.
+     */
     @GetMapping("/allzip")
     public void downloadFileZip(@RequestParam("handleId") String handleId,
                                 HttpServletResponse response,
@@ -199,19 +201,35 @@ public class MetadataBitstreamController {
         response.getOutputStream().flush();
     }
 
+    /**
+     * Could the user download that bitstream?
+     * @param context DSpace context object
+     * @param bitstream Bitstream to download
+     * @param response for possibility to redirect
+     */
     private void authorizeBitstreamAction(Context context, Bitstream bitstream, HttpServletResponse response)
             throws IOException {
+
+        String uiURL = configurationService.getProperty("dspace.ui.url");
+        if (StringUtils.isBlank(uiURL)) {
+            log.error("Configuration property `dspace.ui.url` cannot be empty or null!");
+            throw new RuntimeException("Configuration property `dspace.ui.url` cannot be empty or null!");
+        }
         try {
             authorizeService.authorizeAction(context, bitstream, Constants.READ);
         } catch (MissingLicenseAgreementException e) {
-            response.sendRedirect("http://localhost:4000/bitstream/" + bitstream.getID() + "/download");
+            response.sendRedirect(uiURL + "/bitstream/" + bitstream.getID() + "/download");
         } catch (AuthorizeException | SQLException e) {
-            response.sendRedirect("http://localhost:4000" + "/login");
+            response.sendRedirect(uiURL + "/login");
         }
     }
 
+    /**
+     * Check if the bitstream has file extension.
+     */
     private void checkBitstreamExtensions(BitstreamFormat bitstreamFormat) {
         if ( Objects.isNull(bitstreamFormat) ||  CollectionUtils.isEmpty(bitstreamFormat.getExtensions())) {
+            log.error("Bitstream Extensions cannot be empty for downloading/previewing bitstreams.");
             throw new RuntimeException("Bitstream Extensions cannot be empty for downloading/previewing bitstreams.");
         }
     }

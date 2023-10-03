@@ -7,19 +7,23 @@
  */
 package org.dspace.app.rest.converter;
 
-import org.dspace.app.rest.model.MetadataBitstreamWrapper;
 import org.dspace.app.rest.model.MetadataBitstreamWrapperRest;
-import org.dspace.app.rest.model.MetadataValueWrapper;
-import org.dspace.app.rest.model.MetadataValueWrapperRest;
+import org.dspace.app.rest.model.wrapper.MetadataBitstreamWrapper;
 import org.dspace.app.rest.projection.Projection;
-import org.dspace.core.Context;
 import org.dspace.util.FileTreeViewGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+/**
+ * This is the converter from/to the MetadataBitstreamWrapper in the DSpace API data model and the
+ * REST data model
+ *
+ * @author longtv
+ */
 @Component
-public class MetadataBitstreamWrapperConverter implements DSpaceConverter<MetadataBitstreamWrapper, MetadataBitstreamWrapperRest> {
+public class MetadataBitstreamWrapperConverter implements DSpaceConverter<MetadataBitstreamWrapper,
+        MetadataBitstreamWrapperRest> {
 
     @Lazy
     @Autowired
