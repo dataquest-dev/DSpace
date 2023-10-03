@@ -9,6 +9,7 @@ package org.dspace.app.rest;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.service.AuthorizeService;
@@ -20,6 +21,7 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.util.FileTreeViewGenerator;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -35,7 +37,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegrationTest {
 
-    private static final String HANDLE_ID = "123456789/36";
     private static final String METADATABITSTREAM_ENDPOINT = "/api/core/metadatabitstream/";
     private static final String METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT = METADATABITSTREAM_ENDPOINT + "search/byHandle";
     private static final String FILE_GRP_TYPE = "ORIGINAL";
@@ -44,24 +45,15 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
 
     private Item publicItem;
     private Bitstream bts;
-    private Bundle bundle;
-    private Boolean canPreview = false;
-
+    private String url;
     @Autowired
     ClarinLicenseResourceMappingService licenseService;
 
     @Autowired
     AuthorizeService authorizeService;
 
-
-    @Test
-    public void findByHandleNullHandle() throws Exception {
-        getClient().perform(get(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void findByHandle() throws Exception {
+    @Before
+    public void setup() throws Exception {
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
@@ -74,59 +66,32 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .build();
 
         String bitstreamContent = "ThisIsSomeDummyText";
-        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
-            bts = BitstreamBuilder.
-                    createBitstream(context, publicItem, is)
-                    .withName("Bitstream")
-                    .withDescription("Description")
-                    .withMimeType("application/x-gzip")
-                    .build();
-        }
-
-        String identifier = null;
-        if (publicItem != null && publicItem.getHandle() != null) {
-            identifier = "handle/" + publicItem.getHandle();
-        } else if (publicItem != null) {
-            identifier = "item/" + publicItem.getID();
-        } else {
-            identifier = "id/" + bts.getID();
-        }
-        String url = "/bitstream/"+identifier+"/";
-        try {
-            if (bts.getName() != null) {
-                url += Util.encodeBitstreamName(bts.getName(), "UTF-8");
-            }
-        } catch (UnsupportedEncodingException uee) { /* Do nothing */ }
-        url += "?sequence=" + bts.getSequenceID();
-
-        String isAllowed = "n";
-        try {
-            if (authorizeService.authorizeActionBoolean(context, bts, Constants.READ)) {
-                isAllowed = "y";
-            }
-        } catch (SQLException e) {/* Do nothing */}
-
-        url += "&isAllowed=" + isAllowed;
+        InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8);
+        bts = BitstreamBuilder.
+                createBitstream(context, publicItem, is)
+                .withName("Bitstream")
+                .withDescription("Description")
+                .withMimeType("application/x-gzip")
+                .build();
 
         context.restoreAuthSystemState();
-        List<Bundle> bundles = publicItem.getBundles(FILE_GRP_TYPE);
-        for (Bundle bundle : bundles) {
-            bundle.getBitstreams().stream().forEach(bitstream -> {
-                List<ClarinLicenseResourceMapping> clarinLicenseResourceMappings = null;
-                try {
-                    clarinLicenseResourceMappings = licenseService.findByBitstreamUUID(context, bitstream.getID());
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
 
-                if ( clarinLicenseResourceMappings != null && clarinLicenseResourceMappings.size() > 0) {
-                    ClarinLicenseResourceMapping licenseResourceMapping = clarinLicenseResourceMappings.get(0);
-                    ClarinLicense clarinLicense = licenseResourceMapping.getLicense();
-                    canPreview = clarinLicense.getClarinLicenseLabels().stream()
-                            .anyMatch(clarinLicenseLabel -> clarinLicenseLabel.getLabel().equals("PUB"));
-                }
-            });
+        if (StringUtils.isBlank(url)) {
+            composeURL();
         }
+    }
+
+    @Test
+    public void findByHandleNullHandle() throws Exception {
+        getClient().perform(get(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void findByHandle() throws Exception {
+        // There is no restriction, so the user could preview the file
+        boolean canPreview = true;
+
         getClient().perform(get(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT)
                         .param("handle", publicItem.getHandle())
                         .param("fileGrpType", FILE_GRP_TYPE))
@@ -156,14 +121,14 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
     @Test
     public void findByHandleEmptyFileGrpType() throws Exception {
         getClient().perform(get(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT)
-                .param("handle", HANDLE_ID)
+                .param("handle", publicItem.getHandle())
                 .param("fileGrpType", ""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(0)))
                 .andExpect(jsonPath("$.page.totalPages", is(0)))
                 .andExpect(jsonPath("$.page.size", is(20)))
                 .andExpect(jsonPath("$.page.number", is(0)))
-                .andExpect(jsonPath("$._links.self.href", Matchers.containsString(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT + "?handle=" + HANDLE_ID + "&fileGrpType=")));
+                .andExpect(jsonPath("$._links.self.href", Matchers.containsString(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT + "?handle=" + publicItem.getHandle() + "&fileGrpType=")));
     }
 
     @Test
@@ -176,5 +141,32 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$._links.byHandle", notNullValue()));
+    }
+
+    private void composeURL() {
+        String identifier = null;
+        if (publicItem != null && publicItem.getHandle() != null) {
+            identifier = "handle/" + publicItem.getHandle();
+        } else if (publicItem != null) {
+            identifier = "item/" + publicItem.getID();
+        } else {
+            identifier = "id/" + bts.getID();
+        }
+        url = "/bitstream/"+identifier+"/";
+        try {
+            if (bts.getName() != null) {
+                url += Util.encodeBitstreamName(bts.getName(), "UTF-8");
+            }
+        } catch (UnsupportedEncodingException uee) { /* Do nothing */ }
+        url += "?sequence=" + bts.getSequenceID();
+
+        String isAllowed = "n";
+        try {
+            if (authorizeService.authorizeActionBoolean(context, bts, Constants.READ)) {
+                isAllowed = "y";
+            }
+        } catch (SQLException e) {/* Do nothing */}
+
+        url += "&isAllowed=" + isAllowed;
     }
 }
