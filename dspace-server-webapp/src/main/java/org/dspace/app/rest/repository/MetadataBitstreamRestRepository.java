@@ -7,11 +7,28 @@
  */
 package org.dspace.app.rest.repository;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import  org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
@@ -21,22 +38,17 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.MetadataBitstreamWrapper;
 import org.dspace.app.rest.model.MetadataBitstreamWrapperRest;
-import org.dspace.app.rest.model.MetadataValueWrapper;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.*;
-import org.dspace.content.clarin.ClarinLicense;
-import org.dspace.content.clarin.ClarinLicenseLabel;
-import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.event.Event;
 import org.dspace.handle.service.HandleService;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.dspace.util.FileInfo;
@@ -46,28 +58,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
-import java.nio.file.*;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
+/**
+ * This controller returns content of the bitstream to the `Preview` box in the Item View.
+ */
 @Component(MetadataBitstreamWrapperRest.CATEGORY + "." + MetadataBitstreamWrapperRest.NAME)
 public class MetadataBitstreamRestRepository extends DSpaceRestRepository<MetadataBitstreamWrapperRest, Integer>{
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataBitstreamRestRepository.class);
@@ -116,7 +111,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         List<MetadataBitstreamWrapperRest> rs = new ArrayList<>();
         DSpaceObject dso = null;
 
-        try{
+        try {
             dso = handleService.resolveToObject(context, handle);
         } catch (Exception e) {
             throw new RuntimeException("Cannot resolve handle: " + handle);
@@ -175,16 +170,26 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return bundles;
     }
 
+    /**
+     * Return converted ZIP file content into FileInfo classes.
+     * @param context DSpace context object
+     * @param bitstream ZIP file bitstream
+     * @param fileInfos List which will be returned
+     * @return
+     * @throws SQLException
+     * @throws AuthorizeException
+     * @throws IOException
+     * @throws ParserConfigurationException
+     * @throws ArchiveException
+     * @throws SAXException
+     */
     private List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream, List<FileInfo> fileInfos)
             throws SQLException, AuthorizeException, IOException, ParserConfigurationException,
             ArchiveException, SAXException {
         InputStream inputStream = null;
         try {
             inputStream = bitstreamService.retrieve(context, bitstream);
-        } catch (MissingLicenseAgreementException e) {
-            // Allow  the content of the file
-//                            inputStream = bitstreamStorageService.retrieve(context, bitstream);
-        }
+        } catch (MissingLicenseAgreementException e) { /* Do nothing */ }
 
         if (Objects.nonNull(inputStream)) {
             fileInfos = processInputStreamToFilePreview(context, bitstream, fileInfos, inputStream);
@@ -192,6 +197,20 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return fileInfos;
     }
 
+    /**
+     * Convert InputStream of the ZIP file into FileInfo classes.
+     *
+     * @param context DSpace context object
+     * @param bitstream previewing bitstream
+     * @param fileInfos List which will be returned
+     * @param inputStream content of the zip file
+     * @return List of FileInfo classes where is wrapped ZIP file content
+     * @throws IOException
+     * @throws SQLException
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws ArchiveException
+     */
     private List<FileInfo> processInputStreamToFilePreview(Context context, Bitstream bitstream,
                                                            List<FileInfo> fileInfos, InputStream inputStream)
             throws IOException, SQLException, ParserConfigurationException, SAXException, ArchiveException {
@@ -231,7 +250,6 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         } catch (UnsupportedEncodingException uee) {
             log.error("UnsupportedEncodingException", uee);
         }
-
         url += "?sequence=" + bitstream.getSequenceID();
 
         String isAllowed = "n";
@@ -247,39 +265,13 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return url;
     }
 
-    private boolean match(String schema, String element, String qualifier, MetadataField field)
-    {
-        if (!element.equals(Item.ANY) && !element.equals(field.getElement()))
-        {
-            return false;
-        }
 
-        if (qualifier == null)
-        {
-            if (field.getQualifier() != null)
-            {
-                return false;
-            }
-        }
-        else if (!qualifier.equals(Item.ANY))
-        {
-            if (!qualifier.equals(field.getQualifier()))
-            {
-                return false;
-            }
-        }
-
-        if (!schema.equals(Item.ANY))
-        {
-            if (field.getMetadataSchema() != null && !field.getMetadataSchema().getName().equals(schema))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
+    /**
+     * Convert ZIP file into structured String.
+     * @param inputStream Input stream with ZIP content
+     * @param fileType ZIP/TAR
+     * @return structured String
+     */
     public String extractFile(InputStream inputStream, String fileType) {
         List<String> filePaths = new ArrayList<>();
         Path tempFile = null;
@@ -360,16 +352,12 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return sb.toString();
     }
 
-    private static long calculateUncompressedSize(InputStream inputStream) throws IOException {
-        byte[] buffer = new byte[4096];
-        long uncompressedSize = 0;
-        int bytesRead;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-            uncompressedSize += bytesRead;
-        }
-        return uncompressedSize;
-    }
-
+    /**
+     * Read input stream and return content as String
+     * @param inputStream to read
+     * @return content of the inputStream as a String
+     * @throws IOException
+     */
     public String getFileContent(InputStream inputStream) throws IOException {
         StringBuilder content = new StringBuilder();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -383,39 +371,21 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return content.toString();
     }
 
-//    private void setFileCounter(int newFileCounter){
-//        this.fileCounter = newFileCounter;
-//    }
-//
-//    private int getFileCounter() {
-//        return this.fileCounter;
-//    }
-//
-//    private void resetFileCounter() {
-//        setFileCounter(0);
-//    }
-//
-//    private void increaseFileCounter(int valueToIncrease) {
-//        fileCounter += valueToIncrease;
-//    }
-
+    /**
+     * Find out if the bitstream could be previewed/
+     * @param context DSpace context object
+     * @param bitstream check if this bitstream could be previewed
+     * @return true/false
+     * @throws SQLException
+     * @throws AuthorizeException
+     */
     private boolean findOutCanPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException {
         try {
-            return authorizationBitstreamUtils.authorizeBitstream(context, bitstream);
+            authorizeService.authorizeAction(context, bitstream, Constants.READ);
+            return true;
         } catch (MissingLicenseAgreementException e) {
             return false;
         }
-
-        // Do not preview Items with HamleDT license
-//        if (StringUtils.equals(HAMLEDT_LICENSE_NAME, clarinLicense.getName())) {
-//            return false;
-//        }
-//        for (ClarinLicenseLabel clarinLicenseLabel : clarinLicense.getLicenseLabels()) {
-//            if (StringUtils.equals(PUB_LABEL_NAME, clarinLicenseLabel.getLabel())) {
-//                return true;
-//            }
-//        }
-//        return false;
     }
 
     @Override

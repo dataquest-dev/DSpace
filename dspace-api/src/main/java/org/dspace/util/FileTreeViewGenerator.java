@@ -83,4 +83,3 @@ public class FileTreeViewGenerator {
         return bytes + " " + units[u];
     }
 }
-
