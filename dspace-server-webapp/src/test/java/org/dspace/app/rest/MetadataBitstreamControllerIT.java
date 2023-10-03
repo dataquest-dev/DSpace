@@ -103,7 +103,7 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
     @Test
     public void downloadSingleFileWithNoAuthorize() throws Exception {
         getClient().perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT + "/" + publicItem.getHandle() + "/" + bts.getName()))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isOk());
     }
 
     @Test
