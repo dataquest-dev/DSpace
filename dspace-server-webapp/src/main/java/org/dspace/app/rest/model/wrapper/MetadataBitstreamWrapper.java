@@ -7,10 +7,10 @@
  */
 package org.dspace.app.rest.model.wrapper;
 
+import java.util.List;
+
 import org.dspace.content.Bitstream;
 import org.dspace.util.FileInfo;
-
-import java.util.List;
 
 /**
  * Object which handles data for previewing the bitstream content in the Item View page.

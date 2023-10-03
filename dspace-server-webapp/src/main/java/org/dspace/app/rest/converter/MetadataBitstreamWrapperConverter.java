@@ -41,7 +41,8 @@ public class MetadataBitstreamWrapperConverter implements DSpaceConverter<Metada
         bitstreamWrapperRest.setId(modelObject.getBitstream().getID().toString());
         bitstreamWrapperRest.setDescription(modelObject.getDescription());
         bitstreamWrapperRest.setChecksum(modelObject.getBitstream().getChecksum());
-        bitstreamWrapperRest.setFileSize(FileTreeViewGenerator.humanReadableFileSize(modelObject.getBitstream().getSizeBytes()));
+        bitstreamWrapperRest.setFileSize(FileTreeViewGenerator.humanReadableFileSize(
+                modelObject.getBitstream().getSizeBytes()));
         bitstreamWrapperRest.setFileInfo(modelObject.getFileInfo());
         bitstreamWrapperRest.setHref(modelObject.getHref());
         bitstreamWrapperRest.setFormat(modelObject.getFormat());

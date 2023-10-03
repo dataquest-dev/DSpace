@@ -18,7 +18,7 @@ import org.dspace.app.rest.utils.Utils;
  * @author longtv
  */
 @RelNameDSpaceResource(MetadataBitstreamWrapperRest.NAME)
-public class MetadataBitstreamWrapperResource extends DSpaceResource<MetadataBitstreamWrapperRest>{
+public class MetadataBitstreamWrapperResource extends DSpaceResource<MetadataBitstreamWrapperRest> {
     public MetadataBitstreamWrapperResource(MetadataBitstreamWrapperRest data, Utils utils) {
         super(data, utils);
     }

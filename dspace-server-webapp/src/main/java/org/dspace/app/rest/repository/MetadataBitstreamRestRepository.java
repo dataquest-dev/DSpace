@@ -7,8 +7,6 @@
  */
 package org.dspace.app.rest.repository;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -43,7 +43,11 @@ import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.Thumbnail;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
@@ -64,7 +68,7 @@ import org.xml.sax.SAXException;
  * This controller returns content of the bitstream to the `Preview` box in the Item View.
  */
 @Component(MetadataBitstreamWrapperRest.CATEGORY + "." + MetadataBitstreamWrapperRest.NAME)
-public class MetadataBitstreamRestRepository extends DSpaceRestRepository<MetadataBitstreamWrapperRest, Integer>{
+public class MetadataBitstreamRestRepository extends DSpaceRestRepository<MetadataBitstreamWrapperRest, Integer> {
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataBitstreamRestRepository.class);
     private final static int MAX_FILE_PREVIEW_COUNT = 1000;
 
@@ -95,9 +99,10 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
 
     @SearchRestMethod(name = "byHandle")
     public Page<MetadataBitstreamWrapperRest> findByHandle(@Parameter(value = "handle", required = true) String handle,
-                                                           @Parameter(value = "fileGrpType", required = false) String fileGrpType,
+                                                           @Parameter(value = "fileGrpType") String fileGrpType,
                                                            Pageable pageable)
-            throws SQLException, ParserConfigurationException, IOException, SAXException, AuthorizeException, ArchiveException {
+            throws SQLException, ParserConfigurationException, IOException, SAXException, AuthorizeException,
+            ArchiveException {
         if (StringUtils.isBlank(handle)) {
             throw new DSpaceBadRequestException("handle cannot be null!");
         }
@@ -142,7 +147,9 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 if (canPreview) {
                     fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
                 }
-                MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, fileInfos, bitstream.getFormat(context).getMIMEType(), bitstream.getFormatDescription(context), url, canPreview);
+                MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, fileInfos,
+                        bitstream.getFormat(context).getMIMEType(),
+                        bitstream.getFormatDescription(context), url, canPreview);
                 metadataValueWrappers.add(bts);
                 rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
             }
@@ -223,7 +230,8 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 data = extractFile(inputStream, "zip");
                 fileInfos = FileTreeViewGenerator.parse(data);
             } else if (bitstream.getFormat(context).getExtensions().contains("tar")) {
-                ArchiveInputStream is = new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR, inputStream);
+                ArchiveInputStream is = new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR,
+                        inputStream);
                 data = extractFile(is, "tar");
                 fileInfos = FileTreeViewGenerator.parse(data);
             }
@@ -239,14 +247,12 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         String identifier = null;
         if (Objects.nonNull(item) && Objects.nonNull(item.getHandle())) {
             identifier = "handle/" + item.getHandle();
-        }
-        else if (Objects.nonNull(item)) {
+        } else if (Objects.nonNull(item)) {
             identifier = "item/" + item.getID();
-        }
-        else {
+        } else {
             identifier = "id/" + bitstream.getID();
         }
-        String url = contextPath + "/bitstream/"+identifier;
+        String url = contextPath + "/bitstream/" + identifier;
         try {
             if (bitstream.getName() != null) {
                 url += "/" + Util.encodeBitstreamName(bitstream.getName(), "UTF-8");

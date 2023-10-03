@@ -17,7 +17,7 @@ import org.dspace.util.FileInfo;
  *
  * @author longtv
  */
-public class MetadataBitstreamWrapperRest extends BaseObjectRest<String>{
+public class MetadataBitstreamWrapperRest extends BaseObjectRest<String> {
     public static final String NAME = "metadatabitstream";
     public static final String CATEGORY = RestAddressableModel.CORE;
 
@@ -30,7 +30,8 @@ public class MetadataBitstreamWrapperRest extends BaseObjectRest<String>{
     private String href;
     private boolean canPreview;
 
-    public MetadataBitstreamWrapperRest(String name, String description, String fileSize, String checksum, List<FileInfo> fileInfo, String format, String href, boolean canPreview) {
+    public MetadataBitstreamWrapperRest(String name, String description, String fileSize, String checksum,
+                                        List<FileInfo> fileInfo, String format, String href, boolean canPreview) {
         this.name = name;
         this.description = description;
         this.fileSize = fileSize;

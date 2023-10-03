@@ -7,16 +7,30 @@
  */
 package org.dspace.app.rest;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
+
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.builder.*;
-import org.dspace.content.*;
-import org.dspace.content.clarin.ClarinLicense;
-import org.dspace.content.clarin.ClarinLicenseResourceMapping;
+import org.dspace.builder.BitstreamBuilder;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.ItemBuilder;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.util.FileTreeViewGenerator;
@@ -25,20 +39,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.sql.SQLException;
-import java.util.List;
-
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
 public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     private static final String METADATABITSTREAM_ENDPOINT = "/api/core/metadatabitstream/";
-    private static final String METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT = METADATABITSTREAM_ENDPOINT + "search/byHandle";
+    private static final String METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT =
+            METADATABITSTREAM_ENDPOINT + "search/byHandle";
     private static final String FILE_GRP_TYPE = "ORIGINAL";
     private static final String AUTHOR = "Test author name";
     private Collection col;
@@ -104,9 +109,11 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].description")
                         .value(Matchers.containsInAnyOrder(Matchers.containsString(bts.getFormatDescription(context)))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].format")
-                        .value(Matchers.containsInAnyOrder(Matchers.containsString(bts.getFormat(context).getMIMEType()))))
+                        .value(Matchers.containsInAnyOrder(Matchers.containsString(
+                                bts.getFormat(context).getMIMEType()))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].fileSize")
-                        .value(Matchers.containsInAnyOrder(Matchers.containsString(FileTreeViewGenerator.humanReadableFileSize(bts.getSizeBytes())))))
+                        .value(Matchers.containsInAnyOrder(Matchers.containsString(
+                                FileTreeViewGenerator.humanReadableFileSize(bts.getSizeBytes())))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].canPreview")
                         .value(Matchers.containsInAnyOrder(Matchers.is(canPreview))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].fileInfo").exists())
@@ -128,7 +135,9 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .andExpect(jsonPath("$.page.totalPages", is(0)))
                 .andExpect(jsonPath("$.page.size", is(20)))
                 .andExpect(jsonPath("$.page.number", is(0)))
-                .andExpect(jsonPath("$._links.self.href", Matchers.containsString(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT + "?handle=" + publicItem.getHandle() + "&fileGrpType=")));
+                .andExpect(jsonPath("$._links.self.href",
+                        Matchers.containsString(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT +
+                                "?handle=" + publicItem.getHandle() + "&fileGrpType=")));
     }
 
     @Test
@@ -152,7 +161,7 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
         } else {
             identifier = "id/" + bts.getID();
         }
-        url = "/bitstream/"+identifier+"/";
+        url = "/bitstream/" + identifier + "/";
         try {
             if (bts.getName() != null) {
                 url += Util.encodeBitstreamName(bts.getName(), "UTF-8");
@@ -165,7 +174,7 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
             if (authorizeService.authorizeActionBoolean(context, bts, Constants.READ)) {
                 isAllowed = "y";
             }
-        } catch (SQLException e) {/* Do nothing */}
+        } catch (SQLException e) { /* Do nothing */ }
 
         url += "&isAllowed=" + isAllowed;
     }

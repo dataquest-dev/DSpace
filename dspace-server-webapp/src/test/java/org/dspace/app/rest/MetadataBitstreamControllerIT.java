@@ -7,42 +7,32 @@
  */
 package org.dspace.app.rest;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.zip.Deflater;
+
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamService;
-import org.dspace.core.Constants;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.result.ContentResultMatchers;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.zip.Deflater;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-public class MetadataBitstreamControllerIT extends AbstractControllerIntegrationTest{
+public class MetadataBitstreamControllerIT extends AbstractControllerIntegrationTest {
     private static final String METADATABITSTREAM_ENDPOINT = "/bitstream/";
     private static final String METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT = METADATABITSTREAM_ENDPOINT + "/handle";
     private static final String METADATABITSTREAM_DOWNLOAD_ALL_ENDPOINT = METADATABITSTREAM_ENDPOINT + "/allzip";
@@ -94,7 +84,8 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
     public void downloadSingleFileWithAuthorize() throws Exception {
         InputStream ip = bitstreamService.retrieve(context, bts);
         String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT + "/" + publicItem.getHandle() + "/" + bts.getName()))
+        getClient(token).perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT +
+                        "/" + publicItem.getHandle() + "/" + bts.getName()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/octet-stream;charset=UTF-8"))
                 .andExpect(content().bytes(IOUtils.toByteArray(ip)));
@@ -102,7 +93,8 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
 
     @Test
     public void downloadSingleFileWithNoAuthorize() throws Exception {
-        getClient().perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT + "/" + publicItem.getHandle() + "/" + bts.getName()))
+        getClient().perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT +
+                        "/" + publicItem.getHandle() + "/" + bts.getName()))
                 .andExpect(status().isOk());
     }
 
@@ -121,7 +113,8 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
         zip.close();
 
         String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get(METADATABITSTREAM_DOWNLOAD_ALL_ENDPOINT ).param("handleId", publicItem.getHandle()))
+        getClient(token).perform(get(METADATABITSTREAM_DOWNLOAD_ALL_ENDPOINT ).param("handleId",
+                        publicItem.getHandle()))
                 .andExpect(status().isOk())
                 .andExpect(content().bytes(byteArrayOutputStream.toByteArray()));
 

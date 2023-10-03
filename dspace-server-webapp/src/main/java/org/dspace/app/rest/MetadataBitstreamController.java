@@ -7,14 +7,14 @@
  */
 package org.dspace.app.rest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.zip.Deflater;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -28,8 +28,13 @@ import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
+import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
@@ -39,8 +44,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.dspace.core.Constants;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * This CLARIN Controller download a single file or a ZIP file from the Item's bitstream.
@@ -81,7 +89,7 @@ public class MetadataBitstreamController {
         }
 
         DSpaceObject dso = null;
-        try{
+        try {
             dso = handleService.resolveToObject(context, handleID);
         } catch (Exception e) {
             log.error("Cannot resolve handle: " + handleID);
@@ -158,7 +166,7 @@ public class MetadataBitstreamController {
 
         DSpaceObject dso = null;
         String name = "";
-        try{
+        try {
             dso = handleService.resolveToObject(context, handleId);
         } catch (Exception e) {
             log.error("Cannot resolve handle: " + handleId);
