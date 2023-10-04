@@ -1,4 +1,4 @@
-/**
+ /**
  * The contents of this file are subject to the license and copyright
  * detailed in the LICENSE and NOTICE files at the root of the source
  * tree and available online at
@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
+import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
@@ -54,7 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
  * This CLARIN Controller download a single file or a ZIP file from the Item's bitstream.
  */
 @RestController
-@RequestMapping("/bitstream")
+@RequestMapping("/api/" + BitstreamRest.CATEGORY + "/" + BitstreamRest.PLURAL_NAME)
 public class MetadataBitstreamController {
 
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataBitstreamController.class);

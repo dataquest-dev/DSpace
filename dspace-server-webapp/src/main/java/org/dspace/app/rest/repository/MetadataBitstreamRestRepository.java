@@ -36,6 +36,7 @@ import org.dspace.app.rest.converter.BitstreamConverter;
 import org.dspace.app.rest.converter.MetadataBitstreamWrapperConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
+import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.MetadataBitstreamWrapperRest;
 import org.dspace.app.rest.model.wrapper.MetadataBitstreamWrapper;
 import org.dspace.app.util.Util;
@@ -199,7 +200,11 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         } catch (MissingLicenseAgreementException e) { /* Do nothing */ }
 
         if (Objects.nonNull(inputStream)) {
-            fileInfos = processInputStreamToFilePreview(context, bitstream, fileInfos, inputStream);
+            try {
+                fileInfos = processInputStreamToFilePreview(context, bitstream, fileInfos, inputStream);
+            } catch (IllegalStateException e) {
+                log.error("Cannot process Input Stream to file preview because: " + e.getMessage());
+            }
         }
         return fileInfos;
     }
@@ -252,7 +257,8 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         } else {
             identifier = "id/" + bitstream.getID();
         }
-        String url = contextPath + "/bitstream/" + identifier;
+        String url = contextPath + "/api/" + BitstreamRest.CATEGORY + "/" + BitstreamRest.PLURAL_NAME + "/"
+                + identifier;
         try {
             if (bitstream.getName() != null) {
                 url += "/" + Util.encodeBitstreamName(bitstream.getName(), "UTF-8");

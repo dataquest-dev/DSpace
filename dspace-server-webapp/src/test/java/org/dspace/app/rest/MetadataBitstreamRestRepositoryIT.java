@@ -161,7 +161,7 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
         } else {
             identifier = "id/" + bts.getID();
         }
-        url = "/bitstream/" + identifier + "/";
+        url = "/api/core/bitstreams/" + identifier + "/";
         try {
             if (bts.getName() != null) {
                 url += Util.encodeBitstreamName(bts.getName(), "UTF-8");

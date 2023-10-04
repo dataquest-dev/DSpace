@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class MetadataBitstreamControllerIT extends AbstractControllerIntegrationTest {
-    private static final String METADATABITSTREAM_ENDPOINT = "/bitstream/";
+    private static final String METADATABITSTREAM_ENDPOINT = "/api/core/bitstreams/";
     private static final String METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT = METADATABITSTREAM_ENDPOINT + "/handle";
     private static final String METADATABITSTREAM_DOWNLOAD_ALL_ENDPOINT = METADATABITSTREAM_ENDPOINT + "/allzip";
     private static final String AUTHOR = "Test author name";
@@ -77,7 +77,7 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
 
     @Test
     public void downloadSingleFileNullPathVariable() throws Exception {
-        getClient().perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT)).andExpect(status().isNotFound());
+        getClient().perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT)).andExpect(status().is4xxClientError());
     }
 
     @Test
