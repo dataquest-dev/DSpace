@@ -41,6 +41,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.ws.rs.core.MediaType;
@@ -50,6 +51,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.dspace.app.rest.matcher.BitstreamMatcher;
 import org.dspace.app.rest.matcher.BundleMatcher;
+import org.dspace.app.rest.matcher.ClarinLicenseLabelMatcher;
+import org.dspace.app.rest.matcher.ClarinLicenseMatcher;
 import org.dspace.app.rest.matcher.CollectionMatcher;
 import org.dspace.app.rest.matcher.HalMatcher;
 import org.dspace.app.rest.matcher.ItemMatcher;
@@ -4765,6 +4768,44 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .andExpect(jsonPath("$", HalMatcher.matchNoEmbeds()))
                 .andExpect(jsonPath("$", existNoteLocalMetadataMatcher))
                 .andExpect(jsonPath("$", existDescriptionProvenanceMetadataMatcher));
+    }
+
+    /**
+     * Should find Item by the full handle identifier.
+     */
+    @Test
+    public void searchByHandle() throws Exception {
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                .withSubject("ExtraEntry")
+                .build();
+        context.restoreAuthSystemState();
+        Matcher<? super Object> publicItem1Matcher = ItemMatcher.matchItemWithTitleAndDateIssued(publicItem1,
+                "Public item 1", "2017-10-17");
+
+        String handlePrefix = configurationService.getProperty("handle.canonical.prefix");
+        String fullHandleIdentifier = handlePrefix + publicItem1.getHandle();
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/items/search/byHandle")
+                .param("handle", fullHandleIdentifier))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(contentType))
+        .andExpect(jsonPath("$._embedded.items", Matchers.containsInRelativeOrder(
+                ItemMatcher.matchItemProperties(publicItem1)
+        )));
     }
 
 }
