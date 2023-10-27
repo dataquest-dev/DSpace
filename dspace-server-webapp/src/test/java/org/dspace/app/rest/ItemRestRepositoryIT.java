@@ -41,7 +41,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.ws.rs.core.MediaType;
@@ -51,8 +50,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.dspace.app.rest.matcher.BitstreamMatcher;
 import org.dspace.app.rest.matcher.BundleMatcher;
-import org.dspace.app.rest.matcher.ClarinLicenseLabelMatcher;
-import org.dspace.app.rest.matcher.ClarinLicenseMatcher;
 import org.dspace.app.rest.matcher.CollectionMatcher;
 import org.dspace.app.rest.matcher.HalMatcher;
 import org.dspace.app.rest.matcher.ItemMatcher;
@@ -4793,8 +4790,6 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .withSubject("ExtraEntry")
                 .build();
         context.restoreAuthSystemState();
-        Matcher<? super Object> publicItem1Matcher = ItemMatcher.matchItemWithTitleAndDateIssued(publicItem1,
-                "Public item 1", "2017-10-17");
 
         String handlePrefix = configurationService.getProperty("handle.canonical.prefix");
         String fullHandleIdentifier = handlePrefix + publicItem1.getHandle();
