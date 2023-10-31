@@ -27,6 +27,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,28 +85,30 @@ public class AuthorizationRestController {
             return null;
         }
 
-        // If the bitstream has RES or ACA license and the user is Anonymous return NotAuthorized exception
-        if (!authorizationBitstreamUtils.authorizeLicenseWithUser(context, bitstream.getID())) {
-            response.sendError(HttpStatus.UNAUTHORIZED.value(),
-                    "Anonymous user cannot download bitstream with REC or ACA license");
-            return null;
-        }
+//        // If the bitstream has RES or ACA license and the user is Anonymous return NotAuthorized exception
+//        if (!authorizationBitstreamUtils.authorizeLicenseWithUser(context, bitstream.getID())) {
+//            response.sendError(HttpStatus.UNAUTHORIZED.value(),
+//                    "Anonymous user cannot download bitstream with REC or ACA license");
+//            return null;
+//        }
 
         // Wrap exceptions to the AuthrnRest object.
-        String errorMessage = "User is not authorized to download the bitstream.";
-        boolean isAuthorized = false;
+        String errorMessage = "";
+//        boolean isAuthorized = false;
 
         try {
-            isAuthorized = authorizationBitstreamUtils.authorizeBitstream(context, bitstream);
+            authorizeService.authorizeAction(context, bitstream, Constants.READ);
         } catch (AuthorizeException e) {
             if (e instanceof MissingLicenseAgreementException) {
                 errorMessage = MissingLicenseAgreementException.NAME;
             } else if (e instanceof DownloadTokenExpiredException) {
                 errorMessage = DownloadTokenExpiredException.NAME;
+            } else {
+                errorMessage = e.getMessage();
             }
         }
 
-        if (!isAuthorized) {
+        if (StringUtils.isNotBlank(errorMessage)) {
             // If the user is not authorized return response with the error message
             response.sendError(HttpStatus.UNAUTHORIZED.value(), errorMessage);
             return null;
