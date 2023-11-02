@@ -93,15 +93,14 @@ public class AuthorizationBitstreamUtils {
     }
 
     /**
-     * If the bitstream has RES or ACA license and the user is Anonymous do not authorize that user.
-     * The user will be redirected to the login.
+     * If the bitstream license is not allowed for anonymous and the user is not signed in redirect the user
+     * to the login page
      * @param context DSpace context object
      * @param bitstreamID downloading Bitstream UUID
      * @return if the current user is authorized
      */
     public boolean authorizeLicenseWithUser(Context context, UUID bitstreamID) throws SQLException {
-        // If the current user is null that means that the user is not signed in and cannot download the bitstream
-        // with RES or ACA license
+        // If the current user is null that means that the user is not signed
         if (Objects.nonNull(context.getCurrentUser())) {
             // User is signed
             return true;
@@ -118,16 +117,10 @@ public class AuthorizationBitstreamUtils {
 
         // Bitstream should have only one type of the Clarin license, so we could get first record
         ClarinLicense clarinLicense = Objects.requireNonNull(clarinLicenseResourceMappings.get(0)).getLicense();
-        // Get License Labels from clarin license and check if one of them is ACA or RES
-        List<ClarinLicenseLabel> clarinLicenseLabels = clarinLicense.getLicenseLabels();
-        for (ClarinLicenseLabel clarinLicenseLabel : clarinLicenseLabels) {
-            if (StringUtils.equals(clarinLicenseLabel.getLabel(), "RES") ||
-                StringUtils.equals(clarinLicenseLabel.getLabel(), "ACA")) {
-                return false;
-            }
+        if (Objects.equals(clarinLicense.getConfirmation(), 3)) {
+            return true;
         }
-
-        return true;
+        return false;
     }
 
     private boolean userIsSubmitter(Context context, Bitstream bitstream, EPerson currentUser, UUID userID) {

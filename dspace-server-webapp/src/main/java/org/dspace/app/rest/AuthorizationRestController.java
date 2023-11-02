@@ -85,16 +85,16 @@ public class AuthorizationRestController {
             return null;
         }
 
-//        // If the bitstream has RES or ACA license and the user is Anonymous return NotAuthorized exception
-//        if (!authorizationBitstreamUtils.authorizeLicenseWithUser(context, bitstream.getID())) {
-//            response.sendError(HttpStatus.UNAUTHORIZED.value(),
-//                    "Anonymous user cannot download bitstream with REC or ACA license");
-//            return null;
-//        }
+        // If the bitstream license is not allowed for anonymous and the user is not signed in redirect the user
+        // to the login page
+        if (!authorizationBitstreamUtils.authorizeLicenseWithUser(context, bitstream.getID())) {
+            response.sendError(HttpStatus.UNAUTHORIZED.value(),
+                    "Anonymous user cannot download this bitstream");
+            return null;
+        }
 
         // Wrap exceptions to the AuthrnRest object.
         String errorMessage = "";
-//        boolean isAuthorized = false;
 
         try {
             authorizeService.authorizeAction(context, bitstream, Constants.READ);
