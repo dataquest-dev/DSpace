@@ -26,6 +26,7 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.utils.ContextUtil;
+import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -45,9 +46,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,14 +72,15 @@ public class MetadataBitstreamController {
     private AuthorizeService authorizeService;
     @Autowired
     private ConfigurationService configurationService;
-
+    @Autowired
+    AuthorizationBitstreamUtils authorizationBitstreamUtils;
 
     @GetMapping("/handle/{id}/{subId}/{fileName}")
     public ResponseEntity<Resource> downloadSingleFile(@PathVariable("id") String id,
                                                        @PathVariable("subId") String subId,
                                                        @PathVariable("fileName") String fileName,
                                                        HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+            throws IOException, SQLException, AuthorizeException {
         String handleID = id + "/" + subId;
         if (StringUtils.isBlank(id) || StringUtils.isBlank(subId)) {
             log.error("Handle cannot be null! PathVariable `id` or `subId` is null.");
@@ -113,8 +117,8 @@ public class MetadataBitstreamController {
         // Find bitstream and start downloading.
         for (Bundle bundle: bundles) {
             for (Bitstream bitstream: bundle.getBitstreams()) {
-                // Authorize the action - it will send response redirect if something gets wrong.
-                authorizeBitstreamAction(context, bitstream, response);
+
+//                authorizeBitstreamAction(context, bitstream, response);
 
                 String btName = bitstream.getName();
                 if (!(btName.equalsIgnoreCase(fileName))) {
@@ -126,6 +130,7 @@ public class MetadataBitstreamController {
                     checkBitstreamExtensions(bitstreamFormat);
 
                     // Get content of the bitstream
+                    // Retrieve method authorize bitstream download action.
                     InputStream inputStream = bitstreamService.retrieve(context, bitstream);
                     InputStreamResource resource = new InputStreamResource(inputStream);
                     HttpHeaders header = new HttpHeaders();
@@ -151,7 +156,8 @@ public class MetadataBitstreamController {
     /**
      * Download all Item's bitstreams as single ZIP file.
      */
-    @GetMapping("/allzip")
+    @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ')")
+    @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "allzip")
     public void downloadFileZip(@RequestParam("handleId") String handleId,
                                 HttpServletResponse response,
                                 HttpServletRequest request) throws IOException, SQLException, AuthorizeException {
@@ -195,11 +201,13 @@ public class MetadataBitstreamController {
         for (Bundle original : bundles) {
             List<Bitstream> bss = original.getBitstreams();
             for (Bitstream bitstream : bss) {
-                authorizeBitstreamAction(context, bitstream, response);
+//                authorizeBitstreamAction(context, bitstream, response);
 
                 String filename = bitstream.getName();
                 ZipArchiveEntry ze = new ZipArchiveEntry(filename);
                 zip.putArchiveEntry(ze);
+                // Get content of the bitstream
+                // Retrieve method authorize bitstream download action.
                 InputStream is = bitstreamService.retrieve(context, bitstream);
                 IOUtils.copy(is, zip);
                 zip.closeArchiveEntry();
@@ -217,20 +225,23 @@ public class MetadataBitstreamController {
      * @param response for possibility to redirect
      */
     private void authorizeBitstreamAction(Context context, Bitstream bitstream, HttpServletResponse response)
-            throws IOException {
+            throws IOException, SQLException, AuthorizeException {
 
-        String uiURL = configurationService.getProperty("dspace.ui.url");
-        if (StringUtils.isBlank(uiURL)) {
-            log.error("Configuration property `dspace.ui.url` cannot be empty or null!");
-            throw new RuntimeException("Configuration property `dspace.ui.url` cannot be empty or null!");
-        }
-        try {
+//        String uiURL = configurationService.getProperty("dspace.ui.url");
+//        if (StringUtils.isBlank(uiURL)) {
+//            log.error("Configuration property `dspace.ui.url` cannot be empty or null!");
+//            throw new RuntimeException("Configuration property `dspace.ui.url` cannot be empty or null!");
+//        }
+//        try {
             authorizeService.authorizeAction(context, bitstream, Constants.READ);
-        } catch (MissingLicenseAgreementException e) {
-            response.sendRedirect(uiURL + "/bitstream/" + bitstream.getID() + "/download");
-        } catch (AuthorizeException | SQLException e) {
-            response.sendRedirect(uiURL + "/login");
-        }
+//        } catch (MissingLicenseAgreementException e) {
+//            authorizationBitstreamUtils.authorizeLicenseWithUser(context, bitstream.getID());
+//             If the license is allowed for anonymous allow to download
+//         /   response.sendRedirect(uiURL + "/bitstream/" + bitstream.getID() + "/download");
+//             It the license is not allowed for anonymous redirect to login page
+//        } catch (AuthorizeException | SQLException e) {
+//            response.sendRedirect(uiURL + "/login");
+//        }
     }
 
     /**

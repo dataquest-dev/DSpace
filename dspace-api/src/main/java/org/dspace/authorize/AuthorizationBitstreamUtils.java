@@ -117,7 +117,8 @@ public class AuthorizationBitstreamUtils {
 
         // Bitstream should have only one type of the Clarin license, so we could get first record
         ClarinLicense clarinLicense = Objects.requireNonNull(clarinLicenseResourceMappings.get(0)).getLicense();
-        if (Objects.equals(clarinLicense.getConfirmation(), 3)) {
+        if (Objects.equals(clarinLicense.getConfirmation(), 3) ||
+                Objects.equals(clarinLicense.getConfirmation(), 0)) {
             return true;
         }
         return false;
