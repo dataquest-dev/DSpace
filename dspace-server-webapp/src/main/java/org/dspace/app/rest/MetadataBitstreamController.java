@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.zip.Deflater;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.BitstreamRest;
+import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
@@ -40,6 +42,8 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.RequestService;
+import org.dspace.services.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -54,11 +58,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
+import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
+
+ /**
  * This CLARIN Controller download a single file or a ZIP file from the Item's bitstream.
  */
 @RestController
-@RequestMapping("/api/" + BitstreamRest.CATEGORY + "/" + BitstreamRest.PLURAL_NAME)
+@RequestMapping("/api/" + ItemRest.CATEGORY + "/" + ItemRest.PLURAL_NAME + REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID)
 public class MetadataBitstreamController {
 
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataBitstreamController.class);
@@ -74,6 +80,9 @@ public class MetadataBitstreamController {
     private ConfigurationService configurationService;
     @Autowired
     AuthorizationBitstreamUtils authorizationBitstreamUtils;
+    @Autowired
+    private RequestService requestService;
+
 
     @GetMapping("/handle/{id}/{subId}/{fileName}")
     public ResponseEntity<Resource> downloadSingleFile(@PathVariable("id") String id,
@@ -156,9 +165,9 @@ public class MetadataBitstreamController {
     /**
      * Download all Item's bitstreams as single ZIP file.
      */
-    @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ')")
+    @PreAuthorize("hasPermission(#uuid, 'ITEM', 'READ')")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "allzip")
-    public void downloadFileZip(@RequestParam("handleId") String handleId,
+    public void downloadFileZip(@PathVariable UUID uuid, @RequestParam("handleId") String handleId,
                                 HttpServletResponse response,
                                 HttpServletRequest request) throws IOException, SQLException, AuthorizeException {
         if (StringUtils.isBlank(handleId)) {
