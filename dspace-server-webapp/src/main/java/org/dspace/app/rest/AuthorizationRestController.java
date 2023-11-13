@@ -85,8 +85,8 @@ public class AuthorizationRestController {
             return null;
         }
 
-        // If the bitstream license is not allowed for anonymous and the user is not signed in redirect the user
-        // to the login page
+        // Do not allow download for anonymous users. Allow it only if the bitstream has Clarin License and the license
+        // has confirmation = 3 (allow anonymous).
         if (!authorizationBitstreamUtils.authorizeLicenseWithUser(context, bitstream.getID())) {
             response.sendError(HttpStatus.UNAUTHORIZED.value(),
                     "Anonymous user cannot download this bitstream");

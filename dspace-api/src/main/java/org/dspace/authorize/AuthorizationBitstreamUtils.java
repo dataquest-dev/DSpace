@@ -92,7 +92,8 @@ public class AuthorizationBitstreamUtils {
     }
 
     /**
-     * Check if the current user is authorized to download the bitstream.
+     * Do not allow download for anonymous users. Allow it only if the bitstream has Clarin License and the license has
+     * confirmation = 3 (allow anonymous).
      *
      * @param context DSpace context object
      * @param bitstreamID downloading Bitstream UUID
