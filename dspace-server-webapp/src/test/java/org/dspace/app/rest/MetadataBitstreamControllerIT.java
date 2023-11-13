@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class MetadataBitstreamControllerIT extends AbstractControllerIntegrationTest {
     private static final String METADATABITSTREAM_ENDPOINT = "/api/core/bitstreams/";
-    private static final String METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT = METADATABITSTREAM_ENDPOINT + "/handle";
     private static final String METADATABITSTREAM_DOWNLOAD_ALL_ENDPOINT = METADATABITSTREAM_ENDPOINT + "/allzip";
     private static final String AUTHOR = "Test author name";
     private Collection col;
@@ -73,29 +72,6 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
                     .build();
         }
         context.restoreAuthSystemState();
-    }
-
-    @Test
-    public void downloadSingleFileNullPathVariable() throws Exception {
-        getClient().perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT)).andExpect(status().is4xxClientError());
-    }
-
-    @Test
-    public void downloadSingleFileWithAuthorize() throws Exception {
-        InputStream ip = bitstreamService.retrieve(context, bts);
-        String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT +
-                        "/" + publicItem.getHandle() + "/" + bts.getName()))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/octet-stream;charset=UTF-8"))
-                .andExpect(content().bytes(IOUtils.toByteArray(ip)));
-    }
-
-    @Test
-    public void downloadSingleFileWithNoAuthorize() throws Exception {
-        getClient().perform(get(METADATABITSTREAM_DOWNLOAD_SINGLE_ENDPOINT +
-                        "/" + publicItem.getHandle() + "/" + bts.getName()))
-                .andExpect(status().isOk());
     }
 
     @Test
