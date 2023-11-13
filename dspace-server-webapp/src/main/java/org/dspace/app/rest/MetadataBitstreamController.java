@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest;
 
+import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -25,12 +27,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
-import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
@@ -38,12 +38,10 @@ import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
-import org.dspace.services.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -57,8 +55,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
 
  /**
  * This CLARIN Controller download a single file or a ZIP file from the Item's bitstream.
@@ -210,8 +206,6 @@ public class MetadataBitstreamController {
         for (Bundle original : bundles) {
             List<Bitstream> bss = original.getBitstreams();
             for (Bitstream bitstream : bss) {
-//                authorizeBitstreamAction(context, bitstream, response);
-
                 String filename = bitstream.getName();
                 ZipArchiveEntry ze = new ZipArchiveEntry(filename);
                 zip.putArchiveEntry(ze);
@@ -227,31 +221,6 @@ public class MetadataBitstreamController {
         response.getOutputStream().flush();
     }
 
-    /**
-     * Could the user download that bitstream?
-     * @param context DSpace context object
-     * @param bitstream Bitstream to download
-     * @param response for possibility to redirect
-     */
-    private void authorizeBitstreamAction(Context context, Bitstream bitstream, HttpServletResponse response)
-            throws IOException, SQLException, AuthorizeException {
-
-//        String uiURL = configurationService.getProperty("dspace.ui.url");
-//        if (StringUtils.isBlank(uiURL)) {
-//            log.error("Configuration property `dspace.ui.url` cannot be empty or null!");
-//            throw new RuntimeException("Configuration property `dspace.ui.url` cannot be empty or null!");
-//        }
-//        try {
-            authorizeService.authorizeAction(context, bitstream, Constants.READ);
-//        } catch (MissingLicenseAgreementException e) {
-//            authorizationBitstreamUtils.authorizeLicenseWithUser(context, bitstream.getID());
-//             If the license is allowed for anonymous allow to download
-//         /   response.sendRedirect(uiURL + "/bitstream/" + bitstream.getID() + "/download");
-//             It the license is not allowed for anonymous redirect to login page
-//        } catch (AuthorizeException | SQLException e) {
-//            response.sendRedirect(uiURL + "/login");
-//        }
-    }
 
     /**
      * Check if the bitstream has file extension.

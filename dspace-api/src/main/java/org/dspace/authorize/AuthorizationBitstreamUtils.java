@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
-import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
