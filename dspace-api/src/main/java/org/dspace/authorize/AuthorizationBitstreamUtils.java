@@ -92,8 +92,8 @@ public class AuthorizationBitstreamUtils {
     }
 
     /**
-     * If the bitstream license is not allowed for anonymous and the user is not signed in redirect the user
-     * to the login page
+     * Check if the current user is authorized to download the bitstream.
+     *
      * @param context DSpace context object
      * @param bitstreamID downloading Bitstream UUID
      * @return if the current user is authorized
@@ -116,6 +116,8 @@ public class AuthorizationBitstreamUtils {
 
         // Bitstream should have only one type of the Clarin license, so we could get first record
         ClarinLicense clarinLicense = Objects.requireNonNull(clarinLicenseResourceMappings.get(0)).getLicense();
+        // 3 - Allow download for anonymous users, but with license confirmation
+        // 0 - License confirmation is not required
         if (Objects.equals(clarinLicense.getConfirmation(), 3) ||
                 Objects.equals(clarinLicense.getConfirmation(), 0)) {
             return true;
