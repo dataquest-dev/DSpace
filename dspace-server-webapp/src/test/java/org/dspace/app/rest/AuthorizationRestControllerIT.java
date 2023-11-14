@@ -66,8 +66,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class AuthorizationRestControllerIT extends AbstractControllerIntegrationTest {
 
-    private static final String CLARIN_LICENSE_NAME = "Test Clarin License";
-    private static final String TEXT_PLAIN_UTF_8 = "text/plain;charset=UTF-8";
+    public static final String CLARIN_LICENSE_NAME = "Test Clarin License";
+    public static final String TEXT_PLAIN_UTF_8 = "text/plain;charset=UTF-8";
 
     @Autowired
     ClarinLicenseService clarinLicenseService;

@@ -19,6 +19,7 @@ import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.IOUtils;
+import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.builder.BitstreamBuilder;
@@ -33,8 +34,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class MetadataBitstreamControllerIT extends AbstractControllerIntegrationTest {
-    private static final String METADATABITSTREAM_ENDPOINT = "/api/core/bitstreams/";
-    private static final String METADATABITSTREAM_DOWNLOAD_ALL_ENDPOINT = METADATABITSTREAM_ENDPOINT + "/allzip";
+    private static final String METADATABITSTREAM_ENDPOINT = "/api/" + ItemRest.CATEGORY + "/" + ItemRest.PLURAL_NAME;
+    private static final String ALL_ZIP_PATH = "allzip";
+    private static final String HANDLE_PARAM = "handleId";
     private static final String AUTHOR = "Test author name";
     private Collection col;
 
@@ -89,12 +91,10 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
         zip.close();
 
         String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get(METADATABITSTREAM_DOWNLOAD_ALL_ENDPOINT ).param("handleId",
-                        publicItem.getHandle()))
+        getClient(token).perform(get(METADATABITSTREAM_ENDPOINT + "/" + publicItem.getID() +
+                        "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, publicItem.getHandle()))
                 .andExpect(status().isOk())
                 .andExpect(content().bytes(byteArrayOutputStream.toByteArray()));
 
     }
-
-
 }

@@ -43,13 +43,8 @@ import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -140,16 +135,5 @@ public class MetadataBitstreamController {
         }
         zip.close();
         response.getOutputStream().flush();
-    }
-
-
-    /**
-     * Check if the bitstream has file extension.
-     */
-    private void checkBitstreamExtensions(BitstreamFormat bitstreamFormat) {
-        if ( Objects.isNull(bitstreamFormat) ||  CollectionUtils.isEmpty(bitstreamFormat.getExtensions())) {
-            log.error("Bitstream Extensions cannot be empty for downloading/previewing bitstreams.");
-            throw new RuntimeException("Bitstream Extensions cannot be empty for downloading/previewing bitstreams.");
-        }
     }
 }
