@@ -156,8 +156,8 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                         .andReturn().getResponse().getContentAsString(),
                 "$.id"));
 
-        checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getMIMEType(), sequence, deleted, sizeBytes,
-                checkSum);
+        checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getMIMEType(), sequence, deleted,
+                sizeBytes, checkSum);
 
         //clean all
         context.turnOffAuthorisationSystem();
@@ -191,8 +191,8 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                         .andReturn().getResponse().getContentAsString(),
                 "$.id"));
 
-        checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getMIMEType(), sequence, deleted, sizeBytes,
-                checkSum);
+        checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getMIMEType(), sequence, deleted,
+                sizeBytes, checkSum);
 
         //clean all
         context.turnOffAuthorisationSystem();
@@ -226,8 +226,8 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                         .andReturn().getResponse().getContentAsString(),
                 "$.id"));
 
-        checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getMIMEType(), sequence, deleted, sizeBytes,
-                checkSum);
+        checkCreatedBitstream(uuid, internalId, storeNumber, bitstreamFormat.getMIMEType(), sequence, deleted,
+                sizeBytes, checkSum);
         bundle = bundleService.find(context, bundle.getID());
         assertEquals(bundle.getPrimaryBitstream().getID(), bitstream.getID());
 
