@@ -22,6 +22,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.matomo.java.tracking.CustomVariable;
@@ -132,6 +133,19 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
             return;
         }
 
+        // Log the user which is downloading the restricted bitstream
+        this.logUserDownloadingBitstream(context, bit);
+        // Track the bitstream downloading event
         trackPage(context, request, item, "Bitstream Download / Single File");
+    }
+
+    private void logUserDownloadingBitstream(Context context, Bitstream bit) {
+        EPerson eperson = context.getCurrentUser();
+        if (Objects.isNull(eperson)) {
+            log.error("Cannot log user which is downloading restricted bitstream.");
+        }
+
+        log.info("User: " + eperson.getFullName() + " with ID: " + eperson.getID() + " is downloading restricted" +
+                " bitstream " + bit.getName() + " with ID: " + bit.getID());
     }
 }
