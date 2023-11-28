@@ -139,6 +139,11 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
         trackPage(context, request, item, "Bitstream Download / Single File");
     }
 
+    /**
+     * Log the user which is downloading the bitstream
+     * @param context DSpace context object
+     * @param bit Bitstream which is downloading
+     */
     private void logUserDownloadingBitstream(Context context, Bitstream bit) {
         EPerson eperson = context.getCurrentUser();
         if (Objects.isNull(eperson)) {
