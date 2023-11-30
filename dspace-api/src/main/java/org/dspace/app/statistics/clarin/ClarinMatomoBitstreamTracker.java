@@ -133,7 +133,7 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
             return;
         }
 
-        // Log the user which is downloading the restricted bitstream
+        // Log the user which is downloading the bitstream
         this.logUserDownloadingBitstream(context, bit);
         // Track the bitstream downloading event
         trackPage(context, request, item, "Bitstream Download / Single File");
