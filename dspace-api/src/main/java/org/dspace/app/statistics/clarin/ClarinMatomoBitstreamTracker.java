@@ -8,6 +8,7 @@
 package org.dspace.app.statistics.clarin;
 
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
@@ -146,13 +147,11 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
      */
     private void logUserDownloadingBitstream(Context context, Bitstream bit) {
         EPerson eperson = context.getCurrentUser();
-        if (Objects.isNull(eperson)) {
-            log.info("ANONYMOUS user is trying to download bitstream " + bit.getName() + " with ID: " +
-                    bit.getID());
-            return;
-        }
+        String pattern = "The user name: {0}, uuid: {1} is downloading bitstream name: {2}, uuid: {3}.";
+        String logMessage = Objects.isNull(eperson)
+                ? MessageFormat.format(pattern, "ANONYMOUS", "null", bit.getName(), bit.getID())
+                : MessageFormat.format(pattern, eperson.getFullName(), eperson.getID(), bit.getName(), bit.getID());
 
-        log.info("User: " + eperson.getFullName() + " with ID: " + eperson.getID() + " is downloading" +
-                " bitstream " + bit.getName() + " with ID: " + bit.getID());
+        log.info(logMessage);
     }
 }
