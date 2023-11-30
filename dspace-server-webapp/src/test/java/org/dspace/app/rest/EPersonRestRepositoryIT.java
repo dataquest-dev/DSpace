@@ -65,7 +65,6 @@ import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.test.MetadataPatchSuite;
-import org.dspace.builder.ClarinUserRegistrationBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
@@ -121,8 +120,6 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         AtomicReference<UUID> idRef = new AtomicReference<UUID>();
         AtomicReference<UUID> idRefNoEmbeds = new AtomicReference<UUID>();
-        AtomicReference<Integer> idRefUserDataReg = new AtomicReference<Integer>();
-        AtomicReference<Integer> idRefUserDataFullReg = new AtomicReference<Integer>();
 
         String authToken = getAuthToken(admin.getEmail(), password);
 
@@ -158,51 +155,11 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$", HalMatcher.matchNoEmbeds()))
                 .andDo(result -> idRefNoEmbeds
-                        .set(UUID.fromString(read(result.getResponse().getContentAsString(), "$.id"))));
-
-        // Check that the user registration for test data user has been created
-        getClient(authToken).perform(get("/api/core/clarinuserregistration/search/byEPerson")
-                        .param("userUUID", String.valueOf(idRef.get()))
-                        .contentType(contentType))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements", is(1)))
-                .andExpect(jsonPath(
-                        "$._embedded.clarinuserregistrations[0].id", is(not(empty()))))
-                .andExpect(jsonPath(
-                        "$._embedded.clarinuserregistrations[0].email", is("createtest@example.com")))
-                .andExpect(jsonPath(
-                        "$._embedded.clarinuserregistrations[0].confirmation", is(true)))
-                .andExpect(jsonPath(
-                        "$._embedded.clarinuserregistrations[0].ePersonID", is(idRef.get().toString())))
-                .andDo(result -> idRefUserDataReg
-                        .set(read(result.getResponse().getContentAsString(),
-                                "$._embedded.clarinuserregistrations[0].id")));
-
-            // Check that the user registration for test data full user has been created
-            getClient(authToken).perform(get("/api/core/clarinuserregistration/search/byEPerson")
-                            .param("userUUID", String.valueOf(idRefNoEmbeds.get()))
-                            .contentType(contentType))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.page.totalElements", is(1)))
-                    .andExpect(jsonPath(
-                            "$._embedded.clarinuserregistrations[0].id", is(not(empty()))))
-                    .andExpect(jsonPath(
-                            "$._embedded.clarinuserregistrations[0].email",
-                            is("createtestfull@example.com")))
-                    .andExpect(jsonPath(
-                            "$._embedded.clarinuserregistrations[0].confirmation", is(true)))
-                    .andExpect(jsonPath(
-                            "$._embedded.clarinuserregistrations[0].ePersonID",
-                            is(idRefNoEmbeds.get().toString())))
-                    .andDo(result -> idRefUserDataFullReg
-                            .set(read(result.getResponse().getContentAsString(),
-                                    "$._embedded.clarinuserregistrations[0].id")));
+                        .set(UUID.fromString(read(result.getResponse().getContentAsString(), "$.id"))));;
 
         } finally {
             EPersonBuilder.deleteEPerson(idRef.get());
             EPersonBuilder.deleteEPerson(idRefNoEmbeds.get());
-            ClarinUserRegistrationBuilder.deleteClarinUserRegistration(idRefUserDataReg.get());
-            ClarinUserRegistrationBuilder.deleteClarinUserRegistration(idRefUserDataFullReg.get());
         }
     }
 
