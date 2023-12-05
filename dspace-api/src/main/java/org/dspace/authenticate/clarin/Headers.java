@@ -206,7 +206,7 @@ public class Headers {
             String decodedString = new String(iso8859Bytes, StandardCharsets.ISO_8859_1);
 
             // Compare the original string with the decoded string
-            return value.equals(decodedString);
+            return StringUtils.equals(value, decodedString);
         } catch (Exception e) {
             // An exception occurred, so the input is not ISO-8859-1
             return false;
