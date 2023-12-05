@@ -475,6 +475,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         assertEquals(ePerson.getEmail(), testMail);
         assertEquals(ePerson.getFirstName(), "knihovna Kůň test Žluťoučký");
 
+        EPersonBuilder.deleteEPerson(ePerson.getID());
 
         getClient(token).perform(
                         get("/api/authz/authorizations/search/object")
@@ -516,6 +517,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         assertEquals(ePerson.getEmail(), testMail);
         assertEquals(ePerson.getFirstName(), "knihovna Kůň test Žluťoučký");
 
+        EPersonBuilder.deleteEPerson(ePerson.getID());
 
         getClient(token).perform(
                         get("/api/authz/authorizations/search/object")
