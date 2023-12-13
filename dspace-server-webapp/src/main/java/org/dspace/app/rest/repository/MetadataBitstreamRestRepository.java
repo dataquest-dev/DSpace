@@ -146,7 +146,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 List<FileInfo> fileInfos = new ArrayList<>();
                 boolean canPreview = findOutCanPreview(context, bitstream);
                 if (canPreview) {
-                    fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
+//                    fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
                 }
                 MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, fileInfos,
                         bitstream.getFormat(context).getMIMEType(),
