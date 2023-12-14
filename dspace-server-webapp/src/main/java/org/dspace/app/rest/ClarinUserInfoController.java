@@ -11,8 +11,10 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -28,22 +30,27 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ClarinUserInfoController {
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
     /**
      * This method returns the client's IP address.
      * @param request The HttpServletRequest object.
      * @return The client's IP address.
      */
     @RequestMapping(method = RequestMethod.GET, path = "/ipaddress")
-    public ResponseEntity getUserIPAddress(HttpServletRequest request, HttpServletResponse response)
+    public ResponseEntity<Object> getUserIPAddress(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         // Get client's IP address
         String ipAddress = request.getRemoteAddr();
         if (StringUtils.isBlank(ipAddress)) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot get user's IP address");
+            String errorMessage = "Cannot get user's IP address";
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorMessage);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         }
-        // Create JSON object
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("ipAddress", ipAddress);
-        return ResponseEntity.ok(jsonObject.toString());
+
+        // Create JSON object using Jackson's ObjectNode
+        ObjectNode jsonObject = objectMapper.createObjectNode();
+        jsonObject.put("ipAddress", ipAddress);
+
+        return ResponseEntity.ok().body(jsonObject);
     }
 }
