@@ -131,6 +131,7 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
 
     @Test
     public void previewingIsDisabledByCfg() throws Exception {
+        boolean canPreview = configurationService.getBooleanProperty("file.preview.enabled", true);
         // Disable previewing
         configurationService.setProperty("file.preview.enabled", false);
         // There is no restriction, so the user could preview the file
@@ -158,6 +159,8 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                         .value(Matchers.containsInAnyOrder(Matchers.containsString(bts.getChecksum()))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].href")
                         .value(Matchers.containsInAnyOrder(Matchers.containsString(url))));
+
+        configurationService.setProperty("file.preview.enabled", canPreview);
     }
 
     @Test
