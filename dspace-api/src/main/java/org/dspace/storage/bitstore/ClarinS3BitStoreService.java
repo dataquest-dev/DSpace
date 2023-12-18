@@ -71,4 +71,18 @@ public class ClarinS3BitStoreService extends S3BitStoreService {
             }
         }
     }
+
+    @Override
+    public void remove(Bitstream bitstream) throws IOException {
+        String key = getFullKey(bitstream.getInternalId());
+        try {
+            // Remove file from S3
+            s3Service.deleteObject(getBucketName(), key);
+            // Remove file from local assetstore
+            dsBitStoreService.remove(bitstream);
+        } catch (AmazonClientException e) {
+            log.error("remove(" + key + ")", e);
+            throw new IOException(e);
+        }
+    }
 }

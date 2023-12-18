@@ -110,7 +110,7 @@ public class S3BitStoreService extends BaseBitStoreService {
     /**
      * S3 service
      */
-    private AmazonS3 s3Service = null;
+    protected AmazonS3 s3Service = null;
 
     /**
      * S3 transfer manager
