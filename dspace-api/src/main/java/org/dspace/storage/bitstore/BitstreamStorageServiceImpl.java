@@ -28,6 +28,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.services.ConfigurationService;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,11 +65,14 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
      * log4j log
      */
     private static final Logger log = LogManager.getLogger();
+    private static final int SYNCHRONIZED_STORES_NUMBER = 77;
 
     @Autowired(required = true)
     protected BitstreamService bitstreamService;
     @Autowired(required = true)
     protected ChecksumHistoryService checksumHistoryService;
+    @Autowired(required = true)
+    protected ConfigurationService configurationService;
 
     /**
      * asset stores
@@ -107,9 +111,16 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
          * other method of working out where to put a new bitstream, here's
          * where it should go
          */
+        boolean isEnabled = configurationService.getBooleanProperty("sync.storage.service.enabled", false);
+        if (isEnabled) {
+            bitstream.setStoreNumber(SYNCHRONIZED_STORES_NUMBER);
+        } else {
+            bitstream.setStoreNumber(incoming);
+        }
         bitstream.setStoreNumber(incoming);
         bitstream.setDeleted(true);
         bitstream.setInternalId(id);
+
 
         BitStoreService store = this.getStore(incoming);
         //For efficiencies sake, PUT is responsible for setting bitstream size_bytes, checksum, and checksum_algorithm

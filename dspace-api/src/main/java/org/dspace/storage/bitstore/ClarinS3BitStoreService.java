@@ -17,6 +17,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.Bitstream;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -30,12 +31,21 @@ public class ClarinS3BitStoreService extends S3BitStoreService {
      * log4j log
      */
     private static final Logger log = LogManager.getLogger(ClarinS3BitStoreService.class);
+    private boolean syncEnabled = false;
 
     @Autowired(required = true)
     DSBitStoreService dsBitStoreService;
 
+    @Autowired(required = true)
+    ConfigurationService configurationService;
+
     public ClarinS3BitStoreService() {
         super();
+    }
+
+    public void init() throws IOException {
+        super.init();
+        syncEnabled = configurationService.getBooleanProperty("sync.storage.service.enabled", false);
     }
 
     @Override
@@ -58,10 +68,11 @@ public class ClarinS3BitStoreService extends S3BitStoreService {
             bitstream.setChecksum(localChecksum);
             bitstream.setChecksumAlgorithm(CSA);
 
-            // Upload file into local assetstore
-            File localFile = dsBitStoreService.getFile(bitstream);
-            FileUtils.copyFile(scratchFile, localFile);
-
+            if (syncEnabled) {
+                // Upload file into local assetstore
+                File localFile = dsBitStoreService.getFile(bitstream);
+                FileUtils.copyFile(scratchFile, localFile);
+            }
         } catch (AmazonClientException | IOException | InterruptedException e) {
             log.error("put(" + bitstream.getInternalId() + ", is)", e);
             throw new IOException(e);
@@ -78,8 +89,10 @@ public class ClarinS3BitStoreService extends S3BitStoreService {
         try {
             // Remove file from S3
             s3Service.deleteObject(getBucketName(), key);
-            // Remove file from local assetstore
-            dsBitStoreService.remove(bitstream);
+            if (syncEnabled) {
+                // Remove file from local assetstore
+                dsBitStoreService.remove(bitstream);
+            }
         } catch (AmazonClientException e) {
             log.error("remove(" + key + ")", e);
             throw new IOException(e);
