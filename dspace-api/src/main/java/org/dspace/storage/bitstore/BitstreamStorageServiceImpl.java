@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import javax.annotation.Nullable;
 
@@ -66,6 +67,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
      */
     private static final Logger log = LogManager.getLogger();
     private static final int SYNCHRONIZED_STORES_NUMBER = 77;
+    private boolean syncEnabled = false;
 
     @Autowired(required = true)
     protected BitstreamService bitstreamService;
@@ -100,6 +102,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                 storeEntry.getValue().init();
             }
         }
+        this.syncEnabled = configurationService.getBooleanProperty("sync.storage.service.enabled", false);
     }
 
     @Override
@@ -111,13 +114,11 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
          * other method of working out where to put a new bitstream, here's
          * where it should go
          */
-        boolean isEnabled = configurationService.getBooleanProperty("sync.storage.service.enabled", false);
-        if (isEnabled) {
+        if (syncEnabled) {
             bitstream.setStoreNumber(SYNCHRONIZED_STORES_NUMBER);
         } else {
             bitstream.setStoreNumber(incoming);
         }
-        bitstream.setStoreNumber(incoming);
         bitstream.setDeleted(true);
         bitstream.setInternalId(id);
 
@@ -173,7 +174,11 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
         // Create a deleted bitstream row, using a separate DB connection
         bitstream.setDeleted(true);
         bitstream.setInternalId(sInternalId);
-        bitstream.setStoreNumber(assetstore);
+        if (syncEnabled) {
+            bitstream.setStoreNumber(SYNCHRONIZED_STORES_NUMBER);
+        } else {
+            bitstream.setStoreNumber(assetstore);
+        }
         bitstreamService.update(context, bitstream);
 
         Map wantedMetadata = new HashMap();
@@ -216,7 +221,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
         wantedMetadata.put("checksum", null);
         wantedMetadata.put("checksum_algorithm", null);
 
-        Map receivedMetadata = this.getStore(bitstream.getStoreNumber()).about(bitstream, wantedMetadata);
+        int storeNumber = this.decideStoreNumber(bitstream);
+        Map receivedMetadata = this.getStore(storeNumber).about(bitstream, wantedMetadata);
         return receivedMetadata;
     }
 
@@ -228,7 +234,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     @Override
     public InputStream retrieve(Context context, Bitstream bitstream)
         throws SQLException, IOException {
-        Integer storeNumber = bitstream.getStoreNumber();
+        int storeNumber = this.decideStoreNumber(bitstream);
         return this.getStore(storeNumber).get(bitstream);
     }
 
@@ -246,7 +252,9 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                 Map wantedMetadata = new HashMap();
                 wantedMetadata.put("size_bytes", null);
                 wantedMetadata.put("modified", null);
-                Map receivedMetadata = this.getStore(bitstream.getStoreNumber()).about(bitstream, wantedMetadata);
+
+                int storeNumber = this.decideStoreNumber(bitstream);
+                Map receivedMetadata = this.getStore(storeNumber).about(bitstream, wantedMetadata);
 
 
                 // Make sure entries which do not exist are removed
@@ -296,7 +304,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                 // Since versioning allows for multiple bitstreams, check if the internal identifier isn't used on
                 // another place
                 if (bitstreamService.findDuplicateInternalIdentifier(context, bitstream).isEmpty()) {
-                    this.getStore(bitstream.getStoreNumber()).remove(bitstream);
+                    this.getStore(storeNumber).remove(bitstream);
 
                     String message = ("Deleted bitstreamID " + bid + ", internalID " + bitstream.getInternalId());
                     if (log.isDebugEnabled()) {
@@ -345,7 +353,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     public Long getLastModified(Bitstream bitstream) throws IOException {
         Map attrs = new HashMap();
         attrs.put("modified", null);
-        attrs = this.getStore(bitstream.getStoreNumber()).about(bitstream, attrs);
+        int storeNumber = this.decideStoreNumber(bitstream);
+        attrs = this.getStore(storeNumber).about(bitstream, attrs);
         if (attrs == null || !attrs.containsKey("modified")) {
             return null;
         }
@@ -500,6 +509,14 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
             bitStoreService.init();
         }
         return bitStoreService;
+    }
+
+    public int decideStoreNumber(Bitstream bitstream) {
+        if (Objects.equals(bitstream.getStoreNumber(), SYNCHRONIZED_STORES_NUMBER)) {
+            return incoming;
+        } else {
+            return bitstream.getStoreNumber();
+        }
     }
 
 }
