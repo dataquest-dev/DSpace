@@ -7,6 +7,8 @@
  */
 package org.dspace.storage.bitstore;
 
+import static org.dspace.content.Bitstream.SYNCHRONIZED_STORES_NUMBER;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -66,7 +68,6 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
      * log4j log
      */
     private static final Logger log = LogManager.getLogger();
-    private static final int SYNCHRONIZED_STORES_NUMBER = 77;
     private boolean syncEnabled = false;
 
     @Autowired(required = true)
