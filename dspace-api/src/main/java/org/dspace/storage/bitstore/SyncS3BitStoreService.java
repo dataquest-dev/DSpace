@@ -25,12 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-public class ClarinS3BitStoreService extends S3BitStoreService {
+public class SyncS3BitStoreService extends S3BitStoreService {
 
     /**
      * log4j log
      */
-    private static final Logger log = LogManager.getLogger(ClarinS3BitStoreService.class);
+    private static final Logger log = LogManager.getLogger(SyncS3BitStoreService.class);
     private boolean syncEnabled = false;
 
     @Autowired(required = true)
@@ -39,7 +39,7 @@ public class ClarinS3BitStoreService extends S3BitStoreService {
     @Autowired(required = true)
     ConfigurationService configurationService;
 
-    public ClarinS3BitStoreService() {
+    public SyncS3BitStoreService() {
         super();
     }
 

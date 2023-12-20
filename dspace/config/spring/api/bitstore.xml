@@ -17,7 +17,7 @@
         <property name="baseDir" value="${assetstore.dir}"/>
     </bean>
 
-    <bean name="s3Store" class="org.dspace.storage.bitstore.ClarinS3BitStoreService" scope="singleton" lazy-init="true">
+    <bean name="s3Store" class="org.dspace.storage.bitstore.SyncS3BitStoreService" scope="singleton" lazy-init="true">
         <property name="enabled" value="${assetstore.s3.enabled}"/>
         <!-- AWS Security credentials, with policies for specified bucket -->
         <property name="awsAccessKey" value="${assetstore.s3.awsAccessKey}"/>
