@@ -512,6 +512,14 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
         return bitStoreService;
     }
 
+    /**
+     * Decide which store number should be used for the given bitstream.
+     * If the bitstream is synchronized (stored in to S3 and local), then the static store number is used.
+     * Otherwise, the bitstream's store number is used.
+     *
+     * @param bitstream bitstream
+     * @return store number
+     */
     public int decideStoreNumber(Bitstream bitstream) {
         if (Objects.equals(bitstream.getStoreNumber(), SYNCHRONIZED_STORES_NUMBER)) {
             return incoming;
