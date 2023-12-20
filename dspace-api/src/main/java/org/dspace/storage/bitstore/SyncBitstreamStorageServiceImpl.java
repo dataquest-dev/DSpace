@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.storage.bitstore;
 
 import java.io.IOException;
@@ -20,6 +27,12 @@ import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * This class is customization of the BitstreamStorageServiceImpl class.
+ * The bitstream is synchronized if it is stored in both S3 and local assetstore.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl {
 
     /**
