@@ -42,7 +42,7 @@ public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl
     private static final Logger log = LogManager.getLogger();
     private boolean syncEnabled = false;
 
-    private static final int SYNCHRONIZED_STORES_NUMBER = 77;
+    public static final int SYNCHRONIZED_STORES_NUMBER = 77;
 
     @Autowired
     ConfigurationService configurationService;
@@ -171,6 +171,10 @@ public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl
     @Override
     public Map computeChecksum(Context context, Bitstream bitstream) throws IOException {
         int storeNumber = this.whichStoreNumber(bitstream);
+        return this.getStore(storeNumber).about(bitstream, List.of("checksum", "checksum_algorithm"));
+    }
+
+    public Map computeChecksumSpecStore(Context context, Bitstream bitstream, int storeNumber) throws IOException {
         return this.getStore(storeNumber).about(bitstream, List.of("checksum", "checksum_algorithm"));
     }
 
@@ -324,11 +328,29 @@ public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl
      * @return store number
      */
     public int whichStoreNumber(Bitstream bitstream) {
-        if (Objects.equals(bitstream.getStoreNumber(), SYNCHRONIZED_STORES_NUMBER)) {
+        if (isBitstreamStoreSynchronized(bitstream)) {
             return getIncoming();
         } else {
             return bitstream.getStoreNumber();
         }
+    }
+
+    public boolean isBitstreamStoreSynchronized(Bitstream bitstream) {
+        return bitstream.getStoreNumber() == SYNCHRONIZED_STORES_NUMBER;
+    }
+    public int getSynchronizedStoreNumber(Bitstream bitstream) {
+        int storeNumber = -1;
+        if (!isBitstreamStoreSynchronized(bitstream)) {
+            storeNumber = bitstream.getStoreNumber();
+        }
+
+        for (Map.Entry<Integer, BitStoreService> storeEntry : getStores().entrySet()) {
+            if (storeEntry.getKey() == SYNCHRONIZED_STORES_NUMBER || storeEntry.getKey() == getIncoming()) {
+                continue;
+            }
+            storeNumber = storeEntry.getKey();
+        }
+        return storeNumber;
     }
 
 }
