@@ -9,16 +9,24 @@ package org.dspace.app.rest.converter;
 
 import static org.dspace.app.util.Util.getSourceVersion;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.RootRest;
 import org.dspace.services.ConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 /**
  * This class read the core configuration properties and constructs a RootRest instance to return
  */
 @Component
 public class RootConverter {
+    private static final Logger log = LoggerFactory.getLogger(RootConverter.class);
 
     @Autowired
     private ConfigurationService configurationService;
@@ -29,6 +37,36 @@ public class RootConverter {
         rootRest.setDspaceUI(configurationService.getProperty("dspace.ui.url"));
         rootRest.setDspaceServer(configurationService.getProperty("dspace.server.url"));
         rootRest.setDspaceVersion("DSpace " + getSourceVersion());
+        rootRest.setBuildVersion(getBuildVersion());
         return rootRest;
+    }
+
+    /**
+     * Read the build version from the `build.version.file.path` property
+     *
+     * @return content of the version file
+     */
+    private String getBuildVersion() {
+        String buildVersion = "Unknown";
+        String bVersionFilePath = configurationService.getProperty("build.version.file.path");
+
+        if (StringUtils.isBlank(bVersionFilePath)) {
+            return buildVersion;
+        }
+
+        try (FileReader fileReader = new FileReader(bVersionFilePath);
+             BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+
+            String line;
+            // Read each line from the file until the end of the file is reached
+            while ((line = bufferedReader.readLine()) != null) {
+                buildVersion = line;
+            }
+
+        } catch (IOException e) {
+            log.error("Error while reading build version file", e);
+        }
+
+        return buildVersion;
     }
 }
