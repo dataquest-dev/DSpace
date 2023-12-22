@@ -115,13 +115,13 @@ public class S3BitStoreService extends BaseBitStoreService {
     /**
      * S3 service
      */
-    private AmazonS3 s3Service = null;
+    protected AmazonS3 s3Service = null;
 
     /**
      * S3 transfer manager
      * this is reused between put calls to use less resources for multiple uploads
      */
-    private TransferManager tm = null;
+    protected TransferManager tm = null;
 
     private static final ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
