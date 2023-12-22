@@ -248,8 +248,7 @@ public final class CheckerCommand {
         info.setProcessStartDate(new Date());
 
         try {
-            //  1. DB - S3 not match
-            //  2. DS - S3 not match - Synchronization
+            // 1. DB - Store not match
             Bitstream bitstream = info.getBitstream();
             Map<String, Object> checksumMap = bitstreamStorageService.computeChecksum(context, bitstream);
             if (MapUtils.isNotEmpty(checksumMap)) {
@@ -271,6 +270,7 @@ public final class CheckerCommand {
                 info.setToBeProcessed(false);
             }
 
+            // 2. Store1 - Synchronized store 2 not match
             // Check checksum of synchronized store
             if (bitstream.getStoreNumber() != SYNCHRONIZED_STORES_NUMBER) {
                 return;
@@ -279,7 +279,9 @@ public final class CheckerCommand {
                 return;
             }
 
-            Map<String, Object> syncStoreChecksumMap = bitstreamStorageService.computeChecksumSpecStore(context, bitstream, bitstreamStorageService.getSynchronizedStoreNumber(bitstream));
+            Map<String, Object> syncStoreChecksumMap =
+                    bitstreamStorageService.computeChecksumSpecStore(context, bitstream,
+                            bitstreamStorageService.getSynchronizedStoreNumber(bitstream));
             if (MapUtils.isNotEmpty(syncStoreChecksumMap)) {
                 String syncStoreChecksum = "";
                 if (checksumMap.containsKey("checksum")) {
@@ -287,6 +289,8 @@ public final class CheckerCommand {
                 }
                 // compare new checksum to previous checksum
                 ChecksumResult checksumResult = compareChecksums(info.getCurrentChecksum(), syncStoreChecksum);
+                // Do not override result with synchronization info if the checksums are not matching between
+                // DB and store
                 if (!Objects.equals(checksumResult.getResultCode(), ChecksumResultCode.CHECKSUM_NO_MATCH)) {
                     info.setChecksumResult(getChecksumResultByCode(ChecksumResultCode.CHECKSUM_SYNC_NO_MATCH));
                 }

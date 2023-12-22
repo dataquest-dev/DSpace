@@ -10,10 +10,8 @@ package org.dspace.storage.bitstore;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import javax.annotation.Nullable;
 
@@ -174,6 +172,14 @@ public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl
         return this.getStore(storeNumber).about(bitstream, List.of("checksum", "checksum_algorithm"));
     }
 
+    /**
+     * Compute the checksum of a bitstream in a specific store.
+     * @param context DSpace Context object
+     * @param bitstream Bitstream to compute checksum for
+     * @param storeNumber Store number to compute checksum for
+     * @return Map with checksum and checksum algorithm
+     * @throws IOException if IO error
+     */
     public Map computeChecksumSpecStore(Context context, Bitstream bitstream, int storeNumber) throws IOException {
         return this.getStore(storeNumber).about(bitstream, List.of("checksum", "checksum_algorithm"));
     }
@@ -335,9 +341,24 @@ public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl
         }
     }
 
+    /**
+     * Check if the bitstream is synchronized (stored in more stores)
+     * The bitstream is synchronized if it has the static store number.
+     *
+     * @param bitstream to check if it is synchronized
+     * @return true if the bitstream is synchronized
+     */
     public boolean isBitstreamStoreSynchronized(Bitstream bitstream) {
         return bitstream.getStoreNumber() == SYNCHRONIZED_STORES_NUMBER;
     }
+
+
+    /**
+     * Get the store number where the bitstream is synchronized. It is not active (incoming) store.
+     *
+     * @param bitstream to get the synchronized store number
+     * @return store number
+     */
     public int getSynchronizedStoreNumber(Bitstream bitstream) {
         int storeNumber = -1;
         if (!isBitstreamStoreSynchronized(bitstream)) {
