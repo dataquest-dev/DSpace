@@ -97,12 +97,10 @@ public class S3BitStoreService extends BaseBitStoreService {
     protected static final int directoryLevels = 3;
 
     private boolean enabled = false;
-
     private String awsAccessKey;
     private String awsSecretKey;
     private String awsRegionName;
     private boolean useRelativePath;
-
 
     private String endpoint;
     private boolean pathStyleAccessEnabled;
@@ -166,7 +164,6 @@ public class S3BitStoreService extends BaseBitStoreService {
                 .withEndpointConfiguration(endpointConfiguration)
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
     }
-
     public S3BitStoreService() {}
 
     /**
