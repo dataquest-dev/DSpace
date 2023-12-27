@@ -1,4 +1,19 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.repository;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 
 import org.dspace.app.rest.model.BitstreamChecksum;
 import org.dspace.app.rest.model.BitstreamChecksumRest;
@@ -15,14 +30,11 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-
+/**
+ * Link repository for "checksum" subresource of an individual bitstream.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 @Component(BitstreamRest.CATEGORY + "." + BitstreamRest.NAME + "." + BitstreamRest.CHECKSUM)
 public class BitstreamCheckSumLinkRepository extends AbstractDSpaceRestRepository implements LinkRestRepository {
 
@@ -66,11 +78,6 @@ public class BitstreamCheckSumLinkRepository extends AbstractDSpaceRestRepositor
             bitstreamChecksum.setDatabaseChecksum(databaseChecksum);
             bitstreamChecksum.setSynchronizedStore(synchronizedStoreChecksum);
 
-//            BitstreamChecksumRest bitstreamChecksumRest = new BitstreamChecksumRest();
-//            bitstreamChecksumRest.setActiveStore(activeStoreChecksum);
-//            bitstreamChecksumRest.setDatabaseChecksum(databaseChecksum);
-//            bitstreamChecksumRest.setSynchronizedStore(synchronizedStoreChecksum);
-
             return converter.toRest(bitstreamChecksum, projection);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -79,6 +86,9 @@ public class BitstreamCheckSumLinkRepository extends AbstractDSpaceRestRepositor
         }
     }
 
+    /**
+     * Compose the checksum rest object from the checksum map
+     */
     private void composeChecksumRest(CheckSumRest checksumRest, Map<String, Object> checksumMap) {
         if (Objects.isNull(checksumMap)) {
             return;
@@ -91,6 +101,4 @@ public class BitstreamCheckSumLinkRepository extends AbstractDSpaceRestRepositor
             checksumRest.setCheckSumAlgorithm(checksumMap.get("checksum_algorithm").toString());
         }
     }
-
-
 }
