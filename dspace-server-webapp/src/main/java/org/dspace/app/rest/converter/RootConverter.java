@@ -54,8 +54,9 @@ public class RootConverter {
             return buildVersion;
         }
 
-        try (FileReader fileReader = new FileReader(bVersionFilePath);
-             BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+        try {
+            FileReader fileReader = new FileReader(bVersionFilePath);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
 
             String line;
             // Read each line from the file until the end of the file is reached
@@ -64,7 +65,7 @@ public class RootConverter {
             }
 
         } catch (IOException e) {
-            log.error("Error while reading build version file", e);
+            // Empty - do not log anything
         }
 
         return buildVersion;
