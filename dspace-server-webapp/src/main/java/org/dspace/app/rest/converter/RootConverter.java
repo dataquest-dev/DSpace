@@ -47,13 +47,13 @@ public class RootConverter {
      * @return content of the version file
      */
     private String getBuildVersion() {
-        String buildVersion = "Unknown";
         String bVersionFilePath = configurationService.getProperty("build.version.file.path");
 
         if (StringUtils.isBlank(bVersionFilePath)) {
-            return buildVersion;
+            return "Unknown";
         }
 
+        StringBuilder buildVersion = new StringBuilder();
         try {
             FileReader fileReader = new FileReader(bVersionFilePath);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -61,13 +61,13 @@ public class RootConverter {
             String line;
             // Read each line from the file until the end of the file is reached
             while ((line = bufferedReader.readLine()) != null) {
-                buildVersion = line;
+                buildVersion.append(line);
             }
 
         } catch (IOException e) {
             // Empty - do not log anything
         }
 
-        return buildVersion;
+        return buildVersion.toString();
     }
 }
