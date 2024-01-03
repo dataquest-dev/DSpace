@@ -27,6 +27,10 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
         @LinkRest(
                 name = BitstreamRest.THUMBNAIL,
                 method = "getThumbnail"
+        ),
+        @LinkRest(
+                name = BitstreamRest.CHECKSUM,
+                method = "getChecksum"
         )
 })
 public class BitstreamRest extends DSpaceObjectRest {
@@ -37,6 +41,7 @@ public class BitstreamRest extends DSpaceObjectRest {
     public static final String BUNDLE = "bundle";
     public static final String FORMAT = "format";
     public static final String THUMBNAIL = "thumbnail";
+    public static final String CHECKSUM = "checksum";
 
     private String bundleName;
 
@@ -45,6 +50,8 @@ public class BitstreamRest extends DSpaceObjectRest {
     // sequenceId is READ_ONLY because it is assigned by the ItemService (as it must be unique within an Item)
     @JsonProperty(access = Access.READ_ONLY)
     private Integer sequenceId;
+
+    private int storeNumber;
 
     public String getBundleName() {
         return bundleName;
@@ -76,6 +83,14 @@ public class BitstreamRest extends DSpaceObjectRest {
 
     public void setSequenceId(Integer sequenceId) {
         this.sequenceId = sequenceId;
+    }
+
+    public int getStoreNumber() {
+        return storeNumber;
+    }
+
+    public void setStoreNumber(int storeNumber) {
+        this.storeNumber = storeNumber;
     }
 
     @Override

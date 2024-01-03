@@ -10,8 +10,6 @@ package org.dspace.storage.bitstore;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -22,81 +20,43 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.checker.service.ChecksumHistoryService;
 import org.dspace.content.Bitstream;
-import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
-import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
-import org.dspace.storage.bitstore.service.BitstreamStorageService;
-import org.springframework.beans.factory.InitializingBean;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * <P>
- * Stores, retrieves and deletes bitstreams.
- * </P>
+ * This class is customization of the BitstreamStorageServiceImpl class.
+ * The bitstream is synchronized if it is stored in both S3 and local assetstore.
  *
- * <P>
- * Presently, asset stores are specified in <code>dspace.cfg</code>. Since
- * Java does not offer a way of detecting free disk space, the asset store to
- * use for new bitstreams is also specified in a configuration property. The
- * drawbacks to this are that the administrators are responsible for monitoring
- * available space in the asset stores, and DSpace (Tomcat) has to be restarted
- * when the asset store for new ('incoming') bitstreams is changed.
- * </P>
- *
- * <P>
- * Mods by David Little, UCSD Libraries 12/21/04 to allow the registration of
- * files (bitstreams) into DSpace.
- * </P>
- *
- * <p>Cleanup integration with checker package by Nate Sarr 2006-01. N.B. The
- * dependency on the checker package isn't ideal - a Listener pattern would be
- * better but was considered overkill for the purposes of integrating the checker.
- * It would be worth re-considering a Listener pattern if another package needs to
- * be notified of BitstreamStorageManager actions.</p>
- *
- * @author Peter Breton, Robert Tansley, David Little, Nathan Sarr
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-public class BitstreamStorageServiceImpl implements BitstreamStorageService, InitializingBean {
+public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl {
+
     /**
      * log4j log
      */
     private static final Logger log = LogManager.getLogger();
+    private boolean syncEnabled = false;
 
-    @Autowired(required = true)
-    protected BitstreamService bitstreamService;
-    @Autowired(required = true)
-    protected ChecksumHistoryService checksumHistoryService;
+    public static final int SYNCHRONIZED_STORES_NUMBER = 77;
 
-    /**
-     * asset stores
-     */
-    private Map<Integer, BitStoreService> stores = new HashMap<>();
+    @Autowired
+    ConfigurationService configurationService;
 
-    /**
-     * The index of the asset store to use for new bitstreams
-     */
-    private int incoming;
-
-    /**
-     * This prefix string marks registered bitstreams in internal_id
-     */
-    protected final String REGISTERED_FLAG = "-R";
-
-    protected BitstreamStorageServiceImpl() {
-
+    public SyncBitstreamStorageServiceImpl() {
+        super();
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        for (Map.Entry<Integer, BitStoreService> storeEntry : stores.entrySet()) {
+        for (Map.Entry<Integer, BitStoreService> storeEntry : getStores().entrySet()) {
             if (storeEntry.getValue().isEnabled() && !storeEntry.getValue().isInitialized()) {
                 storeEntry.getValue().init();
             }
         }
+        this.syncEnabled = configurationService.getBooleanProperty("sync.storage.service.enabled", false);
     }
 
     @Override
@@ -108,11 +68,16 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
          * other method of working out where to put a new bitstream, here's
          * where it should go
          */
-        bitstream.setStoreNumber(incoming);
+        if (syncEnabled) {
+            bitstream.setStoreNumber(SYNCHRONIZED_STORES_NUMBER);
+        } else {
+            bitstream.setStoreNumber(getIncoming());
+        }
         bitstream.setDeleted(true);
         bitstream.setInternalId(id);
 
-        BitStoreService store = this.getStore(incoming);
+
+        BitStoreService store = this.getStore(getIncoming());
         //For efficiencies sake, PUT is responsible for setting bitstream size_bytes, checksum, and checksum_algorithm
         store.put(bitstream, is);
         //bitstream.setSizeBytes(file.length());
@@ -163,7 +128,11 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
         // Create a deleted bitstream row, using a separate DB connection
         bitstream.setDeleted(true);
         bitstream.setInternalId(sInternalId);
-        bitstream.setStoreNumber(assetstore);
+        if (syncEnabled) {
+            bitstream.setStoreNumber(SYNCHRONIZED_STORES_NUMBER);
+        } else {
+            bitstream.setStoreNumber(assetstore);
+        }
         bitstreamService.update(context, bitstream);
 
         List<String> wantedMetadata = List.of("size_bytes", "checksum", "checksum_algorithm");
@@ -198,19 +167,27 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     }
 
     @Override
-    public Map<String, Object> computeChecksum(Context context, Bitstream bitstream) throws IOException {
-        return this.getStore(bitstream.getStoreNumber()).about(bitstream, List.of("checksum", "checksum_algorithm"));
+    public Map computeChecksum(Context context, Bitstream bitstream) throws IOException {
+        int storeNumber = this.whichStoreNumber(bitstream);
+        return this.getStore(storeNumber).about(bitstream, List.of("checksum", "checksum_algorithm"));
     }
 
-    @Override
-    public boolean isRegisteredBitstream(String internalId) {
-        return internalId.startsWith(REGISTERED_FLAG);
+    /**
+     * Compute the checksum of a bitstream in a specific store.
+     * @param context DSpace Context object
+     * @param bitstream Bitstream to compute checksum for
+     * @param storeNumber Store number to compute checksum for
+     * @return Map with checksum and checksum algorithm
+     * @throws IOException if IO error
+     */
+    public Map computeChecksumSpecStore(Context context, Bitstream bitstream, int storeNumber) throws IOException {
+        return this.getStore(storeNumber).about(bitstream, List.of("checksum", "checksum_algorithm"));
     }
 
     @Override
     public InputStream retrieve(Context context, Bitstream bitstream)
-        throws SQLException, IOException {
-        Integer storeNumber = bitstream.getStoreNumber();
+            throws SQLException, IOException {
+        int storeNumber = this.whichStoreNumber(bitstream);
         return this.getStore(storeNumber).get(bitstream);
     }
 
@@ -240,8 +217,9 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                 for (Bitstream bitstream : storage) {
                     UUID bid = bitstream.getID();
                     List<String> wantedMetadata = List.of("size_bytes", "modified");
-                    Map<String, Object> receivedMetadata = this.getStore(bitstream.getStoreNumber())
-                        .about(bitstream, wantedMetadata);
+                    int storeNumber = this.whichStoreNumber(bitstream);
+                    Map<String, Object> receivedMetadata = this.getStore(storeNumber)
+                            .about(bitstream, wantedMetadata);
 
 
                     // Make sure entries which do not exist are removed
@@ -292,7 +270,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                     // identifier isn't used on
                     // another place
                     if (bitstreamService.findDuplicateInternalIdentifier(context, bitstream).isEmpty()) {
-                        this.getStore(bitstream.getStoreNumber()).remove(bitstream);
+                        this.getStore(storeNumber).remove(bitstream);
 
                         String message = ("Deleted bitstreamID " + bid + ", internalID " + bitstream.getInternalId());
                         if (log.isDebugEnabled()) {
@@ -339,7 +317,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     @Nullable
     @Override
     public Long getLastModified(Bitstream bitstream) throws IOException {
-        Map<String, Object> metadata = this.getStore(bitstream.getStoreNumber()).about(bitstream, List.of("modified"));
+        int storeNumber = this.whichStoreNumber(bitstream);
+        Map<String, Object> metadata = this.getStore(storeNumber).about(bitstream, List.of("modified"));
         if (metadata == null || !metadata.containsKey("modified")) {
             return null;
         }
@@ -347,153 +326,52 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     }
 
     /**
-     * @param context   The relevant DSpace Context.
-     * @param bitstream the bitstream to be cloned
-     * @return id of the clone bitstream.
-     * A general class of exceptions produced by failed or interrupted I/O operations.
-     * @throws SQLException       An exception that provides information on a database access error or other errors.
-     * @throws AuthorizeException Exception indicating the current user of the context does not have permission
-     *                            to perform a particular action.
+     * Decide which store number should be used for the given bitstream.
+     * If the bitstream is synchronized (stored in to S3 and local), then the static store number is used.
+     * Otherwise, the bitstream's store number is used.
+     *
+     * @param bitstream bitstream
+     * @return store number
      */
-    @Override
-    public Bitstream clone(Context context, Bitstream bitstream) throws SQLException, IOException, AuthorizeException {
-        Bitstream clonedBitstream = null;
-        try {
-            // Update our bitstream but turn off the authorization system since permissions
-            // haven't been set at this point in time.
-            context.turnOffAuthorisationSystem();
-            clonedBitstream = bitstreamService.clone(context, bitstream);
-            clonedBitstream.setStoreNumber(bitstream.getStoreNumber());
-
-            List<MetadataValue> metadataValues = bitstreamService.getMetadata(bitstream, Item.ANY, Item.ANY, Item.ANY,
-                    Item.ANY);
-
-            for (MetadataValue metadataValue : metadataValues) {
-                bitstreamService.addMetadata(context, clonedBitstream, metadataValue.getMetadataField(),
-                        metadataValue.getLanguage(), metadataValue.getValue(), metadataValue.getAuthority(),
-                        metadataValue.getConfidence());
-            }
-            bitstreamService.update(context, clonedBitstream);
-        } catch (AuthorizeException e) {
-            log.error(e);
-            // Can never happen since we turn off authorization before we update
-        } finally {
-            context.restoreAuthSystemState();
+    public int whichStoreNumber(Bitstream bitstream) {
+        if (isBitstreamStoreSynchronized(bitstream)) {
+            return getIncoming();
+        } else {
+            return bitstream.getStoreNumber();
         }
-        return clonedBitstream;
     }
 
     /**
-     * Migrates all assets off of one assetstore to another
+     * Check if the bitstream is synchronized (stored in more stores)
+     * The bitstream is synchronized if it has the static store number.
      *
-     * @param assetstoreSource      source assetstore
-     * @param assetstoreDestination destination assetstore
-     * @throws IOException        A general class of exceptions produced by failed or interrupted I/O operations.
-     * @throws SQLException       An exception that provides information on a database access error or other errors.
-     * @throws AuthorizeException Exception indicating the current user of the context does not have permission
-     *                            to perform a particular action.
+     * @param bitstream to check if it is synchronized
+     * @return true if the bitstream is synchronized
      */
-    @Override
-    public void migrate(Context context, Integer assetstoreSource, Integer assetstoreDestination, boolean deleteOld,
-                        Integer batchCommitSize) throws IOException, SQLException, AuthorizeException {
-        //Find all the bitstreams on the old source, copy it to new destination, update store_number, save, remove old
-        Iterator<Bitstream> allBitstreamsInSource = bitstreamService.findByStoreNumber(context, assetstoreSource);
-        int processedCounter = 0;
-
-        while (allBitstreamsInSource.hasNext()) {
-            Bitstream bitstream = allBitstreamsInSource.next();
-            log.info("Copying bitstream:" + bitstream
-                .getID() + " from assetstore[" + assetstoreSource + "] to assetstore[" + assetstoreDestination + "] " +
-                         "Name:" + bitstream
-                .getName() + ", SizeBytes:" + bitstream.getSizeBytes());
-
-            InputStream inputStream = retrieve(context, bitstream);
-            this.getStore(assetstoreDestination).put(bitstream, inputStream);
-            bitstream.setStoreNumber(assetstoreDestination);
-            bitstreamService.update(context, bitstream);
-
-            if (deleteOld) {
-                log.info("Removing bitstream:" + bitstream.getID() + " from assetstore[" + assetstoreSource + "]");
-                this.getStore(assetstoreSource).remove(bitstream);
-            }
-
-            processedCounter++;
-            context.uncacheEntity(bitstream);
-
-            //modulo
-            if ((processedCounter % batchCommitSize) == 0) {
-                log.info("Migration Commit Checkpoint: " + processedCounter);
-                context.dispatchEvents();
-            }
-        }
-
-        log.info(
-            "Assetstore Migration from assetstore[" + assetstoreSource + "] to assetstore[" + assetstoreDestination +
-                "] completed. " + processedCounter + " objects were transferred.");
+    public boolean isBitstreamStoreSynchronized(Bitstream bitstream) {
+        return bitstream.getStoreNumber() == SYNCHRONIZED_STORES_NUMBER;
     }
 
-    @Override
-    public void printStores(Context context) {
-        try {
-
-            for (Integer storeNumber : stores.keySet()) {
-                long countBitstreams = bitstreamService.countByStoreNumber(context, storeNumber);
-                BitStoreService store = this.stores.get(storeNumber);
-                System.out.println(
-                    "store[" + storeNumber + "] == " + store.getClass().getSimpleName() +
-                    ", which has initialized-status: " + store.isInitialized() +
-                    ", and has: " + countBitstreams + " bitstreams."
-                );
-            }
-            System.out.println("Incoming assetstore is store[" + incoming + "]");
-        } catch (SQLException e) {
-            log.error(e);
-        }
-    }
-
-    public int getIncoming() {
-        return incoming;
-    }
-
-    public void setIncoming(int incoming) {
-        this.incoming = incoming;
-    }
-
-    public void setStores(Map<Integer, BitStoreService> stores) {
-        this.stores = stores;
-    }
-
-    public Map<Integer, BitStoreService> getStores() {
-        return stores;
-    }
-
-    ////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////
 
     /**
-     * Return true if this file is too recent to be deleted, false otherwise.
+     * Get the store number where the bitstream is synchronized. It is not active (incoming) store.
      *
-     * @param lastModified The time asset was last modified
-     * @return True if this file is too recent to be deleted
+     * @param bitstream to get the synchronized store number
+     * @return store number
      */
-    protected boolean isRecent(Long lastModified) {
-        long now = new java.util.Date().getTime();
-
-        if (lastModified >= now) {
-            return true;
+    public int getSynchronizedStoreNumber(Bitstream bitstream) {
+        int storeNumber = -1;
+        if (!isBitstreamStoreSynchronized(bitstream)) {
+            storeNumber = bitstream.getStoreNumber();
         }
 
-        // Less than one hour old
-        return (now - lastModified) < (1 * 60 * 1000);
-    }
-
-    public BitStoreService getStore(int position) throws IOException {
-        BitStoreService bitStoreService = this.stores.get(position);
-        if (!bitStoreService.isInitialized()) {
-            bitStoreService.init();
+        for (Map.Entry<Integer, BitStoreService> storeEntry : getStores().entrySet()) {
+            if (storeEntry.getKey() == SYNCHRONIZED_STORES_NUMBER || storeEntry.getKey() == getIncoming()) {
+                continue;
+            }
+            storeNumber = storeEntry.getKey();
         }
-        return bitStoreService;
+        return storeNumber;
     }
 
 }
