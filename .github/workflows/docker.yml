@@ -43,13 +43,8 @@ jobs:
       - name: Checkout codebase
         uses: actions/checkout@v3
 
-      - name: add version
-        run: |
-          ls -lsa dspace/config
-          cat dspace/config/VERSION_D.txt
-          python scripts/sourceversion.py > dspace/config/VERSION_D.txt
-          ls -lsa dspace/config
-          cat dspace/config/VERSION_D.txt
+      - name: Add version
+        run: python scripts/sourceversion.py > dspace/config/VERSION_D.txt
 
       # https://github.com/docker/setup-buildx-action
       - name: Setup Docker Buildx
