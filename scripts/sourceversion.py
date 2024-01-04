@@ -7,8 +7,8 @@ if __name__ == '__main__':
 
     cmd = 'git log -1 --pretty=format:"%h - %ai"'
     print(f">{cmd}")
-    subprocess.check_call(cmd)
+    subprocess.check_call(cmd, shell=True)
 
     cmd = 'git status --porcelain'
     print(f">{cmd}:")
-    subprocess.check_call(cmd)
+    subprocess.check_call(cmd, shell=True)
