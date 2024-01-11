@@ -115,9 +115,12 @@
     <bean class="org.dspace.eperson.RegistrationDataServiceImpl"/>
     <bean class="org.dspace.eperson.SubscribeServiceImpl"/>
     <bean class="org.dspace.eperson.CaptchaServiceImpl"/>
+<<<<<<< HEAD
 
     <bean class="org.dspace.authorize.AuthorizationBitstreamUtils"/>
 
+=======
+>>>>>>> dspace-7.6.1
     <bean class="org.dspace.event.EventServiceImpl"/>
 
     <bean class="org.dspace.handle.HandleServiceImpl"/>
@@ -136,6 +139,8 @@
     <bean id="clientInfoService" class="org.dspace.service.impl.ClientInfoServiceImpl"/>
 
     <bean class="org.dspace.versioning.VersionHistoryServiceImpl"/>
+
+    <bean class="org.dspace.util.FrontendUrlService"/>
 
     <!-- Configurable workflow services -->
     <bean class="org.dspace.xmlworkflow.storedcomponents.ClaimedTaskServiceImpl"/>
@@ -166,6 +171,7 @@
 
     <bean class="org.dspace.supervision.SupervisionOrderServiceImpl"/>
 
+<<<<<<< HEAD
     <!-- Matomo statistics -->
     <bean class="org.matomo.java.tracking.MatomoTracker">
         <!-- TODO change me -->
@@ -173,6 +179,10 @@
     </bean>
     <bean class="org.dspace.app.statistics.clarin.ClarinMatomoBitstreamTracker"/>
     <bean class="org.dspace.app.statistics.clarin.ClarinMatomoOAITracker"/>
+=======
+    <!-- Submission Config Service -->
+    <bean class="org.dspace.submit.service.SubmissionConfigServiceImpl"/>
+>>>>>>> dspace-7.6.1
 
 </beans>
 

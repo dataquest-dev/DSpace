@@ -44,8 +44,12 @@ public class UploadValidation extends AbstractValidation {
         //TODO MANAGE METADATA
         List<ErrorRest> errors = new ArrayList<>();
         UploadConfiguration uploadConfig = uploadConfigurationService.getMap().get(config.getId());
+<<<<<<< HEAD
         if (uploadConfig.isRequired() && !itemService.hasUploadedFiles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME) &&
                 !itemService.hasUploadedFiles(obj.getItem(), Constants.METADATA_BUNDLE_NAME)) {
+=======
+        if (uploadConfig.isRequired() && !itemService.hasUploadedFiles(obj.getItem())) {
+>>>>>>> dspace-7.6.1
             addError(errors, ERROR_VALIDATION_FILEREQUIRED,
                      "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/"
                          + config.getId());

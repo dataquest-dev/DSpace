@@ -8,6 +8,7 @@
 package org.dspace.app.itemimport;
 
 import java.io.InputStream;
+<<<<<<< HEAD
 import java.sql.SQLException;
 
 import org.apache.commons.cli.Option;
@@ -16,6 +17,12 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+=======
+
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.dspace.scripts.configuration.ScriptConfiguration;
+>>>>>>> dspace-7.6.1
 
 /**
  * The {@link ScriptConfiguration} for the {@link ItemImport} script
@@ -24,9 +31,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ItemImportScriptConfiguration<T extends ItemImport> extends ScriptConfiguration<T> {
 
+<<<<<<< HEAD
     @Autowired
     private AuthorizeService authorizeService;
 
+=======
+>>>>>>> dspace-7.6.1
     private Class<T> dspaceRunnableClass;
 
     @Override
@@ -40,6 +50,7 @@ public class ItemImportScriptConfiguration<T extends ItemImport> extends ScriptC
     }
 
     @Override
+<<<<<<< HEAD
     public boolean isAllowedToExecute(final Context context) {
         try {
             return authorizeService.isAdmin(context);
@@ -49,6 +60,8 @@ public class ItemImportScriptConfiguration<T extends ItemImport> extends ScriptC
     }
 
     @Override
+=======
+>>>>>>> dspace-7.6.1
     public Options getOptions() {
         Options options = new Options();
 
@@ -64,7 +77,14 @@ public class ItemImportScriptConfiguration<T extends ItemImport> extends ScriptC
         options.addOption(Option.builder("z").longOpt("zip")
                 .desc("name of zip file")
                 .type(InputStream.class)
+<<<<<<< HEAD
                 .hasArg().required().build());
+=======
+                .hasArg().build());
+        options.addOption(Option.builder("u").longOpt("url")
+                .desc("url of zip file")
+                .hasArg().build());
+>>>>>>> dspace-7.6.1
         options.addOption(Option.builder("c").longOpt("collection")
                 .desc("destination collection(s) Handle or database ID")
                 .hasArg().required(false).build());

@@ -3,7 +3,11 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd" default-lazy-init="true">
 
+<<<<<<< HEAD
     <bean name="org.dspace.storage.bitstore.BitstreamStorageService" class="org.dspace.storage.bitstore.SyncBitstreamStorageServiceImpl">
+=======
+    <bean name="org.dspace.storage.bitstore.BitstreamStorageService" class="org.dspace.storage.bitstore.BitstreamStorageServiceImpl">
+>>>>>>> dspace-7.6.1
         <property name="incoming" value="${assetstore.index.primary}"/>
         <property name="stores">
             <map>
@@ -17,7 +21,11 @@
         <property name="baseDir" value="${assetstore.dir}"/>
     </bean>
 
+<<<<<<< HEAD
     <bean name="s3Store" class="org.dspace.storage.bitstore.SyncS3BitStoreService" scope="singleton" lazy-init="true">
+=======
+    <bean name="s3Store" class="org.dspace.storage.bitstore.S3BitStoreService" scope="singleton" lazy-init="true">
+>>>>>>> dspace-7.6.1
         <property name="enabled" value="${assetstore.s3.enabled}"/>
         <!-- AWS Security credentials, with policies for specified bucket -->
         <property name="awsAccessKey" value="${assetstore.s3.awsAccessKey}"/>
@@ -34,10 +42,13 @@
         <!-- Subfolder to organize assets within the bucket, in case this bucket is shared  -->
         <!-- Optional, default is root level of bucket -->
         <property name="subfolder" value="${assetstore.s3.subfolder}"/>
+<<<<<<< HEAD
 
 <!--        Endpoint for other S3 providers than amazon AWS-->
         <property name="endpoint" value="${assetstore.s3.endpoint}"/>
         <property name="pathStyleAccessEnabled" value="${assetstore.s3.pathStyleAccessEnabled}"/>
+=======
+>>>>>>> dspace-7.6.1
     </bean>
 
     <!-- <bean name="localStore2 ... -->

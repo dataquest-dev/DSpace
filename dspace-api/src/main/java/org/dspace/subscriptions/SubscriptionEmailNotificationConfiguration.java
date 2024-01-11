@@ -8,6 +8,7 @@
 
 package org.dspace.subscriptions;
 
+<<<<<<< HEAD
 import java.sql.SQLException;
 import java.util.Objects;
 
@@ -17,6 +18,13 @@ import org.dspace.core.Context;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+=======
+import java.util.Objects;
+
+import org.apache.commons.cli.Options;
+import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.scripts.configuration.ScriptConfiguration;
+>>>>>>> dspace-7.6.1
 
 /**
  * Implementation of {@link DSpaceRunnable} to find subscribed objects and send notification mails about them
@@ -26,6 +34,7 @@ public class SubscriptionEmailNotificationConfiguration<T
 
     private Class<T> dspaceRunnableClass;
 
+<<<<<<< HEAD
     @Autowired
     private AuthorizeServiceImpl authorizeService;
 
@@ -38,6 +47,8 @@ public class SubscriptionEmailNotificationConfiguration<T
         }
     }
 
+=======
+>>>>>>> dspace-7.6.1
     @Override
     public Options getOptions() {
         if (Objects.isNull(options)) {

@@ -6,6 +6,7 @@
 ##
 #set($subject = "${config.get('dspace.name')} Account Registration")
 #set($phone = ${config.get('mail.message.helpdesk.telephone')})
+<<<<<<< HEAD
 To complete registration for a DSpace account, please click the link
 below:
 
@@ -16,7 +17,15 @@ If you need assistance with your account, please email
   ${config.get("mail.helpdesk")}
 #if( $phone )
 
+=======
+To complete registration for a ${config.get('dspace.name')} account, please click the link below:
+
+  ${params[0]}
+
+If you need assistance with your account, please email ${config.get("mail.helpdesk")}
+#if( $phone )
+>>>>>>> dspace-7.6.1
 or call us at ${phone}.
 #end
 
-The DSpace Team
+The ${config.get('dspace.name')} Team

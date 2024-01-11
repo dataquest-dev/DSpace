@@ -227,7 +227,11 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
     }
 
     @Test
+<<<<<<< HEAD
     public void testRegisterDomainNotRegisteredMailAddressRegistred() throws Exception {
+=======
+    public void testRegisterMailAddressRegistered() throws Exception {
+>>>>>>> dspace-7.6.1
         List<RegistrationData> registrationDataList = registrationDataDAO.findAll(context, RegistrationData.class);
         try {
             context.turnOffAuthorisationSystem();
@@ -237,7 +241,11 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
                           .withCanLogin(true)
                           .build();
             context.restoreAuthSystemState();
+<<<<<<< HEAD
             configurationService.setProperty("authentication-password.domain.valid", "test.com");
+=======
+
+>>>>>>> dspace-7.6.1
             RegistrationRest registrationRest = new RegistrationRest();
             registrationRest.setEmail(email);
 
@@ -246,9 +254,16 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
                                     .param(TYPE_QUERY_PARAM, TYPE_REGISTER)
                                     .content(mapper.writeValueAsBytes(registrationRest))
                                     .contentType(contentType))
+<<<<<<< HEAD
                        .andExpect(status().isUnprocessableEntity());
             registrationDataList = registrationDataDAO.findAll(context, RegistrationData.class);
             assertEquals(0, registrationDataList.size());
+=======
+                       .andExpect(status().isCreated());
+            registrationDataList = registrationDataDAO.findAll(context, RegistrationData.class);
+            assertEquals(1, registrationDataList.size());
+            assertTrue(StringUtils.equalsIgnoreCase(registrationDataList.get(0).getEmail(), email));
+>>>>>>> dspace-7.6.1
         } finally {
             Iterator<RegistrationData> iterator = registrationDataList.iterator();
             while (iterator.hasNext()) {
@@ -299,6 +314,10 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
 
         // when reCAPTCHA enabled and request doesn't contain "X-Recaptcha-Token” header
         getClient().perform(post("/api/eperson/registrations")
+<<<<<<< HEAD
+=======
+                            .param(TYPE_QUERY_PARAM, TYPE_REGISTER)
+>>>>>>> dspace-7.6.1
                    .content(mapper.writeValueAsBytes(registrationRest))
                    .contentType(contentType))
                    .andExpect(status().isForbidden());
@@ -306,7 +325,10 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
         reloadCaptchaProperties(originVerification, originSecret, originVresion);
     }
 
+<<<<<<< HEAD
     @Ignore
+=======
+>>>>>>> dspace-7.6.1
     @Test
     public void registrationFlowWithInvalidCaptchaTokenTest() throws Exception {
         String originVerification = configurationService.getProperty("registration.verification.enabled");

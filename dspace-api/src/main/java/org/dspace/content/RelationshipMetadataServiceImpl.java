@@ -110,7 +110,12 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
             //       on the left item as a storage/performance improvement.
             //       As a consequence, when searching for related items (using discovery)
             //       on the pages of the right items you won't be able to find the left item.
+<<<<<<< HEAD
             if (relationshipType.getTilted() != RIGHT && relationshipType.getLeftType().equals(itemEntityType)) {
+=======
+            if (relationshipType.getTilted() != RIGHT
+                    && Objects.equals(relationshipType.getLeftType(), itemEntityType)) {
+>>>>>>> dspace-7.6.1
                 String element = relationshipType.getLeftwardType();
                 List<ItemUuidAndRelationshipId> data = relationshipService
                     .findByLatestItemAndRelationshipType(context, item, relationshipType, true);

@@ -8,6 +8,10 @@
 package org.dspace.app.itemimport;
 
 import static org.junit.Assert.assertEquals;
+<<<<<<< HEAD
+=======
+import static org.junit.Assert.assertTrue;
+>>>>>>> dspace-7.6.1
 
 import java.io.File;
 import java.nio.file.Files;
@@ -33,6 +37,10 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+<<<<<<< HEAD
+=======
+import org.flywaydb.core.internal.util.ExceptionUtils;
+>>>>>>> dspace-7.6.1
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +54,10 @@ import org.junit.Test;
 public class ItemImportCLIIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String ZIP_NAME = "saf.zip";
+<<<<<<< HEAD
+=======
+    private static final String PDF_NAME = "test.pdf";
+>>>>>>> dspace-7.6.1
     private static final String publicationTitle = "A Tale of Two Cities";
     private static final String personTitle = "Person Test";
 
@@ -55,6 +67,10 @@ public class ItemImportCLIIT extends AbstractIntegrationTestWithDatabase {
     private Collection collection;
     private Path tempDir;
     private Path workDir;
+<<<<<<< HEAD
+=======
+    private static final String TEMP_DIR = ItemImport.TEMP_DIR;
+>>>>>>> dspace-7.6.1
 
     @Before
     @Override
@@ -226,6 +242,13 @@ public class ItemImportCLIIT extends AbstractIntegrationTestWithDatabase {
         checkMetadata();
         checkMetadataWithAnotherSchema();
         checkBitstream();
+<<<<<<< HEAD
+=======
+
+        // confirm that TEMP_DIR still exists
+        File workTempDir = new File(workDir + File.separator + TEMP_DIR);
+        assertTrue(workTempDir.exists());
+>>>>>>> dspace-7.6.1
     }
 
     @Test
@@ -255,6 +278,26 @@ public class ItemImportCLIIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+<<<<<<< HEAD
+=======
+    public void importItemByZipSafInvalidMimetype() throws Exception {
+        // use sample PDF file
+        Files.copy(getClass().getResourceAsStream("test.pdf"),
+                   Path.of(tempDir.toString() + "/" + PDF_NAME));
+
+        String[] args = new String[] { "import", "-a", "-e", admin.getEmail(), "-c", collection.getID().toString(),
+                                       "-s", tempDir.toString(), "-z", PDF_NAME, "-m", tempDir.toString()
+                                                                                       + "/mapfile.out" };
+        try {
+            perfomImportScript(args);
+        } catch (Exception e) {
+            // should throw an exception due to invalid mimetype
+            assertEquals(UnsupportedOperationException.class, ExceptionUtils.getRootCause(e).getClass());
+        }
+    }
+
+    @Test
+>>>>>>> dspace-7.6.1
     public void resumeImportItemBySafWithMetadataOnly() throws Exception {
         // create simple SAF
         Path safDir = Files.createDirectory(Path.of(tempDir.toString() + "/test"));

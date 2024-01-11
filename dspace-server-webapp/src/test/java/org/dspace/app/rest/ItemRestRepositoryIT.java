@@ -14,6 +14,10 @@ import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataDoesNotExist;
 import static org.dspace.builder.OrcidHistoryBuilder.createOrcidHistory;
 import static org.dspace.builder.OrcidQueueBuilder.createOrcidQueue;
+<<<<<<< HEAD
+=======
+import static org.dspace.core.Constants.READ;
+>>>>>>> dspace-7.6.1
 import static org.dspace.core.Constants.WRITE;
 import static org.dspace.orcid.OrcidOperation.DELETE;
 import static org.dspace.profile.OrcidEntitySyncPreference.ALL;
@@ -3021,10 +3025,43 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         String token = getAuthToken(eperson.getEmail(), password);
 
         getClient(token).perform(get("/api/core/items/" + item.getID()))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$", ItemMatcher.matchItemProperties(item)))
-                        .andExpect(jsonPath("$.metadata", matchMetadata("dc.title", "Public item 1")))
-                        .andExpect(jsonPath("$.metadata", matchMetadataDoesNotExist("dc.description.provenance")));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", ItemMatcher.matchItemProperties(item)))
+            .andExpect(jsonPath("$.metadata", matchMetadata("dc.title", "Public item 1")))
+            .andExpect(jsonPath("$.metadata", matchMetadata("dc.description.provenance", "Provenance data")));
+
+    }
+
+    @Test
+    public void testHiddenMetadataForUserWithReadRights() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+
+        Item item = ItemBuilder.createItem(context, col1)
+            .withTitle("Public item 1")
+            .withProvenanceData("Provenance data")
+            .build();
+
+        context.restoreAuthSystemState();
+
+
+        ResourcePolicyBuilder.createResourcePolicy(context)
+            .withUser(eperson)
+            .withAction(READ)
+            .withDspaceObject(item)
+            .build();
+
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/core/items/" + item.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", ItemMatcher.matchItemProperties(item)))
+            .andExpect(jsonPath("$.metadata", matchMetadata("dc.title", "Public item 1")))
+            .andExpect(jsonPath("$.metadata", matchMetadataDoesNotExist("dc.description.provenance")));
 
     }
 
@@ -4664,6 +4701,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                    .andExpect(jsonPath("$.status", notNullValue()));
     }
 
+<<<<<<< HEAD
     @Test
     public void findItemWithUnknownIssuedDate() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -4803,4 +4841,6 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         )));
     }
 
+=======
+>>>>>>> dspace-7.6.1
 }

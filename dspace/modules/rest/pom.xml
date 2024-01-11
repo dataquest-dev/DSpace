@@ -13,7 +13,11 @@
     <parent>
         <groupId>org.dspace</groupId>
         <artifactId>modules</artifactId>
+<<<<<<< HEAD
         <version>7.5</version>
+=======
+        <version>7.6.1</version>
+>>>>>>> dspace-7.6.1
         <relativePath>..</relativePath>
     </parent>
 
@@ -89,24 +93,6 @@
 
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>oracle-support</id>
-            <activation>
-                <property>
-                    <name>db.name</name>
-                    <value>oracle</value>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.oracle</groupId>
-                    <artifactId>ojdbc6</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
     <dependencies>
 

@@ -89,10 +89,13 @@ public class SubmissionFormFieldRest {
     private List<String> typeBind;
 
     /**
+<<<<<<< HEAD
      * ComplexDefinition transformed to the JSON string
      */
     private String complexDefinition;
     /**
+=======
+>>>>>>> dspace-7.6.1
      * Getter for {@link #selectableMetadata}
      * 
      * @return {@link #selectableMetadata}

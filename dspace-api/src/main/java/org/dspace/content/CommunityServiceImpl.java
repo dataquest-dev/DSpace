@@ -24,6 +24,8 @@ import org.dspace.authorize.AuthorizeConfiguration;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.browse.ItemCountException;
+import org.dspace.browse.ItemCounter;
 import org.dspace.content.dao.CommunityDAO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CollectionService;
@@ -76,9 +78,12 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
     protected IdentifierService identifierService;
     @Autowired(required = true)
     protected SubscribeService subscribeService;
+<<<<<<< HEAD
+=======
+
+>>>>>>> dspace-7.6.1
     protected CommunityServiceImpl() {
         super();
-
     }
 
     @Override
@@ -239,6 +244,16 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
 
         if (is != null) {
             Bitstream newLogo = bitstreamService.create(context, is);
+<<<<<<< HEAD
+=======
+            community.setLogo(newLogo);
+
+            // now create policy for logo bitstream
+            // to match our READ policy
+            List<ResourcePolicy> policies = authorizeService
+                    .getPoliciesActionFilter(context, community, Constants.READ);
+            authorizeService.addPolicies(context, policies, newLogo);
+>>>>>>> dspace-7.6.1
 
             //added for data migration by Upgrade Dspace-Clarin
             addLogo(context, community, newLogo);
@@ -715,5 +730,17 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
     @Override
     public int countTotal(Context context) throws SQLException {
         return communityDAO.countRows(context);
+    }
+
+    /**
+     * Returns total community archived items
+     *
+     * @param community       Community
+     * @return                total community archived items
+     * @throws ItemCountException
+     */
+    @Override
+    public int countArchivedItems(Community community) throws ItemCountException {
+        return ItemCounter.getInstance().getCount(community);
     }
 }

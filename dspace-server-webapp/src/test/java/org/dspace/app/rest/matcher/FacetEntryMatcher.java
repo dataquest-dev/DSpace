@@ -110,6 +110,7 @@ public class FacetEntryMatcher {
         );
     }
 
+<<<<<<< HEAD
     public static Matcher<? super Object> clarinLicenseRightsFacet(boolean hasNext) {
         return allOf(
                 hasJsonPath("$.name", is("rights")),
@@ -141,6 +142,18 @@ public class FacetEntryMatcher {
                         "api/discover/facets/items_owning_community"))
         );
     }
+=======
+    public static Matcher<? super Object> matchFacet(boolean hasNext, String name, String facetType) {
+        return allOf(
+                hasJsonPath("$.name", is(name)),
+                hasJsonPath("$.facetType", is(facetType)),
+                hasJsonPath("$.facetLimit", any(Integer.class)),
+                hasJsonPath("$._links.self.href", containsString("api/discover/facets/" + name)),
+                hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/" + name))
+        );
+    }
+
+>>>>>>> dspace-7.6.1
 
     /**
      * Check that a facet over the dc.type exists and match the default configuration

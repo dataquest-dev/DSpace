@@ -3,7 +3,11 @@
     <groupId>org.dspace</groupId>
     <artifactId>dspace-rest</artifactId>
     <packaging>war</packaging>
+<<<<<<< HEAD
     <version>7.5</version>
+=======
+    <version>7.6.1</version>
+>>>>>>> dspace-7.6.1
     <name>DSpace (Deprecated) REST Webapp</name>
     <description>DSpace RESTful Web Services API. NOTE: this REST API is DEPRECATED.
         Please consider using the REST API in the dspace-server-webapp instead!</description>
@@ -12,7 +16,11 @@
     <parent>
         <groupId>org.dspace</groupId>
         <artifactId>dspace-parent</artifactId>
+<<<<<<< HEAD
         <version>7.5</version>
+=======
+        <version>7.6.1</version>
+>>>>>>> dspace-7.6.1
         <relativePath>..</relativePath>
     </parent>
 

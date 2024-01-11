@@ -574,7 +574,31 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
 
         // resolve item by handle or UUID
         return resolveItem(c, itemIdentifier);
+<<<<<<< HEAD
+=======
 
+    }
+
+    /**
+     * Resolve an item identifier.
+     * 
+     * @param c Context
+     * @param itemIdentifier The identifier string found in the import file (handle or UUID)
+     * @return Item if found, or null.
+     * @throws SQLException
+     * @throws IllegalStateException
+     * @throws Exception
+     */
+    protected Item resolveItem(Context c, String itemIdentifier)
+            throws IllegalStateException, SQLException {
+        if (itemIdentifier.indexOf('/') != -1) {
+            // resolve by handle
+            return (Item) handleService.resolveToObject(c, itemIdentifier);
+        }
+>>>>>>> dspace-7.6.1
+
+        // resolve by UUID
+        return itemService.findByIdOrLegacyId(c, itemIdentifier);
     }
 
     /**
@@ -815,6 +839,10 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
             // put item in system
             if (!isTest) {
                 try {
+                    // Add provenance info
+                    String provenance = installItemService.getSubmittedByProvenanceMessage(c, wi.getItem());
+                    itemService.addMetadata(c, wi.getItem(), MetadataSchemaEnum.DC.getName(),
+                        "description", "provenance", "en", provenance);
                     installItemService.installItem(c, wi, myhandle);
                 } catch (Exception e) {
                     workspaceItemService.deleteAll(c, wi);
@@ -993,9 +1021,10 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         String qualifier = getAttributeValue(n, "qualifier"); //NodeValue();
         // //getElementData(n,
         // "qualifier");
-        String language = getAttributeValue(n, "language");
-        if (language != null) {
-            language = language.trim();
+
+        String language = null;
+        if (StringUtils.isNotBlank(getAttributeValue(n, "language"))) {
+            language = getAttributeValue(n, "language").trim();
         }
 
         if (!isQuiet) {

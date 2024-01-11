@@ -67,7 +67,11 @@ public class HealthIndicatorsIT extends AbstractControllerIntegrationTest {
                 match("solrSearchCore", Status.UP, Map.of("status", 0, "detectedPathType", "root")),
                 match("solrStatisticsCore", Status.UP, Map.of("status", 0, "detectedPathType", "root")),
                 match("geoIp", UP_WITH_ISSUES_STATUS,
+<<<<<<< HEAD
                     Map.of("reason", "The required 'dbfile' configuration is missing in solr-statistics.cfg!"))
+=======
+                    Map.of("reason", "The required 'dbfile' configuration is missing in usage-statistics.cfg!"))
+>>>>>>> dspace-7.6.1
                 )));
 
     }

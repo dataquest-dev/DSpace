@@ -13,7 +13,10 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
+<<<<<<< HEAD
 import java.util.LinkedList;
+=======
+>>>>>>> dspace-7.6.1
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -480,6 +483,7 @@ public class HandleServiceImpl implements HandleService {
         return null;
     }
 
+<<<<<<< HEAD
     /**
      *
      * @param context DSpace context
@@ -522,6 +526,8 @@ public class HandleServiceImpl implements HandleService {
         return null;
     }
 
+=======
+>>>>>>> dspace-7.6.1
     @Override
     public String[] getAdditionalPrefixes() {
         return configurationService.getArrayProperty("handle.additional.prefixes");

@@ -11,6 +11,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+<<<<<<< HEAD
+=======
+import java.net.URL;
+>>>>>>> dspace-7.6.1
 import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -22,6 +26,10 @@ import java.util.UUID;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+<<<<<<< HEAD
+=======
+import org.apache.tika.Tika;
+>>>>>>> dspace-7.6.1
 import org.dspace.app.itemimport.factory.ItemImportServiceFactory;
 import org.dspace.app.itemimport.service.ItemImportService;
 import org.dspace.authorize.AuthorizeException;
@@ -74,10 +82,19 @@ public class ItemImport extends DSpaceRunnable<ItemImportScriptConfiguration> {
     protected boolean isQuiet = false;
     protected boolean commandLineCollections = false;
     protected boolean zip = false;
+<<<<<<< HEAD
     protected String zipfilename = null;
     protected boolean help = false;
     protected File workDir = null;
     private File workFile = null;
+=======
+    protected boolean remoteUrl = false;
+    protected String zipfilename = null;
+    protected boolean zipvalid = false;
+    protected boolean help = false;
+    protected File workDir = null;
+    protected File workFile = null;
+>>>>>>> dspace-7.6.1
 
     protected static final CollectionService collectionService =
             ContentServiceFactory.getInstance().getCollectionService();
@@ -233,10 +250,28 @@ public class ItemImport extends DSpaceRunnable<ItemImportScriptConfiguration> {
                 handler.logInfo("***End of Test Run***");
             }
         } finally {
+<<<<<<< HEAD
             // clean work dir
             if (zip) {
                 FileUtils.deleteDirectory(new File(sourcedir));
                 FileUtils.deleteDirectory(workDir);
+=======
+            if (zip) {
+                // if zip file was valid then clean sourcedir
+                if (zipvalid && sourcedir != null && new File(sourcedir).exists()) {
+                    FileUtils.deleteDirectory(new File(sourcedir));
+                }
+
+                // clean workdir
+                if (workDir != null && workDir.exists()) {
+                    FileUtils.deleteDirectory(workDir);
+                }
+
+                // conditionally clean workFile if import was done in the UI or via a URL and it still exists
+                if (workFile != null && workFile.exists()) {
+                    workFile.delete();
+                }
+>>>>>>> dspace-7.6.1
             }
 
             Date endTime = new Date();
@@ -253,6 +288,20 @@ public class ItemImport extends DSpaceRunnable<ItemImportScriptConfiguration> {
      * @param context
      */
     protected void validate(Context context) {
+<<<<<<< HEAD
+=======
+        // check zip type: uploaded file or remote url
+        if (commandLine.hasOption('z')) {
+            zipfilename = commandLine.getOptionValue('z');
+        } else if (commandLine.hasOption('u')) {
+            remoteUrl = true;
+            zipfilename = commandLine.getOptionValue('u');
+        }
+        if (StringUtils.isBlank(zipfilename)) {
+            throw new UnsupportedOperationException("Must run with either name of zip file or url of zip file");
+        }
+
+>>>>>>> dspace-7.6.1
         if (command == null) {
             handler.logError("Must run with either add, replace, or remove (run with -h flag for details)");
             throw new UnsupportedOperationException("Must run with either add, replace, or remove");
@@ -295,7 +344,10 @@ public class ItemImport extends DSpaceRunnable<ItemImportScriptConfiguration> {
             handler.writeFilestream(context, MAPFILE_FILENAME, mapfileInputStream, MAPFILE_BITSTREAM_TYPE);
         } finally {
             mapFile.delete();
+<<<<<<< HEAD
             workFile.delete();
+=======
+>>>>>>> dspace-7.6.1
         }
     }
 
@@ -306,6 +358,7 @@ public class ItemImport extends DSpaceRunnable<ItemImportScriptConfiguration> {
      * @throws Exception
      */
     protected void readZip(Context context, ItemImportService itemImportService) throws Exception {
+<<<<<<< HEAD
         Optional<InputStream> optionalFileStream = handler.getFileStream(context, zipfilename);
         if (optionalFileStream.isPresent()) {
             workFile = new File(itemImportService.getTempWorkDir() + File.separator
@@ -313,10 +366,60 @@ public class ItemImport extends DSpaceRunnable<ItemImportScriptConfiguration> {
             FileUtils.copyInputStreamToFile(optionalFileStream.get(), workFile);
             workDir = new File(itemImportService.getTempWorkDir() + File.separator + TEMP_DIR);
             sourcedir = itemImportService.unzip(workFile, workDir.getAbsolutePath());
+=======
+        Optional<InputStream> optionalFileStream = Optional.empty();
+        Optional<InputStream> validationFileStream = Optional.empty();
+        if (!remoteUrl) {
+            // manage zip via upload
+            optionalFileStream = handler.getFileStream(context, zipfilename);
+            validationFileStream = handler.getFileStream(context, zipfilename);
+        } else {
+            // manage zip via remote url
+            optionalFileStream = Optional.ofNullable(new URL(zipfilename).openStream());
+            validationFileStream = Optional.ofNullable(new URL(zipfilename).openStream());
+        }
+
+        if (validationFileStream.isPresent()) {
+            // validate zip file
+            if (validationFileStream.isPresent()) {
+                validateZip(validationFileStream.get());
+            }
+
+            workFile = new File(itemImportService.getTempWorkDir() + File.separator
+                    + zipfilename + "-" + context.getCurrentUser().getID());
+            FileUtils.copyInputStreamToFile(optionalFileStream.get(), workFile);
+>>>>>>> dspace-7.6.1
         } else {
             throw new IllegalArgumentException(
                     "Error reading file, the file couldn't be found for filename: " + zipfilename);
         }
+<<<<<<< HEAD
+=======
+
+        workDir = new File(itemImportService.getTempWorkDir() + File.separator + TEMP_DIR
+                           + File.separator + context.getCurrentUser().getID());
+        sourcedir = itemImportService.unzip(workFile, workDir.getAbsolutePath());
+    }
+
+    /**
+     * Confirm that the zip file has the correct MIME type
+     * @param inputStream
+     */
+    protected void validateZip(InputStream inputStream) {
+        Tika tika = new Tika();
+        try {
+            String mimeType = tika.detect(inputStream);
+            if (mimeType.equals("application/zip")) {
+                zipvalid = true;
+            } else {
+                handler.logError("A valid zip file must be supplied. The provided file has mimetype: " + mimeType);
+                throw new UnsupportedOperationException("A valid zip file must be supplied");
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException(
+                "There was an error while reading the zip file: " + zipfilename);
+        }
+>>>>>>> dspace-7.6.1
     }
 
     /**
@@ -356,7 +459,10 @@ public class ItemImport extends DSpaceRunnable<ItemImportScriptConfiguration> {
      */
     protected void setZip() {
         zip = true;
+<<<<<<< HEAD
         zipfilename = commandLine.getOptionValue('z');
+=======
+>>>>>>> dspace-7.6.1
     }
 
     /**

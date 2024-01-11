@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -29,7 +28,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.requestitem.RequestItem;
 import org.dspace.app.requestitem.service.RequestItemService;
+<<<<<<< HEAD
 import org.dspace.app.statistics.clarin.ClarinMatomoBitstreamTracker;
+=======
+>>>>>>> dspace-7.6.1
 import org.dspace.app.util.AuthorizeUtil;
 import org.dspace.authorize.AuthorizeConfiguration;
 import org.dspace.authorize.AuthorizeException;
@@ -66,7 +68,9 @@ import org.dspace.eperson.service.SubscribeService;
 import org.dspace.event.Event;
 import org.dspace.harvest.HarvestedItem;
 import org.dspace.harvest.service.HarvestedItemService;
+import org.dspace.identifier.DOI;
 import org.dspace.identifier.IdentifierException;
+import org.dspace.identifier.service.DOIService;
 import org.dspace.identifier.service.IdentifierService;
 import org.dspace.orcid.OrcidHistory;
 import org.dspace.orcid.OrcidQueue;
@@ -125,6 +129,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     @Autowired(required = true)
     protected IdentifierService identifierService;
     @Autowired(required = true)
+    protected DOIService doiService;
+    @Autowired(required = true)
     protected VersioningService versioningService;
     @Autowired(required = true)
     protected HarvestedItemService harvestedItemService;
@@ -168,9 +174,12 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     @Autowired(required = true)
     protected SubscribeService subscribeService;
 
+<<<<<<< HEAD
     @Autowired(required = true)
     ClarinMatomoBitstreamTracker matomoBitstreamTracker;
 
+=======
+>>>>>>> dspace-7.6.1
     protected ItemServiceImpl() {
         super();
     }
@@ -295,6 +304,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     public Iterator<Item> findAllRegularItems(Context context) throws SQLException {
         return itemDAO.findAllRegularItems(context);
     };
+
+    @Override
+    public Iterator<Item> findAllRegularItems(Context context) throws SQLException {
+        return itemDAO.findAllRegularItems(context);
+    }
 
     @Override
     public Iterator<Item> findBySubmitter(Context context, EPerson eperson) throws SQLException {
@@ -790,6 +804,16 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         // Remove any Handle
         handleService.unbindHandle(context, item);
 
+        // Delete a DOI if linked to the item.
+        // If no DOI consumer or provider is configured, but a DOI remains linked to this item's uuid,
+        // hibernate will throw a foreign constraint exception.
+        // Here we use the DOI service directly as it is able to manage DOIs even without any configured
+        // consumer or provider.
+        DOI doi = doiService.findDOIByDSpaceObject(context, item);
+        if (doi != null) {
+            doi.setDSpaceObject(null);
+        }
+
         // remove version attached to the item
         removeVersion(context, item);
 
@@ -910,8 +934,16 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     @Override
     public void inheritCollectionDefaultPolicies(Context context, Item item, Collection collection)
         throws SQLException, AuthorizeException {
-        adjustItemPolicies(context, item, collection);
-        adjustBundleBitstreamPolicies(context, item, collection);
+        inheritCollectionDefaultPolicies(context, item, collection, true);
+    }
+
+    @Override
+    public void inheritCollectionDefaultPolicies(Context context, Item item, Collection collection,
+                                                 boolean replaceReadRPWithCollectionRP)
+        throws SQLException, AuthorizeException {
+
+        adjustItemPolicies(context, item, collection, replaceReadRPWithCollectionRP);
+        adjustBundleBitstreamPolicies(context, item, collection, replaceReadRPWithCollectionRP);
 
         log.debug(LogHelper.getHeader(context, "item_inheritCollectionDefaultPolicies",
                                        "item_id=" + item.getID()));
@@ -919,6 +951,74 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     @Override
     public void adjustBundleBitstreamPolicies(Context context, Item item, Collection collection)
+        throws SQLException, AuthorizeException {
+        adjustBundleBitstreamPolicies(context, item, collection, true);
+    }
+
+    @Override
+    public void adjustBundleBitstreamPolicies(Context context, Item item, Collection collection,
+                                              boolean replaceReadRPWithCollectionRP)
+        throws SQLException, AuthorizeException {
+        // Bundles should inherit from DEFAULT_ITEM_READ so that if the item is readable, the files
+        // can be listed (even if they are themselves not readable as per DEFAULT_BITSTREAM_READ or other
+        // policies or embargos applied
+        List<ResourcePolicy> defaultCollectionBundlePolicies = authorizeService
+                .getPoliciesActionFilter(context, collection, Constants.DEFAULT_ITEM_READ);
+        // Bitstreams should inherit from DEFAULT_BITSTREAM_READ
+        List<ResourcePolicy> defaultCollectionBitstreamPolicies = authorizeService
+            .getPoliciesActionFilter(context, collection, Constants.DEFAULT_BITSTREAM_READ);
+
+        List<ResourcePolicy> defaultItemPolicies = authorizeService.findPoliciesByDSOAndType(context, item,
+                ResourcePolicy.TYPE_CUSTOM);
+        if (defaultCollectionBitstreamPolicies.size() < 1) {
+            throw new SQLException("Collection " + collection.getID()
+                                       + " (" + collection.getHandle() + ")"
+                                       + " has no default bitstream READ policies");
+        }
+        // TODO: should we also throw an exception if no DEFAULT_ITEM_READ?
+
+        boolean removeCurrentReadRPBitstream =
+            replaceReadRPWithCollectionRP && defaultCollectionBitstreamPolicies.size() > 0;
+        boolean removeCurrentReadRPBundle =
+            replaceReadRPWithCollectionRP && defaultCollectionBundlePolicies.size() > 0;
+
+        // remove all policies from bundles, add new ones
+        // Remove bundles
+        List<Bundle> bunds = item.getBundles();
+        for (Bundle mybundle : bunds) {
+            // If collection has default READ policies, remove the bundle's READ policies.
+            if (removeCurrentReadRPBundle) {
+                authorizeService.removePoliciesActionFilter(context, mybundle, Constants.READ);
+            }
+
+            // if come from InstallItem: remove all submission/workflow policies
+            authorizeService.removeAllPoliciesByDSOAndType(context, mybundle, ResourcePolicy.TYPE_SUBMISSION);
+            authorizeService.removeAllPoliciesByDSOAndType(context, mybundle, ResourcePolicy.TYPE_WORKFLOW);
+            addCustomPoliciesNotInPlace(context, mybundle, defaultItemPolicies);
+            addDefaultPoliciesNotInPlace(context, mybundle, defaultCollectionBundlePolicies);
+
+            for (Bitstream bitstream : mybundle.getBitstreams()) {
+                // If collection has default READ policies, remove the bundle's READ policies.
+                if (removeCurrentReadRPBitstream) {
+                    authorizeService.removePoliciesActionFilter(context, bitstream, Constants.READ);
+                }
+
+                // if come from InstallItem: remove all submission/workflow policies
+                removeAllPoliciesAndAddDefault(context, bitstream, defaultItemPolicies,
+                                               defaultCollectionBitstreamPolicies);
+            }
+        }
+    }
+
+    @Override
+    public void adjustBitstreamPolicies(Context context, Item item, Collection collection, Bitstream bitstream)
+        throws SQLException, AuthorizeException {
+        adjustBitstreamPolicies(context, item, collection, bitstream, true);
+    }
+
+    @Override
+    public void adjustBitstreamPolicies(Context context, Item item, Collection collection , Bitstream bitstream,
+                                        boolean replaceReadRPWithCollectionRP)
         throws SQLException, AuthorizeException {
         List<ResourcePolicy> defaultCollectionPolicies = authorizeService
             .getPoliciesActionFilter(context, collection, Constants.DEFAULT_BITSTREAM_READ);
@@ -931,33 +1031,38 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
                                        + " has no default bitstream READ policies");
         }
 
-        // remove all policies from bundles, add new ones
-        // Remove bundles
-        List<Bundle> bunds = item.getBundles();
-        for (Bundle mybundle : bunds) {
+        // remove all policies from bitstream, add new ones
+        removeAllPoliciesAndAddDefault(context, bitstream, defaultItemPolicies, defaultCollectionPolicies);
+    }
 
-            // if come from InstallItem: remove all submission/workflow policies
-            authorizeService.removeAllPoliciesByDSOAndType(context, mybundle, ResourcePolicy.TYPE_SUBMISSION);
-            authorizeService.removeAllPoliciesByDSOAndType(context, mybundle, ResourcePolicy.TYPE_WORKFLOW);
-            addCustomPoliciesNotInPlace(context, mybundle, defaultItemPolicies);
-            addDefaultPoliciesNotInPlace(context, mybundle, defaultCollectionPolicies);
-
-            for (Bitstream bitstream : mybundle.getBitstreams()) {
-                // if come from InstallItem: remove all submission/workflow policies
-                authorizeService.removeAllPoliciesByDSOAndType(context, bitstream, ResourcePolicy.TYPE_SUBMISSION);
-                authorizeService.removeAllPoliciesByDSOAndType(context, bitstream, ResourcePolicy.TYPE_WORKFLOW);
-                addCustomPoliciesNotInPlace(context, bitstream, defaultItemPolicies);
-                addDefaultPoliciesNotInPlace(context, bitstream, defaultCollectionPolicies);
-            }
-        }
+    private void removeAllPoliciesAndAddDefault(Context context, Bitstream bitstream,
+                                            List<ResourcePolicy> defaultItemPolicies,
+                                            List<ResourcePolicy> defaultCollectionPolicies)
+        throws SQLException, AuthorizeException {
+        authorizeService.removeAllPoliciesByDSOAndType(context, bitstream, ResourcePolicy.TYPE_SUBMISSION);
+        authorizeService.removeAllPoliciesByDSOAndType(context, bitstream, ResourcePolicy.TYPE_WORKFLOW);
+        addCustomPoliciesNotInPlace(context, bitstream, defaultItemPolicies);
+        addDefaultPoliciesNotInPlace(context, bitstream, defaultCollectionPolicies);
     }
 
     @Override
     public void adjustItemPolicies(Context context, Item item, Collection collection)
         throws SQLException, AuthorizeException {
+        adjustItemPolicies(context, item, collection, true);
+    }
+
+    @Override
+    public void adjustItemPolicies(Context context, Item item, Collection collection,
+                                   boolean replaceReadRPWithCollectionRP)
+        throws SQLException, AuthorizeException {
         // read collection's default READ policies
         List<ResourcePolicy> defaultCollectionPolicies = authorizeService
             .getPoliciesActionFilter(context, collection, Constants.DEFAULT_ITEM_READ);
+
+        // If collection has defaultREAD policies, remove the item's READ policies.
+        if (replaceReadRPWithCollectionRP && defaultCollectionPolicies.size() > 0) {
+            authorizeService.removePoliciesActionFilter(context, item, Constants.READ);
+        }
 
         // MUST have default policies
         if (defaultCollectionPolicies.size() < 1) {
@@ -1058,7 +1163,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         List<Collection> linkedCollections = item.getCollections();
         List<Collection> notLinkedCollections = new ArrayList<>(allCollections.size() - linkedCollections.size());
 
-        if ((allCollections.size() - linkedCollections.size()) == 0) {
+        if (allCollections.size() - linkedCollections.size() == 0) {
             return notLinkedCollections;
         }
         for (Collection collection : allCollections) {
@@ -1153,6 +1258,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
      * @return <code>true</code> if the item is an inprogress submission, i.e. a WorkspaceItem or WorkflowItem
      * @throws SQLException An exception that provides information on a database access error or other errors.
      */
+    @Override
     public boolean isInProgressSubmission(Context context, Item item) throws SQLException {
         return workspaceItemService.findByItem(context, item) != null
             || workflowItemService.findByItem(context, item) != null;
@@ -1183,8 +1289,8 @@ prevent the generation of resource policy entry values with null dspace_object a
             if (!authorizeService
                 .isAnIdenticalPolicyAlreadyInPlace(context, dso, defaultPolicy.getGroup(), Constants.READ,
                     defaultPolicy.getID()) &&
-                   ((!appendMode && this.isNotAlreadyACustomRPOfThisTypeOnDSO(context, dso)) ||
-                    (appendMode && this.shouldBeAppended(context, dso, defaultPolicy)))) {
+                   (!appendMode && this.isNotAlreadyACustomRPOfThisTypeOnDSO(context, dso) ||
+                    appendMode && this.shouldBeAppended(context, dso, defaultPolicy))) {
                 ResourcePolicy newPolicy = resourcePolicyService.clone(context, defaultPolicy);
                 newPolicy.setdSpaceObject(dso);
                 newPolicy.setAction(Constants.READ);
@@ -1226,7 +1332,7 @@ prevent the generation of resource policy entry values with null dspace_object a
      * Check if the provided default policy should be appended or not to the final
      * item. If an item has at least one custom READ policy any anonymous READ
      * policy with empty start/end date should be skipped
-     * 
+     *
      * @param context       DSpace context
      * @param dso           DSpace object to check for custom read RP
      * @param defaultPolicy The policy to check
@@ -1615,7 +1721,7 @@ prevent the generation of resource policy entry values with null dspace_object a
             fullMetadataValueList.addAll(relationshipMetadataService.getRelationshipMetadata(item, true));
             fullMetadataValueList.addAll(dbMetadataValues);
 
-            item.setCachedMetadata(sortMetadataValueList(fullMetadataValueList));
+            item.setCachedMetadata(MetadataValueComparators.sort(fullMetadataValueList));
         }
 
         log.debug("Called getMetadata for " + item.getID() + " based on cache");
@@ -1655,28 +1761,6 @@ prevent the generation of resource policy entry values with null dspace_object a
             //just move the metadata
             rr.setPlace(place);
         }
-    }
-
-    /**
-     * This method will sort the List of MetadataValue objects based on the MetadataSchema, MetadataField Element,
-     * MetadataField Qualifier and MetadataField Place in that order.
-     * @param listToReturn  The list to be sorted
-     * @return The list sorted on those criteria
-     */
-    private List<MetadataValue> sortMetadataValueList(List<MetadataValue> listToReturn) {
-        Comparator<MetadataValue> comparator = Comparator.comparing(
-            metadataValue -> metadataValue.getMetadataField().getMetadataSchema().getName(),
-            Comparator.nullsFirst(Comparator.naturalOrder()));
-        comparator = comparator.thenComparing(metadataValue -> metadataValue.getMetadataField().getElement(),
-                                              Comparator.nullsFirst(Comparator.naturalOrder()));
-        comparator = comparator.thenComparing(metadataValue -> metadataValue.getMetadataField().getQualifier(),
-                                              Comparator.nullsFirst(Comparator.naturalOrder()));
-        comparator = comparator.thenComparing(metadataValue -> metadataValue.getPlace(),
-                                              Comparator.nullsFirst(Comparator.naturalOrder()));
-
-        Stream<MetadataValue> metadataValueStream = listToReturn.stream().sorted(comparator);
-        listToReturn = metadataValueStream.collect(Collectors.toList());
-        return listToReturn;
     }
 
     @Override

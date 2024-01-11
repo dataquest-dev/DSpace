@@ -49,8 +49,11 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
     protected IdentifierService identifierService;
     @Autowired(required = true)
     protected RelationshipService relationshipService;
+<<<<<<< HEAD
     @Autowired(required = true)
     protected HandleService handleService;
+=======
+>>>>>>> dspace-7.6.1
 
     @Override
     public Item createNewItemAndAddItInWorkspace(Context context, Item nativeItem) {
@@ -179,6 +182,7 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
         }
     }
 
+<<<<<<< HEAD
 
     /**
      * Add metadata `dc.relation.replaces` to the new item.
@@ -194,4 +198,6 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
         itemService.addMetadata(c, itemNew, "dc", "relation", "replaces", null,
                 identifierUriPrevItem);
     }
+=======
+>>>>>>> dspace-7.6.1
 }

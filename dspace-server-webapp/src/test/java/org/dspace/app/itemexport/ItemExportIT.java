@@ -51,7 +51,10 @@ import org.dspace.scripts.service.ProcessService;
 import org.dspace.services.ConfigurationService;
 import org.junit.After;
 import org.junit.Before;
+<<<<<<< HEAD
 import org.junit.Ignore;
+=======
+>>>>>>> dspace-7.6.1
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,7 +64,10 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Francesco Pio Scognamiglio (francescopio.scognamiglio at 4science.com)
  */
+<<<<<<< HEAD
 @Ignore
+=======
+>>>>>>> dspace-7.6.1
 public class ItemExportIT extends AbstractControllerIntegrationTest {
 
     private static final String title = "A Tale of Two Cities";

@@ -11,7 +11,10 @@ import java.io.InputStream;
 
 import org.apache.commons.cli.Options;
 import org.dspace.app.rest.converter.ScriptConverter;
+<<<<<<< HEAD
 import org.dspace.core.Context;
+=======
+>>>>>>> dspace-7.6.1
 import org.dspace.scripts.configuration.ScriptConfiguration;
 
 /**
@@ -28,10 +31,13 @@ public class TypeConversionTestScriptConfiguration<T extends TypeConversionTestS
 
     }
 
+<<<<<<< HEAD
     public boolean isAllowedToExecute(final Context context) {
         return true;
     }
 
+=======
+>>>>>>> dspace-7.6.1
     public Options getOptions() {
 
         Options options = new Options();

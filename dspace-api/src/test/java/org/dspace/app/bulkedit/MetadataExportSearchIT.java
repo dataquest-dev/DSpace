@@ -23,7 +23,11 @@ import java.util.List;
 import com.google.common.io.Files;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
+<<<<<<< HEAD
 import org.apache.logging.log4j.Logger;
+=======
+import org.apache.log4j.Logger;
+>>>>>>> dspace-7.6.1
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
@@ -51,7 +55,11 @@ public class MetadataExportSearchIT extends AbstractIntegrationTestWithDatabase 
     private Item[] itemsSubject2 = new Item[numberItemsSubject2];
     private String filename;
     private Collection collection;
+<<<<<<< HEAD
     private Logger logger = org.apache.logging.log4j.LogManager.getLogger(MetadataExportSearchIT.class);
+=======
+    private Logger logger = Logger.getLogger(MetadataExportSearchIT.class);
+>>>>>>> dspace-7.6.1
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
     private SearchService searchService;
 
@@ -169,6 +177,7 @@ public class MetadataExportSearchIT extends AbstractIntegrationTestWithDatabase 
         checkItemsPresentInFile(filename, itemsSubject1);
     }
 
+<<<<<<< HEAD
     // CLARIN - CLARIN-DSpace doesn't use DateIssues search filter (commented in the discovery.xml), so this test
     // is failing
 //    @Test
@@ -180,6 +189,17 @@ public class MetadataExportSearchIT extends AbstractIntegrationTestWithDatabase 
 //        assertEquals(0, result);
 //        checkItemsPresentInFile(filename, itemsSubject1);
 //    }
+=======
+    @Test
+    public void exportMetadataSearchFilterDate() throws Exception {
+        int result = runDSpaceScript(
+            "metadata-export-search", "-f", "dateIssued,equals=[2000 TO 2020]", "-n", filename
+        );
+
+        assertEquals(0, result);
+        checkItemsPresentInFile(filename, itemsSubject1);
+    }
+>>>>>>> dspace-7.6.1
 
     @Test
     public void exportMetadataSearchMultipleFilters() throws Exception {

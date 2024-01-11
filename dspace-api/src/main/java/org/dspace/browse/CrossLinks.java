@@ -108,7 +108,11 @@ public class CrossLinks {
             } else {
                 // Exact match, if the key field has no .* wildcard
                 if (links.containsKey(metadata)) {
+<<<<<<< HEAD
                     return links.get(key);
+=======
+                    return links.get(metadata);
+>>>>>>> dspace-7.6.1
                 }
             }
         }

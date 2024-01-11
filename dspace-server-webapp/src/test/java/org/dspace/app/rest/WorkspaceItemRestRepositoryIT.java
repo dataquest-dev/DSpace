@@ -2286,6 +2286,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         value.put("value", "New Series");
         seriesValues.add(value);
         updateSeries.add(new AddOperation("/sections/traditionalpageone/dc.relation.ispartofseries", seriesValues));
+<<<<<<< HEAD
 
         String patchBody = getPatchContent(updateSeries);
 
@@ -2297,6 +2298,64 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(jsonPath("$",
                         // Check this - we should match an item with no series or type
                         Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, null, null))));
+
+        // Verify that the metadata isn't in the workspace item
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+=======
+
+        String patchBody = getPatchContent(updateSeries);
+
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+>>>>>>> dspace-7.6.1
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        // Check this - we should match an item with no series or type
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, null, null))));
+<<<<<<< HEAD
+
+        // Set the type to Technical Report confirm it worked
+        List<Operation> updateType = new ArrayList<>();
+        List<Map<String, String>> typeValues = new ArrayList<>();
+        value = new HashMap<String, String>();
+        value.put("value", "Technical Report");
+        typeValues.add(value);
+        updateType.add(new AddOperation("/sections/traditionalpageone/dc.type", typeValues));
+        patchBody = getPatchContent(updateType);
+
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        // Check this - we should now match an item with the expected type and series
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, "Technical Report",
+                                null))));
+
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem, "Technical Report",
+                                null))));
+
+        // Another test, this time adding the series value should be successful and we'll see the value
+        patchBody = getPatchContent(updateSeries);
+
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",
+                        // Check this - we should match an item with the expected series and type
+                        Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem,
+                                "Technical Report", "New Series"))));
+
+=======
 
         // Verify that the metadata isn't in the workspace item
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
@@ -2345,6 +2404,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                         Matchers.is(WorkspaceItemMatcher.matchItemWithTypeAndSeries(witem,
                                 "Technical Report", "New Series"))));
 
+>>>>>>> dspace-7.6.1
         // Verify that the metadata isn't in the workspace item
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
                 .andExpect(status().isOk())
@@ -8577,4 +8637,44 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                  )));
     }
 
+<<<<<<< HEAD
+=======
+    @Test
+    public void testSubmissionWithHiddenSections() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity, "123456789/test-hidden")
+                                                 .withName("Collection 1")
+                                                 .build();
+
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                                                          .withTitle("Workspace Item")
+                                                          .withIssueDate("2023-01-01")
+                                                          .withType("book")
+                                                          .build();
+
+        context.restoreAuthSystemState();
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken)
+            .perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sections.test-outside-workflow-hidden").doesNotExist())
+            .andExpect(jsonPath("$.sections.test-outside-submission-hidden").exists())
+            .andExpect(jsonPath("$.sections.test-never-hidden").exists())
+            .andExpect(jsonPath("$.sections.test-always-hidden").doesNotExist());
+
+        // Deposit the item
+        getClient(adminToken).perform(post("/api/workflow/workflowitems")
+                .content("/api/submission/workspaceitems/" + workspaceItem.getID())
+                .contentType(textUriContentType))
+                .andExpect(status().isCreated());
+
+    }
+>>>>>>> dspace-7.6.1
 }

@@ -149,11 +149,14 @@ public class DCInput {
     private Pattern pattern = null;
 
     /**
+<<<<<<< HEAD
      * Access Control List - is user allowed for particular ACL action on this input field in given
      */
     private ACL acl = null;
 
     /**
+=======
+>>>>>>> dspace-7.6.1
      * allowed document types
      */
     private List<String> typeBind = null;
@@ -236,7 +239,10 @@ public class DCInput {
         readOnly = fieldMap.get("readonly");
         vocabulary = fieldMap.get("vocabulary");
         this.initRegex(fieldMap.get("regex"));
+<<<<<<< HEAD
         acl = ACL.fromString(fieldMap.get("acl"));
+=======
+>>>>>>> dspace-7.6.1
         String closedVocabularyStr = fieldMap.get("closedVocabulary");
         closedVocabulary = "true".equalsIgnoreCase(closedVocabularyStr)
             || "yes".equalsIgnoreCase(closedVocabularyStr);

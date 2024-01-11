@@ -398,6 +398,11 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
             String response = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), params);
 
             SAXBuilder saxBuilder = new SAXBuilder();
+<<<<<<< HEAD
+=======
+            // disallow DTD parsing to ensure no XXE attacks can occur
+            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
+>>>>>>> dspace-7.6.1
             Document document = saxBuilder.build(new StringReader(response));
             Element root = document.getRootElement();
 
@@ -435,6 +440,11 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
             String response = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), params);
 
             SAXBuilder saxBuilder = new SAXBuilder();
+<<<<<<< HEAD
+=======
+            // disallow DTD parsing to ensure no XXE attacks can occur
+            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
+>>>>>>> dspace-7.6.1
             Document document = saxBuilder.build(new StringReader(response));
             Element root = document.getRootElement();
 
@@ -486,6 +496,11 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
     private List<Element> splitToRecords(String recordsSrc) {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
+<<<<<<< HEAD
+=======
+            // disallow DTD parsing to ensure no XXE attacks can occur
+            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
+>>>>>>> dspace-7.6.1
             Document document = saxBuilder.build(new StringReader(recordsSrc));
             Element root = document.getRootElement();
             List<Namespace> namespaces = Arrays.asList(Namespace.getNamespace("ns", "http://www.epo.org/exchange"));

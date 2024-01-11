@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
+import javax.xml.transform.Templates;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
@@ -76,8 +76,7 @@ public class DSpaceResourceResolver implements ResourceResolver {
     }
 
     @Override
-    public Transformer getTransformer(String path) throws IOException,
-        TransformerConfigurationException {
+    public Templates getTemplates(String path) throws IOException, TransformerConfigurationException {
         // construct a Source that reads from an InputStream
         Source mySrc = new StreamSource(getResource(path));
         // specify a system ID (the path to the XSLT-file on the filesystem)
@@ -85,6 +84,6 @@ public class DSpaceResourceResolver implements ResourceResolver {
         // XSLT-files (like <xsl:import href="utils.xsl"/>)
         String systemId = basePath + "/" + path;
         mySrc.setSystemId(systemId);
-        return transformerFactory.newTransformer(mySrc);
+        return transformerFactory.newTemplates(mySrc);
     }
 }

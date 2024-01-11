@@ -141,7 +141,10 @@ public class DOIConsumer implements Consumer {
                             + item.getID() + " and DOI " + doi + ".", ex);
                 }
             }
+<<<<<<< HEAD
             ctx.commit();
+=======
+>>>>>>> dspace-7.6.1
         }
     }
 

@@ -64,6 +64,11 @@ public class OrcidQueue implements ReloadableEntity<Integer> {
     /**
      * A description of the resource to be synchronized.
      */
+<<<<<<< HEAD
+=======
+    @Lob
+    @Type(type = "org.hibernate.type.TextType")
+>>>>>>> dspace-7.6.1
     @Column(name = "description")
     private String description;
 
@@ -87,7 +92,11 @@ public class OrcidQueue implements ReloadableEntity<Integer> {
      */
     @Lob
     @Column(name = "metadata")
+<<<<<<< HEAD
     @Type(type = "org.dspace.storage.rdbms.hibernate.DatabaseAwareLobType")
+=======
+    @Type(type = "org.hibernate.type.TextType")
+>>>>>>> dspace-7.6.1
     private String metadata;
 
     /**

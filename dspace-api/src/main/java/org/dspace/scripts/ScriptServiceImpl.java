@@ -37,7 +37,11 @@ public class ScriptServiceImpl implements ScriptService {
     @Override
     public List<ScriptConfiguration> getScriptConfigurations(Context context) {
         return serviceManager.getServicesByType(ScriptConfiguration.class).stream().filter(
+<<<<<<< HEAD
             scriptConfiguration -> scriptConfiguration.isAllowedToExecute(context))
+=======
+            scriptConfiguration -> scriptConfiguration.isAllowedToExecute(context, null))
+>>>>>>> dspace-7.6.1
                              .sorted(Comparator.comparing(ScriptConfiguration::getName))
                              .collect(Collectors.toList());
     }

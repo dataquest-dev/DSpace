@@ -353,9 +353,13 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     }
 
     /**
-     * Create an admin group for the collection with the specified members
+     * Assign the admin permission to the specified eperson
      *
+<<<<<<< HEAD
      * @param ePerson epersons to add to the admin group
+=======
+     * @param ePerson the eperson that will get the ADMIN permission on the item
+>>>>>>> dspace-7.6.1
      * @return this builder
      * @throws SQLException
      * @throws AuthorizeException
@@ -367,10 +371,13 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     public ItemBuilder withPersonEmail(String email) {
         return addMetadataValue(item, "person", "email", null, email);
     }
+<<<<<<< HEAD
     public ItemBuilder withCCLicense(String uri) throws SQLException, AuthorizeException {
         creativeCommonsService.updateLicense(context, uri, item);
         return this;
     }
+=======
+>>>>>>> dspace-7.6.1
 
     @Override
     public Item build() {

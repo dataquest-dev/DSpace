@@ -7,6 +7,7 @@
  */
 package org.dspace.orcid.script;
 
+<<<<<<< HEAD
 import java.sql.SQLException;
 
 import org.apache.commons.cli.Options;
@@ -14,6 +15,10 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+=======
+import org.apache.commons.cli.Options;
+import org.dspace.scripts.configuration.ScriptConfiguration;
+>>>>>>> dspace-7.6.1
 
 /**
  * Script configuration for {@link OrcidBulkPush}.
@@ -24,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class OrcidBulkPushScriptConfiguration<T extends OrcidBulkPush> extends ScriptConfiguration<T> {
 
+<<<<<<< HEAD
     @Autowired
     private AuthorizeService authorizeService;
 
@@ -39,6 +45,11 @@ public class OrcidBulkPushScriptConfiguration<T extends OrcidBulkPush> extends S
     }
 
     @Override
+=======
+    private Class<T> dspaceRunnableClass;
+
+    @Override
+>>>>>>> dspace-7.6.1
     public Class<T> getDspaceRunnableClass() {
         return dspaceRunnableClass;
     }

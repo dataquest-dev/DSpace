@@ -56,8 +56,21 @@ public class ContentGenerator implements SubscriptionGenerator<IndexableObject> 
                 Locale supportedLocale = I18nUtil.getEPersonLocale(ePerson);
                 Email email = Email.getEmail(I18nUtil.getEmailFilename(supportedLocale, "subscriptions_content"));
                 email.addRecipient(ePerson.getEmail());
+<<<<<<< HEAD
                 email.addArgument(generateBodyMail(context, indexableComm));
                 email.addArgument(generateBodyMail(context, indexableColl));
+=======
+
+                String bodyCommunities = generateBodyMail(context, indexableComm);
+                String bodyCollections = generateBodyMail(context, indexableColl);
+                if (bodyCommunities.equals(EMPTY) && bodyCollections.equals(EMPTY)) {
+                    log.debug("subscription(s) of eperson {} do(es) not match any new items: nothing to send" +
+                            " - exit silently", ePerson::getID);
+                    return;
+                }
+                email.addArgument(bodyCommunities);
+                email.addArgument(bodyCollections);
+>>>>>>> dspace-7.6.1
                 email.send();
             }
         } catch (Exception e) {
@@ -67,6 +80,7 @@ public class ContentGenerator implements SubscriptionGenerator<IndexableObject> 
     }
 
     private String generateBodyMail(Context context, List<IndexableObject> indexableObjects) {
+<<<<<<< HEAD
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             out.write("\n".getBytes(UTF_8));
@@ -82,6 +96,21 @@ public class ContentGenerator implements SubscriptionGenerator<IndexableObject> 
                 return out.toString();
             } else {
                 out.write("No items".getBytes(UTF_8));
+=======
+        if (indexableObjects == null || indexableObjects.isEmpty()) {
+            return EMPTY;
+        }
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            out.write("\n".getBytes(UTF_8));
+            for (IndexableObject indexableObject : indexableObjects) {
+                out.write("\n".getBytes(UTF_8));
+                Item item = (Item) indexableObject.getIndexedObject();
+                String entityType = itemService.getEntityTypeLabel(item);
+                Optional.ofNullable(entityType2Disseminator.get(entityType))
+                        .orElseGet(() -> entityType2Disseminator.get("Item"))
+                        .disseminate(context, item, out);
+>>>>>>> dspace-7.6.1
             }
             return out.toString();
         } catch (Exception e) {

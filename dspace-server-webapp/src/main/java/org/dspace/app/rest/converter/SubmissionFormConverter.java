@@ -132,7 +132,7 @@ public class SubmissionFormConverter implements DSpaceConverter<DCInputSet, Subm
                                                         dcinput.getVocabulary()));
                     selMd.setClosed(
                             isClosed(dcinput.getSchema(), dcinput.getElement(), dcinput.getQualifier(),
-                                    dcinput.getPairsType(), dcinput.getVocabulary()));
+                                    dcinput.getPairsType(), dcinput.getVocabulary(), dcinput.isClosedVocabulary()));
                 } else {
                     inputRest.setType(inputType);
                 }
@@ -152,7 +152,7 @@ public class SubmissionFormConverter implements DSpaceConverter<DCInputSet, Subm
                         selMd.setControlledVocabulary(getAuthorityName(dcinput.getSchema(), dcinput.getElement(),
                                 pairs.get(idx + 1), dcinput.getPairsType(), dcinput.getVocabulary()));
                         selMd.setClosed(isClosed(dcinput.getSchema(), dcinput.getElement(),
-                                dcinput.getQualifier(), null, dcinput.getVocabulary()));
+                                dcinput.getQualifier(), null, dcinput.getVocabulary(), dcinput.isClosedVocabulary()));
                     }
                     selectableMetadata.add(selMd);
                 }
@@ -163,7 +163,10 @@ public class SubmissionFormConverter implements DSpaceConverter<DCInputSet, Subm
         if (dcinput.isMetadataField()) {
             inputField.setSelectableMetadata(selectableMetadata);
             inputField.setTypeBind(dcinput.getTypeBindList());
+<<<<<<< HEAD
             inputField.setComplexDefinition(dcinput.getComplexDefinitionJSONString());
+=======
+>>>>>>> dspace-7.6.1
         }
         if (dcinput.isRelationshipField()) {
             selectableRelationship = getSelectableRelationships(dcinput);
@@ -220,9 +223,11 @@ public class SubmissionFormConverter implements DSpaceConverter<DCInputSet, Subm
     }
 
     private boolean isClosed(String schema, String element, String qualifier, String valuePairsName,
-            String vocabularyName) {
-        if (StringUtils.isNotBlank(valuePairsName) || StringUtils.isNotBlank(vocabularyName)) {
+            String vocabularyName, boolean isClosedVocabulary) {
+        if (StringUtils.isNotBlank(valuePairsName)) {
             return true;
+        } else if (StringUtils.isNotBlank(vocabularyName)) {
+            return isClosedVocabulary;
         }
         return authorityUtils.isClosed(schema, element, qualifier);
     }

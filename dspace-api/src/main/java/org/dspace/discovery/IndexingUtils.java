@@ -107,6 +107,13 @@ public class IndexingUtils {
         ArrayList<String> prefixedIds = new ArrayList<>();
         for (int auth : authorizations) {
             for (ResourcePolicy policy : authService.getPoliciesActionFilter(context, obj, auth)) {
+<<<<<<< HEAD
+=======
+                // Avoid NPE in cases where the policy does not have group or eperson
+                if (policy.getGroup() == null && policy.getEPerson() == null) {
+                    continue;
+                }
+>>>>>>> dspace-7.6.1
                 String prefixedId = policy.getGroup() == null
                     ? "e" + policy.getEPerson().getID()
                     : "g" + policy.getGroup().getID();

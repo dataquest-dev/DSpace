@@ -93,11 +93,24 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
         HttpServletRequest request = requestService.getCurrentRequest().getHttpServletRequest();
         ObjectMapper mapper = new ObjectMapper();
         RegistrationRest registrationRest;
+<<<<<<< HEAD
 
         String captchaToken = request.getHeader("X-Recaptcha-Token");
         boolean verificationEnabled = configurationService.getBooleanProperty("registration.verification.enabled");
 
         if (verificationEnabled) {
+=======
+        String accountType = request.getParameter(TYPE_QUERY_PARAM);
+        if (StringUtils.isBlank(accountType) ||
+            (!accountType.equalsIgnoreCase(TYPE_FORGOT) && !accountType.equalsIgnoreCase(TYPE_REGISTER))) {
+            throw new IllegalArgumentException(String.format("Needs query param '%s' with value %s or %s indicating " +
+                "what kind of registration request it is", TYPE_QUERY_PARAM, TYPE_FORGOT, TYPE_REGISTER));
+        }
+        String captchaToken = request.getHeader("X-Recaptcha-Token");
+        boolean verificationEnabled = configurationService.getBooleanProperty("registration.verification.enabled");
+
+        if (verificationEnabled && !accountType.equalsIgnoreCase(TYPE_FORGOT)) {
+>>>>>>> dspace-7.6.1
             try {
                 captchaService.processResponse(captchaToken, REGISTER_ACTION);
             } catch (InvalidReCaptchaException e) {
@@ -138,6 +151,7 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
                     + registrationRest.getEmail(), e);
             }
         } else if (accountType.equalsIgnoreCase(TYPE_REGISTER)) {
+<<<<<<< HEAD
             try {
                 String email = registrationRest.getEmail();
                 if (!AuthorizeUtil.authorizeNewAccountRegistration(context, request)) {
@@ -153,6 +167,33 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
             } catch (SQLException | IOException | MessagingException | AuthorizeException e) {
                 log.error("Something went wrong with sending registration info email: "
                     + registrationRest.getEmail(), e);
+=======
+            if (eperson == null) {
+                try {
+                    String email = registrationRest.getEmail();
+                    if (!AuthorizeUtil.authorizeNewAccountRegistration(context, request)) {
+                        throw new AccessDeniedException(
+                            "Registration is disabled, you are not authorized to create a new Authorization");
+                    }
+                    if (!authenticationService.canSelfRegister(context, request, email)) {
+                        throw new UnprocessableEntityException(
+                            String.format("Registration is not allowed with email address" +
+                                          " %s", email));
+                    }
+                    accountService.sendRegistrationInfo(context, email);
+                } catch (SQLException | IOException | MessagingException | AuthorizeException e) {
+                    log.error("Something went wrong with sending registration info email: "
+                              + registrationRest.getEmail(), e);
+                }
+            } else {
+                // if an eperson with this email already exists then send "forgot password" email instead
+                try {
+                    accountService.sendForgotPasswordInfo(context, registrationRest.getEmail());
+                }  catch (SQLException | IOException | MessagingException | AuthorizeException e) {
+                    log.error("Something went wrong with sending forgot password info email: "
+                              + registrationRest.getEmail(), e);
+                }
+>>>>>>> dspace-7.6.1
             }
         }
         return null;

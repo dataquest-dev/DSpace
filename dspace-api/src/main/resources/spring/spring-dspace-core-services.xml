@@ -13,15 +13,6 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-
-    <!-- Identifier Service Application Interface.  Will be autowired with
-         any Identifier Providers present in Spring context.
-    -->
-    <bean id="org.dspace.identifier.service.IdentifierService"
-          class="org.dspace.identifier.IdentifierServiceImpl"
-          autowire="byType"
-          scope="singleton"/>
-
     <bean id="org.dspace.services.ConfigurationService"
           class="org.dspace.servicemanager.config.DSpaceConfigurationService" scope="singleton"/>
 
@@ -31,6 +22,7 @@
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
     </bean-->
 
+<<<<<<< HEAD
 <!-- Uncomment if you want to use the VersionedHandleIdentifierProvider as an identify provider. -->
 <!--    <bean id="org.dspace.identifier.VersionedHandleIdentifierProvider"-->
 <!--          class="org.dspace.identifier.VersionedHandleIdentifierProvider"-->
@@ -45,6 +37,8 @@
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
     </bean>
 
+=======
+>>>>>>> dspace-7.6.1
     <bean name="org.dspace.core.DBConnection" class="org.dspace.core.HibernateDBConnection" lazy-init="true" scope="prototype"/>
 
     <!-- Register all our Flyway callback classes (which run before/after database migrations) -->

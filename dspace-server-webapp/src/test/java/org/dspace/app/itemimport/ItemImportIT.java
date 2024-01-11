@@ -14,6 +14,10 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+<<<<<<< HEAD
+=======
+import static org.junit.Assert.assertTrue;
+>>>>>>> dspace-7.6.1
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -82,6 +86,10 @@ public class ItemImportIT extends AbstractEntityIntegrationTest {
     private DSpaceRunnableParameterConverter dSpaceRunnableParameterConverter;
     private Collection collection;
     private Path workDir;
+<<<<<<< HEAD
+=======
+    private static final String TEMP_DIR = ItemImport.TEMP_DIR;
+>>>>>>> dspace-7.6.1
 
     @Before
     @Override
@@ -126,6 +134,13 @@ public class ItemImportIT extends AbstractEntityIntegrationTest {
         checkMetadata();
         checkMetadataWithAnotherSchema();
         checkBitstream();
+<<<<<<< HEAD
+=======
+
+        // confirm that TEMP_DIR still exists
+        File workTempDir = new File(workDir + File.separator + TEMP_DIR);
+        assertTrue(workTempDir.exists());
+>>>>>>> dspace-7.6.1
     }
 
     @Test

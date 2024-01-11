@@ -31,7 +31,10 @@ import org.dspace.content.InProgressSubmission;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
+<<<<<<< HEAD
 import org.dspace.core.Context;
+=======
+>>>>>>> dspace-7.6.1
 import org.dspace.services.ConfigurationService;
 
 /**
@@ -116,7 +119,10 @@ public class MetadataValidation extends AbstractValidation {
                                         input.getFieldName());
                     }
                 } else {
-                    fieldsName.add(input.getFieldName());
+                    String fieldName = input.getFieldName();
+                    if (fieldName != null) {
+                        fieldsName.add(fieldName);
+                    }
                 }
 
                 for (String fieldName : fieldsName) {
@@ -150,6 +156,7 @@ public class MetadataValidation extends AbstractValidation {
                                     + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" +
                                             input.getFieldName());
                         }
+<<<<<<< HEAD
                     }
                     if (LOCAL_METADATA_HAS_CMDI.equals(fieldName)) {
                         try {
@@ -182,13 +189,20 @@ public class MetadataValidation extends AbstractValidation {
 
                     if (StringUtils.isBlank(filledInputValues.get(complexDefinitionIndex))) {
                         return false;
+=======
+>>>>>>> dspace-7.6.1
                     }
                 }
                 complexDefinitionIndex++;
             }
         }
+<<<<<<< HEAD
         return true;
+=======
+        return errors;
+>>>>>>> dspace-7.6.1
     }
+
 
     private void validateMetadataValues(List<MetadataValue> mdv, DCInput input, SubmissionStepConfig config,
                                         boolean isAuthorityControlled, String fieldKey,

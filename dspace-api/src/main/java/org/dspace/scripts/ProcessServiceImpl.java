@@ -130,6 +130,11 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     @Override
+    public List<Process> findByUser(Context context, EPerson eperson, int limit, int offset) throws SQLException {
+        return processDAO.findByUser(context, eperson, limit, offset);
+    }
+
+    @Override
     public void start(Context context, Process process) throws SQLException {
         process.setProcessStatus(ProcessStatus.RUNNING);
         process.setStartTime(new Date());
@@ -311,6 +316,14 @@ public class ProcessServiceImpl implements ProcessService {
         return this.processDAO.findByStatusAndCreationTimeOlderThan(context, statuses, date);
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+    public int countByUser(Context context, EPerson user) throws SQLException {
+        return processDAO.countByUser(context, user);
+    }
+
+>>>>>>> dspace-7.6.1
     private String formatLogLine(int processId, String scriptName, String output, ProcessLogLevel processLogLevel) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         StringBuilder sb = new StringBuilder();

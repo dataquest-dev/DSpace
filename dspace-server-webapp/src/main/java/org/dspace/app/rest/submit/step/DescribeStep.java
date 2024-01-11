@@ -42,11 +42,16 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.RelationshipMetadataService;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+<<<<<<< HEAD
 import org.springframework.util.ObjectUtils;
+=======
+>>>>>>> dspace-7.6.1
 
 /**
  * Describe step for DSpace Spring Rest. Expose and allow patching of the in progress submission metadata. It is
@@ -64,6 +69,12 @@ public class DescribeStep extends AbstractProcessingStep {
     // Configuration service
     private final ConfigurationService configurationService =
             DSpaceServicesFactory.getInstance().getConfigurationService();
+<<<<<<< HEAD
+=======
+
+    private RelationshipMetadataService relationshipMetadataService =
+        ContentServiceFactory.getInstance().getRelationshipMetadataService();
+>>>>>>> dspace-7.6.1
 
     public DescribeStep() throws DCInputsReaderException {
         inputReader = new DCInputsReader();
@@ -103,7 +114,10 @@ public class DescribeStep extends AbstractProcessingStep {
                         fieldsName.add(input.getFieldName() + "." + (String) qualifier);
                     }
                 } else {
-                    fieldsName.add(input.getFieldName());
+                    String fieldName = input.getFieldName();
+                    if (fieldName != null) {
+                        fieldsName.add(fieldName);
+                    }
                 }
 
 

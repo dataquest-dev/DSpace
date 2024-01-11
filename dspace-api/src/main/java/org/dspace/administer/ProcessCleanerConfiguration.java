@@ -7,6 +7,7 @@
  */
 package org.dspace.administer;
 
+<<<<<<< HEAD
 import java.sql.SQLException;
 
 import org.apache.commons.cli.Options;
@@ -14,12 +15,17 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+=======
+import org.apache.commons.cli.Options;
+import org.dspace.scripts.configuration.ScriptConfiguration;
+>>>>>>> dspace-7.6.1
 
 /**
  * The {@link ScriptConfiguration} for the {@link ProcessCleaner} script.
  */
 public class ProcessCleanerConfiguration<T extends ProcessCleaner> extends ScriptConfiguration<T> {
 
+<<<<<<< HEAD
     @Autowired
     private AuthorizeService authorizeService;
 
@@ -35,6 +41,11 @@ public class ProcessCleanerConfiguration<T extends ProcessCleaner> extends Scrip
     }
 
     @Override
+=======
+    private Class<T> dspaceRunnableClass;
+
+    @Override
+>>>>>>> dspace-7.6.1
     public Options getOptions() {
         if (options == null) {
 

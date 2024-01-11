@@ -29,12 +29,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+<<<<<<< HEAD
+=======
+import org.dspace.builder.BitstreamBuilder;
+import org.dspace.builder.BundleBuilder;
+>>>>>>> dspace-7.6.1
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Bitstream;
+<<<<<<< HEAD
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+=======
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
+import org.dspace.core.Constants;
+>>>>>>> dspace-7.6.1
 import org.dspace.google.client.GoogleAnalyticsClient;
 import org.dspace.services.ConfigurationService;
 import org.junit.After;
@@ -61,6 +73,11 @@ public class GoogleAsyncEventListenerIT extends AbstractControllerIntegrationTes
 
     private Bitstream bitstream;
 
+<<<<<<< HEAD
+=======
+    private Item item;
+
+>>>>>>> dspace-7.6.1
     private List<GoogleAnalyticsClient> originalGoogleAnalyticsClients;
 
     private GoogleAnalyticsClient firstGaClientMock = mock(GoogleAnalyticsClient.class);
@@ -80,7 +97,11 @@ public class GoogleAsyncEventListenerIT extends AbstractControllerIntegrationTes
             .withName("Test collection")
             .build();
 
+<<<<<<< HEAD
         Item item = ItemBuilder.createItem(context, collection)
+=======
+        item = ItemBuilder.createItem(context, collection)
+>>>>>>> dspace-7.6.1
             .withTitle("Test item")
             .build();
 
@@ -238,6 +259,107 @@ public class GoogleAsyncEventListenerIT extends AbstractControllerIntegrationTes
 
     }
 
+<<<<<<< HEAD
+=======
+    @Test
+    public void testOnBitstreamContentDownloadDefaultBundleConfig() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Bundle licenseBundle = BundleBuilder.createBundle(context, item)
+                                            .withName(Constants.LICENSE_BUNDLE_NAME).build();
+        Bitstream license = BitstreamBuilder.createBitstream(context, licenseBundle,
+                                                             toInputStream("License", defaultCharset())).build();
+        context.restoreAuthSystemState();
+
+        assertThat(getStoredEventsAsList(), empty());
+
+        String bitstreamUrl = "/api/core/bitstreams/" + bitstream.getID() + "/content";
+
+        downloadBitstreamContent("Postman", "123456", "REF");
+        downloadContent("Chrome", "ABCDEFG", "REF-1", license);
+
+        assertThat(getStoredEventsAsList(), hasSize(1));
+
+        List<GoogleAnalyticsEvent> storedEvents = getStoredEventsAsList();
+
+        assertThat(storedEvents, contains(
+            event("123456", "127.0.0.1", "Postman", "REF", bitstreamUrl, "Test item"))
+        );
+
+        googleAsyncEventListener.sendCollectedEvents();
+
+        assertThat(getStoredEventsAsList(), empty());
+
+        verify(firstGaClientMock).isAnalyticsKeySupported(ANALYTICS_KEY);
+        verify(secondGaClientMock).isAnalyticsKeySupported(ANALYTICS_KEY);
+        verify(secondGaClientMock).sendEvents(ANALYTICS_KEY, storedEvents);
+        verifyNoMoreInteractions(firstGaClientMock, secondGaClientMock);
+    }
+
+    @Test
+    public void testOnBitstreamContentDownloadMultipleBundleConfig() throws Exception {
+        configurationService.setProperty("google-analytics.bundles",
+                                         List.of(Constants.DEFAULT_BUNDLE_NAME, "CONTENT"));
+
+        context.turnOffAuthorisationSystem();
+        Bundle contentBundle = BundleBuilder.createBundle(context, item).withName("CONTENT").build();
+        Bitstream content = BitstreamBuilder.createBitstream(context, contentBundle,
+                                                             toInputStream("Test Content", defaultCharset())).build();
+        Bundle thumbnailBundle = BundleBuilder.createBundle(context, item).withName("THUMBNAIL").build();
+        Bitstream thumbnail = BitstreamBuilder.createBitstream(context, thumbnailBundle,
+                                                               toInputStream("Thumbnail", defaultCharset())).build();
+        context.restoreAuthSystemState();
+
+        assertThat(getStoredEventsAsList(), empty());
+
+        String bitstreamUrl = "/api/core/bitstreams/" + bitstream.getID() + "/content";
+        String contentUrl = "/api/core/bitstreams/" + content.getID() + "/content";
+
+        downloadBitstreamContent("Postman", "123456", "REF");
+        downloadContent("Chrome", "ABCDEFG", "REF-1", content);
+        downloadContent("Chrome", "987654", "REF-2", thumbnail);
+
+        assertThat(getStoredEventsAsList(), hasSize(2));
+
+        List<GoogleAnalyticsEvent> storedEvents = getStoredEventsAsList();
+
+        assertThat(storedEvents, contains(
+            event("123456", "127.0.0.1", "Postman", "REF", bitstreamUrl, "Test item"),
+            event("ABCDEFG", "127.0.0.1", "Chrome", "REF-1", contentUrl, "Test item")
+            ));
+
+        googleAsyncEventListener.sendCollectedEvents();
+
+        assertThat(getStoredEventsAsList(), empty());
+
+        verify(firstGaClientMock).isAnalyticsKeySupported(ANALYTICS_KEY);
+        verify(secondGaClientMock).isAnalyticsKeySupported(ANALYTICS_KEY);
+        verify(secondGaClientMock).sendEvents(ANALYTICS_KEY, storedEvents);
+        verifyNoMoreInteractions(firstGaClientMock, secondGaClientMock);
+    }
+
+    @Test
+    public void testOnBitstreamContentDownloadNoneBundleConfig() throws Exception {
+        configurationService.setProperty("google-analytics.bundles", "none");
+
+        context.turnOffAuthorisationSystem();
+        Bundle contentBundle = BundleBuilder.createBundle(context, item).withName("CONTENT").build();
+        Bitstream content = BitstreamBuilder.createBitstream(context, contentBundle,
+                                                             toInputStream("Test Content", defaultCharset())).build();
+        Bundle thumbnailBundle = BundleBuilder.createBundle(context, item).withName("THUMBNAIL").build();
+        Bitstream thumbnail = BitstreamBuilder.createBitstream(context, thumbnailBundle,
+                                                               toInputStream("Thumbnail", defaultCharset())).build();
+        context.restoreAuthSystemState();
+
+        assertThat(getStoredEventsAsList(), empty());
+
+        downloadBitstreamContent("Postman", "123456", "REF");
+        downloadContent("Chrome", "ABCDEFG", "REF-1", content);
+        downloadContent("Chrome", "987654", "REF-2", thumbnail);
+
+        assertThat(getStoredEventsAsList(), empty());
+    }
+
+>>>>>>> dspace-7.6.1
     @SuppressWarnings("unchecked")
     private List<GoogleAnalyticsEvent> getStoredEventsAsList() {
         List<GoogleAnalyticsEvent> events = new ArrayList<>();
@@ -248,6 +370,7 @@ public class GoogleAsyncEventListenerIT extends AbstractControllerIntegrationTes
         return events;
     }
 
+<<<<<<< HEAD
     private void downloadBitstreamContent(String userAgent, String correlationId, String referrer) throws Exception {
         getClient(getAuthToken(admin.getEmail(), password))
             .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
@@ -257,4 +380,20 @@ public class GoogleAsyncEventListenerIT extends AbstractControllerIntegrationTes
             .andExpect(status().isOk());
     }
 
+=======
+    private void downloadContent(String userAgent, String correlationId, String referrer, Bitstream bit)
+            throws Exception {
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(get("/api/core/bitstreams/" + bit.getID() + "/content")
+                         .header("USER-AGENT", userAgent)
+                         .header("X-CORRELATION-ID", correlationId)
+                         .header("X-REFERRER", referrer))
+            .andExpect(status().isOk());
+    }
+
+    private void downloadBitstreamContent(String userAgent, String correlationId, String referrer) throws Exception {
+        downloadContent(userAgent, correlationId, referrer, bitstream);
+    }
+
+>>>>>>> dspace-7.6.1
 }

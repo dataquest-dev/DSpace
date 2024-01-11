@@ -122,6 +122,7 @@ public class ItemExportCLIIT extends AbstractIntegrationTestWithDatabase {
                 .withMetadata("dc", "date", "issued", dateIssued)
                 .withMetadata("dc", "title", "alternative", titleAlternative)
                 .build();
+<<<<<<< HEAD
         // TODO: 6/1/2023 removed item to fix export zip collection
         // CLARIN - dataquest: when there are two items, test fails, because zip generates incorrectly
         // (tries to add /collection twice, perhaps wrong path separation?) tried outside of test environment
@@ -132,11 +133,21 @@ public class ItemExportCLIIT extends AbstractIntegrationTestWithDatabase {
 //                .withMetadata("dc", "date", "issued", dateIssued)
 //                .withMetadata("dc", "title", "alternative", titleAlternative)
 //                .build();
+=======
+        Item item2 = ItemBuilder.createItem(context, collection)
+                .withTitle(title + " 2")
+                .withMetadata("dc", "date", "issued", dateIssued)
+                .withMetadata("dc", "title", "alternative", titleAlternative)
+                .build();
+>>>>>>> dspace-7.6.1
         context.restoreAuthSystemState();
 
         String[] args = new String[] { "export", "-t", "COLLECTION",
                 "-i", collection.getHandle(), "-d", tempDir.toString(), "-z", zipFileName, "-n", "1" };
+<<<<<<< HEAD
 //                "-i", collection.getHandle(), "-d", "ndr", "-z", zipFileName, "-n", "1" };
+=======
+>>>>>>> dspace-7.6.1
         perfomExportScript(args);
 
         checkDir();

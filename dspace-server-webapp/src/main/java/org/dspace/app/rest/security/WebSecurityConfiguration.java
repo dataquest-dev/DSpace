@@ -88,7 +88,11 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         // Configure authentication requirements for ${dspace.server.url}/api/ URL only
         // NOTE: REST API is hardcoded to respond on /api/. Other modules (OAI, SWORD, IIIF, etc) use other root paths.
         http.requestMatchers()
+<<<<<<< HEAD
             .antMatchers("/api/**", "/iiif/**", actuatorBasePath + "/**")
+=======
+            .antMatchers("/api/**", "/iiif/**", actuatorBasePath + "/**", "/signposting/**")
+>>>>>>> dspace-7.6.1
             .and()
             // Enable Spring Security authorization on these paths
             .authorizeRequests()
@@ -143,6 +147,11 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
             // Add a filter before our shibboleth endpoints to do the authentication based on the data in the
             // HTTP request
             .addFilterBefore(new ClarinShibbolethLoginFilter("/api/authn/shibboleth", authenticationManager(),
+                                                       restAuthenticationService),
+                             LogoutFilter.class)
+            //Add a filter before our ORCID endpoints to do the authentication based on the data in the
+            // HTTP request
+            .addFilterBefore(new OrcidLoginFilter("/api/authn/orcid", authenticationManager(),
                                                        restAuthenticationService),
                              LogoutFilter.class)
             //Add a filter before our ORCID endpoints to do the authentication based on the data in the

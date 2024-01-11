@@ -143,6 +143,7 @@ public class EPersonBuilder extends AbstractDSpaceObjectBuilder<EPerson> {
         return this;
     }
 
+<<<<<<< HEAD
     private static void deleteUserRegistration(Context context, EPerson eperson)
             throws SQLException, AuthorizeException {
         if (Objects.isNull(eperson)) {
@@ -165,6 +166,8 @@ public class EPersonBuilder extends AbstractDSpaceObjectBuilder<EPerson> {
         context.restoreAuthSystemState();
     }
 
+=======
+>>>>>>> dspace-7.6.1
     public static void deleteEPerson(UUID uuid) throws SQLException, IOException {
         try (Context c = new Context()) {
             c.turnOffAuthorisationSystem();

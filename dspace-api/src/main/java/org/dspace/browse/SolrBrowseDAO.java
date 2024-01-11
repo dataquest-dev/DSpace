@@ -239,7 +239,11 @@ public class SolrBrowseDAO implements BrowseDAO {
     }
 
     private void addDefaultFilterQueries(DiscoverQuery query) {
+<<<<<<< HEAD
         DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(container);
+=======
+        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(context, container);
+>>>>>>> dspace-7.6.1
         discoveryConfiguration.getDefaultFilterQueries().forEach(query::addFilterQueries);
     }
 

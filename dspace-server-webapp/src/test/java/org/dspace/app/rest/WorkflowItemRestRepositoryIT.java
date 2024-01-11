@@ -1935,6 +1935,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
         // others can't download the bitstream
         getClient(tokenEPerson).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
                                .andExpect(status().isForbidden());
+<<<<<<< HEAD
 
         // create a list of values to use in add operation
         List<Operation> addAccessCondition = new ArrayList<>();
@@ -1958,6 +1959,35 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
         // verify that the patch changes have been persisted
         getClient(tokenSubmitter).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+=======
+
+        // create a list of values to use in add operation
+        List<Operation> addAccessCondition = new ArrayList<>();
+        List<Map<String, String>> accessConditions = new ArrayList<Map<String,String>>();
+
+        Map<String, String> value = new HashMap<>();
+        value.put("name", "administrator");
+
+        accessConditions.add(value);
+
+        addAccessCondition.add(new AddOperation("/sections/upload/files/0/accessConditions", accessConditions));
+
+        String patchBody = getPatchContent(addAccessCondition);
+        getClient(tokenSubmitter).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                 .content(patchBody)
+                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+>>>>>>> dspace-7.6.1
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$.sections.upload.files[0].accessConditions[0].name",is("administrator")))
+                 .andExpect(jsonPath("$.sections.upload.files[0].accessConditions[0].startDate",nullValue()))
+                 .andExpect(jsonPath("$.sections.upload.files[0].accessConditions[0].endDate", nullValue()));
+
+<<<<<<< HEAD
+        AtomicReference<Integer> idRef = new AtomicReference<Integer>();
+
+=======
+        // verify that the patch changes have been persisted
+        getClient(tokenSubmitter).perform(get("/api/submission/workspaceitems/" + witem.getID()))
                  .andExpect(status().isOk())
                  .andExpect(jsonPath("$.sections.upload.files[0].accessConditions[0].name",is("administrator")))
                  .andExpect(jsonPath("$.sections.upload.files[0].accessConditions[0].startDate",nullValue()))
@@ -1965,6 +1995,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
         AtomicReference<Integer> idRef = new AtomicReference<Integer>();
 
+>>>>>>> dspace-7.6.1
         try {
             // submit the workspaceitem to start the workflow
             getClient(tokenSubmitter).perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
@@ -2122,4 +2153,38 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
             WorkflowItemBuilder.deleteWorkflowItem(idRef.get());
         }
     }
+<<<<<<< HEAD
+=======
+
+    @Test
+    public void testWorkflowWithHiddenSections() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity, "123456789/test-hidden")
+                                                 .withName("Collection 1")
+                                                 .withWorkflowGroup(1, eperson)
+                                                 .build();
+
+        XmlWorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
+                                                          .withTitle("Workflow Item")
+                                                          .build();
+
+        context.restoreAuthSystemState();
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(get("/api/workflow/workflowitems/" + workflowItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sections.test-outside-workflow-hidden").exists())
+            .andExpect(jsonPath("$.sections.test-outside-submission-hidden").doesNotExist())
+            .andExpect(jsonPath("$.sections.test-never-hidden").exists())
+            .andExpect(jsonPath("$.sections.test-always-hidden").doesNotExist());
+
+    }
+
+>>>>>>> dspace-7.6.1
 }

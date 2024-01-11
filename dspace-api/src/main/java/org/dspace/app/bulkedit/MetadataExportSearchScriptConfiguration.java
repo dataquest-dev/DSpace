@@ -9,7 +9,10 @@
 package org.dspace.app.bulkedit;
 
 import org.apache.commons.cli.Options;
+<<<<<<< HEAD
 import org.dspace.core.Context;
+=======
+>>>>>>> dspace-7.6.1
 import org.dspace.scripts.configuration.ScriptConfiguration;
 
 /**
@@ -30,11 +33,14 @@ public class MetadataExportSearchScriptConfiguration<T extends MetadataExportSea
     }
 
     @Override
+<<<<<<< HEAD
     public boolean isAllowedToExecute(Context context) {
         return true;
     }
 
     @Override
+=======
+>>>>>>> dspace-7.6.1
     public Options getOptions() {
         if (options == null) {
             Options options = new Options();

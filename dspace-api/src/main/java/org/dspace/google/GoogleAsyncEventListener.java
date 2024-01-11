@@ -22,6 +22,11 @@ import org.apache.commons.collections.buffer.CircularFifoBuffer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+<<<<<<< HEAD
+=======
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+>>>>>>> dspace-7.6.1
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -77,7 +82,11 @@ public class GoogleAsyncEventListener extends AbstractUsageEventListener {
         UsageEvent usageEvent = (UsageEvent) event;
         LOGGER.debug("Usage event received " + event.getName());
 
+<<<<<<< HEAD
         if (isNotBitstreamViewEvent(usageEvent)) {
+=======
+        if (!isContentBitstream(usageEvent)) {
+>>>>>>> dspace-7.6.1
             return;
         }
 
@@ -171,6 +180,7 @@ public class GoogleAsyncEventListener extends AbstractUsageEventListener {
         return documentPath;
     }
 
+<<<<<<< HEAD
     private boolean isNotBitstreamViewEvent(UsageEvent usageEvent) {
         return usageEvent.getAction() != UsageEvent.Action.VIEW
             || usageEvent.getObject().getType() != Constants.BITSTREAM;
@@ -197,8 +207,63 @@ public class GoogleAsyncEventListener extends AbstractUsageEventListener {
         if (context.getEvents() != null && !context.getEvents().isEmpty()) {
             for (int x = 1; x <= context.getEvents().size(); x++) {
                 LOGGER.error("    Context Event " + x + ": " + context.getEvents().get(x));
+=======
+    /**
+     * Verifies if the usage event is a content bitstream view event, by checking if:<ul>
+     * <li>the usage event is a view event</li>
+     * <li>the object of the usage event is a bitstream</li>
+     * <li>the bitstream belongs to one of the configured bundles (fallback: ORIGINAL bundle)</li></ul>
+     */
+    private boolean isContentBitstream(UsageEvent usageEvent) {
+        // check if event is a VIEW event and object is a Bitstream
+        if (usageEvent.getAction() == UsageEvent.Action.VIEW
+            && usageEvent.getObject().getType() == Constants.BITSTREAM) {
+            // check if bitstream belongs to a configured bundle
+            List<String> allowedBundles = List.of(configurationService
+                      .getArrayProperty("google-analytics.bundles", new String[]{Constants.CONTENT_BUNDLE_NAME}));
+            if (allowedBundles.contains("none")) {
+                // GA events for bitstream views were turned off in config
+                return false;
+            }
+            List<String> bitstreamBundles;
+            try {
+                bitstreamBundles = ((Bitstream) usageEvent.getObject())
+                    .getBundles().stream().map(Bundle::getName).collect(Collectors.toList());
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage(), e);
+>>>>>>> dspace-7.6.1
+            }
+            return allowedBundles.stream().anyMatch(bitstreamBundles::contains);
+        }
+<<<<<<< HEAD
+=======
+        return false;
+    }
+
+    private boolean isGoogleAnalyticsKeyNotConfigured() {
+        return StringUtils.isBlank(getGoogleAnalyticsKey());
+    }
+
+    private void logReceiveEventException(UsageEvent usageEvent, Exception e) {
+
+        LOGGER.error("Failed to add event to buffer", e);
+        LOGGER.error("Event information: " + usageEvent);
+
+        Context context = usageEvent.getContext();
+        if (context == null) {
+            LOGGER.error("UsageEvent has no Context object");
+            return;
+        }
+
+        LOGGER.error("Context information:");
+        LOGGER.error("    Current User: " + context.getCurrentUser());
+        LOGGER.error("    Extra log info: " + context.getExtraLogInfo());
+        if (context.getEvents() != null && !context.getEvents().isEmpty()) {
+            for (int x = 1; x <= context.getEvents().size(); x++) {
+                LOGGER.error("    Context Event " + x + ": " + context.getEvents().get(x));
             }
         }
+>>>>>>> dspace-7.6.1
 
     }
 
@@ -243,6 +308,7 @@ public class GoogleAsyncEventListener extends AbstractUsageEventListener {
                 events.add(event);
             }
 
+<<<<<<< HEAD
         }
 
         return events;
@@ -283,6 +349,48 @@ public class GoogleAsyncEventListener extends AbstractUsageEventListener {
         return googleAnalyticsClients;
     }
 
+=======
+        }
+
+        return events;
+    }
+
+    /**
+     * Returns the first instance of the GoogleAnalyticsClient that supports the
+     * given analytics key.
+     *
+     * @param  analyticsKey          the analytics key.
+     * @return                       the found client
+     * @throws IllegalStateException if no client is found for the given analytics
+     *                               key
+     */
+    private GoogleAnalyticsClient getClientByAnalyticsKey(String analyticsKey) {
+
+        List<GoogleAnalyticsClient> clients = googleAnalyticsClients.stream()
+            .filter(client -> client.isAnalyticsKeySupported(analyticsKey))
+            .collect(Collectors.toList());
+
+        if (clients.isEmpty()) {
+            throw new IllegalStateException("No Google Analytics Client supports key " + analyticsKey);
+        }
+
+        if (clients.size() > 1) {
+            throw new IllegalStateException("More than one Google Analytics Client supports key " + analyticsKey);
+        }
+
+        return clients.get(0);
+
+    }
+
+    private String getGoogleAnalyticsKey() {
+        return configurationService.getProperty("google.analytics.key");
+    }
+
+    public List<GoogleAnalyticsClient> getGoogleAnalyticsClients() {
+        return googleAnalyticsClients;
+    }
+
+>>>>>>> dspace-7.6.1
     public void setGoogleAnalyticsClients(List<GoogleAnalyticsClient> googleAnalyticsClients) {
         this.googleAnalyticsClients = googleAnalyticsClients;
     }

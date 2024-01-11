@@ -26,6 +26,10 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.Group;
+<<<<<<< HEAD
+=======
+import org.joda.time.LocalDate;
+>>>>>>> dspace-7.6.1
 
 /**
  * Default plugin implementation of the access status helper.
@@ -33,6 +37,14 @@ import org.dspace.eperson.Group;
  * calculate the access status of an item based on the policies of
  * the primary or the first bitstream in the original bundle.
  * Users can override this method for enhanced functionality.
+<<<<<<< HEAD
+=======
+ *
+ * The getEmbargoInformationFromItem method provides a simple logic to
+ *  * retrieve embargo information of bitstreams from an item based on the policies of
+ *  * the primary or the first bitstream in the original bundle.
+ *  * Users can override this method for enhanced functionality.
+>>>>>>> dspace-7.6.1
  */
 public class DefaultAccessStatusHelper implements AccessStatusHelper {
     public static final String EMBARGO = "embargo";
@@ -54,12 +66,20 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
 
     /**
      * Look at the item's policies to determine an access status value.
+<<<<<<< HEAD
      * It is also considering a date threshold for embargos and restrictions.
+=======
+     * It is also considering a date threshold for embargoes and restrictions.
+>>>>>>> dspace-7.6.1
      *
      * If the item is null, simply returns the "unknown" value.
      *
      * @param context     the DSpace context
+<<<<<<< HEAD
      * @param item        the item to embargo
+=======
+     * @param item        the item to check for embargoes
+>>>>>>> dspace-7.6.1
      * @param threshold   the embargo threshold date
      * @return an access status value
      */
@@ -86,7 +106,11 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
                 .findFirst()
                 .orElse(null);
         }
+<<<<<<< HEAD
         return caculateAccessStatusForDso(context, bitstream, threshold);
+=======
+        return calculateAccessStatusForDso(context, bitstream, threshold);
+>>>>>>> dspace-7.6.1
     }
 
     /**
@@ -104,7 +128,11 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
      * @param threshold   the embargo threshold date
      * @return an access status value
      */
+<<<<<<< HEAD
     private String caculateAccessStatusForDso(Context context, DSpaceObject dso, Date threshold)
+=======
+    private String calculateAccessStatusForDso(Context context, DSpaceObject dso, Date threshold)
+>>>>>>> dspace-7.6.1
             throws SQLException {
         if (dso == null) {
             return METADATA_ONLY;
@@ -156,4 +184,90 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
         }
         return RESTRICTED;
     }
+<<<<<<< HEAD
+=======
+
+    /**
+     * Look at the policies of the primary (or first) bitstream of the item to retrieve its embargo.
+     *
+     * If the item is null, simply returns an empty map with no embargo information.
+     *
+     * @param context     the DSpace context
+     * @param item        the item to embargo
+     * @return an access status value
+     */
+    @Override
+    public String getEmbargoFromItem(Context context, Item item, Date threshold)
+            throws SQLException {
+        Date embargoDate;
+
+        // If Item status is not "embargo" then return a null embargo date.
+        String accessStatus = getAccessStatusFromItem(context, item, threshold);
+
+        if (item == null || !accessStatus.equals(EMBARGO)) {
+            return null;
+        }
+        // Consider only the original bundles.
+        List<Bundle> bundles = item.getBundles(Constants.DEFAULT_BUNDLE_NAME);
+        // Check for primary bitstreams first.
+        Bitstream bitstream = bundles.stream()
+                .map(bundle -> bundle.getPrimaryBitstream())
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+        if (bitstream == null) {
+            // If there is no primary bitstream,
+            // take the first bitstream in the bundles.
+            bitstream = bundles.stream()
+                    .map(bundle -> bundle.getBitstreams())
+                    .flatMap(List::stream)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (bitstream == null) {
+            return null;
+        }
+
+        embargoDate = this.retrieveShortestEmbargo(context, bitstream);
+
+        return embargoDate != null ? embargoDate.toString() : null;
+    }
+
+    /**
+     *
+     */
+    private Date retrieveShortestEmbargo(Context context, Bitstream bitstream) throws SQLException {
+        Date embargoDate = null;
+        // Only consider read policies.
+        List<ResourcePolicy> policies = authorizeService
+                .getPoliciesActionFilter(context, bitstream, Constants.READ);
+
+        // Looks at all read policies.
+        for (ResourcePolicy policy : policies) {
+            boolean isValid = resourcePolicyService.isDateValid(policy);
+            Group group = policy.getGroup();
+
+            if (group != null && StringUtils.equals(group.getName(), Group.ANONYMOUS)) {
+                // Only calculate the status for the anonymous group.
+                if (!isValid) {
+                    // If the policy is not valid there is an active embargo
+                    Date startDate = policy.getStartDate();
+
+                    if (startDate != null && !startDate.before(LocalDate.now().toDate())) {
+                        // There is an active embargo: aim to take the shortest embargo (account for rare cases where
+                        // more than one resource policy exists)
+                        if (embargoDate == null) {
+                            embargoDate = startDate;
+                        } else {
+                            embargoDate = startDate.before(embargoDate) ? startDate : embargoDate;
+                        }
+                    }
+                }
+            }
+        }
+
+        return embargoDate;
+    }
+>>>>>>> dspace-7.6.1
 }

@@ -34,7 +34,10 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
+<<<<<<< HEAD
 import org.dspace.handle.service.HandleClarinService;
+=======
+>>>>>>> dspace-7.6.1
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 

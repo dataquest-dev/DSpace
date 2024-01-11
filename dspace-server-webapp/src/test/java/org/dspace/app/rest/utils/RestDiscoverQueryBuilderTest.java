@@ -115,6 +115,11 @@ public class RestDiscoverQueryBuilderTest {
 
         sortConfiguration.setSortFields(listSortField);
 
+<<<<<<< HEAD
+=======
+        sortConfiguration.setDefaultSortField(defaultSort);
+
+>>>>>>> dspace-7.6.1
         discoveryConfiguration.setSearchSortConfiguration(sortConfiguration);
 
         DiscoverySearchFilterFacet subjectFacet = new DiscoverySearchFilterFacet();
@@ -167,6 +172,19 @@ public class RestDiscoverQueryBuilderTest {
                                                           page.getOffset(), "SCORE", "ASC");
     }
 
+<<<<<<< HEAD
+=======
+    @Test
+    public void testSortByDefaultSortField() throws Exception {
+        page = PageRequest.of(2, 10);
+        restQueryBuilder.buildQuery(context, null, discoveryConfiguration, null, null, emptyList(), page);
+
+        verify(discoverQueryBuilder, times(1))
+                .buildQuery(context, null, discoveryConfiguration, null, emptyList(), emptyList(),
+                        page.getPageSize(), page.getOffset(), null, null);
+    }
+
+>>>>>>> dspace-7.6.1
     @Test(expected = DSpaceBadRequestException.class)
     public void testCatchIllegalArgumentException() throws Exception {
         when(discoverQueryBuilder.buildQuery(any(), any(), any(), any(), any(), anyList(), any(), any(), any(),

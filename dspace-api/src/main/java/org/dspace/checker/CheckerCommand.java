@@ -248,9 +248,13 @@ public final class CheckerCommand {
         info.setProcessStartDate(new Date());
 
         try {
+<<<<<<< HEAD
             // 1. DB - Store not match
             Bitstream bitstream = info.getBitstream();
             Map<String, Object> checksumMap = bitstreamStorageService.computeChecksum(context, bitstream);
+=======
+            Map<String, Object> checksumMap = bitstreamStorageService.computeChecksum(context, info.getBitstream());
+>>>>>>> dspace-7.6.1
             if (MapUtils.isNotEmpty(checksumMap)) {
                 info.setBitstreamFound(true);
                 if (checksumMap.containsKey("checksum")) {
@@ -268,6 +272,7 @@ public final class CheckerCommand {
                 info.setCurrentChecksum("");
                 info.setChecksumResult(getChecksumResultByCode(ChecksumResultCode.BITSTREAM_NOT_FOUND));
                 info.setToBeProcessed(false);
+<<<<<<< HEAD
             }
 
             // 2. Store1 - Synchronized store 2 not match
@@ -294,6 +299,8 @@ public final class CheckerCommand {
                 if (!Objects.equals(checksumResult.getResultCode(), ChecksumResultCode.CHECKSUM_NO_MATCH)) {
                     info.setChecksumResult(getChecksumResultByCode(ChecksumResultCode.CHECKSUM_SYNC_NO_MATCH));
                 }
+=======
+>>>>>>> dspace-7.6.1
             }
 
         } catch (IOException e) {

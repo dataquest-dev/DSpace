@@ -7,6 +7,7 @@
  */
 package org.dspace.app.itemexport;
 
+<<<<<<< HEAD
 import java.sql.SQLException;
 
 import org.apache.commons.cli.Option;
@@ -15,6 +16,11 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+=======
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.dspace.scripts.configuration.ScriptConfiguration;
+>>>>>>> dspace-7.6.1
 
 /**
  * The {@link ScriptConfiguration} for the {@link ItemExport} script
@@ -23,9 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ItemExportScriptConfiguration<T extends ItemExport> extends ScriptConfiguration<T> {
 
+<<<<<<< HEAD
     @Autowired
     private AuthorizeService authorizeService;
 
+=======
+>>>>>>> dspace-7.6.1
     private Class<T> dspaceRunnableClass;
 
     @Override
@@ -39,6 +48,7 @@ public class ItemExportScriptConfiguration<T extends ItemExport> extends ScriptC
     }
 
     @Override
+<<<<<<< HEAD
     public boolean isAllowedToExecute(final Context context) {
         try {
             return authorizeService.isAdmin(context);
@@ -48,6 +58,8 @@ public class ItemExportScriptConfiguration<T extends ItemExport> extends ScriptC
     }
 
     @Override
+=======
+>>>>>>> dspace-7.6.1
     public Options getOptions() {
         Options options = new Options();
 

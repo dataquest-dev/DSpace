@@ -12,7 +12,10 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+<<<<<<< HEAD
 import org.apache.commons.lang3.StringUtils;
+=======
+>>>>>>> dspace-7.6.1
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
@@ -75,6 +78,7 @@ public class InstallItemServiceImpl implements InstallItemService {
         AuthorizeException {
         Item item = is.getItem();
         Collection collection = is.getCollection();
+<<<<<<< HEAD
 
         // CLARIN
         // The owning collection is needed for getting owning community and creating configured handle.
@@ -82,6 +86,8 @@ public class InstallItemServiceImpl implements InstallItemService {
                 SET_OWNING_COLLECTION_EVENT_DETAIL + collection.getID()));
         // CLARIN
 
+=======
+>>>>>>> dspace-7.6.1
         // Get map of filters to use for identifier types.
         Map<Class<? extends Identifier>, Filter> filters = FilterUtils.getIdentifierFilters(false);
         try {
@@ -104,7 +110,7 @@ public class InstallItemServiceImpl implements InstallItemService {
         // As this is a BRAND NEW item, as a final step we need to remove the
         // submitter item policies created during deposit and replace them with
         // the default policies from the collection.
-        itemService.inheritCollectionDefaultPolicies(c, item, collection);
+        itemService.inheritCollectionDefaultPolicies(c, item, collection, false);
 
         return item;
     }
@@ -286,6 +292,7 @@ public class InstallItemServiceImpl implements InstallItemService {
         return myMessage.toString();
     }
 
+<<<<<<< HEAD
     /**
      * Language is stored in the metadatavalue in the ISO format e.g., `fra, cse,..` and not in the human satisfying
      * format e.g., `France, Czech`. This method converts ISO format into human satisfying format e.g., `cse -> Czech`
@@ -312,5 +319,29 @@ public class InstallItemServiceImpl implements InstallItemService {
             }
             itemService.addMetadata(c, item, "local", "language", "name", null, langName);
         }
+=======
+    @Override
+    public String getSubmittedByProvenanceMessage(Context context, Item item) throws SQLException {
+        // get date
+        DCDate now = DCDate.getCurrent();
+
+        // Create provenance description
+        StringBuffer provmessage = new StringBuffer();
+
+        if (item.getSubmitter() != null) {
+            provmessage.append("Submitted by ").append(item.getSubmitter().getFullName())
+                .append(" (").append(item.getSubmitter().getEmail()).append(") on ")
+                .append(now.toString());
+        } else {
+            // else, null submitter
+            provmessage.append("Submitted by unknown (probably automated) on")
+                .append(now.toString());
+        }
+        provmessage.append("\n");
+
+        // add sizes and checksums of bitstreams
+        provmessage.append(getBitstreamProvenanceMessage(context, item));
+        return provmessage.toString();
+>>>>>>> dspace-7.6.1
     }
 }

@@ -97,13 +97,20 @@ public class S3BitStoreService extends BaseBitStoreService {
     protected static final int directoryLevels = 3;
 
     private boolean enabled = false;
+<<<<<<< HEAD
+=======
+
+>>>>>>> dspace-7.6.1
     private String awsAccessKey;
     private String awsSecretKey;
     private String awsRegionName;
     private boolean useRelativePath;
+<<<<<<< HEAD
 
     private String endpoint;
     private boolean pathStyleAccessEnabled;
+=======
+>>>>>>> dspace-7.6.1
 
     /**
      * container for all the assets
@@ -126,11 +133,21 @@ public class S3BitStoreService extends BaseBitStoreService {
      */
     protected TransferManager tm = null;
 
+    /**
+     * S3 transfer manager
+     * this is reused between put calls to use less resources for multiple uploads
+     */
+    private TransferManager tm = null;
+
     private static final ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     /**
+<<<<<<< HEAD
      * Utility method for generate AmazonS3 builder with specific region
+=======
+     * Utility method for generate AmazonS3 builder
+>>>>>>> dspace-7.6.1
      *
      * @param regions wanted regions in client
      * @param awsCredentials credentials of the client
@@ -146,6 +163,7 @@ public class S3BitStoreService extends BaseBitStoreService {
                 .build();
     }
 
+<<<<<<< HEAD
     /**
      * Utility method for generate AmazonS3 builder with specific endpoint
      *
@@ -164,6 +182,8 @@ public class S3BitStoreService extends BaseBitStoreService {
                 .withEndpointConfiguration(endpointConfiguration)
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
     }
+=======
+>>>>>>> dspace-7.6.1
     public S3BitStoreService() {}
 
     /**
@@ -195,6 +215,7 @@ public class S3BitStoreService extends BaseBitStoreService {
         }
 
         try {
+<<<<<<< HEAD
             if (StringUtils.isNotBlank(getEndpoint())) {
                 log.info("Creating s3service from different endpoint than amazon: " + getEndpoint());
                 BasicAWSCredentials credentials = new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey());
@@ -205,6 +226,9 @@ public class S3BitStoreService extends BaseBitStoreService {
                         amazonClientBuilderBy(ec, credentials, getPathStyleAccessEnabled())
                 );
             } else if (StringUtils.isNotBlank(getAwsAccessKey()) && StringUtils.isNotBlank(getAwsSecretKey())) {
+=======
+            if (StringUtils.isNotBlank(getAwsAccessKey()) && StringUtils.isNotBlank(getAwsSecretKey())) {
+>>>>>>> dspace-7.6.1
                 log.warn("Use local defined S3 credentials");
                 // region
                 Regions regions = Regions.DEFAULT_REGION;
@@ -442,6 +466,7 @@ public class S3BitStoreService extends BaseBitStoreService {
 
         if (this.useRelativePath) {
             bufFilename.append(getRelativePath(id));
+<<<<<<< HEAD
         } else {
             bufFilename.append(id);
         }
@@ -476,6 +501,42 @@ public class S3BitStoreService extends BaseBitStoreService {
             sIntermediatePath = getIntermediatePath(sInternalId);
         }
 
+=======
+        } else {
+            bufFilename.append(id);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("S3 filepath for " + id + " is "
+                    + bufFilename.toString());
+        }
+
+        return bufFilename.toString();
+    }
+
+    /**
+     * there are 2 cases:
+     * - conventional bitstream, conventional storage
+     * - registered bitstream, conventional storage
+     *  conventional bitstream: dspace ingested, dspace random name/path
+     *  registered bitstream: registered to dspace, any name/path
+     *
+     * @param sInternalId
+     * @return Computed Relative path
+     */
+    public String getRelativePath(String sInternalId) {
+        BitstreamStorageService bitstreamStorageService = StorageServiceFactory.getInstance()
+                .getBitstreamStorageService();
+
+        String sIntermediatePath = StringUtils.EMPTY;
+        if (bitstreamStorageService.isRegisteredBitstream(sInternalId)) {
+            sInternalId = sInternalId.substring(REGISTERED_FLAG.length());
+        } else {
+            sInternalId = sanitizeIdentifier(sInternalId);
+            sIntermediatePath = getIntermediatePath(sInternalId);
+        }
+
+>>>>>>> dspace-7.6.1
         return sIntermediatePath + sInternalId;
     }
 
@@ -534,6 +595,7 @@ public class S3BitStoreService extends BaseBitStoreService {
         this.useRelativePath = useRelativePath;
     }
 
+<<<<<<< HEAD
     public String getEndpoint() {
         return endpoint;
     }
@@ -550,6 +612,8 @@ public class S3BitStoreService extends BaseBitStoreService {
         this.pathStyleAccessEnabled = pathStyleAccessEnabled;
     }
 
+=======
+>>>>>>> dspace-7.6.1
     /**
      * Contains a command-line testing tool. Expects arguments:
      * -a accessKey -s secretKey -f assetFileName
@@ -563,6 +627,7 @@ public class S3BitStoreService extends BaseBitStoreService {
         // parse command line
         Options options = new Options();
         Option option;
+<<<<<<< HEAD
 
         option = Option.builder("a").desc("access key").hasArg().required().build();
         options.addOption(option);
@@ -570,6 +635,15 @@ public class S3BitStoreService extends BaseBitStoreService {
         option = Option.builder("s").desc("secret key").hasArg().required().build();
         options.addOption(option);
 
+=======
+
+        option = Option.builder("a").desc("access key").hasArg().required().build();
+        options.addOption(option);
+
+        option = Option.builder("s").desc("secret key").hasArg().required().build();
+        options.addOption(option);
+
+>>>>>>> dspace-7.6.1
         option = Option.builder("f").desc("asset file name").hasArg().required().build();
         options.addOption(option);
 

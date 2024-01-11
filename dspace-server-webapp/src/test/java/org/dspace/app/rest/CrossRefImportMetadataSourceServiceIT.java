@@ -146,13 +146,22 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
                 + " Medical College of Prevention of Iodine Deficiency Diseases");
         MetadatumDTO author = createMetadatumDTO("dc", "contributor", "author", "L.V. Senyuk");
         MetadatumDTO type = createMetadatumDTO("dc", "type", null, "journal-article");
+<<<<<<< HEAD
         MetadatumDTO date = createMetadatumDTO("dc", "date", "issued", "2016");
+=======
+        MetadatumDTO date = createMetadatumDTO("dc", "date", "issued", "2016-05-19");
+>>>>>>> dspace-7.6.1
         MetadatumDTO ispartof = createMetadatumDTO("dc", "relation", "ispartof",
                                    "Ukraïnsʹkij žurnal medicini, bìologìï ta sportu");
         MetadatumDTO doi = createMetadatumDTO("dc", "identifier", "doi", "10.26693/jmbs01.02.184");
         MetadatumDTO issn = createMetadatumDTO("dc", "identifier", "issn", "2415-3060");
         MetadatumDTO volume = createMetadatumDTO("oaire", "citation", "volume", "1");
         MetadatumDTO issue = createMetadatumDTO("oaire", "citation", "issue", "2");
+<<<<<<< HEAD
+=======
+        MetadatumDTO publisher = createMetadatumDTO("dc", "publisher", null,
+                "Petro Mohyla Black Sea National University");
+>>>>>>> dspace-7.6.1
 
         metadatums.add(title);
         metadatums.add(author);
@@ -163,6 +172,10 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         metadatums.add(issn);
         metadatums.add(volume);
         metadatums.add(issue);
+<<<<<<< HEAD
+=======
+        metadatums.add(publisher);
+>>>>>>> dspace-7.6.1
 
         ImportRecord firstrRecord = new ImportRecord(metadatums);
 
@@ -172,13 +185,22 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
                 "Ischemic Heart Disease and Role of Nurse of Cardiology Department");
         MetadatumDTO author2 = createMetadatumDTO("dc", "contributor", "author", "K. І. Kozak");
         MetadatumDTO type2 = createMetadatumDTO("dc", "type", null, "journal-article");
+<<<<<<< HEAD
         MetadatumDTO date2 = createMetadatumDTO("dc", "date", "issued", "2016");
+=======
+        MetadatumDTO date2 = createMetadatumDTO("dc", "date", "issued", "2016-05-19");
+>>>>>>> dspace-7.6.1
         MetadatumDTO ispartof2 = createMetadatumDTO("dc", "relation", "ispartof",
                                      "Ukraïnsʹkij žurnal medicini, bìologìï ta sportu");
         MetadatumDTO doi2 = createMetadatumDTO("dc", "identifier", "doi", "10.26693/jmbs01.02.105");
         MetadatumDTO issn2 = createMetadatumDTO("dc", "identifier", "issn", "2415-3060");
         MetadatumDTO volume2 = createMetadatumDTO("oaire", "citation", "volume", "1");
         MetadatumDTO issue2 = createMetadatumDTO("oaire", "citation", "issue", "2");
+<<<<<<< HEAD
+=======
+        MetadatumDTO publisher2 = createMetadatumDTO("dc", "publisher", null,
+                "Petro Mohyla Black Sea National University");
+>>>>>>> dspace-7.6.1
 
         metadatums2.add(title2);
         metadatums2.add(author2);
@@ -189,6 +211,10 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         metadatums2.add(issn2);
         metadatums2.add(volume2);
         metadatums2.add(issue2);
+<<<<<<< HEAD
+=======
+        metadatums2.add(publisher2);
+>>>>>>> dspace-7.6.1
 
         ImportRecord secondRecord = new ImportRecord(metadatums2);
         records.add(firstrRecord);
@@ -196,4 +222,8 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         return records;
     }
 
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> dspace-7.6.1

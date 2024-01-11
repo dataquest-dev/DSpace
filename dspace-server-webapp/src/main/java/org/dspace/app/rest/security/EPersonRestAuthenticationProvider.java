@@ -11,7 +11,10 @@ import static org.dspace.app.rest.security.WebSecurityConfiguration.ADMIN_GRANT;
 import static org.dspace.app.rest.security.WebSecurityConfiguration.AUTHENTICATED_GRANT;
 
 import java.sql.SQLException;
+<<<<<<< HEAD
 import java.util.Arrays;
+=======
+>>>>>>> dspace-7.6.1
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -67,9 +70,12 @@ public class EPersonRestAuthenticationProvider implements AuthenticationProvider
     @Autowired
     private HttpServletRequest request;
 
+<<<<<<< HEAD
     @Autowired
     private ConfigurationService configurationService;
 
+=======
+>>>>>>> dspace-7.6.1
     @Autowired(required = false)
     private List<PostLoggedInAction> postLoggedInActions;
 

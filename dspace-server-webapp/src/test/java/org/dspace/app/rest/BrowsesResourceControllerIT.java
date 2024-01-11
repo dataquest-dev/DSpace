@@ -8,6 +8,7 @@
 package org.dspace.app.rest;
 
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
+import static org.dspace.app.rest.model.BrowseIndexRest.BROWSE_TYPE_VALUE_LIST;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
@@ -58,6 +59,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     public void findAll() throws Exception {
         //When we call the root endpoint
         getClient().perform(get("/api/discover/browses"))
+<<<<<<< HEAD
                 //The status has to be 200 OK
                 .andExpect(status().isOk())
                 //We expect the content type to be "application/hal+json;charset=UTF-8"
@@ -80,6 +82,31 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                         BrowseIndexMatcher.titleBrowseIndex("asc"),
                         BrowseIndexMatcher.subjectBrowseIndex("asc")
                 )))
+=======
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //We expect the content type to be "application/hal+json;charset=UTF-8"
+                   .andExpect(content().contentType(contentType))
+
+                   //Our default Discovery config has 5 browse indexes, so we expect this to be reflected in the page
+                   // object
+                   .andExpect(jsonPath("$.page.size", is(20)))
+                   .andExpect(jsonPath("$.page.totalElements", is(5)))
+                   .andExpect(jsonPath("$.page.totalPages", is(1)))
+                   .andExpect(jsonPath("$.page.number", is(0)))
+
+                   //The array of browse index should have a size 5
+                   .andExpect(jsonPath("$._embedded.browses", hasSize(5)))
+
+                   //Check that all (and only) the default browse indexes are present
+                   .andExpect(jsonPath("$._embedded.browses", containsInAnyOrder(
+                       BrowseIndexMatcher.dateIssuedBrowseIndex("asc"),
+                       BrowseIndexMatcher.contributorBrowseIndex("asc"),
+                       BrowseIndexMatcher.titleBrowseIndex("asc"),
+                       BrowseIndexMatcher.subjectBrowseIndex("asc"),
+                       BrowseIndexMatcher.hierarchicalBrowseIndex("srsc")
+                   )))
+>>>>>>> dspace-7.6.1
         ;
     }
 
@@ -122,6 +149,21 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
 
                    //Check that the JSON root matches the expected browse index
                    .andExpect(jsonPath("$", BrowseIndexMatcher.contributorBrowseIndex("asc")))
+        ;
+    }
+
+    @Test
+    public void findBrowseByVocabulary() throws Exception {
+        //Use srsc as this vocabulary is included by default
+        //When we call the root endpoint
+        getClient().perform(get("/api/discover/browses/srsc"))
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //We expect the content type to be "application/hal+json;charset=UTF-8"
+                   .andExpect(content().contentType(contentType))
+
+                   //Check that the JSON root matches the expected browse index
+                   .andExpect(jsonPath("$", BrowseIndexMatcher.hierarchicalBrowseIndex("srsc")))
         ;
     }
 
@@ -2142,7 +2184,11 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                 // The browse definition ID should be "author"
                 .andExpect(jsonPath("$.id", is("author")))
                 // It should be configured as a metadata browse
+<<<<<<< HEAD
                 .andExpect(jsonPath("$.metadataBrowse", is(true)))
+=======
+                .andExpect(jsonPath("$.browseType", is(BROWSE_TYPE_VALUE_LIST)))
+>>>>>>> dspace-7.6.1
         ;
     }
 
@@ -2159,7 +2205,11 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                 // The browse definition ID should be "author"
                 .andExpect(jsonPath("$.id", is("author")))
                 // It should be configured as a metadata browse
+<<<<<<< HEAD
                 .andExpect(jsonPath("$.metadataBrowse", is(true)));
+=======
+                .andExpect(jsonPath("$.browseType", is(BROWSE_TYPE_VALUE_LIST)));
+>>>>>>> dspace-7.6.1
     }
 
     @Test

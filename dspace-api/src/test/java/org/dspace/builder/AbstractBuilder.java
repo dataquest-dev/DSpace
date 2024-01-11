@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.alerts.service.SystemWideAlertService;
 import org.dspace.app.requestitem.factory.RequestItemServiceFactory;
 import org.dspace.app.requestitem.service.RequestItemService;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
@@ -51,9 +52,12 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.eperson.service.RegistrationDataService;
 import org.dspace.eperson.service.SubscribeService;
+<<<<<<< HEAD
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.license.factory.LicenseServiceFactory;
 import org.dspace.license.service.CreativeCommonsService;
+=======
+>>>>>>> dspace-7.6.1
 import org.dspace.orcid.factory.OrcidServiceFactory;
 import org.dspace.orcid.service.OrcidHistoryService;
 import org.dspace.orcid.service.OrcidQueueService;
@@ -61,6 +65,11 @@ import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.scripts.factory.ScriptServiceFactory;
 import org.dspace.scripts.service.ProcessService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+<<<<<<< HEAD
+=======
+import org.dspace.submit.factory.SubmissionServiceFactory;
+import org.dspace.submit.service.SubmissionConfigService;
+>>>>>>> dspace-7.6.1
 import org.dspace.supervision.factory.SupervisionOrderServiceFactory;
 import org.dspace.supervision.service.SupervisionOrderService;
 import org.dspace.versioning.factory.VersionServiceFactory;
@@ -117,6 +126,7 @@ public abstract class AbstractBuilder<T, S> {
     static OrcidQueueService orcidQueueService;
     static OrcidTokenService orcidTokenService;
     static SystemWideAlertService systemWideAlertService;
+<<<<<<< HEAD
     static SubscribeService subscribeService;
     static SupervisionOrderService supervisionOrderService;
 
@@ -128,6 +138,12 @@ public abstract class AbstractBuilder<T, S> {
     static ClarinUserMetadataService clarinUserMetadataService;
     static ClarinLicenseResourceUserAllowanceService clarinLicenseResourceUserAllowanceService;
     static CreativeCommonsService creativeCommonsService;
+=======
+    static SubmissionConfigService submissionConfigService;
+    static SubscribeService subscribeService;
+    static SupervisionOrderService supervisionOrderService;
+
+>>>>>>> dspace-7.6.1
 
     protected Context context;
 
@@ -184,6 +200,7 @@ public abstract class AbstractBuilder<T, S> {
         inProgressUserService = XmlWorkflowServiceFactory.getInstance().getInProgressUserService();
         poolTaskService = XmlWorkflowServiceFactory.getInstance().getPoolTaskService();
         workflowItemRoleService = XmlWorkflowServiceFactory.getInstance().getWorkflowItemRoleService();
+<<<<<<< HEAD
         clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
         clarinLicenseLabelService = ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
         clarinLicenseResourceMappingService = ClarinServiceFactory.getInstance().
@@ -194,11 +211,21 @@ public abstract class AbstractBuilder<T, S> {
         clarinLicenseResourceUserAllowanceService = ClarinServiceFactory.getInstance()
                 .getClarinLicenseResourceUserAllowance();
         creativeCommonsService = LicenseServiceFactory.getInstance().getCreativeCommonsService();
+=======
+>>>>>>> dspace-7.6.1
         orcidHistoryService = OrcidServiceFactory.getInstance().getOrcidHistoryService();
         orcidQueueService = OrcidServiceFactory.getInstance().getOrcidQueueService();
         orcidTokenService = OrcidServiceFactory.getInstance().getOrcidTokenService();
         systemWideAlertService = DSpaceServicesFactory.getInstance().getServiceManager()
                                                       .getServicesByType(SystemWideAlertService.class).get(0);
+<<<<<<< HEAD
+=======
+        try {
+            submissionConfigService = SubmissionServiceFactory.getInstance().getSubmissionConfigService();
+        } catch (SubmissionConfigReaderException e) {
+            log.error(e.getMessage(), e);
+        }
+>>>>>>> dspace-7.6.1
         subscribeService = ContentServiceFactory.getInstance().getSubscribeService();
         supervisionOrderService = SupervisionOrderServiceFactory.getInstance().getSupervisionOrderService();
     }
@@ -233,6 +260,7 @@ public abstract class AbstractBuilder<T, S> {
         processService = null;
         requestItemService = null;
         versioningService = null;
+<<<<<<< HEAD
         clarinLicenseService = null;
         clarinLicenseLabelService = null;
         clarinLicenseResourceMappingService = null;
@@ -243,6 +271,11 @@ public abstract class AbstractBuilder<T, S> {
         creativeCommonsService = null;
         orcidTokenService = null;
         systemWideAlertService = null;
+=======
+        orcidTokenService = null;
+        systemWideAlertService = null;
+        submissionConfigService = null;
+>>>>>>> dspace-7.6.1
         subscribeService = null;
         supervisionOrderService = null;
 
