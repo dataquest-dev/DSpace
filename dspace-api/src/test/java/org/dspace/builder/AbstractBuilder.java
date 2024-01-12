@@ -207,7 +207,6 @@ public abstract class AbstractBuilder<T, S> {
                                                       .getServicesByType(SystemWideAlertService.class).get(0);
         subscribeService = ContentServiceFactory.getInstance().getSubscribeService();
         supervisionOrderService = SupervisionOrderServiceFactory.getInstance().getSupervisionOrderService();
-                                                      .getServicesByType(SystemWideAlertService.class).get(0);
         try {
             submissionConfigService = SubmissionServiceFactory.getInstance().getSubmissionConfigService();
         } catch (SubmissionConfigReaderException e) {

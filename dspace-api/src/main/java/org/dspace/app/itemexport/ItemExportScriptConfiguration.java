@@ -7,12 +7,9 @@
  */
 package org.dspace.app.itemexport;
 
-import java.sql.SQLException;
-
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.core.Context;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
