@@ -39,15 +39,6 @@ public class ItemExportScriptConfiguration<T extends ItemExport> extends ScriptC
     }
 
     @Override
-    public boolean isAllowedToExecute(final Context context) {
-        try {
-            return authorizeService.isAdmin(context);
-        } catch (SQLException e) {
-            throw new RuntimeException("SQLException occurred when checking if the current user is an admin", e);
-        }
-    }
-
-    @Override
     public Options getOptions() {
         Options options = new Options();
 

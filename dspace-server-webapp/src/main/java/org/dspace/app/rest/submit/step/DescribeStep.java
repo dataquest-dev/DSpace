@@ -42,6 +42,8 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.RelationshipMetadataService;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
@@ -64,6 +66,9 @@ public class DescribeStep extends AbstractProcessingStep {
     // Configuration service
     private final ConfigurationService configurationService =
             DSpaceServicesFactory.getInstance().getConfigurationService();
+
+    private RelationshipMetadataService relationshipMetadataService =
+        ContentServiceFactory.getInstance().getRelationshipMetadataService();
 
     public DescribeStep() throws DCInputsReaderException {
         inputReader = new DCInputsReader();
@@ -103,7 +108,10 @@ public class DescribeStep extends AbstractProcessingStep {
                         fieldsName.add(input.getFieldName() + "." + (String) qualifier);
                     }
                 } else {
-                    fieldsName.add(input.getFieldName());
+                    String fieldName = input.getFieldName();
+                    if (fieldName != null) {
+                        fieldsName.add(fieldName);
+                    }
                 }
 
 
@@ -395,62 +403,6 @@ public class DescribeStep extends AbstractProcessingStep {
             }
             return new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
         }
-//        if (isNotFirstValue) {
-//            // cannot replace value to the metadataField which not exist in the Item - the Add operation must
-//            be called
-//            if (metadataByMetadataString.isEmpty()) {
-//                return null;
-//            }
-//
-//            // index of the value in the metadataField. Metadata field could have more values.
-//            int index = Integer.parseInt(opPathArray[opPathArray.length - 1]);
-//
-//            // trying to replace the value of the metadataField in the index which is bigger than
-//            // maximum size of values in the updating metadataFields
-//            // e.g. there is only one value in the `dc.relation` metadataField and we need to update
-//            // `dc.relation` in the index `1` which is second value from the `dc.relation`
-//            if (index >= metadataByMetadataString.size()) {
-//                // update value in the metadataField but the metadataField is empty - call Add operation
-//                if (index == 0) {
-//                    // from the path remove index because Add operation doesn't have the index
-//                    opPathArray = ArrayUtils.remove(opPathArray, opPathArray.length - 1);
-//                    opPath = String.join("/", opPathArray);
-//                    return new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
-//                } else {
-//                    // from the path decrease the metadataField value index to actual size of the metadataField values
-//                    opPathArray[opPathArray.length - 1] = String.valueOf(metadataByMetadataString.size() - 1);
-//                    opPath =  String.join("/", opPathArray);
-//                    return new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
-//                }
-//            }
-//            return new ReplaceOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
-//        } else {
-////            if (metadataByMetadataString.isEmpty()) {
-////                // new metadata is not there
-////                opPathArray = ArrayUtils.remove(opPathArray, opPathArray.length -1);
-////                String opPathAddOp = String.join("/", opPathArray);
-////                newOp = new AddOperation(opPathAddOp, new JsonValueEvaluator(new ObjectMapper(), an));
-////            } else if (Integer.parseInt(opPathArray[opPathArray.length-1]) > metadataByMetadataString.size()) {
-////                // metadata is not there but is another input field
-////                if (Integer.parseInt(opPathArray[opPathArray.length-1])-1 == 0) {
-////                    // new from 1 to 0
-////                    opPathArray = ArrayUtils.remove(opPathArray, opPathArray.length -1);
-////                    String opPathAddOp = String.join("/", opPathArray);
-////                    newOp = new AddOperation(opPathAddOp, new JsonValueEvaluator(new ObjectMapper(), an));
-////                } else {
-////                    // from 2 to 1
-////                    opPathArray[opPathArray.length-1] = String.valueOf(Integer.parseInt
-////                      (opPathArray[opPathArray.length-1]) - 1);
-////                    opPath =  String.join("/", opPathArray);
-////                    newOp = new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
-////                }
-////            } else {
-////                // new
-////                newOp = new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), on));
-////            }
-//            // first new
-//            return new AddOperation(opPath, new JsonValueEvaluator(new ObjectMapper(), an));
-//        }
     }
 
     /**

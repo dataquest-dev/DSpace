@@ -116,7 +116,10 @@ public class MetadataValidation extends AbstractValidation {
                                         input.getFieldName());
                     }
                 } else {
-                    fieldsName.add(input.getFieldName());
+                    String fieldName = input.getFieldName();
+                    if (fieldName != null) {
+                        fieldsName.add(fieldName);
+                    }
                 }
 
                 for (String fieldName : fieldsName) {
@@ -189,6 +192,7 @@ public class MetadataValidation extends AbstractValidation {
         }
         return true;
     }
+
 
     private void validateMetadataValues(List<MetadataValue> mdv, DCInput input, SubmissionStepConfig config,
                                         boolean isAuthorityControlled, String fieldKey,

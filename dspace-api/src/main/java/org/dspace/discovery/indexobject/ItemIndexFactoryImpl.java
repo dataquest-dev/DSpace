@@ -31,6 +31,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
@@ -95,6 +96,8 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
     protected ItemService itemService;
     @Autowired(required = true)
     protected ChoiceAuthorityService choiceAuthorityService;
+    @Autowired(required = true)
+    protected AuthorityValueService authorityValueService;
     @Autowired
     protected MetadataAuthorityService metadataAuthorityService;
     @Autowired
@@ -159,7 +162,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
         }
 
         // Add the item metadata
-        List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(item);
+        List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(context, item);
         addDiscoveryFields(doc, context, indexableItem.getIndexedObject(), discoveryConfigurations);
 
         //mandatory facet to show status on mydspace
@@ -171,13 +174,51 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
             addNamedResourceTypeIndex(doc, acvalue);
         }
 
-        // write the index and close the inputstreamreaders
-        try {
-            log.info("Wrote Item: " + item.getID() + " to Index");
-        } catch (RuntimeException e) {
-            log.error("Error while writing item to discovery index: " + item.getID() + " message:"
-                    + e.getMessage(), e);
+        return doc;
+    }
+
+    /**
+     * Check whether the given item is the latest version.
+     * If the latest item cannot be determined, because either the version history or the latest version is not present,
+     * assume the item is latest.
+     * @param context the DSpace context.
+     * @param item the item that should be checked.
+     * @return true if the item is the latest version, false otherwise.
+     */
+    protected boolean isLatestVersion(Context context, Item item) throws SQLException {
+        VersionHistory history = versionHistoryService.findByItem(context, item);
+        if (history == null) {
+            // not all items have a version history
+            // if an item does not have a version history, it is by definition the latest version
+            return true;
         }
+
+        // start with the very latest version of the given item (may still be in workspace)
+        Version latestVersion = versionHistoryService.getLatestVersion(context, history);
+
+        // find the latest version of the given item that is archived
+        while (latestVersion != null && !latestVersion.getItem().isArchived()) {
+            latestVersion = versionHistoryService.getPrevious(context, history, latestVersion);
+        }
+
+        // could not find an archived version of the given item
+        if (latestVersion == null) {
+            // this scenario should never happen, but let's err on the side of showing too many items vs. to little
+            // (see discovery.xml, a lot of discovery configs filter out all items that are not the latest version)
+            return true;
+        }
+
+        // sanity check
+        assert latestVersion.getItem().isArchived();
+
+        return item.equals(latestVersion.getItem());
+    }
+
+    @Override
+    public SolrInputDocument buildNewDocument(Context context, IndexableItem indexableItem)
+            throws SQLException, IOException {
+        SolrInputDocument doc = buildDocument(context, indexableItem);
+        doc.addField(STATUS_FIELD, STATUS_FIELD_PREDB);
         return doc;
     }
 
@@ -417,7 +458,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                                                                 Boolean.FALSE),
                                                 true);
 
-                        if (!ignorePrefered) {
+                        if (!ignorePrefered && !authority.startsWith(AuthorityValueService.GENERATE)) {
                             try {
                                 preferedLabel = choiceAuthorityService.getLabel(meta, collection, meta.getLanguage());
                             } catch (Exception e) {
@@ -858,7 +899,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
     private void saveFacetPrefixParts(SolrInputDocument doc, DiscoverySearchFilter searchFilter, String value,
                                       String separator, String authority, String preferedLabel) {
         value = StringUtils.normalizeSpace(value);
-        Pattern pattern = Pattern.compile("\\b\\w+\\b", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("\\b\\w+\\b", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS);
         Matcher matcher = pattern.matcher(value);
         while (matcher.find()) {
             int index = matcher.start();

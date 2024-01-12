@@ -8,6 +8,7 @@
 package org.dspace.app.rest;
 
 import static java.lang.Thread.sleep;
+import static org.dspace.app.rest.matcher.GroupMatcher.matchGroupWithName;
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_UUID;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
@@ -18,6 +19,8 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -48,6 +51,7 @@ import org.dspace.app.rest.matcher.AuthorizationMatcher;
 import org.dspace.app.rest.matcher.EPersonMatcher;
 import org.dspace.app.rest.matcher.GroupMatcher;
 import org.dspace.app.rest.matcher.HalMatcher;
+import org.dspace.app.rest.model.AuthnRest;
 import org.dspace.app.rest.model.EPersonRest;
 import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -66,6 +70,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.orcid.client.OrcidClient;
 import org.dspace.orcid.client.OrcidConfiguration;
 import org.dspace.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.services.ConfigurationService;
@@ -1624,6 +1629,22 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 //    }
 
     @Test
+    public void testGenerateShortLivedTokenWithShortLivedTokenUsingGet() throws Exception {
+        String token = getAuthToken(eperson.getEmail(), password);
+        String shortLivedToken = getShortLivedToken(token);
+
+        getClient().perform(
+            get("/api/authn/shortlivedtokens?authentication-token=" + shortLivedToken)
+                .with(ip(TRUSTED_IP))
+        )
+            .andExpect(status().isForbidden());
+
+        // Logout, invalidating token
+        getClient(token).perform(post("/api/authn/logout"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
     public void testOrcidLoginURL() throws Exception {
 
         configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", ORCID_ONLY);
@@ -1644,6 +1665,71 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
         } finally {
             orcidConfiguration.setClientId(originalClientId);
         }
+    }
+
+    @Test
+    public void testAreSpecialGroupsApplicable() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        GroupBuilder.createGroup(context)
+            .withName("specialGroupPwd")
+            .build();
+        GroupBuilder.createGroup(context)
+            .withName("specialGroupShib")
+            .build();
+
+        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", SHIB_AND_PASS);
+        configurationService.setProperty("authentication-password.login.specialgroup", "specialGroupPwd");
+        configurationService.setProperty("authentication-shibboleth.role.faculty", "specialGroupShib");
+        configurationService.setProperty("authentication-shibboleth.default-roles", "faculty");
+
+        context.restoreAuthSystemState();
+
+        String passwordToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(passwordToken).perform(get("/api/authn/status").param("projection", "full"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", AuthenticationStatusMatcher.matchFullEmbeds()))
+            .andExpect(jsonPath("$", AuthenticationStatusMatcher.matchLinks()))
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.okay", is(true)))
+            .andExpect(jsonPath("$.authenticated", is(true)))
+            .andExpect(jsonPath("$.authenticationMethod", is("password")))
+            .andExpect(jsonPath("$.type", is("status")))
+            .andExpect(jsonPath("$._links.specialGroups.href", startsWith(REST_SERVER_URL)))
+            .andExpect(jsonPath("$._embedded.specialGroups._embedded.specialGroups",
+                Matchers.containsInAnyOrder(matchGroupWithName("specialGroupPwd"))));
+
+        getClient(passwordToken).perform(get("/api/authn/status/specialGroups").param("projection", "full"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$._embedded.specialGroups",
+                Matchers.containsInAnyOrder(matchGroupWithName("specialGroupPwd"))));
+
+        String shibToken = getClient().perform(post("/api/authn/login")
+            .requestAttr("SHIB-MAIL", eperson.getEmail())
+            .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getHeader(AUTHORIZATION_HEADER).replace(AUTHORIZATION_TYPE, "");
+
+        getClient(shibToken).perform(get("/api/authn/status").param("projection", "full"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", AuthenticationStatusMatcher.matchFullEmbeds()))
+            .andExpect(jsonPath("$", AuthenticationStatusMatcher.matchLinks()))
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.okay", is(true)))
+            .andExpect(jsonPath("$.authenticated", is(true)))
+            .andExpect(jsonPath("$.authenticationMethod", is("shibboleth")))
+            .andExpect(jsonPath("$.type", is("status")))
+            .andExpect(jsonPath("$._links.specialGroups.href", startsWith(REST_SERVER_URL)))
+            .andExpect(jsonPath("$._embedded.specialGroups._embedded.specialGroups",
+                Matchers.containsInAnyOrder(matchGroupWithName("specialGroupShib"))));
+
+        getClient(shibToken).perform(get("/api/authn/status/specialGroups").param("projection", "full"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$._embedded.specialGroups",
+                Matchers.containsInAnyOrder(matchGroupWithName("specialGroupShib"))));
     }
 
     // Get a short-lived token based on an active login token

@@ -97,6 +97,7 @@ public class S3BitStoreService extends BaseBitStoreService {
     protected static final int directoryLevels = 3;
 
     private boolean enabled = false;
+
     private String awsAccessKey;
     private String awsSecretKey;
     private String awsRegionName;
@@ -118,19 +119,19 @@ public class S3BitStoreService extends BaseBitStoreService {
     /**
      * S3 service
      */
-    protected AmazonS3 s3Service = null;
+    private AmazonS3 s3Service = null;
 
     /**
      * S3 transfer manager
      * this is reused between put calls to use less resources for multiple uploads
      */
-    protected TransferManager tm = null;
+    private TransferManager tm = null;
 
     private static final ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     /**
-     * Utility method for generate AmazonS3 builder with specific region
+     * Utility method for generate AmazonS3 builder
      *
      * @param regions wanted regions in client
      * @param awsCredentials credentials of the client
