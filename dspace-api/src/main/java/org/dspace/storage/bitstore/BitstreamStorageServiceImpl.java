@@ -488,7 +488,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
         return (now - lastModified) < (1 * 60 * 1000);
     }
 
-    protected BitStoreService getStore(int position) throws IOException {
+    public BitStoreService getStore(int position) throws IOException {
         BitStoreService bitStoreService = this.stores.get(position);
         if (!bitStoreService.isInitialized()) {
             bitStoreService.init();

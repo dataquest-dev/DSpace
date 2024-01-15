@@ -1201,7 +1201,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                    .andExpect(jsonPath("$.page.size", is(5)))
                    .andExpect(jsonPath("$.page.totalElements", is(7)))
                    .andExpect(jsonPath("$.page.totalPages", is(2)))
-                   .andExpect(jsonPath("$.page.number", is(1)))
+                   .andExpect(jsonPath("$.page.number", is(1)));
 
     }
 

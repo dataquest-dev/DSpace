@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.text.IsEqualIgnoringCase.equalToIgnoringCase;
 
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 
 /**
  * Utility class to construct a Matcher for a browse index

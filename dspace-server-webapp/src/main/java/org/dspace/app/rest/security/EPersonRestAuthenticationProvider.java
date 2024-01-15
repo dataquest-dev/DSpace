@@ -67,19 +67,6 @@ public class EPersonRestAuthenticationProvider implements AuthenticationProvider
     @Autowired
     private HttpServletRequest request;
 
-    @Autowired(required = false)
-    private List<PostLoggedInAction> postLoggedInActions;
-
-    @Autowired
-    private ConfigurationService configurationService;
-
-    @PostConstruct
-    public void postConstruct() {
-        if (postLoggedInActions == null) {
-            postLoggedInActions = Collections.emptyList();
-        }
-    }
-
     @Autowired
     private ConfigurationService configurationService;
 

@@ -120,8 +120,6 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     @Autowired(required = true)
     protected SearchService searchService;
     @Autowired(required = true)
-    protected SearchService searchService;
-    @Autowired(required = true)
     protected ResourcePolicyService resourcePolicyService;
     @Autowired(required = true)
     protected CollectionService collectionService;
