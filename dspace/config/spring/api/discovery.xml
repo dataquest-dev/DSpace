@@ -64,8 +64,6 @@
                 <!-- Used to show filters and results on MyDSpace -->
                 <!-- Do not change the id of special entries or else they won't work -->
                 <!-- "workspace" is a special entry to search for your own workspace items -->
-                <!--Use site to override the default configuration for the home page & default discovery page-->
-                <entry key="site" value-ref="homepageConfiguration" />
 
                 <entry key="workspace" value-ref="workspaceConfiguration" />
                 <entry key="supervisedWorkspace" value-ref="supervisedWorkspaceConfiguration" />
