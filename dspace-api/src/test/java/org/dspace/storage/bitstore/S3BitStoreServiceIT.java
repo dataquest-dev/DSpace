@@ -64,7 +64,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 
-
 /**
  * @author Luca Giamminonni (luca.giamminonni at 4science.com)
  */
@@ -83,7 +82,6 @@ public class S3BitStoreServiceIT extends AbstractIntegrationTestWithDatabase {
     private File s3Directory;
 
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-
 
     @Before
     public void setup() throws Exception {
@@ -408,7 +406,7 @@ public class S3BitStoreServiceIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void testDoNotInitializeConfigured() throws Exception {
         String assetstores3enabledOldValue = configurationService.getProperty("assetstore.s3.enabled");
-        configurationService.setProperty("assetstore.s3.enabled", "false");
+        configurationService.setProperty("assetstore.s3.enabled", false);
         s3BitStoreService = new S3BitStoreService(amazonS3Client);
         s3BitStoreService.init();
         assertFalse(s3BitStoreService.isInitialized());
