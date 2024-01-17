@@ -39,6 +39,7 @@ import org.dspace.discovery.SearchUtils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class MetadataExportSearchIT extends AbstractIntegrationTestWithDatabase {
@@ -169,6 +170,8 @@ public class MetadataExportSearchIT extends AbstractIntegrationTestWithDatabase 
         checkItemsPresentInFile(filename, itemsSubject1);
     }
 
+    // CLARIN UPDATE - the date filter is not supported
+    @Ignore
     @Test
     public void exportMetadataSearchFilterDate() throws Exception {
         int result = runDSpaceScript(
