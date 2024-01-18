@@ -170,7 +170,7 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
 
     @Test
     public void findTraditionalPageOneWithNewlyCreatedAccountTest() throws Exception {
-        String token = getAuthToken(eperson.getEmail(), password);
+        String token = getAuthToken(admin.getEmail(), password);
         getClient(token).perform(get("/api/config/submissionforms/traditionalpageone"))
                    .andExpect(status().isOk())
                    .andExpect(content().contentType(contentType))
