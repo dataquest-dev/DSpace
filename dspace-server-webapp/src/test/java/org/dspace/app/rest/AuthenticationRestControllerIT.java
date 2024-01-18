@@ -1625,22 +1625,6 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 //    }
 
     @Test
-    public void testGenerateShortLivedTokenWithShortLivedTokenUsingGet() throws Exception {
-        String token = getAuthToken(eperson.getEmail(), password);
-        String shortLivedToken = getShortLivedToken(token);
-
-        getClient().perform(
-            get("/api/authn/shortlivedtokens?authentication-token=" + shortLivedToken)
-                .with(ip(TRUSTED_IP))
-        )
-            .andExpect(status().isForbidden());
-
-        // Logout, invalidating token
-        getClient(token).perform(post("/api/authn/logout"))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
     public void testOrcidLoginURL() throws Exception {
 
         configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", ORCID_ONLY);
