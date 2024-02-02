@@ -7,7 +7,6 @@
  */
 package org.dspace.app.rest;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 import java.io.BufferedInputStream;
@@ -103,7 +102,8 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
         String shibbolethDiscoFeedUrl = configurationService.getProperty("shibboleth.discofeed.url");
 
         if (StringUtils.isBlank(shibbolethDiscoFeedUrl)) {
-            throw new IllegalStateException("Cannot load the property `shibboleth.discofeed.url` from the configuration " +
+            throw new IllegalStateException(
+                    "Cannot load the property `shibboleth.discofeed.url` from the configuration " +
                     "file, maybe it is not set in the configuration file");
         }
 
@@ -132,7 +132,7 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
             ret.addAll(shibDiscoEntities.values());
             return ret.toJSONString();
 
-        }finally {
+        } finally {
             // true is the default http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html
             origSniVal = (origSniVal == null) ? "true" : origSniVal;
             System.setProperty("jsse.enableSNIExtension", origSniVal);

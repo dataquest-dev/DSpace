@@ -49,7 +49,8 @@ public class ClarinDiscoJuiceFeedsUpdateScheduler implements InitializingBean {
      */
     @Scheduled(cron = "${discojuice.refresh:-}")
     public void cronJobSch() {
-        boolean isAllowed = configurationService.getBooleanProperty("shibboleth.discofeed.allowed", true);
+        // 2024/02 - unless explicitly turned on, do not use discofeed
+        boolean isAllowed = configurationService.getBooleanProperty("shibboleth.discofeed.allowed", false);
         if (!isAllowed) {
             return;
         }
