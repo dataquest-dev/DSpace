@@ -54,12 +54,12 @@ public class ClarinDiscoJuiceFeedsUpdateScheduler implements InitializingBean {
             return;
         }
 
-        log.debug("CRON Job - going to download the discojuice feeds.");
+        log.debug("CRON Job - going to download the discovery feeds.");
         String newFeedsContent = clarinDiscoJuiceFeedsDownloadService.createFeedsContent();
         if (isNotBlank(newFeedsContent)) {
             feedsContent = newFeedsContent;
         } else {
-            log.error("Failed to obtain discojuice feeds!");
+            log.error("Failed to obtain additional discovery feeds!");
         }
     }
 
