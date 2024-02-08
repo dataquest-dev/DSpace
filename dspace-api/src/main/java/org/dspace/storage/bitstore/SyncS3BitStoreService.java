@@ -132,7 +132,7 @@ public class SyncS3BitStoreService extends S3BitStoreService {
         if (!localFile.getParentFile().mkdirs()) {
             throw new IOException("Assetstore synchronization error: Directories in the assetstore for the file " +
                     "with path" + localFile.getParent() + " were not created");
-        };
+        }
         if (!localFile.createNewFile()) {
             throw new IOException("Assetstore synchronization error: File " + localFile.getPath() +
                     " was not created");
