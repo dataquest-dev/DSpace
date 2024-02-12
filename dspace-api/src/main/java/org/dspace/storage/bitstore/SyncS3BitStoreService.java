@@ -125,10 +125,9 @@ public class SyncS3BitStoreService extends S3BitStoreService {
     private void createFileIfNotExist(File localFile) throws IOException {
         if (localFile.exists()) {
             return;
-
         }
 
-        // Create the necessary parent directories
+        // Create the necessary parent directories if they do not yet exist
         if (!localFile.getParentFile().mkdirs()) {
             throw new IOException("Assetstore synchronization error: Directories in the assetstore for the file " +
                     "with path" + localFile.getParent() + " were not created");
