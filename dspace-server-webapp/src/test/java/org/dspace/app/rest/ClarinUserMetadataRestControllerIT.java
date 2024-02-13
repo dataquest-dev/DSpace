@@ -9,6 +9,7 @@ package org.dspace.app.rest;
 
 import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
 import static org.dspace.app.rest.repository.ClarinUserMetadataRestController.CHECK_EMAIL_RESPONSE_CONTENT;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -45,9 +46,12 @@ import org.dspace.content.Community;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.content.service.clarin.ClarinUserMetadataService;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -58,6 +62,8 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
     ClarinLicenseService clarinLicenseService;
     @Autowired
     ClarinLicenseLabelService clarinLicenseLabelService;
+    @Autowired
+    ClarinUserMetadataService clarinUserMetadataService;
 
     WorkspaceItem witem;
     ClarinLicense clarinLicense;
@@ -406,6 +412,92 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                         .contentType(contentType))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
+    }
+
+    @Test
+    public void shouldNotCreateDuplicateUserMetadataBasedOnHistory() throws Exception {
+        // Prepare environment with Clarin License, resource mapping, allowance, user registration and user metadata
+        // then try to download the same bitstream again and the user metadata should not be created based on history
+        this.prepareEnvironment("NAME,ADDRESS", 0);
+        context.turnOffAuthorisationSystem();
+        ClarinUserRegistration clarinUserRegistration = ClarinUserRegistrationBuilder
+                .createClarinUserRegistration(context).withEPersonID(admin.getID()).build();
+//        ClarinUserMetadataBuilder.createClarinUserMetadata(context)
+//                .withUserRegistration(clarinUserRegistration)
+//                .build();
+        context.restoreAuthSystemState();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ClarinUserMetadataRest clarinUserMetadata1 = new ClarinUserMetadataRest();
+        clarinUserMetadata1.setMetadataKey("NAME");
+        clarinUserMetadata1.setMetadataValue("Test");
+
+        ClarinUserMetadataRest clarinUserMetadata2 = new ClarinUserMetadataRest();
+        clarinUserMetadata2.setMetadataKey("ADDRESS");
+        clarinUserMetadata2.setMetadataValue("Test2");
+
+        List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
+        clarinUserMetadataRestList.add(clarinUserMetadata1);
+        clarinUserMetadataRestList.add(clarinUserMetadata2);
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        // There should exist record in the UserRegistration table
+        getClient(adminToken).perform(get("/api/core/clarinuserregistrations")
+                        .contentType(contentType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(1)));
+
+        // Manage UserMetadata and get token
+        getClient(adminToken).perform(post("/api/core/clarinusermetadata/manage?bitstreamUUID=" + bitstream.getID())
+                        .content(mapper.writeValueAsBytes(clarinUserMetadataRestList.toArray()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", notNullValue()))
+                .andExpect(jsonPath("$", not(CHECK_EMAIL_RESPONSE_CONTENT)));
+
+        // Get created CLRUA
+        getClient(adminToken).perform(get("/api/core/clarinlruallowances")
+                        .contentType(contentType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(1)));
+
+
+        // Get created User Metadata - there should be 2 records
+        getClient(adminToken).perform(get("/api/core/clarinusermetadata")
+                        .contentType(contentType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(2)));
+//        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+
+        // Second download
+
+        // Manage UserMetadata and get token
+        getClient(adminToken).perform(post("/api/core/clarinusermetadata/manage?bitstreamUUID=" + bitstream.getID())
+                        .content(mapper.writeValueAsBytes(clarinUserMetadataRestList.toArray()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", notNullValue()))
+                .andExpect(jsonPath("$", not(CHECK_EMAIL_RESPONSE_CONTENT)));
+
+        // Get created two CLRUA
+        getClient(adminToken).perform(get("/api/core/clarinlruallowances")
+                        .contentType(contentType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        // Get created User Metadata - there should be 4 records
+        getClient(adminToken).perform(get("/api/core/clarinusermetadata")
+                        .contentType(contentType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(4)));
+
+        context.commit();
+        // The User Metadata should not have updated transaction ID after a new download - test for fixed issue
+        ClarinLicenseResourceUserAllowance clrua1 = clarinUserMetadataService.find(context, 1).getTransaction();
+        ClarinLicenseResourceUserAllowance clrua2 = clarinUserMetadataService.find(context, 4).getTransaction();
+        assertThat(clrua1.getID(), not(clrua2.getID()));
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     private WorkspaceItem createWorkspaceItemWithFile() {
