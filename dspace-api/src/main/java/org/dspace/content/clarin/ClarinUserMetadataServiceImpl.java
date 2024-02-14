@@ -84,7 +84,8 @@ public class ClarinUserMetadataServiceImpl implements ClarinUserMetadataService 
                                                                        UUID bitstreamUUID, boolean lastTransaction)
             throws SQLException {
         if (lastTransaction) {
-            return getLastTransactionUserMetadata(clarinUserMetadataDAO.findByUserRegistrationAndBitstream(context, userRegUUID, bitstreamUUID));
+            return getLastTransactionUserMetadata(clarinUserMetadataDAO.findByUserRegistrationAndBitstream(context,
+                    userRegUUID, bitstreamUUID));
         }
         return clarinUserMetadataDAO.findByUserRegistrationAndBitstream(context, userRegUUID, bitstreamUUID);
     }
@@ -99,7 +100,8 @@ public class ClarinUserMetadataServiceImpl implements ClarinUserMetadataService 
         // Filter all user metadata by the last transaction
         try {
             filteredUserMetadata = userMetadataList.stream()
-                    .filter(clarinUserMetadata -> clarinUserMetadata.getTransaction().getID().equals(latestTransactionId))
+                    .filter(clarinUserMetadata -> clarinUserMetadata.getTransaction().getID()
+                            .equals(latestTransactionId))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error filtering user metadata by the last transaction", e);

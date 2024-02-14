@@ -7,15 +7,15 @@
  */
 package org.dspace.content.dao.impl.clarin;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+import javax.persistence.Query;
+
 import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.dao.clarin.ClarinUserMetadataDAO;
 import org.dspace.core.AbstractHibernateDAO;
 import org.dspace.core.Context;
-
-import javax.persistence.Query;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
 
 public class ClarinUserMetadataDAOImpl extends AbstractHibernateDAO<ClarinUserMetadata>
         implements ClarinUserMetadataDAO {

@@ -25,5 +25,6 @@ public interface ClarinUserMetadataService {
     void delete(Context context, ClarinUserMetadata clarinUserMetadata) throws SQLException, AuthorizeException;
 
     List<ClarinUserMetadata> findByUserRegistrationAndBitstream(Context context, Integer userRegUUID,
-                                                                UUID bitstreamUUID, boolean lastTransaction) throws SQLException;
+                                                                UUID bitstreamUUID, boolean lastTransaction)
+            throws SQLException;
 }
