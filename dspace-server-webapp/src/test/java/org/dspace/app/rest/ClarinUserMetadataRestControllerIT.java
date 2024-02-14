@@ -66,8 +66,10 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
     ClarinUserMetadataService clarinUserMetadataService;
 
     WorkspaceItem witem;
+    WorkspaceItem witem2;
     ClarinLicense clarinLicense;
     Bitstream bitstream;
+    Bitstream bitstream2;
 
     // Attach ClarinLicense to the Bitstream
     private void prepareEnvironment(String requiredInfo, Integer confirmation) throws Exception {
@@ -79,7 +81,8 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
 
         // 1. Create WI with uploaded file
         context.turnOffAuthorisationSystem();
-        witem = createWorkspaceItemWithFile();
+        witem = this.createWorkspaceItemWithFile(false);
+        witem2 = this.createWorkspaceItemWithFile(true);
 
         List<Operation> replaceOperations = new ArrayList<Operation>();
         String clarinLicenseName = "Test Clarin License";
@@ -102,16 +105,23 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                         .content(updateBody)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+        getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem2.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
 
         // 4. Check if the Clarin License name was added to the Item's metadata `dc.rights`
         getClient(tokenAdmin).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.rights'][0].value", is(clarinLicenseName)));
+        getClient(tokenAdmin).perform(get("/api/submission/workspaceitems/" + witem2.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.item.metadata['dc.rights'][0].value", is(clarinLicenseName)));
 
         // 5. Check if the Clarin License was attached to the Bitstream
         getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.bitstreams", is(1)));
+                .andExpect(jsonPath("$.bitstreams", is(2)));
     }
 
     @Test
@@ -468,12 +478,11 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                         .contentType(contentType))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(2)));
-//        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
 
         // Second download
 
         // Manage UserMetadata and get token
-        getClient(adminToken).perform(post("/api/core/clarinusermetadata/manage?bitstreamUUID=" + bitstream.getID())
+        getClient(adminToken).perform(post("/api/core/clarinusermetadata/manage?bitstreamUUID=" + bitstream2.getID())
                         .content(mapper.writeValueAsBytes(clarinUserMetadataRestList.toArray()))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -492,15 +501,62 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(4)));
 
-        context.commit();
         // The User Metadata should not have updated transaction ID after a new download - test for fixed issue
         ClarinLicenseResourceUserAllowance clrua1 = clarinUserMetadataService.find(context, 1).getTransaction();
         ClarinLicenseResourceUserAllowance clrua2 = clarinUserMetadataService.find(context, 4).getTransaction();
         assertThat(clrua1.getID(), not(clrua2.getID()));
+
+        // Check that the user registration for test data full user has been created
+        // Test /api/core/clarinusermetadatas search by userRegistrationAndBitstream endpoint
+        getClient(adminToken).perform(get("/api/core/clarinusermetadata/search/byUserRegistrationAndBitstream")
+                .param("userRegUUID", String.valueOf(clarinUserRegistration.getID()))
+                .param("bitstreamUUID", String.valueOf(bitstream2.getID()))
+                .contentType(contentType))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        // Download again the second bitstream and the user metadata should be returned only from the last transaction
+
+        // Create a new User Metadata
+        ClarinUserMetadataRest clarinUserMetadata3 = new ClarinUserMetadataRest();
+        clarinUserMetadata3.setMetadataKey("NAME");
+        clarinUserMetadata3.setMetadataValue("New Test");
+
+        ClarinUserMetadataRest clarinUserMetadata4 = new ClarinUserMetadataRest();
+        clarinUserMetadata4.setMetadataKey("ADDRESS");
+        clarinUserMetadata4.setMetadataValue("New Test");
+
+        List<ClarinUserMetadataRest> newUserMetadataRestList = new ArrayList<>();
+        newUserMetadataRestList.add(clarinUserMetadata3);
+        newUserMetadataRestList.add(clarinUserMetadata4);
+
+        // Manage UserMetadata and get token
+        getClient(adminToken).perform(post("/api/core/clarinusermetadata/manage?bitstreamUUID=" + bitstream2.getID())
+                        .content(mapper.writeValueAsBytes(newUserMetadataRestList.toArray()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", notNullValue()))
+                .andExpect(jsonPath("$", not(CHECK_EMAIL_RESPONSE_CONTENT)));
+
+        // Get created two CLRUA
+        getClient(adminToken).perform(get("/api/core/clarinlruallowances")
+                        .contentType(contentType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(3)));
+
+        // Get created User Metadata from the new transaction - there should be 2 records
+        getClient(adminToken).perform(get("/api/core/clarinusermetadata/search/byUserRegistrationAndBitstream")
+                        .param("userRegUUID", String.valueOf(clarinUserRegistration.getID()))
+                        .param("bitstreamUUID", String.valueOf(bitstream2.getID()))
+                        .contentType(contentType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        // Delete all created user metadata - clean test environment
         ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
-    private WorkspaceItem createWorkspaceItemWithFile() {
+    private WorkspaceItem createWorkspaceItemWithFile(boolean secondBitstream) {
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
@@ -520,7 +576,11 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf)
                 .build();
 
-        bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
+        if (secondBitstream) {
+            this.bitstream2 = witem.getItem().getBundles().get(0).getBitstreams().get(0);
+        } else {
+            this.bitstream = witem.getItem().getBundles().get(0).getBitstreams().get(0);
+        }
 
         return witem;
     }

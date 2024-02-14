@@ -8,7 +8,13 @@
 package org.dspace.content.dao.clarin;
 
 import org.dspace.content.clarin.ClarinUserMetadata;
+import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+
 public interface ClarinUserMetadataDAO extends GenericDAO<ClarinUserMetadata> {
+    List<ClarinUserMetadata> findByUserRegistrationAndBitstream(Context context, Integer userRegUUID, UUID bitstreamUUID) throws SQLException;
 }
