@@ -47,6 +47,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
+import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
@@ -431,9 +432,6 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
         context.turnOffAuthorisationSystem();
         ClarinUserRegistration clarinUserRegistration = ClarinUserRegistrationBuilder
                 .createClarinUserRegistration(context).withEPersonID(admin.getID()).build();
-//        ClarinUserMetadataBuilder.createClarinUserMetadata(context)
-//                .withUserRegistration(clarinUserRegistration)
-//                .build();
         context.restoreAuthSystemState();
 
         ObjectMapper mapper = new ObjectMapper();
@@ -501,8 +499,9 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(jsonPath("$.page.totalElements", is(4)));
 
         // The User Metadata should not have updated transaction ID after a new download - test for fixed issue
-        ClarinLicenseResourceUserAllowance clrua1 = clarinUserMetadataService.find(context, 1).getTransaction();
-        ClarinLicenseResourceUserAllowance clrua2 = clarinUserMetadataService.find(context, 4).getTransaction();
+        List<ClarinUserMetadata> allUserMetadata = clarinUserMetadataService.findAll(context);
+        ClarinLicenseResourceUserAllowance clrua1 = allUserMetadata.get(0).getTransaction();
+        ClarinLicenseResourceUserAllowance clrua2 = allUserMetadata.get(3).getTransaction();
         assertThat(clrua1.getID(), not(clrua2.getID()));
 
         // Check that the user registration for test data full user has been created
