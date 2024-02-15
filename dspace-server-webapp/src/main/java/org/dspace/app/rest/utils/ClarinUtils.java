@@ -7,20 +7,27 @@
  */
 package org.dspace.app.rest.utils;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+
+import org.springframework.stereotype.Component;
 
 /**
  * Collection of utility methods for clarin customized operations
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
+@Component
 public class ClarinUtils {
+
+    private ClarinUtils() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
 
     /**
      * Disables SSL certificate validation for the given connection
@@ -30,7 +37,7 @@ public class ClarinUtils {
     public static void disableCertificateValidation(HttpsURLConnection connection) {
         try {
             // Create a TrustManager that trusts all certificates
-            TrustManager[] trustAllCerts = {new X509TrustManager() {
+            TrustManager[] trustAllCerts = { new X509TrustManager() {
                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                     return null;
                 }
@@ -39,8 +46,8 @@ public class ClarinUtils {
                 }
 
                 public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-                }
-            }};
+                } }
+            };
 
             // Install the TrustManager
             SSLContext sslContext = SSLContext.getInstance("SSL");

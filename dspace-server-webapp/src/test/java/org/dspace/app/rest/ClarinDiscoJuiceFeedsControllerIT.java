@@ -14,11 +14,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
