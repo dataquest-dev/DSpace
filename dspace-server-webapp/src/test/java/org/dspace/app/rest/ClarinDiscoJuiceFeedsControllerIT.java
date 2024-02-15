@@ -7,13 +7,25 @@
  */
 package org.dspace.app.rest;
 
+import static org.dspace.app.rest.ClarinDiscoJuiceFeedsDownloadService.openURLConnection;
 import static org.dspace.app.rest.repository.ClarinDiscoJuiceFeedsController.APPLICATION_JAVASCRIPT_UTF8;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import javax.net.ssl.HttpsURLConnection;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.app.rest.utils.ClarinUtils;
 import org.dspace.services.ConfigurationService;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,6 +42,35 @@ public class ClarinDiscoJuiceFeedsControllerIT extends AbstractControllerIntegra
 
     @Autowired
     ClarinDiscoJuiceFeedsUpdateScheduler clarinDiscoJuiceFeedsUpdateScheduler;
+
+    // Just to make sure that the DiscoFeed URL is accessible.
+    @Test
+    public void testDiscoFeedURL() throws Exception {
+        String discoFeedURL = configurationService.getProperty("shibboleth.discofeed.url.test.connection");
+        if (StringUtils.isBlank(discoFeedURL)) {
+            throw new RuntimeException("The DiscoFeed testing URL is not set in the configuration. Setup the " +
+                    "shibboleth.discofeed.url.test.connection property in the configuration.");
+        }
+
+        boolean disableSSL = configurationService.getBooleanProperty("disable.ssl.check", false);
+        JSONParser parser = new JSONParser();
+        try {
+            URL url = new URL(discoFeedURL);
+            URLConnection conn = openURLConnection(String.valueOf(url));
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(10000);
+
+            // Disable SSL certificate validation
+            if (disableSSL && conn instanceof HttpsURLConnection) {
+                ClarinUtils.disableCertificateValidation((HttpsURLConnection) conn);
+            }
+
+            Object obj = parser.parse(new InputStreamReader(conn.getInputStream()));
+            assertNotNull(obj);
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException("Error while reading the DiscoFeed URL: " + discoFeedURL, e);
+        }
+    }
 
     @Test
     public void getDiscoFeeds() throws Exception {
