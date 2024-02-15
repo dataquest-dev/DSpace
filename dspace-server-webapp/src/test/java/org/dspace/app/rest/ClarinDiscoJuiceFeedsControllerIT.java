@@ -52,7 +52,7 @@ public class ClarinDiscoJuiceFeedsControllerIT extends AbstractControllerIntegra
                     "shibboleth.discofeed.url.test.connection property in the configuration.");
         }
 
-        boolean disableSSL = configurationService.getBooleanProperty("disable.ssl.check", false);
+        boolean disableSSL = configurationService.getBooleanProperty("disable.ssl.check.specific.requests", false);
         JSONParser parser = new JSONParser();
         try {
             URL url = new URL(discoFeedURL);

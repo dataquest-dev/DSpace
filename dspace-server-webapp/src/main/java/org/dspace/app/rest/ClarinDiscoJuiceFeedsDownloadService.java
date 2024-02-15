@@ -99,7 +99,7 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
             rewriteCountries.add(country.trim());
         }
 
-        disableSSL = configurationService.getBooleanProperty("disable.ssl.check", false);
+        disableSSL = configurationService.getBooleanProperty("disable.ssl.check.specific.requests", false);
     }
 
     public String createFeedsContent() {
