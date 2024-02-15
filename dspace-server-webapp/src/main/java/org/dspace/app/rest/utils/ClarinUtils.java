@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 public class ClarinUtils {
 
     private ClarinUtils() {
-        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
     /**
