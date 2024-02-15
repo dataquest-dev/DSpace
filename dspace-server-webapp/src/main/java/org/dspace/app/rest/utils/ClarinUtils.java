@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 /**
  * Collection of utility methods for clarin customized operations
  *
- * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @Component
 public class ClarinUtils {

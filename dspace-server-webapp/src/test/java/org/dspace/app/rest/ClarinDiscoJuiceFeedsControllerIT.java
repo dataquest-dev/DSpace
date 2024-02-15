@@ -26,6 +26,7 @@ import org.dspace.app.rest.utils.ClarinUtils;
 import org.dspace.services.ConfigurationService;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -33,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Test class for the controller ClarinDiscoJuiceFeedsController
  *
- * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public class ClarinDiscoJuiceFeedsControllerIT extends AbstractControllerIntegrationTest {
 
@@ -44,6 +45,7 @@ public class ClarinDiscoJuiceFeedsControllerIT extends AbstractControllerIntegra
     ClarinDiscoJuiceFeedsUpdateScheduler clarinDiscoJuiceFeedsUpdateScheduler;
 
     // Just to make sure that the DiscoFeed URL is accessible.
+    @Ignore
     @Test
     public void testDiscoFeedURL() throws Exception {
         String discoFeedURL = configurationService.getProperty("shibboleth.discofeed.url.test.connection");
