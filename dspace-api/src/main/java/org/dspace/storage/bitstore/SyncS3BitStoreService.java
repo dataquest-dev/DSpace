@@ -49,6 +49,11 @@ public class SyncS3BitStoreService extends S3BitStoreService {
     private boolean syncEnabled = false;
 
     /**
+     * The uploading file is divided into parts and each part is uploaded separately. The size of the part is 50 MB.
+     */
+    private static final long UPLOAD_FILE_PART_SIZE = 50 * 1024 * 1024; // 50 MB
+
+    /**
      * Upload large file by parts - check the checksum of every part
      */
     private boolean uploadByParts = false;
@@ -84,7 +89,7 @@ public class SyncS3BitStoreService extends S3BitStoreService {
             syncEnabled = configurationService.getBooleanProperty("sync.storage.service.enabled", false);
         }
         if (!uploadByParts) {
-            uploadByParts = configurationService.getBooleanProperty("upload.by.parts.enabled", false);
+            uploadByParts = configurationService.getBooleanProperty("s3.upload.by.parts.enabled", false);
         }
     }
 
@@ -209,8 +214,6 @@ public class SyncS3BitStoreService extends S3BitStoreService {
         // Initiate multipart upload
         InitiateMultipartUploadRequest initiateRequest = new InitiateMultipartUploadRequest(getBucketName(), key);
         String uploadId = this.s3Service.initiateMultipartUpload(initiateRequest).getUploadId();
-        // Upload a file in multiple parts, one part has 50MB
-        long partSize = 50 * 1024 * 1024; // 50 MB
 
         // Create a list to hold the ETags for individual parts
         List<PartETag> partETags = new ArrayList<>();
@@ -223,7 +226,7 @@ public class SyncS3BitStoreService extends S3BitStoreService {
             int partNumber = 1;
 
             while (remainingBytes > 0) {
-                long bytesToUpload = Math.min(partSize, remainingBytes);
+                long bytesToUpload = Math.min(UPLOAD_FILE_PART_SIZE, remainingBytes);
 
                 // Calculate the checksum for the part
                 String partChecksum = calculatePartChecksum(file, fileLength - remainingBytes, bytesToUpload, digest);
