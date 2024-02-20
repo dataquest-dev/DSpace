@@ -53,7 +53,6 @@ public class SyncS3BitStoreService extends S3BitStoreService {
      */
     private boolean uploadByParts = false;
 
-
     @Autowired(required = true)
     DSBitStoreService dsBitStoreService;
 
