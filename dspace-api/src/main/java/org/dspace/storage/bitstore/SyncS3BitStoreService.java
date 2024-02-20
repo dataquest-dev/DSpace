@@ -258,7 +258,8 @@ public class SyncS3BitStoreService extends S3BitStoreService {
             }
 
             // Complete the multipart upload
-            CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(this.getBucketName(), key, uploadId, partETags);
+            CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(this.getBucketName(),
+                    key, uploadId, partETags);
             this.s3Service.completeMultipartUpload(completeRequest);
         } catch (AmazonClientException e) {
             log.error("Cannot upload the file by parts because: ", e);
@@ -275,7 +276,8 @@ public class SyncS3BitStoreService extends S3BitStoreService {
      * @return the checksum of the part
      * @throws IOException if an I/O error occurs
      */
-    public static String calculatePartChecksum(File file, long offset, long length, MessageDigest digest) throws IOException {
+    public static String calculatePartChecksum(File file, long offset, long length, MessageDigest digest)
+            throws IOException {
         try (FileInputStream fis = new FileInputStream(file);
              DigestInputStream dis = new DigestInputStream(fis, digest)) {
             // Skip to the specified offset
