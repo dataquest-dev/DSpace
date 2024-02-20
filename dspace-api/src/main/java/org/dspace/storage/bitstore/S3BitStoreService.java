@@ -10,12 +10,15 @@ package org.dspace.storage.bitstore;
 import static java.lang.String.valueOf;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +27,7 @@ import java.util.function.Supplier;
 import javax.validation.constraints.NotNull;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -33,8 +37,13 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PartETag;
+import com.amazonaws.services.s3.model.UploadPartRequest;
+import com.amazonaws.services.s3.model.UploadPartResult;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
@@ -45,11 +54,14 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.util.ArrayUtil;
 import org.dspace.content.Bitstream;
 import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
@@ -109,7 +121,7 @@ public class S3BitStoreService extends BaseBitStoreService {
     /**
      * container for all the assets
      */
-    private String bucketName = null;
+    protected String bucketName = null;
 
     /**
      * (Optional) subfolder within bucket where objects are stored
@@ -127,8 +139,7 @@ public class S3BitStoreService extends BaseBitStoreService {
      */
     protected TransferManager tm = null;
 
-    private static final ConfigurationService configurationService
-            = DSpaceServicesFactory.getInstance().getConfigurationService();
+    private ConfigurationService configurationService = null;
 
     /**
      * Utility method for generate AmazonS3 builder
@@ -236,6 +247,9 @@ public class S3BitStoreService extends BaseBitStoreService {
             // bucket name
             if (StringUtils.isEmpty(bucketName)) {
                 // get hostname of DSpace UI to use to name bucket
+                if (configurationService == null) {
+                    configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+                }
                 String hostname = Utils.getHostName(configurationService.getProperty("dspace.ui.url"));
                 bucketName = DEFAULT_BUCKET_PREFIX + hostname;
                 log.warn("S3 BucketName is not configured, setting default: " + bucketName);
@@ -559,6 +573,19 @@ public class S3BitStoreService extends BaseBitStoreService {
      * @throws Exception generic exception
      */
     public static void main(String[] args) throws Exception {
+
+
+        class TestBitstream extends Bitstream {
+            public TestBitstream() {
+                super();
+            }
+
+            public TestBitstream(String internalId) {
+                super();
+                setInternalId(internalId);
+            }
+        }
+
         //TODO Perhaps refactor to be a unit test. Can't mock this without keys though.
 
         // parse command line
@@ -582,30 +609,198 @@ public class S3BitStoreService extends BaseBitStoreService {
         } catch (ParseException e) {
             System.err.println(e.getMessage());
             new HelpFormatter().printHelp(
-                    S3BitStoreService.class.getSimpleName() + "options", options);
+                    SyncS3BitStoreService.class.getSimpleName() + "options", options);
             return;
         }
 
         String accessKey = command.getOptionValue("a");
         String secretKey = command.getOptionValue("s");
 
-        S3BitStoreService store = new S3BitStoreService();
+        SyncS3BitStoreService store = new SyncS3BitStoreService();
 
         AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
 
-        store.s3Service = AmazonS3ClientBuilder.standard()
-            .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
-            .build();
+        AwsClientBuilder.EndpointConfiguration ec =
+                new AwsClientBuilder.EndpointConfiguration("https://s3.cl4.du.cesnet.cz", "");
+        store.s3Service = FunctionalUtils.getDefaultOrBuild(
+                store.s3Service,
+                amazonClientBuilderBy(ec, awsCredentials, true)
+        );
+        store.bucketName = "testbucket";
 
-        //Todo configurable region
-        Region usEast1 = Region.getRegion(Regions.US_EAST_1);
-        store.s3Service.setRegion(usEast1);
+        store.tm = FunctionalUtils.getDefaultOrBuild(store.tm, () -> TransferManagerBuilder.standard()
+                .withAlwaysCalculateMultipartMd5(true)
+                .withS3Client(store.s3Service)
+                .build());
+
+        String id = store.generateId();
+        String assetFile = command.getOptionValue("f");
+        System.out.println("put() file " + assetFile + " under ID " + id + ": ");
+        FileInputStream fis = new FileInputStream(assetFile);
+        //TODO create bitstream for assetfile...
+        TestBitstream bitstream = new TestBitstream(id);
+
+        // Initialize MessageDigest for computing checksum
+        MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("MD5");
+        } catch (Exception e) {
+            throw new RuntimeException("MD5 algorithm not available", e);
+        }
+
+        // Initiate multipart upload
+        InitiateMultipartUploadRequest initiateRequest = new InitiateMultipartUploadRequest(store.getBucketName(), bitstream.getInternalId());
+        String uploadId = store.s3Service.initiateMultipartUpload(initiateRequest).getUploadId();
+        long start1 = System.currentTimeMillis();
+        // Upload a file in multiple parts, one part has 50MB
+        // Set part size
+        long partSize = 50 * 1024 * 1024; // 50 MB
+
+        // Create a list to hold the ETags for individual parts
+        List<PartETag> partETags = new ArrayList<>();
+
+        try {
+            // Upload parts
+            File file = new File(assetFile);
+            long fileLength = file.length();
+            long remainingBytes = fileLength;
+            int partNumber = 1;
+
+            while (remainingBytes > 0) {
+                long bytesToUpload = Math.min(partSize, remainingBytes);
+
+                // Calculate checksum for the part
+                String partChecksum = calculateChecksum(file, fileLength - remainingBytes, bytesToUpload, digest);
+
+                UploadPartRequest uploadRequest = new UploadPartRequest()
+                        .withBucketName(store.getBucketName())
+                        .withKey(bitstream.getInternalId())
+                        .withUploadId(uploadId)
+                        .withPartNumber(partNumber)
+                        .withFile(file)
+                        .withFileOffset(fileLength - remainingBytes)
+                        .withPartSize(bytesToUpload);
+
+                // Upload the part
+                UploadPartResult uploadPartResponse = store.s3Service.uploadPart(uploadRequest);
+
+                // Collect the ETag for the part
+                partETags.add(uploadPartResponse.getPartETag());
+
+                // Compare checksums - local with ETag
+                if (!StringUtils.equals(uploadPartResponse.getETag(), partChecksum)) {
+                    String errorMessage = "Checksum does not match error: The locally computed checksum does not match with ETag " +
+                            "from the UploadPartResult. Local checksum: " + partChecksum + ", ETag: " +
+                            uploadPartResponse.getETag() + ", partNumber: " + partNumber;
+                    log.error(errorMessage);
+                    throw new IOException(errorMessage);
+                }
+
+                remainingBytes -= bytesToUpload;
+                partNumber++;
+            }
+
+            // Complete the multipart upload
+            CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(store.getBucketName(), bitstream.getInternalId(), uploadId, partETags);
+            store.s3Service.completeMultipartUpload(completeRequest);
+
+            long now1 =  System.currentTimeMillis();
+            System.out.println("Part uploading: " + (now1 - start1) + " msecs");
+        } catch (AmazonClientException e) {
+            e.printStackTrace();
+        }
+
+// WORKING START
+
+        // Case 1: store a file
+        long start2 = System.currentTimeMillis();
+        store.put(bitstream, fis);
+//        System.out.println("Downloading started");
+        long now2 =  System.currentTimeMillis();
+        System.out.println("Fluent uploading: " + (now2 - start2) + " msecs");
+        InputStream downloaded = store.get(bitstream);
+        FileInputStream fisCheck = new FileInputStream(assetFile);
+//        System.out.print(ArrayUtils.isEquals(downloaded.readAllBytes(), fisCheck.readAllBytes()));
+
+        S3BitStoreService.storeInputStreamToFile(downloaded, "C:\\Users\\MilanMajchrák\\Videos\\Captures\\test3.mp4");
+        System.exit(0);
+// WORKING END
+
+
+//        long now =  System.currentTimeMillis();
+//        System.out.println((now - start) + " msecs");
+//        start = now;
+//        // examine the metadata returned
+//        Iterator iter = attrs.keySet().iterator();
+//        System.out.println("Metadata after put():");
+//        while (iter.hasNext())
+//        {
+//            String key = (String)iter.next();
+//            System.out.println( key + ": " + (String)attrs.get(key) );
+//        }
+//        // Case 2: get metadata and compare
+//        System.out.print("about() file with ID " + id + ": ");
+//        Map attrs2 = store.about(id, attrs);
+//        now =  System.currentTimeMillis();
+//        System.out.println((now - start) + " msecs");
+//        start = now;
+//        iter = attrs2.keySet().iterator();
+//        System.out.println("Metadata after about():");
+//        while (iter.hasNext())
+//        {
+//            String key = (String)iter.next();
+//            System.out.println( key + ": " + (String)attrs.get(key) );
+//        }
+//        // Case 3: retrieve asset and compare bits
+//        System.out.print("get() file with ID " + id + ": ");
+//        java.io.FileOutputStream fos = new java.io.FileOutputStream(assetFile+".echo");
+//        InputStream in = store.get(id);
+//        Utils.bufferedCopy(in, fos);
+//        fos.close();
+//        in.close();
+//        now =  System.currentTimeMillis();
+//        System.out.println((now - start) + " msecs");
+//        start = now;
+//        // Case 4: remove asset
+//        System.out.print("remove() file with ID: " + id + ": ");
+//        store.remove(id);
+//        now =  System.currentTimeMillis();
+//        System.out.println((now - start) + " msecs");
+//        System.out.flush();
+//        // should get nothing back now - will throw exception
+//        store.get(id);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//        store.s3Service = AmazonS3ClientBuilder.standard()
+//            .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+//            .withRegion(Regions.EU_CENTRAL_1)
+//            .build();
+//
+//        //Todo configurable region
+//        Region usEast1 = Region.getRegion(Regions.US_EAST_1);
+//        store.s3Service.setRegion(usEast1);
 
         // get hostname of DSpace UI to use to name bucket
-        String hostname = Utils.getHostName(configurationService.getProperty("dspace.ui.url"));
+
+//        ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+//        String hostname = Utils.getHostName(configurationService.getProperty("dspace.ui.url"));
+        String hostname = Utils.getHostName("http://localhost:4000");
         //Bucketname should be lowercase
-        store.bucketName = DEFAULT_BUCKET_PREFIX + hostname + ".s3test";
-        store.s3Service.createBucket(store.bucketName);
+//        store.bucketName = DEFAULT_BUCKET_PREFIX + hostname + ".s3test";
+//        store.s3Service.createBucket(store.bucketName);
         /* Broken in DSpace 6 TODO Refactor
         // time everything, todo, swtich to caliper
         long start = System.currentTimeMillis();
@@ -660,6 +855,22 @@ public class S3BitStoreService extends BaseBitStoreService {
 */
     }
 
+    private static String calculateChecksum(File file, long offset, long length, MessageDigest digest) throws IOException {
+        try (FileInputStream fis = new FileInputStream(file);
+             DigestInputStream dis = new DigestInputStream(fis, digest)) {
+            // Skip to the specified offset
+            fis.skip(offset);
+
+            // Read the specified length
+            IOUtils.copyLarge(dis, OutputStream.nullOutputStream(), 0, length);
+            // Use Apache Commons IO to copy the specified length
+//            Utils.bufferedCopy(dis, OutputStream.nullOutputStream());
+
+            // Convert the digest to a hex string
+            return Utils.toHex(digest.digest());
+        }
+    }
+
     /**
      * Is this a registered bitstream? (not stored via this service originally)
      * @param internalId
@@ -667,6 +878,20 @@ public class S3BitStoreService extends BaseBitStoreService {
      */
     public boolean isRegisteredBitstream(String internalId) {
         return internalId.startsWith(REGISTERED_FLAG);
+    }
+
+    public static void storeInputStreamToFile(InputStream inputStream, String filePath) throws IOException {
+        // Open the output file stream
+        try (OutputStream outputStream = new FileOutputStream(filePath)) {
+            // Create a buffer to read and write data
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+
+            // Read from the InputStream and write to the file
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        }
     }
 
 }
