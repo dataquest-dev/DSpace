@@ -25,6 +25,7 @@ jobs:
     steps:
       uses: ./.github/workflows/reusable-docker-build.yml
       with:
+        run_python_version_script: 'true'
         build_id: dspace-dependencies
         image_name: dspace/dspace-dependencies
         dockerfile_path: ./Dockerfile.dependencies

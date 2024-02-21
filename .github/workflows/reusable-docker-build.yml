@@ -8,6 +8,9 @@ on:
   workflow_call:
     # Possible Inputs to this reusable job
     inputs:
+      run_python_version_script:
+        required: false
+        default: false
       # Build name/id for this Docker build. Used for digest storage to avoid digest overlap between builds.
       build_id:
         required: true
@@ -55,7 +58,7 @@ env:
   # For a new commit on other branches, use the branch name as the tag for Docker image.
   # For a new tag, copy that tag name as the tag for Docker image.
   IMAGE_TAGS: |
-    type=raw,value=latest,enable=${{ github.ref_name == github.event.repository.default_branch }}
+    type=raw,value=dspace-7_x,enable=${{ github.ref_name == github.event.repository.default_branch }}
     type=ref,event=branch,enable=${{ github.ref_name != github.event.repository.default_branch }}
     type=ref,event=tag
   # Define default tag "flavor" for docker/metadata-action per
@@ -96,6 +99,10 @@ jobs:
       # https://github.com/actions/checkout
       - name: Checkout codebase
         uses: actions/checkout@v4
+
+      - name: Add version
+        if: ${{ env.run_python_version_script == 'true' }}
+        run: python scripts/sourceversion.py > dspace/config/VERSION_D.txt
 
       # https://github.com/docker/setup-buildx-action
       - name: Setup Docker Buildx
