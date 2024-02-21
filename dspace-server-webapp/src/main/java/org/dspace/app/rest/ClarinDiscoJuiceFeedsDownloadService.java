@@ -7,7 +7,6 @@
  */
 package org.dspace.app.rest;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 import java.io.BufferedInputStream;
@@ -26,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.net.ssl.HttpsURLConnection;
 import javax.ws.rs.core.NoContentException;
 
 import com.maxmind.geoip2.DatabaseReader;
@@ -34,6 +34,7 @@ import com.maxmind.geoip2.model.CityResponse;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.rest.utils.ClarinUtils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
 import org.json.simple.JSONArray;
@@ -55,13 +56,14 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
 
     protected static Logger log = org.apache.logging.log4j.LogManager.getLogger(
             ClarinDiscoJuiceFeedsDownloadService.class);
-    private static final String DISCOJUICE_URL = "https://static.discojuice.org/feeds/";
 
     /**
-     * contains entityIDs of idps we wish to set the country to something different than discojuice feeds suggests
+     * contains entityIDs of idps we wish to set the country to something different then discovery feeds suggests
      **/
     private Set<String> rewriteCountries;
     protected static DatabaseReader locationService;
+
+    private static boolean disableSSL = false;
 
     @Autowired
     private ConfigurationService configurationService;
@@ -94,84 +96,52 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
         }
 
         for (String country : propRewriteCountries) {
-            country = country.trim();
-            rewriteCountries.add(country);
+            rewriteCountries.add(country.trim());
         }
+
+        disableSSL = configurationService.getBooleanProperty("disable.ssl.check.specific.requests", false);
     }
 
     public String createFeedsContent() {
-        log.debug("Going to create feeds content.");
-        String[] feedsConfig = configurationService.getArrayProperty("discojuice.feeds");
+        log.debug("Starting to create feeds content.");
+
         String shibbolethDiscoFeedUrl = configurationService.getProperty("shibboleth.discofeed.url");
 
-        if (StringUtils.isEmpty(shibbolethDiscoFeedUrl)) {
-            throw new RuntimeException("Cannot load the property `shibboleth.discofeed.url` from the configuration " +
+        if (StringUtils.isBlank(shibbolethDiscoFeedUrl)) {
+            throw new IllegalStateException(
+                    "Cannot load the property `shibboleth.discofeed.url` from the configuration " +
                     "file, maybe it is not set in the configuration file");
         }
 
-        if (ArrayUtils.isEmpty(feedsConfig)) {
-            throw new RuntimeException("Cannot load the property `discojuice.feeds` from the configuration " +
-                    "file, maybe it is not set in the configuration file");
-        }
-
-        String old_value = System.getProperty("jsse.enableSNIExtension");
+        String origSniVal = System.getProperty("jsse.enableSNIExtension");
         System.setProperty("jsse.enableSNIExtension", "false");
+        try {
 
-        final Map<String, JSONObject> shibDiscoEntities = toMap(shrink(
-                ClarinDiscoJuiceFeedsDownloadService.downloadJSON(shibbolethDiscoFeedUrl)));
+            final Map<String, JSONObject> shibDiscoEntities = toMap(shrink(
+                    ClarinDiscoJuiceFeedsDownloadService.downloadJSON(shibbolethDiscoFeedUrl)));
 
-        //true is the default http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html
-        old_value = (old_value == null) ? "true" : old_value;
-        System.setProperty("jsse.enableSNIExtension", old_value);
-
-        String feedsContent = "";
-        Set<String> processedEntities = new HashSet<>();
-        //loop through disco cdn feeds
-        for (String feed : feedsConfig) {
-            Map<String, JSONObject> feedMap = toMap(
-                    ClarinDiscoJuiceFeedsDownloadService.downloadJSON(DISCOJUICE_URL + feed.trim()));
-            //loop through entities in one feed
-            for (Map.Entry<String, JSONObject> entry: feedMap.entrySet()) {
-                String entityID = entry.getKey();
-                JSONObject cdnEntity = entry.getValue();
-                //keep only entities from shibboleth, add only once, but copy geo, icon, country
-                if (shibDiscoEntities.containsKey(entityID) && !processedEntities.contains(entityID)) {
-                    JSONObject geo = (JSONObject) cdnEntity.get("geo");
-                    String icon = (String) cdnEntity.get("icon");
-                    String country = (String) cdnEntity.get("country");
-                    JSONObject shibEntity = shibDiscoEntities.get(entityID);
-                    if (geo != null) {
-                        shibEntity.put("geo", geo);
-                    }
-                    if (icon != null) {
-                        shibEntity.put("icon", icon);
-                    }
-                    if (country != null) {
-                        shibEntity.put("country", country);
-                    }
-                    processedEntities.add(entityID);
+            // iterate through the entities to update countries as needed
+            shibDiscoEntities.forEach((entityId, shibEntity) -> {
+                if (rewriteCountries.contains(entityId) || StringUtils.isBlank((String) shibEntity.get("country"))) {
+                    String oldCountry = (String) shibEntity.remove("country");
+                    String newCountry = guessCountry(shibEntity);
+                    shibEntity.put("country", newCountry);
+                    log.debug("Changed country for {} from {} to {}", entityId, oldCountry, newCountry);
                 }
-            }
-        }
+            });
 
-        //loop through shib entities, we show these...
-        for (JSONObject shibEntity : shibDiscoEntities.values()) {
-            //rewrite or guess countries
-            if (rewriteCountries.contains(shibEntity.get("entityID")) || isBlank((String)shibEntity.get("country"))) {
-                String old_country = (String)shibEntity.remove("country");
-                String new_country = guessCountry(shibEntity);
-                shibEntity.put("country", new_country);
-                log.debug(String.format("For %s changed country from %s to %s", shibEntity.get("entityID"),
-                        old_country, new_country));
+            if (shibDiscoEntities.isEmpty()) {
+                return null;
             }
-        }
 
-        if (shibDiscoEntities.isEmpty()) {
-            return null;
-        } else {
             JSONArray ret = new JSONArray();
             ret.addAll(shibDiscoEntities.values());
             return ret.toJSONString();
+
+        } finally {
+            // true is the default http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html
+            origSniVal = (origSniVal == null) ? "true" : origSniVal;
+            System.setProperty("jsse.enableSNIExtension", origSniVal);
         }
     }
 
@@ -242,7 +212,7 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
     /**
      * Open Connection for the test file or URL defined in the cfg.
      */
-    private static URLConnection openURLConnection(String url) throws IOException {
+    public static URLConnection openURLConnection(String url) throws IOException {
         // If is not test.
         if (!StringUtils.startsWith(url,"TEST:")) {
             return new URL(url).openConnection();
@@ -265,6 +235,10 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
             URLConnection conn = openURLConnection(url);
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(10000);
+            // Disable SSL certificate validation
+            if (disableSSL && conn instanceof HttpsURLConnection) {
+                ClarinUtils.disableCertificateValidation((HttpsURLConnection) conn);
+            }
             //Caution does not follow redirects, and even if you set it to http->https is not possible
             Object obj = parser.parse(new InputStreamReader(conn.getInputStream()));
             return (JSONArray) obj;
