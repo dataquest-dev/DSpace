@@ -155,9 +155,10 @@ jobs:
   dspace-redeploy:
     runs-on: ubuntu-latest
     needs: dspace
+    if: false
     steps:
       - name: redeploy
-        if: false
+        if: '!cancelled()'
         run: |
           curl -H "Accept: application/vnd.github.everest-preview+json" \
           -H "Authorization: token ${{ secrets.DEPLOY_DEV5_GH_ACTION_DISPATCH }}" \
