@@ -22,16 +22,16 @@ jobs:
   dspace-dependencies:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
     if: github.repository == 'dataquest-dev/dspace'
-    steps:
-      uses: ./.github/workflows/reusable-docker-build.yml
-      with:
-        run_python_version_script: 'true'
-        build_id: dspace-dependencies
-        image_name: dspace/dspace-dependencies
-        dockerfile_path: ./Dockerfile.dependencies
-      secrets:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      run_python_version_script: 'true'
+      build_id: dspace-dependencies
+      image_name: dspace/dspace-dependencies
+      dockerfile_path: ./Dockerfile.dependencies
+  
 
   #######################################
   # Build/Push the 'dataquest/dspace' image
@@ -41,19 +41,18 @@ jobs:
     if: github.repository == 'dataquest-dev/dspace'
     # Must run after 'dspace-dependencies' job above
     needs: dspace-dependencies
-    steps:
-      uses: ./.github/workflows/reusable-docker-build.yml
-      with:
-        build_id: dspace
-        image_name: dspace/dspace
-        dockerfile_path: ./Dockerfile
-      secrets:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
-        # Enable redeploy of sandbox & demo if the branch for this image matches the deployment branch of
-        # these sites as specified in reusable-docker-build.xml
-        REDEPLOY_SANDBOX_URL: ${{ secrets.REDEPLOY_SANDBOX_URL }}
-        REDEPLOY_DEMO_URL: ${{ secrets.REDEPLOY_DEMO_URL }}
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      build_id: dspace
+      image_name: dspace/dspace
+      dockerfile_path: ./Dockerfile
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+      # Enable redeploy of sandbox & demo if the branch for this image matches the deployment branch of
+      # these sites as specified in reusable-docker-build.xml
+      REDEPLOY_SANDBOX_URL: ${{ secrets.REDEPLOY_SANDBOX_URL }}
+      REDEPLOY_DEMO_URL: ${{ secrets.REDEPLOY_DEMO_URL }}
 
   #############################################################
   # Build/Push the 'dataquest/dspace' image ('-test' tag)
@@ -63,18 +62,17 @@ jobs:
     if: github.repository == 'dataquest-dev/dspace'
         # Must run after 'dspace-dependencies' job above
     needs: dspace-dependencies
-    steps:
-      uses: ./.github/workflows/reusable-docker-build.yml
-      with:
-        build_id: dspace-test
-        image_name: dspace/dspace
-        dockerfile_path: ./Dockerfile.test
-        # As this is a test/development image, its tags are all suffixed with "-test". Otherwise, it uses the same
-        # tagging logic as the primary 'dspace/dspace' image above.
-        tags_flavor: suffix=-test
-      secrets:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      build_id: dspace-test
+      image_name: dspace/dspace
+      dockerfile_path: ./Dockerfile.test
+      # As this is a test/development image, its tags are all suffixed with "-test". Otherwise, it uses the same
+      # tagging logic as the primary 'dspace/dspace' image above.
+      tags_flavor: suffix=-test
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
   ###########################################
   # Build/Push the 'dataquest/dspace-cli' image
@@ -84,15 +82,14 @@ jobs:
     if: github.repository == 'dataquest-dev/dspace'
      # Must run after 'dspace-dependencies' job above
     needs: dspace-dependencies
-    steps:
-      uses: ./.github/workflows/reusable-docker-build.yml
-      with:
-        build_id: dspace-cli
-        image_name: dspace/dspace-cli
-        dockerfile_path: ./Dockerfile.cli
-      secrets:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      build_id: dspace-cli
+      image_name: dspace/dspace-cli
+      dockerfile_path: ./Dockerfile.cli
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
 
   ###########################################
@@ -102,20 +99,19 @@ jobs:
     # Ensure this job never runs on forked repos. It's only executed for 'dataquest/dspace'
     if: github.repository == 'dataquest-dev/dspace'
     uses: ./.github/workflows/reusable-docker-build.yml
-    steps:
-      with:
-        build_id: dspace-solr
-        image_name: dspace/dspace-solr
-        dockerfile_path: ./dspace/src/main/docker/dspace-solr/Dockerfile
-        # Must pass solrconfigs to the Dockerfile so that it can find the required Solr config files
-        dockerfile_additional_contexts: 'solrconfigs=./dspace/solr/'
-      secrets:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
-        # Enable redeploy of sandbox & demo SOLR instance whenever dspace-solr image changes for deployed branch.
-        # These URLs MUST use different secrets than 'dspace/dspace' image build above as they are deployed separately.
-        REDEPLOY_SANDBOX_URL: ${{ secrets.REDEPLOY_SANDBOX_SOLR_URL }}
-        REDEPLOY_DEMO_URL: ${{ secrets.REDEPLOY_DEMO_SOLR_URL }}
+    with:
+      build_id: dspace-solr
+      image_name: dspace/dspace-solr
+      dockerfile_path: ./dspace/src/main/docker/dspace-solr/Dockerfile
+      # Must pass solrconfigs to the Dockerfile so that it can find the required Solr config files
+      dockerfile_additional_contexts: 'solrconfigs=./dspace/solr/'
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+      # Enable redeploy of sandbox & demo SOLR instance whenever dspace-solr image changes for deployed branch.
+      # These URLs MUST use different secrets than 'dspace/dspace' image build above as they are deployed separately.
+      REDEPLOY_SANDBOX_URL: ${{ secrets.REDEPLOY_SANDBOX_SOLR_URL }}
+      REDEPLOY_DEMO_URL: ${{ secrets.REDEPLOY_DEMO_SOLR_URL }}
 
 
   ###########################################################
@@ -124,17 +120,16 @@ jobs:
   dspace-postgres-pgcrypto:
     # Ensure this job never runs on forked repos. It's only executed for 'dataquest/dspace'
     if: github.repository == 'dataquest-dev/dspace'
-    steps:
-      uses: ./.github/workflows/reusable-docker-build.yml
-      with:
-        build_id: dspace-postgres-pgcrypto
-        image_name: dspace/dspace-postgres-pgcrypto
-        # Must build out of subdirectory to have access to install script for pgcrypto.
-        # NOTE: this context will build the image based on the Dockerfile in the specified directory
-        dockerfile_context: ./dspace/src/main/docker/dspace-postgres-pgcrypto/
-      secrets:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      build_id: dspace-postgres-pgcrypto
+      image_name: dspace/dspace-postgres-pgcrypto
+      # Must build out of subdirectory to have access to install script for pgcrypto.
+      # NOTE: this context will build the image based on the Dockerfile in the specified directory
+      dockerfile_context: ./dspace/src/main/docker/dspace-postgres-pgcrypto/
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
   ########################################################################
   # Build/Push the 'dataquest/dspace-postgres-pgcrypto' image (-loadsql tag)
@@ -142,17 +137,16 @@ jobs:
   dspace-postgres-pgcrypto-loadsql:
     # Ensure this job never runs on forked repos. It's only executed for 'dataquest/dspace'
     if: github.repository == 'dataquest-dev/dspace'
-    steps:
-      uses: ./.github/workflows/reusable-docker-build.yml
-      with:
-        build_id: dspace-postgres-pgcrypto-loadsql
-        image_name: dspace/dspace-postgres-pgcrypto
-        # Must build out of subdirectory to have access to install script for pgcrypto.
-        # NOTE: this context will build the image based on the Dockerfile in the specified directory
-        dockerfile_context: ./dspace/src/main/docker/dspace-postgres-pgcrypto-curl/
-        # Suffix all tags with "-loadsql". Otherwise, it uses the same
-        # tagging logic as the primary 'dspace/dspace-postgres-pgcrypto' image above.
-        tags_flavor: suffix=-loadsql
-      secrets:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      build_id: dspace-postgres-pgcrypto-loadsql
+      image_name: dspace/dspace-postgres-pgcrypto
+      # Must build out of subdirectory to have access to install script for pgcrypto.
+      # NOTE: this context will build the image based on the Dockerfile in the specified directory
+      dockerfile_context: ./dspace/src/main/docker/dspace-postgres-pgcrypto-curl/
+      # Suffix all tags with "-loadsql". Otherwise, it uses the same
+      # tagging logic as the primary 'dspace/dspace-postgres-pgcrypto' image above.
+      tags_flavor: suffix=-loadsql
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
