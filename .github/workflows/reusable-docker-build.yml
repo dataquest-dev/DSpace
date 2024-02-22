@@ -11,6 +11,7 @@ on:
       run_python_version_script:
         required: false
         default: false
+        type: boolean
       # Build name/id for this Docker build. Used for digest storage to avoid digest overlap between builds.
       build_id:
         required: true
@@ -101,7 +102,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Add version
-        if: ${{ env.run_python_version_script == 'true' }}
+        if: ${{ env.run_python_version_script }}
         run: python scripts/sourceversion.py > dspace/config/VERSION_D.txt
 
       # https://github.com/docker/setup-buildx-action
