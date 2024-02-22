@@ -102,7 +102,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Add version
-        if: ${{ env.run_python_version_script }}
+        if: ${{ inputs.run_python_version_script }}
         run: python scripts/sourceversion.py > dspace/config/VERSION_D.txt
 
       # https://github.com/docker/setup-buildx-action
