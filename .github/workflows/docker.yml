@@ -16,11 +16,11 @@ permissions:
 
 jobs:
   ####################################################
-  # Build/Push the 'dspace/dspace-dependencies' image.
+  # Build/Push the 'dataquest/dspace-dependencies' image.
   # This image is used by all other DSpace build jobs.
   ####################################################
   dspace-dependencies:
-    # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
+    # Ensure this job never runs on forked repos. It's only executed for 'dataquest/dspace'
     if: github.repository == 'dataquest-dev/dspace'
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -29,7 +29,7 @@ jobs:
     with:
       run_python_version_script: true
       build_id: dspace-dependencies
-      image_name: dspace/dspace-dependencies
+      image_name: dataquest/dspace-dependencies
       dockerfile_path: ./Dockerfile.dependencies
   
 
@@ -44,7 +44,7 @@ jobs:
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace
-      image_name: dspace/dspace
+      image_name: dataquest/dspace
       dockerfile_path: ./Dockerfile
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -65,10 +65,10 @@ jobs:
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-test
-      image_name: dspace/dspace
+      image_name: dataquest/dspace
       dockerfile_path: ./Dockerfile.test
       # As this is a test/development image, its tags are all suffixed with "-test". Otherwise, it uses the same
-      # tagging logic as the primary 'dspace/dspace' image above.
+      # tagging logic as the primary 'dataquest/dspace' image above.
       tags_flavor: suffix=-test
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -85,7 +85,7 @@ jobs:
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-cli
-      image_name: dspace/dspace-cli
+      image_name: dataquest/dspace-cli
       dockerfile_path: ./Dockerfile.cli
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -101,7 +101,7 @@ jobs:
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-solr
-      image_name: dspace/dspace-solr
+      image_name: dataquest/dspace-solr
       dockerfile_path: ./dspace/src/main/docker/dspace-solr/Dockerfile
       # Must pass solrconfigs to the Dockerfile so that it can find the required Solr config files
       dockerfile_additional_contexts: 'solrconfigs=./dspace/solr/'
@@ -123,7 +123,7 @@ jobs:
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-postgres-pgcrypto
-      image_name: dspace/dspace-postgres-pgcrypto
+      image_name: dataquest/dspace-postgres-pgcrypto
       # Must build out of subdirectory to have access to install script for pgcrypto.
       # NOTE: this context will build the image based on the Dockerfile in the specified directory
       dockerfile_context: ./dspace/src/main/docker/dspace-postgres-pgcrypto/
@@ -140,12 +140,12 @@ jobs:
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-postgres-pgcrypto-loadsql
-      image_name: dspace/dspace-postgres-pgcrypto
+      image_name: dataquest/dspace-postgres-pgcrypto
       # Must build out of subdirectory to have access to install script for pgcrypto.
       # NOTE: this context will build the image based on the Dockerfile in the specified directory
       dockerfile_context: ./dspace/src/main/docker/dspace-postgres-pgcrypto-curl/
       # Suffix all tags with "-loadsql". Otherwise, it uses the same
-      # tagging logic as the primary 'dspace/dspace-postgres-pgcrypto' image above.
+      # tagging logic as the primary 'dataquest/dspace-postgres-pgcrypto' image above.
       tags_flavor: suffix=-loadsql
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
