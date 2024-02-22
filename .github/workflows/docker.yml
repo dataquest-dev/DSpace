@@ -27,7 +27,6 @@ jobs:
       DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
-      run_python_version_script: true
       build_id: dspace-dependencies
       image_name: dataquest/dspace-dependencies
       dockerfile_path: ./Dockerfile.dependencies
@@ -46,6 +45,7 @@ jobs:
       build_id: dspace
       image_name: dataquest/dspace
       dockerfile_path: ./Dockerfile
+      run_python_version_script: true
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
@@ -150,3 +150,18 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+
+  dspace-redeploy:
+    runs-on: ubuntu-latest
+    needs: dspace
+    steps:
+      - name: redeploy
+        if: '!cancelled()'
+        run: |
+          curl -H "Accept: application/vnd.github.everest-preview+json" \
+          -H "Authorization: token ${{ secrets.DEPLOY_DEV5_GH_ACTION_DISPATCH }}" \
+          --request POST \
+          https://api.github.com/repos/dataquest-dev/\
+          dspace-angular/actions/workflows/deploy.yml/dispatches \
+          --data "{\"ref\":\"refs/heads/dtq-dev\"}"
