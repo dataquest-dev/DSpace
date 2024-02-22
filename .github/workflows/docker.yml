@@ -6,7 +6,8 @@ name: Docker images
 on:
   push:
     branches:
-      - customer/TUL
+      - dtq-dev
+      - customer/*
   pull_request:
   workflow_dispatch:
 
