@@ -7,12 +7,7 @@ if __name__ == '__main__':
     print(f"This info was generated on: {ts}")
 
     cmd = 'git log -1 --pretty=format:"Git hash: %H Date of commit: %ai"'
-    # print(f">{cmd}")
     subprocess.check_call(cmd, shell=True)
-
-    # cmd = 'git status --porcelain'
-    # print(f">{cmd}:")
-    # subprocess.check_call(cmd, shell=True)
 
     link = sys.argv[1] + sys.argv[2]
     print(' Build run: ' + link + ' ')
