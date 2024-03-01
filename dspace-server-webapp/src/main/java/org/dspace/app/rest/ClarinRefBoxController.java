@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -77,6 +79,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/core/refbox")
 public class ClarinRefBoxController {
+
+    private final String XML_FILE_START = "<?xml version='1.0' encoding='UTF-8'?>";
+    private final String BIBTEX_TAG = "bib:bibtex";
     private final Logger log = org.apache.logging.log4j.LogManager.getLogger(ClarinRefBoxController.class);
 
     @Autowired
@@ -228,7 +233,7 @@ public class ClarinRefBoxController {
             XmlOutputContext xmlOutContext = XmlOutputContext.emptyContext(output);
             xmlOutContext.getWriter().writeStartDocument();
 
-            //Try to obtain just the metadata, if that fails return "normal" response
+            // Try to obtain just the metadata, if that fails return "normal" response
             try {
                 oaipmh.getInfo().getGetRecord().getRecord().getMetadata().write(xmlOutContext);
             } catch (Exception e) {
@@ -246,8 +251,10 @@ public class ClarinRefBoxController {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Unexpected error while writing the output. For more information visit the log files.");
         } catch (XOAIManagerResolverException e) {
-            throw new ServletException("OAI 2.0 wasn't correctly initialized," +
-                    " please check the log for previous errors", e);
+            String errMessage = "OAI 2.0 wasn't correctly initialized, please check the log for previous errors. " +
+                    "Error message: " + e.getMessage();
+            log.error(errMessage);
+            throw new ServletException(errMessage);
         } catch (OAIException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Unexpected error. For more information visit the log files.");
@@ -263,8 +270,11 @@ public class ClarinRefBoxController {
                     HttpStatus.valueOf(HttpServletResponse.SC_NO_CONTENT));
         }
 
+        // Update the output string and remove the unwanted parts.
+        String outputString = updateOutput(output.toString());
+
         // Wrap the String output to the class for better parsing in the FE
-        OaiMetadataWrapper oaiMetadataWrapper = new OaiMetadataWrapper(output.toString());
+        OaiMetadataWrapper oaiMetadataWrapper = new OaiMetadataWrapper(outputString);
         return new ResponseEntity<>(oaiMetadataWrapper, HttpStatus.valueOf(SC_OK));
     }
 
@@ -329,6 +339,53 @@ public class ClarinRefBoxController {
         }
 
         return featuredServiceLinkList;
+    }
+
+    /**
+     * Remove the unnecessary parts from the output. It is removing the XML header and the <bib:bibtex> tag.
+     */
+    private String updateOutput(String output) {
+        String outputString = "";
+        // Remove <?xml version="1.0" encoding="UTF-8" ?> from the output.
+        if (output != null && output.startsWith(XML_FILE_START)) {
+            // Remove XML_FILE_START from the start of the string.
+            outputString = output.substring(XML_FILE_START.length());
+        }
+
+        // If bibtex, remove the <bib:bibtex> in the start and the end of the string.
+        outputString = this.removeBibtexTag(outputString);
+        return outputString;
+    }
+
+    /**
+     * Remove the <bib:bibtex> tag from the string.
+     */
+    private String removeBibtexTag(String xml) {
+        String outputString = xml;
+        String openingTagPattern = String.format("<%s[^>]*>", BIBTEX_TAG);
+        String closingTagPattern = ">";
+        String endBibtexTagPattern = String.format("</%s>", BIBTEX_TAG);
+
+        Pattern openingTagRegex = Pattern.compile(openingTagPattern);
+        Pattern closingTagRegex = Pattern.compile(closingTagPattern);
+
+        Matcher openingTagMatcher = openingTagRegex.matcher(outputString);
+        Matcher closingTagMatcher = closingTagRegex.matcher(outputString);
+
+        if (openingTagMatcher.find() && closingTagMatcher.find()) {
+            int openingTagStart = openingTagMatcher.start();
+            int closingTagEnd = closingTagMatcher.end();
+
+            // Remove the <bib:bibtex> tag from the start of the string.
+            outputString = outputString.substring(0, openingTagStart) + outputString.substring(closingTagEnd);
+            // Remove the </bib:bibtex> tag from the end of the string.
+            outputString = outputString.replace(endBibtexTagPattern, "");
+            // Remove empty spaces from the start and the end of the string.
+            return outputString.trim();
+        } else {
+            // Tags not found or mismatched
+            return xml;
+        }
     }
 
 }
