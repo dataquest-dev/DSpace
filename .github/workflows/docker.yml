@@ -31,7 +31,7 @@ jobs:
       build_id: dspace-dependencies
       image_name: dataquest/dspace-dependencies
       dockerfile_path: ./Dockerfile.dependencies
-
+  
 
   #######################################
   # Build/Push the 'dataquest/dspace' image
