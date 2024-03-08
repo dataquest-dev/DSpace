@@ -172,6 +172,7 @@
 <!--                <ref bean="searchFilterIssued" />-->
                 <ref bean="searchFilterRights" />
                 <ref bean="searchFilterLanguage" />
+                <ref bean="searchFilterType"/>
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterEntityType"/>
                 <ref bean="searchFilterItemsCommunity"/>
@@ -2538,6 +2539,8 @@
         <property name="metadataFields">
             <list>
                 <value>dc.type</value>
+                <value>edm.type</value>
+                <value>metashare.ResourceInfo#ContentInfo.mediaType</value>
             </list>
         </property>
         <property name="sortOrderSidebar" value="COUNT"/>
