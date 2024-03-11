@@ -2504,7 +2504,7 @@
                 <value>dc.rights.label</value>
             </list>
         </property>
-        <property name="type" value="standard"/>
+        <property name="type" value="text"/>
         <property name="facetLimit" value="5"/>
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
@@ -2529,7 +2529,7 @@
             <list/>
         </property>
         <property name="facetLimit" value="5"/>
-        <property name="type" value="standard"/>
+        <property name="type" value="text"/>
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
