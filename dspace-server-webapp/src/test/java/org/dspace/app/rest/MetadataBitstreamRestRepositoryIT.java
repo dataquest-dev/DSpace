@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -115,9 +117,9 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].format")
                         .value(Matchers.containsInAnyOrder(Matchers.containsString(
                                 bts.getFormat(context).getMIMEType()))))
+                // Convert the long into int because Marchers has a problem to compare long format
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].fileSize")
-                        .value(Matchers.containsInAnyOrder(Matchers.containsString(
-                                FileTreeViewGenerator.humanReadableFileSize(bts.getSizeBytes())))))
+                        .value(hasItem(is((int) bts.getSizeBytes()))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].canPreview")
                         .value(Matchers.containsInAnyOrder(Matchers.is(canPreview))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].fileInfo").exists())
@@ -150,8 +152,7 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                         .value(Matchers.containsInAnyOrder(Matchers.containsString(
                                 bts.getFormat(context).getMIMEType()))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].fileSize")
-                        .value(Matchers.containsInAnyOrder(Matchers.containsString(
-                                FileTreeViewGenerator.humanReadableFileSize(bts.getSizeBytes())))))
+                        .value(hasItem(is((int) bts.getSizeBytes()))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].canPreview")
                         .value(Matchers.containsInAnyOrder(Matchers.is(false))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].fileInfo").exists())
