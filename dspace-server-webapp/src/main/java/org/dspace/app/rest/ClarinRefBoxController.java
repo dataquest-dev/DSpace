@@ -27,6 +27,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.NotFoundException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 
 import com.hp.hpl.jena.rdf.model.Model;
@@ -69,6 +72,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 /**
  * A Controller for fetching the data for the ref-box in the Item View (FE).
@@ -80,8 +86,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/core/refbox")
 public class ClarinRefBoxController {
 
-    private final String XML_FILE_START = "<?xml version='1.0' encoding='UTF-8'?>";
-    private final String BIBTEX_TAG = "bib:bibtex";
+    private final static String BIBTEX_TYPE = "bibtex";
+
     private final Logger log = org.apache.logging.log4j.LogManager.getLogger(ClarinRefBoxController.class);
 
     @Autowired
@@ -271,7 +277,7 @@ public class ClarinRefBoxController {
         }
 
         // Update the output string and remove the unwanted parts.
-        String outputString = updateOutput(output.toString());
+        String outputString = updateOutput(type, output.toString());
 
         // Wrap the String output to the class for better parsing in the FE
         OaiMetadataWrapper oaiMetadataWrapper = new OaiMetadataWrapper(outputString);
@@ -344,48 +350,50 @@ public class ClarinRefBoxController {
     /**
      * Remove the unnecessary parts from the output. It is removing the XML header and the <bib:bibtex> tag.
      */
-    private String updateOutput(String output) {
-        String outputString = "";
-        // Remove <?xml version="1.0" encoding="UTF-8" ?> from the output.
-        if (output != null && output.startsWith(XML_FILE_START)) {
-            // Remove XML_FILE_START from the start of the string.
-            outputString = output.substring(XML_FILE_START.length());
+    private String updateOutput(String type, String output) {
+        try {
+            if (StringUtils.equals(type, BIBTEX_TYPE)) {
+                return removeBibtexTag(output);
+            } else {
+                return removeXmlHeaderTag(output);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
+    }
 
-        // If bibtex, remove the <bib:bibtex> in the start and the end of the string.
-        outputString = this.removeBibtexTag(outputString);
-        return outputString;
+    /**
+     * Remove the XML header tag from the string.
+     *
+     * @param xml
+     * @return
+     */
+    private String removeXmlHeaderTag(String xml) {
+        String xmlHeaderPattern = "<\\?xml[^>]*\\?>";
+        Pattern xmlHeaderRegex = Pattern.compile(xmlHeaderPattern);
+        Matcher xmlHeaderMatcher = xmlHeaderRegex.matcher(xml);
+        if (xmlHeaderMatcher.find()) {
+            return xml.replaceFirst(xmlHeaderPattern, "");
+        } else {
+            return xml;
+        }
     }
 
     /**
      * Remove the <bib:bibtex> tag from the string.
      */
-    private String removeBibtexTag(String xml) {
-        String outputString = xml;
-        String openingTagPattern = String.format("<%s[^>]*>", BIBTEX_TAG);
-        String closingTagPattern = ">";
-        String endBibtexTagPattern = String.format("</%s>", BIBTEX_TAG);
+    private String removeBibtexTag(String xml) throws ParserConfigurationException, IOException, SAXException {
+        // Parse the XML string
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new org.xml.sax.InputSource(new java.io.StringReader(xml)));
 
-        Pattern openingTagRegex = Pattern.compile(openingTagPattern);
-        Pattern closingTagRegex = Pattern.compile(closingTagPattern);
+        // Get the root element
+        Node root = document.getDocumentElement();
 
-        Matcher openingTagMatcher = openingTagRegex.matcher(outputString);
-        Matcher closingTagMatcher = closingTagRegex.matcher(outputString);
-
-        if (openingTagMatcher.find() && closingTagMatcher.find()) {
-            int openingTagStart = openingTagMatcher.start();
-            int closingTagEnd = closingTagMatcher.end();
-
-            // Remove the <bib:bibtex> tag from the start of the string.
-            outputString = outputString.substring(0, openingTagStart) + outputString.substring(closingTagEnd);
-            // Remove the </bib:bibtex> tag from the end of the string.
-            outputString = outputString.replace(endBibtexTagPattern, "");
-            // Remove empty spaces from the start and the end of the string.
-            return outputString.trim();
-        } else {
-            // Tags not found or mismatched
-            return xml;
-        }
+        // Get the text content of the root element
+        return root.getTextContent().trim();
     }
 
 }
