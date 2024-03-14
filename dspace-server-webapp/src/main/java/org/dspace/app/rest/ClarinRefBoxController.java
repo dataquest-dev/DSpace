@@ -280,7 +280,7 @@ public class ClarinRefBoxController {
         String outputString = updateOutput(type, output.toString());
 
         // Wrap the String output to the class for better parsing in the FE
-        OaiMetadataWrapper oaiMetadataWrapper = new OaiMetadataWrapper(outputString);
+        OaiMetadataWrapper oaiMetadataWrapper = new OaiMetadataWrapper(StringUtils.defaultIfEmpty(outputString, ""));
         return new ResponseEntity<>(oaiMetadataWrapper, HttpStatus.valueOf(SC_OK));
     }
 
@@ -348,17 +348,19 @@ public class ClarinRefBoxController {
     }
 
     /**
-     * Remove the unnecessary parts from the output. It is removing the XML header and the <bib:bibtex> tag.
+     * Remove the unnecessary parts from the output.
      */
     private String updateOutput(String type, String output) {
         try {
             if (StringUtils.equals(type, BIBTEX_TYPE)) {
-                return removeBibtexTag(output);
+                // Remove the XML header tag and the <bib:bibtex> tag from the string.
+                return getXmlTextContent(output);
             } else {
+                // Remove the XML header tag from the string.
                 return removeXmlHeaderTag(output);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Cannot update the xml string for citation because of: " + e.getMessage());
             return null;
         }
     }
@@ -381,9 +383,9 @@ public class ClarinRefBoxController {
     }
 
     /**
-     * Remove the <bib:bibtex> tag from the string.
+     * Get the text content from the xml string.
      */
-    private String removeBibtexTag(String xml) throws ParserConfigurationException, IOException, SAXException {
+    private String getXmlTextContent(String xml) throws ParserConfigurationException, IOException, SAXException {
         // Parse the XML string
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -395,7 +397,6 @@ public class ClarinRefBoxController {
         // Get the text content of the root element
         return root.getTextContent().trim();
     }
-
 }
 
 /**
