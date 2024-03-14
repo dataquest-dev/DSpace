@@ -7,7 +7,6 @@
  */
 package org.dspace.app.rest;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -36,7 +35,6 @@ import org.dspace.content.Item;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.services.ConfigurationService;
-import org.dspace.util.FileTreeViewGenerator;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
