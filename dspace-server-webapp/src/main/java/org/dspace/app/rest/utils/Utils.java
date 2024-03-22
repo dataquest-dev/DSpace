@@ -449,6 +449,11 @@ public class Utils {
     public List<DSpaceObject> constructDSpaceObjectList(Context context, List<String> list) {
         List<DSpaceObject> dSpaceObjects = new LinkedList<>();
         for (String string : list) {
+            // Remove double quotes from the start and end of the string - this double quotes are added when the
+            // request is called from the Python API
+            if (string.startsWith("\"") && string.endsWith("\"")) {
+                string = string.substring(1, string.length() - 1);
+            }
             if (string.endsWith("/")) {
                 string = string.substring(0, string.length() - 1);
             }
