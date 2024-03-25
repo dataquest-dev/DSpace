@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dspace.app.rest.model.SearchConfigurationRest;
 import org.dspace.app.rest.projection.Projection;
@@ -76,8 +77,8 @@ public class DiscoverConfigurationConverter
         if (searchSortConfiguration != null) {
             for (DiscoverySortFieldConfiguration discoverySearchSortConfiguration : CollectionUtils
                 .emptyIfNull(searchSortConfiguration.getSortFields())) {
-                List<String> filteredSortOptions = Arrays.asList(
-                        configurationService.getArrayProperty("sort.options.filtered", new String[0]));
+                List<String> filteredSortOptions = Arrays.asList(ArrayUtils.nullToEmpty((
+                        configurationService.getArrayProperty("sort.options.filtered", new String[0]))));
                 if (filteredSortOptions.contains(discoverySearchSortConfiguration.getMetadataField())) {
                     return;
                 }
