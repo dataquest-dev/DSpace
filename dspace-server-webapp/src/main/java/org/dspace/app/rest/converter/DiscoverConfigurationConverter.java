@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.converter;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,8 @@ import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
+import org.dspace.services.ConfigurationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,6 +31,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class DiscoverConfigurationConverter
         implements DSpaceConverter<DiscoveryConfiguration, SearchConfigurationRest> {
+
+    @Autowired
+    ConfigurationService configurationService;
 
     @Override
     public SearchConfigurationRest convert(DiscoveryConfiguration configuration, Projection projection) {
@@ -70,6 +76,12 @@ public class DiscoverConfigurationConverter
         if (searchSortConfiguration != null) {
             for (DiscoverySortFieldConfiguration discoverySearchSortConfiguration : CollectionUtils
                 .emptyIfNull(searchSortConfiguration.getSortFields())) {
+                List<String> filteredSortOptions = Arrays.asList(
+                        configurationService.getArrayProperty("sort.options.filtered", new String[0]));
+                if (filteredSortOptions.contains(discoverySearchSortConfiguration.getMetadataField())) {
+                    return;
+                }
+
                 SearchConfigurationRest.SortOption sortOption = new SearchConfigurationRest.SortOption();
                 if (StringUtils.isBlank(discoverySearchSortConfiguration.getMetadataField())) {
                     sortOption.setName(DiscoverySortConfiguration.SCORE);
