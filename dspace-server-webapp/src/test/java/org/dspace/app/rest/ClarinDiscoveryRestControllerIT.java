@@ -966,8 +966,8 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
 
     @Test
     public void discoverSearchTest() throws Exception {
-        // Do not show `dc.date.accessioned` sorting option, but it must be configured because of loading
-        // recent submissions on the browsing page.
+        // Hide the sorting option for dc.date.accessioned, but ensure it is still configured
+        // for loading recent submissions on the browsing page.
         // This sort filtering is configured by `sort.options.filtered` property
 
         //When calling this root endpoint
