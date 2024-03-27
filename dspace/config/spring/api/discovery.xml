@@ -176,6 +176,7 @@
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterEntityType"/>
                 <ref bean="searchFilterItemsCommunity"/>
+                <ref bean="searchFilterSubjectFirstValue"/>
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -201,6 +202,7 @@
                 <ref bean="searchFilterItemsCommunity"/>
                 <ref bean="searchFilterType"/>
                 <ref bean="searchFilterPublisher"/>
+                <ref bean="searchFilterSubjectFirstValue"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -328,7 +330,7 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterAuthor" />
-                <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterSubjectFirstValue" />
                 <!--                <ref bean="searchFilterIssued" />-->
                 <ref bean="searchFilterRights" />
                 <ref bean="searchFilterLanguage" />
@@ -345,6 +347,7 @@
                 <ref bean="searchFilterTitle" />
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterSubjectFirstValue" />
                 <!--                <ref bean="searchFilterIssued" />-->
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterFileNameInOriginalBundle" />
@@ -2590,6 +2593,28 @@
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
         <property name="splitter" value="::"/>
+        <property name="skipFirstNodeLevel" value="false"/>
+
+    </bean>
+
+    <!--
+        Show only first value for the subject facet. It could be defined by cfg property
+        `discovery.solr.facets.allvalues` to show all facet values.
+        This facet definition is used to show only first facet value.
+        It is because we need to show different facets in the homepage than in the search sidebar.
+    -->
+    <bean id="searchFilterSubjectFirstValue" class="org.dspace.discovery.configuration.HierarchicalSidebarFacetConfiguration">
+        <property name="indexFieldName" value="subjectFirstValue"/>
+        <property name="metadataFields">
+            <list>
+                <value>dc.subject.*</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="splitter" value="::"/>
+        <property name="skipFirstNodeLevel" value="false"/>
 
     </bean>
 
