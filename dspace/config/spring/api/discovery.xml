@@ -176,7 +176,6 @@
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterEntityType"/>
                 <ref bean="searchFilterItemsCommunity"/>
-                <ref bean="searchFilterSubjectFirstValue"/>
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -225,7 +224,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>(search.resourcetype:Item AND latestVersion:true) OR search.resourcetype:Collection OR search.resourcetype:Community</value>
+                <value>(search.resourcetype:Item) OR search.resourcetype:Collection OR search.resourcetype:Community</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -385,7 +384,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>(search.resourcetype:Item AND latestVersion:true) OR search.resourcetype:Collection OR search.resourcetype:Community</value>
+                <value>(search.resourcetype:Item) OR search.resourcetype:Collection OR search.resourcetype:Community</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -678,7 +677,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items-->
-                <value>search.resourcetype:Item AND latestVersion:true</value>
+                <value>search.resourcetype:Item</value>
                 <!-- Only find withdrawn or undiscoverable-->
                 <value>withdrawn:true OR discoverable:false</value>
             </list>
@@ -823,7 +822,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items-->
-                <value>search.resourcetype:Item AND latestVersion:true</value>
+                <value>search.resourcetype:Item</value>
             </list>
         </property>
         <!--The configuration for the recent submissions-->
@@ -954,7 +953,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, workspace and accepted for workflow -->
-                <value>(search.resourcetype:Item AND latestVersion:true) OR search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem</value>
+                <value>(search.resourcetype:Item) OR search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -1348,7 +1347,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:Publication</value>
+                <value>search.resourcetype:Item AND entityType_keyword:Publication</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -1483,7 +1482,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:Person</value>
+                <value>search.resourcetype:Item AND entityType_keyword:Person</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -1600,7 +1599,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:Project</value>
+                <value>search.resourcetype:Item AND entityType_keyword:Project</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -1718,7 +1717,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:OrgUnit</value>
+                <value>search.resourcetype:Item AND entityType_keyword:OrgUnit</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -1843,7 +1842,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:JournalIssue</value>
+                <value>search.resourcetype:Item AND entityType_keyword:JournalIssue</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -1963,7 +1962,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:JournalVolume</value>
+                <value>search.resourcetype:Item AND entityType_keyword:JournalVolume</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -2082,7 +2081,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:Journal</value>
+                <value>search.resourcetype:Item AND entityType_keyword:Journal</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -2216,7 +2215,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, and orgunits or persons-->
-                <value>search.resourcetype:Item AND latestVersion:true AND (entityType_keyword:OrgUnit OR entityType_keyword:Person)</value>
+                <value>search.resourcetype:Item AND (entityType_keyword:OrgUnit OR entityType_keyword:Person)</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -2272,7 +2271,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items that have a entityType=OrgUnit and a dc.type=FundingOrganization -->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:OrgUnit AND dc.type:FundingOrganization</value>
+                <value>search.resourcetype:Item AND entityType_keyword:OrgUnit AND dc.type:FundingOrganization</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
