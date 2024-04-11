@@ -596,14 +596,14 @@
         </CustomCondition>
 
         <CustomCondition id="excludeDhCom">
-            <Class>cz.cuni.mff.ufal.dspace.xoai.filter.ColComFilter</Class>
+            <Class>org.dspace.xoai.filter.ColComFilter</Class>
             <Configuration>
                 <string name="handle">20.500.12800/1</string>
             </Configuration>
         </CustomCondition>
 
         <CustomCondition id="excludeTeachingCom">
-            <Class>cz.cuni.mff.ufal.dspace.xoai.filter.ColComFilter</Class>
+            <Class>org.dspace.xoai.filter.ColComFilter</Class>
             <Configuration>
                 <string name="handle">11234/5011</string>
             </Configuration>
