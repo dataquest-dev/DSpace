@@ -1451,7 +1451,7 @@
     <form-value-pairs>
         <value-pairs value-pairs-name="hasCMDI_checkbox" dc-term="identifier">
             <pair>
-                <displayed-value>true</displayed-value>
+                <displayed-value>Yes</displayed-value>
                 <stored-value>true</stored-value>
             </pair>
         </value-pairs>
