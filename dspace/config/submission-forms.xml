@@ -259,80 +259,6 @@
             <row>
                 <field>
                     <dc-schema>local</dc-schema>
-                    <dc-element>hasCMDI</dc-element>
-                    <repeatable>true</repeatable>
-                    <label>Has CMDI file</label>
-                    <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
-                    <hint>Are you going to upload cmdi file?</hint>
-                    <required></required>
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>hidden</dc-element>
-                    <dc-qualifier/>
-                    <repeatable>true</repeatable>
-                    <label>Hidden but harvestable</label>
-                    <style>col-sm-4</style>
-                    <input-type value-pairs-name="hidden_list">list</input-type>
-                    <hint>Should item be harvestable thru OAI-PMH but behave like private?</hint>
-                    <required/>
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>bitstream</dc-element>
-                    <dc-qualifier>redirectToURL</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Big file URL</label>
-                    <input-type>onebox</input-type>
-                    <hint>
-                        The actual maximum upload size of the file is 4GB. To upload the file bigger than maximum
-                        upload size type the URL of that big file. Admin must know URL to that bitstream file.
-                        Then click on the 'Save' button and the file will start to upload. The file will be loaded
-                        from the '/temp' folder of the server. Example: /tomcat/temp/bitstream.png
-                    </hint>
-                    <required></required>
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl>
-                </field>
-            </row>
-        </form>
-
-        <!-- Form which defines the second page/section of the "traditional" DSpace submission process,
-             often used when depositing normal Items. -->
-        <form name="traditionalpagetwo">
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>subject</dc-element>
-                    <dc-qualifier></dc-qualifier>
-                    <!-- An input-type of tag MUST be marked as repeatable -->
-                    <repeatable>true</repeatable>
-                    <label>Keywords</label>
-                    <input-type>tag</input-type>
-                    <hint>Enter appropriate subject keyword or phrase and press the Add button. You can repeat it for
-                        multiple keywords or use separators i.e., Enter and semicolon, which will split it accordingly.
-                        Start typing the keyword and use autocomplete form that will appear. End your input by pressing
-                        ESC if you don't want to use the preselected value.
-                    </hint>
-                    <required>Please enter at least one subject related to your submission</required>
-                    <vocabulary>srsc</vocabulary>
-                </field>
-            </row>
-
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
                     <dc-element>size</dc-element>
                     <dc-qualifier>info</dc-qualifier>
                     <repeatable>true</repeatable>
@@ -426,6 +352,79 @@
                         language dependent or not
                     </hint>
                     <required>Please indicate whether the tool is language dependent</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hasCMDI</dc-element>
+                    <repeatable>true</repeatable>
+                    <label>Has CMDI file</label>
+                    <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
+                    <hint>Are you going to upload cmdi file?</hint>
+                    <required></required>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hidden</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>true</repeatable>
+                    <label>Hidden but harvestable</label>
+                    <style>col-sm-4</style>
+                    <input-type value-pairs-name="hidden_list">list</input-type>
+                    <hint>Should item be harvestable thru OAI-PMH but behave like private?</hint>
+                    <required/>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>bitstream</dc-element>
+                    <dc-qualifier>redirectToURL</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Big file URL</label>
+                    <input-type>onebox</input-type>
+                    <hint>
+                        The actual maximum upload size of the file is 4GB. To upload the file bigger than maximum
+                        upload size type the URL of that big file. Admin must know URL to that bitstream file.
+                        Then click on the 'Save' button and the file will start to upload. The file will be loaded
+                        from the '/temp' folder of the server. Example: /tomcat/temp/bitstream.png
+                    </hint>
+                    <required></required>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+        </form>
+
+        <!-- Form which defines the second page/section of the "traditional" DSpace submission process,
+             often used when depositing normal Items. -->
+        <form name="traditionalpagetwo">
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>subject</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <!-- An input-type of tag MUST be marked as repeatable -->
+                    <repeatable>true</repeatable>
+                    <label>Keywords</label>
+                    <input-type>tag</input-type>
+                    <hint>Enter appropriate subject keyword or phrase and press the Add button. You can repeat it for
+                        multiple keywords or use separators i.e., Enter and comma, which will split it accordingly.
+                        Start typing the keyword and use autocomplete form that will appear. End your input by pressing
+                        ESC if you don't want to use the preselected value.
+                    </hint>
+                    <required>Please enter at least one subject related to your submission</required>
+                    <vocabulary>srsc</vocabulary>
                 </field>
             </row>
             <row>
@@ -1652,93 +1651,28 @@
 
         <value-pairs value-pairs-name="common_types" dc-term="type">
             <pair>
-                <displayed-value>Animation</displayed-value>
-                <stored-value>Animation</stored-value>
+                <displayed-value>N/A</displayed-value>
+                <stored-value/>
             </pair>
             <pair>
-                <displayed-value>Article</displayed-value>
-                <stored-value>Article</stored-value>
+                <displayed-value>Corpus</displayed-value>
+                <stored-value>corpus</stored-value>
             </pair>
             <pair>
-                <displayed-value>Book</displayed-value>
-                <stored-value>Book</stored-value>
+                <displayed-value>Lexical conceptual</displayed-value>
+                <stored-value>lexicalConceptualResource</stored-value>
             </pair>
             <pair>
-                <displayed-value>Book chapter</displayed-value>
-                <stored-value>Book chapter</stored-value>
+                <displayed-value>Language description</displayed-value>
+                <stored-value>languageDescription</stored-value>
             </pair>
             <pair>
-                <displayed-value>Dataset</displayed-value>
-                <stored-value>Dataset</stored-value>
+                <displayed-value>Technology / Tool / Service</displayed-value>
+                <stored-value>toolService</stored-value>
             </pair>
-            <pair>
-                <displayed-value>Learning Object</displayed-value>
-                <stored-value>Learning Object</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Image</displayed-value>
-                <stored-value>Image</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Image, 3-D</displayed-value>
-                <stored-value>Image, 3-D</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Map</displayed-value>
-                <stored-value>Map</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Musical Score</displayed-value>
-                <stored-value>Musical Score</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Plan or blueprint</displayed-value>
-                <stored-value>Plan or blueprint</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Preprint</displayed-value>
-                <stored-value>Preprint</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Presentation</displayed-value>
-                <stored-value>Presentation</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Recording, acoustical</displayed-value>
-                <stored-value>Recording, acoustical</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Recording, musical</displayed-value>
-                <stored-value>Recording, musical</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Recording, oral</displayed-value>
-                <stored-value>Recording, oral</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Software</displayed-value>
-                <stored-value>Software</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Technical Report</displayed-value>
-                <stored-value>Technical Report</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Thesis</displayed-value>
-                <stored-value>Thesis</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Video</displayed-value>
-                <stored-value>Video</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Working Paper</displayed-value>
-                <stored-value>Working Paper</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Other</displayed-value>
-                <stored-value>Other</stored-value>
-            </pair>
+            <!--<pair> <displayed-value>Evaluation package</displayed-value> <stored-value>evaluationPackage</stored-value>
+              </pair> -->
+
         </value-pairs>
 
         <!-- default language order: (from dspace 1.2.1)
@@ -2246,23 +2180,23 @@
 
         <value-pairs value-pairs-name="edm_types" dc-term="edm.type">
             <pair>
-                <displayed-value>input_forms.value_pairs.edm_types.text</displayed-value>
+                <displayed-value>TEXT</displayed-value>
                 <stored-value>TEXT</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.edm_types.video</displayed-value>
+                <displayed-value>VIDEO</displayed-value>
                 <stored-value>VIDEO</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.edm_types.sound</displayed-value>
+                <displayed-value>SOUND</displayed-value>
                 <stored-value>SOUND</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.edm_types.image</displayed-value>
+                <displayed-value>IMAGE</displayed-value>
                 <stored-value>IMAGE</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.edm_types.3d</displayed-value>
+                <displayed-value>3D</displayed-value>
                 <stored-value>3D</stored-value>
             </pair>
         </value-pairs>
@@ -2276,43 +2210,43 @@
         <!-- taken from the metashare standard -->
         <value-pairs value-pairs-name="metashare_mediums" dc-term="">
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_mediums.N/A</displayed-value>
+                <displayed-value>N/A</displayed-value>
                 <stored-value/>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_mediums.webExecutable</displayed-value>
+                <displayed-value>Web Executable</displayed-value>
                 <stored-value>webExecutable</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_mediums.paperCopy</displayed-value>
+                <displayed-value>Paper copy</displayed-value>
                 <stored-value>paperCopy</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_mediums.hardDisk</displayed-value>
+                <displayed-value>HardDisk</displayed-value>
                 <stored-value>hardDisk</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_mediums.bluRay</displayed-value>
+                <displayed-value>Blu Ray</displayed-value>
                 <stored-value>bluRay</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_mediums.DVD-R</displayed-value>
+                <displayed-value>DVD-R</displayed-value>
                 <stored-value>DVD-R</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_mediums.CD-ROM</displayed-value>
+                <displayed-value>CD-ROM</displayed-value>
                 <stored-value>CD-ROM</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_mediums.downloadable</displayed-value>
+                <displayed-value>Download</displayed-value>
                 <stored-value>downloadable</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_mediums.accessibleThroughInterface</displayed-value>
+                <displayed-value>Accessible Through Interface</displayed-value>
                 <stored-value>accessibleThroughInterface</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_mediums.other</displayed-value>
+                <displayed-value>other</displayed-value>
                 <stored-value>other</stored-value>
             </pair>
         </value-pairs>
@@ -2320,15 +2254,15 @@
         <!-- taken from the metashare standard -->
         <value-pairs value-pairs-name="metashare_validation" dc-term="">
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_validation.N/A</displayed-value>
+                <displayed-value>N/A</displayed-value>
                 <stored-value/>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_validation.True</displayed-value>
+                <displayed-value>True</displayed-value>
                 <stored-value>True</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_validation.False</displayed-value>
+                <displayed-value>False</displayed-value>
                 <stored-value>False</stored-value>
             </pair>
         </value-pairs>
@@ -2336,42 +2270,42 @@
         <!-- used for media types -->
         <value-pairs value-pairs-name="metashare_media_corpus_lcr" dc-term="">
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_media_corpus_lcr.N/A</displayed-value>
+                <displayed-value>N/A</displayed-value>
                 <stored-value/>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_media_corpus_lcr.text</displayed-value>
+                <displayed-value>text</displayed-value>
                 <stored-value>text</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_media_corpus_lcr.audio</displayed-value>
+                <displayed-value>audio</displayed-value>
                 <stored-value>audio</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_media_corpus_lcr.video</displayed-value>
+                <displayed-value>video</displayed-value>
                 <stored-value>video</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_media_corpus_lcr.image</displayed-value>
+                <displayed-value>image</displayed-value>
                 <stored-value>image</stored-value>
             </pair>
         </value-pairs>
 
         <value-pairs value-pairs-name="metashare_media_ld" dc-term="">
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_media_ld.N/A</displayed-value>
+                <displayed-value>N/A</displayed-value>
                 <stored-value/>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_media_ld.text</displayed-value>
+                <displayed-value>text</displayed-value>
                 <stored-value>text</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_media_ld.video</displayed-value>
+                <displayed-value>video</displayed-value>
                 <stored-value>video</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_media_ld.image</displayed-value>
+                <displayed-value>image</displayed-value>
                 <stored-value>image</stored-value>
             </pair>
         </value-pairs>
@@ -2379,351 +2313,327 @@
         <!-- used for "detailed type" -->
         <value-pairs value-pairs-name="metashare_detailed_toolService" dc-term="">
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_toolService.N/A</displayed-value>
+                <displayed-value>N/A</displayed-value>
                 <stored-value/>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_toolService.tool</displayed-value>
+                <displayed-value>tool</displayed-value>
                 <stored-value>tool</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_toolService.service</displayed-value>
+                <displayed-value>service</displayed-value>
                 <stored-value>service</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_toolService.platform</displayed-value>
+                <displayed-value>platform</displayed-value>
                 <stored-value>platform</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_toolService.suiteOfTools</displayed-value>
+                <displayed-value>suiteOfTools</displayed-value>
                 <stored-value>suiteOfTools</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_toolService.infrastructure</displayed-value>
+                <displayed-value>infrastructure</displayed-value>
                 <stored-value>infrastructure</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_toolService.architecture</displayed-value>
+                <displayed-value>architecture</displayed-value>
                 <stored-value>architecture</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_toolService.nlpDevelopmentEnvironment</displayed-value>
+                <displayed-value>nlpDevelopmentEnvironment</displayed-value>
                 <stored-value>nlpDevelopmentEnvironment</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_toolService.other</displayed-value>
+                <displayed-value>other</displayed-value>
                 <stored-value>other</stored-value>
             </pair>
         </value-pairs>
         <value-pairs value-pairs-name="metashare_detailed_lexicalConceptualResource" dc-term="">
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.N/A</displayed-value>
+                <displayed-value>N/A</displayed-value>
                 <stored-value/>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.wordList</displayed-value>
+                <displayed-value>wordList</displayed-value>
                 <stored-value>wordList</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.computationalLexicon</displayed-value>
+                <displayed-value>computationalLexicon</displayed-value>
                 <stored-value>computationalLexicon</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.ontology</displayed-value>
+                <displayed-value>ontology</displayed-value>
                 <stored-value>ontology</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.wordnet</displayed-value>
+                <displayed-value>wordnet</displayed-value>
                 <stored-value>wordnet</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.thesaurus</displayed-value>
+                <displayed-value>thesaurus</displayed-value>
                 <stored-value>thesaurus</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.framenet</displayed-value>
+                <displayed-value>framenet</displayed-value>
                 <stored-value>framenet</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.terminologicalResource</displayed-value>
+                <displayed-value>terminologicalResource</displayed-value>
                 <stored-value>terminologicalResource</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.machineReadableDictionary</displayed-value>
+                <displayed-value>machineReadableDictionary</displayed-value>
                 <stored-value>machineReadableDictionary</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.lexicon</displayed-value>
+                <displayed-value>lexicon</displayed-value>
                 <stored-value>lexicon</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_lexicalConceptualResource.other</displayed-value>
+                <displayed-value>other</displayed-value>
                 <stored-value>other</stored-value>
             </pair>
         </value-pairs>
         <value-pairs value-pairs-name="metashare_detailed_languageDescription" dc-term="">
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_languageDescription.N/A</displayed-value>
+                <displayed-value>N/A</displayed-value>
                 <stored-value/>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_languageDescription.grammar</displayed-value>
+                <displayed-value>grammar</displayed-value>
                 <stored-value>grammar</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_languageDescription.mlmodel</displayed-value>
+                <displayed-value>machine learning model</displayed-value>
                 <stored-value>mlmodel</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_languageDescription.ngrammodel</displayed-value>
+                <displayed-value>n-gram model</displayed-value>
                 <stored-value>ngrammodel</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_detailed_languageDescription.other</displayed-value>
+                <displayed-value>other</displayed-value>
                 <stored-value>other</stored-value>
-            </pair>
-        </value-pairs>
-
-        <!-- taken from the metashare standard -->
-        <value-pairs value-pairs-name="metashare_funding" dc-term="">
-            <pair>
-                <displayed-value>input_forms.value_pairs.metashare_funding.N/A</displayed-value>
-                <stored-value/>
-            </pair>
-            <pair>
-                <displayed-value>input_forms.value_pairs.metashare_funding.euFunds</displayed-value>
-                <stored-value>euFunds</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>input_forms.value_pairs.metashare_funding.ownFunds</displayed-value>
-                <stored-value>ownFunds</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>input_forms.value_pairs.metashare_funding.nationalFunds</displayed-value>
-                <stored-value>nationalFunds</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>input_forms.value_pairs.metashare_funding.Other</displayed-value>
-                <stored-value>Other</stored-value>
             </pair>
         </value-pairs>
 
         <!-- taken from the metashare standard -->
         <value-pairs value-pairs-name="metashare_sizeunit" dc-term="">
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.N/A</displayed-value>
+                <displayed-value>N/A</displayed-value>
                 <stored-value/>
             </pair>
 
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.terms</displayed-value>
+                <displayed-value>terms</displayed-value>
                 <stored-value>terms</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.entries</displayed-value>
+                <displayed-value>entries</displayed-value>
                 <stored-value>entries</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.turns</displayed-value>
+                <displayed-value>turns</displayed-value>
                 <stored-value>turns</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.utterances</displayed-value>
+                <displayed-value>utterances</displayed-value>
                 <stored-value>utterances</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.articles</displayed-value>
+                <displayed-value>articles</displayed-value>
                 <stored-value>articles</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.files</displayed-value>
+                <displayed-value>files</displayed-value>
                 <stored-value>files</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.items</displayed-value>
+                <displayed-value>items</displayed-value>
                 <stored-value>items</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.seconds</displayed-value>
+                <displayed-value>seconds</displayed-value>
                 <stored-value>seconds</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.elements</displayed-value>
+                <displayed-value>elements</displayed-value>
                 <stored-value>elements</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.units</displayed-value>
+                <displayed-value>units</displayed-value>
                 <stored-value>units</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.minutes</displayed-value>
+                <displayed-value>minutes</displayed-value>
                 <stored-value>minutes</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.hours</displayed-value>
+                <displayed-value>hours</displayed-value>
                 <stored-value>hours</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.texts</displayed-value>
+                <displayed-value>texts</displayed-value>
                 <stored-value>texts</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.sentences</displayed-value>
+                <displayed-value>sentences</displayed-value>
                 <stored-value>sentences</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.pages</displayed-value>
+                <displayed-value>pages</displayed-value>
                 <stored-value>pages</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.bytes</displayed-value>
+                <displayed-value>bytes</displayed-value>
                 <stored-value>bytes</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.tokens</displayed-value>
+                <displayed-value>tokens</displayed-value>
                 <stored-value>tokens</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.words</displayed-value>
+                <displayed-value>words</displayed-value>
                 <stored-value>words</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.keywords</displayed-value>
+                <displayed-value>keywords</displayed-value>
                 <stored-value>keywords</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.idiomaticExpressions</displayed-value>
+                <displayed-value>idiomaticExpressions</displayed-value>
                 <stored-value>idiomaticExpressions</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.neologisms</displayed-value>
+                <displayed-value>neologisms</displayed-value>
                 <stored-value>neologisms</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.multiWordUnits</displayed-value>
+                <displayed-value>multiWordUnits</displayed-value>
                 <stored-value>multiWordUnits</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.expressions</displayed-value>
+                <displayed-value>expressions</displayed-value>
                 <stored-value>expressions</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.synsets</displayed-value>
+                <displayed-value>synsets</displayed-value>
                 <stored-value>synsets</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.classes</displayed-value>
+                <displayed-value>classes</displayed-value>
                 <stored-value>classes</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.concepts</displayed-value>
+                <displayed-value>concepts</displayed-value>
                 <stored-value>concepts</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.lexicalTypes</displayed-value>
+                <displayed-value>lexicalTypes</displayed-value>
                 <stored-value>lexicalTypes</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.phoneticUnits</displayed-value>
+                <displayed-value>phoneticUnits</displayed-value>
                 <stored-value>phoneticUnits</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.syntacticUnits</displayed-value>
+                <displayed-value>syntacticUnits</displayed-value>
                 <stored-value>syntacticUnits</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.semanticUnits</displayed-value>
+                <displayed-value>semanticUnits</displayed-value>
                 <stored-value>semanticUnits</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.predicates</displayed-value>
+                <displayed-value>predicates</displayed-value>
                 <stored-value>predicates</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.phonemes</displayed-value>
+                <displayed-value>phonemes</displayed-value>
                 <stored-value>phonemes</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.diphones</displayed-value>
+                <displayed-value>diphones</displayed-value>
                 <stored-value>diphones</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.T-HPairs</displayed-value>
+                <displayed-value>T-HPairs</displayed-value>
                 <stored-value>T-HPairs</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.syllables</displayed-value>
+                <displayed-value>syllables</displayed-value>
                 <stored-value>syllables</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.frames</displayed-value>
+                <displayed-value>frames</displayed-value>
                 <stored-value>frames</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.images</displayed-value>
+                <displayed-value>images</displayed-value>
                 <stored-value>images</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.kb</displayed-value>
+                <displayed-value>kb</displayed-value>
                 <stored-value>kb</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.mb</displayed-value>
+                <displayed-value>mb</displayed-value>
                 <stored-value>mb</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.gb</displayed-value>
+                <displayed-value>gb</displayed-value>
                 <stored-value>gb</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.rb</displayed-value>
+                <displayed-value>rb</displayed-value>
                 <stored-value>rb</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.shots</displayed-value>
+                <displayed-value>shots</displayed-value>
                 <stored-value>shots</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.unigrams</displayed-value>
+                <displayed-value>unigrams</displayed-value>
                 <stored-value>unigrams</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.bigrams</displayed-value>
+                <displayed-value>bigrams</displayed-value>
                 <stored-value>bigrams</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.trigrams</displayed-value>
+                <displayed-value>trigrams</displayed-value>
                 <stored-value>trigrams</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.4-grams</displayed-value>
+                <displayed-value>4-grams</displayed-value>
                 <stored-value>4-grams</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.5-grams</displayed-value>
+                <displayed-value>5-grams</displayed-value>
                 <stored-value>5-grams</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.n-grams</displayed-value>
+                <displayed-value>n-grams</displayed-value>
                 <stored-value>n-grams</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.rules</displayed-value>
+                <displayed-value>rules</displayed-value>
                 <stored-value>rules</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_sizeunit.other</displayed-value>
+                <displayed-value>other</displayed-value>
                 <stored-value>other</stored-value>
             </pair>
         </value-pairs>
 
         <value-pairs value-pairs-name="metashare_languageDependent" dc-term="">
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_languageDependent.true</displayed-value>
+                <displayed-value>Yes</displayed-value>
                 <stored-value>true</stored-value>
             </pair>
             <pair>
-                <displayed-value>input_forms.value_pairs.metashare_languageDependent.false</displayed-value>
+                <displayed-value>No</displayed-value>
                 <stored-value>false</stored-value>
             </pair>
         </value-pairs>
