@@ -2677,8 +2677,8 @@
         </definition>
 
         <definition name="clariahSizeInfo">
-            <input name="1_size" input-type="text" regex="\d+\.?\d*" required="true"/>
-            <input name="2_unit" input-type="autocomplete" label="Unit"
+            <input name="size" input-type="text" regex="\d+\.?\d*" required="true"/>
+            <input name="unit" input-type="autocomplete" label="Unit"
                    required="true"/>
         </definition>
     </form-complex-definitions>
