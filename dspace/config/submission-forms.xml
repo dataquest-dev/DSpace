@@ -1575,6 +1575,287 @@
             </row>
         </form>
 
+        <form name="clariah_submissionspageone">
+            <row>
+                <field>
+                    <dc-schema>edm</dc-schema>
+                    <dc-element>type</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Select the kind of resource you are submitting</label>
+                    <input-type value-pairs-name="edm_types">dropdown</input-type>
+                    <hint>Choose one of TEXT, VIDEO, SOUND, IMAGE, 3D. If choosing
+                        TEXT consider adding the resource among other Language Resources. Images are visual resources for users to
+                        look at. Text materials are meant to be read and not looked at.</hint>
+                    <required>Please select one of the options.</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>title</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Title</label>
+                    <input-type>onebox</input-type>
+                    <hint>Enter the main title of the item in English.</hint>
+                    <required>You must enter a main title for this item.</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>demo</dc-element>
+                    <dc-qualifier>uri</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Demo URL</label>
+                    <input-type>onebox</input-type>
+                    <hint>A url with samples of the resource or, in the case of tools,
+                        of samples of the output.
+                    </hint>
+                    <required/>
+                    <regex>http.*</regex>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>relation</dc-element>
+                    <dc-qualifier>isreferencedby</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Referenced by</label>
+                    <input-type>onebox</input-type>
+                    <hint>Link to original paper that references this dataset.</hint>
+                    <required/>
+                    <regex>http.*</regex>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>date</dc-element>
+                    <dc-qualifier>issued</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Date issued</label>
+                    <input-type>date</input-type>
+                    <hint>Please give the date when the submission data were issued if any e.g., 2014-01-21 or at least
+                        the year.
+                    </hint>
+                    <required>You must enter the date or at least the year in a valid format.</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hidden</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Should this item be hidden from browse</label>
+                    <input-type value-pairs-name="hidden_list">list</input-type>
+                    <hint>Indicate whether you want to hide this item from browse and search. Combine with "Upload cmdi"
+                        for weblicht submissions.
+                    </hint>
+                    <required/>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>hasMetadata</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Are you going to upload cmdi file?</label>
+                    <input-type value-pairs-name="metashare_languageDependent">list</input-type>
+                    <!-- true/false value -->
+                    <hint>Indicate whether you will upload cmdi file in the next step. Combine with "hide" for weblicht
+                        submissions.
+                    </hint>
+                    <required/>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+        </form>
+        <form name="clariah_submissionspagetwo">
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>contributor</dc-element>
+                    <dc-qualifier>author</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Authors</label>
+                    <input-type>clarin-name</input-type>
+                    <hint>Enter the names of the authors of this item. Start typing the author's last name and use
+                        autocomplete form that will appear if applicable. End your input by pressing ESC if you don't
+                        want to use the preselected value.
+                    </hint>
+                    <required>Please add author(s)</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>publisher</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>true</repeatable>
+                    <label>Publisher</label>
+                    <input-type>autocomplete</input-type>
+                    <hint>The name of the publisher of the original analog or born
+                        digital object. Use your home institution if this is a born digital object being published now. Start typing the
+                        publisher and use autocomplete form that will appear if applicable. End your input by pressing ESC if you
+                        don't want to use the preselected value.
+                    </hint>
+                    <required>You must enter the name of the publisher.</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>dataProvider</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Data provider</label>
+                    <input-type>autocomplete</input-type>
+                    <hint>This concerns the digital object (not the analog
+                        original). An institution from which the data come. Used eg. to give proper attribution. Generally
+                        different from publisher.</hint>
+                    <required/>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>contact</dc-element>
+                    <dc-qualifier>person</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Contact person</label>
+                    <input-type complex-definition-ref="contact_person">complex</input-type>
+                    <hint>Person to contact in case of any issues with this submission.</hint>
+                    <required>Please fill all the fields for the contact person.</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>sponsor</dc-element>
+                    <repeatable>true</repeatable>
+                    <label>Funding</label>
+                    <input-type complex-definition-ref="funding">complex</input-type>
+                    <hint>Acknowledge sponsors and funding that supported work described by this submission.</hint>
+                </field>
+            </row>
+        </form>
+        <form name="clariah_submissionspagethree">
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>type</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>The type of the resource</label>
+                    <input-type>autocomplete</input-type>
+                    <hint>The type should be different from what you have
+                        entered in the first step. Examples: photo or painting for IMAGE, book or letter for TEXT, etc.</hint>
+                    <required>Type is required</required>
+                </field>
+            </row>
+            <row>
+                <!-- describe the resource -->
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>description</dc-element>
+                    <dc-qualifier/>
+                    <repeatable>false</repeatable>
+                    <label>Description</label>
+                    <input-type>textarea</input-type>
+                    <hint>Enter a description of the submitted data.</hint>
+                    <required>Please give us a description</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>language</dc-element>
+                    <dc-qualifier>iso</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Pick the languages of the TEXT</label>
+                    <type-bind>TEXT</type-bind>
+                    <input-type>autocomplete</input-type>
+                    <hint>Select the language of the main content of the item. Multiple languages are possible. Start
+                        typing the language and use autocomplete form that will appear if applicable. Better to list all the languages then to use the 'mul' iso code (if there are too many, contact support).
+                    </hint>
+                    <required>The language is required for TEXT resources</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>language</dc-element>
+                    <dc-qualifier>iso</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Language</label>
+                    <type-bind>VIDEO,IMAGE,SOUND,3D</type-bind>
+                    <input-type>autocomplete</input-type>
+                    <hint>Optionally, select the language of the main content
+                        of the item. Multiple languages are possible. Start
+                        typing the language and use autocomplete form that will appear if applicable. Better to list all the languages then to use the 'mul' iso code (if there are too many, contact support).
+                    </hint>
+                    <required/>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>subject</dc-element>
+                    <dc-qualifier/>
+                    <!-- An input-type of twobox MUST be marked as repeatable -->
+                    <repeatable>true</repeatable>
+                    <label>Subject Keywords</label>
+                    <input-type>tag</input-type>
+                    <hint>Enter appropriate subject keyword or phrase and press
+                        the Add button. Use keywords to specify also people, places and times (period, era, date range etc) the resource
+                        is about. You	can use hierarchical subjects, separate the hierarchy levels with two colons (::). Eg.
+                        People::John Doe, Places::New York, Times::WWII.
+                        You can repeat it	for multiple keywords or use separators i.e., comma and semicolon, which will split it accordingly.
+                        Start typing the keyword and use autocomplete form that will appear. End your input by pressing
+                        ESC if you don't want to use the preselected value.
+                    </hint>
+                    <required>Please enter at least one subject related to your submission</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>identifier</dc-element>
+                    <dc-qualifier>other</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Alternate identifiers</label>
+                    <!-- qualdrop_value on dc.identifier messes with how we use dc.identifier.uri, even if uri is not
+                     in the pairs it's showed in submission and you can delete it.-->
+                    <input-type>onebox</input-type>
+                    <hint>The item will get a handle. If the item has any
+                        identification numbers	or codes associated with it, please enter the types and the actual numbers or codes.
+                    </hint>
+                    <required/>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>size</dc-element>
+                    <dc-qualifier>info</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Size</label>
+                    <input-type complex-definition-ref="clariahSizeInfo">complex</input-type>
+                    <hint>You can state the extent of the submitted data, eg. the number of tokens.</hint>
+                </field>
+            </row>
+        </form>
+
     </form-definitions>
 
 
@@ -2677,8 +2958,8 @@
         </definition>
 
         <definition name="clariahSizeInfo">
-            <input name="1_size" input-type="text" regex="\d+\.?\d*" required="true"/>
-            <input name="2_unit" input-type="autocomplete" label="Unit"
+            <input name="size" input-type="text" regex="\d+\.?\d*" required="true"/>
+            <input name="unit" input-type="autocomplete" label="Unit"
                    required="true"/>
         </definition>
     </form-complex-definitions>
