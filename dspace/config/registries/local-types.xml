@@ -145,4 +145,11 @@
     <scope_note>ISO language name</scope_note>
   </dc-type>
 
+  <dc-type>
+    <schema>local</schema>
+    <element>embargo</element>
+    <qualifier>termslift</qualifier>
+    <scope_note>Used for storing embargo dates</scope_note>
+  </dc-type>
+
 </dspace-dc-types>
