@@ -629,11 +629,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         /* Add local.has.files metadata */
         boolean hasFiles = false;
         List<Bundle> origs = getBundles(item, "ORIGINAL");
-        for(Bundle orig : origs) {
-            if(CollectionUtils.isNotEmpty(orig.getBitstreams())) {
+        for (Bundle orig : origs) {
+            if (CollectionUtils.isNotEmpty(orig.getBitstreams())) {
                 hasFiles = true;
             }
-            for(Bitstream bit : orig.getBitstreams()) {
+            for (Bitstream bit : orig.getBitstreams()) {
                 totalNumberOfFiles ++;
                 totalSizeofFiles += bit.getSizeBytes();
             }
@@ -642,7 +642,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         clearMetadata(context, item, "local", "has", "files", Item.ANY);
         clearMetadata(context, item, "local", "files", "count", Item.ANY);
         clearMetadata(context, item, "local", "files", "size", Item.ANY);
-        if(hasFiles) {
+        if ( hasFiles ) {
             addMetadata(context, item, "local", "has", "files", Item.ANY, "yes");
         } else {
             addMetadata(context, item,"local", "has", "files", Item.ANY, "no");
