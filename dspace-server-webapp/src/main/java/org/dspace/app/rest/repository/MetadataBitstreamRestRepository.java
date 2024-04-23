@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -350,6 +352,10 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             }
         }
 
+        // Is a folder regex
+        String folderRegex = "/|\\d+";
+        Pattern pattern = Pattern.compile(folderRegex);
+
         StringBuilder sb = new StringBuilder();
         sb.append(("<root>"));
         Iterator<String> iterator = filePaths.iterator();
@@ -357,12 +363,13 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         while ((iterator.hasNext() && fileCounter < maxPreviewCount)) {
             String filePath = iterator.next();
 
-            if (filePath.length() > 3) {
-                if (filePath.contains(".")) {
-                    fileCounter++;
-                }
-                sb.append("<element>").append(filePath).append("</element>");
+            // Check if the file is a folder
+            Matcher matcher = pattern.matcher(filePath);
+            if (!matcher.matches()) {
+                // It is a file
+                fileCounter++;
             }
+            sb.append("<element>").append(filePath).append("</element>");
         }
 
         if (fileCounter > maxPreviewCount) {
