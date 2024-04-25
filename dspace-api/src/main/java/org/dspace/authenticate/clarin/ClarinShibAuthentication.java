@@ -1331,7 +1331,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
     }
 
     public String getEmailAcceptedOrNull(String email) {
-        if (email == null || email.isEmpty() || email.matches(".*\\s+.*")){ // no whitespaces in mail
+        if (email == null || email.isEmpty() || email.matches(".*\\s+.*")) { // no whitespaces in mail
             return null;
         }
         return email;
