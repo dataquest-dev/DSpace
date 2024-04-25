@@ -37,6 +37,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.dao.ItemDAO;
+import org.dspace.content.dao.MetadataValueDAO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
@@ -150,6 +151,10 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     @Autowired(required = true)
     private EntityTypeService entityTypeService;
+
+
+    @Autowired(required = true)
+    protected MetadataValueDAO metadataValueDAO;
 
     @Autowired
     private OrcidTokenService orcidTokenService;
@@ -639,16 +644,16 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             }
         }
 
-        clearMetadata(context, item, "local", "has", "files", Item.ANY);
-        clearMetadata(context, item, "local", "files", "count", Item.ANY);
-        clearMetadata(context, item, "local", "files", "size", Item.ANY);
-        if ( hasFiles ) {
-            addMetadata(context, item, "local", "has", "files", Item.ANY, "yes");
-        } else {
-            addMetadata(context, item,"local", "has", "files", Item.ANY, "no");
-        }
-        addMetadata(context, item,"local", "files", "count", Item.ANY, "" + totalNumberOfFiles);
-        addMetadata(context, item,"local", "files", "size", Item.ANY, "" + totalSizeofFiles);
+//        clearMetadata(context, item, "local", "has", "files", Item.ANY);
+//        clearMetadata(context, item, "local", "files", "count", Item.ANY);
+//        clearMetadata(context, item, "local", "files", "size", Item.ANY);
+//        if ( hasFiles ) {
+//            addMetadata(context, item, "local", "has", "files", Item.ANY, "yes");
+//        } else {
+//            addMetadata(context, item,"local", "has", "files", Item.ANY, "no");
+//        }
+//        addMetadata(context, item,"dc", "description", "provenance", Item.ANY, "Hello world");
+//        addMetadata(context, item,"local", "files", "size", Item.ANY, "" + totalSizeofFiles);
 
         if (item.isMetadataModified() || item.isModified()) {
             // Set the last modified date

@@ -59,4 +59,7 @@ public interface ClarinItemService {
      * @throws SQLException
      */
     Community getOwningCommunity(Context context, UUID owningCollectionId) throws SQLException;
+
+    void updateItemFilesMetadata(Context context, Item item) throws SQLException;
+
 }
