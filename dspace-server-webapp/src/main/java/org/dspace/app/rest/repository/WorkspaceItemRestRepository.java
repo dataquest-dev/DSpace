@@ -466,6 +466,9 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
         wis.update(context, witem);
 
+        // remove metadata from the item, because that file was uploading after every save
+        itemService.clearMetadata(context, witem.getItem(), "local", "bitstream", "redirectToURL", Item.ANY);
+
         // delete file
         boolean shouldDeleteFile = configurationService.getBooleanProperty("delete.big.file.after.upload", false);
         if (shouldDeleteFile) {
