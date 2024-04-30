@@ -384,26 +384,6 @@
                     </acl>
                 </field>
             </row>
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>bitstream</dc-element>
-                    <dc-qualifier>redirectToURL</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Big file URL</label>
-                    <input-type>onebox</input-type>
-                    <hint>
-                        The actual maximum upload size of the file is 4GB. To upload a file bigger than the
-                        maximum upload size, enter the URL of that large file. The admin must know the URL
-                        of that bitstream file. Then, click on the 'Save' button, and the file will start
-                        to upload. The file path must be an absolute path.
-                    </hint>
-                    <required></required>
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl>
-                </field>
-            </row>
         </form>
 
         <!-- Form which defines the second page/section of the "traditional" DSpace submission process,
