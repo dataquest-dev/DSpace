@@ -134,12 +134,26 @@ public class ClarinItemServiceImpl implements ClarinItemService {
 
     @Override
     public void updateItemFilesMetadata(Context context, Item item) throws SQLException {
+        List<Bundle> originalBundles = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
+        if (Objects.nonNull(originalBundles.get(0))) {
+            updateItemFilesMetadata(context, item, originalBundles.get(0));
+        } else {
+            log.error("Cannot update item files metadata because the ORIGINAL bundle is null.");
+        }
+    }
+
+    @Override
+    public void updateItemFilesMetadata(Context context, Item item, Bundle bundle) throws SQLException {
+        if (!Objects.equals(bundle.getName(), Constants.CONTENT_BUNDLE_NAME)) {
+            return;
+        }
+
         int totalNumberOfFiles = 0;
         long totalSizeofFiles = 0;
 
         /* Add local.has.files metadata */
         boolean hasFiles = false;
-        List<Bundle> origs = itemService.getBundles(item, "ORIGINAL");
+        List<Bundle> origs = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
         for (Bundle orig : origs) {
             if (CollectionUtils.isNotEmpty(orig.getBitstreams())) {
                 hasFiles = true;

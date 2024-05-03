@@ -164,7 +164,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         // Ensure that the last modified from the item is triggered !
         Item owningItem = (Item) getParentObject(context, bundle);
         if (owningItem != null) {
-            clarinItemService.updateItemFilesMetadata(context, owningItem);
+            clarinItemService.updateItemFilesMetadata(context, owningItem, bundle);
             itemService.updateLastModified(context, owningItem);
             itemService.update(context, owningItem);
         }
@@ -240,7 +240,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         //Ensure that the last modified from the item is triggered !
         Item owningItem = (Item) getParentObject(context, bundle);
         if (owningItem != null) {
-            clarinItemService.updateItemFilesMetadata(context, owningItem);
+            clarinItemService.updateItemFilesMetadata(context, owningItem, bundle);
             itemService.updateLastModified(context, owningItem);
             itemService.update(context, owningItem);
         }
@@ -456,7 +456,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
             //The order of the bitstreams has changed, ensure that we update the last modified of our item
             Item owningItem = (Item) getParentObject(context, bundle);
             if (owningItem != null) {
-                clarinItemService.updateItemFilesMetadata(context, owningItem);
+                clarinItemService.updateItemFilesMetadata(context, owningItem, bundle);
                 itemService.updateLastModified(context, owningItem);
                 itemService.update(context, owningItem);
 
