@@ -628,33 +628,6 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             }
         }
 
-        int totalNumberOfFiles = 0;
-        long totalSizeofFiles = 0;
-
-        /* Add local.has.files metadata */
-        boolean hasFiles = false;
-        List<Bundle> origs = getBundles(item, "ORIGINAL");
-        for (Bundle orig : origs) {
-            if (CollectionUtils.isNotEmpty(orig.getBitstreams())) {
-                hasFiles = true;
-            }
-            for (Bitstream bit : orig.getBitstreams()) {
-                totalNumberOfFiles ++;
-                totalSizeofFiles += bit.getSizeBytes();
-            }
-        }
-
-//        clearMetadata(context, item, "local", "has", "files", Item.ANY);
-//        clearMetadata(context, item, "local", "files", "count", Item.ANY);
-//        clearMetadata(context, item, "local", "files", "size", Item.ANY);
-//        if ( hasFiles ) {
-//            addMetadata(context, item, "local", "has", "files", Item.ANY, "yes");
-//        } else {
-//            addMetadata(context, item,"local", "has", "files", Item.ANY, "no");
-//        }
-//        addMetadata(context, item,"dc", "description", "provenance", Item.ANY, "Hello world");
-//        addMetadata(context, item,"local", "files", "size", Item.ANY, "" + totalSizeofFiles);
-
         if (item.isMetadataModified() || item.isModified()) {
             // Set the last modified date
             item.setLastModified(new Date());
