@@ -427,7 +427,7 @@ public class XOAI {
 
         boolean discoverable = item.isDiscoverable();
         // The Item is not deleted when it has local metadata `local.hidden = hidden`.
-        // Without this, the item is not discoverable harvestable; however, it should be harvested via OAI-PMH.
+        // Without this, the item is not discoverable and harvestable; however, it should be harvestable via OAI-PMH.
         if (!discoverable && item.isHidden()) {
             discoverable = true;
         }
