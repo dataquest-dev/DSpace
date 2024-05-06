@@ -144,7 +144,7 @@
                 Template call for ResourceType
                 DataCite allows the ResourceType to ouccre not more than once.
             -->
-            <xsl:apply-templates select="(//dspace:field[@mdschema='dc' and @element='type'])[1]" />
+            <xsl:call-template name="resourceType" />
 
             <!--
                 OPTIONAL PROPERTIES
@@ -468,14 +468,24 @@
         DataCite (10), DataCite (10.1)
         Adds resourceType and resourceTypeGeneral information
     -->
-    <xsl:template match="//dspace:field[@mdschema='dc' and @element='type'][1]">
-	<xsl:variable name="types" select="tokenize(text(),';')"/>
-        <xsl:element name="resourceType">
-            <xsl:attribute name="resourceTypeGeneral">
-		    <xsl:value-of select="$types[1]"/>
-            </xsl:attribute>
-            <xsl:value-of select="$types[2]" />
-        </xsl:element>
+    <xsl:template name="resourceType">
+        <xsl:choose>
+            <xsl:when test="//dspace:field[@mdschema='dc' and @element='type'][1]">
+                <xsl:variable name="types" select="tokenize(//dspace:field[@mdschema='dc' and @element='type'][1]/text(),';')"/>
+                <xsl:element name="resourceType">
+                    <xsl:attribute name="resourceTypeGeneral">
+                        <xsl:value-of select="$types[1]"/>
+                    </xsl:attribute>
+                    <xsl:value-of select="$types[2]" />
+                </xsl:element>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:element name="resourceType">
+                    <xsl:attribute name="resourceTypeGeneral">Other</xsl:attribute>
+                    <xsl:text>(:unav) unknown</xsl:text>
+                </xsl:element>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!--
