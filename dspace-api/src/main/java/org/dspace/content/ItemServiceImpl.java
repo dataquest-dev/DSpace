@@ -152,10 +152,6 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     @Autowired(required = true)
     private EntityTypeService entityTypeService;
 
-
-    @Autowired(required = true)
-    protected MetadataValueDAO metadataValueDAO;
-
     @Autowired
     private OrcidTokenService orcidTokenService;
 
