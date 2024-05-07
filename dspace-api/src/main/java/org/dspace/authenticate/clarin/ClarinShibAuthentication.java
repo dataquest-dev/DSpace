@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -1331,7 +1332,8 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
     }
 
     public String getEmailAcceptedOrNull(String email) {
-        if (email == null || email.isEmpty() || email.matches(".*\\s+.*")) { // no whitespaces in mail
+        // no whitespaces in mail
+        if (StringUtils.isEmpty(email) || Pattern.compile("\\s").matcher(email).find()) {
             return null;
         }
         return email;
