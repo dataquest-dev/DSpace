@@ -277,10 +277,6 @@ public class DescribeStep extends AbstractProcessingStep {
             }
         }
 
-        if (ObjectUtils.isEmpty(jsonNodeValue) || StringUtils.isBlank(jsonNodeValue.asText())) {
-            throw new UnprocessableEntityException("Cannot load JsonNode value from the operation: " +
-                    oldOp.getPath());
-        }
         // get the value from the old operation as a string
         oldOpValue = jsonNodeValue.asText();
 
