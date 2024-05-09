@@ -261,8 +261,7 @@ public class DescribeStep extends AbstractProcessingStep {
         // Operation has a value wrapped in the JsonValueEvaluator
         JsonValueEvaluator jsonValEvaluator = (JsonValueEvaluator) oldOp.getValue();
         if (jsonValEvaluator == null) {
-            log.warn("The complex input field for the `local.sponsor` is not processed, " +
-                    "because the operation doesn't have a value.");
+            log.warn("The complex input field is not processed, because the operation doesn't have a value.");
             return null;
         }
         Iterator<JsonNode> jsonNodes = jsonValEvaluator.getValueNode().elements();
