@@ -7,13 +7,18 @@
  */
 package org.dspace.app.rest;
 
+import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.converter.ConverterService;
@@ -26,9 +31,14 @@ import org.dspace.app.rest.repository.ItemRestRepository;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
+import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ControllerUtils;
@@ -41,6 +51,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -79,6 +90,12 @@ public class ItemAddBundleController {
     @Autowired
     Utils utils;
 
+    @Autowired
+    ClarinLicenseService clarinLicenseService;
+
+    @Autowired
+    ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+
     /**
      * Method to add a Bundle to an Item with the given UUID in the URL. This will create a Bundle with the
      * name provided in the request and attach this to the Item that matches the UUID in the URL.
@@ -111,4 +128,40 @@ public class ItemAddBundleController {
         return ControllerUtils.toResponseEntity(HttpStatus.CREATED, new HttpHeaders(), bundleResource);
     }
 
+    @RequestMapping(method = RequestMethod.PUT)
+    @PreAuthorize("hasPermission(#uuid, 'ITEM', 'ADD')")
+    public ItemRest updateLicenseForBundle(@PathVariable UUID uuid,
+                                                                  @RequestParam("licenseID") Integer licenseId,
+                                                                  HttpServletRequest request,
+                                                                  HttpServletResponse response)
+            throws SQLException, AuthorizeException {
+        Context context = ContextUtil.obtainContext(request);
+        if (Objects.isNull(context)) {
+            throw new BadRequestException("No context found for current user");
+        }
+        Item item = itemService.find(context, uuid);
+
+        if (item == null) {
+            throw new ResourceNotFoundException("Could not find item with id " + uuid);
+        }
+
+        ClarinLicense clarinLicense = clarinLicenseService.find(context, licenseId);
+        List<Bundle> bundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
+        for (Bundle clarinBundle : bundles) {
+            List<Bitstream> bitstreamList = clarinBundle.getBitstreams();
+            for (Bitstream bundleBitstream : bitstreamList) {
+                // in case bitstream ID exists in license table for some reason .. just remove it
+                this.clarinLicenseResourceMappingService.detachLicenses(context, bundleBitstream);
+                // add the license to bitstream
+                this.clarinLicenseResourceMappingService.attachLicense(context, clarinLicense, bundleBitstream);
+            }
+        }
+        clarinLicenseService.clearLicenseMetadataFromItem(context, item);
+        clarinLicenseService.addLicenseMetadataToItem(context, clarinLicense, item);
+
+        itemService.update(context, item);
+        context.commit();
+
+        return converter.toRest(item, utils.obtainProjection());
+    }
 }
