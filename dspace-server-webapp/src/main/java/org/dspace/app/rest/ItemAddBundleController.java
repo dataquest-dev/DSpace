@@ -7,7 +7,6 @@
  */
 package org.dspace.app.rest;
 
-import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
 
 import java.io.IOException;
@@ -18,7 +17,6 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.converter.ConverterService;
