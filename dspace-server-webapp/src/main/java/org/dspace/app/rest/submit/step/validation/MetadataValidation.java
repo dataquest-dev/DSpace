@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -142,8 +143,9 @@ public class MetadataValidation extends AbstractValidation {
                         }
                     }
                     validateMetadataValues(mdv, input, config, isAuthorityControlled, fieldKey, errors);
-                    if ((input.isRequired() && mdv.size() == 0) && input.isVisible(DCInput.SUBMISSION_SCOPE)
-                                                                && !valuesRemoved) {
+                    if (((input.isRequired() && mdv.size() == 0) && input.isVisible(DCInput.SUBMISSION_SCOPE)
+                                                                && !valuesRemoved)
+                            || !isValidComplexDefinitionMetadata(input, mdv)) {
                         // Is the input required for *this* type? In other words, are we looking at a required
                         // input that is also allowed for this document type
                         if (input.isAllowedFor(documentTypeValue)) {
@@ -180,10 +182,19 @@ public class MetadataValidation extends AbstractValidation {
                 List<String> filledInputValues = null;
                 String isRequired = complexDefinitionInputValues.get("required");
                 if (StringUtils.equals(BooleanUtils.toStringTrueFalse(true), isRequired)) {
+                    // Is required and no value was found
+                    if (CollectionUtils.isEmpty(mdv)) {
+                        return false;
+                    }
                     filledInputValues = new ArrayList<>(Arrays.asList(
                             mdv.get(0).getValue().split(DCInput.ComplexDefinitions.getSeparator(),-1)));
 
                     if (StringUtils.isBlank(filledInputValues.get(complexDefinitionIndex))) {
+                        // EU identifier must have `openaire_id` value otherwise the `openaire_id` could be empty.
+                        if (StringUtils.equals("openaire_id", complexDefinitionInputName) &&
+                                !StringUtils.equals("euFunds", filledInputValues.get(0))) {
+                            continue;
+                        }
                         return false;
                     }
                 }
