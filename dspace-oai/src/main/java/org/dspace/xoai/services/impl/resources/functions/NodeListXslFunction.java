@@ -58,7 +58,7 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
     final public SequenceType[] getArgumentTypes() {
         return new SequenceType[]{
                 SequenceType.makeSequenceType(
-                        ItemType.STRING, OccurrenceIndicator.ONE)};
+                        ItemType.STRING, OccurrenceIndicator.ZERO_OR_MORE)};
     }
 
     @Override
@@ -67,7 +67,16 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
             return new XdmAtomicValue("");
         }
 
-        NodeList nodeList = getNodeList(xdmValues[0].itemAt(0).getStringValue());
+        String val;
+        try {
+            val = xdmValues[0].itemAt(0).getStringValue();
+        } catch (Exception e) {
+            // e. g. when no parameter is passed and xdmValues[0] ends with index error
+            val = "";
+        }
+
+
+        NodeList nodeList = getNodeList(val);
         Node oneNode = nodeList.item(0);
 
         DocumentBuilder db = new Processor(false).newDocumentBuilder();

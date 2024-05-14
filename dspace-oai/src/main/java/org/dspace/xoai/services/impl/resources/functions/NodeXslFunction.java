@@ -61,7 +61,15 @@ public abstract class NodeXslFunction implements ExtensionFunction {
         if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues)) {
             return new XdmAtomicValue("");
         }
-        Node node = getNode(xdmValues[0].itemAt(0).getStringValue());
+        String val;
+        try {
+            val = xdmValues[0].itemAt(0).getStringValue();
+        } catch (Exception e) {
+            // e. g. when no parameter is passed and xdmValues[0] ends with index error
+            val = "";
+        }
+
+        Node node = getNode(val);
         if (Objects.isNull(node)) {
             try {
                 node = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();

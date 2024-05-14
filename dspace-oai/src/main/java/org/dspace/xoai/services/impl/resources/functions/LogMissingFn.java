@@ -53,8 +53,25 @@ public class LogMissingFn implements ExtensionFunction {
         if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues)) {
             return new XdmAtomicValue("");
         }
-        return new XdmAtomicValue(checks(XslLogUtil.logMissing(xdmValues[0].itemAt(0).getStringValue(),
-                xdmValues[1].itemAt(0).getStringValue())));
+
+        String val0;
+        try {
+            val0 = xdmValues[0].itemAt(0).getStringValue();
+        } catch (Exception e) {
+            // e. g. when no parameter is passed and xdmValues[0] ends with index error
+            val0 = "";
+        }
+
+        String val1;
+        try {
+            val1 = xdmValues[1].itemAt(0).getStringValue();
+        } catch (Exception e) {
+            // e. g. when no parameter is passed and xdmValues[0] ends with index error
+            val1 = "";
+        }
+
+
+        return new XdmAtomicValue(checks(XslLogUtil.logMissing(val0,val1)));
     }
 
     private String checks(String got) {
