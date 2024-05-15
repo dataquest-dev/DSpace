@@ -20,6 +20,7 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.SequenceType;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.Arrays;
 import org.dspace.utils.XslLogUtil;
 
@@ -30,6 +31,7 @@ import org.dspace.utils.XslLogUtil;
  */
 public class LogMissingFn implements ExtensionFunction {
 
+    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(LogMissingFn.class);
     @Override
     public QName getName() {
         return new QName(BASE, "logMissing");
@@ -58,7 +60,8 @@ public class LogMissingFn implements ExtensionFunction {
         try {
             val0 = xdmValues[0].itemAt(0).getStringValue();
         } catch (Exception e) {
-            // e. g. when no parameter is passed and xdmValues[0] ends with index error
+            // e.g. when no parameter is passed and xdmValues[0] ends with index error
+            log.warn("Empty value to call of function LogMissingFn in the first argument");
             val0 = "";
         }
 
@@ -66,7 +69,8 @@ public class LogMissingFn implements ExtensionFunction {
         try {
             val1 = xdmValues[1].itemAt(0).getStringValue();
         } catch (Exception e) {
-            // e. g. when no parameter is passed and xdmValues[0] ends with index error
+            // e.g. when no parameter is passed and xdmValues[0] ends with index error
+            log.warn("Empty value to call of function LogMissingFn in the second argument");
             val1 = "";
         }
 

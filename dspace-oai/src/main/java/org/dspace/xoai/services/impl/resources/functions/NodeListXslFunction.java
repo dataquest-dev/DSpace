@@ -38,6 +38,7 @@ import org.w3c.dom.NodeList;
  */
 public abstract class NodeListXslFunction implements ExtensionFunction {
 
+    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(NodeListXslFunction.class);
     protected abstract String getFnName();
 
     protected abstract NodeList getNodeList(String param);
@@ -71,7 +72,8 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
         try {
             val = xdmValues[0].itemAt(0).getStringValue();
         } catch (Exception e) {
-            // e. g. when no parameter is passed and xdmValues[0] ends with index error
+            // e.g. when no parameter is passed and xdmValues[0] ends with index error
+            log.warn("Empty value in call of function of NodeListXslFunction type");
             val = "";
         }
 
