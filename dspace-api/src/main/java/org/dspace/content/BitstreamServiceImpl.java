@@ -278,6 +278,8 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         // Remove bitstream itself
         bitstream.setDeleted(true);
         update(context, bitstream);
+        // Update Item's metadata about bitstreams
+        clarinItemService.updateItemFilesMetadata(context, bitstream);
 
         //Remove our bitstream from all our bundles
         final List<Bundle> bundles = bitstream.getBundles();
@@ -289,8 +291,6 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
             }
             bundle.removeBitstream(bitstream);
         }
-        // Update Item's metadata about bitstreams
-        clarinItemService.updateItemFilesMetadata(context, bitstream);
         //Remove all bundles from the bitstream object, clearing the connection in 2 ways
         bundles.clear();
 
