@@ -42,9 +42,6 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
     protected abstract String getFnName();
 
     protected abstract NodeList getNodeList(String param);
-
-    private static final Logger log = getLogger(NodeListXslFunction.class);
-
     @Override
     final public QName getName() {
         return new QName(BASE, getFnName());
