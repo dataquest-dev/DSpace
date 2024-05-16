@@ -1,3 +1,12 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ * <p>
+ * http://www.dspace.org/license/
+ */
+
+/* Created for LINDAT/CLARIAH-CZ (UFAL) */
 package org.dspace.utils;
 
 import java.io.BufferedReader;
@@ -8,15 +17,20 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 public class LangUtil {
+
+    private LangUtil() {}
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger
             .getLogger(LangUtil.class);
 
     static final HashMap<String, Lang> idToLang;
+
     static {
         idToLang = new HashMap<>();
-        final InputStream langCodesInputStream = LangUtil.class.getClassLoader().getResourceAsStream("iso-639-3.tab");
-        if(langCodesInputStream != null) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(langCodesInputStream, StandardCharsets.UTF_8))) {
+        final InputStream langCodesInputStream = LangUtil.class.getClassLoader()
+                .getResourceAsStream("iso-639-3.tab");
+        if (langCodesInputStream != null) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(langCodesInputStream,
+                    StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     Lang lang = new Lang(line);
@@ -31,19 +45,19 @@ public class LangUtil {
         }
     }
 
-    public static String getShortestId(String id){
+    public static String getShortestId(String id) {
         Lang lang = idToLang.get(id);
-        if(lang != null){
-            if(lang.getPart1() != null){
+        if (lang != null) {
+            if (lang.getPart1() != null) {
                 return lang.getPart1();
-            }else {
+            } else {
                 return lang.getId();
             }
         }
         return id;
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         System.out.println(getShortestId("eng"));
         System.out.println(getShortestId("deu"));
         System.out.println(getShortestId("ger"));

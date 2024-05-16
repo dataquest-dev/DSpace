@@ -16,7 +16,7 @@ import org.dspace.utils.LangUtil;
 public class ShortestIdFn extends StringXSLFunction {
     @Override
     protected String getFnName() {
-        return "uriToAvailability";
+        return "shortestIdFn";
     }
 
     @Override

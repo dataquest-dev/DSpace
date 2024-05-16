@@ -11,7 +11,8 @@
                 xmlns:str="http://exslt.org/strings"
                 xmlns:ms="http://w3id.org/meta-share/meta-share/"
                 xmlns:confman="org.dspace.core.ConfigurationManager"
-                exclude-result-prefixes="doc logUtil isocodes license xalan str langUtil confman"
+                xmlns:fn="http://custom.crosswalk.functions"
+                exclude-result-prefixes="doc logUtil isocodes license xalan str langUtil confman fn"
                 version="1.0">
 
     <xsl:output omit-xml-declaration="yes" method="xml" indent="yes" xalan:indent-amount="4"/>
@@ -74,8 +75,8 @@
                 select="//doc:element[@name='bundle']/doc:field[@name='name'][text()='ORIGINAL']/..//doc:element[@name='bitstream']"/>
     </xsl:variable>
 
-    <xsl:variable name="lr.download.all.limit.max.file.size" select="confman:getLongProperty('lr', 'lr.download.all.limit.max.file.size', 1073741824)"/>
-    <xsl:variable name="lr.elg.downloadLocation.exposed" select="confman:getLongProperty('lr', 'lr.elg.downloadLocation.exposed', 0)"/>
+    <xsl:variable name="lr.download.all.limit.max.file.size" select="getProperty('download.all.limit.max.file.size')"/>
+    <xsl:variable name="lr.elg.downloadLocation.exposed" select="getProperty('elg.downloadLocation.exposed')"/>
     <!-- VARIABLES END -->
 
     <xsl:template match="/">
@@ -910,7 +911,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
         <xsl:for-each
                 select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='language']/doc:element[@name='iso']/doc:element/doc:field[@name='value']">
             <xsl:call-template name="Language">
-                <xsl:with-param name="isoCode" select="langUtil:getShortestId(.)"/>
+                <xsl:with-param name="isoCode" select="shortestIdFn(.)"/>
             </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
