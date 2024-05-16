@@ -197,6 +197,10 @@ public class ClarinItemServiceImpl implements ClarinItemService {
             break;
         }
 
+        // It could be null when the bundle name is e.g. `LICENSE`
+        if (Objects.isNull(item) || Objects.isNull(bundle)) {
+            return;
+        }
         this.updateItemFilesMetadata(context, item, bundle);
     }
 }
