@@ -165,9 +165,9 @@
                     <xsl:choose>
                         <!-- assume names stored in 'last, first, any, other' fashion -->
                         <xsl:when test="contains(., ', ')">
-                            <xsl:variable name="surname" select="str:split(., ', ')[1]"/>
+                            <xsl:variable name="surname" select="tokenize(., ', ')[1]"/>
                             <xsl:variable name="given">
-                                <xsl:for-each select="str:split(., ', ')">
+                                <xsl:for-each select="tokenize(., ', ')">
                                     <xsl:if test="position() &gt; 1">
                                         <xsl:value-of select="."/>
                                         <xsl:if test="position() != last()">
@@ -198,7 +198,7 @@
 
     <xsl:template name="fundingProject">
         <xsl:for-each select="doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value']">
-            <xsl:variable name="proj_arr" select="str:split(., '@@')"/>
+            <xsl:variable name="proj_arr" select="tokenize(., '@@')"/>
             <xsl:if test="count($proj_arr) &gt;= 4">
                 <xsl:if
                         test="$proj_arr[1] != '' and $proj_arr[2] != '' and $proj_arr[3] != '' and $proj_arr[4] != ''">
@@ -453,7 +453,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                         <xsl:when
                                 test="sum(xalan:nodeset($files)/doc:element[@name='bitstream']/doc:field[@name='size']/text()) &lt; $lr.download.all.limit.max.file.size ">
                             <ms:downloadLocation><xsl:value-of
-                                    select="concat(str:split(xalan:nodeset($files)[1]/doc:element[@name='bitstream']/doc:field[@name='url']/text(), 'bitstream/')[1], $handle, '/allzip')" /></ms:downloadLocation>
+                                    select="concat(tokenize(xalan:nodeset($files)[1]/doc:element[@name='bitstream']/doc:field[@name='url']/text(), 'bitstream/')[1], $handle, '/allzip')" /></ms:downloadLocation>
                         </xsl:when>
                     </xsl:choose>
                 </xsl:if>
@@ -603,7 +603,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
 
     <xsl:template name="formatDate">
         <xsl:param name="date"/>
-        <xsl:value-of select="str:split($date, 'T')[1]"/>
+        <xsl:value-of select="tokenize($date, 'T')[1]"/>
     </xsl:template>
 
     <xsl:template name="Sizes">
@@ -612,7 +612,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                     test="doc:metadata/doc:element[@name='local']/doc:element[@name='size']/doc:element[@name='info']/doc:element/doc:field[@name='value']">
                 <xsl:for-each
                         select="doc:metadata/doc:element[@name='local']/doc:element[@name='size']/doc:element[@name='info']/doc:element/doc:field[@name='value']">
-                    <xsl:variable name="size_arr" select="str:split(., '@@')"/>
+                    <xsl:variable name="size_arr" select="tokenize(., '@@')"/>
                     <xsl:call-template name="size">
                         <xsl:with-param name="amount" select="$size_arr[1]"/>
                         <xsl:with-param name="unit" select="$size_arr[2]"/>
