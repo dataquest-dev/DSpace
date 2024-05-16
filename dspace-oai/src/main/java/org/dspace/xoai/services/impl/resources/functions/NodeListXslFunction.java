@@ -8,7 +8,6 @@
 
 package org.dspace.xoai.services.impl.resources.functions;
 
-import static org.apache.logging.log4j.LogManager.getLogger;
 import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunction.BASE;
 
 import java.util.Objects;
