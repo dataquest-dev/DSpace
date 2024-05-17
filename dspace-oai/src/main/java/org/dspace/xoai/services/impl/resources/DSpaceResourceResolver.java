@@ -44,7 +44,6 @@ public class DSpaceResourceResolver implements ResourceResolver {
     // Requires usage of Saxon as OAI-PMH uses some XSLT 2 functions
     private static final TransformerFactory transformerFactory = TransformerFactory
             .newInstance("net.sf.saxon.TransformerFactoryImpl", null);
-
     static {
         /*
          * Any additional extension functions that might be used in XST transformations

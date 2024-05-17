@@ -70,7 +70,7 @@
     </xsl:variable>
 
     <xsl:variable name="lr.download.all.limit.max.file.size" select="fn:getProperty('download.all.limit.max.file.size')"/>
-    <xsl:variable name="lr.elg.downloadLocation.exposed" select="fn:getProperty('elg.downloadLocation.exposed')"/>
+    <xsl:variable name="lr.elg.download-location.exposed" select="fn:getProperty('elg.downloadLocation.exposed')"/>
     <!-- VARIABLES END -->
 
     <xsl:template match="/">
@@ -435,7 +435,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                 <xsl:value-of select="concat('http://w3id.org/meta-share/meta-share/', $form)"/>
             </xsl:element>
 
-            <xsl:if test="$lr.elg.downloadLocation.exposed">
+            <xsl:if test="$lr.elg.download-location.exposed">
                 <!-- downloadLocation if there are files -->
                 <xsl:if test="exsl:node-set($files)/doc:element[@name='bitstream']">
                     <xsl:choose>

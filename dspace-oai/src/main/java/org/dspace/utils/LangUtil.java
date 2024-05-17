@@ -2,7 +2,7 @@
  * The contents of this file are subject to the license and copyright
  * detailed in the LICENSE and NOTICE files at the root of the source
  * tree and available online at
- * 
+ *
  * http://www.dspace.org/license/
  */
 
@@ -16,6 +16,13 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
+/**
+ *  Class is copied from the LINDAT/CLARIAH-CZ (This class is taken from UFAL-clarin.
+ *  <a href="https://github.com/ufal/clarin-dspace/blob/clarin
+ *  /dspace-oai/src/main/java/cz/cuni/mff/ufal/utils/LangUtil.java">...</a>) and modified by
+ *
+ *  @author Marian Berger (marian.berger at dataquest.sk)
+ */
 public class LangUtil {
 
     private LangUtil() {}
