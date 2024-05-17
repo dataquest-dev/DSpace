@@ -2576,7 +2576,8 @@
             </list>
         </property>
         <property name="facetLimit" value="20"/>
-        <property name="sortOrder" value="COUNT"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
 
     <bean id="searchFilterEntityType" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
