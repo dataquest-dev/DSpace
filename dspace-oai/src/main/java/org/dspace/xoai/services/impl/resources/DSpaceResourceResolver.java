@@ -23,12 +23,28 @@ import net.sf.saxon.jaxp.SaxonTransformerFactory;
 import net.sf.saxon.s9api.ExtensionFunction;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.xoai.services.impl.resources.functions.*;
+import org.dspace.xoai.services.impl.resources.functions.BibtexifyFn;
+import org.dspace.xoai.services.impl.resources.functions.FormatFn;
+import org.dspace.xoai.services.impl.resources.functions.GetAuthorFn;
+import org.dspace.xoai.services.impl.resources.functions.GetContactFn;
+import org.dspace.xoai.services.impl.resources.functions.GetFundingFn;
+import org.dspace.xoai.services.impl.resources.functions.GetLangForCodeFn;
+import org.dspace.xoai.services.impl.resources.functions.GetPropertyFn;
+import org.dspace.xoai.services.impl.resources.functions.GetSizeFn;
+import org.dspace.xoai.services.impl.resources.functions.GetUploadedMetadataFn;
+import org.dspace.xoai.services.impl.resources.functions.LogMissingFn;
+import org.dspace.xoai.services.impl.resources.functions.LogMissingMsgFn;
+import org.dspace.xoai.services.impl.resources.functions.ShortestIdFn;
+import org.dspace.xoai.services.impl.resources.functions.StringReplaceFn;
+import org.dspace.xoai.services.impl.resources.functions.UriToLicenseFn;
+import org.dspace.xoai.services.impl.resources.functions.UriToMetaShareFn;
+import org.dspace.xoai.services.impl.resources.functions.UriToRestrictionsFn;
 
 public class DSpaceResourceResolver implements ResourceResolver {
     // Requires usage of Saxon as OAI-PMH uses some XSLT 2 functions
     private static final TransformerFactory transformerFactory = TransformerFactory
             .newInstance("net.sf.saxon.TransformerFactoryImpl", null);
+
     static {
         /*
          * Any additional extension functions that might be used in XST transformations
@@ -48,6 +64,7 @@ public class DSpaceResourceResolver implements ResourceResolver {
             saxonTransformerFactory.getProcessor().registerExtensionFunction(en);
         }
     }
+
     private final String basePath;
 
     public DSpaceResourceResolver() {
