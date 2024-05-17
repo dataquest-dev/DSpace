@@ -176,6 +176,7 @@
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterEntityType"/>
                 <ref bean="searchFilterItemsCommunity"/>
+                <ref bean="searchFacetDataProvider" />
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -2565,6 +2566,17 @@
         </property>
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
+    </bean>
+
+    <bean id="searchFacetDataProvider" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="dataProvider"/>
+        <property name="metadataFields">
+            <list>
+                <value>local.dataProvider</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="20"/>
+        <property name="sortOrder" value="COUNT"/>
     </bean>
 
     <bean id="searchFilterEntityType" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
