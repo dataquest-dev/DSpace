@@ -3,19 +3,13 @@
 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:doc="http://www.lyncode.com/xoai"
-                xmlns:logUtil="cz.cuni.mff.ufal.utils.XslLogUtil"
-                xmlns:isocodes="cz.cuni.mff.ufal.IsoLangCodes"
-                xmlns:langUtil="cz.cuni.mff.ufal.utils.LangUtil"
-                xmlns:license="cz.cuni.mff.ufal.utils.LicenseUtil"
-                xmlns:xalan="http://xml.apache.org/xslt"
-                xmlns:str="http://exslt.org/strings"
                 xmlns:ms="http://w3id.org/meta-share/meta-share/"
-                xmlns:confman="org.dspace.core.ConfigurationManager"
                 xmlns:fn="http://custom.crosswalk.functions"
-                exclude-result-prefixes="doc logUtil isocodes license xalan str langUtil confman fn"
+                xmlns:exsl="http://exslt.org/common"
+                exclude-result-prefixes="doc fn"
                 version="1.0">
 
-    <xsl:output omit-xml-declaration="yes" method="xml" indent="yes" xalan:indent-amount="4"/>
+    <xsl:output omit-xml-declaration="yes" method="xml" indent="yes"/>
 
     <!-- VARIABLES BEGIN -->
     <xsl:variable name="UPPER_CHARS" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
@@ -40,7 +34,7 @@
                     <xsl:value-of select="/doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ContentInfo']/doc:element[@name='mediaType']/doc:element/doc:field[@name='value']"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="logUtil:logMissing('mediaType',$handle)"/>
+                    <xsl:value-of select="fn:logMissing('mediaType',$handle)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
@@ -64,7 +58,7 @@
                     <xsl:value-of select="/doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ContentInfo']/doc:element[@name='detailedType']/doc:element/doc:field[@name='value']"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="logUtil:logMissing('detailedType',$handle)"/>
+                    <xsl:value-of select="fn:logMissing('detailedType',$handle)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
@@ -75,8 +69,8 @@
                 select="//doc:element[@name='bundle']/doc:field[@name='name'][text()='ORIGINAL']/..//doc:element[@name='bitstream']"/>
     </xsl:variable>
 
-    <xsl:variable name="lr.download.all.limit.max.file.size" select="getProperty('download.all.limit.max.file.size')"/>
-    <xsl:variable name="lr.elg.downloadLocation.exposed" select="getProperty('elg.downloadLocation.exposed')"/>
+    <xsl:variable name="lr.download.all.limit.max.file.size" select="fn:getProperty('download.all.limit.max.file.size')"/>
+    <xsl:variable name="lr.elg.downloadLocation.exposed" select="fn:getProperty('elg.downloadLocation.exposed')"/>
     <!-- VARIABLES END -->
 
     <xsl:template match="/">
@@ -443,18 +437,18 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
 
             <xsl:if test="$lr.elg.downloadLocation.exposed">
                 <!-- downloadLocation if there are files -->
-                <xsl:if test="xalan:nodeset($files)/doc:element[@name='bitstream']">
+                <xsl:if test="exsl:node-set($files)/doc:element[@name='bitstream']">
                     <xsl:choose>
                         <!-- one file -> direct link -->
-                        <xsl:when test="count(xalan:nodeset($files)/doc:element[@name='bitstream']) = 1">
+                        <xsl:when test="count(exsl:node-set($files)/doc:element[@name='bitstream']) = 1">
                             <ms:downloadLocation><xsl:value-of
-                                    select="xalan:nodeset($files)[1]/doc:element[@name='bitstream']/doc:field[@name='url']/text()" /></ms:downloadLocation>
+                                    select="exsl:node-set($files)[1]/doc:element[@name='bitstream']/doc:field[@name='url']/text()" /></ms:downloadLocation>
                         </xsl:when>
                         <!-- multiple files within allzip limit -->
                         <xsl:when
-                                test="sum(xalan:nodeset($files)/doc:element[@name='bitstream']/doc:field[@name='size']/text()) &lt; $lr.download.all.limit.max.file.size ">
+                                test="sum(exsl:node-set($files)/doc:element[@name='bitstream']/doc:field[@name='size']/text()) &lt; $lr.download.all.limit.max.file.size ">
                             <ms:downloadLocation><xsl:value-of
-                                    select="concat(tokenize(xalan:nodeset($files)[1]/doc:element[@name='bitstream']/doc:field[@name='url']/text(), 'bitstream/')[1], $handle, '/allzip')" /></ms:downloadLocation>
+                                    select="concat(tokenize(exsl:node-set($files)[1]/doc:element[@name='bitstream']/doc:field[@name='url']/text(), 'bitstream/')[1], $handle, '/allzip')" /></ms:downloadLocation>
                         </xsl:when>
                     </xsl:choose>
                 </xsl:if>
@@ -622,7 +616,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
             </xsl:when>
             <xsl:otherwise>
                 <xsl:call-template name="size">
-                    <xsl:with-param name="amount" select="sum(xalan:nodeset($files)/doc:element[@name='bitstream']/doc:field[@name='size']/text())"/>
+                    <xsl:with-param name="amount" select="sum(exsl:node-set($files)/doc:element[@name='bitstream']/doc:field[@name='size']/text())"/>
                     <xsl:with-param name="unit" select="'bytes'"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -911,7 +905,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
         <xsl:for-each
                 select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='language']/doc:element[@name='iso']/doc:element/doc:field[@name='value']">
             <xsl:call-template name="Language">
-                <xsl:with-param name="isoCode" select="shortestIdFn(.)"/>
+                <xsl:with-param name="isoCode" select="fn:shortestIdFn(.)"/>
             </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
