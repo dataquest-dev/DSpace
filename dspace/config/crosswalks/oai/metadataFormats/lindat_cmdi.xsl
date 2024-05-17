@@ -21,8 +21,18 @@
 
 
     <xsl:variable name="handle" select="/doc:metadata/doc:element[@name='others']/doc:field[@name='handle']/text()"/>
-    <xsl:variable name="dc_identifier_uri"
-    select="fn:stringReplace(/doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])"/>
+
+	<xsl:variable name="dc_identifier_uri">
+		<xsl:choose>
+			<xsl:when test="fn:getProperty('item-page.show-handle-and-doi') = 'true'  and  /doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value'] != ''">
+				<xsl:value-of select="fn:stringReplace(/doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value'])"/>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']"/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:variable>
+
     <xsl:variable name="modifyDate" select="/doc:metadata/doc:element[@name='others']/doc:field[@name='lastModifyDate']/text()"/>
     <xsl:variable name="dc_rights_uri" select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value']" />
     <xsl:variable name="dsURL" select="fn:getProperty('dspace.ui.url')"/>
