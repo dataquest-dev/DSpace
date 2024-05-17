@@ -176,7 +176,6 @@
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterEntityType"/>
                 <ref bean="searchFilterItemsCommunity"/>
-                <ref bean="searchFacetDataProvider" />
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -203,6 +202,7 @@
                 <ref bean="searchFilterType"/>
                 <ref bean="searchFilterPublisher"/>
                 <ref bean="searchFilterSubjectFirstValue"/>
+                <ref bean="searchFacetDataProvider" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
