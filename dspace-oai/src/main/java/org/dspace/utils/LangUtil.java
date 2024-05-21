@@ -87,14 +87,6 @@ public class LangUtil {
             part2B = parts[1].isEmpty() ? null : parts[1];
             //part2T = parts[2];
             part1 = parts[3].isEmpty() ? null : parts[3];
-            /*scope = parts[4];
-            languageType = parts[5];
-            refName = parts[6];
-            if(parts.length == 8){
-                comment = parts[7];
-            }else {
-                comment = "";
-            }*/
         }
 
         public String getId() {
