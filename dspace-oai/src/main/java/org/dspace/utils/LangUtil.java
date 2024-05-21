@@ -21,7 +21,7 @@ import java.util.HashMap;
  *  <a href="https://github.com/ufal/clarin-dspace/blob/clarin
  *  /dspace-oai/src/main/java/cz/cuni/mff/ufal/utils/LangUtil.java">...</a>) and modified by
  *
- *  @author Marian Berger (marian.berger at dataquest.sk)
+ *  @author Marian Berger (dspace at dataquest.sk)
  */
 public class LangUtil {
 
