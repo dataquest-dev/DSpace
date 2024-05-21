@@ -329,6 +329,11 @@
             <creatorName>
                 <xsl:value-of select="." />
             </creatorName>
+            <xsl:if test="@authority">
+                <nameIdentifier nameIdentifierScheme="ORCID" schemeURI="https://orcid.org">
+                    <xsl:value-of select="concat('https://orcid.org/', @authority)" />
+                </nameIdentifier>
+            </xsl:if>
         </creator>
     </xsl:template>
 

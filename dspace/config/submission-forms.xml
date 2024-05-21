@@ -63,7 +63,8 @@
                     <label>Creator</label>
                     <input-type>onebox</input-type>
                     <hint>The main researchers involved in producing the data in priority order. Personal name format
-                        should be: family, given.</hint>
+                        should be: family, given. As you type a popup will appear showing ORCIDs. If you need to skip
+                        the ORCID selection, hit ESC or click/tap the grey circle icon on the active input field.</hint>
                     <required>You must fill in the creator(s)</required>
                 </field>
             </row>
