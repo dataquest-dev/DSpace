@@ -18,6 +18,7 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.core.Constants;
@@ -39,14 +40,12 @@ public class ColComFilter extends DSpaceFilter {
 
     private DSpaceObject dso = null;
 
-    @Autowired
-    private HandleResolver handleResolver;
+    @Autowired(required = true)
+    private static HandleResolver handleResolver;
 
-    @Autowired
-    private CommunityService communityService;
+    private static CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
 
-    @Autowired
-    private CollectionService collectionService;
+    private static CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
 
     @Override
     public SolrFilterResult buildSolrQuery() {
