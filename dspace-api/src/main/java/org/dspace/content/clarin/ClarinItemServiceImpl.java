@@ -31,7 +31,6 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.services.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -217,7 +216,7 @@ public class ClarinItemServiceImpl implements ClarinItemService {
         List<MetadataValue> approximatedDates =
                 itemService.getMetadata(item, "local", "approximateDate", "issued", Item.ANY, false);
 
-        if(CollectionUtils.isEmpty(approximatedDates) || StringUtils.isBlank(approximatedDates.get(0).getValue())) {
+        if (CollectionUtils.isEmpty(approximatedDates) || StringUtils.isBlank(approximatedDates.get(0).getValue())) {
             log.warn("Cannot update item dates metadata because the approximate date is empty.");
             return;
         }
