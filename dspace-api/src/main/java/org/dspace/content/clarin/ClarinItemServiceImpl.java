@@ -213,6 +213,11 @@ public class ClarinItemServiceImpl implements ClarinItemService {
 
     @Override
     public void updateItemDatesMetadata(Context context, Item item) throws SQLException {
+        if (Objects.isNull(context)) {
+            log.error("Cannot update item dates metadata because the context is null.");
+            return;
+        }
+
         List<MetadataValue> approximatedDates =
                 itemService.getMetadata(item, "local", "approximateDate", "issued", Item.ANY, false);
 

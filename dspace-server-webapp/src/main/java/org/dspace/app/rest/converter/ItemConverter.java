@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.MetadataValueList;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
@@ -26,7 +27,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexableObject;
-import org.dspace.web.ContextUtil;
+import org.dspace.services.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -52,7 +53,11 @@ public class ItemConverter
 
     @Override
     public ItemRest convert(Item obj, Projection projection) {
-        Context context = ContextUtil.obtainContext(requestService.getCurrentRequest().getHttpServletRequest());
+        Context context = null;
+        Request currentRequest = requestService.getCurrentRequest();
+        if (currentRequest != null) {
+            context = ContextUtil.obtainContext(currentRequest.getHttpServletRequest());
+        }
         try {
             clarinItemService.updateItemDatesMetadata(context, obj);
         } catch (SQLException e) {
