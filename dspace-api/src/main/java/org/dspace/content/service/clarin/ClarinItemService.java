@@ -90,4 +90,15 @@ public interface ClarinItemService {
      */
     void updateItemFilesMetadata(Context context, Bitstream bit) throws SQLException;
 
+    /**
+     * Update item's metadata about its dates (dc.date.issued, local.approximateDate.issued).
+     * If the local.approximateDate.issued has a value like 'cca 1938 - 1945' or something else,
+     * then dc.date.issued = 0000.
+     * If the local.approximateDate.issued has a value like '1938, 1945, 2022', then dc.date.issued = 2022.
+     *
+     * @param context DSpace context object
+     * @param item Update metadata for this Item
+     */
+    void updateItemDatesMetadata(Context context, Item item) throws SQLException;
+
 }

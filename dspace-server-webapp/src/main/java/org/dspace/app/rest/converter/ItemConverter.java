@@ -19,13 +19,14 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.MetadataValueList;
 import org.dspace.app.rest.projection.Projection;
-import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexableObject;
+import org.dspace.web.ContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -44,25 +45,19 @@ public class ItemConverter
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private ClarinItemService clarinItemService;
+
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(ItemConverter.class);
 
     @Override
     public ItemRest convert(Item obj, Projection projection) {
-        List<MetadataValue> approximatedDates =
-                itemService.getMetadata(obj, "local", "approximateDate", "issued", Item.ANY, false);
-        if (CollectionUtils.isNotEmpty(approximatedDates) &&
-                StringUtils.isNotBlank(approximatedDates.get(0).getValue())) {
-            List<MetadataValue> issuedDates =
-                    itemService.getMetadata(obj, "dc", "date", "issued", Item.ANY, false);
-            issuedDates.forEach(metadataValue -> metadataValue.setValue(approximatedDates.get(0).getValue()));
-
-            // Remove the date from the `dc.date.issued` because it was added into `local.approximateDate.issued`.
-            Context context = ContextUtil.obtainContext(requestService.getCurrentRequest().getHttpServletRequest());
-            try {
-                itemService.clearMetadata(context, obj, "dc", "date", "issued", Item.ANY);
-            } catch (SQLException e) {
-                log.error("Cannot remove `dc.date.issued` metadata because: " + e.getMessage());
-            }
+        Context context = ContextUtil.obtainContext(requestService.getCurrentRequest().getHttpServletRequest());
+        try {
+            clarinItemService.updateItemDatesMetadata(context, obj);
+        } catch (SQLException e) {
+            log.error("Error updating item dates metadata", e);
+            throw new RuntimeException(e);
         }
 
         ItemRest item = super.convert(obj, projection);
