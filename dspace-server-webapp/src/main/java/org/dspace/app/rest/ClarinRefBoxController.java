@@ -409,20 +409,18 @@ class ClarinOutputStream extends OutputStream {
     @Override
     public void write(int b) throws IOException {
         if (b < 0) {
-            if (prev == 0)
+            if (prev == 0) {
                 prev = b;
-            else {
+            } else {
                 String prevString = Integer.toBinaryString(prev);
                 String thisString = Integer.toBinaryString(b);
                 // we need to take last 3 bits of previous number and last 6 bits of current number and compose them
-                int send = Integer.parseInt(prevString.substring(prevString.length()-3)
+                int send = Integer.parseInt(prevString.substring(prevString.length() - 3)
                         + thisString.substring(thisString.length() - 6),2);
                 this.string.append((char) send);
                 prev = 0;
             }
-        }
-
-        else {
+        } else {
             prev = 0;
             this.string.append((char) b );
         }
