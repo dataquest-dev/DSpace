@@ -10,8 +10,10 @@ package org.dspace.app.rest;
 import static java.util.Arrays.asList;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -403,32 +405,16 @@ public class ClarinRefBoxController {
  * This ClarinOutputStream write the content into the string instead of bytes.
  */
 class ClarinOutputStream extends OutputStream {
-    private StringBuilder string = new StringBuilder();
-    private int prev;
+    private ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
     @Override
     public void write(int b) throws IOException {
-        if (b < 0) {
-            if (prev == 0) {
-                prev = b;
-            } else {
-                String prevString = Integer.toBinaryString(prev);
-                String thisString = Integer.toBinaryString(b);
-                // we need to take last 3 bits of previous number and last 6 bits of current number and compose them
-                int send = Integer.parseInt(prevString.substring(prevString.length() - 3)
-                        + thisString.substring(thisString.length() - 6),2);
-                this.string.append((char) send);
-                prev = 0;
-            }
-        } else {
-            prev = 0;
-            this.string.append((char) b );
-        }
+        bao.write(b);
     }
 
     @Override
     public String toString() {
-        return this.string.toString();
+        return bao.toString(StandardCharsets.UTF_8);
     }
 }
 
