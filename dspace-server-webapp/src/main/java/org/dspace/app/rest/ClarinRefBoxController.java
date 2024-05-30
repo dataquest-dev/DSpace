@@ -193,7 +193,7 @@ public class ClarinRefBoxController {
         Context context = null;
         OAIPMH oaipmh = null;
         // ClarinOutputStream write OAI-PMH data into String instead of bytes.
-        OutputStream output = new ClarinOutputStream();
+        OutputStream output = new UTF8ClarinOutputStream();
         try {
             request.setCharacterEncoding("UTF-8");
             context = contextService.getContext();
@@ -404,7 +404,7 @@ public class ClarinRefBoxController {
 /**
  * This ClarinOutputStream write the content into the string instead of bytes.
  */
-class ClarinOutputStream extends OutputStream {
+class UTF8ClarinOutputStream extends OutputStream {
     private ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
     @Override
