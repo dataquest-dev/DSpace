@@ -1,0 +1,2 @@
+Git hash: 2718a9273cbb086e129ac720bca4e4ad9c08a451 Date of commit: 2024-05-24 10:00:12 +0200This info was generated on: 2024-05-24 08:06:45.269719
+ Build run: https://github.com/dataquest-dev/DSpace/actions/runs/9220644386 
