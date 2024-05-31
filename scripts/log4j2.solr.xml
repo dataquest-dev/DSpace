@@ -77,6 +77,9 @@
 
         <AsyncRoot level="info">
             <AppenderRef ref="MainLogFile"/>
+<!--            The level=WARN below is the only modification compared to original logging settings-->
+<!--            It ensures that Standard output only logs Warnings and above. Everything else can-->
+<!--            be found in Appender with id MainLogFile specified above-->
             <AppenderRef ref="STDOUT" level="WARN"/>
         </AsyncRoot>
     </Loggers>
