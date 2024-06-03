@@ -177,6 +177,7 @@
     </bean>
     <bean class="org.dspace.app.statistics.clarin.ClarinMatomoBitstreamTracker"/>
     <bean class="org.dspace.app.statistics.clarin.ClarinMatomoOAITracker"/>
+    <bean class="org.dspace.content.VersionInfoServiceImpl"/>
 
 </beans>
 
