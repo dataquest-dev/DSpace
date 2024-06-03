@@ -201,6 +201,8 @@
                 <ref bean="searchFilterItemsCommunity"/>
                 <ref bean="searchFilterType"/>
                 <ref bean="searchFilterPublisher"/>
+                <ref bean="searchFilterSubjectFirstValue"/>
+                <ref bean="searchFacetDataProvider" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -213,6 +215,7 @@
                         <ref bean="sortTitleDesc" />
                         <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateAccessioned"/>
                     </list>
                 </property>
             </bean>
@@ -222,7 +225,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>(search.resourcetype:Item AND latestVersion:true) OR search.resourcetype:Collection OR search.resourcetype:Community</value>
+                <value>(search.resourcetype:Item) OR search.resourcetype:Collection OR search.resourcetype:Community</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -327,7 +330,7 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterAuthor" />
-                <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterSubjectFirstValue" />
                 <!--                <ref bean="searchFilterIssued" />-->
                 <ref bean="searchFilterRights" />
                 <ref bean="searchFilterLanguage" />
@@ -344,6 +347,7 @@
                 <ref bean="searchFilterTitle" />
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterSubjectFirstValue" />
                 <!--                <ref bean="searchFilterIssued" />-->
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterFileNameInOriginalBundle" />
@@ -381,7 +385,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>(search.resourcetype:Item AND latestVersion:true) OR search.resourcetype:Collection OR search.resourcetype:Community</value>
+                <value>(search.resourcetype:Item) OR search.resourcetype:Collection OR search.resourcetype:Community</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -674,7 +678,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items-->
-                <value>search.resourcetype:Item AND latestVersion:true</value>
+                <value>search.resourcetype:Item</value>
                 <!-- Only find withdrawn or undiscoverable-->
                 <value>withdrawn:true OR discoverable:false</value>
             </list>
@@ -819,7 +823,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items-->
-                <value>search.resourcetype:Item AND latestVersion:true</value>
+                <value>search.resourcetype:Item</value>
             </list>
         </property>
         <!--The configuration for the recent submissions-->
@@ -950,7 +954,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, workspace and accepted for workflow -->
-                <value>(search.resourcetype:Item AND latestVersion:true) OR search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem</value>
+                <value>(search.resourcetype:Item) OR search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -1344,7 +1348,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:Publication</value>
+                <value>search.resourcetype:Item AND entityType_keyword:Publication</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -1479,7 +1483,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:Person</value>
+                <value>search.resourcetype:Item AND entityType_keyword:Person</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -1596,7 +1600,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:Project</value>
+                <value>search.resourcetype:Item AND entityType_keyword:Project</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -1714,7 +1718,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:OrgUnit</value>
+                <value>search.resourcetype:Item AND entityType_keyword:OrgUnit</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -1839,7 +1843,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:JournalIssue</value>
+                <value>search.resourcetype:Item AND entityType_keyword:JournalIssue</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -1959,7 +1963,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:JournalVolume</value>
+                <value>search.resourcetype:Item AND entityType_keyword:JournalVolume</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -2078,7 +2082,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, communities and collections-->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:Journal</value>
+                <value>search.resourcetype:Item AND entityType_keyword:Journal</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -2212,7 +2216,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, and orgunits or persons-->
-                <value>search.resourcetype:Item AND latestVersion:true AND (entityType_keyword:OrgUnit OR entityType_keyword:Person)</value>
+                <value>search.resourcetype:Item AND (entityType_keyword:OrgUnit OR entityType_keyword:Person)</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -2268,7 +2272,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items that have a entityType=OrgUnit and a dc.type=FundingOrganization -->
-                <value>search.resourcetype:Item AND latestVersion:true AND entityType_keyword:OrgUnit AND dc.type:FundingOrganization</value>
+                <value>search.resourcetype:Item AND entityType_keyword:OrgUnit AND dc.type:FundingOrganization</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -2564,6 +2568,18 @@
         <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
 
+    <bean id="searchFacetDataProvider" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="dataProvider"/>
+        <property name="metadataFields">
+            <list>
+                <value>local.dataProvider</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="20"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+    </bean>
+
     <bean id="searchFilterEntityType" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
         <property name="indexFieldName" value="entityType"/>
         <property name="metadataFields">
@@ -2589,6 +2605,28 @@
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
         <property name="splitter" value="::"/>
+        <property name="skipFirstNodeLevel" value="false"/>
+
+    </bean>
+
+    <!--
+        Show only first value for the subject facet. It could be defined by cfg property
+        `discovery.solr.facets.allvalues` to show all facet values.
+        This facet definition is used to show only first facet value.
+        It is because we need to show different facets in the homepage than in the search sidebar.
+    -->
+    <bean id="searchFilterSubjectFirstValue" class="org.dspace.discovery.configuration.HierarchicalSidebarFacetConfiguration">
+        <property name="indexFieldName" value="subjectFirstValue"/>
+        <property name="metadataFields">
+            <list>
+                <value>dc.subject.*</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="splitter" value="::"/>
+        <property name="skipFirstNodeLevel" value="false"/>
 
     </bean>
 

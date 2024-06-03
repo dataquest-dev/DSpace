@@ -32,6 +32,7 @@ import org.dspace.content.dao.BundleDAO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
@@ -70,6 +71,8 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     protected ClarinLicenseService clarinLicenseService;
     @Autowired(required = true)
     protected ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+    @Autowired(required = true)
+    protected ClarinItemService clarinItemService;
 
     protected BundleServiceImpl() {
         super();
@@ -215,6 +218,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         }
         bitstreamService.update(context, bitstream);
 
+        clarinItemService.updateItemFilesMetadata(context, owningItem, bundle);
         // Add clarin license to the bitstream and clarin license values to the item metadata
         clarinLicenseService.addClarinLicenseToBitstream(context, owningItem, bundle, bitstream);
     }
@@ -238,6 +242,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         if (owningItem != null) {
             itemService.updateLastModified(context, owningItem);
             itemService.update(context, owningItem);
+            clarinItemService.updateItemFilesMetadata(context, owningItem, bundle);
         }
 
         // In the event that the bitstream to remove is actually
@@ -453,7 +458,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
             if (owningItem != null) {
                 itemService.updateLastModified(context, owningItem);
                 itemService.update(context, owningItem);
-
+                clarinItemService.updateItemFilesMetadata(context, owningItem, bundle);
             }
         }
     }

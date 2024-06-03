@@ -966,6 +966,9 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
 
     @Test
     public void discoverSearchTest() throws Exception {
+        // Hide the sorting option for dc.date.accessioned, but ensure it is still configured
+        // for loading recent submissions on the browsing page.
+        // This sort filtering is configured by `sort.options.filtered` property
 
         //When calling this root endpoint
         getClient().perform(get("/api/discover/search"))
@@ -998,7 +1001,9 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                         SearchFilterMatcher.clarinLicenseRightsFilter(),
                         SearchFilterMatcher.clarinItemsLanguageFilter(),
                         SearchFilterMatcher.clarinItemsCommunityFilter(),
-                        SearchFilterMatcher.clarinItemsTypeFilter()
+                        SearchFilterMatcher.clarinItemsTypeFilter(),
+                        SearchFilterMatcher.clarinSubjectFirstValueFilter(),
+                        SearchFilterMatcher.clarinDataProviderFacet()
                 )))
                 //These sortOptions need to be present as it's the default in the configuration
                 .andExpect(jsonPath("$.sortOptions", contains(
@@ -1023,7 +1028,7 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 .andExpect(jsonPath("$.type", is("discover")))
                 .andExpect(jsonPath("$._links.objects.href", containsString("api/discover/search/objects")))
                 .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search")))
-                .andExpect(jsonPath("$.sortOptions", contains(
+                .andExpect(jsonPath("$.sortOptions", containsInAnyOrder(
                         SortOptionMatcher.sortOptionMatcher("dspace.entity.type",
                                 DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
                         SortOptionMatcher.sortOptionMatcher("organization.legalName",
@@ -1033,14 +1038,6 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                         SortOptionMatcher.sortOptionMatcher("organisation.address.addressLocality",
                                 DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
                         SortOptionMatcher.sortOptionMatcher("organisation.foundingDate",
-                                DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
-                        SortOptionMatcher.sortOptionMatcher("dc.date.accessioned",
-                                DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
-                        SortOptionMatcher.sortOptionMatcher("person.familyName",
-                                DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
-                        SortOptionMatcher.sortOptionMatcher("person.givenName",
-                                DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
-                        SortOptionMatcher.sortOptionMatcher("person.birthDate",
                                 DiscoverySortFieldConfiguration.SORT_ORDER.desc.name())
                 )));
     }
@@ -5951,5 +5948,113 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                         )))
                 .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(1)));
 
+    }
+
+    @Test
+    public void showFacetValuesWithSplitterInSearchPage() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection 1").build();
+
+        ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withAuthor("Smith, Donald")
+                .withSubject("People")
+                .build();
+
+        ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 2")
+                .withIssueDate("2020-02-13")
+                .withAuthor("Doe, Jane")
+                .withSubject("People::Jane")
+                .build();
+
+        ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 2")
+                .withIssueDate("2020-02-13")
+                .withAuthor("Doe, Jane")
+                .withSubject("People::Jane")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/discover/facets/subject"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.name", is("subject")))
+                .andExpect(jsonPath("$.facetType", is("hierarchical")))
+                .andExpect(jsonPath("$.scope", is(emptyOrNullString())))
+                .andExpect(jsonPath("$._links.self.href",
+                        containsString("api/discover/facets/subject")))
+                .andExpect(jsonPath("$._embedded.values[0].label", is("People")))
+                .andExpect(jsonPath("$._embedded.values[0].count", is(3)))
+                .andExpect(jsonPath("$._embedded.values[1].label", is("People::Jane")))
+                .andExpect(jsonPath("$._embedded.values[1].count", is(2)))
+                .andExpect(jsonPath("$", JsonPathMatchers.hasNoJsonPath("_embedded.values[2].label")))
+                .andExpect(jsonPath("$", JsonPathMatchers.hasNoJsonPath("_embedded.values[2].count")))
+                .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(2)));
+    }
+
+    @Test
+    public void doNotShowFacetValuesWithSplitterInHomePage() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection 1").build();
+
+        ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withAuthor("Smith, Donald")
+                .withSubject("People")
+                .build();
+
+        ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 2")
+                .withIssueDate("2020-02-13")
+                .withAuthor("Doe, Jane")
+                .withSubject("People::Jane")
+                .build();
+
+        ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 2")
+                .withIssueDate("2020-02-13")
+                .withAuthor("Doe, Jane")
+                .withSubject("People::Jane")
+                .build();
+
+        ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 2")
+                .withIssueDate("2020-02-13")
+                .withAuthor("Doe, Jane")
+                .withSubject("Another subject")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/discover/facets/subjectFirstValue")
+                        .param("configuration", "homepage"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.name", is("subjectFirstValue")))
+                .andExpect(jsonPath("$.facetType", is("hierarchical")))
+                .andExpect(jsonPath("$.scope", is(emptyOrNullString())))
+                .andExpect(jsonPath("$._links.self.href",
+                        containsString("api/discover/facets/subjectFirstValue")))
+                .andExpect(jsonPath("$._embedded.values[0].label", is("People")))
+                .andExpect(jsonPath("$._embedded.values[0].count", is(3)))
+                .andExpect(jsonPath("$._embedded.values[1].label", is("Another subject")))
+                .andExpect(jsonPath("$._embedded.values[1].count", is(1)))
+                .andExpect(jsonPath("$", JsonPathMatchers.hasNoJsonPath("_embedded.values[2].label")))
+                .andExpect(jsonPath("$", JsonPathMatchers.hasNoJsonPath("_embedded.values[2].count")))
+                .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(2)));
     }
 }
