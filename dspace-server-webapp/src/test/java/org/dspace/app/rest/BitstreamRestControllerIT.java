@@ -1275,6 +1275,40 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         verifyBitstreamDownload(html, "text/html;charset=UTF-8", false);
     }
 
+    @Test
+    public void checkDefaultContentDispositionFormats() throws Exception {
+        // This test is similar to the above test, but it verifies that our *default settings* for
+        // webui.content_disposition_format are protecting us from loading specific formats *inline*.
+        context.turnOffAuthorisationSystem();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        String content = "Test Content";
+        Bitstream html;
+        Bitstream js;
+        Bitstream xml;
+        Bitstream unknown;
+        try (InputStream is = IOUtils.toInputStream(content, CharEncoding.UTF_8)) {
+            html = BitstreamBuilder.createBitstream(context, item, is)
+                                   .withMimeType("text/html").build();
+            js = BitstreamBuilder.createBitstream(context, item, is)
+                                  .withMimeType("text/javascript").build();
+            xml = BitstreamBuilder.createBitstream(context, item, is)
+                                  .withMimeType("text/xml").build();
+            unknown = BitstreamBuilder.createBitstream(context, item, is)
+                                      .withMimeType("application/octet-stream").build();
+        }
+        context.restoreAuthSystemState();
+
+        // By default, HTML, JS & XML should all download. This protects us from possible XSS attacks, as
+        // each of these formats can embed JavaScript which may execute when the file is loaded *inline*.
+        verifyBitstreamDownload(html, "text/html;charset=UTF-8", true);
+        verifyBitstreamDownload(js, "text/javascript;charset=UTF-8", true);
+        verifyBitstreamDownload(xml, "text/xml;charset=UTF-8", true);
+        // Unknown file formats should also always download
+        verifyBitstreamDownload(unknown, "application/octet-stream;charset=UTF-8", true);
+    }
+
     private void verifyBitstreamDownload(Bitstream file, String contentType, boolean shouldDownload) throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
         String header = getClient(token).perform(get("/api/core/bitstreams/" + file.getID() + "/content")
@@ -1283,11 +1317,15 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                                          .andExpect(content().contentType(contentType))
                                          .andReturn().getResponse().getHeader("content-disposition");
         if (shouldDownload) {
-            assertTrue(header.contains("attachment"));
-            assertFalse(header.contains("inline"));
+            assertTrue("Content-Disposition should contain 'attachment' for " + contentType,
+                       header.contains("attachment"));
+            assertFalse("Content-Disposition should NOT contain 'inline' for " + contentType,
+                        header.contains("inline"));
         } else {
-            assertTrue(header.contains("inline"));
-            assertFalse(header.contains("attachment"));
+            assertTrue("Content-Disposition should contain 'inline' for " + contentType,
+                       header.contains("inline"));
+            assertFalse("Content-Disposition should NOT contain 'attachment' for " + contentType,
+                        header.contains("attachment"));
         }
     }
 
