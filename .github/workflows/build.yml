@@ -14,9 +14,6 @@ on:
 permissions:
   contents: read  #  to fetch code (actions/checkout)
 
-permissions:
-  contents: read  #  to fetch code (actions/checkout)
-
 jobs:
   tests:
     runs-on: ubuntu-latest
