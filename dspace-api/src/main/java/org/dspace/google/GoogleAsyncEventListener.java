@@ -225,6 +225,7 @@ public class GoogleAsyncEventListener extends AbstractUsageEventListener {
                 LOGGER.error("    Context Event " + x + ": " + context.getEvents().get(x));
             }
         }
+
     }
 
     private String getObjectName(UsageEvent ue) {
