@@ -127,8 +127,6 @@ public class S3BitStoreService extends BaseBitStoreService {
      */
     protected TransferManager tm = null;
 
-
-
     private static final ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
 
