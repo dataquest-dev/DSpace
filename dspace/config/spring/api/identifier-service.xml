@@ -54,7 +54,7 @@
             ref="org.dspace.services.ConfigurationService" />
         <property name="DOIConnector"
             ref="org.dspace.identifier.doi.DOIConnector" />
-	    <!--<property name="filter" ref="doi-filter" />-->
+        <property name="filter" ref="doi-filter" />
     </bean>
     <!--
     <bean id="org.dspace.identifier.DOIIdentifierProvider"
