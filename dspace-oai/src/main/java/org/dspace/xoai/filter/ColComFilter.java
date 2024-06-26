@@ -81,7 +81,13 @@ public class ColComFilter extends DSpaceFilter {
     }
 
     private String getSetSpec() {
-        return "hdl_" + dso.getHandle().replace("/", "_");
+        // Set prefix for the community as default value.
+        String handlePrefix = "com_";
+        if (dso instanceof Collection) {
+            // Prefix for the Collection.
+            handlePrefix = "col_";
+        }
+        return handlePrefix + dso.getHandle().replace("/", "_");
     }
 
     private DSpaceObject getDSpaceObject() {
