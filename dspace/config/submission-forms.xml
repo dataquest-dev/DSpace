@@ -176,7 +176,7 @@
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
-                    <dc-element>format</dc-element>
+                    <dc-element>type</dc-element>
                     <dc-qualifier>version</dc-qualifier>
                     <repeatable>false</repeatable>
                     <label>Version</label>
