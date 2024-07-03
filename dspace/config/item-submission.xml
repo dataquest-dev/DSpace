@@ -19,9 +19,6 @@
     <submission-map>
         <!-- Default submission process -->
         <name-map collection-handle="default" submission-name="traditional"/>
-        <name-map collection-handle="123456789/1127" submission-name="clariah"/>
-        <name-map collection-handle="20.500.12800/3" submission-name="clariahSubmissions"/>
-        <name-map collection-handle="11234/5012" submission-name="teachingSubmissions"/>
         <!-- Sample Entities Collection configuration based on the demo Entities dataset available at:
              https://github.com/DSpace-Labs/AIP-Files/releases/tag/demo-entities-data
              This sets up the following Entity-based Collections in that dataset:
@@ -301,7 +298,7 @@
             <step id="collection"/>
             <!-- To include the 'Show Identifiers' step, uncomment the line below. Make sure
                  that identifiers.cfg and identifier-service.xml are properly configured. -->
-            <step id="identifiers"/>
+<!--            <step id="identifiers"/>-->
             <!--Step will be to Describe the item. -->
             <step id="traditionalpageone"/>
             <step id="traditionalpagetwo"/>
@@ -322,7 +319,7 @@
 
             <!--Step will be to Sign off on the required DSpace License agreement -->
             <step id="license"/>
-            <step id="clarin-license"/>
+<!--            <step id="clarin-license"/>-->
         </submission-process>
 
         <!--
