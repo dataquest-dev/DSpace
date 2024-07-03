@@ -228,8 +228,8 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Keywords</label>
-                    <input-type>twobox</input-type>
-                    <hint> Enter appropriate subject keywords or phrases below. </hint>
+                    <input-type>onebox</input-type>
+                    <hint>Enter appropriate subject keywords or phrases below. </hint>
                     <required></required>
                     <vocabulary>srsc</vocabulary>
                 </field>
@@ -246,8 +246,6 @@
                     <required></required>
                 </field>
             </row>
-
-
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
