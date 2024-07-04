@@ -332,6 +332,15 @@ public class ClarinUserMetadataRestController {
             if (ccAdmin != null && !ccAdmin.isEmpty()) {
                 ccEmails.add(ccAdmin);
             }
+            String licenseName = clarinLicense.getName().trim().replace(" ", "_").toLowerCase();
+            String[] licenseSpecialRecipients = configurationService.getArrayProperty("download.email.cc." + licenseName);
+            if (licenseSpecialRecipients != null) {
+                for (String cc : licenseSpecialRecipients) {
+                    if (!cc.isEmpty()) {
+                        ccEmails.add(cc.trim());
+                    }
+                }
+            }
 
             if (!ccEmails.isEmpty()) {
                 for (String cc : ccEmails) {
@@ -361,10 +370,6 @@ public class ClarinUserMetadataRestController {
                 }
                 email2Admin.addArgument(exdata.toString());
             }
-
-            // check for array cfg
-            // check all ccs in clarin dspace
-
             email2Admin.send();
         } catch (MessagingException e) {
             log.error("Cannot send the notification email to admin because: " + e.getMessage());
