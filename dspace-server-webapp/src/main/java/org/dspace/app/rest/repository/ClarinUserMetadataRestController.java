@@ -330,7 +330,8 @@ public class ClarinUserMetadataRestController {
                 ccEmails.add(ccAdmin);
             }
             String licenseName = clarinLicense.getName().trim().replace(" ", "_").toLowerCase();
-            String[] licenseSpecialRecipients = configurationService.getArrayProperty("download.email.cc." + licenseName);
+            String[] licenseSpecialRecipients = configurationService.getArrayProperty("download.email.cc."
+                    + licenseName);
             if (licenseSpecialRecipients != null) {
                 for (String cc : licenseSpecialRecipients) {
                     if (!cc.isEmpty()) {
@@ -361,8 +362,7 @@ public class ClarinUserMetadataRestController {
                     email2Admin.addArgument("Anonymous user");
                 }
                 StringBuilder exdata = new StringBuilder();
-
-                for(ClarinUserMetadataRest data : extraMetadata) {
+                for (ClarinUserMetadataRest data : extraMetadata) {
                     exdata.append(data.getMetadataKey()).append(": ").append(data.getMetadataValue()).append(", ");
                 }
                 email2Admin.addArgument(exdata.toString());
