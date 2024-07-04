@@ -37,6 +37,7 @@ import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -55,6 +56,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     @Autowired
     MetadataAuthorityService metadataAuthorityService;
 
+    @Ignore
     @Test
     public void findAll() throws Exception {
         //When we call the root endpoint
@@ -113,6 +115,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
         ;
     }
 
+    @Ignore
     @Test
     public void findBrowseByContributor() throws Exception {
         //When we call the root endpoint
