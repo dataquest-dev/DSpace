@@ -167,7 +167,7 @@ public class ClarinUserMetadataRestController {
             try {
                 String email = getEmailFromUserMetadata(clarinUserMetadataRestList);
                 this.sendEmailWithDownloadLink(context, item, clarinLicense,
-                        email, downloadToken);
+                        email, downloadToken, MailType.ALLZIP, clarinUserMetadataRestList);
             } catch (MessagingException e) {
                 log.error("Cannot send the download email because: " + e.getMessage());
                 throw new RuntimeException("Cannot send the download email because: " + e.getMessage());
@@ -244,7 +244,7 @@ public class ClarinUserMetadataRestController {
                 String email = getEmailFromUserMetadata(clarinUserMetadataRestList);
                 ClarinLicense clarinLicense = this.getClarinLicense(clarinLicenseResourceMapping);
                 this.sendEmailWithDownloadLink(context, bitstream, clarinLicense,
-                        email, downloadToken);
+                        email, downloadToken, MailType.BITSTREAM, clarinUserMetadataRestList);
             } catch (MessagingException e) {
                 log.error("Cannot send the download email because: " + e.getMessage());
                 throw new RuntimeException("Cannot send the download email because: " + e.getMessage());
@@ -260,7 +260,9 @@ public class ClarinUserMetadataRestController {
     private void sendEmailWithDownloadLink(Context context, DSpaceObject dso,
                                            ClarinLicense clarinLicense,
                                            String email,
-                                           String downloadToken)
+                                           String downloadToken,
+                                           MailType mailType,
+                                           List<ClarinUserMetadataRest> clarinUserMetadataRestList)
             throws IOException, SQLException, MessagingException {
         if (StringUtils.isBlank(email)) {
             log.error("Cannot send email with download link because the email is empty.");
@@ -287,13 +289,13 @@ public class ClarinUserMetadataRestController {
         // Redirect to `/api/bitstreams/{bitstreamId}/download?dtoken={downloadToken}` or
         // `/api/items/{itemId}/download?dtoken={downloadToken}`
         String downloadLink = uiUrl + "/"  + (dso instanceof Item ? ItemRest.PLURAL_NAME : BitstreamRest.PLURAL_NAME) +
-                "/" + dso.getID() + "/download?dtoken=" + downloadToken;
-
+                "/" + dso.getID() + "/download";
+        String downloadLinkWithToken = downloadLink + "?dtoken=" + downloadToken;
         try {
             Locale locale = context.getCurrentLocale();
             Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale, "clarin_download_link"));
             bean.addArgument(dso.getName());
-            bean.addArgument(downloadLink);
+            bean.addArgument(downloadLinkWithToken);
             bean.addArgument(clarinLicense.getDefinition());
             bean.addArgument(helpDeskEmail);
             bean.addArgument(helpDeskPhoneNum);
@@ -301,21 +303,87 @@ public class ClarinUserMetadataRestController {
             bean.addArgument(dspaceName);
             bean.addArgument(uiUrl);
             bean.addRecipient(email);
-            bean.send();
+            boolean send = false;
+            if (send) {
+                bean.send();
+            }
         } catch (MessagingException e) {
-            log.error("Cannot send the email because: " + e.getMessage());
+            log.error("Cannot send the email with download link, because: " + e.getMessage());
+            throw new MessagingException(e.getMessage());
+        }
+        // If previous mail fails with exception, this block never executes = admin is NOT
+        // notified, if the mail is not really sent (if it fails HERE, not later, e.g. due to mail server issue).
+        sendAdminNotificationEmail(context, downloadLink, dso, clarinLicense, mailType, clarinUserMetadataRestList);
+
+    }
+    enum MailType { ALLZIP, BITSTREAM }
+    private void sendAdminNotificationEmail(Context context,
+                                            String downloadLink,
+                                            DSpaceObject dso,
+                                            ClarinLicense clarinLicense,
+                                            MailType mailType,
+                                            List<ClarinUserMetadataRest> extraMetadata)
+            throws MessagingException, IOException {
+        try {
+            Locale locale = context.getCurrentLocale();
+            Email email2Admin = Email.getEmail(I18nUtil.getEmailFilename(locale, "clarin_download_link_admin"));
+            String ccAdmin = configurationService.getProperty("download.email.cc");
+            List<String> ccEmails = new ArrayList<>();
+            if (ccAdmin != null && !ccAdmin.isEmpty()) {
+                ccEmails.add(ccAdmin);
+            }
+
+            if (!ccEmails.isEmpty()) {
+                for (String cc : ccEmails) {
+                    email2Admin.addRecipient(cc);
+                }
+                if (mailType == MailType.ALLZIP) {
+                    email2Admin.addArgument("all files requested");
+                } else if (mailType == MailType.BITSTREAM) {
+                    email2Admin.addArgument(dso.getName());
+                } else {
+                    throw new IllegalArgumentException("The mail type is not supported.");
+                }
+                email2Admin.addArgument(downloadLink);
+                email2Admin.addArgument(clarinLicense.getDefinition());
+                if (context.getCurrentUser() != null) {
+                    email2Admin.addArgument(context.getCurrentUser().getFullName());
+                    email2Admin.addArgument(context.getCurrentUser().getEmail());
+
+                } else {
+                    email2Admin.addArgument("Anonymous user");
+                    email2Admin.addArgument("Anonymous user");
+                }
+                StringBuilder exdata = new StringBuilder();
+
+                for(ClarinUserMetadataRest data : extraMetadata) {
+                    exdata.append(data.getMetadataKey()).append(": ").append(data.getMetadataValue()).append(", ");
+                }
+                email2Admin.addArgument(exdata.toString());
+            }
+
+            // check for array cfg
+            // check all ccs in clarin dspace
+
+            email2Admin.send();
+        } catch (MessagingException e) {
+            log.error("Cannot send the notification email to admin because: " + e.getMessage());
             throw new MessagingException(e.getMessage());
         }
     }
 
     private String getEmailFromUserMetadata(List<ClarinUserMetadataRest> clarinUserMetadataRestList) {
-        String email = "";
+        return getFieldFromUserMetadata(SEND_TOKEN, clarinUserMetadataRestList);
+    }
+
+    private String getFieldFromUserMetadata(String field, List<ClarinUserMetadataRest> clarinUserMetadataRestList) {
+        String ret = "";
         for (ClarinUserMetadataRest clarinUserMetadataRest : clarinUserMetadataRestList) {
-            if (StringUtils.equals(clarinUserMetadataRest.getMetadataKey(), SEND_TOKEN)) {
-                email = clarinUserMetadataRest.getMetadataValue();
+            if (StringUtils.equals(clarinUserMetadataRest.getMetadataKey(), field)) {
+                ret = clarinUserMetadataRest.getMetadataValue();
             }
         }
-        return email;
+        return ret;
     }
 
     public List<ClarinUserMetadata> processSignedInUser(Context context, EPerson currentUser,
