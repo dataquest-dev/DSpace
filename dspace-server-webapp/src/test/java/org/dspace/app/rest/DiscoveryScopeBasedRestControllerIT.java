@@ -504,14 +504,10 @@ public class DiscoveryScopeBasedRestControllerIT extends AbstractControllerInteg
                    .andExpect(jsonPath("$._embedded.facets", containsInAnyOrder(
                                       FacetEntryMatcher.authorFacet(false),
                                       FacetEntryMatcher.subjectFacet(false),
-//                                      FacetEntryMatcher.dateIssuedFacet(false),
+                                      FacetEntryMatcher.dateIssuedFacet(false),
                                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                                      FacetEntryMatcher.entityTypeFacet(false),
-                                      FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                                      FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                                      FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                                      FacetEntryMatcher.typeFacet(false)
-                           ))
+                                      FacetEntryMatcher.entityTypeFacet(false)
+                              ))
                    );
     }
 
@@ -620,13 +616,9 @@ public class DiscoveryScopeBasedRestControllerIT extends AbstractControllerInteg
                    .andExpect(jsonPath("$._embedded.facets", containsInAnyOrder(
                                       FacetEntryMatcher.authorFacet(false),
                                       FacetEntryMatcher.subjectFacet(false),
-//                                      FacetEntryMatcher.dateIssuedFacet(false),
+                                      FacetEntryMatcher.dateIssuedFacet(false),
                                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                                      FacetEntryMatcher.entityTypeFacet(false),
-                                      FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                                      FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                                      FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                                      FacetEntryMatcher.typeFacet(false)
+                                      FacetEntryMatcher.entityTypeFacet(false)
                               ))
                    );
     }
@@ -674,14 +666,10 @@ public class DiscoveryScopeBasedRestControllerIT extends AbstractControllerInteg
                    .andExpect(jsonPath("$._embedded.facets", containsInAnyOrder(
                                       FacetEntryMatcher.authorFacet(false),
                                       FacetEntryMatcher.subjectFacet(false),
-//                                      FacetEntryMatcher.dateIssuedFacet(false),
+                                      FacetEntryMatcher.dateIssuedFacet(false),
                                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                                      FacetEntryMatcher.entityTypeFacet(false),
-                                      FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                                      FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                                      FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                                      FacetEntryMatcher.typeFacet(false)
-                           ))
+                                      FacetEntryMatcher.entityTypeFacet(false)
+                              ))
                    );
     }
 
