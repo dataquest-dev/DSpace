@@ -303,10 +303,7 @@ public class ClarinUserMetadataRestController {
             bean.addArgument(dspaceName);
             bean.addArgument(uiUrl);
             bean.addRecipient(email);
-            boolean send = false;
-            if (send) {
-                bean.send();
-            }
+            bean.send();
         } catch (MessagingException e) {
             log.error("Cannot send the email with download link, because: " + e.getMessage());
             throw new MessagingException(e.getMessage());
