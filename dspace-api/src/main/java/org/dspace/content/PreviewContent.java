@@ -1,24 +1,23 @@
-package org.dspace.content.clarin;
+package org.dspace.content;
 
 import org.apache.logging.log4j.Logger;
-import org.dspace.content.Bitstream;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
 
 
 @Entity
-@Table(name = "content_preview")
-public class ClarinContentPreview  implements ReloadableEntity<Integer> {
+@Table(name = "preview_content")
+public class PreviewContent implements ReloadableEntity<Integer> {
 
-    private Logger log = org.apache.logging.log4j.LogManager.getLogger(ClarinContentPreview.class);
+    private Logger log = org.apache.logging.log4j.LogManager.getLogger(PreviewContent.class);
 
     @Id
-    @Column(name = "content_preview_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "content_preview_content_preview_id_seq")
-    @SequenceGenerator(name = "content_preview_content_preview_id_seq", sequenceName = "content_preview_content_preview_id_seq", allocationSize = 1)
+    @Column(name = "preview_content_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "preview_content_preview_content_id_seq")
+    @SequenceGenerator(name = "preview_content_preview_content_id_seq", sequenceName = "preview_content_preview_content_id_seq", allocationSize = 1)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -40,7 +39,7 @@ public class ClarinContentPreview  implements ReloadableEntity<Integer> {
      * or
      * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject, String, boolean)}
      */
-    protected ClarinContentPreview() {
+    protected PreviewContent() {
     }
 
     @Override

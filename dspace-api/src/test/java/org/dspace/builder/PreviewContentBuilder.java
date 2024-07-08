@@ -1,0 +1,86 @@
+package org.dspace.builder;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.content.PreviewContent;
+import org.dspace.content.service.PreviewContentService;
+import org.dspace.core.Context;
+
+import java.sql.SQLException;
+import java.util.Objects;
+
+public class PreviewContentBuilder extends AbstractBuilder<PreviewContent, PreviewContentService> {
+    private Bitstream bitstream;
+    private PreviewContent contentPreview;
+
+    private PreviewContent previewContent;
+    protected PreviewContentBuilder(Context context) {
+        super(context);
+    }
+
+    public static PreviewContentBuilder createPreviewContent(final Context context, Bitstream bitstream) {
+        PreviewContentBuilder builder = new PreviewContentBuilder(context);
+        return builder.create(context, bitstream);
+    }
+
+    private PreviewContentBuilder create(final Context context, Bitstream bitstream) {
+        this.context = context;
+        this.bitstream = bitstream;
+        try {
+            previewContent = previewContentService.create(context, bitstream);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+        return this;
+    }
+
+    public static void deleteClarinContentPreview(Integer id) throws Exception {
+        if (Objects.isNull(id)) {
+            return;
+        }
+        try (Context c = new Context()) {
+            c.turnOffAuthorisationSystem();
+            PreviewContent previewContent = previewContentService.find(c, id);
+
+            if (previewContent != null) {
+                previewContentService.delete(c, previewContent);
+            }
+            c.complete();
+        }
+    }
+
+    @Override
+    public void cleanup() throws Exception {
+        try (Context c = new Context()) {
+            c.turnOffAuthorisationSystem();
+            // Ensure object and any related objects are reloaded before checking to see what needs cleanup
+            previewContent = c.reloadEntity(previewContent);
+            delete(c, previewContent);
+            c.complete();
+            indexingService.commit();
+        }
+    }
+
+    @Override
+    public PreviewContent build() throws SQLException, AuthorizeException {
+        try {
+            context.dispatchEvents();
+            indexingService.commit();
+            return previewContent;
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
+    @Override
+    public void delete(Context c, PreviewContent dso) throws Exception {
+        if (dso != null) {
+            getService().delete(c, dso);
+        }
+    }
+
+    @Override
+    protected PreviewContentService getService() {
+        return previewContentService;
+    }
+}
