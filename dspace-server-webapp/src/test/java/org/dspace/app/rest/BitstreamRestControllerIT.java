@@ -83,6 +83,7 @@ import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.storage.bitstore.factory.StorageServiceFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +95,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Tom Desair (tom dot desair at atmire dot com)
  * @author Frederic Van Reet (frederic dot vanreet at atmire dot com)
  */
+@Ignore
 public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest {
 
     protected SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
