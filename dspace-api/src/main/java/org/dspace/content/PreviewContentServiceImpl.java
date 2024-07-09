@@ -1,18 +1,25 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.dao.pojo.PreviewContentDAO;
+import org.dspace.content.dao.PreviewContentDAO;
 import org.dspace.content.service.PreviewContentService;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
 
 public class PreviewContentServiceImpl implements PreviewContentService {
 
@@ -24,15 +31,14 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     PreviewContentDAO previewContentDAO;
 
 
-    @Autowired
+    @Autowired(required = true)
     AuthorizeService authorizeService;
 
     //For now without the authorization!
     @Override
     public PreviewContent create(Context context, Bitstream bitstream) throws SQLException {
         // Create a table row
-        PreviewContent previewContent = previewContentDAO.create(context, new PreviewContent());
-        previewContent.setBitstream(bitstream);
+        PreviewContent previewContent = previewContentDAO.create(context, new PreviewContent(bitstream));
         log.info(LogHelper.getHeader(context, "create_clarin_content_preview", "clarin_content_preview_id="
                 + previewContent.getID()));
 

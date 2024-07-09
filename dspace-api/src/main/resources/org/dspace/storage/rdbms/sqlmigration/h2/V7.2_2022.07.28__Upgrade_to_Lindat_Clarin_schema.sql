@@ -423,8 +423,6 @@ CREATE TABLE preview_content (
     size_bytes bigint NOT NULL
 );
 
-ALTER TABLE public.preview_content OWNER TO dspace;
-
 --
 -- Name: preview_content_preview_content_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
 --
@@ -436,24 +434,20 @@ CREATE SEQUENCE preview_content_preview_content_id_seq
     NO MINVALUE
     CACHE 1;
 
-ALTER TABLE public.preview_content_preview_content_id_seq OWNER TO dspace;
 
---
--- Name: preview_content_preview_content_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
---
 
-ALTER SEQUENCE preview_content_preview_content_id_seq OWNED BY preview_content.preview_content_id;
+ALTER TABLE preview_content ALTER COLUMN preview_content_id SET DEFAULT nextval('preview_content_preview_content_id_seq');
 
 --
 -- Name: preview_content_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
 --
 
-ALTER TABLE ONLY preview_content
+ALTER TABLE preview_content
     ADD CONSTRAINT preview_content_pkey PRIMARY KEY (preview_content_id);
 
 --
 -- Name: preview_content_bitstream_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
 --
 
-ALTER TABLE ONLY preview_content
+ALTER TABLE preview_content
     ADD CONSTRAINT preview_content_bitstream_fk FOREIGN KEY (bitstream_id) REFERENCES bitstream(uuid) ON DELETE CASCADE;

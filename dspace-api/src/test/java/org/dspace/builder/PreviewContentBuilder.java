@@ -1,4 +1,14 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.builder;
+
+import java.sql.SQLException;
+import java.util.Objects;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
@@ -6,14 +16,10 @@ import org.dspace.content.PreviewContent;
 import org.dspace.content.service.PreviewContentService;
 import org.dspace.core.Context;
 
-import java.sql.SQLException;
-import java.util.Objects;
-
 public class PreviewContentBuilder extends AbstractBuilder<PreviewContent, PreviewContentService> {
-    private Bitstream bitstream;
-    private PreviewContent contentPreview;
 
     private PreviewContent previewContent;
+
     protected PreviewContentBuilder(Context context) {
         super(context);
     }
@@ -25,7 +31,6 @@ public class PreviewContentBuilder extends AbstractBuilder<PreviewContent, Previ
 
     private PreviewContentBuilder create(final Context context, Bitstream bitstream) {
         this.context = context;
-        this.bitstream = bitstream;
         try {
             previewContent = previewContentService.create(context, bitstream);
         } catch (Exception e) {
@@ -34,7 +39,7 @@ public class PreviewContentBuilder extends AbstractBuilder<PreviewContent, Previ
         return this;
     }
 
-    public static void deleteClarinContentPreview(Integer id) throws Exception {
+    public static void deletePreviewContent(Integer id) throws Exception {
         if (Objects.isNull(id)) {
             return;
         }

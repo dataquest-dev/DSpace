@@ -1,26 +1,38 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.content;
 
-import org.apache.logging.log4j.Logger;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
-
-import javax.persistence.*;
-import javax.persistence.Entity;
-
 
 @Entity
 @Table(name = "preview_content")
 public class PreviewContent implements ReloadableEntity<Integer> {
-
-    private Logger log = org.apache.logging.log4j.LogManager.getLogger(PreviewContent.class);
-
     @Id
     @Column(name = "preview_content_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "preview_content_preview_content_id_seq")
-    @SequenceGenerator(name = "preview_content_preview_content_id_seq", sequenceName = "preview_content_preview_content_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "preview_content_preview_content_id_seq",
+            sequenceName = "preview_content_preview_content_id_seq", allocationSize = 1)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
     @JoinColumn(name = "bitstream_id")
     private Bitstream bitstream;
 
@@ -39,12 +51,13 @@ public class PreviewContent implements ReloadableEntity<Integer> {
      * or
      * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject, String, boolean)}
      */
-    protected PreviewContent() {
+    protected PreviewContent(Bitstream bitstream) {
+        this.bitstream = bitstream;
     }
 
     @Override
     public Integer getID() {
-        return 0;
+        return id;
     }
 
 

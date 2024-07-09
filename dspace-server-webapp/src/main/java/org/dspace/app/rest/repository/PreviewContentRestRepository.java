@@ -1,4 +1,15 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.repository;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
 
 import org.dspace.app.rest.model.PreviewContentRest;
 import org.dspace.authorize.AuthorizeException;
@@ -9,10 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
 
 @Component(PreviewContentRest.CATEGORY + "." + PreviewContentRest.NAME)
 public class PreviewContentRestRepository extends DSpaceRestRepository<PreviewContentRest, Integer> {

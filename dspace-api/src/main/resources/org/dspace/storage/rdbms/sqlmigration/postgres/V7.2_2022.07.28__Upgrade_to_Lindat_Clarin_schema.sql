@@ -488,3 +488,50 @@ ALTER COLUMN element TYPE character varying(128);
 ALTER TABLE eperson ADD welcome_info varchar(30);
 
 ALTER TABLE eperson ADD can_edit_submission_metadata BOOL;
+
+
+--
+-- Name: preview_content; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
+--
+
+CREATE TABLE preview_content (
+    preview_content_id integer NOT NULL,
+    bitstream_id uuid NOT NULL,
+    path varchar(2000),
+    size_bytes bigint NOT NULL
+);
+
+ALTER TABLE public.preview_content OWNER TO dspace;
+
+--
+-- Name: preview_content_preview_content_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
+--
+
+CREATE SEQUENCE preview_content_preview_content_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+ALTER TABLE public.preview_content_preview_content_id_seq OWNER TO dspace;
+
+--
+-- Name: preview_content_preview_content_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
+--
+
+ALTER SEQUENCE preview_content_preview_content_id_seq OWNED BY preview_content.preview_content_id;
+
+--
+-- Name: preview_content_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
+--
+
+ALTER TABLE ONLY preview_content
+    ADD CONSTRAINT preview_content_pkey PRIMARY KEY (preview_content_id);
+
+--
+-- Name: preview_content_bitstream_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
+--
+
+ALTER TABLE ONLY preview_content
+    ADD CONSTRAINT preview_content_bitstream_fk FOREIGN KEY (bitstream_id) REFERENCES bitstream(uuid) ON DELETE CASCADE;

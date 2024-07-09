@@ -186,6 +186,7 @@ public abstract class AbstractBuilder<T, S> {
         requestItemService = RequestItemServiceFactory.getInstance().getRequestItemService();
         versioningService = DSpaceServicesFactory.getInstance().getServiceManager()
                                  .getServiceByName(VersioningService.class.getName(), VersioningService.class);
+        previewContentService = ContentServiceFactory.getInstance().getPreviewContentService();
 
         // Temporarily disabled
         claimedTaskService = XmlWorkflowServiceFactory.getInstance().getClaimedTaskService();
@@ -261,6 +262,7 @@ public abstract class AbstractBuilder<T, S> {
         subscribeService = null;
         supervisionOrderService = null;
         submissionConfigService = null;
+        previewContentService = null;
 
     }
 
