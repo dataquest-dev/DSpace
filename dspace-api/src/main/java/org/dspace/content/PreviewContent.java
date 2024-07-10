@@ -7,20 +7,14 @@
  */
 package org.dspace.content;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
+import javax.persistence.*;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
 
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "preview_content")
@@ -36,12 +30,25 @@ public class PreviewContent implements ReloadableEntity<Integer> {
     @JoinColumn(name = "bitstream_id")
     private Bitstream bitstream;
 
-    @Column(name = "path")
-    private String path;
+    @Column(name = "name")
+    public String name;
 
-    @Column(name = "size_bytes")
-    private long sizeBytes;
+    @Column(name = "content")
+    public String content;
 
+    @Column(name = "directory")
+    public boolean isDirectory;
+
+    @Column(name = "size")
+    public String size;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "previewcontent2previewcontent",
+            joinColumns = {@JoinColumn(name = "parent_prcont_id")},
+            inverseJoinColumns = {@JoinColumn(name = "child_prcont_id")}
+    )
+    private Set<PreviewContent> subPreviewContents = new HashSet<>();
 
     /**
      * Protected constructor, create object using:
@@ -51,15 +58,25 @@ public class PreviewContent implements ReloadableEntity<Integer> {
      * or
      * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject, String, boolean)}
      */
-    protected PreviewContent(Bitstream bitstream) {
+    protected PreviewContent(Bitstream bitstream, String name, String content, boolean isDirectory, String size, Set<PreviewContent> subPreviewContents) {
         this.bitstream = bitstream;
+        this.name = name;
+        this.content = content;
+        this.isDirectory = isDirectory;
+        this.size = size;
+        this.subPreviewContents = subPreviewContents;
+    }
+
+    protected PreviewContent(Bitstream bitstream, String content, boolean isDirectory) {
+        this.bitstream = bitstream;
+        this.content = content;
+        this.isDirectory = isDirectory;
     }
 
     @Override
     public Integer getID() {
         return id;
     }
-
 
     public Bitstream getBitstream() {
         return bitstream;
@@ -69,19 +86,39 @@ public class PreviewContent implements ReloadableEntity<Integer> {
         this.bitstream = bitstream;
     }
 
-    public String getPath() {
-        return path;
+    public String getName() {
+        return name;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public long getSizeBytes() {
-        return sizeBytes;
+    public String getContent() {
+        return content;
     }
 
-    public void setSizeBytes(long size_bytes) {
-        this.sizeBytes = size_bytes;
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public boolean isDirectory() {
+        return isDirectory;
+    }
+
+    public void setDirectory(boolean directory) {
+        isDirectory = directory;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public Set<PreviewContent> getSubPreviewContents() {
+        return subPreviewContents;
     }
 }

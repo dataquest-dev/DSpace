@@ -495,10 +495,12 @@ ALTER TABLE eperson ADD can_edit_submission_metadata BOOL;
 --
 
 CREATE TABLE preview_content (
-    preview_content_id integer NOT NULL,
-    bitstream_id uuid NOT NULL,
-    path varchar(2000),
-    size_bytes bigint NOT NULL
+   preview_content_id integer NOT NULL,
+   bitstream_id uuid NOT NULL,
+   name varchar(256),
+   content varchar(2000),
+   isDirectory boolean DEFAULT false,
+   size varchar(256)
 );
 
 ALTER TABLE public.preview_content OWNER TO dspace;

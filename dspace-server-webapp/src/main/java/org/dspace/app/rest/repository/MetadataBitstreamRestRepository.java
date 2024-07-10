@@ -18,11 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
@@ -47,13 +43,10 @@ import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.content.Thumbnail;
+import org.dspace.content.*;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.PreviewContentService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -104,6 +97,9 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
 
     @Autowired
     ConfigurationService configurationService;
+
+    @Autowired
+    PreviewContentService previewContentService;
 
     // Configured ZIP file preview limit (default: 1000) - if the ZIP file contains more files, it will be truncated
     @Value("${file.preview.zip.limit.length:1000}")
@@ -158,6 +154,11 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 boolean canPreview = findOutCanPreview(context, bitstream);
                 if (canPreview) {
                     fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
+                    for (FileInfo fileInfo : fileInfos) {
+
+                    }
+                    PreviewContent previewContent = new PreviewContent(bitstream, )
+                    previewContentService.create()
                 }
                 MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, fileInfos,
                         bitstream.getFormat(context).getMIMEType(),
@@ -168,6 +169,22 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         }
 
         return new PageImpl<>(rs, pageable, rs.size());
+    }
+
+    public static void deepFileIngoSearch(FileInfo fileInfo) {
+        // It's a leaf node
+        if (!fileInfo.getSub().isEmpty()) {
+            for (Map.Entry<String, FileInfo> entry : fileInfo.getSub().entrySet()) {
+                String key = entry.getKey();
+                FileInfo subFileInfo = entry.getValue();
+
+                // Recur for each child FileInfo
+                deepFileIngoSearch(subFileInfo);
+            }
+        }
+        Set<PreviewContent> subPreviewContents = new HashSet<>();
+        PreviewContentService
+
     }
 
     /**
@@ -243,10 +260,10 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             fileInfos.add(new FileInfo(data, false));
         } else {
             String data = "";
-            if (bitstream.getFormat(context).getExtensions().contains("zip")) {
+            if (bitstream.getFormat(context).getMIMEType().equals("application/zip")) {
                 data = extractFile(inputStream, "zip");
                 fileInfos = FileTreeViewGenerator.parse(data);
-            } else if (bitstream.getFormat(context).getExtensions().contains("tar")) {
+            } else if (bitstream.getFormat(context).getMIMEType().equals("application/x-tar")) {
                 ArchiveInputStream is = new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR,
                         inputStream);
                 data = extractFile(is, "tar");
