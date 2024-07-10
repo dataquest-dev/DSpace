@@ -88,6 +88,9 @@ public class ClarinUserMetadataRestController {
     @Autowired
     ConfigurationService configurationService;
 
+    // Enum to distinguish between the two types of the email
+    enum MailType { ALLZIP, BITSTREAM }
+
     @RequestMapping(value = "/zip", method = POST, consumes = APPLICATION_JSON)
     @PreAuthorize("permitAll()")
     public ResponseEntity manageUserMetadataForZIP(@RequestParam("itemUUID") UUID itemUUID,
@@ -313,7 +316,7 @@ public class ClarinUserMetadataRestController {
         sendAdminNotificationEmail(context, downloadLink, dso, clarinLicense, mailType, clarinUserMetadataRestList);
 
     }
-    enum MailType { ALLZIP, BITSTREAM }
+
     private void sendAdminNotificationEmail(Context context,
                                             String downloadLink,
                                             DSpaceObject dso,
