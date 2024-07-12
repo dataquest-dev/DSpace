@@ -95,7 +95,6 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Tom Desair (tom dot desair at atmire dot com)
  * @author Frederic Van Reet (frederic dot vanreet at atmire dot com)
  */
-@Ignore
 public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest {
 
     protected SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
