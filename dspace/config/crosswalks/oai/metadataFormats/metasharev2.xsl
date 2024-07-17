@@ -236,7 +236,7 @@
             <xsl:when test="doc:metadata/doc:element[@name='local']/doc:element[@name='demo']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
                 <ms:resourceDocumentationInfo>
                     <ms:samplesLocation>
-                        <xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='demo']/doc:element[@name='uri']/doc:element/doc:field[@name='value']" />
+                        <xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='demo']/doc:element[@name='uri']/doc:element/doc:field[@name='value'][1]" />
                     </ms:samplesLocation>
                 </ms:resourceDocumentationInfo>
             </xsl:when>
