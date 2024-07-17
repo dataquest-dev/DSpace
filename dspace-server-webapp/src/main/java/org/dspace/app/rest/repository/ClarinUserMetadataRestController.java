@@ -317,6 +317,27 @@ public class ClarinUserMetadataRestController {
 
     }
 
+
+    private List<String> getCCEmails(String ccAdmin, ClarinLicense clarinLicense) {
+        List<String> ccEmails = new ArrayList<>();
+        if (ccAdmin != null && !ccAdmin.isEmpty()) {
+            ccEmails.add(ccAdmin);
+        }
+
+        String licenseName = clarinLicense.getName().trim().replace(" ", "_").toLowerCase();
+        String[] licenseSpecialRecipients = configurationService.getArrayProperty("download.email.cc." + licenseName);
+
+        if (licenseSpecialRecipients != null) {
+            for (String cc : licenseSpecialRecipients) {
+                if (!cc.isEmpty()) {
+                    ccEmails.add(cc.trim());
+                }
+            }
+        }
+
+        return ccEmails;
+    }
+
     private void sendAdminNotificationEmail(Context context,
                                             String downloadLink,
                                             DSpaceObject dso,
@@ -328,20 +349,7 @@ public class ClarinUserMetadataRestController {
             Locale locale = context.getCurrentLocale();
             Email email2Admin = Email.getEmail(I18nUtil.getEmailFilename(locale, "clarin_download_link_admin"));
             String ccAdmin = configurationService.getProperty("download.email.cc");
-            List<String> ccEmails = new ArrayList<>();
-            if (ccAdmin != null && !ccAdmin.isEmpty()) {
-                ccEmails.add(ccAdmin);
-            }
-            String licenseName = clarinLicense.getName().trim().replace(" ", "_").toLowerCase();
-            String[] licenseSpecialRecipients = configurationService.getArrayProperty("download.email.cc."
-                    + licenseName);
-            if (licenseSpecialRecipients != null) {
-                for (String cc : licenseSpecialRecipients) {
-                    if (!cc.isEmpty()) {
-                        ccEmails.add(cc.trim());
-                    }
-                }
-            }
+            List<String> ccEmails = getCCEmails(ccAdmin, clarinLicense);
 
             if (!ccEmails.isEmpty()) {
                 for (String cc : ccEmails) {
