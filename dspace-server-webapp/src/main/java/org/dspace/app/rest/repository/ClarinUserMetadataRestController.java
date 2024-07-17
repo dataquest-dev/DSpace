@@ -355,7 +355,9 @@ public class ClarinUserMetadataRestController {
             mail.addArgument(context.getCurrentUser().getEmail());
 
         } else {
+            // used in place of Full Name of user
             mail.addArgument("Anonymous user");
+            // used in place of user's email
             mail.addArgument("Anonymous user");
         }
         StringBuilder exdata = new StringBuilder();
