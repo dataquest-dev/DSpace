@@ -338,6 +338,33 @@ public class ClarinUserMetadataRestController {
         return ccEmails;
     }
 
+    private void addAdminEmailArguments(Email mail, MailType mailType, DSpaceObject dso, String downloadLink,
+                                        ClarinLicense clarinLicense, Context context,
+                                        List<ClarinUserMetadataRest> extraMetadata) {
+        if (mailType == MailType.ALLZIP) {
+            mail.addArgument("all files requested");
+        } else if (mailType == MailType.BITSTREAM) {
+            mail.addArgument(dso.getName());
+        } else {
+            throw new IllegalArgumentException("The mail type is not supported.");
+        }
+        mail.addArgument(downloadLink);
+        mail.addArgument(clarinLicense.getDefinition());
+        if (context.getCurrentUser() != null) {
+            mail.addArgument(context.getCurrentUser().getFullName());
+            mail.addArgument(context.getCurrentUser().getEmail());
+
+        } else {
+            mail.addArgument("Anonymous user");
+            mail.addArgument("Anonymous user");
+        }
+        StringBuilder exdata = new StringBuilder();
+        for (ClarinUserMetadataRest data : extraMetadata) {
+            exdata.append(data.getMetadataKey()).append(": ").append(data.getMetadataValue()).append(", ");
+        }
+        mail.addArgument(exdata.toString());
+    }
+
     private void sendAdminNotificationEmail(Context context,
                                             String downloadLink,
                                             DSpaceObject dso,
@@ -355,28 +382,8 @@ public class ClarinUserMetadataRestController {
                 for (String cc : ccEmails) {
                     email2Admin.addRecipient(cc);
                 }
-                if (mailType == MailType.ALLZIP) {
-                    email2Admin.addArgument("all files requested");
-                } else if (mailType == MailType.BITSTREAM) {
-                    email2Admin.addArgument(dso.getName());
-                } else {
-                    throw new IllegalArgumentException("The mail type is not supported.");
-                }
-                email2Admin.addArgument(downloadLink);
-                email2Admin.addArgument(clarinLicense.getDefinition());
-                if (context.getCurrentUser() != null) {
-                    email2Admin.addArgument(context.getCurrentUser().getFullName());
-                    email2Admin.addArgument(context.getCurrentUser().getEmail());
+                addAdminEmailArguments(email2Admin, mailType, dso, downloadLink, clarinLicense, context, extraMetadata);
 
-                } else {
-                    email2Admin.addArgument("Anonymous user");
-                    email2Admin.addArgument("Anonymous user");
-                }
-                StringBuilder exdata = new StringBuilder();
-                for (ClarinUserMetadataRest data : extraMetadata) {
-                    exdata.append(data.getMetadataKey()).append(": ").append(data.getMetadataValue()).append(", ");
-                }
-                email2Admin.addArgument(exdata.toString());
             }
             email2Admin.send();
         } catch (MessagingException e) {
