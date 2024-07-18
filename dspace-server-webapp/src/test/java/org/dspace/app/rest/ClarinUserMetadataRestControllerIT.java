@@ -170,16 +170,12 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
 
         ClarinUserMetadataRest clarinUserMetadata3 = new ClarinUserMetadataRest();
         clarinUserMetadata3.setMetadataKey("SEND_TOKEN");
-
-        ClarinUserMetadataRest clarinUserMetadata4 = new ClarinUserMetadataRest();
-        clarinUserMetadata4.setMetadataKey("EXTRA_EMAIL");
-        clarinUserMetadata4.setMetadataValue("test@test.edu");
+        clarinUserMetadata3.setMetadataValue("test@test.edu");
 
         List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
         clarinUserMetadataRestList.add(clarinUserMetadata1);
         clarinUserMetadataRestList.add(clarinUserMetadata2);
         clarinUserMetadataRestList.add(clarinUserMetadata3);
-        clarinUserMetadataRestList.add(clarinUserMetadata4);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         // Load bitstream from the item.
@@ -260,16 +256,12 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
 
         ClarinUserMetadataRest clarinUserMetadata3 = new ClarinUserMetadataRest();
         clarinUserMetadata3.setMetadataKey("SEND_TOKEN");
-
-        ClarinUserMetadataRest clarinUserMetadata4 = new ClarinUserMetadataRest();
-        clarinUserMetadata4.setMetadataKey("EXTRA_EMAIL");
-        clarinUserMetadata4.setMetadataValue("test@test.edu");
+        clarinUserMetadata3.setMetadataValue("test@test.edu");
 
         List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
         clarinUserMetadataRestList.add(clarinUserMetadata1);
         clarinUserMetadataRestList.add(clarinUserMetadata2);
         clarinUserMetadataRestList.add(clarinUserMetadata3);
-        clarinUserMetadataRestList.add(clarinUserMetadata4);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
@@ -367,16 +359,12 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
 
         ClarinUserMetadataRest clarinUserMetadata3 = new ClarinUserMetadataRest();
         clarinUserMetadata3.setMetadataKey("SEND_TOKEN");
-
-        ClarinUserMetadataRest clarinUserMetadata4 = new ClarinUserMetadataRest();
-        clarinUserMetadata4.setMetadataKey("EXTRA_EMAIL");
-        clarinUserMetadata4.setMetadataValue("test@test.edu");
+        clarinUserMetadata3.setMetadataValue("test@test.edu");
 
         List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
         clarinUserMetadataRestList.add(clarinUserMetadata1);
         clarinUserMetadataRestList.add(clarinUserMetadata2);
         clarinUserMetadataRestList.add(clarinUserMetadata3);
-        clarinUserMetadataRestList.add(clarinUserMetadata4);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
