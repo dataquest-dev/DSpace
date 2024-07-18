@@ -285,10 +285,10 @@
                                 <xsl:for-each select="doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value']">
                                                 <ms:fundingProject>
                                                     <ms:projectName>
-                                                            <xsl:value-of select="tokenize(., ';')[3]"/>
+                                                            <xsl:value-of select="tokenize(., ';')[4]"/>
                                                     </ms:projectName>
                                                     <ms:fundingType>
-                                                            <xsl:value-of select="tokenize(., ';')[4]"/>
+                                                            <xsl:value-of select="tokenize(., ';')[1]"/>
                                                     </ms:fundingType>
                                                 </ms:fundingProject>
                                 </xsl:for-each>
