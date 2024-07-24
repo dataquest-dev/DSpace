@@ -214,6 +214,7 @@ public class LicenseUtil {
         if (Objects.isNull(restrictions)) {
             restrictions = "other";
         }
+        
         for (String restriction : restrictions.split(",")) {
             Element res = doc.createElement("restriction");
             res.appendChild(doc.createTextNode(restriction));
