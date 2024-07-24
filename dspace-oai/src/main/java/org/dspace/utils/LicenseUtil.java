@@ -220,7 +220,7 @@ public class LicenseUtil {
             root.appendChild(res);
         }
 
-        return root.getChildNodes();
+        return root.getElementsByTagName("restriction");
     }
 
     public static void main(String[] args) throws Exception {
