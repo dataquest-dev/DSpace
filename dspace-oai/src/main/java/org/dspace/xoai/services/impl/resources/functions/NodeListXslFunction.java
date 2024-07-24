@@ -11,6 +11,8 @@ package org.dspace.xoai.services.impl.resources.functions;
 import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunction.BASE;
 
 import java.util.Objects;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.ExtensionFunction;
@@ -28,8 +30,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 
 /**
