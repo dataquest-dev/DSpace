@@ -129,10 +129,10 @@ public class SpecialItemService {
             }
             String[] values = mdValue
                     .split(DCInput.ComplexDefinitions.getSeparator(), -1);
-            // mind the ORIGINAL order in input forms, org;code;projname;type
-            // however, the order in the XML is different due to reasons unknown to me
+            // ORIGINAL order of funding was org;code;projname;type
+            // Element[] elements = {organization, code, projName, fundsType};
 
-//            Element[] elements = {organization, code, projName, fundsType};
+            // 2024/07 - order was changed to fundsType, code, org, projName
             Element[] elements = {fundsType, code, organization, projName};
 
             for (int i = 0; i < elements.length; i++) {
