@@ -78,6 +78,8 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
 
 
         NodeList nodeList = getNodeList(val);
+        // TODO: 7/24/2024 (mb) Below is attempted fix that does not work yet.
+        // see https://github.com/dataquest-dev/DSpace/issues/709
 //        Node oneNode = nodeList.item(0);
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
