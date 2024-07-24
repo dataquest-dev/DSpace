@@ -285,9 +285,11 @@
                                 <xsl:for-each select="doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value']">
                                                 <ms:fundingProject>
                                                     <ms:projectName>
+                                                    <!-- order of funding complex field was changed-->
                                                             <xsl:value-of select="tokenize(., ';')[4]"/>
                                                     </ms:projectName>
                                                     <ms:fundingType>
+                                                    <!-- order of funding complex field was changed-->
                                                             <xsl:value-of select="tokenize(., ';')[1]"/>
                                                     </ms:fundingType>
                                                 </ms:fundingProject>
