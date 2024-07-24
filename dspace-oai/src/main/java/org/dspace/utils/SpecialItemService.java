@@ -132,7 +132,7 @@ public class SpecialItemService {
             // ORIGINAL order of funding was org;code;projname;type
             // Element[] elements = {organization, code, projName, fundsType};
 
-            // 2024/07 - order was changed to fundsType, code, org, projName
+            // TODO 2024/07 - order was changed to fundsType, code, org, projName
             Element[] elements = {fundsType, code, organization, projName};
 
             for (int i = 0; i < elements.length; i++) {

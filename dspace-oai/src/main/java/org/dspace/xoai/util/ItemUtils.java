@@ -297,7 +297,7 @@ public class ItemUtils {
         other.getField().add(createValue("handle", item.getHandle()));
         other.getField().add(createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
         other.getField().add(createValue("lastModifyDate", item.getLastModified().toString()));
-        // TODO: 7/24/2024 (mb) this is taken from clarin, but restricted is never set correctly.
+        // TODO: 2024/07 (mb) this is taken from clarin, but restricted is never set correctly.
         // see issue https://github.com/dataquest-dev/DSpace/issues/710
         boolean restricted = false;
 //        if(!restricted){
