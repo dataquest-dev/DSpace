@@ -146,7 +146,7 @@ public class SpecialItemService {
             // swap to original order to display correctly
             Element[] correctOrder = {organization, code, projName, fundsType};
 
-            for (Element e : correctOrder){
+            for (Element e : correctOrder) {
                 el.appendChild(e);
             }
 

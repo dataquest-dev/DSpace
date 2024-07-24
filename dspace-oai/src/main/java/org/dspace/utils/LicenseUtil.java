@@ -214,14 +214,16 @@ public class LicenseUtil {
         if (Objects.isNull(restrictions)) {
             restrictions = "other";
         }
-
+        int x = 0;
         for (String restriction : restrictions.split(",")) {
-            Element res = doc.createElement("restriction");
+            Element res = doc.createElement("restriction" + x);
+            x++;
             res.appendChild(doc.createTextNode(restriction));
             root.appendChild(res);
         }
 
-        return root.getElementsByTagName("restriction");
+        return root.getChildNodes();
+//        return root.getElementsByTagName("restriction");
     }
 
     public static void main(String[] args) throws Exception {
