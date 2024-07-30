@@ -119,6 +119,11 @@ public class PIDConfiguration {
 
         PIDCommunityConfiguration pidCommunityConfiguration = pidCommunityConfigurations
                 .get(communityID);
+
+        if (Objects.isNull(pidCommunityConfiguration)) {
+            // Yes, there is a configuration for the community with ID `null`.
+            pidCommunityConfiguration = pidCommunityConfigurations.get(null);
+        }
         if (Objects.isNull(pidCommunityConfiguration)) {
             log.info("Missing configuration entry in " + CLARIN_PID_COMMUNITY_CONFIGURATIONS_KEYWORD +
                     " for community with ID {}. Using default configuration of the `handle.prefix`.", communityID);
@@ -252,8 +257,10 @@ public class PIDConfiguration {
      * Reload community configuration. It is for testing purposes.
      */
     public void reloadPidCommunityConfigurations() {
-        pidCommunityConfigurations.clear();
-        pidCommunityConfigurations = null;
+        if (Objects.nonNull(pidCommunityConfigurations)) {
+            pidCommunityConfigurations.clear();
+            pidCommunityConfigurations = null;
+        }
         initialize();
     }
 }

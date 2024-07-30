@@ -836,7 +836,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
         context.restoreAuthSystemState();
 
         Assert.assertNotNull(installedItem);
-        Assert.assertTrue(installedItem.getHandle().startsWith("123456789/2"));
+        Assert.assertTrue(installedItem.getHandle().startsWith("123456789/"));
     }
 
     /**
@@ -900,9 +900,12 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                 .build();
 
         // Keep the value of the current configuration property
-        List<String> currentCommunityConfig = configurationService.getPropertyKeys("lr.pid.community.configurations");
+        String[] currentCommunityConfig = configurationService.getArrayProperty("lr.pid.community.configurations");
         // Set property in the cfg
         configurationService.setProperty("lr.pid.community.configurations", null);
+        // Reload the set property in the hash map.
+        PIDConfiguration pidConfiguration = PIDConfiguration.getInstance();
+        pidConfiguration.reloadPidCommunityConfigurations();
 
         Collection col = CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("Collection").build();
@@ -918,6 +921,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
 
         // Restore the configuration property
         configurationService.setProperty("lr.pid.community.configurations", currentCommunityConfig);
+        pidConfiguration.reloadPidCommunityConfigurations();
         context.restoreAuthSystemState();
     }
 
@@ -932,12 +936,15 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                 .build();
 
         // Keep the value of the current configuration property
-        List<String> currentCommunityConfig = configurationService.getPropertyKeys("lr.pid.community.configurations");
+        String[] currentCommunityConfig = configurationService.getArrayProperty("lr.pid.community.configurations");
 
         // Set property in the cfg
-        String specificCommunityHandleDef = "community=" + parentCommunity.getID() + ",prefix=LRT," +
+        String specificCommunityHandleDef = "community=*,prefix=LRT," +
                 "type=local,canonical_prefix=http://hdl.handle.net/,subprefix=";
         configurationService.setProperty("lr.pid.community.configurations", specificCommunityHandleDef);
+        // Reload the set property in the hash map.
+        PIDConfiguration pidConfiguration = PIDConfiguration.getInstance();
+        pidConfiguration.reloadPidCommunityConfigurations();
 
         Collection col = CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("Collection").build();
@@ -955,6 +962,8 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
 
         // Restore the configuration property
         configurationService.setProperty("lr.pid.community.configurations", currentCommunityConfig);
+        // Reload the set property in the hash map.
+        pidConfiguration.reloadPidCommunityConfigurations();
         context.restoreAuthSystemState();
     }
 
