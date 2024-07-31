@@ -587,7 +587,7 @@ public class HandleRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .build();
         context.restoreAuthSystemState();
         //Control of handle prefix
-        assertEquals(newItem.getHandle().split("/")[0], "987654321");
+            assertEquals(newItem.getHandle().split("/")[0], "987654321");
 
         // Archive was true
         Handle archivedItem = handleClarinService.findByHandle(context, "123456789/" +

@@ -432,7 +432,7 @@ public class HandleServiceImpl implements HandleService {
             String prefix = pidCommunityConfiguration.getPrefix();
             String handleSubprefix = pidCommunityConfiguration.getSubprefix();
             String validatedPrefix = prefix + (handlePrefix.endsWith("/") ? "" : "/");
-            if (handleSubprefix.isEmpty()) {
+            if (StringUtils.isEmpty(handleSubprefix)) {
                 // E.g., 13654/5553
                 return validatedPrefix + handleSuffix.toString();
             }
