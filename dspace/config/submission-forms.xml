@@ -209,13 +209,12 @@
                     <dc-qualifier></dc-qualifier>
                     <!-- An input-type of tag MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
-                    <label>Keywords</label>
+                    <label>Keywords in Czech</label>
                     <input-type>tag</input-type>
-                    <hint>Enter appropriate subject keyword or phrase and press the Add button. You can repeat it for
+                    <hint>Enter appropriate subject keyword or phrase in Czech and press the Add button. You can repeat it for
                         multiple keywords or use separators i.e., Enter and comma, which will split it accordingly.
                         Start typing the keyword and use autocomplete form that will appear. End your input by pressing
-                        ESC if you don't want to use the preselected value.
-                    </hint>
+                        ESC if you don't want to use the preselected value..</hint>
                     <required></required>
                     <vocabulary>srsc</vocabulary>
                 </field>
@@ -229,7 +228,10 @@
                     <repeatable>true</repeatable>
                     <label>Keywords</label>
                     <input-type>onebox</input-type>
-                    <hint>Enter appropriate subject keywords or phrases below. </hint>
+                    <hint>Enter appropriate subject keyword or phrase and press the Add button. You can repeat it for
+                        multiple keywords or use separators i.e., Enter and comma, which will split it accordingly.
+                        Start typing the keyword and use autocomplete form that will appear. End your input by pressing
+                        ESC if you don't want to use the preselected value.</hint>
                     <required></required>
                     <vocabulary>srsc</vocabulary>
                 </field>

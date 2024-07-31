@@ -208,7 +208,11 @@
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
                     <input-type>tag</input-type>
-                    <hint> Enter appropriate subject keywords or phrases below. </hint>
+                    <hint>Zadejte příslušné klíčové slovo nebo frázi a stiskněte tlačítko Přidat.
+                        Můžete to zopakovat pro více klíčových slov nebo použít oddělovače, tj. Enter a čárku,
+                        které je podle toho rozdělí. Začněte psát klíčové slovo a použijte formulář automatického
+                        doplňování, který se objeví. Pokud nechcete použít předvybranou hodnotu, ukončete
+                        zadávání stisknutím klávesy ESC.</hint>
                     <required></required>
                     <vocabulary>srsc</vocabulary>
                 </field>
@@ -221,8 +225,11 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Keywords</label>
-                    <input-type>twobox</input-type>
-                    <hint>Enter appropriate subject keywords or phrases below. </hint>
+                    <input-type>tag</input-type>
+                    <hint>Enter appropriate subject keyword or phrase and press the Add button. You can repeat it for
+                        multiple keywords or use separators i.e., Enter and comma, which will split it accordingly.
+                        Start typing the keyword and use autocomplete form that will appear. End your input by pressing
+                        ESC if you don't want to use the preselected value.</hint>
                     <required></required>
                     <vocabulary>srsc</vocabulary>
                 </field>
