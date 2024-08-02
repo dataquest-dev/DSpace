@@ -7,23 +7,34 @@
  */
 package org.dspace.content;
 
-import javax.persistence.*;
+import java.util.Hashtable;
+import java.util.Map;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToOne;
+import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Entity
-@Table(name = "preview_content")
+@Table(name = "previewcontent")
 public class PreviewContent implements ReloadableEntity<Integer> {
     @Id
-    @Column(name = "preview_content_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "preview_content_preview_content_id_seq")
-    @SequenceGenerator(name = "preview_content_preview_content_id_seq",
-            sequenceName = "preview_content_preview_content_id_seq", allocationSize = 1)
+    @Column(name = "previewcontent_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "previewcontent_previewcontent_id_seq")
+    @SequenceGenerator(name = "previewcontent_previewcontent_id_seq",
+            sequenceName = "previewcontent_previewcontent_id_seq", allocationSize = 1)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
@@ -36,19 +47,22 @@ public class PreviewContent implements ReloadableEntity<Integer> {
     @Column(name = "content")
     public String content;
 
-    @Column(name = "directory")
+    @Column(name = "isDirectory")
     public boolean isDirectory;
 
     @Column(name = "size")
     public String size;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(
-            name = "previewcontent2previewcontent",
-            joinColumns = {@JoinColumn(name = "parent_prcont_id")},
-            inverseJoinColumns = {@JoinColumn(name = "child_prcont_id")}
+            name = "preview2preview",
+            joinColumns = @JoinColumn(name = "parent_id"),
+            inverseJoinColumns = @JoinColumn(name = "child_id")
     )
-    private Set<PreviewContent> subPreviewContents = new HashSet<>();
+    @MapKeyColumn(name = "name")
+    public Map<String, PreviewContent> sub = new Hashtable<>();
+
+    protected PreviewContent() {}
 
     /**
      * Protected constructor, create object using:
@@ -58,19 +72,14 @@ public class PreviewContent implements ReloadableEntity<Integer> {
      * or
      * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject, String, boolean)}
      */
-    protected PreviewContent(Bitstream bitstream, String name, String content, boolean isDirectory, String size, Set<PreviewContent> subPreviewContents) {
+    protected PreviewContent(Bitstream bitstream, String name, String content, boolean isDirectory, String size,
+                             Map<String, PreviewContent> subPreviewContents) {
         this.bitstream = bitstream;
         this.name = name;
         this.content = content;
         this.isDirectory = isDirectory;
         this.size = size;
-        this.subPreviewContents = subPreviewContents;
-    }
-
-    protected PreviewContent(Bitstream bitstream, String content, boolean isDirectory) {
-        this.bitstream = bitstream;
-        this.content = content;
-        this.isDirectory = isDirectory;
+        this.sub = subPreviewContents;
     }
 
     @Override
@@ -118,7 +127,7 @@ public class PreviewContent implements ReloadableEntity<Integer> {
         this.size = size;
     }
 
-    public Set<PreviewContent> getSubPreviewContents() {
-        return subPreviewContents;
+    public Map<String, PreviewContent> getSubPreviewContents() {
+        return sub;
     }
 }

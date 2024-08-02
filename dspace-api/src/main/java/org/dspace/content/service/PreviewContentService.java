@@ -9,6 +9,7 @@ package org.dspace.content.service;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
@@ -22,7 +23,9 @@ public interface PreviewContentService {
      * Find the
      * @throws SQLException if database error
      */
-    PreviewContent create(Context context, Bitstream bitstream) throws SQLException;
+    PreviewContent create(Context context, Bitstream bitstream, String name, String content,
+                          boolean isDirectory, String size, Map<String, PreviewContent> subPreviewContents)
+            throws SQLException;
     PreviewContent create(Context context, PreviewContent previewContent) throws SQLException;
 
     void delete(Context context, PreviewContent previewContent) throws SQLException, AuthorizeException;
@@ -33,7 +36,8 @@ public interface PreviewContentService {
      * Find the
      * @throws SQLException
      */
-    PreviewContent find(Context context, UUID bitstream_id, String path, long size_bytes) throws SQLException;
+    List<PreviewContent> findByBitstream(Context context, UUID bitstream_id) throws SQLException;
+    List<PreviewContent> findRootByBitstream(Context context, UUID bitstream_id) throws SQLException;
 
     List<PreviewContent> findAll(Context context) throws SQLException, AuthorizeException;
 

@@ -10,6 +10,9 @@ package org.dspace.app.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
@@ -38,55 +41,94 @@ public class PreviewContentServiceImplIT extends AbstractControllerIntegrationTe
 
     @Autowired
     PreviewContentService previewContentService;
-    PreviewContent previewContent;
+    PreviewContent previewContent0;
+    PreviewContent previewContent1;
+    PreviewContent previewContent2;
+    Bitstream bitstream1;
+    Bitstream bitstream2;
 
     @Before
     public void setup() throws SQLException, AuthorizeException, IOException {
-    context.turnOffAuthorisationSystem();
-    // create bitstream
-    Community comm = CommunityBuilder.createCommunity(context)
-            .withName("Community Test")
-            .build();
-    Collection col = CollectionBuilder.createCollection(context, comm).withName("Collection Test").build();
-    Item publicItem = ItemBuilder.createItem(context, col)
-            .withTitle("Test")
-            .withIssueDate("2010-10-17")
-            .withAuthor("Smith, Donald")
-            .withSubject("ExtraEntry")
-            .build();
-    Bundle bundle1 = BundleBuilder.createBundle(context, publicItem)
-            .withName("Bundle Test")
-            .build();
-    String bitstreamContent = "ThisIsSomeDummyText";
-    Bitstream bitstream = null;
-        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
-        bitstream = BitstreamBuilder.
-                createBitstream(context, bundle1, is)
-                .withName("Bitstream Test")
-                .withDescription("description")
-                .withMimeType("text/plain")
+        context.turnOffAuthorisationSystem();
+        // create bitstream
+        Community comm = CommunityBuilder.createCommunity(context)
+                .withName("Community Test")
                 .build();
-    }
-    // create content preview
-    previewContent = PreviewContentBuilder.createPreviewContent(context, bitstream).build();
+        Collection col = CollectionBuilder.createCollection(context, comm).withName("Collection Test").build();
+        Item publicItem = ItemBuilder.createItem(context, col)
+                .withTitle("Test")
+                .withIssueDate("2010-10-17")
+                .withAuthor("Smith, Donald")
+                .withSubject("ExtraEntry")
+                .build();
+        Bundle bundle1 = BundleBuilder.createBundle(context, publicItem)
+                .withName("Bundle Test")
+                .build();
+        String bitstreamContent = "ThisIsSomeDummyText";
+        bitstream1 = null;
+            try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            bitstream1 = BitstreamBuilder.
+                    createBitstream(context, bundle1, is)
+                    .withName("Bitstream1 Test")
+                    .withDescription("description")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        bitstream2 = null;
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            bitstream2 = BitstreamBuilder.
+                    createBitstream(context, bundle1, is)
+                    .withName("Bitstream2 Test")
+                    .withDescription("description")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        // create content previews
+        previewContent0 =  PreviewContentBuilder.createPreviewContent(context, bitstream1, "test1.txt",
+                null, false, "100", null).build();
+        Map<String, PreviewContent> previewContentMap = new HashMap<>();
+        previewContentMap.put(previewContent0.getName(), previewContent0);
+        previewContent1 = PreviewContentBuilder.createPreviewContent(context, bitstream1, "", null,
+                true, "0", previewContentMap).build();
+        previewContent2 = PreviewContentBuilder.createPreviewContent(context, bitstream2, "test2.txt", null,
+                false, "200", previewContentMap).build();
     }
 
     @After
     @Override
     public void destroy() throws Exception {
         //clean all
-        PreviewContentBuilder.deletePreviewContent(previewContent.getID());
+        BitstreamBuilder.deleteBitstream(bitstream1.getID());
+        PreviewContentBuilder.deletePreviewContent(previewContent0.getID());
+        PreviewContentBuilder.deletePreviewContent(previewContent1.getID());
+        BitstreamBuilder.deleteBitstream(bitstream2.getID());
+        PreviewContentBuilder.deletePreviewContent(previewContent2.getID());
         super.destroy();
     }
 
     @Test
     public void testFindAll() throws Exception {
-        Assert.assertEquals(previewContent, previewContentService.findAll(context).get(0));
+        List<PreviewContent> previewContentList = previewContentService.findAll(context);
+        Assert.assertEquals(previewContentList.size(), 3);
+        Assert.assertEquals(previewContent0.getID(), previewContentList.get(0).getID());
+        Assert.assertEquals(previewContent1.getID(), previewContentList.get(1).getID());
+        Assert.assertEquals(previewContent2.getID(), previewContentList.get(2).getID());
     }
 
     @Test
-    public void testFind() throws Exception {
-        Assert.assertEquals(previewContent, previewContentService
-                .find(context, previewContent.getID()));
+    public void testFindByBitstream() throws Exception {
+        List<PreviewContent> previewContentList = previewContentService.findByBitstream(context, bitstream2.getID());
+        Assert.assertEquals(previewContentList.size(), 1);
+        Assert.assertEquals(previewContent2.getID(), previewContentList.get(0).getID());
     }
+
+    @Test
+    public void testFindRootByBitstream() throws Exception {
+        List<PreviewContent> previewContentList =
+                previewContentService.findRootByBitstream(context, bitstream1.getID());
+        Assert.assertEquals(previewContentList.size(), 1);
+        Assert.assertEquals(previewContent1.getID(), previewContentList.get(0).getID());
+    }
+
+
 }

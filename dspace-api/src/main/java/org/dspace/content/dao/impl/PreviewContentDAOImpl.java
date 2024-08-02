@@ -8,6 +8,7 @@
 package org.dspace.content.dao.impl;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.Query;
 
@@ -23,17 +24,25 @@ public class PreviewContentDAOImpl extends AbstractHibernateDAO<PreviewContent> 
     }
 
     @Override
-    public PreviewContent find(Context context, UUID bitstream_id, String path, long size_bytes) throws SQLException {
-        Query query = createQuery(context, "SELECT cp " +
-                "FROM PreviewContent cp " +
-                "WHERE cp.bitstream_id = :bitstream_id AND " +
-                "cp.path = :path AND cp.size_bytes = :size_bytes");
-
+    public List<PreviewContent> findByBitstream(Context context, UUID bitstream_id) throws SQLException {
+        Query query = createQuery(context, "SELECT pc FROM " + PreviewContent.class.getSimpleName() +
+                        " as pc join pc.bitstream as b WHERE b.id = :bitstream_id");
         query.setParameter("bitstream_id", bitstream_id);
-        query.setParameter("path", path);
-        query.setParameter("size_bytes", size_bytes);
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
+        return findMany(context, query);
+    }
 
-        return singleResult(query);
+    @Override
+    public List<PreviewContent> findRootByBitstream(Context context, UUID bitstream_id) throws SQLException {
+        Query query = createQuery(context,
+                "SELECT pc FROM " + PreviewContent.class.getSimpleName() + " pc " +
+                        "JOIN pc.bitstream b " +
+                        "WHERE b.id = :bitstream_id " +
+                        "AND pc.id NOT IN (SELECT child.id FROM " + PreviewContent.class.getSimpleName() + " parent " +
+                        "JOIN parent.sub child)"
+        );
+        query.setParameter("bitstream_id", bitstream_id);
+        query.setHint("org.hibernate.cacheable", Boolean.TRUE);
+        return findMany(context, query);
     }
 }

@@ -413,11 +413,11 @@ ALTER TABLE eperson ADD welcome_info varchar(30);
 ALTER TABLE eperson ADD can_edit_submission_metadata BOOL;
 
 --
--- Name: preview_content; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
+-- Name: previewcontent; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
 --
 
-CREATE TABLE preview_content (
-    preview_content_id integer NOT NULL,
+CREATE TABLE previewcontent (
+    previewcontent_id integer NOT NULL,
     bitstream_id uuid NOT NULL,
     name varchar(256),
     content varchar(2000),
@@ -426,10 +426,10 @@ CREATE TABLE preview_content (
 );
 
 --
--- Name: preview_content_preview_content_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
+-- Name: previewcontent_previewcontent_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
 --
 
-CREATE SEQUENCE preview_content_preview_content_id_seq
+CREATE SEQUENCE previewcontent_previewcontent_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
@@ -438,18 +438,33 @@ CREATE SEQUENCE preview_content_preview_content_id_seq
 
 
 
-ALTER TABLE preview_content ALTER COLUMN preview_content_id SET DEFAULT nextval('preview_content_preview_content_id_seq');
+ALTER TABLE previewcontent ALTER COLUMN previewcontent_id SET DEFAULT nextval('previewcontent_previewcontent_id_seq');
 
 --
--- Name: preview_content_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
+-- Name: previewcontent_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
 --
 
-ALTER TABLE preview_content
-    ADD CONSTRAINT preview_content_pkey PRIMARY KEY (preview_content_id);
+ALTER TABLE previewcontent
+    ADD CONSTRAINT previewcontent_pkey PRIMARY KEY (previewcontent_id);
 
 --
--- Name: preview_content_bitstream_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
+-- Name: previewcontent_bitstream_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
 --
 
-ALTER TABLE preview_content
-    ADD CONSTRAINT preview_content_bitstream_fk FOREIGN KEY (bitstream_id) REFERENCES bitstream(uuid) ON DELETE CASCADE;
+ALTER TABLE previewcontent
+    ADD CONSTRAINT previewcontent_bitstream_fk FOREIGN KEY (bitstream_id) REFERENCES bitstream(uuid) ON DELETE CASCADE;
+
+CREATE TABLE preview2preview (
+    parent_id integer NOT NULL,
+    child_id integer NOT NULL,
+    name varchar(256)
+);
+
+ALTER TABLE preview2preview
+    ADD CONSTRAINT preview2preview_pkey PRIMARY KEY (parent_id, child_id);
+
+ALTER TABLE preview2preview
+    ADD CONSTRAINT preview2preview_parent_fk FOREIGN KEY (parent_id) REFERENCES previewcontent(previewcontent_id) ON DELETE CASCADE;
+
+ALTER TABLE preview2preview
+    ADD CONSTRAINT preview2preview_child_fk FOREIGN KEY (child_id) REFERENCES previewcontent(previewcontent_id) ON DELETE CASCADE;

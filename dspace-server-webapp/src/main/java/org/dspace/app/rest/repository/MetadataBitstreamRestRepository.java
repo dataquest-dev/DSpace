@@ -18,7 +18,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
@@ -43,7 +49,12 @@ import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.PreviewContent;
+import org.dspace.content.Thumbnail;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.PreviewContentService;
@@ -153,12 +164,18 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 List<FileInfo> fileInfos = new ArrayList<>();
                 boolean canPreview = findOutCanPreview(context, bitstream);
                 if (canPreview) {
-                    fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
-                    for (FileInfo fileInfo : fileInfos) {
-
+                    List<PreviewContent> prContents = previewContentService.findRootByBitstream(context, bitstream.getID());
+                    if (prContents.isEmpty()) {
+                        fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
+                        for (FileInfo fi : fileInfos) {
+                            createPreviewContent(context, bitstream, fi);
+                        }
+                        context.commit();
+                    } else {
+                        for (PreviewContent pc : prContents) {
+                            fileInfos.add(createFileInfo(pc));
+                        }
                     }
-                    PreviewContent previewContent = new PreviewContent(bitstream, )
-                    previewContentService.create()
                 }
                 MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, fileInfos,
                         bitstream.getFormat(context).getMIMEType(),
@@ -169,22 +186,6 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         }
 
         return new PageImpl<>(rs, pageable, rs.size());
-    }
-
-    public static void deepFileIngoSearch(FileInfo fileInfo) {
-        // It's a leaf node
-        if (!fileInfo.getSub().isEmpty()) {
-            for (Map.Entry<String, FileInfo> entry : fileInfo.getSub().entrySet()) {
-                String key = entry.getKey();
-                FileInfo subFileInfo = entry.getValue();
-
-                // Recur for each child FileInfo
-                deepFileIngoSearch(subFileInfo);
-            }
-        }
-        Set<PreviewContent> subPreviewContents = new HashSet<>();
-        PreviewContentService
-
     }
 
     /**
@@ -235,6 +236,33 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             }
         }
         return fileInfos;
+    }
+
+    private FileInfo createFileInfo(PreviewContent pc) {
+        Hashtable<String, FileInfo> sub = null;
+        FileInfo fi;
+        if (pc.sub != null) {
+            sub = new Hashtable<>();
+            for (Map.Entry<String, PreviewContent> entry : pc.sub.entrySet()) {
+                fi = createFileInfo(entry.getValue());
+                sub.put(entry.getKey(), fi);
+            }
+        }
+        return new FileInfo(pc.name, pc.content, pc.size, pc.isDirectory, sub);
+    }
+
+    private PreviewContent createPreviewContent(Context context, Bitstream bitstream, FileInfo fi) throws SQLException {
+        Hashtable<String, PreviewContent> sub = null;
+        PreviewContent pc;
+        if (fi.sub != null) {
+            sub = new Hashtable<>();
+            for (Map.Entry<String, FileInfo> entry : fi.sub.entrySet()) {
+                pc = createPreviewContent(context, bitstream, entry.getValue());
+                sub.put(entry.getKey(), pc);
+            }
+        }
+        return previewContentService.create(context, bitstream, fi.name, fi.content,
+                fi.isDirectory, fi.size, sub);
     }
 
     /**

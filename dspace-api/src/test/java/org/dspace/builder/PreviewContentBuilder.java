@@ -8,6 +8,7 @@
 package org.dspace.builder;
 
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Objects;
 
 import org.dspace.authorize.AuthorizeException;
@@ -24,15 +25,20 @@ public class PreviewContentBuilder extends AbstractBuilder<PreviewContent, Previ
         super(context);
     }
 
-    public static PreviewContentBuilder createPreviewContent(final Context context, Bitstream bitstream) {
+    public static PreviewContentBuilder createPreviewContent(final Context context, Bitstream bitstream, String name,
+                                                             String content, boolean isDirectory, String size,
+                                                             Map<String, PreviewContent> subPreviewContents) {
         PreviewContentBuilder builder = new PreviewContentBuilder(context);
-        return builder.create(context, bitstream);
+        return builder.create(context, bitstream, name, content, isDirectory, size, subPreviewContents);
     }
 
-    private PreviewContentBuilder create(final Context context, Bitstream bitstream) {
+    private PreviewContentBuilder create(final Context context, Bitstream bitstream, String name, String content,
+                                         boolean isDirectory, String size,
+                                         Map<String, PreviewContent> subPreviewContents) {
         this.context = context;
         try {
-            previewContent = previewContentService.create(context, bitstream);
+            previewContent = previewContentService.create(context, bitstream, name, content,
+                    isDirectory, size, subPreviewContents);
         } catch (Exception e) {
             return handleException(e);
         }

@@ -9,6 +9,7 @@ package org.dspace.content;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
@@ -36,9 +37,12 @@ public class PreviewContentServiceImpl implements PreviewContentService {
 
     //For now without the authorization!
     @Override
-    public PreviewContent create(Context context, Bitstream bitstream) throws SQLException {
+    public PreviewContent create(Context context, Bitstream bitstream, String name, String content,
+                                 boolean isDirectory, String size, Map<String, PreviewContent> subPreviewContents)
+            throws SQLException {
         // Create a table row
-        PreviewContent previewContent = previewContentDAO.create(context, new PreviewContent(bitstream));
+        PreviewContent previewContent = previewContentDAO.create(context, new PreviewContent(bitstream, name, content,
+                isDirectory, size, subPreviewContents));
         log.info(LogHelper.getHeader(context, "create_clarin_content_preview", "clarin_content_preview_id="
                 + previewContent.getID()));
 
@@ -66,8 +70,13 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     @Override
-    public PreviewContent find(Context context, UUID bitstreamId, String path, long sizeBytes) throws SQLException {
-        return previewContentDAO.find(context, bitstreamId, path, sizeBytes);
+    public List<PreviewContent> findByBitstream(Context context, UUID bitstreamId) throws SQLException {
+        return previewContentDAO.findByBitstream(context, bitstreamId);
+    }
+
+    @Override
+    public List<PreviewContent> findRootByBitstream(Context context, UUID bitstreamId) throws SQLException {
+        return previewContentDAO.findRootByBitstream(context, bitstreamId);
     }
 
     @Override
