@@ -25,7 +25,7 @@ import org.dspace.core.Context;
 public interface PreviewContentService {
 
     /**
-     * Creates a new preview content in the database.
+     * Create a new preview content in the database.
      *
      * @param context DSpace context
      * @param bitstream             The bitstream to create a preview content for
@@ -42,7 +42,7 @@ public interface PreviewContentService {
             throws SQLException;
 
     /**
-     * Creates a new preview content in the database.
+     * Create a new preview content in the database.
      *
      * @param context           DSpace context
      * @param previewContent    The preview content
