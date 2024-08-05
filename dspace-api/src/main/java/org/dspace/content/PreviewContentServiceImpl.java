@@ -39,11 +39,11 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     @Autowired(required = true)
     AuthorizeService authorizeService;
 
-    //For now without the authorization!
     @Override
     public PreviewContent create(Context context, Bitstream bitstream, String name, String content,
                                  boolean isDirectory, String size, Map<String, PreviewContent> subPreviewContents)
             throws SQLException {
+        //no authorization required!
         // Create a table row
         PreviewContent previewContent = previewContentDAO.create(context, new PreviewContent(bitstream, name, content,
                 isDirectory, size, subPreviewContents));
@@ -51,9 +51,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         return previewContent;
     }
 
-    //For now without the authorization!
     @Override
     public PreviewContent create(Context context, PreviewContent previewContent) throws SQLException {
+        //no authorization required!
         PreviewContent newPreviewContent = previewContentDAO.create(context, new PreviewContent(previewContent));
         log.info("Created new preview content of ID = {}", newPreviewContent.getID());
         return newPreviewContent;

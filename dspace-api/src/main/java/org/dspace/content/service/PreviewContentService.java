@@ -35,7 +35,7 @@ public interface PreviewContentService {
      * @param size                  The size of preview content
      * @param subPreviewContents    The sub preview contents of preview content
      * @return The newly created preview content
-     * @throws SQLException If a database error occurs
+     * @throws SQLException         If a database error occurs
      */
     PreviewContent create(Context context, Bitstream bitstream, String name, String content,
                           boolean isDirectory, String size, Map<String, PreviewContent> subPreviewContents)
@@ -44,18 +44,18 @@ public interface PreviewContentService {
     /**
      * Creates a new preview content in the database.
      *
-     * @param context DSpace context
-     * @param previewContent   The preview content
+     * @param context           DSpace context
+     * @param previewContent    The preview content
      * @return The newly created preview content
-     * @throws SQLException If a database error occurs
+     * @throws SQLException     If a database error occurs
      */
     PreviewContent create(Context context, PreviewContent previewContent) throws SQLException;
 
     /**
      * Delete a preview content from the database.
      *
-     * @param context DSpace context
-     * @param previewContent   Deleted preview content
+     * @param context             DSpace context
+     * @param previewContent      Deleted preview content
      * @throws SQLException       If a database error occurs
      * @throws AuthorizeException If a user is not authorized
      */
@@ -64,9 +64,9 @@ public interface PreviewContentService {
     /**
      * Find preview content based on ID.
      *
-     * @param context   DSpace context
-     * @param valueId   The ID of the preview content to search for
-     * @throws SQLException       If a database error occurs
+     * @param context           DSpace context
+     * @param valueId           The ID of the preview content to search for
+     * @throws SQLException     If a database error occurs
      */
     PreviewContent find(Context context, int valueId) throws SQLException;
 
