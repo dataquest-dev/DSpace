@@ -27,9 +27,16 @@ import javax.persistence.Table;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 
+/**
+ * Database entity representation of the previewcontent table.
+ * Database entity representation of class FileInfo.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 @Entity
 @Table(name = "previewcontent")
 public class PreviewContent implements ReloadableEntity<Integer> {
+
     @Id
     @Column(name = "previewcontent_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "previewcontent_previewcontent_id_seq")
@@ -62,15 +69,28 @@ public class PreviewContent implements ReloadableEntity<Integer> {
     @MapKeyColumn(name = "name")
     public Map<String, PreviewContent> sub = new Hashtable<>();
 
+    /**
+     * Protected constructor.
+     */
     protected PreviewContent() {}
 
     /**
      * Protected constructor, create object using:
-     * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject)}
-     * or
-     * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject, String)}
-     * or
-     * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject, String, boolean)}
+     * {@link org.dspace.content.service.PreviewContentService#create(Context, PreviewContent)}
+     */
+    protected PreviewContent(PreviewContent previewContent) {
+        this.bitstream = previewContent.getBitstream();
+        this.name = previewContent.getName();
+        this.content = previewContent.getContent();
+        this.isDirectory = previewContent.isDirectory();
+        this.size = previewContent.getSize();
+        this.sub = previewContent.getSubPreviewContents();
+    }
+
+    /**
+     * Protected constructor, create object using:
+     * {@link org.dspace.content.service.PreviewContentService#create(Context, Bitstream, String, String, boolean,
+     * String, Map<String, PreviewContent>)}
      */
     protected PreviewContent(Bitstream bitstream, String name, String content, boolean isDirectory, String size,
                              Map<String, PreviewContent> subPreviewContents) {

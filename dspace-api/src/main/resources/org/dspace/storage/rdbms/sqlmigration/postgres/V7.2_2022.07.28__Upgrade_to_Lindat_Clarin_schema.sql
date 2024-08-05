@@ -489,7 +489,6 @@ ALTER TABLE eperson ADD welcome_info varchar(30);
 
 ALTER TABLE eperson ADD can_edit_submission_metadata BOOL;
 
-
 --
 -- Name: previewcontent; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
 --
@@ -538,6 +537,10 @@ ALTER TABLE ONLY previewcontent
 ALTER TABLE ONLY previewcontent
     ADD CONSTRAINT previewcontent_bitstream_fk FOREIGN KEY (bitstream_id) REFERENCES bitstream(uuid) ON DELETE CASCADE;
 
+--
+-- Name: preview2preview; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
+--
+
 CREATE TABLE preview2preview (
     parent_id integer NOT NULL,
     child_id integer NOT NULL,
@@ -546,11 +549,23 @@ CREATE TABLE preview2preview (
 
 ALTER TABLE public.preview2preview OWNER TO dspace;
 
+--
+-- Name: preview2preview_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
+--
+
 ALTER TABLE preview2preview
     ADD CONSTRAINT preview2preview_pkey PRIMARY KEY (parent_id, child_id);
 
+--
+-- Name: preview2preview_parent_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
+--
+
 ALTER TABLE preview2preview
     ADD CONSTRAINT preview2preview_parent_fk FOREIGN KEY (parent_id) REFERENCES previewcontent(previewcontent_id) ON DELETE CASCADE;
+
+--
+-- Name: preview2preview_child_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
+--
 
 ALTER TABLE preview2preview
     ADD CONSTRAINT preview2preview_child_fk FOREIGN KEY (child_id) REFERENCES previewcontent(previewcontent_id) ON DELETE CASCADE;

@@ -17,21 +17,25 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.dao.PreviewContentDAO;
 import org.dspace.content.service.PreviewContentService;
 import org.dspace.core.Context;
-import org.dspace.core.LogHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Service implementation for the PreviewContent object.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ */
 public class PreviewContentServiceImpl implements PreviewContentService {
 
-
+    /**
+     * logger
+     */
     private static final Logger log = LoggerFactory.getLogger(PreviewContentServiceImpl.class);
 
 
     @Autowired
     PreviewContentDAO previewContentDAO;
-
-
     @Autowired(required = true)
     AuthorizeService authorizeService;
 
@@ -43,16 +47,16 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         // Create a table row
         PreviewContent previewContent = previewContentDAO.create(context, new PreviewContent(bitstream, name, content,
                 isDirectory, size, subPreviewContents));
-        log.info(LogHelper.getHeader(context, "create_clarin_content_preview", "clarin_content_preview_id="
-                + previewContent.getID()));
-
+        log.info("Created new preview content of ID = {}", previewContent.getID());
         return previewContent;
     }
 
     //For now without the authorization!
     @Override
     public PreviewContent create(Context context, PreviewContent previewContent) throws SQLException {
-        return previewContentDAO.create(context, previewContent);
+        PreviewContent newPreviewContent = previewContentDAO.create(context, new PreviewContent(previewContent));
+        log.info("Created new preview content of ID = {}", newPreviewContent.getID());
+        return newPreviewContent;
     }
 
     @Override
@@ -80,7 +84,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     @Override
-    public List<PreviewContent> findAll(Context context) throws SQLException, AuthorizeException {
+    public List<PreviewContent> findAll(Context context) throws SQLException {
         return previewContentDAO.findAll(context, PreviewContent.class);
     }
 }

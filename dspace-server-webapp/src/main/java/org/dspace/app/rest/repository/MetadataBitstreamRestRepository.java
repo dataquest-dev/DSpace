@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
@@ -164,7 +165,8 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 List<FileInfo> fileInfos = new ArrayList<>();
                 boolean canPreview = findOutCanPreview(context, bitstream);
                 if (canPreview) {
-                    List<PreviewContent> prContents = previewContentService.findRootByBitstream(context, bitstream.getID());
+                    List<PreviewContent> prContents = previewContentService.findRootByBitstream(context,
+                            bitstream.getID());
                     if (prContents.isEmpty()) {
                         fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
                         for (FileInfo fi : fileInfos) {
@@ -238,31 +240,49 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return fileInfos;
     }
 
-    private FileInfo createFileInfo(PreviewContent pc) {
-        Hashtable<String, FileInfo> sub = null;
-        FileInfo fi;
-        if (pc.sub != null) {
-            sub = new Hashtable<>();
-            for (Map.Entry<String, PreviewContent> entry : pc.sub.entrySet()) {
-                fi = createFileInfo(entry.getValue());
-                sub.put(entry.getKey(), fi);
+    /**
+     * Create sub map for preview content and file info.
+     * @param sourceMap  parent sub map
+     * @param creator    creator function
+     * @return    created sub map
+     */
+    private <T, U> Hashtable<String, T> createSubMap(Map<String, U> sourceMap, Function<U, T> creator) {
+        Hashtable<String, T> sub = new Hashtable<>();
+        if (sourceMap != null) {
+            for (Map.Entry<String, U> entry : sourceMap.entrySet()) {
+                sub.put(entry.getKey(), creator.apply(entry.getValue()));
             }
         }
+        return sub;
+    }
+
+    /**
+     * Create file info from preview content.
+     * @param pc  preview content
+     * @return    created file info
+     */
+    private FileInfo createFileInfo(PreviewContent pc) {
+        Hashtable<String, FileInfo> sub = createSubMap(pc.sub, this::createFileInfo);
         return new FileInfo(pc.name, pc.content, pc.size, pc.isDirectory, sub);
     }
 
+    /**
+     * Create preview content from file info for bitstream.
+     * @param context   DSpace context object
+     * @param bitstream bitstream
+     * @param fi        file info
+     * @return          created preview content
+     * @throws SQLException If database error is occurred
+     */
     private PreviewContent createPreviewContent(Context context, Bitstream bitstream, FileInfo fi) throws SQLException {
-        Hashtable<String, PreviewContent> sub = null;
-        PreviewContent pc;
-        if (fi.sub != null) {
-            sub = new Hashtable<>();
-            for (Map.Entry<String, FileInfo> entry : fi.sub.entrySet()) {
-                pc = createPreviewContent(context, bitstream, entry.getValue());
-                sub.put(entry.getKey(), pc);
+        Hashtable<String, PreviewContent> sub = createSubMap(fi.sub, value -> {
+            try {
+                return createPreviewContent(context, bitstream, value);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-        }
-        return previewContentService.create(context, bitstream, fi.name, fi.content,
-                fi.isDirectory, fi.size, sub);
+        });
+        return previewContentService.create(context, bitstream, fi.name, fi.content, fi.isDirectory, fi.size, sub);
     }
 
     /**

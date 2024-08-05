@@ -13,36 +13,44 @@ public class PreviewContentRest extends BaseObjectRest<Integer> {
     public static final String NAME = "previewContent";
     public static final String CATEGORY = RestAddressableModel.CORE;
 
-    private BitstreamRest bitstream;
-    private String path;
-    private long sizeBytes;
-
+    private String name;
+    private String content;
+    private boolean isDirectory;
+    private String size;
 
     public PreviewContentRest() {
     }
 
-    public BitstreamRest getBitstream() {
-        return bitstream;
+    public String getName() {
+        return name;
     }
 
-    public void setBitstream(BitstreamRest bitstream) {
-        this.bitstream = bitstream;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getPath() {
-        return path;
+    public String getContent() {
+        return content;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public long getSizeBytes() {
-        return sizeBytes;
+    public boolean isDirectory() {
+        return isDirectory;
     }
 
-    public void setSizeBytes(long sizeBytes) {
-        this.sizeBytes = sizeBytes;
+    public void setDirectory(boolean directory) {
+        isDirectory = directory;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
     }
 
     @Override

@@ -66,13 +66,13 @@ public class PreviewContentServiceImplIT extends AbstractControllerIntegrationTe
                 .build();
         String bitstreamContent = "ThisIsSomeDummyText";
         bitstream1 = null;
-            try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
-            bitstream1 = BitstreamBuilder.
-                    createBitstream(context, bundle1, is)
-                    .withName("Bitstream1 Test")
-                    .withDescription("description")
-                    .withMimeType("text/plain")
-                    .build();
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+        bitstream1 = BitstreamBuilder.
+                createBitstream(context, bundle1, is)
+                .withName("Bitstream1 Test")
+                .withDescription("description")
+                .withMimeType("text/plain")
+                .build();
         }
         bitstream2 = null;
         try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Objects;
 
 import org.dspace.app.rest.model.PreviewContentRest;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.PreviewContent;
 import org.dspace.content.service.PreviewContentService;
 import org.dspace.core.Context;
@@ -47,8 +46,8 @@ public class PreviewContentRestRepository extends DSpaceRestRepository<PreviewCo
         try {
             List<PreviewContent> previewContentList = previewContentService.findAll(context);
             return converter.toRestPage(previewContentList, pageable, utils.obtainProjection());
-        } catch (SQLException | AuthorizeException e) {
-            throw new RuntimeException(e.getMessage(), e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
