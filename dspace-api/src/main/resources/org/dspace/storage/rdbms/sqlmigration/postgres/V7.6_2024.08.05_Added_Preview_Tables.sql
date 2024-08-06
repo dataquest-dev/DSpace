@@ -61,7 +61,7 @@ ALTER TABLE ONLY previewcontent
 CREATE TABLE preview2preview (
     parent_id integer NOT NULL,
     child_id integer NOT NULL,
-    name varchar(256)
+    name varchar(2000)
 );
 
 ALTER TABLE public.preview2preview OWNER TO dspace;

@@ -53,7 +53,7 @@ ALTER TABLE previewcontent
 CREATE TABLE preview2preview (
     parent_id integer NOT NULL,
     child_id integer NOT NULL,
-    name varchar(256)
+    name varchar(2000)
 );
 
 --
