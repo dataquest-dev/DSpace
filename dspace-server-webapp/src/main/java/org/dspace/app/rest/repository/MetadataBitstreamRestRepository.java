@@ -167,6 +167,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 if (canPreview) {
                     List<PreviewContent> prContents = previewContentService.findRootByBitstream(context,
                             bitstream.getID());
+                    // Generate new content if we didn't find any
                     if (prContents.isEmpty()) {
                         fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
                         for (FileInfo fi : fileInfos) {
@@ -241,17 +242,21 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
     }
 
     /**
-     * Create sub map for preview content and file info.
-     * @param sourceMap  parent sub map
+     * Define the hierarchy organization for preview content and file info.
+     * The hierarchy is established by the sub map.
+     * If a content item contains a sub map, it is considered a directory; if not, it is a file.
+     * @param sourceMap  sub map that is used as a pattern
      * @param creator    creator function
-     * @return    created sub map
+     * @return           created sub map
      */
     private <T, U> Hashtable<String, T> createSubMap(Map<String, U> sourceMap, Function<U, T> creator) {
+        if (sourceMap == null) {
+            return null;
+        }
+
         Hashtable<String, T> sub = new Hashtable<>();
-        if (sourceMap != null) {
-            for (Map.Entry<String, U> entry : sourceMap.entrySet()) {
-                sub.put(entry.getKey(), creator.apply(entry.getValue()));
-            }
+        for (Map.Entry<String, U> entry : sourceMap.entrySet()) {
+            sub.put(entry.getKey(), creator.apply(entry.getValue()));
         }
         return sub;
     }
@@ -279,7 +284,10 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             try {
                 return createPreviewContent(context, bitstream, value);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                String msg = "Database error occurred while creating new preview content " +
+                        "for bitstream with ID = " + bitstream.getID() + " Error msg: " + e.getMessage();
+                log.error(msg, e);
+                throw new RuntimeException(msg, e);
             }
         });
         return previewContentService.create(context, bitstream, fi.name, fi.content, fi.isDirectory, fi.size, sub);

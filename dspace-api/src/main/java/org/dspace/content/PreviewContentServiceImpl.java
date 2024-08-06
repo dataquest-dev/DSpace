@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Service implementation for the PreviewContent object.
  *
- * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ * @author Michaela Paurikova (dspace at dataquest.sk)
  */
 public class PreviewContentServiceImpl implements PreviewContentService {
 

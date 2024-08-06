@@ -129,6 +129,4 @@ public class PreviewContentServiceImplIT extends AbstractControllerIntegrationTe
         Assert.assertEquals(previewContentList.size(), 1);
         Assert.assertEquals(previewContent1.getID(), previewContentList.get(0).getID());
     }
-
-
 }

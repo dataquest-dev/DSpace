@@ -21,7 +21,7 @@ import org.dspace.core.Context;
  * Hibernate implementation of the Database Access Object interface class for the PreviewContent object.
  * This class should never be accessed directly.
  *
- * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ * @author Michaela Paurikova (dspace at dataquest.sk)
  */
 public class PreviewContentDAOImpl extends AbstractHibernateDAO<PreviewContent> implements PreviewContentDAO {
 

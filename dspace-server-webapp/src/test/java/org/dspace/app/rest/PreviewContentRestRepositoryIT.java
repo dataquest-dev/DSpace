@@ -41,6 +41,7 @@ public class PreviewContentRestRepositoryIT  extends AbstractControllerIntegrati
 
     private PreviewContent previewContent;
     private Bitstream bitstream;
+
     @Autowired
     private PreviewContentService previewContentService;
 

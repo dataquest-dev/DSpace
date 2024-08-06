@@ -29,9 +29,11 @@ import org.dspace.core.ReloadableEntity;
 
 /**
  * Database entity representation of the previewcontent table.
- * Database entity representation of class FileInfo.
+ * It is not possible to create entity from FileInfo class (without modifications)
+ * so we created PreviewContent (which serves as an entity for FileInfo)
+ * with corresponding database table previewcontent.
  *
- * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ * @author Michaela Paurikova (dspace at dataquest.sk)
  */
 @Entity
 @Table(name = "previewcontent")

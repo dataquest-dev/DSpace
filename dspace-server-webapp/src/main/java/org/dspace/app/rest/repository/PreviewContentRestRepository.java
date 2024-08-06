@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.PreviewContentRest;
 import org.dspace.content.PreviewContent;
 import org.dspace.content.service.PreviewContentService;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component;
 @Component(PreviewContentRest.CATEGORY + "." + PreviewContentRest.NAME)
 public class PreviewContentRestRepository extends DSpaceRestRepository<PreviewContentRest, Integer> {
 
+    private static Logger log = org.apache.logging.log4j.LogManager.getLogger(PreviewContentRestRepository.class);
 
     @Autowired
     PreviewContentService previewContentService;
@@ -33,7 +35,10 @@ public class PreviewContentRestRepository extends DSpaceRestRepository<PreviewCo
         try {
             previewContent = previewContentService.find(context, integer);
         } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage(), e);
+            String msg = "Database error occurred while finding preview content " +
+                    "for ID = " + integer + " Error msg: " + e.getMessage();
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
         }
         if (Objects.isNull(previewContent)) {
             return null;
@@ -47,7 +52,9 @@ public class PreviewContentRestRepository extends DSpaceRestRepository<PreviewCo
             List<PreviewContent> previewContentList = previewContentService.findAll(context);
             return converter.toRestPage(previewContentList, pageable, utils.obtainProjection());
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            String msg = "Database error occurred while finding all preview contents. Error msg: " + e.getMessage();
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
         }
     }
 

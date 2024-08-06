@@ -20,7 +20,7 @@ import org.dspace.core.Context;
 /**
  * Service interface class for the PreviewContent object.
  *
- * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ * @author Michaela Paurikova (dspace at dataquest.sk)
  */
 public interface PreviewContentService {
 
