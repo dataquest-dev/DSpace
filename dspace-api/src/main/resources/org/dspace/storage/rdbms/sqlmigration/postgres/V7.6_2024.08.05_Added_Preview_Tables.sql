@@ -1,15 +1,25 @@
 --
+-- The contents of this file are subject to the license and copyright
+-- detailed in the LICENSE and NOTICE files at the root of the source
+-- tree and available online at
+--
+-- http://www.dspace.org/license/
+--
+
+--
 -- Name: previewcontent; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
 --
 
 CREATE TABLE previewcontent (
-    previewcontent_id integer NOT NULL,
-    bitstream_id uuid NOT NULL,
-    name varchar(2000),
-    content varchar(2000),
-    isDirectory boolean DEFAULT false,
-    size varchar(256)
+   previewcontent_id integer NOT NULL,
+   bitstream_id uuid NOT NULL,
+   name varchar(2000),
+   content varchar(2000),
+   isDirectory boolean DEFAULT false,
+   size varchar(256)
 );
+
+ALTER TABLE public.previewcontent OWNER TO dspace;
 
 --
 -- Name: previewcontent_previewcontent_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
@@ -22,20 +32,26 @@ CREATE SEQUENCE previewcontent_previewcontent_id_seq
     NO MINVALUE
     CACHE 1;
 
-ALTER TABLE previewcontent ALTER COLUMN previewcontent_id SET DEFAULT nextval('previewcontent_previewcontent_id_seq');
+ALTER TABLE public.previewcontent_previewcontent_id_seq OWNER TO dspace;
+
+--
+-- Name: previewcontent_previewcontent_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
+--
+
+ALTER SEQUENCE previewcontent_previewcontent_id_seq OWNED BY previewcontent.previewcontent_id;
 
 --
 -- Name: previewcontent_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
 --
 
-ALTER TABLE previewcontent
+ALTER TABLE ONLY previewcontent
     ADD CONSTRAINT previewcontent_pkey PRIMARY KEY (previewcontent_id);
 
 --
 -- Name: previewcontent_bitstream_fk; Type: FK CONSTRAINT; Schema: public; Owner: dspace
 --
 
-ALTER TABLE previewcontent
+ALTER TABLE ONLY previewcontent
     ADD CONSTRAINT previewcontent_bitstream_fk FOREIGN KEY (bitstream_id) REFERENCES bitstream(uuid) ON DELETE CASCADE;
 
 --
@@ -47,6 +63,8 @@ CREATE TABLE preview2preview (
     child_id integer NOT NULL,
     name varchar(256)
 );
+
+ALTER TABLE public.preview2preview OWNER TO dspace;
 
 --
 -- Name: preview2preview_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
