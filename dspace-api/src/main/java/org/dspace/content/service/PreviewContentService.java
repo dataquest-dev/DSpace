@@ -95,5 +95,4 @@ public interface PreviewContentService {
      * @throws SQLException  If a database error occurs
      */
     List<PreviewContent> findAll(Context context) throws SQLException;
-
 }
