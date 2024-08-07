@@ -193,6 +193,7 @@
                 <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>identifier</dc-element>
+                    <dc-qualifier>other</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -205,6 +206,7 @@
                 <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>identifier</dc-element>
+                    <dc-qualifier>other</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -218,6 +220,7 @@
                 <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>identifier</dc-element>
+                    <dc-qualifier>other</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -230,6 +233,7 @@
                 <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>identifier</dc-element>
+                    <dc-qualifier>other</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -242,6 +246,7 @@
                 <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>identifier</dc-element>
+                    <dc-qualifier>other</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
