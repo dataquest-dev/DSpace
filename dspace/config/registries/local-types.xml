@@ -159,4 +159,10 @@
     <scope_note>Count of files in the item</scope_note>
   </dc-type>
 
+  <dc-type>
+    <schema>local</schema>
+    <element>type</element>
+    <qualifier>version</qualifier>
+    <scope_note>Překlad stručného popisu datových souborů do angličtiny</scope_note>
+  </dc-type>
 </dspace-dc-types>

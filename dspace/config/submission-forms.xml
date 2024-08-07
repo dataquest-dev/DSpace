@@ -164,19 +164,18 @@
                 </field>
             </row>
 
-            <!-- Question: dc.type.version neexistuje, co znamena pri nom PV? -->
-<!--            <row>-->
-<!--                <field>-->
-<!--                    <dc-schema>dc</dc-schema>-->
-<!--                    <dc-element>type</dc-element>-->
-<!--                    <dc-qualifier>version</dc-qualifier>-->
-<!--                    <repeatable>false</repeatable>-->
-<!--                    <label>Verze</label>-->
-<!--                    <input-type>onebox</input-type>-->
-<!--                    <hint>Překlad stručného popisu datových souborů do angličtiny.</hint>-->
-<!--                    <required></required>-->
-<!--                </field>-->
-<!--            </row>-->
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>type</dc-element>
+                    <dc-qualifier>version</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Verze</label>
+                    <input-type>onebox</input-type>
+                    <hint>Překlad stručného popisu datových souborů do angličtiny. Je třeba vyplnit, pokud je popis v jiném než anglickém jazyce.</hint>
+                    <required></required>
+                </field>
+            </row>
 
             <row>
                 <field>
