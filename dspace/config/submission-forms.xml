@@ -152,17 +152,17 @@
                 </field>
             </row>
 
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>description</dc-element>
-                    <repeatable>false</repeatable>
-                    <label>Popis souboru</label>
-                    <input-type>textarea</input-type>
-                    <hint>Stručný popis datových souborů. Vyplní se, pokud je popis v jiném než anglickém jazyce.</hint>
-                    <required></required>
-                </field>
-            </row>
+<!--            <row>-->
+<!--                <field>-->
+<!--                    <dc-schema>dc</dc-schema>-->
+<!--                    <dc-element>description</dc-element>-->
+<!--                    <repeatable>false</repeatable>-->
+<!--                    <label>Popis souboru</label>-->
+<!--                    <input-type>textarea</input-type>-->
+<!--                    <hint>Stručný popis datových souborů. Vyplní se, pokud je popis v jiném než anglickém jazyce.</hint>-->
+<!--                    <required></required>-->
+<!--                </field>-->
+<!--            </row>-->
 
             <row>
                 <field>
