@@ -284,21 +284,20 @@
                 </field>
             </row>
 
-            <!-- Question: `dc.subject.translated` does not exist. Could we use local metadata e.g. `local.subject.translated`?` -->
-<!--            <row>-->
-<!--                <field>-->
-<!--                    <dc-schema>dc</dc-schema>-->
-<!--                    <dc-element>subject</dc-element>-->
-<!--                    <dc-qualifier>translated</dc-qualifier>-->
-<!--                    &lt;!&ndash; An input-type of tag MUST be marked as repeatable &ndash;&gt;-->
-<!--                    <repeatable>true</repeatable>-->
-<!--                    <label>Klíčová slova v angličtině</label>-->
-<!--                    <input-type>tag</input-type>-->
-<!--                    <hint>Anglická klíčová slova vystihující obsah datasetu/obsahu publikace. Zadejte příslušné klíčové slovo nebo frázi a stiskněte tlačítko Přidat. Můžete to opakovat pro více klíčových slov nebo použít oddělovače, tj. Enter a čárku, které je rozdělí podle potřeby. Začněte psát klíčové slovo a použijte automatické návrhy, které se objeví. Pokud nechcete použít předvybranou hodnotu, ukončete zadávání stisknutím klávesy ESC.-->
-<!--                    </hint>-->
-<!--                    <required>Musíte zadat klíčová slova v angličtině.</required>-->
-<!--                </field>-->
-<!--            </row>-->
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>subject</dc-element>
+                    <dc-qualifier>translated</dc-qualifier>
+                    <!-- An input-type of tag MUST be marked as repeatable -->
+                    <repeatable>true</repeatable>
+                    <label>Klíčová slova v angličtině</label>
+                    <input-type>tag</input-type>
+                    <hint>Anglická klíčová slova vystihující obsah datasetu/obsahu publikace. Zadejte příslušné klíčové slovo nebo frázi a stiskněte tlačítko Přidat. Můžete to opakovat pro více klíčových slov nebo použít oddělovače, tj. Enter a čárku, které je rozdělí podle potřeby. Začněte psát klíčové slovo a použijte automatické návrhy, které se objeví. Pokud nechcete použít předvybranou hodnotu, ukončete zadávání stisknutím klávesy ESC.
+                    </hint>
+                    <required>Musíte zadat klíčová slova v angličtině.</required>
+                </field>
+            </row>
         </form>
 
 

@@ -165,4 +165,11 @@
     <qualifier>version</qualifier>
     <scope_note>Překlad stručného popisu datových souborů do angličtiny</scope_note>
   </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
+    <element>subject</element>
+    <qualifier>translated</qualifier>
+    <scope_note>Klíčová slova v angličtině</scope_note>
+  </dc-type>
 </dspace-dc-types>
