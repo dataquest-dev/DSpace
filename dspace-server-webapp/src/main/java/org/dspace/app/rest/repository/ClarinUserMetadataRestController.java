@@ -9,6 +9,7 @@ package org.dspace.app.rest.repository;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
+import static org.dspace.content.clarin.ClarinLicense.EXTRA_EMAIL;
 import static org.dspace.content.clarin.ClarinLicense.SEND_TOKEN;
 import static org.dspace.content.clarin.ClarinUserRegistration.ANONYMOUS_USER_REGISTRATION;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -185,6 +186,7 @@ public class ClarinUserMetadataRestController {
 
     @RequestMapping(method = POST, consumes = APPLICATION_JSON)
     @PreAuthorize("permitAll()")
+
     public ResponseEntity manageUserMetadata(@RequestParam("bitstreamUUID") UUID bitstreamUUID,
                                                      HttpServletRequest request)
             throws SQLException, ParseException, IOException, AuthorizeException, MessagingException {
@@ -395,7 +397,7 @@ public class ClarinUserMetadataRestController {
     }
 
     private String getEmailFromUserMetadata(List<ClarinUserMetadataRest> clarinUserMetadataRestList) {
-        return getFieldFromUserMetadata(SEND_TOKEN, clarinUserMetadataRestList);
+        return getFieldFromUserMetadata(EXTRA_EMAIL, clarinUserMetadataRestList);
     }
 
     private String getFieldFromUserMetadata(String field, List<ClarinUserMetadataRest> clarinUserMetadataRestList) {
