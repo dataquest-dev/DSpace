@@ -186,7 +186,6 @@ public class ClarinUserMetadataRestController {
 
     @RequestMapping(method = POST, consumes = APPLICATION_JSON)
     @PreAuthorize("permitAll()")
-
     public ResponseEntity manageUserMetadata(@RequestParam("bitstreamUUID") UUID bitstreamUUID,
                                                      HttpServletRequest request)
             throws SQLException, ParseException, IOException, AuthorizeException, MessagingException {
