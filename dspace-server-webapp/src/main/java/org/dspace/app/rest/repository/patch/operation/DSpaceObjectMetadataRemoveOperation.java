@@ -9,18 +9,26 @@ package org.dspace.app.rest.repository.patch.operation;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.InstallItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -76,12 +84,51 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                 List<MetadataValue> metadataValues = dsoService.getMetadata(dso,
                         metadataField.getMetadataSchema().getName(), metadataField.getElement(),
                         metadataField.getQualifier(), Item.ANY);
+                Map<String, String> oldMtdValues = null;
+                if (dso.getType() == Constants.ITEM) {
+                    oldMtdValues = new HashMap<>();
+                    for (MetadataValue mv : metadataValues) {
+                        oldMtdValues.put(mv.getMetadataField().toString().replace('_', '.'), mv.getValue());
+                    }
+                }
                 int indexInt = Integer.parseInt(index);
                 if (indexInt >= 0 && metadataValues.size() > indexInt
                         && metadataValues.get(indexInt) != null) {
                     // remove that metadata
                     dsoService.removeMetadataValues(context, dso,
                             Arrays.asList(metadataValues.get(indexInt)));
+
+                    if (dso.getType() != Constants.ITEM)
+                        return;
+
+                    Item item = (Item) dso;
+                    InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+                    String timestamp = DCDate.getCurrent().toString();
+
+                    // Add suitable provenance - includes mtd field, old mtd, new mtd, user, date +
+                    // bitstream checksums
+                    EPerson e = context.getCurrentUser();
+
+                    for (Map.Entry<String, String> mv : oldMtdValues.entrySet()) {
+                        try {
+                            // Build some provenance data while we're at it.
+                            StringBuilder prov = new StringBuilder();
+                            prov.append("Item metadata (").append(mv.getKey()).append(": ")
+                                    .append(mv.getValue()).append(") were deleted by ").append(e.getFullName())
+                                    .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
+
+                            prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+
+                            dsoService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                                    "description", "provenance", "en", prov.toString());
+                            // Update item in DB
+                            dsoService.update(context, item);
+                        } catch (AuthorizeException ex) {
+                            throw new DSpaceBadRequestException(
+                                    "AuthorizeException in DspaceObjectMetadataRemoveOperation.remove " +
+                                            "trying to replace metadata from dso.", ex);
+                        }
+                    }
                 } else {
                     throw new UnprocessableEntityException("UnprocessableEntityException - There is no metadata of " +
                             "this type at that index");
@@ -91,13 +138,14 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
             throw new IllegalArgumentException("This index (" + index + ") is not valid number.", e);
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new UnprocessableEntityException("There is no metadata of this type at that index");
-        } catch (SQLException e) {
-            throw new DSpaceBadRequestException("SQLException in DspaceObjectMetadataRemoveOperation.remove " +
-                    "trying to remove metadata from dso.", e);
+        } catch (SQLException ex) {
+            throw new DSpaceBadRequestException(
+                    "SQLException in DspaceObjectMetadataRemoveOperation.remove " +
+                            "trying to remove metadata from dso.", ex);
         }
     }
 
-    @Override
+        @Override
     public boolean supports(Object objectToMatch, Operation operation) {
         return (operation.getPath().startsWith(metadataPatchUtils.OPERATION_METADATA_PATH)
                 && operation.getOp().trim().equalsIgnoreCase(OPERATION_REMOVE)

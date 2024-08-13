@@ -14,13 +14,19 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.InstallItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -91,7 +97,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
         }
         // replace single existing metadata value
         if (propertyOfMd == null) {
-            this.replaceSingleMetadataValue(dso, dsoService, metadataField, metadataValue, index);
+            this.replaceSingleMetadataValue(context, dso, dsoService, metadataField, metadataValue, index);
             return;
         }
         // replace single property of exiting metadata value
@@ -145,7 +151,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
      * @param index             index of md being replaced
      */
     // replace single existing metadata value
-    private void replaceSingleMetadataValue(DSpaceObject dso, DSpaceObjectService dsoService,
+    private void replaceSingleMetadataValue(Context context, DSpaceObject dso, DSpaceObjectService dsoService,
                                             MetadataField metadataField, MetadataValueRest metadataValue,
                                             String index) {
         try {
@@ -155,18 +161,54 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
             int indexInt = Integer.parseInt(index);
             if (indexInt >= 0 && metadataValues.size() > indexInt
                     && metadataValues.get(indexInt) != null) {
+
                 // Alter this existing md
                 MetadataValue existingMdv = metadataValues.get(indexInt);
+                String oldValue = existingMdv.getValue();
                 existingMdv.setAuthority(metadataValue.getAuthority());
                 existingMdv.setConfidence(metadataValue.getConfidence());
                 existingMdv.setLanguage(metadataValue.getLanguage());
                 existingMdv.setValue(metadataValue.getValue());
                 dsoService.setMetadataModified(dso);
+
+                if (dso.getType() != Constants.ITEM)
+                    return;
+
+                Item item = (Item) dso;
+                InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+                String timestamp = DCDate.getCurrent().toString();
+
+                // Add suitable provenance - includes mtd field, old mtd, new mtd, user, date +
+                // bitstream checksums
+                EPerson e = context.getCurrentUser();
+
+                // Build some provenance data while we're at it.
+                StringBuilder prov = new StringBuilder();
+
+                prov.append("Item metadata (").append(existingMdv.getMetadataField().toString()
+                                .replace('_', '.')).append(": ")
+                        .append(oldValue).append(") were updated by ").append(e.getFullName())
+                        .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
+
+                prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+
+                dsoService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                        "description", "provenance", "en", prov.toString());
+                // Update item in DB
+                dsoService.update(context, item);
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
             }
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("This index (" + index + ") is not valid number.", e);
+        } catch (SQLException e) {
+            throw new DSpaceBadRequestException(
+                    "SQLException in DspaceObjectMetadataReplaceOperation.replaceSingleMetadataValue " +
+                    "trying to replace metadata from dso.", e);
+        } catch (AuthorizeException e) {
+            throw new DSpaceBadRequestException(
+                    "AuthorizeException in DspaceObjectMetadataReplaceOperation.replaceSingleMetadataValue " +
+                            "trying to replace metadata from dso.", e);
         }
     }
 
