@@ -105,7 +105,8 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
             return;
         }
         // replace single property of exiting metadata value
-        this.replaceSinglePropertyOfMdValue(context, dso, dsoService, metadataField, index, propertyOfMd, valueMdProperty);
+        this.replaceSinglePropertyOfMdValue(context, dso, dsoService, metadataField,
+                index, propertyOfMd, valueMdProperty);
     }
 
     /**
