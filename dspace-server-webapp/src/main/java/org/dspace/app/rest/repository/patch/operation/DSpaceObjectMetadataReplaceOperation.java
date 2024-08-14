@@ -15,15 +15,19 @@ import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
 import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -101,7 +105,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
             return;
         }
         // replace single property of exiting metadata value
-        this.replaceSinglePropertyOfMdValue(dso, dsoService, metadataField, index, propertyOfMd, valueMdProperty);
+        this.replaceSinglePropertyOfMdValue(context, dso, dsoService, metadataField, index, propertyOfMd, valueMdProperty);
     }
 
     /**
@@ -222,7 +226,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
      * @param propertyOfMd      property of md being replaced
      * @param valueMdProperty   new value of property of md being replaced
      */
-    private void replaceSinglePropertyOfMdValue(DSpaceObject dso, DSpaceObjectService dsoService,
+    private void replaceSinglePropertyOfMdValue(Context context, DSpaceObject dso, DSpaceObjectService dsoService,
                                                 MetadataField metadataField,
                                                 String index, String propertyOfMd, String valueMdProperty) {
         try {
@@ -233,6 +237,8 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
             if (indexInt >= 0 && metadataValues.size() > indexInt && metadataValues.get(indexInt) != null) {
                 // Alter only asked propertyOfMd
                 MetadataValue existingMdv = metadataValues.get(indexInt);
+                String oldValue = existingMdv.getValue();
+
                 if (propertyOfMd.equals("authority")) {
                     existingMdv.setAuthority(valueMdProperty);
                 }
@@ -246,12 +252,60 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                     existingMdv.setValue(valueMdProperty);
                 }
                 dsoService.setMetadataModified(dso);
+
+                if (dso.getType() != Constants.BITSTREAM) {
+                    return;
+                }
+                Bitstream bitstream = (Bitstream) dso;
+                ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
+                ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+                List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
+
+                InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+                String timestamp = DCDate.getCurrent().toString();
+
+                // Add suitable provenance - includes mtd field, old mtd, new mtd, user, date +
+                // bitstream checksums
+                EPerson e = context.getCurrentUser();
+
+                StringBuilder bitstreamMsg = new StringBuilder();
+                bitstreamMsg.append(bitstream.getName()).append(": ")
+                        .append(bitstream.getSizeBytes()).append(" bytes, checksum: ")
+                        .append(bitstream.getChecksum()).append(" (")
+                        .append(bitstream.getChecksumAlgorithm()).append(")\n");
+
+                for (Item item : items) {
+                    // Build some provenance data while we're at it.
+                    StringBuilder prov = new StringBuilder();
+
+                    prov.append("Item was updated a bitstream (").append(bitstreamMsg).append(") metadata (")
+                            .append(existingMdv.getMetadataField().toString()
+                                    .replace('_', '.')).append(".").append(propertyOfMd).append(": ")
+                            .append(oldValue).append(") by ").append(e.getFullName()).append(" (").append(e.getEmail())
+                            .append(") on ").append(timestamp).append("\n");
+
+                    prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+
+                    itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                            "description", "provenance", "en", prov.toString());
+                    // Update item in DB
+                    itemService.update(context, item);
+                }
+
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
             }
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Not all numbers are valid numbers. " +
                     "(Index and confidence should be nr)", e);
+        } catch (SQLException e) {
+            throw new DSpaceBadRequestException(
+                    "SQLException in DspaceObjectMetadataReplaceOperation.replaceSinglePropertyOfMdValue " +
+                            "trying to replace metadata from dso.", e);
+        } catch (AuthorizeException e) {
+            throw new DSpaceBadRequestException(
+                    "AuthorizeException in DspaceObjectMetadataReplaceOperation.replaceSinglePropertyOfMdValue " +
+                            "trying to replace metadata from dso.", e);
         }
     }
 

@@ -9,16 +9,27 @@ package org.dspace.app.rest.repository.patch.operation;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
+import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.RESTBitstreamNotFoundException;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
+import org.dspace.content.DCDate;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataSchemaEnum;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
@@ -55,8 +66,43 @@ public class BitstreamRemoveOperation extends PatchOperation<Bitstream> {
         authorizeBitstreamRemoveAction(context, bitstreamToDelete, Constants.DELETE);
 
         try {
+            ClarinItemService itemService = ClarinServiceFactory.getInstance().getClarinItemService();
+            List<Item> items = itemService.findByBitstreamUUID(context, UUID.fromString(bitstreamIDtoDelete));
+            StringBuilder bitstreamMsg = new StringBuilder();
+            bitstreamMsg.append(bitstreamToDelete.getName()).append(": ")
+                    .append(bitstreamToDelete.getSizeBytes()).append(" bytes, checksum: ")
+                    .append(bitstreamToDelete.getChecksum()).append(" (")
+                    .append(bitstreamToDelete.getChecksumAlgorithm()).append(")\n");
             bitstreamService.delete(context, bitstreamToDelete);
-        } catch (AuthorizeException | IOException e) {
+
+            InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+            DSpaceObjectService<Item> dsoService = ContentServiceFactory.getInstance()
+                    .getDSpaceObjectService(Constants.ITEM);
+            String timestamp = DCDate.getCurrent().toString();
+
+            // Add suitable provenance - includes mtd field, old mtd, new mtd, user, date +
+            // bitstream checksums
+            EPerson e = context.getCurrentUser();
+
+            for (Item item : items) {
+                // Build some provenance data while we're at it.
+                StringBuilder prov = new StringBuilder();
+
+                prov.append("Item was deleted a bitstream (").append(bitstreamMsg).append(") by ")
+                        .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
+                        .append(timestamp).append("\n");
+
+                prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+                dsoService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                        "description", "provenance", "en", prov.toString());
+                 //Update item in DB
+                dsoService.update(context, item);
+            }
+        } catch (AuthorizeException e) {
+            throw new DSpaceBadRequestException(
+                    "AuthorizeException in BitstreamRemoveOperation.perform " +
+                            "trying to replace metadata from bitstream.", e);
+        } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
         return null;

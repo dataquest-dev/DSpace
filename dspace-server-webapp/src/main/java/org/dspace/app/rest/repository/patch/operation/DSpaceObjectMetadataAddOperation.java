@@ -8,19 +8,23 @@
 package org.dspace.app.rest.repository.patch.operation;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
 import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchemaEnum;
+import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -77,31 +81,62 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                     metadataField.getElement(), metadataField.getQualifier(), metadataValue.getLanguage(),
                     metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence(), indexInt);
 
-            if (dso.getType() != Constants.ITEM) {
+            if (dso.getType() != Constants.ITEM && dso.getType() != Constants.BITSTREAM) {
                 return;
             }
 
-            Item item = (Item) dso;
             InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
             String timestamp = DCDate.getCurrent().toString();
-
             // Add suitable provenance - includes mtd field, old mtd, new mtd, user, date +
             // bitstream checksums
             EPerson e = context.getCurrentUser();
 
-            // Build some provenance data while we're at it.
-            StringBuilder prov = new StringBuilder();
+            if (dso.getType() == Constants.ITEM) {
+                Item item = (Item) dso;
 
-            prov.append("Item metadata (").append(metadataField.toString()
-                            .replace('_', '.')).append(") were added by ").append(e.getFullName())
-                    .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
+                // Build some provenance data while we're at it.
+                StringBuilder prov = new StringBuilder();
 
-            prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+                prov.append("Item metadata (").append(metadataField.toString()
+                                .replace('_', '.')).append(") were added by ").append(e.getFullName())
+                        .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
 
-            dsoService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                    "description", "provenance", "en", prov.toString());
-            // Update item in DB
-            dsoService.update(context, item);
+                prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+
+                dsoService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                        "description", "provenance", "en", prov.toString());
+                // Update item in DB
+                dsoService.update(context, item);
+            }
+
+            if (dso.getType() == Constants.BITSTREAM) {
+                Bitstream bitstream = (Bitstream) dso;
+                ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
+                List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
+                StringBuilder bitstreamMsg = new StringBuilder();
+                bitstreamMsg.append(bitstream.getName()).append(": ")
+                        .append(bitstream.getSizeBytes()).append(" bytes, checksum: ")
+                        .append(bitstream.getChecksum()).append(" (")
+                        .append(bitstream.getChecksumAlgorithm()).append(")\n");
+                DSpaceObjectService<Item> dsoItemService = ContentServiceFactory.getInstance()
+                        .getDSpaceObjectService(Constants.ITEM);
+
+                for (Item item : items) {
+                    // Build some provenance data while we're at it.
+                    StringBuilder prov = new StringBuilder();
+
+                    prov.append("Item was added a bitstream (").append(bitstreamMsg).append(") metadata (")
+                            .append(metadataField.toString().replace('_', '.')).append(" by ")
+                            .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
+                            .append(timestamp).append("\n");
+
+                    prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+                    dsoItemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                            "description", "provenance", "en", prov.toString());
+                    //Update item in DB
+                    dsoItemService.update(context, item);
+                }
+            }
         } catch (SQLException e) {
             throw new DSpaceBadRequestException("SQLException in DspaceObjectMetadataAddOperation.add trying to add " +
                     "metadata to dso.", e);
