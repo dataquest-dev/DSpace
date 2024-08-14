@@ -101,9 +101,7 @@ public class MetadataPatchSuite {
                 JsonNode jsonNodePrv = objectMapper.readTree(rspModifiedProvenance);
                 ((ObjectNode) responseJson.get("metadata")).put(PROVENANCE, jsonNodePrv);
             }
-
             String responseMetadata = responseJson.get("metadata").toString();
-            
             if (!responseMetadata.equals(expectedMetadata)) {
                 Assert.fail("Expected metadata in " + verb + " response: " + expectedMetadata
                         + "\nGot metadata in " + verb + " response: " + responseMetadata);
