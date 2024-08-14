@@ -77,8 +77,9 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                     metadataField.getElement(), metadataField.getQualifier(), metadataValue.getLanguage(),
                     metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence(), indexInt);
 
-            if (dso.getType() != Constants.ITEM)
+            if (dso.getType() != Constants.ITEM) {
                 return;
+            }
 
             Item item = (Item) dso;
             InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();

@@ -171,8 +171,9 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                 existingMdv.setValue(metadataValue.getValue());
                 dsoService.setMetadataModified(dso);
 
-                if (dso.getType() != Constants.ITEM)
+                if (dso.getType() != Constants.ITEM) {
                     return;
+                }
 
                 Item item = (Item) dso;
                 InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();

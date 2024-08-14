@@ -98,8 +98,9 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                     dsoService.removeMetadataValues(context, dso,
                             Arrays.asList(metadataValues.get(indexInt)));
 
-                    if (dso.getType() != Constants.ITEM)
+                    if (dso.getType() != Constants.ITEM) {
                         return;
+                    }
 
                     Item item = (Item) dso;
                     InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
@@ -145,7 +146,7 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
         }
     }
 
-        @Override
+    @Override
     public boolean supports(Object objectToMatch, Operation operation) {
         return (operation.getPath().startsWith(metadataPatchUtils.OPERATION_METADATA_PATH)
                 && operation.getOp().trim().equalsIgnoreCase(OPERATION_REMOVE)
