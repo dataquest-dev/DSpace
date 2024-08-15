@@ -41,6 +41,16 @@ public class MetadataPatchSuite {
     }
 
     /**
+     * Initializes the suite by parsing the json file of tests.
+     *
+     * @param name  name of resource
+     * @throws Exception if there is an error reading the file.
+     */
+    public MetadataPatchSuite(String name) throws Exception {
+        suite = objectMapper.readTree(getClass().getResourceAsStream(name));
+    }
+
+    /**
      * Runs all tests in the file using the given client and url, expecting the given status.
      *
      * @param client the client to use.
@@ -101,6 +111,7 @@ public class MetadataPatchSuite {
                 JsonNode jsonNodePrv = objectMapper.readTree(rspModifiedProvenance);
                 ((ObjectNode) responseJson.get("metadata")).put(PROVENANCE, jsonNodePrv);
             }
+
             String responseMetadata = responseJson.get("metadata").toString();
             if (!responseMetadata.equals(expectedMetadata)) {
                 Assert.fail("Expected metadata in " + verb + " response: " + expectedMetadata

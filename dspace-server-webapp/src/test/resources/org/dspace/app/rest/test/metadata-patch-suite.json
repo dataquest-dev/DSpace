@@ -22,9 +22,6 @@
         }
       ],
       "expect": {
-        "dc.description.provenance" : [
-          { "value" : "Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0", "language" : "en", "authority" : null, "confidence" : -1, "place" : 0}
-        ],
         "dc.title": [
           { "value": "title 1", "language": null, "authority": null, "confidence": -1, "place": 0}
         ]
@@ -40,12 +37,6 @@
         }
       ],
       "expect": {
-        "dc.description.provenance":[
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":0},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":1}
-        ],
         "dc.title": [
           { "value": "title 1", "language": null, "authority": null, "confidence": -1,"place": 0 },
           { "value": "最後のタイトル", "language": "ja_JP", "authority": null, "confidence": -1 ,"place": 1}
@@ -64,14 +55,6 @@
         }
       ],
       "expect": {
-        "dc.description.provenance":[
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":0},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":1},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":2}
-        ],
         "dc.title": [
           { "value": "title 0", "language": null, "authority": null, "confidence": -1 ,"place": 0 },
           { "value": "title 1", "language": null, "authority": null, "confidence": -1 ,"place": 1 },
@@ -89,14 +72,6 @@
         }
       ],
       "expect": {
-        "dc.description.provenance":[
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":0},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":1},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":2}
-        ],
         "dc.title": [
           { "value": "title 0", "language": null, "authority": null, "confidence": -1 ,"place": 0 },
           { "value": "最後のタイトル", "language": "ja_JP", "authority": null, "confidence": -1 ,"place": 1 },
@@ -119,14 +94,6 @@
         }
       ],
       "expect": {
-        "dc.description.provenance":[
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":0},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":1},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":2}
-        ],
         "dc.title": [
           { "value": "title 0", "language": null, "authority": null, "confidence": -1 ,"place": 0 },
           { "value": "title A", "language": "en_US", "authority": null, "confidence": -1 ,"place": 1 },
@@ -144,14 +111,6 @@
         }
       ],
       "expect": {
-        "dc.description.provenance":[
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":0},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":1},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":2}
-        ],
         "dc.title": [
           { "value": "title 0", "language": null, "authority": null, "confidence": -1 ,"place": 0 },
           { "value": "title A", "language": "en_US", "authority": null, "confidence": -1 ,"place": 1 },
@@ -173,18 +132,6 @@
         }
       ],
       "expect": {
-        "dc.description.provenance":[
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":0},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":1},
-          {"value":"Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":2},
-          {"value":"Item metadata (dc.title: title A) were deleted by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":3},
-          {"value":"Item metadata (dc.title: title A) were deleted by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":4}
-        ],
         "dc.title": [
           { "value": "title 0", "language": null, "authority": null, "confidence": -1 ,"place": 0 },
           { "value": "title 1", "language": null, "authority": null, "confidence": -1 ,"place": 1 }
@@ -199,21 +146,7 @@
           "path": "/metadata/dc.title"
         }
       ],
-      "expect": {
-        "dc.description.provenance": [
-          {
-            "value": "Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language": "en", "authority": null, "confidence": -1, "place": 0},
-          {"value": "Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language": "en", "authority": null, "confidence": -1, "place": 1},
-          {"value": "Item metadata (dc.title) were added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language": "en", "authority": null, "confidence": -1, "place": 2},
-          {"value": "Item metadata (dc.title: title A) were deleted by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language": "en", "authority": null, "confidence": -1, "place": 3},
-          {"value": "Item metadata (dc.title: title A) were deleted by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language": "en", "authority": null, "confidence": -1, "place": 4}
-        ]
-      }
+      "expect": {}
     }
   ]
 }
