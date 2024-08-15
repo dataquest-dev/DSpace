@@ -315,8 +315,7 @@ public class ItemUtils {
         if (restricted) {
             other.getField().add(createValue("restrictedAccess", "true"));
         }
-        // because we reindex solr which is doesn't do in vanilla
-        // for workspace items the owning collection is null, we need to control it
+        // Because we reindex Solr, which is not done in vanilla, the owning collection for workspace items is null
         other.getField().add(createValue("owningCollection",
                 item.getOwningCollection() != null ? item.getOwningCollection().getName() : null));
         other.getField().add(createValue("itemId", item.getID().toString()));
