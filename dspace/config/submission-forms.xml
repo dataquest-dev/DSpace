@@ -152,31 +152,30 @@
                 </field>
             </row>
 
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>description</dc-element>
-                    <repeatable>false</repeatable>
-                    <label>Popis souboru</label>
-                    <input-type>textarea</input-type>
-                    <hint>Stručný popis datových souborů. Vyplní se, pokud je popis v jiném než anglickém jazyce.</hint>
-                    <required></required>
-                </field>
-            </row>
-
-            <!-- Question: dc.type.version neexistuje, co znamena pri nom PV? -->
 <!--            <row>-->
 <!--                <field>-->
 <!--                    <dc-schema>dc</dc-schema>-->
-<!--                    <dc-element>type</dc-element>-->
-<!--                    <dc-qualifier>version</dc-qualifier>-->
+<!--                    <dc-element>description</dc-element>-->
 <!--                    <repeatable>false</repeatable>-->
-<!--                    <label>Verze</label>-->
-<!--                    <input-type>onebox</input-type>-->
-<!--                    <hint>Překlad stručného popisu datových souborů do angličtiny.</hint>-->
+<!--                    <label>Popis souboru</label>-->
+<!--                    <input-type>textarea</input-type>-->
+<!--                    <hint>Stručný popis datových souborů. Vyplní se, pokud je popis v jiném než anglickém jazyce.</hint>-->
 <!--                    <required></required>-->
 <!--                </field>-->
 <!--            </row>-->
+
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>type</dc-element>
+                    <dc-qualifier>version</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Verze</label>
+                    <input-type>onebox</input-type>
+                    <hint>V jaké fázi publikačního procesu se dokument nachází (např. preprint, vydavatelská verze). Vyplní se pokud je dokument v některé z fází publikačního procesu.</hint>
+                    <required></required>
+                </field>
+            </row>
 
             <row>
                 <field>
@@ -192,8 +191,9 @@
 
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>identifier</dc-element>
+                    <dc-qualifier>files</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -204,8 +204,9 @@
 
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>identifier</dc-element>
+                    <dc-qualifier>records</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -217,8 +218,9 @@
             <!-- Question: PV - why? -->
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>identifier</dc-element>
+                    <dc-qualifier>data</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -229,8 +231,9 @@
 
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>identifier</dc-element>
+                    <dc-qualifier>publications</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -241,8 +244,9 @@
 
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>identifier</dc-element>
+                    <dc-qualifier>versions</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -280,21 +284,20 @@
                 </field>
             </row>
 
-            <!-- Question: `dc.subject.translated` does not exist. Could we use local metadata e.g. `local.subject.translated`?` -->
-<!--            <row>-->
-<!--                <field>-->
-<!--                    <dc-schema>dc</dc-schema>-->
-<!--                    <dc-element>subject</dc-element>-->
-<!--                    <dc-qualifier>translated</dc-qualifier>-->
-<!--                    &lt;!&ndash; An input-type of tag MUST be marked as repeatable &ndash;&gt;-->
-<!--                    <repeatable>true</repeatable>-->
-<!--                    <label>Klíčová slova v angličtině</label>-->
-<!--                    <input-type>tag</input-type>-->
-<!--                    <hint>Anglická klíčová slova vystihující obsah datasetu/obsahu publikace. Zadejte příslušné klíčové slovo nebo frázi a stiskněte tlačítko Přidat. Můžete to opakovat pro více klíčových slov nebo použít oddělovače, tj. Enter a čárku, které je rozdělí podle potřeby. Začněte psát klíčové slovo a použijte automatické návrhy, které se objeví. Pokud nechcete použít předvybranou hodnotu, ukončete zadávání stisknutím klávesy ESC.-->
-<!--                    </hint>-->
-<!--                    <required>Musíte zadat klíčová slova v angličtině.</required>-->
-<!--                </field>-->
-<!--            </row>-->
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>subject</dc-element>
+                    <dc-qualifier>translated</dc-qualifier>
+                    <!-- An input-type of tag MUST be marked as repeatable -->
+                    <repeatable>true</repeatable>
+                    <label>Klíčová slova v angličtině</label>
+                    <input-type>tag</input-type>
+                    <hint>Anglická klíčová slova vystihující obsah datasetu/obsahu publikace. Zadejte příslušné klíčové slovo nebo frázi a stiskněte tlačítko Přidat. Můžete to opakovat pro více klíčových slov nebo použít oddělovače, tj. Enter a čárku, které je rozdělí podle potřeby. Začněte psát klíčové slovo a použijte automatické návrhy, které se objeví. Pokud nechcete použít předvybranou hodnotu, ukončete zadávání stisknutím klávesy ESC.
+                    </hint>
+                    <required>Musíte zadat klíčová slova v angličtině.</required>
+                </field>
+            </row>
         </form>
 
 

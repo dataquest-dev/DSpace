@@ -159,4 +159,54 @@
     <scope_note>Count of files in the item</scope_note>
   </dc-type>
 
+  <dc-type>
+    <schema>local</schema>
+    <element>type</element>
+    <qualifier>version</qualifier>
+    <scope_note>Překlad stručného popisu datových souborů do angličtiny</scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
+    <element>subject</element>
+    <qualifier>translated</qualifier>
+    <scope_note>Klíčová slova v angličtině</scope_note>
+  </dc-type>
+
+  **********************
+  <dc-type>
+    <schema>local</schema>
+    <element>identifier</element>
+    <qualifier>files</qualifier>
+    <scope_note>Trvalé URL. Odkaz na datové soubory uložené v jiných repozitářích, v OBD</scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
+    <element>identifier</element>
+    <qualifier>records</qualifier>
+    <scope_note>Trvalé URL. Odkaz na stránky/záznamy souvisejíc s daty.</scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
+    <element>identifier</element>
+    <qualifier>data</qualifier>
+    <scope_note>Trvalé URL. Název repozitáře, kde jsou uložena data.</scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
+    <element>identifier</element>
+    <qualifier>publications</qualifier>
+    <scope_note>Trvalé URL. Odkazy na publikace.</scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
+    <element>identifier</element>
+    <qualifier>versions</qualifier>
+    <scope_note>Trvalé URL. Odkaz na další verze datasetů.</scope_note>
+  </dc-type>
+
 </dspace-dc-types>
