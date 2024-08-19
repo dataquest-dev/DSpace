@@ -172,7 +172,7 @@
                     <repeatable>false</repeatable>
                     <label>Verze</label>
                     <input-type>onebox</input-type>
-                    <hint>Překlad stručného popisu datových souborů do angličtiny. Je třeba vyplnit, pokud je popis v jiném než anglickém jazyce.</hint>
+                    <hint>V jaké fázi publikačního procesu se dokument nachází (např. preprint, vydavatelská verze). Vyplní se pokud je dokument v některé z fází publikačního procesu.</hint>
                     <required></required>
                 </field>
             </row>
@@ -191,9 +191,9 @@
 
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>identifier</dc-element>
-                    <dc-qualifier>other</dc-qualifier>
+                    <dc-qualifier>files</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -204,9 +204,9 @@
 
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>identifier</dc-element>
-                    <dc-qualifier>other</dc-qualifier>
+                    <dc-qualifier>records</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -218,9 +218,9 @@
             <!-- Question: PV - why? -->
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>identifier</dc-element>
-                    <dc-qualifier>other</dc-qualifier>
+                    <dc-qualifier>data</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -231,9 +231,9 @@
 
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>identifier</dc-element>
-                    <dc-qualifier>other</dc-qualifier>
+                    <dc-qualifier>publications</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
@@ -244,9 +244,9 @@
 
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>identifier</dc-element>
-                    <dc-qualifier>other</dc-qualifier>
+                    <dc-qualifier>versions</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
