@@ -138,7 +138,7 @@
                     <dc-element>relation</dc-element>
                     <dc-qualifier>ispartofseries</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Výzkumná zpráva č.</label>
+                    <label>Edice/Výzkumná zpráva č.</label>
                     <input-type>series</input-type>
                     <hint>Vložte jméno edice nebo řady a číslo svazku</hint>
                     <required></required>
@@ -274,7 +274,7 @@
                     <dc-element>description</dc-element>
                     <dc-qualifier>sponsorship</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Spozoři</label>
+                    <label>Sponzoři</label>
                     <input-type>textarea</input-type>
                     <hint>Vložte jméno člověka nebo název korporace, který finančně přispěl na vznik díla /or funding codes in the box.</hint>
                     <required></required>

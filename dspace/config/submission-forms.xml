@@ -227,7 +227,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Keywords</label>
-                    <input-type>onebox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Enter appropriate subject keyword or phrase and press the Add button. You can repeat it for
                         multiple keywords or use separators i.e., Enter and comma, which will split it accordingly.
                         Start typing the keyword and use autocomplete form that will appear. End your input by pressing
