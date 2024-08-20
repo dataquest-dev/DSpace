@@ -173,7 +173,6 @@
     <scope_note>Klíčová slova v angličtině</scope_note>
   </dc-type>
 
-  **********************
   <dc-type>
     <schema>local</schema>
     <element>identifier</element>
@@ -206,6 +205,13 @@
     <schema>local</schema>
     <element>identifier</element>
     <qualifier>versions</qualifier>
+    <scope_note>Trvalé URL. Odkaz na další verze datasetů.</scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
+    <element>alternative</element>
+    <qualifier>translated</qualifier>
     <scope_note>Trvalé URL. Odkaz na další verze datasetů.</scope_note>
   </dc-type>
 
