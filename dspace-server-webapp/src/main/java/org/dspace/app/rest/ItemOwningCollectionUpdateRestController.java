@@ -26,12 +26,16 @@ import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -52,6 +56,8 @@ public class ItemOwningCollectionUpdateRestController {
 
     @Autowired
     ItemService itemService;
+    @Autowired
+    InstallItemService installItemService;
 
     @Autowired
     CollectionService collectionService;
@@ -125,6 +131,24 @@ public class ItemOwningCollectionUpdateRestController {
                                 final boolean inheritPolicies)
             throws SQLException, IOException, AuthorizeException {
         itemService.move(context, item, currentCollection, targetCollection, inheritPolicies);
+
+        String timestamp = DCDate.getCurrent().toString();
+        // Add suitable provenance
+        EPerson e = context.getCurrentUser();
+        // Build some provenance data while we're at it.
+        StringBuilder prov = new StringBuilder();
+
+        prov.append("Item (").append(item.getID()).append(") was moved from collection (")
+                .append(currentCollection.getID()).append(") to new collection by ").append(e.getFullName())
+                .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
+
+        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+
+        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                "description", "provenance", "en", prov.toString());
+        // Update item in DB
+        itemService.update(context, item);
+
         // Necessary because Controller does not pass through general RestResourceController, and as such does not do
         // its commit in DSpaceRestRepository.createAndReturn() or similar
         context.commit();
