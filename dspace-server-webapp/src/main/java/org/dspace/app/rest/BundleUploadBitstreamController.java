@@ -12,6 +12,7 @@ import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFI
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
@@ -25,9 +26,17 @@ import org.dspace.app.rest.model.hateoas.BitstreamResource;
 import org.dspace.app.rest.repository.BundleRestRepository;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bundle;
+import org.dspace.content.DCDate;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataSchemaEnum;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BundleService;
+import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ControllerUtils;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -109,6 +118,39 @@ public class BundleUploadBitstreamController {
             log.error("Something went wrong when trying to read the inputstream from the given file in the request",
                       e);
             throw new UnprocessableEntityException("The InputStream from the file couldn't be read", e);
+        }
+
+        InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+        ItemService itemService = ContentServiceFactory.getInstance()
+                .getItemService();
+
+        String timestamp = DCDate.getCurrent().toString();
+
+        // Add suitable provenance - includes mtd field, old mtd, new mtd, user, date +
+        // bitstream checksums
+        EPerson e = context.getCurrentUser();
+
+        List<Item> items = bundle.getItems();
+        for (Item item : items) {
+            // Build some provenance data while we're at it.
+            StringBuilder prov = new StringBuilder();
+
+            prov.append("Bitstream was added to bundle (").append(bundle.getID()).append(") of item (")
+                    .append(item.getID()).append(") by ").append(e.getFullName()).append(" (").append(e.getEmail())
+                    .append(") on ").append(timestamp).append("\n");
+            try {
+                prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+                itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                        "description", "provenance", "en", prov.toString());
+                //Update item in DB
+                itemService.update(context, item);
+            } catch (SQLException ex) {
+                throw new RuntimeException("SQLException in BundleUploadBitstreamConverter.uploadBitstream " +
+                        "when provenance metadata are adding.", ex);
+            } catch (AuthorizeException ex) {
+                throw new RuntimeException("AuthorizeException in BundleUploadBitstreamConverter.uploadBitstream " +
+                        "when provenance metadata are adding.", ex);
+            }
         }
 
         BitstreamRest bitstreamRest = bundleRestRepository.uploadBitstream(

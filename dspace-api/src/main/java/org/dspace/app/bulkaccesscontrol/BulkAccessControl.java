@@ -45,14 +45,20 @@ import org.dspace.app.mediafilter.service.MediaFilterService;
 import org.dspace.app.util.DSpaceObjectUtilsImpl;
 import org.dspace.app.util.service.DSpaceObjectUtils;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataSchemaEnum;
+import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
@@ -458,6 +464,13 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
     private void setItemPolicies(Item item, BulkAccessControlInput accessControl)
         throws SQLException, AuthorizeException {
 
+        String resPoliciesStr = accessControl
+                .getItem()
+                .getAccessConditions()
+                .stream()
+                .map(accessCondition -> accessCondition.getName())
+                .collect(Collectors.joining(";"));
+
         accessControl
             .getItem()
             .getAccessConditions()
@@ -465,6 +478,33 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
                 itemAccessConditions.get(accessCondition.getName())));
 
         itemService.adjustItemPolicies(context, item, item.getOwningCollection(), false);
+
+        if (resPoliciesStr.isEmpty()) {
+            return;
+        }
+
+        InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+
+        String timestamp = DCDate.getCurrent().toString();
+        EPerson e = context.getCurrentUser();
+
+        // Add suitable provenance - includes access condition, item, action, user, date +
+        // bitstream checksums
+
+        // Build some provenance data while we're at it.
+        StringBuilder prov = new StringBuilder();
+
+        prov.append("Access conditions (").append(resPoliciesStr).append(") for item (").append(item.getID()).append(") were added by ")
+                .append(e.getFullName())
+                .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
+        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+
+        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                "description", "provenance", "en", prov.toString());
+
+        // Update item in DB
+        itemService.update(context, item);
+        //context.commit();
     }
 
     /**
@@ -552,7 +592,81 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
      */
     private void removeReadPolicies(DSpaceObject dso, String type) {
         try {
+            List<ResourcePolicy> resPolicies = resourcePolicyService.find(context, dso, type);
+            if (resPolicies.isEmpty()) {
+                return;
+            }
+
+            String resPoliciesStr = resPolicies.stream()
+                    .filter(rp -> rp.getAction() == Constants.READ)  // Filter out non-READ actions
+                    .map(rp -> {
+                        return "[" + rp.getRpName() + ", "
+                                + rp.getRpType() + ", "
+                                + rp.getAction() + ", "
+                                + (rp.getEPerson() == null ? null : rp.getEPerson().getEmail()) + ", "
+                                + (rp.getGroup() == null ? null : rp.getGroup().getName()) + ", "
+                                + (rp.getStartDate() == null ? null : rp.getStartDate().toString()) + ", "
+                                + (rp.getEndDate() == null ? null : rp.getEndDate().toString()) + "]";
+                    })
+                    .collect(Collectors.joining(";"));
+
             resourcePolicyService.removePolicies(context, dso, type, Constants.READ);
+
+            if (dso.getType() != Constants.BITSTREAM && dso.getType() != Constants.ITEM) {
+                return;
+            }
+
+            InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+
+            String timestamp = DCDate.getCurrent().toString();
+            EPerson e = context.getCurrentUser();
+
+            if (dso.getType() == Constants.ITEM) {
+                // Add suitable provenance - includes old resource policies, item, action, user, date +
+                // bitstream checksums
+                Item item = (Item) dso;
+
+                // Build some provenance data while we're at it.
+                StringBuilder prov = new StringBuilder();
+
+                prov.append("Resource policies (").append(Objects.isNull(resPoliciesStr) ? "empty" : resPoliciesStr).append(") for item (").append(item.getID()).append(") were removed by ")
+                        .append(e.getFullName())
+                        .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
+                prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+
+                itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                        "description", "provenance", "en", prov.toString());
+
+                // Update item in DB
+                itemService.update(context, item);
+                //context.commit();
+            }
+
+            if (dso.getType() == Constants.BITSTREAM) {
+                // Add suitable provenance - includes old resource policices, bitstream, action, user, date +
+                // bitstream checksums
+                Bitstream bitstream = (Bitstream) dso;
+                ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
+
+                // Build some provenance data while we're at it.
+                StringBuilder prov = new StringBuilder();
+
+                prov.append("Resource policies (").append(Objects.isNull(resPoliciesStr) ? "empty" : resPoliciesStr).append(") for bitstream (").append(bitstream.getID()).append(") were removed by ")
+                        .append(e.getFullName())
+                        .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
+
+                List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
+                for (Item item : items) {
+                    // Build some provenance data while we're at it.
+                    StringBuilder provItem = new StringBuilder();
+                    provItem.append(prov).append(installItemService.getBitstreamProvenanceMessage(context, item));
+                    itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                            "description", "provenance", "en", provItem.toString());
+                    //Update item in DB
+                    itemService.update(context, item);
+                }
+                //context.commit();
+            }
         } catch (SQLException | AuthorizeException e) {
             throw new BulkAccessControlException(e);
         }
@@ -573,6 +687,13 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
     private void setBitstreamPolicies(Bitstream bitstream, Item item, BulkAccessControlInput accessControl)
         throws SQLException, AuthorizeException {
 
+        String accConditionsScr = accessControl
+                .getBitstream()
+                .getAccessConditions()
+                .stream()
+                .map(accessCondition -> accessCondition.getName())
+                .collect(Collectors.joining(";"));
+
         accessControl.getBitstream()
                      .getAccessConditions()
                      .forEach(accessCondition -> createResourcePolicy(bitstream, accessCondition,
@@ -580,6 +701,34 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
         itemService.adjustBitstreamPolicies(context, item, item.getOwningCollection(), bitstream);
         mediaFilterService.updatePoliciesOfDerivativeBitstreams(context, item, bitstream);
+
+        if (accConditionsScr.isEmpty()) {
+            return;
+        }
+
+        // Add suitable provenance - includes old resource policices, bitstream, action, user, date +
+        // bitstream checksums
+        InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+        String timestamp = DCDate.getCurrent().toString();
+        EPerson e = context.getCurrentUser();
+
+        // Add suitable provenance - includes access condition, item, action, user, date +
+        // bitstream checksums
+
+        // Build some provenance data while we're at it.
+        StringBuilder prov = new StringBuilder();
+        prov.append("Access conditions (").append(accConditionsScr).append(") for bitstream (")
+                .append(bitstream.getID()).append(") of item(").append(item.getID()).append(") were added by ")
+                .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
+                .append(timestamp).append("\n");
+        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+
+        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                "description", "provenance", "en", prov.toString());
+        //Update item in DB
+        itemService.update(context, item);
+
+        //context.commit();
     }
 
     /**
