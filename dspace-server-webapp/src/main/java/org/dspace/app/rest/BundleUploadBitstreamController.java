@@ -81,6 +81,12 @@ public class BundleUploadBitstreamController {
     private BundleService bundleService;
 
     @Autowired
+    private ItemService itemService;
+
+    @Autowired
+    private InstallItemService installItemService;
+
+    @Autowired
     private BundleRestRepository bundleRestRepository;
 
     @Autowired
@@ -120,37 +126,28 @@ public class BundleUploadBitstreamController {
             throw new UnprocessableEntityException("The InputStream from the file couldn't be read", e);
         }
 
-        InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
-        ItemService itemService = ContentServiceFactory.getInstance()
-                .getItemService();
-
-        String timestamp = DCDate.getCurrent().toString();
-
-        // Add suitable provenance - includes mtd field, old mtd, new mtd, user, date +
-        // bitstream checksums
+        // We do this before calling `updateBitstream` because that function calls `context.commit`
+        // Add suitable provenance
         EPerson e = context.getCurrentUser();
+        String timestamp = DCDate.getCurrent().toString();
+        Item item = bundle.getItems().get(0);
 
-        List<Item> items = bundle.getItems();
-        for (Item item : items) {
-            // Build some provenance data while we're at it.
-            StringBuilder prov = new StringBuilder();
-
-            prov.append("Bitstream was added to bundle (").append(bundle.getID()).append(") of item (")
-                    .append(item.getID()).append(") by ").append(e.getFullName()).append(" (").append(e.getEmail())
-                    .append(") on ").append(timestamp).append("\n");
-            try {
-                prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-                itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                        "description", "provenance", "en", prov.toString());
-                //Update item in DB
-                itemService.update(context, item);
-            } catch (SQLException ex) {
-                throw new RuntimeException("SQLException in BundleUploadBitstreamConverter.uploadBitstream " +
-                        "when provenance metadata are adding.", ex);
-            } catch (AuthorizeException ex) {
-                throw new RuntimeException("AuthorizeException in BundleUploadBitstreamConverter.uploadBitstream " +
-                        "when provenance metadata are adding.", ex);
-            }
+        StringBuilder prov = new StringBuilder();
+        prov.append("Bitstream was added to bundle (").append(bundle.getID()).append(") of item (")
+                .append(item.getID()).append(") by ").append(e.getFullName()).append(" (").append(e.getEmail())
+                .append(") on ").append(timestamp).append("\n");
+        try {
+            prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
+            itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
+                    "description", "provenance", "en", prov.toString());
+            //Update item in DB
+            itemService.update(context, item);
+        } catch (SQLException ex) {
+            throw new RuntimeException("SQLException in BundleUploadBitstreamConverter.uploadBitstream when " +
+                    "adding new provenance metadata.", ex);
+        } catch (AuthorizeException ex) {
+            throw new RuntimeException("AuthorizeException in BundleUploadBitstreamConverter.uploadBitstream " +
+                    "when adding new provenance metadata.", ex);
         }
 
         BitstreamRest bitstreamRest = bundleRestRepository.uploadBitstream(

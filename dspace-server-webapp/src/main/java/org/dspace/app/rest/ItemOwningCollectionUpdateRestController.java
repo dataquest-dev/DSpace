@@ -132,10 +132,9 @@ public class ItemOwningCollectionUpdateRestController {
             throws SQLException, IOException, AuthorizeException {
         itemService.move(context, item, currentCollection, targetCollection, inheritPolicies);
 
-        String timestamp = DCDate.getCurrent().toString();
         // Add suitable provenance
+        String timestamp = DCDate.getCurrent().toString();
         EPerson e = context.getCurrentUser();
-        // Build some provenance data while we're at it.
         StringBuilder prov = new StringBuilder();
 
         prov.append("Item (").append(item.getID()).append(") was moved from collection (")
@@ -147,10 +146,11 @@ public class ItemOwningCollectionUpdateRestController {
         itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
                 "description", "provenance", "en", prov.toString());
         // Update item in DB
-        // Update the item
+        // Because a user can move an item without authorization turn off authorization
         context.turnOffAuthorisationSystem();
         itemService.update(context, item);
         context.restoreAuthSystemState();
+
         // Necessary because Controller does not pass through general RestResourceController, and as such does not do
         // its commit in DSpaceRestRepository.createAndReturn() or similar
         context.commit();

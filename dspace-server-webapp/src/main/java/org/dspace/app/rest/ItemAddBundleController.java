@@ -199,12 +199,9 @@ public class ItemAddBundleController {
             clarinLicenseService.addLicenseMetadataToItem(context, clarinLicense, item);
         }
 
-        // Add suitable provenance - includes old license, action, user, date +
-        // bitstream checksums
+        // Add suitable provenance
         EPerson e = context.getCurrentUser();
         String timestamp = DCDate.getCurrent().toString();
-
-        // Build some provenance data while we're at it.
         StringBuilder prov = new StringBuilder();
 
         prov.append("License (").append(Objects.isNull(oldLicense) ? "empty" : oldLicense).append(") was ")

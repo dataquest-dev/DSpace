@@ -13,15 +13,16 @@ import java.util.List;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchemaEnum;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,6 +42,12 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
      */
     private static final String OPERATION_PATH_DISCOVERABLE = "/discoverable";
 
+    @Autowired
+    ItemService itemService;
+
+    @Autowired
+    InstallItemService installItemService;
+
     @Override
     public R perform(Context context, R object, Operation operation) {
         checkOperationValue(operation.getValue());
@@ -50,36 +57,33 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
             if (discoverable && item.getTemplateItemOf() != null) {
                 throw new UnprocessableEntityException("A template item cannot be discoverable.");
             }
+            item.setDiscoverable(discoverable);
 
-            String timestamp = DCDate.getCurrent().toString();
-
-            // Add suitable provenance - includes user, date, collections +
-            // bitstream checksums
+            // Add suitable provenance
             EPerson e = context.getCurrentUser();
-            InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
-            ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+            String timestamp = DCDate.getCurrent().toString();
             // Build some provenance data while we're at it.
             StringBuilder prov = new StringBuilder();
-
             prov.append("Item made ").append( discoverable ? "" : "non-").append("discoverable by ")
                     .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ").append(timestamp)
                     .append("\n").append("Item was in collections:\n");
-
             List<Collection> colls = item.getCollections();
-
             for (Collection coll : colls) {
                 prov.append(coll.getName()).append(" (ID: ").append(coll.getID()).append(")\n");
             }
+
             try {
                 prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-
                 itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(), "description",
                         "provenance", "en", prov.toString());
+                itemService.update(context, item);
             } catch (SQLException ex) {
                 throw new RuntimeException("SQLException occured when item making " + (discoverable ? "" : "non-")
                         + "discoverable.", ex);
+            } catch (AuthorizeException ex) {
+                throw new RuntimeException("AuthorizeException occured when item making " + (discoverable ? "" : "non-")
+                        + "discoverable.", ex);
             }
-            item.setDiscoverable(discoverable);
             return object;
         } else {
             throw new DSpaceBadRequestException("ItemDiscoverableReplaceOperation does not support this operation");

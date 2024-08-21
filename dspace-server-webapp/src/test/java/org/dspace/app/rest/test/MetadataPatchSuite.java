@@ -94,9 +94,10 @@ public class MetadataPatchSuite {
         if (expectedStatus >= 200 && expectedStatus < 300) {
             String responseBody = resultActions.andReturn().getResponse().getContentAsString();
             JsonNode responseJson =  objectMapper.readTree(responseBody);
-
             JsonNode responseMetadataJson = responseJson.get("metadata");
             if (responseMetadataJson.get(PROVENANCE) != null) {
+                // In the provenance metadata, there is a timestamp indicating when they were added.
+                // To ensure accurate comparison, remove that date.
                 String rspProvenance = responseMetadataJson.get(PROVENANCE).toString();
                 // Regex to match the date pattern
                 String datePattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
@@ -109,9 +110,9 @@ public class MetadataPatchSuite {
                 }
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode jsonNodePrv = objectMapper.readTree(rspModifiedProvenance);
+                // Replace the origin metadata with a value with the timestamp removed
                 ((ObjectNode) responseJson.get("metadata")).put(PROVENANCE, jsonNodePrv);
             }
-
             String responseMetadata = responseJson.get("metadata").toString();
             if (!responseMetadata.equals(expectedMetadata)) {
                 Assert.fail("Expected metadata in " + verb + " response: " + expectedMetadata
