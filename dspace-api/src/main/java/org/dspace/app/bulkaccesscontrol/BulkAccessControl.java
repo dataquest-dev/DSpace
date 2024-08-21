@@ -494,9 +494,9 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
         // Build some provenance data while we're at it.
         StringBuilder prov = new StringBuilder();
 
-        prov.append("Access conditions (").append(resPoliciesStr).append(") for item (").append(item.getID()).append(") were added by ")
-                .append(e.getFullName())
-                .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
+        prov.append("Access conditions (").append(resPoliciesStr).append(") for item (").append(item.getID())
+                .append(") were added by ").append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
+                .append(timestamp).append("\n");
         prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
 
         itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
@@ -629,7 +629,8 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
                 // Build some provenance data while we're at it.
                 StringBuilder prov = new StringBuilder();
 
-                prov.append("Resource policies (").append(Objects.isNull(resPoliciesStr) ? "empty" : resPoliciesStr).append(") for item (").append(item.getID()).append(") were removed by ")
+                prov.append("Resource policies (").append(Objects.isNull(resPoliciesStr) ? "empty" :
+                                resPoliciesStr).append(") for item (").append(item.getID()).append(") were removed by ")
                         .append(e.getFullName())
                         .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
                 prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
@@ -651,9 +652,10 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
                 // Build some provenance data while we're at it.
                 StringBuilder prov = new StringBuilder();
 
-                prov.append("Resource policies (").append(Objects.isNull(resPoliciesStr) ? "empty" : resPoliciesStr).append(") for bitstream (").append(bitstream.getID()).append(") were removed by ")
-                        .append(e.getFullName())
-                        .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
+                prov.append("Resource policies (").append(Objects.isNull(resPoliciesStr) ? "empty" : resPoliciesStr)
+                        .append(") for bitstream (").append(bitstream.getID()).append(") were removed by ")
+                        .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
+                        .append(timestamp).append("\n");
 
                 List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
                 for (Item item : items) {

@@ -147,8 +147,10 @@ public class ItemOwningCollectionUpdateRestController {
         itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
                 "description", "provenance", "en", prov.toString());
         // Update item in DB
+        // Update the item
+        context.turnOffAuthorisationSystem();
         itemService.update(context, item);
-
+        context.restoreAuthSystemState();
         // Necessary because Controller does not pass through general RestResourceController, and as such does not do
         // its commit in DSpaceRestRepository.createAndReturn() or similar
         context.commit();

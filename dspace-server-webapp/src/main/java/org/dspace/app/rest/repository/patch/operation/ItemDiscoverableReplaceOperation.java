@@ -7,6 +7,9 @@
  */
 package org.dspace.app.rest.repository.patch.operation;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
@@ -20,9 +23,6 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.springframework.stereotype.Component;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * This is the implementation for Item 'discoverable' patches.
@@ -61,9 +61,9 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
             // Build some provenance data while we're at it.
             StringBuilder prov = new StringBuilder();
 
-            prov.append("Item made ").append( discoverable ? "" : "non-").append("discoverable by ").append(e.getFullName()).append(" (")
-                    .append(e.getEmail()).append(") on ").append(timestamp).append("\n")
-                    .append("Item was in collections:\n");
+            prov.append("Item made ").append( discoverable ? "" : "non-").append("discoverable by ")
+                    .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ").append(timestamp)
+                    .append("\n").append("Item was in collections:\n");
 
             List<Collection> colls = item.getCollections();
 
@@ -73,10 +73,11 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
             try {
                 prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
 
-                itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(), "description", "provenance", "en", prov.toString());
-                context.commit();
+                itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(), "description",
+                        "provenance", "en", prov.toString());
             } catch (SQLException ex) {
-                throw new RuntimeException("SQLException occured when item making " + (discoverable ? "" : "non-") + "discoverable.", ex);
+                throw new RuntimeException("SQLException occured when item making " + (discoverable ? "" : "non-")
+                        + "discoverable.", ex);
             }
             item.setDiscoverable(discoverable);
             return object;
