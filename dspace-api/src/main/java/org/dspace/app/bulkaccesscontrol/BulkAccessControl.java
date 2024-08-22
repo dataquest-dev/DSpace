@@ -607,7 +607,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
                 // Build some provenance data while we're at it.
                 StringBuilder prov = new StringBuilder();
-                String msg = "Resource policies ("+ (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
+                String msg = "Resource policies (" + (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
                         + ") of item (" + item.getID() + ") were removed";
                 addProvenanceMetadata(context, item, msg);
             }
@@ -623,7 +623,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
                 }
                 Item item = items.get(0);
                 // Build some provenance data while we're at it.
-                String msg = "Resource policies ("+ (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
+                String msg = "Resource policies (" + (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
                         + ") of bitstream (" + bitstream.getID() + ") were removed";
                 addProvenanceMetadata(context, item, msg);
             }
@@ -698,7 +698,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
         // Add suitable provenance
         String msg = "Access condition (" + accConditionsScr + ") was added to bitstream (" +
                 bitstream.getID() + ") of item";
-        addProvenanceMetadata(context, item, msg);
+        addProvenanceMetadata(context, item, msg)   ;
     }
 
     /**

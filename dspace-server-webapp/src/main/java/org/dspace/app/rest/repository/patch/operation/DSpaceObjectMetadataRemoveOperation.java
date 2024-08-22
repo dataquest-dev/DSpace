@@ -111,7 +111,7 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                 item = items.get(0);
                 String msg =
                         " metadata (" + oldMtdKey + ": " + oldMtdValue +
-                                ") was removed from bitstream (" + bitstream.getName() + ": " +
+                                ") was deleted from bitstream (" + bitstream.getName() + ": " +
                 bitstream.getSizeBytes() + " bytes, checksum: " +
                         bitstream.getChecksum() + " (" +
                         bitstream.getChecksumAlgorithm() + "))";
@@ -143,7 +143,7 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
 
                     // Add suitable provenance
                     Item item = (Item) dso;
-                    String msg = "metadata (" + oldMtdKey + ": " + oldMtdValue + ") was removed";
+                    String msg = "metadata (" + oldMtdKey + ": " + oldMtdValue + ") was deleted";
                     addProvenanceMetadata(context, item, msg);
                 } else {
                     throw new UnprocessableEntityException("UnprocessableEntityException - There is no metadata of " +
