@@ -16,11 +16,9 @@ import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
-import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.InstallItemService;
@@ -28,7 +26,6 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -99,7 +96,7 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                 // Add suitable provenance
                 Item item = (Item) dso;
                 String msg = "metadata (" + metadataField.toString()
-                        .replace('_', '.') + ")";
+                        .replace('_', '.') + ") was added";
                 addProvenanceMetadata(context, item, msg);
             }
 
@@ -113,11 +110,12 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                     return;
                 }
                 item = items.get(0);
-                String msg = "bitstream (" + bitstream.getName() + ": " +
-                        bitstream.getSizeBytes() + " bytes, checksum: " +
+                String msg = "metadata (" +
+                        metadataField.toString().replace('_', '.') + ") was added"
+                + " to bitstream (" + bitstream.getName() + ": " +
+                bitstream.getSizeBytes() + " bytes, checksum: " +
                         bitstream.getChecksum() + " (" +
-                        bitstream.getChecksumAlgorithm() + ")" + ") metadata (" +
-                        metadataField.toString().replace('_', '.') + ")";
+                        bitstream.getChecksumAlgorithm() + ")";
                 addProvenanceMetadata(context, item, msg);
             }
         } catch (SQLException e) {
@@ -128,21 +126,6 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                     "AuthorizeException in DspaceObjectMetadataAddOperation.add " +
                             "trying to add metadata to dso.", e);
         }
-    }
-
-    private void addProvenanceMetadata(Context context, Item item, String msg) throws SQLException, AuthorizeException {
-        String timestamp = DCDate.getCurrent().toString();
-        EPerson e = context.getCurrentUser();
-        StringBuilder prov = new StringBuilder();
-
-        prov.append("Item ").append(msg).append(" was added by ")
-                .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
-                .append(timestamp).append("\n");
-        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                "description", "provenance", "en", prov.toString());
-        //Update item in DB
-        itemService.update(context, item);
     }
 
     @Override

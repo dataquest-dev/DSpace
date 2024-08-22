@@ -21,7 +21,6 @@ import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
@@ -191,7 +190,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                 // Add suitable provenance
                 Item item = (Item) dso;
                 String msg = "metadata (" + metadataField.toString()
-                        .replace('_', '.') + ": " + oldMtdVal + ")";
+                        .replace('_', '.') + ": " + oldMtdVal + ")" +  " was updated";
                 addProvenanceMetadata(context, item, msg);
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
@@ -264,7 +263,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                         bitstream.getSizeBytes() + " bytes, checksum: " +
                         bitstream.getChecksum() + " (" +
                         bitstream.getChecksumAlgorithm() + ")" + ") metadata (" +
-                        metadataField.toString().replace('_', '.') + ")";
+                        metadataField.toString().replace('_', '.') + ": " + oldMtdVal + ") was updated";
                 addProvenanceMetadata(context, item, msg);
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
@@ -281,20 +280,6 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                     "AuthorizeException in DspaceObjectMetadataReplaceOperation.replaceSinglePropertyOfMdValue " +
                             "trying to replace metadata from dso.", e);
         }
-    }
-
-    private void addProvenanceMetadata(Context context, Item item, String msg) throws SQLException, AuthorizeException {
-        String timestamp = DCDate.getCurrent().toString();
-        EPerson e = context.getCurrentUser();
-        StringBuilder prov = new StringBuilder();
-        prov.append("Item ").append(msg).append(" was updated by ")
-                .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
-                .append(timestamp).append("\n");
-        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                "description", "provenance", "en", prov.toString());
-        //Update item in DB
-        itemService.update(context, item);
     }
 
     @Override

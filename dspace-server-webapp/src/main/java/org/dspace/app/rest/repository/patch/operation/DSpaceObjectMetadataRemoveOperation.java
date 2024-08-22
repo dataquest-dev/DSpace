@@ -11,22 +11,23 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DCDate;
+import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -53,6 +54,12 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
     @Autowired
     InstallItemService installItemService;
 
+    @Autowired
+    private ClarinItemService clarinItemService;
+
+    @Autowired
+    private ItemService itemService;
+
     @Override
     public R perform(Context context, R resource, Operation operation) throws SQLException {
         DSpaceObjectService dsoService = ContentServiceFactory.getInstance().getDSpaceObjectService(resource);
@@ -77,9 +84,38 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
         metadataPatchUtils.checkMetadataFieldNotNull(metadataField);
         try {
             if (index == null) {
+                String oldMtdKey = null;
+                String oldMtdValue = null;
+                if (dso.getType() == Constants.BITSTREAM) {
+                    List<MetadataValue> mtd = dsoService.getMetadata(dso, metadataField.getMetadataSchema().getName(),
+                            metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
+                    if (!CollectionUtils.isEmpty(mtd)) {
+                        oldMtdKey = mtd.get(0).getMetadataField().getElement();
+                        oldMtdValue = mtd.get(0).getValue();
+                    }
+                }
                 // remove all metadata of this type
                 dsoService.clearMetadata(context, dso, metadataField.getMetadataSchema().getName(),
                         metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
+                if (dso.getType() != Constants.BITSTREAM) {
+                    return;
+                }
+                // Add suitable provenance
+                Bitstream bitstream = (Bitstream) dso;
+                List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
+                // The bitstream is assigned only into one Item.
+                Item item = null;
+                if (CollectionUtils.isEmpty(items)) {
+                    return;
+                }
+                item = items.get(0);
+                String msg =
+                        " metadata (" + oldMtdKey + ": " + oldMtdValue +
+                                ") was removed from bitstream (" + bitstream.getName() + ": " +
+                bitstream.getSizeBytes() + " bytes, checksum: " +
+                        bitstream.getChecksum() + " (" +
+                        bitstream.getChecksumAlgorithm() + "))";
+                addProvenanceMetadata(context, item, msg);
             } else {
                 // remove metadata at index
                 List<MetadataValue> metadataValues = dsoService.getMetadata(dso,
@@ -107,25 +143,8 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
 
                     // Add suitable provenance
                     Item item = (Item) dso;
-                    String timestamp = DCDate.getCurrent().toString();
-                    EPerson e = context.getCurrentUser();
-                    try {
-                        // Build some provenance data while we're at it.
-                        StringBuilder prov = new StringBuilder();
-                        prov.append("Item metadata (").append(oldMtdKey).append(": ")
-                                .append(oldMtdValue).append(") was deleted by ").append(e.getFullName())
-                                .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
-                        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-
-                        dsoService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                                "description", "provenance", "en", prov.toString());
-                        // Update item in DB
-                        dsoService.update(context, item);
-                    } catch (AuthorizeException ex) {
-                        throw new DSpaceBadRequestException(
-                                "AuthorizeException in DspaceObjectMetadataRemoveOperation.remove " +
-                                        "trying to replace metadata from dso.", ex);
-                    }
+                    String msg = "metadata (" + oldMtdKey + ": " + oldMtdValue + ") was removed";
+                    addProvenanceMetadata(context, item, msg);
                 } else {
                     throw new UnprocessableEntityException("UnprocessableEntityException - There is no metadata of " +
                             "this type at that index");
@@ -139,6 +158,10 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
             throw new DSpaceBadRequestException(
                     "SQLException in DspaceObjectMetadataRemoveOperation.remove " +
                             "trying to remove metadata from dso.", ex);
+        } catch (AuthorizeException ex) {
+            throw new DSpaceBadRequestException(
+                    "AuthorizeException in DspaceObjectMetadataRemoveOperation.remove " +
+                            "trying to replace metadata from dso.", ex);
         }
     }
 

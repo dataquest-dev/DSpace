@@ -81,8 +81,8 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
                 throw new RuntimeException("SQLException occurred when item making " + (discoverable ? "" : "non-")
                         + "discoverable.", ex);
             } catch (AuthorizeException ex) {
-                throw new RuntimeException("AuthorizeException occurred when item making " + (discoverable ? "" : "non-")
-                        + "discoverable.", ex);
+                throw new RuntimeException("AuthorizeException occurred when item making "
+                        + (discoverable ? "" : "non-") + "discoverable.", ex);
             }
             return object;
         } else {
