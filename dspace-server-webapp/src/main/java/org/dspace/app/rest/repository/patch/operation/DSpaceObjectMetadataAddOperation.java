@@ -109,9 +109,10 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                 List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
                 // The bitstream is assigned only into one Item.
                 Item item = null;
-                if (!CollectionUtils.isEmpty(items)) {
-                    item = items.get(0);
+                if (CollectionUtils.isEmpty(items)) {
+                    return;
                 }
+                item = items.get(0);
                 String msg = "bitstream (" + bitstream.getName() + ": " +
                         bitstream.getSizeBytes() + " bytes, checksum: " +
                         bitstream.getChecksum() + " (" +
