@@ -482,29 +482,8 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
         if (resPoliciesStr.isEmpty()) {
             return;
         }
-
-        InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
-
-        String timestamp = DCDate.getCurrent().toString();
-        EPerson e = context.getCurrentUser();
-
-        // Add suitable provenance - includes access condition, item, action, user, date +
-        // bitstream checksums
-
-        // Build some provenance data while we're at it.
-        StringBuilder prov = new StringBuilder();
-
-        prov.append("Access condition (").append(resPoliciesStr).append(") was added to item by ")
-                .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
-                .append(timestamp).append("\n");
-        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                "description", "provenance", "en", prov.toString());
-
-        // Update item in DB
-        itemService.update(context, item);
-        //context.commit();
+        String msg = "Access condition (" + resPoliciesStr + ") was added to item";
+        addProvenanceMetadata(context, item, msg);
     }
 
     /**
@@ -628,8 +607,8 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
                 // Build some provenance data while we're at it.
                 StringBuilder prov = new StringBuilder();
-                String msg = "("+ (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
-                        + ") of item (" + item.getID() + ")";
+                String msg = "Resource policies ("+ (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
+                        + ") of item (" + item.getID() + ") were removed";
                 addProvenanceMetadata(context, item, msg);
             }
 
@@ -644,8 +623,8 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
                 }
                 Item item = items.get(0);
                 // Build some provenance data while we're at it.
-                String msg = "("+ (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
-                        + ") of bitstream (" + bitstream.getID() + ")";
+                String msg = "Resource policies ("+ (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
+                        + ") of bitstream (" + bitstream.getID() + ") were removed";
                 addProvenanceMetadata(context, item, msg);
             }
         } catch (SQLException | AuthorizeException e) {
@@ -673,8 +652,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
         String timestamp = DCDate.getCurrent().toString();
         EPerson e = context.getCurrentUser();
         StringBuilder prov = new StringBuilder();
-        prov.append("Resource policies ").append(msg).append(" were removed by ")
-                .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
+        prov.append(msg).append(" by ").append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
                 .append(timestamp).append("\n");
         prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
         itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
@@ -717,28 +695,10 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
             return;
         }
 
-        // Add suitable provenance - includes old resource policices, bitstream, action, user, date +
-        // bitstream checksums
-        InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
-        String timestamp = DCDate.getCurrent().toString();
-        EPerson e = context.getCurrentUser();
-
-        // Add suitable provenance - includes access condition, item, action, user, date +
-        // bitstream checksums
-
-        // Build some provenance data while we're at it.
-        StringBuilder prov = new StringBuilder();
-        prov.append("Access condition (").append(accConditionsScr).append(") was added to bitstream (")
-                .append(bitstream.getID()).append(") of item by ").append(e.getFullName()).append(" (")
-                .append(e.getEmail()).append(") on ").append(timestamp).append("\n");
-        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                "description", "provenance", "en", prov.toString());
-        //Update item in DB
-        itemService.update(context, item);
-
-        //context.commit();
+        // Add suitable provenance
+        String msg = "Access condition (" + accConditionsScr + ") was added to bitstream (" +
+                bitstream.getID() + ") of item";
+        addProvenanceMetadata(context, item, msg);
     }
 
     /**
