@@ -719,10 +719,9 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
         // Build some provenance data while we're at it.
         StringBuilder prov = new StringBuilder();
-        prov.append("Access conditions (").append(accConditionsScr).append(") for bitstream (")
-                .append(bitstream.getID()).append(") of item(").append(item.getID()).append(") were added by ")
-                .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
-                .append(timestamp).append("\n");
+        prov.append("Access condition (").append(accConditionsScr).append(") was added to bitstream (")
+                .append(bitstream.getID()).append(") by ").append(e.getFullName()).append(" (")
+                .append(e.getEmail()).append(") on ").append(timestamp).append("\n");
         prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
 
         itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),

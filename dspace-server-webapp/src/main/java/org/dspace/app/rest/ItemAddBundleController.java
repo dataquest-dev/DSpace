@@ -205,8 +205,9 @@ public class ItemAddBundleController {
         StringBuilder prov = new StringBuilder();
 
         prov.append("License (").append(Objects.isNull(oldLicense) ? "empty" : oldLicense).append(") was ")
-                .append(Objects.isNull(clarinLicense) ? "removed" : "updated").append(" by ").append(e.getFullName())
-                .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
+                .append(Objects.isNull(clarinLicense) ? "removed" : Objects.isNull(oldLicense) ? "added" : "updated")
+                .append(" by ").append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
+                .append(timestamp).append("\n");
         prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
 
         itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),

@@ -12,7 +12,6 @@ import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFI
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
@@ -31,7 +30,6 @@ import org.dspace.content.Bundle;
 import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchemaEnum;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
@@ -133,8 +131,8 @@ public class BundleUploadBitstreamController {
         Item item = bundle.getItems().get(0);
 
         StringBuilder prov = new StringBuilder();
-        prov.append("Bitstream was added to bundle (").append(bundle.getID()).append(") of item (")
-                .append(item.getID()).append(") by ").append(e.getFullName()).append(" (").append(e.getEmail())
+        prov.append("Item was added bitstream to bundle (").append(bundle.getID())
+                .append(") by ").append(e.getFullName()).append(" (").append(e.getEmail())
                 .append(") on ").append(timestamp).append("\n");
         try {
             prov.append(installItemService.getBitstreamProvenanceMessage(context, item));

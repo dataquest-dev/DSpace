@@ -64,7 +64,7 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
             String timestamp = DCDate.getCurrent().toString();
             // Build some provenance data while we're at it.
             StringBuilder prov = new StringBuilder();
-            prov.append("Item made ").append( discoverable ? "" : "non-").append("discoverable by ")
+            prov.append("Item was made ").append( discoverable ? "" : "non-").append("discoverable by ")
                     .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ").append(timestamp)
                     .append("\n").append("Item was in collections:\n");
             List<Collection> colls = item.getCollections();
@@ -81,7 +81,7 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
                 throw new RuntimeException("SQLException occurred when item making " + (discoverable ? "" : "non-")
                         + "discoverable.", ex);
             } catch (AuthorizeException ex) {
-                throw new RuntimeException("AuthorizeException occured when item making " + (discoverable ? "" : "non-")
+                throw new RuntimeException("AuthorizeException occurred when item making " + (discoverable ? "" : "non-")
                         + "discoverable.", ex);
             }
             return object;

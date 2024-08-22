@@ -137,8 +137,8 @@ public class ItemOwningCollectionUpdateRestController {
         EPerson e = context.getCurrentUser();
         StringBuilder prov = new StringBuilder();
 
-        prov.append("Item (").append(item.getID()).append(") was moved from collection (")
-                .append(currentCollection.getID()).append(") to new collection by ").append(e.getFullName())
+        prov.append("Item was moved from collection (")
+                .append(currentCollection.getID()).append(") to different collection by ").append(e.getFullName())
                 .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
 
         prov.append(installItemService.getBitstreamProvenanceMessage(context, item));

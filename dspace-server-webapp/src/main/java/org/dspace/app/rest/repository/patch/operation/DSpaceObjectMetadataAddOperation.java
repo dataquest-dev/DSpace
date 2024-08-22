@@ -129,7 +129,7 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
         }
     }
 
-    private void addProvenanceMetadata(Context context, Item item, String msg) throws SQLException, AuthorizeException{
+    private void addProvenanceMetadata(Context context, Item item, String msg) throws SQLException, AuthorizeException {
         String timestamp = DCDate.getCurrent().toString();
         EPerson e = context.getCurrentUser();
         StringBuilder prov = new StringBuilder();

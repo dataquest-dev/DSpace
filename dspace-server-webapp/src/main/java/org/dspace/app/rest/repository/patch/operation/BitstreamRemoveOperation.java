@@ -102,7 +102,7 @@ public class BitstreamRemoveOperation extends PatchOperation<Bitstream> {
 
             // Build some provenance data while we're at it.
             StringBuilder prov = new StringBuilder();
-            prov.append("Item was deleted a bitstream (").append(bitstreamMsg).append(") by ")
+            prov.append("Item was deleted bitstream (").append(bitstreamMsg).append(") by ")
                     .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
                     .append(timestamp).append("\n");
             prov.append(installItemService.getBitstreamProvenanceMessage(context, item));

@@ -113,7 +113,7 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                         // Build some provenance data while we're at it.
                         StringBuilder prov = new StringBuilder();
                         prov.append("Item metadata (").append(oldMtdKey).append(": ")
-                                .append(oldMtdValue).append(") were deleted by ").append(e.getFullName())
+                                .append(oldMtdValue).append(") was deleted by ").append(e.getFullName())
                                 .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
                         prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
 
