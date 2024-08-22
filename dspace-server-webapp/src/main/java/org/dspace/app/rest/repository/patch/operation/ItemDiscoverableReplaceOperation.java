@@ -78,7 +78,7 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
                         "provenance", "en", prov.toString());
                 itemService.update(context, item);
             } catch (SQLException ex) {
-                throw new RuntimeException("SQLException occured when item making " + (discoverable ? "" : "non-")
+                throw new RuntimeException("SQLException occurred when item making " + (discoverable ? "" : "non-")
                         + "discoverable.", ex);
             } catch (AuthorizeException ex) {
                 throw new RuntimeException("AuthorizeException occured when item making " + (discoverable ? "" : "non-")
