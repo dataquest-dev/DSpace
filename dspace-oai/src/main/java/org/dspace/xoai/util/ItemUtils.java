@@ -299,9 +299,6 @@ public class ItemUtils {
             other.getField().add(createValue("handle", item.getHandle()));
             other.getField().add(createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
             other.getField().add(createValue("lastModifyDate", item.getLastModified().toString()));
-            // TODO: 2024/07 (mb) this is taken from clarin, but restricted is never set correctly.
-            // see issue https://github.com/dataquest-dev/DSpace/issues/710
-            //=========================================================================================================
             metadata.getElement().add(bundles);
 
             List<Bundle> bs;
@@ -392,8 +389,6 @@ public class ItemUtils {
         } catch (SQLException e) {
             log.warn(e.getMessage(), e);
         }
-        //=========================================================================================================
-
 
         if (restricted) {
             other.getField().add(createValue("restrictedAccess", "true"));
