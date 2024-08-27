@@ -291,7 +291,7 @@ public class ItemUtils {
         // Done! Metadata has been read!
         // Now adding bitstream info
         boolean restricted = false;
-        Element other = create("others");
+
         try {
             Element bundles = createBundlesElement(context, item);
             metadata.getElement().add(bundles);
@@ -383,6 +383,9 @@ public class ItemUtils {
         } catch (SQLException e) {
             log.warn(e.getMessage(), e);
         }
+
+        // Other info
+        Element other = create("others");
 
         other.getField().add(createValue("handle", item.getHandle()));
         other.getField().add(createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
