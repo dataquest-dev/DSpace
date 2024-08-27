@@ -295,9 +295,6 @@ public class ItemUtils {
         try {
             Element bundles = createBundlesElement(context, item);
             metadata.getElement().add(bundles);
-            // Other info
-            metadata.getElement().add(bundles);
-
             List<Bundle> bs;
 
             bs = item.getBundles();
