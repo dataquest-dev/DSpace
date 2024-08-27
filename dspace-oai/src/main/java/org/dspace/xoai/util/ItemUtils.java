@@ -346,15 +346,18 @@ public class ItemUtils {
                     String name = bit.getName();
                     String description = bit.getDescription();
 
-                    if (name != null)
+                    if (name != null) {
                         bitstream.getField().add(
                                 createValue("name", name));
-                    if (oname != null)
+                    }
+                    if (oname != null) {
                         bitstream.getField().add(
                                 createValue("originalName", name));
-                    if (description != null)
+                    }
+                    if (description != null) {
                         bitstream.getField().add(
                                 createValue("description", description));
+                    }
                     bitstream.getField().add(
                             createValue("format", bit.getFormat(context)
                                     .getMIMEType()));
@@ -374,7 +377,8 @@ public class ItemUtils {
                         List<ClarinLicenseResourceMapping> clarinLicenseResourceMappingList =
                                 clarinLicenseResourceMappingService.findByBitstreamUUID(context, bit.getID());
                         for (ClarinLicenseResourceMapping clrm : clarinLicenseResourceMappingList) {
-                            if (clrm.getLicense().getRequiredInfo() != null && clrm.getLicense().getRequiredInfo().length() > 0) {
+                            if (clrm.getLicense().getRequiredInfo() != null
+                                    && clrm.getLicense().getRequiredInfo().length() > 0) {
                                 restricted = true;
                                 break;
                             }
