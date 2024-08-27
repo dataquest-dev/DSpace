@@ -290,6 +290,8 @@ public class ItemUtils {
 
         // Done! Metadata has been read!
         // Now adding bitstream info
+
+        //indicate restricted bitstreams -> restricted access
         boolean restricted = false;
 
         try {
