@@ -30,6 +30,7 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
+import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -43,7 +44,6 @@ import org.dspace.core.service.LicenseService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.xoai.data.DSpaceItem;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lyncode Development Team (dspace at lyncode dot com)
@@ -51,8 +51,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 @SuppressWarnings("deprecation")
 public class ItemUtils {
 
-    @Autowired
-    private static ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+
+    private static final ClarinLicenseResourceMappingService clarinLicenseResourceMappingService
+            = ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
     private static final Logger log = LogManager.getLogger(ItemUtils.class);
 
     private static final MetadataExposureService metadataExposureService
