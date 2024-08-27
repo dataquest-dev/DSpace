@@ -296,9 +296,6 @@ public class ItemUtils {
             Element bundles = createBundlesElement(context, item);
             metadata.getElement().add(bundles);
             // Other info
-            other.getField().add(createValue("handle", item.getHandle()));
-            other.getField().add(createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
-            other.getField().add(createValue("lastModifyDate", item.getLastModified().toString()));
             metadata.getElement().add(bundles);
 
             List<Bundle> bs;
@@ -389,6 +386,10 @@ public class ItemUtils {
         } catch (SQLException e) {
             log.warn(e.getMessage(), e);
         }
+
+        other.getField().add(createValue("handle", item.getHandle()));
+        other.getField().add(createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
+        other.getField().add(createValue("lastModifyDate", item.getLastModified().toString()));
 
         if (restricted) {
             other.getField().add(createValue("restrictedAccess", "true"));
