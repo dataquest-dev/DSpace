@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.MetadataValueRest;
@@ -47,6 +49,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extends PatchOperation<R> {
+    private static final Logger log = LogManager.getLogger();
 
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;
@@ -256,6 +259,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                 // The bitstream is assigned only into one Item.
                 Item item = null;
                 if (CollectionUtils.isEmpty(items)) {
+                    log.warn("Bitstream (" + dso.getID() + ") is not assigned to any item.");
                     return;
                 }
                 item = items.get(0);
@@ -263,7 +267,8 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                         bitstream.getSizeBytes() + " bytes, checksum: " +
                         bitstream.getChecksum() + " (" +
                         bitstream.getChecksumAlgorithm() + ")" + ") metadata (" +
-                        metadataField.toString().replace('_', '.') + ": " + oldMtdVal + ") was updated";
+                        metadataField.toString().replace('_', '.') + ": " + oldMtdVal + ") was updated " +
+                        "by " + e.getFullName() + "(" + e.getEmail() + ") on " + timestamp;
                 addProvenanceMetadata(context, item, msg);
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");

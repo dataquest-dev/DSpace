@@ -62,7 +62,7 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
             // Add suitable provenance
             EPerson e = context.getCurrentUser();
             String timestamp = DCDate.getCurrent().toString();
-            // Build some provenance data while we're at it.
+            // Build some provenance data.
             StringBuilder prov = new StringBuilder();
             prov.append("Item was made ").append( discoverable ? "" : "non-").append("discoverable by ")
                     .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ").append(timestamp)

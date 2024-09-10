@@ -595,26 +595,17 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
                 return;
             }
 
-            InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
-
-            String timestamp = DCDate.getCurrent().toString();
-            EPerson e = context.getCurrentUser();
-
             if (dso.getType() == Constants.ITEM) {
-                // Add suitable provenance - includes old resource policies, item, action, user, date +
-                // bitstream checksums
+                // Add suitable provenance
                 Item item = (Item) dso;
-
-                // Build some provenance data while we're at it.
-                StringBuilder prov = new StringBuilder();
+                // Build some provenance data.
                 String msg = "Resource policies (" + (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
                         + ") of item (" + item.getID() + ") were removed";
                 addProvenanceMetadata(context, item, msg);
             }
 
             if (dso.getType() == Constants.BITSTREAM) {
-                // Add suitable provenance - includes old resource policices, bitstream, action, user, date +
-                // bitstream checksums
+                // Add suitable provenance
                 Bitstream bitstream = (Bitstream) dso;
                 ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
                 List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
@@ -647,7 +638,6 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
      */
     protected void addProvenanceMetadata(Context context, Item item, String msg)
             throws SQLException, AuthorizeException {
-        ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
         InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
         String timestamp = DCDate.getCurrent().toString();
         EPerson e = context.getCurrentUser();

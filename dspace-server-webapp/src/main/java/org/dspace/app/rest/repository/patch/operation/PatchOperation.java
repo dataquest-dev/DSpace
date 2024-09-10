@@ -101,7 +101,8 @@ public abstract class PatchOperation<M> {
      * @throws SQLException         if there is a database access error while updating the item.
      * @throws AuthorizeException   if the current user is not authorized to add metadata to the item.
      */
-    protected void addProvenanceMetadata(Context context, Item item, String msg) throws SQLException, AuthorizeException {
+    protected void addProvenanceMetadata(Context context, Item item, String msg)
+            throws SQLException, AuthorizeException {
         String timestamp = DCDate.getCurrent().toString();
         EPerson e = context.getCurrentUser();
         StringBuilder prov = new StringBuilder();

@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Operation;
@@ -42,6 +44,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends PatchOperation<R> {
+    private static final Logger log = LogManager.getLogger();
 
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;
@@ -107,14 +110,14 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                 // The bitstream is assigned only into one Item.
                 Item item = null;
                 if (CollectionUtils.isEmpty(items)) {
+                    log.warn("Bitstream (" + dso.getID() + ") is not assigned to any item.");
                     return;
                 }
                 item = items.get(0);
                 String msg = "metadata (" +
                         metadataField.toString().replace('_', '.') + ") was added"
-                + " to bitstream (" + bitstream.getName() + ": " +
-                bitstream.getSizeBytes() + " bytes, checksum: " +
-                        bitstream.getChecksum() + " (" +
+                        + " to bitstream (" + bitstream.getName() + ": " + bitstream.getSizeBytes()
+                        + " bytes, checksum: " + bitstream.getChecksum() + " (" +
                         bitstream.getChecksumAlgorithm() + ")";
                 addProvenanceMetadata(context, item, msg);
             }
