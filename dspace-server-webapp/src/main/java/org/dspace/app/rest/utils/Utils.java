@@ -527,6 +527,12 @@ public class Utils {
 
     private String decodeUrl(String url) {
         try {
+            // Remove double quotes from the start and end of the string - this double quotes are added when the
+            // request is called from the Python API
+            if (url.startsWith("\"") && url.endsWith("\"")) {
+                url = url.substring(1, url.length() - 1);
+            }
+
             return URLDecoder.decode(url, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             log.warn("The following url could not be decoded: " + url);
