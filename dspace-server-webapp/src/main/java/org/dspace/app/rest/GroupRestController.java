@@ -166,6 +166,12 @@ public class GroupRestController {
 
         EPerson ePerson = null;
 
+        // Remove double quotes from the start and end of the string - this double quotes are added when the
+        // request is called from the Python API
+        if (groupLink.startsWith("\"") && groupLink.endsWith("\"")) {
+            groupLink = groupLink.substring(1, groupLink.length() - 1);
+        }
+
         Pattern linkPattern = compile("^.*/(" + REGEX_UUID + ")/?$");
         Matcher matcher = linkPattern.matcher(groupLink);
         if (matcher.matches()) {
