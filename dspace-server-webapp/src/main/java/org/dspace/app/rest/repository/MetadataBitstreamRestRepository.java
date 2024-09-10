@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -173,7 +174,6 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                         for (FileInfo fi : fileInfos) {
                             createPreviewContent(context, bitstream, fi);
                         }
-                        context.commit();
                     } else {
                         for (PreviewContent pc : prContents) {
                             fileInfos.add(createFileInfo(pc));
@@ -186,6 +186,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 metadataValueWrappers.add(bts);
                 rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
             }
+            context.commit();
         }
 
         return new PageImpl<>(rs, pageable, rs.size());
@@ -318,7 +319,11 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             String data = "";
             if (bitstream.getFormat(context).getMIMEType().equals("application/zip")) {
                 data = extractFile(inputStream, "zip");
-                fileInfos = FileTreeViewGenerator.parse(data);
+                try {
+                    fileInfos = FileTreeViewGenerator.parse(data);
+                } catch (Exception e) {
+                    log.error("Cannot extract file content because: {}", e.getMessage());
+                }
             } else if (bitstream.getFormat(context).getMIMEType().equals("application/x-tar")) {
                 ArchiveInputStream is = new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR,
                         inputStream);
