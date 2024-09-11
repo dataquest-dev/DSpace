@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.security.DSpaceAuthentication;
 import org.dspace.app.rest.security.RestAuthenticationService;
 import org.dspace.app.rest.security.StatelessLoginFilter;
+import org.dspace.app.rest.utils.ClarinUtils;
 import org.dspace.authenticate.clarin.ClarinShibAuthentication;
 import org.dspace.authenticate.clarin.ShibHeaders;
 import org.dspace.content.clarin.ClarinVerificationToken;
@@ -307,7 +308,12 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
 
         if (StringUtils.equalsAnyIgnoreCase(redirectHostName, allowedHostNames.toArray(new String[0]))) {
             log.debug("Shibboleth redirecting to " + redirectUrl);
-            response.sendRedirect(redirectUrl);
+            // Encode the UTF-8 characters from redirect URL to UTF-8, to ensure it's properly encoded for the browser
+            String encodedRedirectUrl = ClarinUtils.encodeNonAsciiCharacters(redirectUrl);
+            if (StringUtils.isEmpty(encodedRedirectUrl)) {
+                log.error("Invalid Encoded Shibboleth redirectURL=" + redirectUrl + ". URL is empty!");
+            }
+            response.sendRedirect(encodedRedirectUrl);
         } else {
             log.error("Invalid Shibboleth redirectURL=" + redirectUrl +
                     ". URL doesn't match hostname of server or UI!");

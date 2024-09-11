@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.utils;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -15,6 +17,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,5 +62,20 @@ public class ClarinUtils {
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new RuntimeException("Error disabling SSL certificate validation", e);
         }
+    }
+
+    /**
+     * Function to encode only non-ASCII characters
+     */
+    public static String encodeNonAsciiCharacters(String input) {
+        StringBuilder result = new StringBuilder();
+        for (char ch : input.toCharArray()) {
+            if (!StringUtils.isAsciiPrintable(String.valueOf(ch))) { // Use Apache Commons method
+                result.append(URLEncoder.encode(String.valueOf(ch), StandardCharsets.UTF_8));
+            } else {
+                result.append(ch); // Leave ASCII characters intact
+            }
+        }
+        return result.toString();
     }
 }
