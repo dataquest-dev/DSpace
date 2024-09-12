@@ -32,8 +32,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
@@ -320,9 +320,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 data = extractFile(inputStream, "zip");
                 fileInfos = FileTreeViewGenerator.parse(data);
             } else if (bitstream.getFormat(context).getMIMEType().equals("application/x-tar")) {
-                ArchiveInputStream is = new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR,
-                        inputStream);
-                data = extractFile(is, "tar");
+                data = extractFile(inputStream, "tar");
                 fileInfos = FileTreeViewGenerator.parse(data);
             }
         }
@@ -390,21 +388,35 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
 
             Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
 
-            zipFileSystem = FileSystems.newFileSystem(tempFile, (ClassLoader) null);
-            Path root = zipFileSystem.getPath("/");
-            Files.walk(root)
-                    .forEach(path -> {
-                        try {
-                            long fileSize = Files.size(path);
-                            if (Files.isDirectory(path)) {
-                                filePaths.add(path.toString().substring(1) + "/|" + fileSize );
-                            } else {
-                                filePaths.add(path.toString().substring(1) + "|" + fileSize );
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
+            if ("tar".equals(fileType)) {
+                try (InputStream fi = Files.newInputStream(tempFile);
+                     TarArchiveInputStream tis = new TarArchiveInputStream(fi)) {
+                    TarArchiveEntry entry;
+                    while ((entry = tis.getNextTarEntry()) != null) {
+                        if (entry.isDirectory()) {
+                            filePaths.add(entry.getName() + "/|" + entry.getSize());
+                        } else {
+                            filePaths.add(entry.getName() + "|" + entry.getSize());
                         }
-                    });
+                    }
+                }
+            } else {
+                zipFileSystem = FileSystems.newFileSystem(tempFile, (ClassLoader) null);
+                Path root = zipFileSystem.getPath("/");
+                Files.walk(root)
+                        .forEach(path -> {
+                            try {
+                                long fileSize = Files.size(path);
+                                if (Files.isDirectory(path)) {
+                                    filePaths.add(path.toString().substring(1) + "/|" + fileSize);
+                                } else {
+                                    filePaths.add(path.toString().substring(1) + "|" + fileSize);
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+            }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
