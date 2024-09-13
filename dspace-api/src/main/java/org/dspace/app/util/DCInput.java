@@ -249,12 +249,11 @@ public class DCInput {
         // parsing of the <type-bind> element (using the colon as split separator)
         typeBind = new ArrayList<String>();
         String typeBindDef = fieldMap.get("type-bind");
-        if (typeBindDef != null && typeBindDef.trim().length() > 0) {
-            String[] types = typeBindDef.split(",");
-            for (String type : types) {
-                typeBind.add(type.trim());
-            }
-        }
+        this.insertToTypeBind(typeBindDef);
+        String typeBindField = fieldMap.get(DCInputsReader.TYPE_BIND_FIELD_ATTRIBUTE);
+        this.insertToTypeBind(typeBindField);
+
+
         style = fieldMap.get("style");
         isRelationshipField = fieldMap.containsKey("relationship-type");
         isMetadataField = fieldMap.containsKey("dc-schema");
@@ -271,6 +270,15 @@ public class DCInput {
         }
         defaultValue = fieldMap.get("default-value");
 
+    }
+
+    private void insertToTypeBind(String typeBindDef) {
+        if (typeBindDef != null && typeBindDef.trim().length() > 0) {
+            String[] types = typeBindDef.split(",");
+            for (String type : types) {
+                typeBind.add(type.trim());
+            }
+        }
     }
 
     protected void initRegex(String regex) {
