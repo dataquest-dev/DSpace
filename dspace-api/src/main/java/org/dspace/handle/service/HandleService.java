@@ -40,6 +40,12 @@ public interface HandleService {
      */
     public String resolveToURL(Context context, String handle)
         throws SQLException;
+    public List<String> resolveToTitle(Context context, String handle) throws SQLException;
+    public String resolveToRepository(Context context, String handle) throws SQLException;
+
+    public String resolveToSubmitdate(Context context, String handle) throws SQLException;
+
+    public String resolveToReportemail(Context context, String handle) throws SQLException;
 
     /**
      * Try to detect a handle in a URL.

@@ -19,15 +19,23 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import com.drew.metadata.Metadata;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.api.DSpaceApi;
+import org.dspace.app.bulkedit.MetadataImportException;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
@@ -71,6 +79,10 @@ public class HandleServiceImpl implements HandleService {
     protected SiteService siteService;
     @Autowired
     protected ClarinItemService clarinItemService;
+    @Autowired
+    protected MetadataFieldService metadataFieldService;
+    @Autowired
+    protected MetadataValueService metadataValueService;
 
     private static final Pattern[] IDENTIFIER_PATTERNS = {
         Pattern.compile("^hdl:(.*)$"),
@@ -100,6 +112,84 @@ public class HandleServiceImpl implements HandleService {
         log.debug("Resolved {} to {}", handle, url);
 
         return url;
+    }
+
+    @Override
+    public List<String> resolveToTitle(Context context, String handle) throws SQLException {
+        Handle dbhandle = findHandleInternal(context, handle);
+        if (dbhandle == null) {
+            return null;
+        }
+        MetadataField metadataField = metadataFieldService.findByString(context, "dc.identifier.uri", '.');
+        if (Objects.isNull(metadataField)) {
+            throw new RuntimeException ("Cannot get item by handle because the metadata field ID for " +
+                    "`dc.identifier.uri` wasn't found.");
+        }
+        List<Item> itemList = clarinItemService.findByHandle(context, metadataField, handle);
+        // handle should have only ONE item
+        if (CollectionUtils.isEmpty(itemList)) {
+            return null;
+        }
+        Item item = itemList.get(0);
+        MetadataField mf = metadataFieldService.findByElement(context, "dc", "title", null);
+        Iterator<MetadataValue> mdv = metadataValueService.findByUUIDAndField(context, item.getID(), mf);
+        List<String> metadataValues = new ArrayList<>();
+        if (mdv.hasNext()) {
+            MetadataValue mdvVal = mdv.next();
+            metadataValues.add(mdvVal.getValue());
+        }
+        log.debug("Resolved {} to {}", handle, metadataValues.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(", ")));
+        return metadataValues;
+    }
+
+    @Override
+    public String resolveToRepository(Context context, String handle) throws SQLException {
+        Handle dbhandle = findHandleInternal(context, handle);
+        if (dbhandle == null) {
+            return null;
+        }
+        String repository = configurationService.getProperty("dspace.name");;
+        log.debug("Resolved {} to {}", handle, repository);
+        return configurationService.getProperty("dspace.name");
+    }
+
+    @Override
+    public String resolveToSubmitdate(Context context, String handle) throws SQLException {
+        Handle dbhandle = findHandleInternal(context, handle);
+        if (dbhandle == null) {
+            return null;
+        }
+        MetadataField metadataField = metadataFieldService.findByString(context, "dc.identifier.uri", '.');
+        if (Objects.isNull(metadataField)) {
+            throw new RuntimeException ("Cannot get item by handle because the metadata field ID for " +
+                    "`dc.identifier.uri` wasn't found.");
+        }
+        List<Item> itemList = clarinItemService.findByHandle(context, metadataField, handle);
+        // handle should have only ONE item
+        if (CollectionUtils.isEmpty(itemList)) {
+            return null;
+        }
+        Item item = itemList.get(0);
+        MetadataField mf = metadataFieldService.findByString(context, "dc.date.accessioned", '.');
+        Iterator<MetadataValue> mdv = metadataValueService.findByUUIDAndField(context, item.getID(), mf);
+        String metadataValue = null;
+        if (mdv.hasNext()) {
+            MetadataValue mdvVal = mdv.next();
+            metadataValue = mdvVal.getValue();
+            if (mdv.hasNext()) {
+                throw new SQLException("Ambiguous reference; multiple matches in db of" +
+                        " dc.date.accessioned for handle: " + handle);
+            }
+        }
+        log.debug("Resolved {} to {}", handle, metadataValue);
+        return metadataValue;
+    }
+
+    @Override
+    public String resolveToReportemail(Context context, String handle) throws SQLException {
+        return "";
     }
 
     @Override
