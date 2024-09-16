@@ -570,8 +570,9 @@ public class DCInput {
 
     /**
      * Decides if this field is valid for the document type
+     * Check if one of the typeName is in the typeBind list
      *
-     * @param typeNames List of document type names
+     * @param typeNames List of document type names e.g. ["VIDEO"]
      * @return true when there is no type restriction or typeName is allowed
      */
     public boolean isAllowedFor(List<String> typeNames) {
