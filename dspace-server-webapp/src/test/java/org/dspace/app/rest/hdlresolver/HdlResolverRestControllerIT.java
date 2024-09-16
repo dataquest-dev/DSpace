@@ -16,7 +16,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -120,7 +119,8 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
                 .andExpect(jsonPath("$.url",
                         StringContains.containsString("123456789/testHdlResolver")))
                 .andExpect(jsonPath("$.reportemail",
-                        StringContains.containsString("dspace-help@ufal.mff.cuni.cz")));
+                        StringContains.containsString("dspace-help@ufal.mff.cuni.cz")))
+                .andExpect(jsonPath("$.submitdate").exists());
 
     }
 
@@ -152,7 +152,8 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
                 .andExpect(jsonPath("$.url",
                         StringContains.containsString("123456789/testHdlResolver")))
                 .andExpect(jsonPath("$.reportemail",
-                        StringContains.containsString("dspace-help@ufal.mff.cuni.cz")));
+                        StringContains.containsString("dspace-help@ufal.mff.cuni.cz")))
+                .andExpect(jsonPath("$.repository").doesNotExist());
     }
 
     @Test
