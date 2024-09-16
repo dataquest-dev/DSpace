@@ -184,7 +184,7 @@ public class HdlResolverRestController {
         HandlePlugin hp = new HandlePlugin();
         String handle = handleResolver.getHandle();
         if (Objects.isNull(handle)) {
-            return null;
+            return "null";
         }
         List<HandleValue> handleVals = null;
         try {
@@ -193,7 +193,7 @@ public class HdlResolverRestController {
             log.error(e);
         }
         if (CollectionUtils.isEmpty(handleVals)) {
-            return null;
+            return "null";
         }
 
         for (HandleValue handleVal : handleVals) {

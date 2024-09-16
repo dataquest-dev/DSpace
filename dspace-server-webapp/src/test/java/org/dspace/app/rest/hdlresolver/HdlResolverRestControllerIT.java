@@ -77,11 +77,13 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
         getClient()
             .perform(get(HdlResolverRestController.RESOLVE  + publicItem1.getHandle()))
             .andExpect(status().isOk())
-            .andExpect(matchHandleResponse);
+            .andExpect(jsonPath("$.url",
+                    StringContains.containsString("123456789/testHdlResolver")));
         getClient()
             .perform(get(HdlResolverRestController.HDL_RESOLVER + publicItem1.getHandle()))
             .andExpect(status().isOk())
-            .andExpect(matchHandleResponse);
+            .andExpect(jsonPath("$.url",
+                    StringContains.containsString("123456789/testHdlResolver")));
         getClient()
             .perform(get("/wrongController/" + publicItem1.getHandle()))
             .andExpect(status().isNotFound());
