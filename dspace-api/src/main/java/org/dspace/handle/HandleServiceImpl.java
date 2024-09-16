@@ -28,8 +28,6 @@ import org.dspace.api.DSpaceApi;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.service.MetadataFieldService;
-import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
@@ -73,10 +71,6 @@ public class HandleServiceImpl implements HandleService {
     protected SiteService siteService;
     @Autowired
     protected ClarinItemService clarinItemService;
-    @Autowired
-    protected MetadataFieldService metadataFieldService;
-    @Autowired
-    protected MetadataValueService metadataValueService;
 
     private static final Pattern[] IDENTIFIER_PATTERNS = {
         Pattern.compile("^hdl:(.*)$"),
