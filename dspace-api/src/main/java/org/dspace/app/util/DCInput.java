@@ -25,6 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.xml.sax.SAXException;
 
@@ -565,6 +566,20 @@ public class DCInput {
         }
 
         return typeBind.contains(typeName);
+    }
+
+    /**
+     * Decides if this field is valid for the document type
+     *
+     * @param typeNames List of document type names
+     * @return true when there is no type restriction or typeName is allowed
+     */
+    public boolean isAllowedFor(List<String> typeNames) {
+        if (typeBind.size() == 0) {
+            return true;
+        }
+
+        return CollectionUtils.containsAny(typeBind, typeNames);
     }
 
     public String getScope() {
