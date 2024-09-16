@@ -7,14 +7,13 @@
  */
 package org.dspace.app.rest.hdlresolver;
 
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.utils.ContextUtil;
-import org.dspace.core.Context;
 import org.dspace.handle.HandlePlugin;
 import org.dspace.handle.hdlresolver.HdlResolverDTO;
 import org.dspace.handle.hdlresolver.HdlResolverService;
@@ -38,8 +36,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * This controller is public and is useful for handle resolving,
@@ -204,7 +200,7 @@ public class HdlResolverRestController {
             String key = new String(handleVal.getType(), StandardCharsets.UTF_8).toLowerCase();
             String val = new String(handleVal.getData(), StandardCharsets.UTF_8);
             String param = request.getParameter(key);
-            if (!Objects.equals(key, "url") || StringUtils.isBlank(param)) {
+            if (!Objects.equals(key, "url") && StringUtils.isBlank(param)) {
                 continue;
             }
             resultMap.put(key, val);
