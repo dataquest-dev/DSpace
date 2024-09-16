@@ -112,9 +112,15 @@ public class DescribeStep extends AbstractProcessingStep {
 
         // Get list of all field names (including qualdrop names) allowed for this dc.type
         List<String> allowedFieldNames = new ArrayList<>();
-        documentTypeValueList.forEach(documentTypeValue -> {
-            allowedFieldNames.addAll(inputConfig.populateAllowedFieldNames(documentTypeValue));
-        });
+
+        if (CollectionUtils.isEmpty(documentTypeValueList)) {
+            // If no dc.type is set, we allow all fields
+            allowedFieldNames.addAll(inputConfig.populateAllowedFieldNames(null));
+        } else {
+            documentTypeValueList.forEach(documentTypeValue -> {
+                allowedFieldNames.addAll(inputConfig.populateAllowedFieldNames(documentTypeValue));
+            });
+        }
 
         // Loop input rows and process submitted metadata
         for (DCInput[] row : inputConfig.getFields()) {
