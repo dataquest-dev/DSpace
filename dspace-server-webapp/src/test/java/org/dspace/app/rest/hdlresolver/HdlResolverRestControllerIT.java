@@ -10,6 +10,7 @@ package org.dspace.app.rest.hdlresolver;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -85,6 +86,38 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
             .perform(get("/wrongController/" + publicItem1.getHandle()))
             .andExpect(status().isNotFound());
 
+    }
+
+    @Test
+    public void givenMappedIdentifierWhenCallHdlresolverThenReturnsMappedParams() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // ** START GIVEN **
+
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1")
+                .withLogo("TestingContentForLogo").build();
+
+        Item publicItem1 = ItemBuilder.createItem(context, col1).withTitle("Public item 1").withIssueDate("2017-10-17")
+                .withAuthor("Smith, Donald").withAuthor("Doe, John").withSubject("ExtraEntry")
+                .withHandle("123456789/testHdlResolver").build();
+
+        context.restoreAuthSystemState();
+
+        // ** END GIVEN **
+
+        getClient()
+                .perform(get(HdlResolverRestController.RESOLVE  + publicItem1.getHandle())
+                    .param("title", "true")
+                    .param("repository", "true")
+                    .param("submitdate", "true")
+                    .param("reportemail", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title", StringContains.containsString("Public item 1")))
+                .andExpect(jsonPath("$.repository", is("DSpace at My University")))
+                .andExpect(jsonPath("$.url",
+                        StringContains.containsString("123456789/testHdlResolver")));
     }
 
     @Test

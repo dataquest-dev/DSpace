@@ -8,16 +8,26 @@
 package org.dspace.app.rest.hdlresolver;
 
 import java.text.MessageFormat;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.handle.hdllib.HandleException;
+import net.handle.hdllib.HandleValue;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.utils.ContextUtil;
+import org.dspace.core.Context;
+import org.dspace.handle.HandlePlugin;
 import org.dspace.handle.hdlresolver.HdlResolverDTO;
 import org.dspace.handle.hdlresolver.HdlResolverService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +38,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * This controller is public and is useful for handle resolving,
@@ -102,7 +114,7 @@ public class HdlResolverRestController {
         if (!handleResolver.isValid()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } else {
-            return new ResponseEntity<>(this.resolveToURL(request, handleResolver), HttpStatus.OK);
+            return new ResponseEntity<>(this.resolveToMtd(request, handleResolver), HttpStatus.OK);
         }
     }
 
@@ -171,14 +183,45 @@ public class HdlResolverRestController {
      * @param handleResolver HdlResolverDTO - Handle resolver
      * @return One element list using String if found, else null String.
      */
-    private String resolveToURL(HttpServletRequest request, HdlResolverDTO handleResolver) {
-        return mapAsJson(this.hdlResolverService.resolveToURL(ContextUtil.obtainContext(request), handleResolver));
+    private String resolveToMtd(HttpServletRequest request, HdlResolverDTO handleResolver) {
+        Map<String, String> resultMap = new HashMap<>();
+        HandlePlugin hp = new HandlePlugin();
+        String handle = handleResolver.getHandle();
+        if (Objects.isNull(handle)) {
+            return null;
+        }
+        List<HandleValue> handleVals = null;
+        try {
+            handleVals = hp.getListHandleValues(handle.getBytes(), new int[]{}, new byte[][]{});
+        } catch (HandleException e) {
+            log.error(e);
+        }
+        if (CollectionUtils.isEmpty(handleVals)) {
+            return null;
+        }
+
+        for (HandleValue handleVal : handleVals) {
+            String key = new String(handleVal.getType(), StandardCharsets.UTF_8).toLowerCase();
+            String val = new String(handleVal.getData(), StandardCharsets.UTF_8);
+            String param = request.getParameter(key);
+            if (!Objects.equals(key, "url") || StringUtils.isBlank(param)) {
+                continue;
+            }
+            resultMap.put(key, val);
+        }
+
+        return mapAsJson(resultMap);
     }
 
-    protected String mapAsJson(final String resolvedUrl) {
+    protected String mapAsJson(final Map<String, String> resolvedMap) {
+        ObjectMapper objectMapper = new ObjectMapper();
         String json = "null";
-        if (StringUtils.isNotEmpty(resolvedUrl)) {
-            json = mapAsJson(List.of(resolvedUrl));
+        try {
+            if (resolvedMap != null && !resolvedMap.isEmpty()) {
+                json = objectMapper.writeValueAsString(resolvedMap);
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Error during conversion of response!", e);
         }
         return json;
     }
@@ -194,5 +237,4 @@ public class HdlResolverRestController {
         }
         return json;
     }
-
 }
