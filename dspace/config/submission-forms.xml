@@ -1771,12 +1771,14 @@
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
                     <label>Description</label>
-                    <type-bind>aaa</type-bind>
                     <input-type>textarea</input-type>
                     <hint>Enter a description of the submitted data.</hint>
                     <required>Please give us a description</required>
                 </field>
             </row>
+            <!-- When you configure special field for the `type-bind` you must update it in the `submit.type-bind.field`
+            configuration property like this: `<INPUT_METADATA_FIELD>=><TYPE_BIND_FIELD>`
+            e.g. `dc.language.iso=>edm.type`-->
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
