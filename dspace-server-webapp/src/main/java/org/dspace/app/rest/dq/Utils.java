@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.app.rest.utils;
+package org.dspace.app.rest.dq;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -26,9 +26,9 @@ import org.springframework.stereotype.Component;
  * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @Component
-public class ClarinUtils {
+public class Utils {
 
-    private ClarinUtils() {
+    private Utils() {
     }
 
     /**
