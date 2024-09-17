@@ -93,9 +93,15 @@ public class MetadataValidation extends AbstractValidation {
 
         // Get list of all field names (including qualdrop names) allowed for this dc.type, or specific type-bind field
         List<String> allowedFieldNames = new ArrayList<>();
-        documentTypeValueList.forEach(documentTypeValue -> {
-            allowedFieldNames.addAll(inputConfig.populateAllowedFieldNames(documentTypeValue));
-        });
+
+        if (CollectionUtils.isEmpty(documentTypeValueList)) {
+            // If no dc.type is set, we allow all fields
+            allowedFieldNames.addAll(inputConfig.populateAllowedFieldNames(null));
+        } else {
+            documentTypeValueList.forEach(documentTypeValue -> {
+                allowedFieldNames.addAll(inputConfig.populateAllowedFieldNames(documentTypeValue));
+            });
+        }
 
         for (DCInput[] row : inputConfig.getFields()) {
             for (DCInput input : row) {
