@@ -175,8 +175,12 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                     // Generate new content if we didn't find any
                     if (prContents.isEmpty()) {
                         fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
-                        for (FileInfo fi : fileInfos) {
-                            createPreviewContent(context, bitstream, fi);
+                        // Do not store HTML content in the database because it could be longer than the limit
+                        // of the database column
+                        if (!StringUtils.equals("text/html", bitstream.getFormat(context).getMIMEType())) {
+                            for (FileInfo fi : fileInfos) {
+                                createPreviewContent(context, bitstream, fi);
+                            }
                         }
                     } else {
                         for (PreviewContent pc : prContents) {
@@ -316,8 +320,11 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                                                            List<FileInfo> fileInfos, InputStream inputStream)
             throws IOException, SQLException, ParserConfigurationException, SAXException, ArchiveException {
         String bitstreamMimeType = bitstream.getFormat(context).getMIMEType();
-        if (bitstreamMimeType.equals("text/plain") || bitstreamMimeType.equals("text/html")) {
-            String data = getFileContent(inputStream);
+        if (bitstreamMimeType.equals("text/plain")) {
+            String data = getFileContent(inputStream, true);
+            fileInfos.add(new FileInfo(data, false));
+        } else if (bitstreamMimeType.equals("text/html")) {
+            String data = getFileContent(inputStream, false);
             fileInfos.add(new FileInfo(data, false));
         } else {
             String data = "";
@@ -467,7 +474,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
      * @return content of the inputStream as a String
      * @throws IOException
      */
-    public String getFileContent(InputStream inputStream) throws IOException {
+    public String getFileContent(InputStream inputStream, boolean cutResult) throws IOException {
         StringBuilder content = new StringBuilder();
         // Generate the preview content in the UTF-8 encoding
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
@@ -483,7 +490,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         }
 
         reader.close();
-        return ensureMaxLength(content.toString());
+        return cutResult ? ensureMaxLength(content.toString()) : content.toString();
     }
 
     /**
