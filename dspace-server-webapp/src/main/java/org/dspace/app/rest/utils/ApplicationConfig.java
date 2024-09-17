@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
 // trouble.  Be careful what you add here.
 @ComponentScan( {
     "org.dspace.app.rest.converter",
+    "org.dspace.app.rest.dq",
     "org.dspace.app.rest.repository",
     "org.dspace.app.rest.utils",
     "org.dspace.app.configuration",
