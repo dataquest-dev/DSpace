@@ -308,7 +308,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         if (StringUtils.equalsAnyIgnoreCase(redirectHostName, allowedHostNames.toArray(new String[0]))) {
             log.debug("Shibboleth redirecting to " + redirectUrl);
             // Encode the UTF-8 characters from redirect URL to UTF-8, to ensure it's properly encoded for the browser
-            String encodedRedirectUrl = org.dspace.app.rest.dq.Utils.encodeNonAsciiCharacters(redirectUrl);
+            String encodedRedirectUrl = org.dspace.app.rest.utils.Utils.encodeNonAsciiCharacters(redirectUrl);
             if (StringUtils.isEmpty(encodedRedirectUrl)) {
                 log.error("Invalid Encoded Shibboleth redirectURL=" + redirectUrl + ". URL is empty!");
             }

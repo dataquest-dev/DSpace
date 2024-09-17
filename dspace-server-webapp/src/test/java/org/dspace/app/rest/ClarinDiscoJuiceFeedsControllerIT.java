@@ -21,8 +21,8 @@ import java.net.URLConnection;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dspace.app.rest.dq.Utils;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.app.rest.utils.Utils;
 import org.dspace.services.ConfigurationService;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;

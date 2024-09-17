@@ -34,7 +34,7 @@ import com.maxmind.geoip2.model.CityResponse;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
-import org.dspace.app.rest.dq.Utils;
+import org.dspace.app.rest.utils.Utils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
 import org.json.simple.JSONArray;
