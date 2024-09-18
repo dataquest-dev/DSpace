@@ -107,7 +107,8 @@ public class ItemUtils {
         return e;
     }
 
-    private static Element createBundlesElement(Context context, Item item, AtomicBoolean restricted) throws SQLException {
+    private static Element createBundlesElement(Context context, Item item, AtomicBoolean restricted)
+            throws SQLException {
         Element bundles = create("bundles");
 
         List<Bundle> bs;
