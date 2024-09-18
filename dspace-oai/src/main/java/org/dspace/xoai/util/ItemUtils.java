@@ -131,8 +131,31 @@ public class ItemUtils {
                 Element bitstream = create("bitstream");
                 bitstreams.getElement().add(bitstream);
                 String url = "";
+                String bsName = bit.getName();
+                String sid = String.valueOf(bit.getSequenceID());
                 String baseUrl = configurationService.getProperty("oai.bitstream.baseUrl");
-                url = baseUrl + "/bitstreams/" + bit.getID().toString() + "/download";
+                String handle = null;
+                // get handle of parent Item of this bitstream, if there
+                // is one:
+                List<Bundle> bn = bit.getBundles();
+                if (bn.size() > 0) {
+                    List<Item> bi = bn.get(0).getItems();
+                    if (bi.size() > 0) {
+                        handle = bi.get(0).getHandle();
+                    }
+                }
+                if (bsName == null) {
+                    List<String> ext = bit.getFormat(context).getExtensions();
+                    bsName = "bitstream_" + sid + (ext.size() > 0 ? ext.get(0) : "");
+                }
+                if (handle != null && baseUrl != null) {
+                    url = baseUrl + "/bitstream/"
+                            + handle + "/"
+                            + sid + "/"
+                            + URLUtils.encode(bsName);
+                } else {
+                    url = URLUtils.encode(bsName);
+                }
 
                 String cks = bit.getChecksum();
                 String cka = bit.getChecksumAlgorithm();
