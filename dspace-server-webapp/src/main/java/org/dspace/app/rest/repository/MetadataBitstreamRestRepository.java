@@ -413,18 +413,19 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                                     filePaths.add(path.toString().substring(1) + "|" + fileSize);
                                 }
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                log.error("Cannot get file size for path: {} because of: {}", path.toString(),
+                                        e.getMessage());
                             }
                         });
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Cannot extract file because of: {}", e.getMessage());
         } finally {
             if (zipFileSystem != null) {
                 try {
                     zipFileSystem.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Cannot close ZIP file system because of: {}", e.getMessage());
                 }
             }
 
@@ -432,7 +433,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 try {
                     Files.delete(tempFile);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Cannot delete temporary file because of: {}", e.getMessage());
                 }
             }
         }
