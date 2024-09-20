@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.submit.step.validation;
 
+import static org.dspace.app.rest.submit.step.DescribeStep.KEY_VALUE_SEPARATOR;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -79,8 +81,8 @@ public class MetadataValidation extends AbstractValidation {
             String typeBFKey = typeBindField;
             // If the type-bind field is in the form of schema.element.qualifier=>metadata_field, split it and get the
             // metadata field
-            if (typeBindField.contains("=>")) {
-                String[] parts = typeBindField.split("=>");
+            if (typeBindField.contains(KEY_VALUE_SEPARATOR)) {
+                String[] parts = typeBindField.split(KEY_VALUE_SEPARATOR);
                 // Get the second part of the split - the metadata field
                 typeBFKey = parts[1];
             }

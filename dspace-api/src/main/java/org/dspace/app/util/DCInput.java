@@ -576,7 +576,7 @@ public class DCInput {
      * @return true when there is no type restriction or typeName is allowed
      */
     public boolean isAllowedFor(List<String> typeNames) {
-        if (typeBind.size() == 0) {
+        if (typeBind.isEmpty()) {
             return true;
         }
 

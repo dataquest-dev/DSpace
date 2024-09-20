@@ -63,6 +63,8 @@ import org.springframework.util.ObjectUtils;
  */
 public class DescribeStep extends AbstractProcessingStep {
 
+    public static final String KEY_VALUE_SEPARATOR = "=>";
+
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(DescribeStep.class);
 
     // Input reader for form configuration
@@ -99,8 +101,8 @@ public class DescribeStep extends AbstractProcessingStep {
 
         for (String typeBindField : typeBindFields) {
             String typeBFKey = typeBindField;
-            if (typeBindField.contains("=>")) {
-                String[] parts = typeBindField.split("=>");
+            if (typeBindField.contains(KEY_VALUE_SEPARATOR)) {
+                String[] parts = typeBindField.split(KEY_VALUE_SEPARATOR);
                 // Get the second part of the split - the metadata field
                 typeBFKey = parts[1];
             }
