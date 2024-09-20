@@ -75,6 +75,11 @@ public class DCInputsReader {
      */
     static final String COMPLEX_DEFINITION_REF = "complex-definition-ref";
 
+    /**
+     * Keyname for storing the name of the custom autocomplete input type
+     */
+    static final String AUTOCOMPLETE_CUSTOM = "autocomplete-custom";
+
 
     /**
      * Reference to the forms definitions map, computed from the forms
@@ -550,6 +555,11 @@ public class DCInputsReader {
                         + " has no linked definition");
             } else {
                 field.put(COMPLEX_DEFINITION_REF, definitionName);
+            }
+        } else if (value.equals("autocomplete")) {
+            String definitionName = getAttribute(nd, AUTOCOMPLETE_CUSTOM);
+            if (definitionName != null) {
+                field.put(AUTOCOMPLETE_CUSTOM, definitionName);
             }
         }
     }
