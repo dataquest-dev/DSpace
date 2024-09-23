@@ -268,6 +268,9 @@ public class HandlePlugin implements HandleStorage {
     @Override
     public byte[][] getRawHandleValues(byte[] theHandle, int[] indexList,
                                        byte[][] typeList) throws HandleException {
+        if (log.isInfoEnabled()) {
+            log.info("Called getRawHandleValues");
+        }
         ResolvedHandle rh = getHandleValues(theHandle, indexList, typeList);
         if (Objects.isNull(rh)) {
             return null;
@@ -277,19 +280,18 @@ public class HandlePlugin implements HandleStorage {
 
     public List<HandleValue> getListHandleValues(byte[] theHandle, int[] indexList,
                                                  byte[][] typeList) throws HandleException {
+        if (log.isInfoEnabled()) {
+            log.info("Called getListHandleValues");
+        }
         ResolvedHandle rh = getHandleValues(theHandle, indexList, typeList);
         if (Objects.isNull(rh)) {
             return null;
         }
-        return rh.getHandleValue();
+        return rh.getHandleValues();
     }
 
     private ResolvedHandle getHandleValues(byte[] theHandle, int[] indexList,
                                            byte[][] typeList) throws HandleException {
-        if (log.isInfoEnabled()) {
-            log.info("Called getRawHandleValues");
-        }
-
         // Configuration, HandleClarin, Handle service
         loadServices();
 
@@ -752,7 +754,7 @@ class ResolvedHandle {
         return rawValues;
     }
 
-    public List<HandleValue> getHandleValue() {
+    public List<HandleValue> getHandleValues() {
         return values;
     }
 

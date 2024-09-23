@@ -117,13 +117,12 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
                     .param("reportemail", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title", StringContains.containsString("Public item 1")))
-                .andExpect(jsonPath("$.repository", is("DSpace at My University")))
+                .andExpect(jsonPath("$.repository", is(configurationService.getProperty("dspace.name"))))
                 .andExpect(jsonPath("$.url",
                         StringContains.containsString("123456789/testHdlResolver")))
                 .andExpect(jsonPath("$.reportemail",
-                        StringContains.containsString("dspace-help@ufal.mff.cuni.cz")))
+                        StringContains.containsString(configurationService.getProperty("handle.reportemail"))))
                 .andExpect(jsonPath("$.submitdate").exists());
-
     }
 
     @Test
@@ -154,7 +153,7 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
                 .andExpect(jsonPath("$.url",
                         StringContains.containsString("123456789/testHdlResolver")))
                 .andExpect(jsonPath("$.reportemail",
-                        StringContains.containsString("dspace-help@ufal.mff.cuni.cz")))
+                        StringContains.containsString(configurationService.getProperty("handle.reportemail"))))
                 .andExpect(jsonPath("$.repository").doesNotExist());
     }
 
