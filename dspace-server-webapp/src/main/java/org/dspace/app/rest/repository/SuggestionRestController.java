@@ -46,7 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/suggestions")
 public class SuggestionRestController extends AbstractDSpaceRestRepository {
 
-    private static final String AUTOCOMPLETE_CUSTOM_CFG_FORMAT_PREFIX = "autocomplete.custom.format.";
+    private static final String AUTOCOMPLETE_CUSTOM_CFG_FORMAT_PREFIX = "autocomplete.custom.separator.";
     private static final String AUTOCOMPLETE_CUSTOM_SOLR_PREFIX = "solr-";
 
     @Autowired
@@ -147,7 +147,7 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
             return ver;
         }
 
-        // Load separator from the configuration `autocomplete.custom.format.<autocompleteCustom>
+        // Load separator from the configuration `autocomplete.custom.separator.<autocompleteCustom>
         String separator = configurationService.getProperty(AUTOCOMPLETE_CUSTOM_CFG_FORMAT_PREFIX + autocompleteCustom);
         if (StringUtils.isEmpty(separator)) {
             return ver;
