@@ -1719,9 +1719,9 @@
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
                     <label>Data provider</label>
-                    <input-type>autocomplete</input-type>
+                    <input-type autocomplete-custom="solr-dataProvider_ac">autocomplete</input-type>
                     <hint>This concerns the digital object (not the analog
-                        original). An institution from which the data come. Used eg. to give proper attribution. Generally
+                        original). An institution from which the data come. Used e.g. to give proper attribution. Generally
                         different from publisher.</hint>
                     <required/>
                 </field>
