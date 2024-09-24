@@ -271,27 +271,6 @@ public class HandlePlugin implements HandleStorage {
         if (log.isInfoEnabled()) {
             log.info("Called getRawHandleValues");
         }
-        ResolvedHandle rh = getHandleValues(theHandle, indexList, typeList);
-        if (Objects.isNull(rh)) {
-            return null;
-        }
-        return rh.toRawValue();
-    }
-
-    public List<HandleValue> getListHandleValues(byte[] theHandle, int[] indexList,
-                                                 byte[][] typeList) throws HandleException {
-        if (log.isInfoEnabled()) {
-            log.info("Called getListHandleValues");
-        }
-        ResolvedHandle rh = getHandleValues(theHandle, indexList, typeList);
-        if (Objects.isNull(rh)) {
-            return null;
-        }
-        return rh.getHandleValues();
-    }
-
-    private ResolvedHandle getHandleValues(byte[] theHandle, int[] indexList,
-                                           byte[][] typeList) throws HandleException {
         // Configuration, HandleClarin, Handle service
         loadServices();
 
@@ -361,7 +340,7 @@ public class HandlePlugin implements HandleStorage {
                 rh.setDead(handle, deadSince);
             }
 
-            return rh;
+            return rh.toRawValue();
         } catch (HandleException he) {
             throw he;
         } catch (Exception e) {
@@ -752,10 +731,6 @@ class ResolvedHandle {
             Encoder.encodeHandleValue(rawValues[i], 0, hvalue);
         }
         return rawValues;
-    }
-
-    public List<HandleValue> getHandleValues() {
-        return values;
     }
 
     public void setDead(String handle, String deadSince) {
