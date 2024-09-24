@@ -34,7 +34,7 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
 
     private Item publicItem;
     private Collection col;
-    private String PUBLISHER_VALUE = "test publisher";
+    private final String SUBJECT_VALUE = "test subject";
 
     @Before
     public void setup() throws Exception {
@@ -48,7 +48,7 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
 
         // 2. Create item and add it to the collection
         publicItem = ItemBuilder.createItem(context, col)
-                .withMetadata("dc", "publisher", null, PUBLISHER_VALUE )
+                .withMetadata("dc", "subject", null, SUBJECT_VALUE )
                 .build();
 
         context.restoreAuthSystemState();
@@ -58,16 +58,16 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
      * Should return formatted suggestions in the VocabularyEntryRest objects
      */
     @Test
-    public void testSearchByPublisherAcSolrIndex() throws Exception {
+    public void testSearchBySubjectAcSolrIndex() throws Exception {
         // substring = find only by the `test` value
-        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-publisher_ac&searchValue=" +
-                        PUBLISHER_VALUE.substring(0, 4)))
+        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-subject_ac&searchValue=" +
+                        SUBJECT_VALUE.substring(0, 4)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$._embedded.vocabularyEntryRests", Matchers.hasItem(
                         allOf(
-                                hasJsonPath("$.display", is(PUBLISHER_VALUE)),
-                                hasJsonPath("$.value", is(PUBLISHER_VALUE)),
+                                hasJsonPath("$.display", is(SUBJECT_VALUE)),
+                                hasJsonPath("$.value", is(SUBJECT_VALUE)),
                                 hasJsonPath("$.type", is("vocabularyEntry"))
                 ))));
     }
@@ -76,10 +76,10 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
      * Should return no suggestions
      */
     @Test
-    public void testSearchByPublisherAcSolrIndex_noResults() throws Exception {
+    public void testSearchBySubjectAcSolrIndex_noResults() throws Exception {
         // substring = find only by the `test` value
-        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-publisher_ac&searchValue=" +
-                        "no such publisher"))
+        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-subject_ac&searchValue=" +
+                        "no such subject"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$.page.totalElements", is(0)))
