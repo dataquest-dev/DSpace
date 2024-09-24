@@ -7,11 +7,11 @@
  */
 package org.dspace.app.rest.repository;
 
-import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.VocabularyEntryRest;
