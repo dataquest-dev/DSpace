@@ -52,6 +52,7 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -110,6 +111,9 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
 
     @Autowired
     private SolrOAIReindexer solrOAIReindexer;
+
+    @Autowired
+    ConfigurationService configurationService;
 
     public ItemRestRepository(ItemService dsoService) {
         super(dsoService);
@@ -409,7 +413,13 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
                     "`dc.identifier.uri` wasn't found.");
         }
 
-        List<Item> itemList = clarinItemService.findByHandle(context, metadataField, handle);
+        String handlePrefix = configurationService.getProperty("handle.canonical.prefix");
+        String normalizedHandle = handle;
+        if (!handle.startsWith(handlePrefix)) {
+            normalizedHandle = handlePrefix + handle;
+        }
+
+        List<Item> itemList = clarinItemService.findByHandle(context, metadataField, normalizedHandle);
         return converter.toRestPage(itemList, pageable, utils.obtainProjection());
     }
 }
