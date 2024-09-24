@@ -271,6 +271,7 @@ public class HandlePlugin implements HandleStorage {
         if (log.isInfoEnabled()) {
             log.info("Called getRawHandleValues");
         }
+
         // Configuration, HandleClarin, Handle service
         loadServices();
 
