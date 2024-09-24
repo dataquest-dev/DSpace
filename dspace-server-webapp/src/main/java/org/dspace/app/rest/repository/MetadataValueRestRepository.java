@@ -43,7 +43,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * This is the repository responsible to manage MetadataValueWrapper Rest object.
  *
- * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @Component(MetadataValueWrapperRest.CATEGORY + "." + MetadataValueWrapperRest.NAME)
 public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataValueWrapperRest, Integer> {
@@ -114,7 +114,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
 
         // Find matches in Solr Search core
         DiscoverQuery discoverQuery =
-                this.createDiscoverQuery(metadataField, searchValue, pageable);
+                this.createDiscoverQuery(metadataField, searchValue);
 
         if (ObjectUtils.isEmpty(discoverQuery)) {
             throw new IllegalArgumentException("Cannot create a DiscoverQuery from the arguments.");
@@ -168,11 +168,10 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
                 .collect( Collectors.toList() );
     }
 
-    private DiscoverQuery createDiscoverQuery(String metadataField, String searchValue, Pageable pageable) {
+    private DiscoverQuery createDiscoverQuery(String metadataField, String searchValue) {
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.setQuery(metadataField + ":" + "*" + searchValue + "*");
-        discoverQuery.setStart(Math.toIntExact(pageable.getOffset()));
-        discoverQuery.setMaxResults(pageable.getPageSize());
+        discoverQuery.setMaxResults(500);
         // return only metadata field values
         discoverQuery.addSearchField(metadataField);
         discoverQuery.addFilterQueries("search.resourcetype:" + IndexableItem.TYPE);
