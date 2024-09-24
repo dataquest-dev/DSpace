@@ -169,7 +169,7 @@
                     <repeatable>false</repeatable>
                     <label>Publisher</label>
                     <style>col-sm-8</style>
-                    <input-type>onebox</input-type>
+                    <input-type autocomplete-custom="solr-publisher_ac">autocomplete</input-type>
                     <hint>Enter the name of the publisher of the previously issued instance of this item.</hint>
                     <required></required>
                 </field>
@@ -1703,7 +1703,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Publisher</label>
-                    <input-type>autocomplete</input-type>
+                    <input-type autocomplete-custom="solr-publisher_ac">autocomplete</input-type>
                     <hint>The name of the publisher of the original analog or born
                         digital object. Use your home institution if this is a born digital object being published now. Start typing the
                         publisher and use autocomplete form that will appear if applicable. End your input by pressing ESC if you
@@ -1982,7 +1982,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Publisher</label>
-                    <input-type>autocomplete</input-type>
+                    <input-type autocomplete-custom="solr-publisher_ac">autocomplete</input-type>
                     <hint>The name of the publisher of the original analog or born
                         digital object. Use your home institution if this is a born digital object being published now. Start typing the
                         publisher and use autocomplete form that will appear if applicable. End your input by pressing ESC if you
@@ -3222,7 +3222,7 @@
             <input name="givenname" input-type="text" label="Given name"/>
             <input name="surname" input-type="text" label="Surname"/>
             <input name="email" input-type="text" label="Email" regex="[^@]+@[^\.@]+\.[^@]+"/>
-            <input name="affiliation" input-type="text" label="Affiliation"/>
+            <input name="affiliation" input-type="autocomplete" label="Affiliation"/>
         </definition>
 
         <definition name="funding">
