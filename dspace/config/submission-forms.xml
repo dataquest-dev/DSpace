@@ -103,7 +103,7 @@
                     <dc-qualifier></dc-qualifier>
                     <repeatable>false</repeatable>
                     <label>Title</label>
-                    <input-type autocomplete-custom="solr-handle_title_ac">autocomplete</input-type>
+                    <input-type>onebox</input-type>
                     <hint>Enter the main title of the item.</hint>
                     <required>You must enter a main title for this item.</required>
                 </field>
@@ -417,7 +417,7 @@
                     <!-- An input-type of tag MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Keywords</label>
-                    <input-type>tag</input-type>
+                    <input-type autocomplete-custom="solr-subject_ac">autocomplete</input-type>
                     <hint>Enter appropriate subject keyword or phrase and press the Add button. You can repeat it for
                         multiple keywords or use separators i.e., Enter and comma, which will split it accordingly.
                         Start typing the keyword and use autocomplete form that will appear. End your input by pressing
@@ -1815,7 +1815,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Subject Keywords</label>
-                    <input-type>tag</input-type>
+                    <input-type autocomplete-custom="solr-subject_ac">autocomplete</input-type>
                     <hint>Enter appropriate subject keyword or phrase and press
                         the Add button. Use keywords to specify also people, places and times (period, era, date range etc) the resource
                         is about. You	can use hierarchical subjects, separate the hierarchy levels with two colons (::). Eg.
@@ -2064,7 +2064,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Subject Keywords</label>
-                    <input-type>autocomplete</input-type>
+                    <input-type autocomplete-custom="solr-subject_ac">autocomplete</input-type>
                     <hint>Enter appropriate subject keyword or phrase and press the Add button. You can repeat it for
                         multiple keywords or use separators i.e., comma and semicolon, which will split it accordingly.
                         Start typing the keyword and use autocomplete form that will appear. End your input by pressing
@@ -2113,7 +2113,7 @@
                     <dc-qualifier>replaces</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Replaces</label>
-                    <input-type>onebox</input-type>
+                    <input-type autocomplete-custom="solr-handle_title_ac">autocomplete</input-type>
                     <hint>URL to a related resource that is supplanted, displaced, or superseded by the described resource. If the replaced resource is in this repository start typing its name or handle and select the resource from the autocomplete popup.</hint>
                     <required/>
                 </field>
@@ -2127,7 +2127,7 @@
                     <dc-qualifier>isreplacedby</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Is replaced by</label>
-                    <input-type>onebox</input-type>
+                    <input-type autocomplete-custom="solr-handle_title_ac">autocomplete</input-type>
                     <hint>A related resource that supplants, displaces, or supersedes the described resource.</hint>
                     <required/>
                     <acl>
