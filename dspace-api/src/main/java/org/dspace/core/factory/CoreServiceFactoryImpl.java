@@ -7,6 +7,7 @@
  */
 package org.dspace.core.factory;
 
+import org.dspace.core.ProvenanceService;
 import org.dspace.core.service.LicenseService;
 import org.dspace.core.service.NewsService;
 import org.dspace.core.service.PluginService;
@@ -33,6 +34,9 @@ public class CoreServiceFactoryImpl extends CoreServiceFactory {
     @Autowired(required = true)
     private ClientInfoService clientInfoService;
 
+    @Autowired(required = true)
+    private ProvenanceService provenanceService;
+
     @Override
     public LicenseService getLicenseService() {
         return licenseService;
@@ -50,5 +54,10 @@ public class CoreServiceFactoryImpl extends CoreServiceFactory {
 
     public ClientInfoService getClientInfoService() {
         return clientInfoService;
+    }
+
+    @Override
+    public ProvenanceService getProvenanceService() {
+        return provenanceService;
     }
 }

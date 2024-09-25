@@ -50,17 +50,16 @@ import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
-import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
@@ -117,6 +116,8 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
     protected String eperson = null;
 
+    protected ProvenanceService provenanceService;
+
     @Override
     @SuppressWarnings("unchecked")
     public void setup() throws ParseException {
@@ -149,6 +150,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
         help = commandLine.hasOption('h');
         filename = commandLine.getOptionValue('f');
         uuids = commandLine.hasOption('u') ? Arrays.asList(commandLine.getOptionValues('u')) : null;
+        this.provenanceService = CoreServiceFactory.getInstance().getProvenanceService();
     }
 
     @Override
@@ -452,6 +454,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
     }
 
     /**
+    /**
      * create the new resource policies of item.
      * then, call {@link ItemService#adjustItemPolicies(
      * Context, Item, Collection)} to adjust item's default policies.
@@ -464,12 +467,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
     private void setItemPolicies(Item item, BulkAccessControlInput accessControl)
         throws SQLException, AuthorizeException {
 
-        String resPoliciesStr = accessControl
-                .getItem()
-                .getAccessConditions()
-                .stream()
-                .map(accessCondition -> accessCondition.getName())
-                .collect(Collectors.joining(";"));
+        //String resPoliciesStr = extractAccessConditions(accessControl.getItem().getAccessConditions());
 
         accessControl
             .getItem()
@@ -479,11 +477,11 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
         itemService.adjustItemPolicies(context, item, item.getOwningCollection(), false);
 
-        if (resPoliciesStr.isEmpty()) {
-            return;
-        }
-        String msg = "Access condition (" + resPoliciesStr + ") was added to item";
-        addProvenanceMetadata(context, item, msg);
+//        if (resPoliciesStr.isEmpty()) {
+//            String msg = "Access condition (" + resPoliciesStr + ") was added to item";
+//            addProvenanceMetadata(context, item, msg);
+//        }
+        provenanceService.setItemPolicies(context, item, accessControl);
     }
 
     /**
@@ -571,84 +569,14 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
      */
     private void removeReadPolicies(DSpaceObject dso, String type) {
         try {
-            List<ResourcePolicy> resPolicies = resourcePolicyService.find(context, dso, type);
-            if (resPolicies.isEmpty()) {
+            String resPoliciesStr = provenanceService.removedReadPolicies(context, dso, type);
+            if (Objects.isNull(resPoliciesStr)) {
                 return;
             }
-
-            String resPoliciesStr = resPolicies.stream()
-                    .filter(rp -> rp.getAction() == Constants.READ)  // Filter out non-READ actions
-                    .map(rp -> {
-                        return "[" + rp.getRpName() + ", "
-                                + rp.getRpType() + ", "
-                                + rp.getAction() + ", "
-                                + (rp.getEPerson() == null ? null : rp.getEPerson().getEmail()) + ", "
-                                + (rp.getGroup() == null ? null : rp.getGroup().getName()) + ", "
-                                + (rp.getStartDate() == null ? null : rp.getStartDate().toString()) + ", "
-                                + (rp.getEndDate() == null ? null : rp.getEndDate().toString()) + "]";
-                    })
-                    .collect(Collectors.joining(";"));
-
             resourcePolicyService.removePolicies(context, dso, type, Constants.READ);
-
-            if (dso.getType() != Constants.BITSTREAM && dso.getType() != Constants.ITEM) {
-                return;
-            }
-
-            if (dso.getType() == Constants.ITEM) {
-                // Add suitable provenance
-                Item item = (Item) dso;
-                // Build some provenance data.
-                String msg = "Resource policies (" + (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
-                        + ") of item (" + item.getID() + ") were removed";
-                addProvenanceMetadata(context, item, msg);
-            }
-
-            if (dso.getType() == Constants.BITSTREAM) {
-                // Add suitable provenance
-                Bitstream bitstream = (Bitstream) dso;
-                ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
-                List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
-                if (items.isEmpty()) {
-                    return;
-                }
-                Item item = items.get(0);
-                // Build some provenance data while we're at it.
-                String msg = "Resource policies (" + (Objects.equals(resPoliciesStr, "") ? "empty" : resPoliciesStr)
-                        + ") of bitstream (" + bitstream.getID() + ") were removed";
-                addProvenanceMetadata(context, item, msg);
-            }
         } catch (SQLException | AuthorizeException e) {
             throw new BulkAccessControlException(e);
         }
-    }
-
-    /**
-     * Adds provenance metadata to an item, documenting changes made to its resource policies
-     * and bitstream. This method records the user who performed the action, the action taken,
-     * and the timestamp of the action. It also appends a bitstream provenance message generated
-     * by the InstallItemService.
-     *
-     * @param context the current DSpace context, which provides details about the current user
-     *                and authorization information.
-     * @param item    the DSpace item to which the provenance metadata should be added.
-     * @param msg     a custom message describing the action taken on the resource policies.
-     * @throws SQLException         if there is a database access error while updating the item.
-     * @throws AuthorizeException   if the current user is not authorized to add metadata to the item.
-     */
-    protected void addProvenanceMetadata(Context context, Item item, String msg)
-            throws SQLException, AuthorizeException {
-        InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
-        String timestamp = DCDate.getCurrent().toString();
-        EPerson e = context.getCurrentUser();
-        StringBuilder prov = new StringBuilder();
-        prov.append(msg).append(" by ").append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
-                .append(timestamp).append("\n");
-        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                "description", "provenance", "en", prov.toString());
-        //Update item in DB
-        itemService.update(context, item);
     }
 
     /**
@@ -665,14 +593,6 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
      */
     private void setBitstreamPolicies(Bitstream bitstream, Item item, BulkAccessControlInput accessControl)
         throws SQLException, AuthorizeException {
-
-        String accConditionsScr = accessControl
-                .getBitstream()
-                .getAccessConditions()
-                .stream()
-                .map(accessCondition -> accessCondition.getName())
-                .collect(Collectors.joining(";"));
-
         accessControl.getBitstream()
                      .getAccessConditions()
                      .forEach(accessCondition -> createResourcePolicy(bitstream, accessCondition,
@@ -680,15 +600,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
         itemService.adjustBitstreamPolicies(context, item, item.getOwningCollection(), bitstream);
         mediaFilterService.updatePoliciesOfDerivativeBitstreams(context, item, bitstream);
-
-        if (accConditionsScr.isEmpty()) {
-            return;
-        }
-
-        // Add suitable provenance
-        String msg = "Access condition (" + accConditionsScr + ") was added to bitstream (" +
-                bitstream.getID() + ") of item";
-        addProvenanceMetadata(context, item, msg)   ;
+        provenanceService.setBitstreaPolicies(context, bitstream, item, accessControl);
     }
 
     /**
