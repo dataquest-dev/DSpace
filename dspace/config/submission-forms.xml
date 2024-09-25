@@ -235,7 +235,7 @@
                     <repeatable>false</repeatable>
                     <label>Language</label>
                     <type-bind>corpus,lexicalConceptualResource,languageDescription</type-bind>
-                    <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
+                    <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
                     <hint>Select the language of the main content of the item. If the language does not appear in the
                         list, please select 'Other'. If the content does not really have a language (for example, if it
                         is a dataset or an image) please select 'N/A'.
@@ -251,7 +251,7 @@
                     <repeatable>true</repeatable>
                     <label>Language</label>
                     <type-bind>toolService</type-bind>
-                    <input-type>onebox</input-type>
+                    <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
                     <hint>If the tool/service is language dependent, select the appropriate language(s). Otherwise leave the field empty. Multiple languages are possible. Start typing the language and use autocomplete form that will appear.</hint>
                     <required/>
                 </field>
@@ -1757,7 +1757,7 @@
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
                     <label>The type of the resource</label>
-                    <input-type>autocomplete</input-type>
+                    <input-type autocomplete-custom="solr-dctype_ac">autocomplete</input-type>
                     <hint>The type should be different from what you have
                         entered in the first step. Examples: photo or painting for IMAGE, book or letter for TEXT, etc.</hint>
                     <required>Type is required</required>
@@ -1784,7 +1784,7 @@
                     <repeatable>true</repeatable>
                     <label>Pick the languages of the TEXT</label>
                     <type-bind>TEXT</type-bind>
-                    <input-type>autocomplete</input-type>
+                    <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
                     <hint>Select the language of the main content of the item. Multiple languages are possible. Start
                         typing the language and use autocomplete form that will appear if applicable. Better to list all the languages then to use the 'mul' iso code (if there are too many, contact support).
                     </hint>
@@ -1799,7 +1799,7 @@
                     <repeatable>true</repeatable>
                     <label>Language</label>
                     <type-bind>VIDEO,IMAGE,SOUND,3D</type-bind>
-                    <input-type>autocomplete</input-type>
+                    <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
                     <hint>Optionally, select the language of the main content
                         of the item. Multiple languages are possible. Start
                         typing the language and use autocomplete form that will appear if applicable. Better to list all the languages then to use the 'mul' iso code (if there are too many, contact support).
@@ -2049,7 +2049,7 @@
                     <dc-qualifier>iso</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Language</label>
-                    <input-type>autocomplete</input-type>
+                    <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
                     <hint>Select the language of the main content of the item. Multiple languages are possible. Start
                         typing the language and use autocomplete form that will appear if applicable. Better to list all the languages then to use the 'mul' iso code (if there are too many, contact support).
                     </hint>
