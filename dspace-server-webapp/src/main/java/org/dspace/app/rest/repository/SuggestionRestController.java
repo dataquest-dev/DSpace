@@ -66,13 +66,18 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
     /**
      * Solr prefix for the autocompleteCustom parameter that define the source of the suggestions.
      */
-
     private static final String AUTOCOMPLETE_CUSTOM_SOLR_PREFIX = "solr-";
+
     /**
      * Json file prefix for the autocompleteCustom parameter that define the source of the suggestions.
      */
-
     private static final String AUTOCOMPLETE_CUSTOM_JSON_PREFIX = "json_static-";
+
+    /**
+     * Query parameter from the autocompleteCustom parameter that define specific query for the Solr search.
+     */
+    private static final String AUTOCOMPLETE_CUSTOM_SOLR_QUERY_PARAM = "query=";
+
     /**
      * Limit of suggestions that will be returned from the JSON file. The limit is used to prevent
      * the loading of a large amount of data from the JSON file.
@@ -101,28 +106,28 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
     public PagedModel<VocabularyEntryResource> filter(@Nullable HttpServletRequest request,
                                                       @Nullable Pageable optionalPageable,
                                                       @RequestParam(name = "autocompleteCustom", required = false)
-                                                      String autocompleteCustom,
+                                                        String autocompleteCustom,
                                                       @RequestParam(name = "searchValue", required = false)
-                                                          String searchValue,
+                                                        String searchValue,
                                                       PagedResourcesAssembler assembler) throws SearchServiceException {
         Pageable pageable = utils.getPageable(optionalPageable);
         List<VocabularyEntryRest> results;
         // Load suggestions from the specific source (Solr or JSON)
         if (autocompleteCustom.startsWith(AUTOCOMPLETE_CUSTOM_JSON_PREFIX)) {
             results = getSuggestions(autocompleteCustom, searchValue, AUTOCOMPLETE_CUSTOM_JSON_PREFIX);
-        } else if (!autocompleteCustom.startsWith(AUTOCOMPLETE_CUSTOM_SOLR_PREFIX)) {
-            results =  getSuggestions(autocompleteCustom, searchValue, AUTOCOMPLETE_CUSTOM_SOLR_PREFIX);
+        } else if (autocompleteCustom.startsWith(AUTOCOMPLETE_CUSTOM_SOLR_PREFIX)) {
+            results = getSuggestions(autocompleteCustom, searchValue, AUTOCOMPLETE_CUSTOM_SOLR_PREFIX);
         } else {
             log.warn("Cannot fetch suggestions for autocompleteCustom: {} with searching value: {}",
-                    autocompleteCustom, searchValue); ;
-            return null;
+                    autocompleteCustom, searchValue);
+            // Return empty list
+            results = new ArrayList<>(0);
         }
 
         // If no results are found, return null
         if (CollectionUtils.isEmpty(results)) {
             log.info("No suggestions found for autocompleteCustom: {} with searching value: {}",
                     autocompleteCustom, searchValue);
-            return null;
         }
 
         // Remove duplicates from the results
@@ -130,9 +135,11 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
                 .filter(Utils.distinctByKey(VocabularyEntryRest::getValue))
                 .collect(Collectors.toList());
 
+        // Remove `?query` from the autocompleteCustom parameter if it contains this specific query parameter
+        String autocompleteCustomWithoutQuery = updateAutocompleteAndQuery(autocompleteCustom, null);
         // Format the values according to the configuration
         finalResults = finalResults.stream()
-                .map(ver -> formatValue(ver, autocompleteCustom))
+                .map(ver -> formatValue(ver, autocompleteCustomWithoutQuery))
                 .collect(Collectors.toList());
 
         // Create a page with the final results. The page is needed for the better processing in the frontend.
@@ -211,6 +218,8 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
         Context context = obtainContext();
         // Create a DiscoverQuery object that will be used to search for the results.
         DiscoverQuery discoverQuery = new DiscoverQuery();
+        // Process the custom query if it contains the specific query parameter `?query=`
+        autocompleteCustom = updateAutocompleteAndQuery(autocompleteCustom, discoverQuery);
         // TODO - search facets and process facet results instead of indexable objects
         discoverQuery.setMaxResults(500);
         // return only metadata field values
@@ -223,6 +232,16 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
 
         // Iterate over all indexable objects in the search result. We need indexable object to get search documents.
         // Each search document contains values from the specific index.
+        processSolrSearchResults(searchResult, autocompleteCustom, searchValue, results);
+
+        return results;
+    }
+
+    /**
+     * Process the search results from Solr. The search results are processed and filtered according to the searchValue.
+     */
+    private void processSolrSearchResults(DiscoverResult searchResult, String autocompleteCustom, String searchValue,
+                                          List<VocabularyEntryRest> results) {
         searchResult.getIndexableObjects().forEach(object -> {
             if (!(object instanceof IndexableItem)) {
                 return;
@@ -248,8 +267,29 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
                 });
             });
         });
+    }
 
-        return results;
+    /**
+     * Process the custom query if it contains the specific query parameter `?query=`.
+     * The query is processed and set to the DiscoverQuery object.
+     * The method returns the part before the query parameter as the new autocompleteCustom parameter.
+     * @param discoverQuery could be null
+     */
+    private String updateAutocompleteAndQuery(String autocompleteCustom, DiscoverQuery discoverQuery) {
+        if (!autocompleteCustom.contains(AUTOCOMPLETE_CUSTOM_SOLR_QUERY_PARAM)) {
+            return autocompleteCustom;
+        }
+
+        // Query parameter starts with `?`
+        String[] parts = autocompleteCustom.split("\\?" + AUTOCOMPLETE_CUSTOM_SOLR_QUERY_PARAM);
+        if (parts.length == 2) {
+            if (discoverQuery != null) {
+                discoverQuery.setQuery(parts[1]);
+            }
+            return parts[0];  // Return the part before "?query="
+        }
+
+        return autocompleteCustom;
     }
 
     /**

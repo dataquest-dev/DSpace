@@ -34,7 +34,10 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
 
     private Item publicItem;
     private Collection col;
-    private final String SUBJECT_VALUE = "test subject";
+    private final String SUBJECT_SEARCH_VALUE = "test subject";
+    private final String LANGUAGE_SEARCH_VALUE_KEY = "Alumu-Tesu";
+    private final String LANGUAGE_SEARCH_VALUE_VALUE = "aab";
+    private final String ITEM_TITLE = "Item title";
 
     @Before
     public void setup() throws Exception {
@@ -48,7 +51,8 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
 
         // 2. Create item and add it to the collection
         publicItem = ItemBuilder.createItem(context, col)
-                .withMetadata("dc", "subject", null, SUBJECT_VALUE )
+                .withTitle(ITEM_TITLE)
+                .withMetadata("dc", "subject", null, SUBJECT_SEARCH_VALUE )
                 .build();
 
         context.restoreAuthSystemState();
@@ -61,13 +65,13 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
     public void testSearchBySubjectAcSolrIndex() throws Exception {
         // substring = find only by the `test` value
         getClient().perform(get("/api/suggestions?autocompleteCustom=solr-subject_ac&searchValue=" +
-                        SUBJECT_VALUE.substring(0, 4)))
+                        SUBJECT_SEARCH_VALUE.substring(0, 4)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$._embedded.vocabularyEntryRests", Matchers.hasItem(
                         allOf(
-                                hasJsonPath("$.display", is(SUBJECT_VALUE)),
-                                hasJsonPath("$.value", is(SUBJECT_VALUE)),
+                                hasJsonPath("$.display", is(SUBJECT_SEARCH_VALUE)),
+                                hasJsonPath("$.value", is(SUBJECT_SEARCH_VALUE)),
                                 hasJsonPath("$.type", is("vocabularyEntry"))
                 ))));
     }
@@ -80,6 +84,70 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
         // substring = find only by the `test` value
         getClient().perform(get("/api/suggestions?autocompleteCustom=solr-subject_ac&searchValue=" +
                         "no such subject"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.page.totalElements", is(0)))
+                .andExpect(jsonPath("$._embedded.vocabularyEntryRests").doesNotExist());
+    }
+
+    /**
+     * Should return suggestions from the JSON file
+     */
+    @Test
+    public void testSearchByLanguageFromJson() throws Exception {
+        getClient().perform(get("/api/suggestions?autocompleteCustom=json_static-iso_langs.json&searchValue=" +
+                        LANGUAGE_SEARCH_VALUE_KEY))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.vocabularyEntryRests", Matchers.hasItem(
+                        allOf(
+                                hasJsonPath("$.display", is(LANGUAGE_SEARCH_VALUE_KEY)),
+                                hasJsonPath("$.value", is(LANGUAGE_SEARCH_VALUE_VALUE)),
+                                hasJsonPath("$.type", is("vocabularyEntry"))
+                        ))));
+    }
+
+    /**
+     * Should return no suggestions from the JSON file
+     */
+    @Test
+    public void testSearchByLanguageFromJson_noResults() throws Exception {
+        getClient().perform(get("/api/suggestions?autocompleteCustom=json_static-iso_langs.json&searchValue=" +
+                        "no such language"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.page.totalElements", is(0)))
+                .andExpect(jsonPath("$._embedded.vocabularyEntryRests").doesNotExist());
+    }
+
+    /**
+     * Should return suggestions from the solr `title_ac` index.
+     * Compose specific query from the definition and the search value.
+     */
+    @Test
+    public void testSearchBySpecificQueryFromSolr() throws Exception {
+        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-title_ac?query=title_ac:**&searchValue=" +
+                        ITEM_TITLE.substring(0, 4)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.vocabularyEntryRests", Matchers.hasItem(
+                        allOf(
+                                hasJsonPath("$.display", is(ITEM_TITLE)),
+                                hasJsonPath("$.value", is(ITEM_TITLE)),
+                                hasJsonPath("$.type", is("vocabularyEntry"))
+                        ))));
+    }
+
+    /**
+     * Should return suggestions from the solr `title_ac` index.
+     * Compose specific query from the definition and the search value.
+     */
+    @Test
+    public void testSearchBySpecificQueryFromSolr_noresults() throws Exception {
+        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-title_ac?query=title_ac:**&searchValue=" +
+                        "no such title"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$.page.totalElements", is(0)))
