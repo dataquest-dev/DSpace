@@ -102,7 +102,8 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
                                                       @Nullable Pageable optionalPageable,
                                                       @RequestParam(name = "autocompleteCustom", required = false)
                                                       String autocompleteCustom,
-                                                      @RequestParam(name = "searchValue", required = false) String searchValue,
+                                                      @RequestParam(name = "searchValue", required = false)
+                                                          String searchValue,
                                                       PagedResourcesAssembler assembler) throws SearchServiceException {
         Pageable pageable = utils.getPageable(optionalPageable);
         List<VocabularyEntryRest> results;
