@@ -57,9 +57,26 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
 
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(SuggestionRestController.class);
 
+
+    /**
+     * Prefix for the configuration that defines the separator for the autocompleteCustom parameter.
+     */
     private static final String AUTOCOMPLETE_CUSTOM_CFG_FORMAT_PREFIX = "autocomplete.custom.separator.";
+
+    /**
+     * Solr prefix for the autocompleteCustom parameter that define the source of the suggestions.
+     */
+
     private static final String AUTOCOMPLETE_CUSTOM_SOLR_PREFIX = "solr-";
+    /**
+     * Json file prefix for the autocompleteCustom parameter that define the source of the suggestions.
+     */
+
     private static final String AUTOCOMPLETE_CUSTOM_JSON_PREFIX = "json_static-";
+    /**
+     * Limit of suggestions that will be returned from the JSON file. The limit is used to prevent
+     * the loading of a large amount of data from the JSON file.
+     */
     private static final int JSON_SUGGESTIONS_LIMIT = 8;
 
     @Autowired
@@ -68,23 +85,80 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
     @Autowired
     private ConfigurationService configurationService;
 
+    /**
+     * Map that contains loaded JSON suggestions. The key is the autocompleteCustom parameter and the value is the
+     * loaded JSON data. The JSON data is loaded only once and stored in the map for further use.
+     */
     Map<String, JsonNode> jsonSuggestions = new HashMap<>();
 
-    private List<VocabularyEntryRest> getSuggestions(String autocompleteCustom, String searchValue, String prefix) {
-        String normalizedAutocompleteCustom = this.removeAutocompleteCustomPrefix(prefix, autocompleteCustom);
+    /**
+     * Returns a list of VocabularyEntryRest objects that contain values that contain searchValue.
+     * The search is performed on the specific index or a specific json file that is defined
+     * by the autocompleteCustom parameter.
+     */
+    @PreAuthorize("permitAll()")
+    @RequestMapping(method = RequestMethod.GET)
+    public PagedModel<VocabularyEntryResource> filter(@Nullable HttpServletRequest request,
+                                                      @Nullable Pageable optionalPageable,
+                                                      @RequestParam(name = "autocompleteCustom", required = false)
+                                                      String autocompleteCustom,
+                                                      @RequestParam(name = "searchValue", required = false) String searchValue,
+                                                      PagedResourcesAssembler assembler) throws SearchServiceException {
+        Pageable pageable = utils.getPageable(optionalPageable);
+        List<VocabularyEntryRest> results;
+        // Load suggestions from the specific source (Solr or JSON)
+        if (autocompleteCustom.startsWith(AUTOCOMPLETE_CUSTOM_JSON_PREFIX)) {
+            results = getSuggestions(autocompleteCustom, searchValue, AUTOCOMPLETE_CUSTOM_JSON_PREFIX);
+        } else if (!autocompleteCustom.startsWith(AUTOCOMPLETE_CUSTOM_SOLR_PREFIX)) {
+            results =  getSuggestions(autocompleteCustom, searchValue, AUTOCOMPLETE_CUSTOM_SOLR_PREFIX);
+        } else {
+            log.warn("Cannot fetch suggestions for autocompleteCustom: {} with searching value: {}",
+                    autocompleteCustom, searchValue); ;
+            return null;
+        }
+
+        // If no results are found, return null
+        if (CollectionUtils.isEmpty(results)) {
+            log.info("No suggestions found for autocompleteCustom: {} with searching value: {}",
+                    autocompleteCustom, searchValue);
+            return null;
+        }
+
+        // Remove duplicates from the results
+        List<VocabularyEntryRest> finalResults = results.stream()
+                .filter(Utils.distinctByKey(VocabularyEntryRest::getValue))
+                .collect(Collectors.toList());
+
+        // Format the values according to the configuration
+        finalResults = finalResults.stream()
+                .map(ver -> formatValue(ver, autocompleteCustom))
+                .collect(Collectors.toList());
+
+        // Create a page with the final results. The page is needed for the better processing in the frontend.
+        Page<VocabularyEntryRest> resultsPage = new PageImpl<>(finalResults, pageable, finalResults.size());
+        PagedModel<VocabularyEntryResource> response = assembler.toModel(resultsPage);
+        return response;
+    }
+
+    /**
+     * Returns a list of VocabularyEntryRest objects which contain values with searching value.
+     * The search is performed on the specific index or json file that is defined by the autocompleteCustom parameter.
+     */
+    private List<VocabularyEntryRest> getSuggestions(String autocompleteCustom, String searchValue, String prefix)
+            throws SearchServiceException {
+        // Remove the prefix from the autocompleteCustom parameter
+        String normalizedAutocompleteCustom = removeAutocompleteCustomPrefix(prefix, autocompleteCustom);
+        // Normalize the search value - remove leading and trailing whitespaces
         String normalizedSearchValue = searchValue.trim();
         // Create a list of VocabularyEntryRest objects that will be filtered from duplicate values and returned
         // as a response.
         List<VocabularyEntryRest> results = new ArrayList<>();
 
         if (prefix.equals(AUTOCOMPLETE_CUSTOM_SOLR_PREFIX)) {
-            try {
-                results = loadSuggestionsFromSolr(normalizedAutocompleteCustom, normalizedSearchValue, results);
-            } catch (SearchServiceException e) {
-                e.printStackTrace();
-            }
+            // Load suggestions from Solr
+            results = loadSuggestionsFromSolr(normalizedAutocompleteCustom, normalizedSearchValue, results);
         } else if (prefix.equals(AUTOCOMPLETE_CUSTOM_JSON_PREFIX)) {
-
+            // Load suggestions from JSON
             results = loadSuggestionsFromJson(normalizedAutocompleteCustom, normalizedSearchValue, results);
         }
 
@@ -92,16 +166,22 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
 
     }
 
+    /**
+     * Load suggestions from the JSON file. The JSON file is loaded only once and stored in the map for further use.
+     * The search is performed on the specific key in the JSON file. The key is the autocompleteCustom parameter.
+     */
     private List<VocabularyEntryRest> loadSuggestionsFromJson(String autocompleteCustom, String searchValue,
                                                    List<VocabularyEntryRest> results) {
         try {
-            // Load the JSON data
+            // Load the JSON data from the file.
             JsonNode jsonData;
             if (!jsonSuggestions.containsKey(autocompleteCustom)) {
+                // Load the JSON data from the file and store it in the map for further use.
                 JsonNode loadedJsonSuggestions = loadJsonFromFile(autocompleteCustom);
                 jsonData = loadedJsonSuggestions;
                 jsonSuggestions.put(autocompleteCustom, loadedJsonSuggestions);
             } else {
+                // Get the JSON data from the map
                 jsonData = jsonSuggestions.get(autocompleteCustom);
             }
 
@@ -120,6 +200,10 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
         return results;
     }
 
+    /**
+     * Load suggestions from Solr. The search is performed on the specific index that is defined by the
+     * autocompleteCustom parameter.
+     */
     private List<VocabularyEntryRest> loadSuggestionsFromSolr(String autocompleteCustom, String searchValue,
                                                    List<VocabularyEntryRest> results)
             throws SearchServiceException {
@@ -167,7 +251,9 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
         return results;
     }
 
-    // Load JSON from resources and return as JsonNode
+    /**
+     * Load JSON data from the file. The JSON data is loaded from the resources' folder.
+     */
     public JsonNode loadJsonFromFile(String filePath) throws IOException {
         // Load the file from the resources folder
         ClassPathResource resource = new ClassPathResource(filePath);
@@ -177,10 +263,12 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
         return objectMapper.readTree(resource.getInputStream());
     }
 
-    // Search by key in the loaded JSON data
-    public List<VocabularyEntryRest> searchByKey(JsonNode jsonNode, String searchKey, List<VocabularyEntryRest> results) {
-//        List<String> matchingItems = new ArrayList<>();
-
+    /**
+     * Search for the specific key in the JSON object. The search is performed on the specific key in the JSON object.
+     * The key is the autocompleteCustom parameter.
+     */
+    public List<VocabularyEntryRest> searchByKey(JsonNode jsonNode, String searchKey,
+                                                 List<VocabularyEntryRest> results) {
         // Iterate over all fields (keys) in the JSON object
         Iterator<String> fieldNames = jsonNode.fieldNames();
         while (fieldNames.hasNext() && results.size() < JSON_SUGGESTIONS_LIMIT) {
@@ -196,50 +284,6 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
             }
         }
         return results;
-    }
-
-    /**
-     * Returns a list of VocabularyEntryRest objects that contain values that contain searchValue.
-     * The search is performed on the specific index that is defined by the autocompleteCustom parameter.
-     */
-    @PreAuthorize("permitAll()")
-    @RequestMapping(method = RequestMethod.GET)
-    public PagedModel<VocabularyEntryResource> filter(@Nullable HttpServletRequest request,
-                                            @Nullable Pageable optionalPageable,
-                                            @RequestParam(name = "autocompleteCustom", required = false)
-                                                          String autocompleteCustom,
-                                            @RequestParam(name = "searchValue", required = false) String searchValue,
-                                            PagedResourcesAssembler assembler) throws SearchServiceException {
-        Pageable pageable = utils.getPageable(optionalPageable);
-        List<VocabularyEntryRest> results = null;
-        if (autocompleteCustom.startsWith(AUTOCOMPLETE_CUSTOM_JSON_PREFIX)) {
-            results = getSuggestions(autocompleteCustom, searchValue, AUTOCOMPLETE_CUSTOM_JSON_PREFIX);
-        } else if (!autocompleteCustom.startsWith(AUTOCOMPLETE_CUSTOM_SOLR_PREFIX)) {
-            results =  getSuggestions(autocompleteCustom, searchValue, AUTOCOMPLETE_CUSTOM_SOLR_PREFIX);
-        } else {
-            // TODO some log and return some response entity
-            return null;
-        }
-
-        if (CollectionUtils.isEmpty(results)) {
-            // TODO some log and return some response entity
-            return null;
-        }
-
-        // Remove duplicates from the results
-        List<VocabularyEntryRest> finalResults = results.stream()
-                .filter(Utils.distinctByKey(VocabularyEntryRest::getValue))
-                .collect(Collectors.toList());
-
-        // Format the values according to the configuration
-        finalResults = finalResults.stream()
-                .map(ver -> formatValue(ver, autocompleteCustom))
-                .collect(Collectors.toList());
-
-        // Create a page with the final results. The page is needed for the better processing in the frontend.
-        Page<VocabularyEntryRest> resultsPage = new PageImpl<>(finalResults, pageable, finalResults.size());
-        PagedModel<VocabularyEntryResource> response = assembler.toModel(resultsPage);
-        return response;
     }
 
     /**
@@ -269,6 +313,9 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
         return ver;
     }
 
+    /**
+     * Remove the prefix from the autocompleteCustom parameter. E.g. remove "solr-" or "json_static-".
+     */
     private String removeAutocompleteCustomPrefix(String prefix, String autocompleteCustom) {
         return autocompleteCustom.replace(prefix, "");
     }
