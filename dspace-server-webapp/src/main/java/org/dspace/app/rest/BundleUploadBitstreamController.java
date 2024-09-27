@@ -27,14 +27,9 @@ import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bundle;
-import org.dspace.content.DCDate;
-import org.dspace.content.Item;
-import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.service.BundleService;
-import org.dspace.content.service.InstallItemService;
-import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
+import org.dspace.core.ProvenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ControllerUtils;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -79,16 +74,13 @@ public class BundleUploadBitstreamController {
     private BundleService bundleService;
 
     @Autowired
-    private ItemService itemService;
-
-    @Autowired
-    private InstallItemService installItemService;
-
-    @Autowired
     private BundleRestRepository bundleRestRepository;
 
     @Autowired
     private ConverterService converter;
+
+    @Autowired
+    private ProvenanceService provenanceService;
 
     /**
      * Method to upload a Bitstream to a Bundle with the given UUID in the URL. This will create a Bitstream with the
@@ -123,26 +115,11 @@ public class BundleUploadBitstreamController {
                       e);
             throw new UnprocessableEntityException("The InputStream from the file couldn't be read", e);
         }
-
-        // We do this before calling `updateBitstream` because that function calls `context.commit`
-        // Add suitable provenance
-        EPerson e = context.getCurrentUser();
-        String timestamp = DCDate.getCurrent().toString();
-        Item item = bundle.getItems().get(0);
-
-        StringBuilder prov = new StringBuilder();
-        prov.append("Item was added bitstream to bundle (").append(bundle.getID())
-                .append(") by ").append(e.getFullName()).append(" (").append(e.getEmail())
-                .append(") on ").append(timestamp).append("\n");
         try {
-            prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-            itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                    "description", "provenance", "en", prov.toString());
-            //Update item in DB
-            itemService.update(context, item);
+            provenanceService.uploadBitstream(context, bundle);
         } catch (SQLException ex) {
             throw new RuntimeException("SQLException in BundleUploadBitstreamConverter.uploadBitstream when " +
-                    "adding new provenance metadata.", ex);
+                "adding new provenance metadata.", ex);
         } catch (AuthorizeException ex) {
             throw new RuntimeException("AuthorizeException in BundleUploadBitstreamConverter.uploadBitstream " +
                     "when adding new provenance metadata.", ex);

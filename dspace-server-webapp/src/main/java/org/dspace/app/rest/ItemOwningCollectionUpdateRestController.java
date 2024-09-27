@@ -35,6 +35,7 @@ import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -56,8 +57,6 @@ public class ItemOwningCollectionUpdateRestController {
 
     @Autowired
     ItemService itemService;
-    @Autowired
-    InstallItemService installItemService;
 
     @Autowired
     CollectionService collectionService;
@@ -70,6 +69,9 @@ public class ItemOwningCollectionUpdateRestController {
 
     @Autowired
     Utils utils;
+
+    @Autowired
+    ProvenanceService provenanceService;
 
     /**
      * This method will update the owning collection of the item that correspond to the provided item uuid, effectively
@@ -131,26 +133,7 @@ public class ItemOwningCollectionUpdateRestController {
                                 final boolean inheritPolicies)
             throws SQLException, IOException, AuthorizeException {
         itemService.move(context, item, currentCollection, targetCollection, inheritPolicies);
-
-        // Add suitable provenance
-        String timestamp = DCDate.getCurrent().toString();
-        EPerson e = context.getCurrentUser();
-        StringBuilder prov = new StringBuilder();
-
-        prov.append("Item was moved from collection (")
-                .append(currentCollection.getID()).append(") to different collection by ").append(e.getFullName())
-                .append(" (").append(e.getEmail()).append(") on ").append(timestamp).append("\n");
-
-        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                "description", "provenance", "en", prov.toString());
-        // Update item in DB
-        // Because a user can move an item without authorization turn off authorization
-        context.turnOffAuthorisationSystem();
-        itemService.update(context, item);
-        context.restoreAuthSystemState();
-
+        provenanceService.moveItem(context, item, currentCollection);
         // Necessary because Controller does not pass through general RestResourceController, and as such does not do
         // its commit in DSpaceRestRepository.createAndReturn() or similar
         context.commit();

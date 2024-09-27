@@ -466,9 +466,6 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
      */
     private void setItemPolicies(Item item, BulkAccessControlInput accessControl)
         throws SQLException, AuthorizeException {
-
-        //String resPoliciesStr = extractAccessConditions(accessControl.getItem().getAccessConditions());
-
         accessControl
             .getItem()
             .getAccessConditions()
@@ -477,10 +474,6 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
         itemService.adjustItemPolicies(context, item, item.getOwningCollection(), false);
 
-//        if (resPoliciesStr.isEmpty()) {
-//            String msg = "Access condition (" + resPoliciesStr + ") was added to item";
-//            addProvenanceMetadata(context, item, msg);
-//        }
         provenanceService.setItemPolicies(context, item, accessControl);
     }
 
@@ -600,7 +593,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
         itemService.adjustBitstreamPolicies(context, item, item.getOwningCollection(), bitstream);
         mediaFilterService.updatePoliciesOfDerivativeBitstreams(context, item, bitstream);
-        provenanceService.setBitstreaPolicies(context, bitstream, item, accessControl);
+        provenanceService.setBitstreamPolicies(context, bitstream, item, accessControl);
     }
 
     /**

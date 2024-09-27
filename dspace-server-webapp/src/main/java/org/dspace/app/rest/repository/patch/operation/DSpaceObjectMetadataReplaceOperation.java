@@ -49,19 +49,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extends PatchOperation<R> {
-    private static final Logger log = LogManager.getLogger();
-
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;
-
-    @Autowired
-    InstallItemService installItemService;
-
-    @Autowired
-    ItemService itemService;
-
-    @Autowired
-    ClarinItemService clarinItemService;
 
     @Override
     public R perform(Context context, R resource, Operation operation) throws SQLException {
@@ -185,16 +174,8 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                 existingMdv.setLanguage(metadataValue.getLanguage());
                 existingMdv.setValue(metadataValue.getValue());
                 dsoService.setMetadataModified(dso);
+                provenanceService.replaceMetadata(context, dso, metadataField, oldMtdVal);
 
-                if (dso.getType() != Constants.ITEM) {
-                    return;
-                }
-
-                // Add suitable provenance
-                Item item = (Item) dso;
-                String msg = "metadata (" + metadataField.toString()
-                        .replace('_', '.') + ": " + oldMtdVal + ")" +  " was updated";
-                addProvenanceMetadata(context, item, msg);
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
             }
@@ -246,30 +227,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                     existingMdv.setValue(valueMdProperty);
                 }
                 dsoService.setMetadataModified(dso);
-
-                if (dso.getType() != Constants.BITSTREAM) {
-                    return;
-                }
-
-                // Add suitable provenance
-                Bitstream bitstream = (Bitstream) dso;
-                String timestamp = DCDate.getCurrent().toString();
-                EPerson e = context.getCurrentUser();
-                List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
-                // The bitstream is assigned only into one Item.
-                Item item = null;
-                if (CollectionUtils.isEmpty(items)) {
-                    log.warn("Bitstream (" + dso.getID() + ") is not assigned to any item.");
-                    return;
-                }
-                item = items.get(0);
-                String msg = "bitstream (" + bitstream.getName() + ": " +
-                        bitstream.getSizeBytes() + " bytes, checksum: " +
-                        bitstream.getChecksum() + " (" +
-                        bitstream.getChecksumAlgorithm() + ")" + ") metadata (" +
-                        metadataField.toString().replace('_', '.') + ": " + oldMtdVal + ") was updated " +
-                        "by " + e.getFullName() + "(" + e.getEmail() + ") on " + timestamp;
-                addProvenanceMetadata(context, item, msg);
+                provenanceService.replaceMetadataSingle(context, dso, metadataField, oldMtdVal);
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
             }

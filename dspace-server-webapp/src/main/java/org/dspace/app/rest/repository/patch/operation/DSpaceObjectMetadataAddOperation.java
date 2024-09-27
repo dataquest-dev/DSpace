@@ -49,15 +49,6 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;
 
-    @Autowired
-    InstallItemService installItemService;
-
-    @Autowired
-    ItemService itemService;
-
-    @Autowired
-    ClarinItemService clarinItemService;
-
     @Override
     public R perform(Context context, R resource, Operation operation) throws SQLException {
         DSpaceObjectService dsoService = ContentServiceFactory.getInstance().getDSpaceObjectService(resource);
@@ -90,40 +81,10 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
             dsoService.addAndShiftRightMetadata(context, dso, metadataField.getMetadataSchema().getName(),
                     metadataField.getElement(), metadataField.getQualifier(), metadataValue.getLanguage(),
                     metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence(), indexInt);
-
-            if (dso.getType() != Constants.ITEM && dso.getType() != Constants.BITSTREAM) {
-                return;
-            }
-
-            if (dso.getType() == Constants.ITEM) {
-                // Add suitable provenance
-                Item item = (Item) dso;
-                String msg = "metadata (" + metadataField.toString()
-                        .replace('_', '.') + ") was added";
-                addProvenanceMetadata(context, item, msg);
-            }
-
-            if (dso.getType() == Constants.BITSTREAM) {
-                // Add suitable provenance
-                Bitstream bitstream = (Bitstream) dso;
-                List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
-                // The bitstream is assigned only into one Item.
-                Item item = null;
-                if (CollectionUtils.isEmpty(items)) {
-                    log.warn("Bitstream (" + dso.getID() + ") is not assigned to any item.");
-                    return;
-                }
-                item = items.get(0);
-                String msg = "metadata (" +
-                        metadataField.toString().replace('_', '.') + ") was added"
-                        + " to bitstream (" + bitstream.getName() + ": " + bitstream.getSizeBytes()
-                        + " bytes, checksum: " + bitstream.getChecksum() + " (" +
-                        bitstream.getChecksumAlgorithm() + ")";
-                addProvenanceMetadata(context, item, msg);
-            }
+            provenanceService.addMetadata(context, dso, metadataField);
         } catch (SQLException e) {
-            throw new DSpaceBadRequestException("SQLException in DspaceObjectMetadataAddOperation.add trying to add " +
-                    "metadata to dso.", e);
+                throw new DSpaceBadRequestException("SQLException in DspaceObjectMetadataAddOperation.add trying to add " +
+                        "metadata to dso.", e);
         } catch (AuthorizeException e) {
             throw new DSpaceBadRequestException(
                     "AuthorizeException in DspaceObjectMetadataAddOperation.add " +

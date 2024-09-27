@@ -54,15 +54,6 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;
 
-    @Autowired
-    InstallItemService installItemService;
-
-    @Autowired
-    private ClarinItemService clarinItemService;
-
-    @Autowired
-    private ItemService itemService;
-
     @Override
     public R perform(Context context, R resource, Operation operation) throws SQLException {
         DSpaceObjectService dsoService = ContentServiceFactory.getInstance().getDSpaceObjectService(resource);
@@ -87,36 +78,10 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
         metadataPatchUtils.checkMetadataFieldNotNull(metadataField);
         try {
             if (index == null) {
-                String oldMtdKey = null;
-                String oldMtdValue = null;
-                if (dso.getType() == Constants.BITSTREAM) {
-                    List<MetadataValue> mtd = dsoService.getMetadata(dso, metadataField.getMetadataSchema().getName(),
-                            metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
-                    if (!CollectionUtils.isEmpty(mtd)) {
-                        oldMtdKey = mtd.get(0).getMetadataField().getElement();
-                        oldMtdValue = mtd.get(0).getValue();
-                    }
-                }
+                provenanceService.removeMetadata(context, dso, metadataField);
                 // remove all metadata of this type
                 dsoService.clearMetadata(context, dso, metadataField.getMetadataSchema().getName(),
                         metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
-                if (dso.getType() != Constants.BITSTREAM) {
-                    return;
-                }
-                // Add suitable provenance
-                Bitstream bitstream = (Bitstream) dso;
-                List<Item> items = clarinItemService.findByBitstreamUUID(context, dso.getID());
-                // The bitstream is assigned only into one Item.
-                Item item = null;
-                if (CollectionUtils.isEmpty(items)) {
-                    log.warn("Bitstream (" + dso.getID() + ") is not assigned to any item.");
-                    return;
-                }
-                item = items.get(0);
-                String msg = " metadata (" + oldMtdKey + ": " + oldMtdValue + ") was deleted from bitstream (" +
-                        bitstream.getName() + ": " + bitstream.getSizeBytes() + " bytes, checksum: " +
-                        bitstream.getChecksum() + " (" + bitstream.getChecksumAlgorithm() + "))";
-                addProvenanceMetadata(context, item, msg);
             } else {
                 // remove metadata at index
                 List<MetadataValue> metadataValues = dsoService.getMetadata(dso,
@@ -125,26 +90,10 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                 int indexInt = Integer.parseInt(index);
                 if (indexInt >= 0 && metadataValues.size() > indexInt
                         && metadataValues.get(indexInt) != null) {
-                    // Remember removed mtd
-                    String oldMtdKey = null;
-                    String oldMtdValue = null;
-                    if (dso.getType() == Constants.ITEM) {
-                        oldMtdKey = metadataValues.get(indexInt).getMetadataField().toString()
-                                .replace('_', '.');
-                        oldMtdValue = metadataValues.get(indexInt).getValue();
-                    }
+                    provenanceService.removeMetadataAtIndex(context, dso, metadataValues, indexInt);
                     // remove that metadata
                     dsoService.removeMetadataValues(context, dso,
                             Arrays.asList(metadataValues.get(indexInt)));
-
-                    if (dso.getType() != Constants.ITEM) {
-                        return;
-                    }
-
-                    // Add suitable provenance
-                    Item item = (Item) dso;
-                    String msg = "metadata (" + oldMtdKey + ": " + oldMtdValue + ") was deleted";
-                    addProvenanceMetadata(context, item, msg);
                 } else {
                     throw new UnprocessableEntityException("UnprocessableEntityException - There is no metadata of " +
                             "this type at that index");

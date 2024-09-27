@@ -33,6 +33,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -56,13 +57,13 @@ public class MappedCollectionRestController {
     private ItemService itemService;
 
     @Autowired
-    private InstallItemService installItemService;
-
-    @Autowired
     private CollectionService collectionService;
 
     @Autowired
     Utils utils;
+
+    @Autowired
+    ProvenanceService provenanceService;
 
     /**
      * This method will add an Item to a Collection. The Collection object is encapsulated in the request due to the
@@ -113,8 +114,7 @@ public class MappedCollectionRestController {
                 collectionService.update(context, collectionToMapTo);
 
                 // Add suitable provenance
-                String msg = "was mapped to collection";
-                addApprovedProvenance(context, item, msg, collectionToMapTo);
+                provenanceService.mappedItem(context, item, collectionToMapTo);
 
                 itemService.update(context, item);
             } else {
@@ -164,8 +164,7 @@ public class MappedCollectionRestController {
                 collectionService.update(context, collection);
 
                 // Add suitable provenance
-                String msg = "was deleted from mapped collection";
-                addApprovedProvenance(context, item, msg, collection);
+                provenanceService.deletedItemFromMapped(context,item, collection);
 
                 itemService.update(context, item);
                 context.commit();
@@ -173,17 +172,6 @@ public class MappedCollectionRestController {
         } else {
             throw new UnprocessableEntityException("Not a valid collection or item uuid.");
         }
-    }
-
-    public void addApprovedProvenance(Context context, Item item, String msg, Collection col) throws SQLException {
-        EPerson e = context.getCurrentUser();
-        String timestamp = DCDate.getCurrent().toString();
-        StringBuilder prov = new StringBuilder();
-        prov.append("Item ").append(msg).append(" (").append(col.getID()).append(") by ")
-                .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ").append(timestamp);
-        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(), "description",
-                "provenance", "en", prov.toString());
     }
 
     private void checkIfItemIsTemplate(Item item) {

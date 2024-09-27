@@ -42,12 +42,6 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
      */
     private static final String OPERATION_PATH_DISCOVERABLE = "/discoverable";
 
-    @Autowired
-    ItemService itemService;
-
-    @Autowired
-    InstallItemService installItemService;
-
     @Override
     public R perform(Context context, R object, Operation operation) {
         checkOperationValue(operation.getValue());
@@ -58,25 +52,9 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
                 throw new UnprocessableEntityException("A template item cannot be discoverable.");
             }
             item.setDiscoverable(discoverable);
-
-            // Add suitable provenance
-            EPerson e = context.getCurrentUser();
-            String timestamp = DCDate.getCurrent().toString();
-            // Build some provenance data.
-            StringBuilder prov = new StringBuilder();
-            prov.append("Item was made ").append( discoverable ? "" : "non-").append("discoverable by ")
-                    .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ").append(timestamp)
-                    .append("\n").append("Item was in collections:\n");
-            List<Collection> colls = item.getCollections();
-            for (Collection coll : colls) {
-                prov.append(coll.getName()).append(" (ID: ").append(coll.getID()).append(")\n");
-            }
-
             try {
-                prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-                itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(), "description",
-                        "provenance", "en", prov.toString());
-                itemService.update(context, item);
+                provenanceService.makeDiscoverable(context, item, discoverable);
+                //tu
             } catch (SQLException ex) {
                 throw new RuntimeException("SQLException occurred when item making " + (discoverable ? "" : "non-")
                         + "discoverable.", ex);

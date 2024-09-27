@@ -53,15 +53,6 @@ public class BitstreamRemoveOperation extends PatchOperation<Bitstream> {
     BitstreamService bitstreamService;
 
     @Autowired
-    ItemService itemService;
-
-    @Autowired
-    ClarinItemService clarinItemService;
-
-    @Autowired
-    InstallItemService installItemService;
-
-    @Autowired
     AuthorizeService authorizeService;
     public static final String OPERATION_PATH_BITSTREAM_REMOVE = "/bitstreams/";
 
@@ -73,49 +64,10 @@ public class BitstreamRemoveOperation extends PatchOperation<Bitstream> {
             throw new RESTBitstreamNotFoundException(bitstreamIDtoDelete);
         }
         authorizeBitstreamRemoveAction(context, bitstreamToDelete, Constants.DELETE);
-
         try {
-            List<Item> items = clarinItemService.findByBitstreamUUID(context, UUID.fromString(bitstreamIDtoDelete));
-            // The bitstream is assigned only into one Item.
-            Item item = null;
-            if (!CollectionUtils.isEmpty(items)) {
-                item = items.get(0);
-            }
-
-            // values of deleted bitstream
-            StringBuilder bitstreamMsg = new StringBuilder();
-            bitstreamMsg.append(bitstreamToDelete.getName()).append(": ")
-                    .append(bitstreamToDelete.getSizeBytes()).append(" bytes, checksum: ")
-                    .append(bitstreamToDelete.getChecksum()).append(" (")
-                    .append(bitstreamToDelete.getChecksumAlgorithm()).append(")\n");
-
-            //delete bitstream
+            provenanceService.deleteBitstream(context, bitstreamToDelete);
             bitstreamService.delete(context, bitstreamToDelete);
-
-            if (item == null) {
-                return null;
-            }
-
-            // Add suitable provenance
-            String timestamp = DCDate.getCurrent().toString();
-            EPerson e = context.getCurrentUser();
-
-            // Build some provenance data while we're at it.
-            StringBuilder prov = new StringBuilder();
-            prov.append("Item was deleted bitstream (").append(bitstreamMsg).append(") by ")
-                    .append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
-                    .append(timestamp).append("\n");
-            prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-
-            itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                    "description", "provenance", "en", prov.toString());
-             //Update item in DB
-            itemService.update(context, item);
-        } catch (AuthorizeException e) {
-            throw new DSpaceBadRequestException(
-                    "AuthorizeException in BitstreamRemoveOperation.perform while adding provenance metadata " +
-                            "about the deleted item's bitstream.", e);
-        } catch (IOException e) {
+        } catch (AuthorizeException | IOException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
         return null;

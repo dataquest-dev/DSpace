@@ -42,6 +42,7 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.dspace.eperson.EPerson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +105,7 @@ public class ItemAddBundleController {
     ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     @Autowired
-    InstallItemService installItemService;
+    ProvenanceService provenanceService;
 
     /**
      * Method to add a Bundle to an Item with the given UUID in the URL. This will create a Bundle with the
@@ -173,19 +174,11 @@ public class ItemAddBundleController {
             log.warn("Cannot find clarin license with id: " + licenseId + ". The old license will be detached, " +
                     "but the new one will not be attached.");
         }
+        provenanceService.editLicense(context, item, Objects.isNull(clarinLicense));
         List<Bundle> bundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
-        String oldLicense = null;
         for (Bundle clarinBundle : bundles) {
             List<Bitstream> bitstreamList = clarinBundle.getBitstreams();
             for (Bitstream bundleBitstream : bitstreamList) {
-                if (Objects.isNull(oldLicense)) {
-                    List<ClarinLicenseResourceMapping> mappings =
-                            this.clarinLicenseResourceMappingService.findByBitstreamUUID(
-                                    context, bundleBitstream.getID());
-                    if (!mappings.isEmpty()) {
-                        oldLicense = mappings.get(0).getLicense().getName();
-                    }
-                }
                 // in case bitstream ID exists in license table for some reason .. just remove it
                 this.clarinLicenseResourceMappingService.detachLicenses(context, bundleBitstream);
                 if (Objects.nonNull(clarinLicense)) {
@@ -198,22 +191,6 @@ public class ItemAddBundleController {
         if (Objects.nonNull(clarinLicense)) {
             clarinLicenseService.addLicenseMetadataToItem(context, clarinLicense, item);
         }
-
-        // Add suitable provenance
-        EPerson e = context.getCurrentUser();
-        String timestamp = DCDate.getCurrent().toString();
-        StringBuilder prov = new StringBuilder();
-
-        prov.append("License (").append(Objects.isNull(oldLicense) ? "empty" : oldLicense).append(") was ")
-                .append(Objects.isNull(clarinLicense) ? "removed" : Objects.isNull(oldLicense) ? "added" : "updated")
-                .append(" by ").append(e.getFullName()).append(" (").append(e.getEmail()).append(") on ")
-                .append(timestamp).append("\n");
-        prov.append(installItemService.getBitstreamProvenanceMessage(context, item));
-
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                "description", "provenance", "en", prov.toString());
-
-        // Update item in DB
         itemService.update(context, item);
         context.commit();
 
