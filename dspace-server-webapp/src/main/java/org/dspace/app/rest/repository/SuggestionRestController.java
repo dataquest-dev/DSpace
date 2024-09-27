@@ -282,6 +282,7 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
 
         // Query parameter starts with `?`
         String[] parts = autocompleteCustom.split("\\?" + AUTOCOMPLETE_CUSTOM_SOLR_QUERY_PARAM);
+        // 2 parts are expected - the part before the query parameter and after the query parameter
         if (parts.length == 2) {
             if (discoverQuery != null) {
                 discoverQuery.setQuery(parts[1]);
@@ -345,6 +346,7 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
 
         // Split the value by the separator and keep the correct - second part
         String[] parts = ver.getValue().split(separator);
+        // Check the length of the parts - the correct value is the second part
         if (parts.length > 1) {
             String formattedValue = parts[1].trim(); // The correct value is the second part
             ver.setValue(formattedValue);
