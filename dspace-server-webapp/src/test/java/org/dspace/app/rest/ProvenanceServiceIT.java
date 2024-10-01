@@ -11,18 +11,29 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.lucene.util.Bits;
+import org.checkerframework.checker.units.qual.A;
 import org.dspace.app.rest.matcher.CollectionMatcher;
 import org.dspace.app.rest.matcher.ItemMatcher;
+import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.app.rest.model.patch.RemoveOperation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.builder.BitstreamBuilder;
+import org.dspace.builder.BundleBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.StringContains;
@@ -31,9 +42,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 
 import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +56,11 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.nio.charset.Charset.defaultCharset;
+import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataDoesNotExist;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.data.rest.webmvc.RestMediaTypes.TEXT_URI_LIST_VALUE;
 import static org.springframework.http.MediaType.parseMediaType;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -57,6 +75,8 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ItemService itemService;
+    @Autowired
+    private BitstreamService bitstreamService;
 
     @Before
     public void setup() throws Exception {
@@ -66,6 +86,19 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                 .withName("Parent Community")
                 .build();
         collection = CollectionBuilder.createCollection(context, parentCommunity).build();
+    }
+
+    private String provenanceMetadataModified(String metadata) {
+        // Regex to match the date pattern
+        String datePattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
+        Pattern pattern = Pattern.compile(datePattern);
+        Matcher matcher = pattern.matcher(metadata);
+        String rspModifiedProvenance = metadata;
+        while (matcher.find()) {
+            String dateString = matcher.group(0);
+            rspModifiedProvenance = rspModifiedProvenance.replaceAll(dateString, "");
+        }
+        return rspModifiedProvenance;
     }
 
     private JsonNode preprocessingProvenance(String responseBody) throws JsonProcessingException {
@@ -106,6 +139,15 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         return item;
     }
 
+    private Bitstream createBitstream(Item item) throws SQLException, AuthorizeException, IOException {
+        context.turnOffAuthorisationSystem();
+        Bundle bundle = BundleBuilder.createBundle(context, item).withName("test").build();
+        Bitstream bitstream = BitstreamBuilder.createBitstream(context, bundle,
+                toInputStream("Test Content", defaultCharset())).build();
+        context.restoreAuthSystemState();
+        return bitstream;
+    }
+
     private void responseCheck(JsonNode response, String respKey) {
         JsonNode expectedSubStr = suite.get(respKey);
         JsonNode responseMetadata = response.get("metadata").get("dc.description.provenance");
@@ -123,15 +165,15 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         }
     }
 
-    private void itemCheck(Item item, String respKey) {
+    private void objectCheck(DSpaceObject obj, String respKey) {
         String expectedSubStr = suite.get(respKey).asText();
-        List<MetadataValue> metadata = item.getMetadata();
+        List<MetadataValue> metadata = obj.getMetadata();
         boolean contain = false;
         for (MetadataValue value : metadata) {
             if (!Objects.equals(value.getMetadataField().toString(), "dc_description_provenance")) {
                 continue;
             }
-            if (value.getValue().contains(expectedSubStr)) {
+            if (provenanceMetadataModified(value.getValue()).contains(expectedSubStr)) {
                 contain = true;
                 break;
             }
@@ -142,25 +184,25 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void makeDsicoverableTest() throws Exception {
+    public void makeDiscoverableTest() throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
         Item item = createItem();
-//        List<Operation> ops = new ArrayList<Operation>();
-//        ReplaceOperation replaceOperation = new ReplaceOperation("/discoverable", true);
-//        ops.add(replaceOperation);
-//        String patchBody = getPatchContent(ops);
+        List<Operation> ops = new ArrayList<>();
+        ReplaceOperation replaceOperation = new ReplaceOperation("/discoverable", true);
+        ops.add(replaceOperation);
+        String patchBody = getPatchContent(ops);
 
         // make discoverable
-        MvcResult mvcResult = getClient(token).perform(patch("/api/core/items/" + item.getID()
-                        + "/discoverable")
-//                        .content(patchBody)
+        getClient(token).perform(patch("/api/core/items/" + item.getID())
+                        .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
                 .andExpect(jsonPath("$.discoverable", Matchers.is(true)))
                 .andReturn();
-        responseCheck(Objects.requireNonNull(preprocessingProvenance(mvcResult.getResponse().getContentAsString())),
-                "discoverable");
+        objectCheck(itemService.find(context, item.getID()), "discoverable");
+        //responseCheck(Objects.requireNonNull(preprocessingProvenance(mvcResult.getResponse().getContentAsString())),
+              //  "discoverable");
     }
 
     @Test
@@ -187,6 +229,116 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                 )))
                 .andExpect(jsonPath("$._links.self.href", Matchers.containsString("/api/core/items")))
         ;
-        itemCheck(itemService.find(context, item.getID()), "mapped");
+        objectCheck(itemService.find(context, item.getID()), "mapped");
+    }
+
+    @Test
+    public void addMetadata() throws Exception {
+        Item item = createItem();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        // Modify the entityType and verify the response already contains this modification
+        List<Operation> ops = new ArrayList<>();
+        AddOperation addOperation = new AddOperation("/metadata/dc.title", "Test");
+        ops.add(addOperation);
+        String patchBody = getPatchContent(ops);
+        getClient(adminToken).perform(patch("/api/core/items/" + item.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        objectCheck(itemService.find(context, item.getID()), "addMetadata");
+    }
+
+    @Test
+    public void replaceMetadata() throws Exception {
+        Item item = createItem();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        int index = 0;
+        // Modify the entityType and verify the response already contains this modification
+        List<Operation> ops = new ArrayList<>();
+        ReplaceOperation replaceOperation = new ReplaceOperation("/metadata/dc.title/" + index, "Test");
+        ops.add(replaceOperation);
+        String patchBody = getPatchContent(ops);
+        getClient(adminToken).perform(patch("/api/core/items/" + item.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        objectCheck(itemService.find(context, item.getID()), "replaceMetadata");
+    }
+
+    @Test
+    public void removeMetadata() throws Exception {
+        Item item = createItem();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        int index = 0;
+        // Modify the entityType and verify the response already contains this modification
+        List<Operation> ops = new ArrayList<>();
+        RemoveOperation removeOperation = new RemoveOperation("/metadata/dc.title" + index);
+        ops.add(removeOperation);
+        String patchBody = getPatchContent(ops);
+        getClient(adminToken).perform(patch("/api/core/items/" + item.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        objectCheck(itemService.find(context, item.getID()), "removeMetadata");
+    }
+
+    @Test
+    public void removeMetadataBitstream() throws Exception {
+        Item item = createItem();
+        Bitstream bitstream = createBitstream(item);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        int index = 0;
+        // Modify the entityType and verify the response already contains this modification
+        List<Operation> ops = new ArrayList<>();
+        AddOperation addOperation = new AddOperation("/metadata/dc.description", "test");
+        ops.add(addOperation);
+        String patchBody = getPatchContent(ops);
+        getClient(adminToken).perform(patch("/api/core/bitstreams/" + bitstream.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
+    }
+
+    @Test
+    public void addMetadataBitstream() throws Exception {
+        Item item = createItem();
+        Bitstream bitstream = createBitstream(item);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        // Modify the entityType and verify the response already contains this modification
+        List<Operation> ops = new ArrayList<>();
+        AddOperation addOperation = new AddOperation("/metadata/dc.description", "test");
+        ops.add(addOperation);
+        String patchBody = getPatchContent(ops);
+        getClient(adminToken).perform(patch("/api/core/bitstreams/" + bitstream.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
+    }
+
+    @Test
+    public void updateMetadataBitstream() throws Exception {
+        Item item = createItem();
+        Bitstream bitstream = createBitstream(item);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        int index = 0;
+        // Modify the entityType and verify the response already contains this modification
+        List<Operation> ops = new ArrayList<>();
+        ReplaceOperation replaceOperation = new ReplaceOperation("/metadata/dc.title" + index, "test 1");
+        ops.add(replaceOperation);
+        String patchBody = getPatchContent(ops);
+        getClient(adminToken).perform(patch("/api/core/bitstreams/" + bitstream.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        objectCheck(itemService.find(context, item.getID()), "replaceBitstreamMtd");
     }
 }

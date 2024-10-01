@@ -1,5 +1,10 @@
 {
   "discoverable": "Item was made discoverable by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0\nItem was in collections:\n",
-  "mapped": "was mapped to collection"
+  "mapped": "was mapped to collection",
+  "addMetadata": "Item metadata (dc.title) was added by first (admin) last (admin) (admin@email.com) on",
+  "replaceMetadata": "Item metadata (dc.title: Public item 1) was updated by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
+  "removeMetadata": "Item metadata (dc.title: Public item 1) was removed by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
+  "removeBitstreamMtd": "Item metadata (dc.description) was added by bitstream",
+  "replaceBitstreamMtd": "Item metadata (dc.description: test) was updated by bitstream"
 }
 
