@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.file.PathUtils;
+import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
@@ -33,6 +35,7 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -46,6 +49,7 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,7 +85,8 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     static String PROVENANCE = "dc.description.provenance";
     private Collection  collection;
     private ObjectMapper objectMapper = new ObjectMapper();
-    private JsonNode suite;
+    private ProvenanceMetadataCheck provenanceCheck = new ProvenanceMetadataCheck();
+
 
     @Autowired
     private ItemService itemService;
@@ -100,9 +105,10 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     private String tempFilePath;
 
     @Before
-    public void setup() throws Exception {
+    @Override
+    public void setUp() throws Exception {
         super.setUp();
-        suite = objectMapper.readTree(getClass().getResourceAsStream("provenance-patch-suite.json"));
+        //suite = objectMapper.readTree(getClass().getResourceAsStream("provenance-patch-suite.json"));
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
@@ -113,18 +119,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         tempFilePath = tempDir + "/bulk-access.json";
     }
 
-    private String provenanceMetadataModified(String metadata) {
-        // Regex to match the date pattern
-        String datePattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
-        Pattern pattern = Pattern.compile(datePattern);
-        Matcher matcher = pattern.matcher(metadata);
-        String rspModifiedProvenance = metadata;
-        while (matcher.find()) {
-            String dateString = matcher.group(0);
-            rspModifiedProvenance = rspModifiedProvenance.replaceAll(dateString, "");
-        }
-        return rspModifiedProvenance;
-    }
+
 
     private JsonNode preprocessingProvenance(String responseBody) throws JsonProcessingException {
         //String responseBody = resultActions.andReturn().getResponse().getContentAsString();
@@ -185,40 +180,24 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         return bitstream;
     }
 
-    private void responseCheck(JsonNode response, String respKey) {
-        JsonNode expectedSubStr = suite.get(respKey);
-        JsonNode responseMetadata = response.get("metadata").get("dc.description.provenance");
-        for (JsonNode expNode : expectedSubStr) {
-            boolean contains = false;
-            for (JsonNode node : responseMetadata) {
-                if (node.get("value").asText().contains(expNode.asText())) {
-                    contains = true;
-                    break;
-                }
-            }
-            if (!contains) {
-                Assert.fail("Metadata provenance do not contain expected data: " + expNode.asText());
-            }
-        }
-    }
+//    private void responseCheck(JsonNode response, String respKey) {
+//        JsonNode expectedSubStr = suite.get(respKey);
+//        JsonNode responseMetadata = response.get("metadata").get("dc.description.provenance");
+//        for (JsonNode expNode : expectedSubStr) {
+//            boolean contains = false;
+//            for (JsonNode node : responseMetadata) {
+//                if (node.get("value").asText().contains(expNode.asText())) {
+//                    contains = true;
+//                    break;
+//                }
+//            }
+//            if (!contains) {
+//                Assert.fail("Metadata provenance do not contain expected data: " + expNode.asText());
+//            }
+//        }
+//    }
 
-    private void objectCheck(DSpaceObject obj, String respKey) {
-        String expectedSubStr = suite.get(respKey).asText();
-        List<MetadataValue> metadata = obj.getMetadata();
-        boolean contain = false;
-        for (MetadataValue value : metadata) {
-            if (!Objects.equals(value.getMetadataField().toString(), "dc_description_provenance")) {
-                continue;
-            }
-            if (provenanceMetadataModified(value.getValue()).contains(expectedSubStr)) {
-                contain = true;
-                break;
-            }
-        }
-        if (!contain) {
-            Assert.fail("Metadata provenance do not contain expected data: " + expectedSubStr);
-        }
-    }
+
 
     @Test
     public void makeDiscoverableTest() throws Exception {
@@ -237,7 +216,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                 .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
                 .andExpect(jsonPath("$.discoverable", Matchers.is(true)))
                 .andReturn();
-        objectCheck(itemService.find(context, item.getID()), "discoverable");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "discoverable");
     }
 
     @Test
@@ -255,7 +234,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "nonDiscoverable");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "nonDiscoverable");
     }
 
 
@@ -275,7 +254,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                                 "https://localhost:8080/spring-rest/api/core/collections/" + col1.getID() + "\n"
                         )
         );
-        objectCheck(itemService.find(context, item.getID()), "mapped");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "mapped");
     }
 
     @Test
@@ -298,7 +277,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        objectCheck(itemService.find(context, item.getID()), "addMetadata");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "addMetadata");
     }
 
     @Test
@@ -317,7 +296,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        objectCheck(itemService.find(context, item.getID()), "replaceMetadata");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "replaceMetadata");
     }
 
     @Test
@@ -335,7 +314,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        objectCheck(itemService.find(context, item.getID()), "removeMetadata");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "removeMetadata");
     }
 
     @Test
@@ -353,7 +332,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
     }
 
     @Test
@@ -370,7 +349,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
     }
 
     @Test
@@ -388,7 +367,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "replaceBitstreamMtd");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "replaceBitstreamMtd");
     }
 
     @Test
@@ -404,7 +383,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         getClient(adminToken).perform(patch("/api/core/bitstreams")
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON));
-        objectCheck(itemService.find(context, item.getID()), "removeBitstream");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "removeBitstream");
     }
 
     @Test
@@ -422,7 +401,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                 .perform(MockMvcRequestBuilders.multipart("/api/core/bundles/" + bundle.getID() + "/bitstreams")
                         .file(file))
                 .andExpect(status().isCreated());
-        objectCheck(itemService.find(context, item.getID()), "addBitstream");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "addBitstream");
     }
 
     /**
@@ -474,7 +453,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
                         .param("licenseID", clarinLicense2.getID().toString()))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "updateLicense");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "updateLicense");
     }
 
     @Test
@@ -485,7 +464,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
                         .param("licenseID", clarinLicense.getID().toString()))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "addLicense");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "addLicense");
     }
 
     @Test
@@ -498,7 +477,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         String token = getAuthToken(admin.getEmail(), password);
         getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles"))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "removeLicense");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "removeLicense");
     }
 
     private void buildJsonFile(String json) throws IOException {
@@ -544,7 +523,68 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
 //        Item item = ItemBuilder.createItem(context, collection).build();
 //
 //        context.restoreAuthSystemState();
-        Item item = createItem();
+//        Item item = createItem();
+//
+//        String json = "{ \"item\": {\n" +
+//                "      \"mode\": \"add\",\n" +
+//                "      \"accessConditions\": [\n" +
+//                "          {\n" +
+//                "            \"name\": \"openaccess\"\n" +
+//                "          }\n" +
+//                "      ]\n" +
+//                "   }}\n";
+//
+//        buildJsonFile(json);
+//
+//        String[] args = new String[] {"bulk-access-control", "-u", item.getID().toString(), "-f", tempFilePath, "-e", eperson.getEmail()};
+//
+//        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
+//        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+//        objectCheck(itemService.find(context, item.getID()), "addAccessCondBitstream");
+//        context.turnOffAuthorisationSystem();
+//
+//        Community community = CommunityBuilder.createCommunity(context)
+//                .withName("community")
+//                .build();
+//
+//        Collection collection = CollectionBuilder.createCollection(context, community)
+//                .withName("collection")
+//                .build();
+//
+//        Item item = ItemBuilder.createItem(context, collection).withAdminUser(eperson).build();
+//
+//        context.restoreAuthSystemState();
+//
+//        String json = "{ \"item\": {\n" +
+//                "      \"mode\": \"add\",\n" +
+//                "      \"accessConditions\": [\n" +
+//                "          {\n" +
+//                "            \"name\": \"openaccess\"\n" +
+//                "          }\n" +
+//                "      ]\n" +
+//                "   }}\n";
+//
+//        buildJsonFile(json);
+//
+//        String[] args = new String[] {"bulk-access-control", "-u", item.getID().toString(), "-f", tempFilePath,
+//                "-e", eperson.getEmail()};
+//
+//        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
+//        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+//        objectCheck(itemService.find(context, item.getID()), "addAccessCondBitstream");
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("community")
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                .withName("collection")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection).withAdminUser(eperson).build();
+
+        context.restoreAuthSystemState();
 
         String json = "{ \"item\": {\n" +
                 "      \"mode\": \"add\",\n" +
@@ -557,11 +597,12 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
 
         buildJsonFile(json);
 
-        String[] args = new String[] {"bulk-access-control", "-u", item.getID().toString(), "-f", tempFilePath};
+        String[] args = new String[] {"bulk-access-control", "-u", item.getID().toString(), "-f", tempFilePath,
+                "-e", eperson.getEmail()};
 
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-        objectCheck(itemService.find(context, item.getID()), "addAccessCondBitstream");
+        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "addAccessCondBitstream");
     }
 
 
@@ -608,7 +649,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
         //objectCheck(item, "removeResPoliciesBitstream");
-        objectCheck(item, "addAccessCondBitstream");
+        provenanceCheck.objectCheck(item, "addAccessCondBitstream");
     }
 
     private Collection createCollection() {
@@ -632,7 +673,14 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                                 "https://localhost:8080/spring-rest/api/core/collections/" + col.getID()
                         ))
                 .andExpect(status().isOk());
-        objectCheck(item, "movedToCol");
+        provenanceCheck.objectCheck(item, "movedToCol");
+    }
+
+    @After
+    @Override
+    public void destroy() throws Exception {
+        PathUtils.deleteDirectory(tempDir);
+        super.destroy();
     }
 
     @Test
