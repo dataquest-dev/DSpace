@@ -11,6 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.dspace.app.util.Util;
 import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.authorize.AuthorizeException;
@@ -247,15 +247,16 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
         // Should we auto register new users.
         boolean autoRegister = configurationService.getBooleanProperty("authentication-shibboleth.autoregister", true);
+        String[] netidHeaders = configurationService.getArrayProperty("authentication-shibboleth.netid-header");
 
         // Four steps to authenticate a user
         try {
             // Step 1: Identify User
-            EPerson eperson = findEPerson(context, request);
+            EPerson eperson = findEPerson(context, request, netidHeaders);
 
             // Step 2: Register New User, if necessary
             if (eperson == null && autoRegister && !isDuplicateUser) {
-                eperson = registerNewEPerson(context, request);
+                eperson = registerNewEPerson(context, request, netidHeaders);
             }
 
             if (eperson == null) {
@@ -263,7 +264,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
             }
 
             // Step 3: Update User's Metadata
-            updateEPerson(context, request, eperson);
+            updateEPerson(context, request, eperson, netidHeaders);
 
             // Step 4: Log the user in.
             context.setCurrentUser(eperson);
@@ -540,11 +541,11 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
      * @throws SQLException if database error
      * @throws AuthorizeException if authorization error
      */
-    protected EPerson findEPerson(Context context, HttpServletRequest request) throws SQLException, AuthorizeException {
+    protected EPerson findEPerson(Context context, HttpServletRequest request, String[] netidHeaders)
+            throws SQLException {
 
         boolean isUsingTomcatUser = configurationService
                 .getBooleanProperty("authentication-shibboleth.email-use-tomcat-remote-user");
-        String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
         String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
 
         EPerson eperson = null;
@@ -554,21 +555,22 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
 
         // 1) First, look for a netid header.
-        if (netidHeader != null) {
-            String org = shibheaders.get_idp();
-            String netid = Util.formatNetId(findSingleAttribute(request, netidHeader), org);
-            if (StringUtils.isEmpty(netid)) {
-                netid = shibheaders.get_single(netidHeader);
-            }
+        if (netidHeaders != null) {
+            // Go through all the netid headers and try to find a user. It could be e.g., `eppn`, `persistent-id`,..
+            for (String netidHeader : netidHeaders) {
+                netidHeader = netidHeader.trim();
+                String netid = shibheaders.get_single(netidHeader);
+                if (netid == null) {
+                    continue;
+                }
 
-            if (netid != null) {
                 foundNetID = true;
                 eperson = ePersonService.findByNetid(context, netid);
 
                 if (eperson == null) {
                     log.info(
-                            "Unable to identify EPerson based upon Shibboleth netid header: '" + netidHeader + "'='" +
-                                    netid + "'.");
+                            "Unable to identify EPerson based upon Shibboleth netid header: '" + netidHeader +
+                                    "'='" + netid + "'.");
                 } else {
                     log.debug(
                             "Identified EPerson based upon Shibboleth netid header: '" + netidHeader + "'='" +
@@ -677,11 +679,10 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    protected EPerson registerNewEPerson(Context context, HttpServletRequest request)
+    protected EPerson registerNewEPerson(Context context, HttpServletRequest request, String[] netidHeaders)
             throws SQLException, AuthorizeException {
 
         // Header names
-        String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
         String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
         String fnameHeader = configurationService.getProperty("authentication-shibboleth.firstname-header");
         String lnameHeader = configurationService.getProperty("authentication-shibboleth.lastname-header");
@@ -694,15 +695,12 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         // CLARIN
 
         // Header values
-        String netid = Util.formatNetId(findSingleAttribute(request, netidHeader), org);
+        String netid = getFirstNetId(netidHeaders);
         String email = getEmailAcceptedOrNull(findSingleAttribute(request, emailHeader));
         String fname = Headers.updateValueByCharset(findSingleAttribute(request, fnameHeader));
         String lname = Headers.updateValueByCharset(findSingleAttribute(request, lnameHeader));
 
         // If the values are not in the request headers try to retrieve it from `shibheaders`.
-        if (StringUtils.isEmpty(netid)) {
-            netid = shibheaders.get_single(netidHeader);
-        }
         if (StringUtils.isEmpty(email) && Objects.nonNull(clarinVerificationToken)) {
             email = clarinVerificationToken.getEmail();
         }
@@ -718,7 +716,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
             // don't have at least these three pieces of information then we fail.
             String message = "Unable to register new eperson because we are unable to find an email address along " +
                     "with first and last name for the user.\n";
-            message += "  NetId Header: '" + netidHeader + "'='" + netid + "' (Optional) \n";
+            message += "  NetId Header: '" + Arrays.toString(netidHeaders) + "'='" + netid + "' (Optional) \n";
             message += "  Email Header: '" + emailHeader + "'='" + email + "' \n";
             message += "  First Name Header: '" + fnameHeader + "'='" + fname + "' \n";
             message += "  Last Name Header: '" + lnameHeader + "'='" + lname + "'";
@@ -807,24 +805,20 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    protected void updateEPerson(Context context, HttpServletRequest request, EPerson eperson)
+    protected void updateEPerson(Context context, HttpServletRequest request, EPerson eperson, String[] netidHeaders)
             throws SQLException, AuthorizeException {
 
         // Header names & values
-        String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
         String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
         String fnameHeader = configurationService.getProperty("authentication-shibboleth.firstname-header");
         String lnameHeader = configurationService.getProperty("authentication-shibboleth.lastname-header");
 
-        String netid = Util.formatNetId(findSingleAttribute(request, netidHeader), shibheaders.get_idp());
+        String netid = getFirstNetId(netidHeaders);
         String email = getEmailAcceptedOrNull(findSingleAttribute(request, emailHeader));
         String fname = Headers.updateValueByCharset(findSingleAttribute(request, fnameHeader));
         String lname = Headers.updateValueByCharset(findSingleAttribute(request, lnameHeader));
 
         // If the values are not in the request headers try to retrieve it from `shibheaders`.
-        if (StringUtils.isEmpty(netid)) {
-            netid = shibheaders.get_single(netidHeader);
-        }
         if (StringUtils.isEmpty(email) && Objects.nonNull(clarinVerificationToken)) {
             email = clarinVerificationToken.getEmail();
         }
@@ -1337,6 +1331,23 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
             return null;
         }
         return email;
+    }
+
+
+    /**
+     * Get the first netid from the list of netid headers. E.g., eppn, persistent-id,...
+     * @param netidHeaders list of netid headers loaded from the configuration `authentication-shibboleth.netid-header`
+     */
+    public String getFirstNetId(String[] netidHeaders) {
+        for (String netidHeader : netidHeaders) {
+            netidHeader = netidHeader.trim();
+            String netid = shibheaders.get_single(netidHeader);
+            if (netid != null) {
+                //When creating use first match (eppn before targeted-id)
+                return netid;
+            }
+        }
+        return null;
     }
 }
 
