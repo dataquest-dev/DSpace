@@ -11,5 +11,7 @@
   "bitstreamMetadata": "Item metadata (%s) was %s bitstream (%s)",
   "itemMetadata": "Item metadata (%s) was %s",
   "itemReplaceSingleMetadata": "Item bitstream (%s) metadata (%s) was updated",
-  "discoverable": "Item was made %sdiscoverable"
+  "discoverable": "Item was made %sdiscoverable",
+  "movedToCol": "Item was moved from collection",
+  "removedFromCol": "Item was removed from collection"
 }

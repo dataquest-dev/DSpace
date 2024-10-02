@@ -123,7 +123,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     @Override
     public void editLicense(Context context, Item item, boolean newLicense) throws SQLException, AuthorizeException {
         String oldLicense = null;
-        List<Bundle> bundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
+        List<Bundle> bundles = item.getBundles(Constants.LICENSE_BUNDLE_NAME);
         for (Bundle clarinBundle : bundles) {
             List<Bitstream> bitstreamList = clarinBundle.getBitstreams();
             for (Bitstream bundleBitstream : bitstreamList) {
