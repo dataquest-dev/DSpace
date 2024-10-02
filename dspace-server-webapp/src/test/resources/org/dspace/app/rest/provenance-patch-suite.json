@@ -12,11 +12,11 @@
   "addBitstream": "Item was added bitstream to bundle",
   "updateLicense": "License (Test 1) was updated by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 1\n",
   "addLicense": "License (empty) was added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0\n",
-  "removeLicense": "License (Test 1) was removed by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0\n",
+  "removeLicense": "License (Test) was removed by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0\n",
   "removeResPoliciesItem": "were removed by admin user (test@test.edu) on",
   "addAccessCondItem": "Access condition (embargo) was added to item",
   "removeResPoliciesBitstream": "were removed by admin user (test@test.edu) on",
   "addAccessCondBitstream": "Access condition (embargo) was added to bitstream",
-  "movedToCol": "Item was moved from collection "
+  "movedItemCol": "Item was moved from collection "
 }
 

@@ -11,19 +11,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.codec.CharEncoding;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.file.PathUtils;
-import org.dspace.AbstractIntegrationTestWithDatabase;
-import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.RemoveOperation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
-import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.ResourcePolicy;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.BundleBuilder;
 import org.dspace.builder.ClarinLicenseBuilder;
@@ -35,7 +28,6 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
-import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -49,7 +41,6 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.hamcrest.Matchers;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,13 +49,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import javax.ws.rs.core.MediaType;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -85,8 +70,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     static String PROVENANCE = "dc.description.provenance";
     private Collection  collection;
     private ObjectMapper objectMapper = new ObjectMapper();
-    private ProvenanceMetadataCheck provenanceCheck = new ProvenanceMetadataCheck();
-
+    private JsonNode suite;
 
     @Autowired
     private ItemService itemService;
@@ -101,9 +85,6 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     @Autowired
     private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
-    private Path tempDir;
-    private String tempFilePath;
-
     @Before
     @Override
     public void setUp() throws Exception {
@@ -114,12 +95,40 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                 .withName("Parent Community")
                 .build();
         collection = CollectionBuilder.createCollection(context, parentCommunity).build();
-
-        tempDir = Files.createTempDirectory("bulkAccessTest");
-        tempFilePath = tempDir + "/bulk-access.json";
+        suite = objectMapper.readTree(getClass().getResourceAsStream("provenance-patch-suite.json"));
     }
 
 
+    private String provenanceMetadataModified(String metadata) {
+        // Regex to match the date pattern
+        String datePattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
+        Pattern pattern = Pattern.compile(datePattern);
+        Matcher matcher = pattern.matcher(metadata);
+        String rspModifiedProvenance = metadata;
+        while (matcher.find()) {
+            String dateString = matcher.group(0);
+            rspModifiedProvenance = rspModifiedProvenance.replaceAll(dateString, "");
+        }
+        return rspModifiedProvenance;
+    }
+
+    public void objectCheck(DSpaceObject obj, String respKey) {
+        String expectedSubStr = suite.get(respKey).asText();
+        List<MetadataValue> metadata = obj.getMetadata();
+        boolean contain = false;
+        for (MetadataValue value : metadata) {
+            if (!Objects.equals(value.getMetadataField().toString(), "dc_description_provenance")) {
+                continue;
+            }
+            if (provenanceMetadataModified(value.getValue()).contains(expectedSubStr)) {
+                contain = true;
+                break;
+            }
+        }
+        if (!contain) {
+            Assert.fail("Metadata provenance do not contain expected data: " + expectedSubStr);
+        }
+    }
 
     private JsonNode preprocessingProvenance(String responseBody) throws JsonProcessingException {
         //String responseBody = resultActions.andReturn().getResponse().getContentAsString();
@@ -180,25 +189,6 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         return bitstream;
     }
 
-//    private void responseCheck(JsonNode response, String respKey) {
-//        JsonNode expectedSubStr = suite.get(respKey);
-//        JsonNode responseMetadata = response.get("metadata").get("dc.description.provenance");
-//        for (JsonNode expNode : expectedSubStr) {
-//            boolean contains = false;
-//            for (JsonNode node : responseMetadata) {
-//                if (node.get("value").asText().contains(expNode.asText())) {
-//                    contains = true;
-//                    break;
-//                }
-//            }
-//            if (!contains) {
-//                Assert.fail("Metadata provenance do not contain expected data: " + expNode.asText());
-//            }
-//        }
-//    }
-
-
-
     @Test
     public void makeDiscoverableTest() throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
@@ -216,7 +206,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                 .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
                 .andExpect(jsonPath("$.discoverable", Matchers.is(true)))
                 .andReturn();
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "discoverable");
+        objectCheck(itemService.find(context, item.getID()), "discoverable");
     }
 
     @Test
@@ -234,7 +224,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "nonDiscoverable");
+        objectCheck(itemService.find(context, item.getID()), "nonDiscoverable");
     }
 
 
@@ -254,11 +244,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                                 "https://localhost:8080/spring-rest/api/core/collections/" + col1.getID() + "\n"
                         )
         );
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "mapped");
-    }
-
-    @Test
-    public void deletedFromMappedCollTest() throws Exception {
+        objectCheck(itemService.find(context, item.getID()), "mapped");
     }
 
     @Test
@@ -277,7 +263,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "addMetadata");
+        objectCheck(itemService.find(context, item.getID()), "addMetadata");
     }
 
     @Test
@@ -296,7 +282,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "replaceMetadata");
+        objectCheck(itemService.find(context, item.getID()), "replaceMetadata");
     }
 
     @Test
@@ -314,7 +300,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "removeMetadata");
+        objectCheck(itemService.find(context, item.getID()), "removeMetadata");
     }
 
     @Test
@@ -332,7 +318,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
+        objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
     }
 
     @Test
@@ -349,25 +335,26 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
+        objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
     }
 
     @Test
     public void updateMetadataBitstream() throws Exception {
         Item item = createItem();
         Bitstream bitstream = createBitstream(item, "test");
+        bitstream.setName(context, "test");
         String adminToken = getAuthToken(admin.getEmail(), password);
         int index = 0;
         //Modify the entityType and verify the response already contains this modification
         List<Operation> ops = new ArrayList<>();
-        ReplaceOperation replaceOperation = new ReplaceOperation("/metadata/dc.title", "test 1");
+        ReplaceOperation replaceOperation = new ReplaceOperation("/metadata/dc.title/" + index, "test 1");
         ops.add(replaceOperation);
         String patchBody = getPatchContent(ops);
         getClient(adminToken).perform(patch("/api/core/bitstreams/" + bitstream.getID())
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "replaceBitstreamMtd");
+        objectCheck(itemService.find(context, item.getID()), "replaceBitstreamMtd");
     }
 
     @Test
@@ -383,7 +370,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         getClient(adminToken).perform(patch("/api/core/bitstreams")
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON));
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "removeBitstream");
+        objectCheck(itemService.find(context, item.getID()), "removeBitstream");
     }
 
     @Test
@@ -401,7 +388,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                 .perform(MockMvcRequestBuilders.multipart("/api/core/bundles/" + bundle.getID() + "/bitstreams")
                         .file(file))
                 .andExpect(status().isCreated());
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "addBitstream");
+        objectCheck(itemService.find(context, item.getID()), "addBitstream");
     }
 
     /**
@@ -453,7 +440,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
                         .param("licenseID", clarinLicense2.getID().toString()))
                 .andExpect(status().isOk());
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "updateLicense");
+        objectCheck(itemService.find(context, item.getID()), "updateLicense");
     }
 
     @Test
@@ -464,192 +451,20 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
                         .param("licenseID", clarinLicense.getID().toString()))
                 .andExpect(status().isOk());
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "addLicense");
+        objectCheck(itemService.find(context, item.getID()), "addLicense");
     }
 
     @Test
     public void removeLicenseTest() throws Exception {
         Item item = createItem();
         Bitstream bitstream = createBitstream(item, Constants.LICENSE_BUNDLE_NAME);
-        ClarinLicense clarinLicense1 = createClarinLicense("Test", "Test Def");
-        ClarinLicenseResourceMapping resourceMapping = createResourceMapping(clarinLicense1, bitstream);
+        ClarinLicense clarinLicense = createClarinLicense("Test", "Test Def");
+        ClarinLicenseResourceMapping resourceMapping = createResourceMapping(clarinLicense, bitstream);
 
         String token = getAuthToken(admin.getEmail(), password);
         getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles"))
                 .andExpect(status().isOk());
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "removeLicense");
-    }
-
-    private void buildJsonFile(String json) throws IOException {
-        File file = new File(tempDir + "/bulk-access.json");
-        Path path = Paths.get(file.getAbsolutePath());
-        Files.writeString(path, json, StandardCharsets.UTF_8);
-    }
-
-    @Test
-    public void itemResourcePoliciesTest() throws Exception {
-//        context.turnOffAuthorisationSystem();
-////        Item item = ItemBuilder.createItem(context, collection).withAdminUser(eperson).build();
-////        context.restoreAuthSystemState();
-////        String json = "{ \"item\": {\n" +
-////                "      \"mode\": \"add\",\n" +
-////                "      \"accessConditions\": [\n" +
-////                "          {\n" +
-////                "            \"name\": \"openaccess\"\n" +
-////                "          }\n" +
-////                "      ]\n" +
-////                "   }}\n";
-////
-////        buildJsonFile(json);
-////
-////        String[] args = new String[] {"bulk-access-control", "-u", item.getID().toString(), "-f", tempFilePath,
-////                "-e", eperson.getEmail()};
-////        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-////        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-////
-////        item = itemService.find(context, item.getID());
-////        //objectCheck(item, "removeResPoliciesItem");
-////        objectCheck(item, "addAccessCondItem");
-//        context.turnOffAuthorisationSystem();
-//
-//        Community community = CommunityBuilder.createCommunity(context)
-//                .withName("community")
-//                .build();
-//
-//        Collection collection = CollectionBuilder.createCollection(context, community)
-//                .withName("collection")
-//                .build();
-//
-//        Item item = ItemBuilder.createItem(context, collection).build();
-//
-//        context.restoreAuthSystemState();
-//        Item item = createItem();
-//
-//        String json = "{ \"item\": {\n" +
-//                "      \"mode\": \"add\",\n" +
-//                "      \"accessConditions\": [\n" +
-//                "          {\n" +
-//                "            \"name\": \"openaccess\"\n" +
-//                "          }\n" +
-//                "      ]\n" +
-//                "   }}\n";
-//
-//        buildJsonFile(json);
-//
-//        String[] args = new String[] {"bulk-access-control", "-u", item.getID().toString(), "-f", tempFilePath, "-e", eperson.getEmail()};
-//
-//        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-//        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-//        objectCheck(itemService.find(context, item.getID()), "addAccessCondBitstream");
-//        context.turnOffAuthorisationSystem();
-//
-//        Community community = CommunityBuilder.createCommunity(context)
-//                .withName("community")
-//                .build();
-//
-//        Collection collection = CollectionBuilder.createCollection(context, community)
-//                .withName("collection")
-//                .build();
-//
-//        Item item = ItemBuilder.createItem(context, collection).withAdminUser(eperson).build();
-//
-//        context.restoreAuthSystemState();
-//
-//        String json = "{ \"item\": {\n" +
-//                "      \"mode\": \"add\",\n" +
-//                "      \"accessConditions\": [\n" +
-//                "          {\n" +
-//                "            \"name\": \"openaccess\"\n" +
-//                "          }\n" +
-//                "      ]\n" +
-//                "   }}\n";
-//
-//        buildJsonFile(json);
-//
-//        String[] args = new String[] {"bulk-access-control", "-u", item.getID().toString(), "-f", tempFilePath,
-//                "-e", eperson.getEmail()};
-//
-//        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-//        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-//        objectCheck(itemService.find(context, item.getID()), "addAccessCondBitstream");
-        context.turnOffAuthorisationSystem();
-
-        Community community = CommunityBuilder.createCommunity(context)
-                .withName("community")
-                .build();
-
-        Collection collection = CollectionBuilder.createCollection(context, community)
-                .withName("collection")
-                .build();
-
-        Item item = ItemBuilder.createItem(context, collection).withAdminUser(eperson).build();
-
-        context.restoreAuthSystemState();
-
-        String json = "{ \"item\": {\n" +
-                "      \"mode\": \"add\",\n" +
-                "      \"accessConditions\": [\n" +
-                "          {\n" +
-                "            \"name\": \"openaccess\"\n" +
-                "          }\n" +
-                "      ]\n" +
-                "   }}\n";
-
-        buildJsonFile(json);
-
-        String[] args = new String[] {"bulk-access-control", "-u", item.getID().toString(), "-f", tempFilePath,
-                "-e", eperson.getEmail()};
-
-        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-        provenanceCheck.objectCheck(itemService.find(context, item.getID()), "addAccessCondBitstream");
-    }
-
-
-    @Test
-    public void addRemoveBitstreamResourcePoliciesTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withAdminUser(eperson).build();
-        context.restoreAuthSystemState();
-        Bundle bundle = createBundle(item, Constants.DEFAULT_BUNDLE_NAME);
-        context.turnOffAuthorisationSystem();
-        String bitstreamOneContent = "Dummy content one";
-        Bitstream bitstreamOne;
-        try (InputStream is = IOUtils.toInputStream(bitstreamOneContent, CharEncoding.UTF_8)) {
-            bitstreamOne  = BitstreamBuilder.createBitstream(context, bundle, is)
-                    .withName("bistream")
-                    .build();
-        }
-
-
-        context.restoreAuthSystemState();
-
-        String jsonOne = "{ \"bitstream\": {\n" +
-                "      \"constraints\": {\n" +
-                "          \"uuid\": [\"" + bitstreamOne.getID().toString() + "\"]\n" +
-                "      },\n" +
-                "      \"mode\": \"replace\",\n" +
-                "      \"accessConditions\": [\n" +
-                "          {\n" +
-                "            \"name\": \"embargo\",\n" +
-                "            \"startDate\": \"2024-06-24\"\n" +
-                "          }\n" +
-                "      ]\n" +
-                "   }\n" +
-                "}\n";
-
-        buildJsonFile(jsonOne);
-
-        String[] args =
-                new String[] {"bulk-access-control",
-                        "-u", item.getID().toString(),
-                        "-f", tempFilePath,
-                        "-e", admin.getEmail()};
-
-        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-        //objectCheck(item, "removeResPoliciesBitstream");
-        provenanceCheck.objectCheck(item, "addAccessCondBitstream");
+        objectCheck(itemService.find(context, item.getID()), "removeLicense");
     }
 
     private Collection createCollection() {
@@ -660,7 +475,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void moveItemToColTest() throws Exception {
+    public void moveItemColTest() throws Exception {
         Item item = createItem();
         Collection col = createCollection();
 
@@ -673,18 +488,6 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                                 "https://localhost:8080/spring-rest/api/core/collections/" + col.getID()
                         ))
                 .andExpect(status().isOk());
-        provenanceCheck.objectCheck(item, "movedToCol");
-    }
-
-    @After
-    @Override
-    public void destroy() throws Exception {
-        PathUtils.deleteDirectory(tempDir);
-        super.destroy();
-    }
-
-    @Test
-    public void moveItemFromColTest() throws Exception {
-
+        objectCheck(itemService.find(context, item.getID()), "movedItemCol");
     }
 }
