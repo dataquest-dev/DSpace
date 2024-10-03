@@ -376,6 +376,14 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return Files.createTempFile("temp", extension);
     }
 
+    /**
+     * Adds a file path and its size to the list of file paths.
+     * If the path represents a directory, appends a "/" to the path.
+     *
+     * @param filePaths the list of file paths to add to
+     * @param path the file or directory path
+     * @param size the size of the file or directory
+     */
     private void addFilePath(List<String> filePaths, String path, long size) {
         String fileInfo = (Files.isDirectory(Paths.get(path))) ? path + "/|" + size : path + "|" + size;
         filePaths.add(fileInfo);
@@ -421,7 +429,6 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
      */
     private void closeFileSystem(FileSystem zipFileSystem) {
         if (!Objects.isNull(zipFileSystem)) {
-
             try {
                 zipFileSystem.close();
             } catch (IOException e) {
