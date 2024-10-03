@@ -210,7 +210,7 @@ public class ClarinBitstreamImportController {
                 message += " for bundle with uuid: " + bundle.getID();
             }
             log.error(message, e);
-            throw new RuntimeException("message", e);
+            throw new RuntimeException(message, e);
         }
         return bitstreamRest;
     }
