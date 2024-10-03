@@ -16,6 +16,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -364,95 +365,105 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         return url;
     }
 
+    /**
+     * Creates a temporary file with the appropriate extension based on the specified file type.
+     * @param fileType the type of file for which to create a temporary file
+     * @return a Path object representing the temporary file
+     * @throws IOException if an I/O error occurs while creating the file
+     */
+    private Path createTempFile(String fileType) throws IOException {
+        String extension = "tar".equals(fileType) ? ".tar" : ".zip";
+        return Files.createTempFile("temp", extension);
+    }
+
+    private void addFilePath(List<String> filePaths, String path, long size) {
+        String fileInfo = (Files.isDirectory(Paths.get(path))) ? path + "/|" + size : path + "|" + size;
+        filePaths.add(fileInfo);
+    }
 
     /**
-     * Convert ZIP file into structured String.
-     * @param inputStream Input stream with ZIP content
-     * @param fileType ZIP/TAR
-     * @return structured String
+     * Processes a TAR file, extracting its entries and adding their paths to the provided list.
+     * @param filePaths the list to populate with the extracted file paths
+     * @param tempFile  the temporary TAR file to process
+     * @throws IOException if an I/O error occurs while reading the TAR file
      */
-    public String extractFile(InputStream inputStream, String fileType) {
-        List<String> filePaths = new ArrayList<>();
-        Path tempFile = null;
-        FileSystem zipFileSystem = null;
-
-        try {
-            switch (fileType) {
-                case "tar":
-                    tempFile = Files.createTempFile("temp", ".tar");
-                    break;
-                default:
-                    tempFile = Files.createTempFile("temp", ".zip");
-
-            }
-
-            Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
-
-            if ("tar".equals(fileType)) {
-                try (InputStream fi = Files.newInputStream(tempFile);
-                     TarArchiveInputStream tis = new TarArchiveInputStream(fi)) {
-                    TarArchiveEntry entry;
-                    while ((entry = tis.getNextTarEntry()) != null) {
-                        if (entry.isDirectory()) {
-                            filePaths.add(entry.getName() + "/|" + entry.getSize());
-                        } else {
-                            filePaths.add(entry.getName() + "|" + entry.getSize());
-                        }
-                    }
-                }
-            } else {
-                zipFileSystem = FileSystems.newFileSystem(tempFile, (ClassLoader) null);
-                Path root = zipFileSystem.getPath("/");
-                Files.walk(root)
-                        .forEach(path -> {
-                            try {
-                                long fileSize = Files.size(path);
-                                if (Files.isDirectory(path)) {
-                                    filePaths.add(path.toString().substring(1) + "/|" + fileSize);
-                                } else {
-                                    filePaths.add(path.toString().substring(1) + "|" + fileSize);
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        });
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (zipFileSystem != null) {
-                try {
-                    zipFileSystem.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (tempFile != null) {
-                try {
-                    Files.delete(tempFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+    private void processTarFile(List<String> filePaths, Path tempFile) throws IOException {
+        try (InputStream fi = Files.newInputStream(tempFile);
+             TarArchiveInputStream tis = new TarArchiveInputStream(fi)) {
+            TarArchiveEntry entry;
+            while ((entry = tis.getNextTarEntry()) != null) {
+                addFilePath(filePaths, entry.getName(), entry.getSize());
             }
         }
+    }
 
-        // Is a folder regex
+    /**
+     * Processes a ZIP file, extracting its entries and adding their paths to the provided list.
+     * @param filePaths      the list to populate with the extracted file paths
+     * @param zipFileSystem  the FileSystem object representing the ZIP file
+     * @throws IOException if an I/O error occurs while reading the ZIP file
+     */
+    private void processZipFile(List<String> filePaths, FileSystem zipFileSystem) throws IOException {
+        Path root = zipFileSystem.getPath("/");
+        Files.walk(root).forEach(path -> {
+            try {
+                long fileSize = Files.size(path);
+                addFilePath(filePaths, path.toString().substring(1), fileSize);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * Closes the specified FileSystem resource if it is not null.
+     * @param zipFileSystem the FileSystem to close
+     */
+    private void closeFileSystem(FileSystem zipFileSystem) {
+        if (!Objects.isNull(zipFileSystem)) {
+
+            try {
+                zipFileSystem.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Deletes the specified temporary file if it is not null.
+     * @param tempFile the Path object representing the temporary file to delete
+     */
+    private void deleteTempFile(Path tempFile) {
+        if (!Objects.isNull(tempFile)) {
+            try {
+                Files.delete(tempFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Builds an XML response string based on the provided list of file paths.
+     * @param filePaths the list of file paths to include in the XML response
+     * @return an XML string representation of the file paths
+     */
+    private String buildXmlResponse(List<String> filePaths) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<root>");
+
         String folderRegex = "/|\\d+";
         Pattern pattern = Pattern.compile(folderRegex);
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(("<root>"));
         Iterator<String> iterator = filePaths.iterator();
         int fileCounter = 0;
-        while ((iterator.hasNext() && fileCounter < maxPreviewCount)) {
-            String filePath = iterator.next();
 
+        while (iterator.hasNext() && fileCounter < maxPreviewCount) {
+            String filePath = iterator.next();
             // Check if the file is a folder
             Matcher matcher = pattern.matcher(filePath);
             if (!matcher.matches()) {
-                // It is a file
-                fileCounter++;
+                fileCounter++; // Count as a file
             }
             sb.append("<element>").append(filePath).append("</element>");
         }
@@ -460,8 +471,45 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         if (fileCounter > maxPreviewCount) {
             sb.append("<element>...too many files...|0</element>");
         }
-        sb.append(("</root>"));
+        sb.append("</root>");
         return sb.toString();
+    }
+
+    /**
+     * Extracts files from an InputStream, processes them based on the specified file type (tar or zip),
+     * and returns an XML representation of the file paths.
+     *
+     * @param inputStream the InputStream containing the file data
+     * @param fileType    the type of file to extract ("tar" or "zip")
+     * @return an XML string representing the extracted file paths
+     */
+    public String extractFile(InputStream inputStream, String fileType) {
+        List<String> filePaths = new ArrayList<>();
+        Path tempFile = null;
+        FileSystem zipFileSystem = null;
+
+        try {
+            // Create a temporary file based on the file type
+            tempFile = createTempFile(fileType);
+
+            // Copy the input stream to the temporary file
+            Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+
+            // Process the file based on its type
+            if ("tar".equals(fileType)) {
+                processTarFile(filePaths, tempFile);
+            } else {
+                zipFileSystem = FileSystems.newFileSystem(tempFile, (ClassLoader) null);
+                processZipFile(filePaths, zipFileSystem);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            closeFileSystem(zipFileSystem);
+            deleteTempFile(tempFile);
+        }
+
+        return buildXmlResponse(filePaths);
     }
 
     /**
