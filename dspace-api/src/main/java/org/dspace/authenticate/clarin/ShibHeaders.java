@@ -153,4 +153,8 @@ public class ShibHeaders {
     private void initializeNetIdHeader() {
         this.netIdHeaders = configurationService.getArrayProperty("authentication-shibboleth.netid-header");
     }
+
+    public List<String> getNetIdHeaders() {
+        return Arrays.asList(this.netIdHeaders);
+    }
 }

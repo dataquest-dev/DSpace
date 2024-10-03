@@ -126,7 +126,6 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
 
         // If the Idp doesn't send the email in the request header, send the redirect order to the FE for the user
         // to fill in the email.
-        String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
         String emailHeader = configurationService.getProperty("authentication-shibboleth.email-header");
 
         Context context = ContextUtil.obtainContext(req);
@@ -154,33 +153,42 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
             shib_headers = new ShibHeaders(req);
         }
 
-        // Retrieve the netid and email values from the header.
-        String netid = shib_headers.get_single(netidHeader);
         String idp = shib_headers.get_idp();
         // If the clarin verification object is not null load the email from there otherwise from header.
-        String email = Objects.isNull(clarinVerificationToken) ?
-                shib_headers.get_single(emailHeader) : clarinVerificationToken.getEmail();
+        String email;
+        if (Objects.isNull(clarinVerificationToken)) {
+            email = shib_headers.get_single(emailHeader);
+            if (StringUtils.isNotEmpty(email)) {
+                email = ClarinShibAuthentication.sortEmailsAndGetFirst(email);
+            }
+        } else {
+            email = clarinVerificationToken.getEmail();
+        }
 
         EPerson ePerson = null;
-        if (StringUtils.isNotEmpty(netid)) {
+        // 1. Try find the user by the netid
+        // Retrieve the netid and email values from the header.
+        for (String netidHeader : shib_headers.getNetIdHeaders()) {
             try {
+                netidHeader = netidHeader.trim();
+                String netid = shib_headers.get_single(netidHeader);
                 // If email is null and netid exist try to find the eperson by netid and load its email
                 if (StringUtils.isEmpty(email)) {
                     ePerson = ePersonService.findByNetid(context, netid);
                     email = Objects.isNull(email) ? this.getEpersonEmail(ePerson) : null;
-                } else {
-                    // Try to get user by the email because of possible duplicate of the user email
-                    ePerson = ePersonService.findByEmail(context, email);
                 }
             } catch (SQLException ignored) {
                 //
             }
         }
 
-        // logging
-        log.info("Shib-Identity-Provider: " + idp);
-        log.info("authentication-shibboleth.netid-header: " + netidHeader + " with value: " + netid);
-        log.info("authentication-shibboleth.email-header: " + emailHeader + " with value: " + email);
+        if (Objects.isNull(ePerson) && StringUtils.isNotEmpty(email)) {
+            try {
+                ePerson = ePersonService.findByEmail(context, email);
+            } catch (SQLException e) {
+                //
+            }
+        }
 
         try {
             if (StringUtils.isEmpty(idp)) {

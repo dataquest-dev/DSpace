@@ -1216,22 +1216,30 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
 
         if (value != null) {
-            // If there are multiple values encoded in the shibboleth attribute
-            // they are separated by a semicolon, and any semicolons in the
-            // attribute are escaped with a backslash.
-            // Step 1: Split the input string into email addresses
-            List<String> emails = Arrays.stream(value.split("(?<!\\\\);"))  // Split by unescaped semicolon
-                    .map(email -> email.replaceAll("\\\\;", ";")) // Unescape semicolons
-                    .collect(Collectors.toList());
-
-            // Step 2: Sort the email list alphabetically
-            emails.sort(String::compareToIgnoreCase);
-
-            // Step 3: Get the first sorted email
-            value = emails.get(0);
+            sortEmailsAndGetFirst(value);
         }
 
         return value;
+    }
+
+    /**
+     * Sort the email addresses and return the first one.
+     * @param value The email addresses separated by semicolons.
+     */
+    public static String sortEmailsAndGetFirst(String value) {
+        // If there are multiple values encoded in the shibboleth attribute
+        // they are separated by a semicolon, and any semicolons in the
+        // attribute are escaped with a backslash.
+        // Step 1: Split the input string into email addresses
+        List<String> emails = Arrays.stream(value.split("(?<!\\\\);"))  // Split by unescaped semicolon
+                .map(email -> email.replaceAll("\\\\;", ";")) // Unescape semicolons
+                .collect(Collectors.toList());
+
+        // Step 2: Sort the email list alphabetically
+        emails.sort(String::compareToIgnoreCase);
+
+        // Step 3: Get the first sorted email
+        return emails.get(0);
     }
 
     /**

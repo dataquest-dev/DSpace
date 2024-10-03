@@ -229,7 +229,6 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(redirectedUrl("http://localhost:4000"))
                 .andReturn().getResponse().getHeader("Authorization");
 
-
         checkUserIsSignedIn(token);
 
         // Check if was created a user with such email and netid.
@@ -250,6 +249,33 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
 
         // Delete created eperson - clean after the test
         EPersonBuilder.deleteEPerson(ePerson.getID());
+    }
+
+    // Login with email without netid, but the user with such email already exists and it has assigned netid.
+    @Test
+    public void testShouldReturnDuplicateUserErrorLoginWithoutNetId() throws Exception {
+        String email = "test@mail.epic";
+        String netId = email;
+
+        // login through shibboleth
+        String token = getClient().perform(get("/api/authn/shibboleth")
+                        .header("SHIB-MAIL", email)
+                        .header("SHIB-NETID", netId)
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost:4000"))
+                .andReturn().getResponse().getHeader("Authorization");
+
+        checkUserIsSignedIn(token);
+
+        // login through shibboleth
+        String tokenDuplicate = getClient().perform(get("/api/authn/shibboleth")
+                        .header("SHIB-MAIL", email)
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user?email=" + email))
+                .andReturn().getResponse().getHeader("Authorization");
+
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
