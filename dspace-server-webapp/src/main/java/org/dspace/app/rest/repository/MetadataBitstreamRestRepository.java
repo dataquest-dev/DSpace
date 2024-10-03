@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -86,6 +87,10 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
     private final String FILE_EXTENSION_TAR = ".tar";
     private final String ARCHIVE_TYPE_ZIP = "zip";
     private final String ARCHIVE_TYPE_TAR = "tar";
+    // This constant is used to limit the length of the preview content stored in the database to prevent
+    // the database from being overloaded with large amounts of data.
+    private static final int MAX_PREVIEW_COUNT_LENGTH = 2000;
+
     @Autowired
     HandleService handleService;
 
@@ -174,10 +179,13 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                     // Generate new content if we didn't find any
                     if (prContents.isEmpty()) {
                         fileInfos = getFilePreviewContent(context, bitstream, fileInfos);
-                        for (FileInfo fi : fileInfos) {
-                            createPreviewContent(context, bitstream, fi);
+                        // Do not store HTML content in the database because it could be longer than the limit
+                        // of the database column
+                        if (!StringUtils.equals("text/html", bitstream.getFormat(context).getMIMEType())) {
+                            for (FileInfo fi : fileInfos) {
+                                createPreviewContent(context, bitstream, fi);
+                            }
                         }
-                        context.commit();
                     } else {
                         for (PreviewContent pc : prContents) {
                             fileInfos.add(createFileInfo(pc));
@@ -190,6 +198,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 metadataValueWrappers.add(bts);
                 rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
             }
+            context.commit();
         }
 
         return new PageImpl<>(rs, pageable, rs.size());
@@ -315,17 +324,28 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                                                            List<FileInfo> fileInfos, InputStream inputStream)
             throws IOException, SQLException, ParserConfigurationException, SAXException, ArchiveException {
         String bitstreamMimeType = bitstream.getFormat(context).getMIMEType();
-        if (bitstreamMimeType.equals("text/plain") || bitstreamMimeType.equals("text/html")) {
-            String data = getFileContent(inputStream);
+        if (bitstreamMimeType.equals("text/plain")) {
+            String data = getFileContent(inputStream, true);
+            fileInfos.add(new FileInfo(data, false));
+        } else if (bitstreamMimeType.equals("text/html")) {
+            String data = getFileContent(inputStream, false);
             fileInfos.add(new FileInfo(data, false));
         } else {
             String data = "";
             if (bitstream.getFormat(context).getMIMEType().equals("application/zip")) {
                 data = extractFile(inputStream, ARCHIVE_TYPE_ZIP);
-                fileInfos = FileTreeViewGenerator.parse(data);
+                try {
+                  fileInfos = FileTreeViewGenerator.parse(data);
+                } catch (Exception e) {
+                    log.error("Cannot extract file content because: {}", e.getMessage());
+                }
             } else if (bitstream.getFormat(context).getMIMEType().equals("application/x-tar")) {
                 data = extractFile(inputStream, ARCHIVE_TYPE_TAR);
-                fileInfos = FileTreeViewGenerator.parse(data);
+                try {
+                  fileInfos = FileTreeViewGenerator.parse(data);
+                } catch (Exception e) {
+                    log.error("Cannot extract file content because: {}", e.getMessage());
+                }
             }
         }
         return fileInfos;
@@ -527,17 +547,44 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
      * @return content of the inputStream as a String
      * @throws IOException
      */
-    public String getFileContent(InputStream inputStream) throws IOException {
+    public String getFileContent(InputStream inputStream, boolean cutResult) throws IOException {
         StringBuilder content = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
-        String line;
-        while ((line = reader.readLine()) != null) {
-            content.append(line).append("\n");
+        // Generate the preview content in the UTF-8 encoding
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+        try {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+        } catch (UnsupportedEncodingException e) {
+            log.error("UnsupportedEncodingException during creating the preview content because: ", e);
+        } catch (IOException e) {
+            log.error("IOException during creating the preview content because: ", e);
         }
 
         reader.close();
-        return content.toString();
+        return cutResult ? ensureMaxLength(content.toString()) : content.toString();
+    }
+
+    /**
+     * Trims the input string to ensure it does not exceed the maximum length for the database column.
+     * @param input The original string to be trimmed.
+     * @return A string that is truncated to the maximum length if necessary.
+     */
+    private static String ensureMaxLength(String input) {
+        if (input == null) {
+            return null;
+        }
+
+        // Check if the input string exceeds the maximum preview length
+        if (input.length() > MAX_PREVIEW_COUNT_LENGTH) {
+            // Truncate the string and append " . . ."
+            int previewLength = MAX_PREVIEW_COUNT_LENGTH - 6; // Subtract length of " . . ."
+            return input.substring(0, previewLength) + " . . .";
+        } else {
+            // Return the input string as is if it's within the preview length
+            return input;
+        }
     }
 
     /**
