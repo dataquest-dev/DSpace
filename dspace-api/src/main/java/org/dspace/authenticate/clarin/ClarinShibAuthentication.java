@@ -1211,14 +1211,11 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         if (name == null) {
             return null;
         }
-
         String value = findAttribute(request, name);
 
-
         if (value != null) {
-            sortEmailsAndGetFirst(value);
+            value = sortEmailsAndGetFirst(value);
         }
-
         return value;
     }
 

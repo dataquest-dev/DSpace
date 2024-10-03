@@ -254,7 +254,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     // Login with email without netid, but the user with such email already exists and it has assigned netid.
     @Test
     public void testShouldReturnDuplicateUserErrorLoginWithoutNetId() throws Exception {
-        String email = "test@mail.epic";
+        String email = "test@email.sk";
         String netId = email;
 
         // login through shibboleth
@@ -268,8 +268,8 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
 
         checkUserIsSignedIn(token);
 
-        // login through shibboleth
-        String tokenDuplicate = getClient().perform(get("/api/authn/shibboleth")
+        // Should not login because the user with such email already exists
+        getClient().perform(get("/api/authn/shibboleth")
                         .header("SHIB-MAIL", email)
                         .header("Shib-Identity-Provider", IDP_TEST_EPERSON))
                 .andExpect(status().is3xxRedirection())
@@ -594,7 +594,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header(NET_ID_PERSISTENT_ID, NET_ID_TEST_EPERSON)
                         .header("SHIB-MAIL", userWithEppnEmail))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost:4000/login/"));
+                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user?email=" + userWithEppnEmail));
 
         // Check if was created a user with such email and netid.
         EPerson ePerson = checkUserWasCreated(customEppn, IDP_TEST_EPERSON, userWithEppnEmail, null);
