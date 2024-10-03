@@ -272,7 +272,6 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
 
     @Test
     public void importDeletedBitstreamTest() throws Exception {
-        assertEquals(bitstreamService.findAll(context).size(), 0);
         //input data
         ObjectNode checksumNode = jsonNodeFactory.objectNode();
         checksumNode.set("checkSumAlgorithm", null);
@@ -283,13 +282,23 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
 
         //create new bitstream for existing file
         ObjectMapper mapper = new ObjectMapper();
-        getClient(token).perform(post("/api/clarin/import/core/bitstream")
+        uuid =  UUID.fromString(read( getClient(token).perform(post("/api/clarin/import/core/bitstream")
                         .content(mapper.writeValueAsBytes(node))
                         .contentType(contentType)
                         .param("internal_id", internalId)
                         .param("storeNumber", "0")
                         .param("deleted", "true"))
-                .andExpect(status().is(500));
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(),
+                "$.id"));
+
+        checkCreatedBitstream(uuid, internalId, 0, null, -1, true,
+                0, null);
+
+        //clean all
+        context.turnOffAuthorisationSystem();
+        BitstreamBuilder.deleteBitstream(uuid);
+        context.restoreAuthSystemState();
     }
 
     private void checkCreatedBitstream(UUID uuid, String internalId, int storeNumber,
