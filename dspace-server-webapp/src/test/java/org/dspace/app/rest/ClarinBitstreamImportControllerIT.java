@@ -292,8 +292,12 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
                 .andReturn().getResponse().getContentAsString(),
                 "$.id"));
 
-        checkCreatedBitstream(uuid, internalId, 0, null, -1, true,
-                0, null);
+        bitstream = bitstreamService.find(context, uuid);
+        assertEquals(bitstream.getSizeBytes(), 0);
+        assertEquals(bitstream.getInternalId(), internalId);
+        assertEquals(bitstream.getStoreNumber(), 0);
+        assertEquals(bitstream.getSequenceID(), -1);
+        assertEquals(bitstream.isDeleted(), true);
 
         //clean all
         context.turnOffAuthorisationSystem();
