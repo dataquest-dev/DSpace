@@ -544,6 +544,38 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         deleteShibbolethUser(ePerson);
     }
 
+    // The user has changed the email. But that email is already used by another user.
+    @Test
+    public void testDuplicateEmailError() throws Exception {
+        String userWithEppnEmail = "user@eppn.sk";
+        String customEppn = "custom eppn";
+
+        // Create a user with netid and email
+        String tokenEppnUser = getClient().perform(get("/api/authn/shibboleth")
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header(NET_ID_PERSISTENT_ID, customEppn)
+                        .header("SHIB-MAIL", userWithEppnEmail))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost:4000"))
+                .andReturn().getResponse().getHeader("Authorization");
+
+        checkUserIsSignedIn(tokenEppnUser);
+
+        // Try to update an email of existing user - the email is already used by another user - the user should be
+        // redirected to the login page
+        getClient().perform(get("/api/authn/shibboleth")
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header(NET_ID_PERSISTENT_ID, NET_ID_TEST_EPERSON)
+                        .header("SHIB-MAIL", userWithEppnEmail))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost:4000/login/"));
+
+        // Check if was created a user with such email and netid.
+        EPerson ePerson = checkUserWasCreated(customEppn, IDP_TEST_EPERSON, userWithEppnEmail, null);
+        // Delete created eperson - clean after the test
+        deleteShibbolethUser(ePerson);
+    }
+
     private EPerson checkUserWasCreated(String netIdValue, String idpValue, String email, String name)
             throws SQLException {
         // Check if was created a user with such email and netid.

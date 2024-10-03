@@ -853,7 +853,16 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         }
         // The email could have changed if using netid based lookup.
         if (email != null) {
-            eperson.setEmail(email.toLowerCase());
+            String lowerCaseEmail = email.toLowerCase();
+            // Check the email is unique
+            EPerson epersonByEmail = ePersonService.findByEmail(context, lowerCaseEmail);
+            if (epersonByEmail != null && !epersonByEmail.getID().equals(eperson.getID())) {
+                log.error("Unable to update the eperson's email metadata because the email '{}' is already in use.",
+                        lowerCaseEmail);
+                throw new AuthorizeException("The email address is already in use.");
+            } else {
+                eperson.setEmail(email.toLowerCase());
+            }
         }
         if (fname != null) {
             eperson.setFirstName(context, fname);
