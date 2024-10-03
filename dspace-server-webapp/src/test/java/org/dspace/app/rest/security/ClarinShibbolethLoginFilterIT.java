@@ -527,10 +527,32 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         deleteShibbolethUser(ePerson);
     }
 
+    @Test
+    public void testSuccessFullLoginWithTwoEmails() throws Exception {
+        String firstEmail = "efg@test.edu";
+        String secondEmail = "abc@test.edu";
+        String token = getClient().perform(get("/api/authn/shibboleth")
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header("SHIB-MAIL", firstEmail + ";" + secondEmail))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost:4000"))
+                .andReturn().getResponse().getHeader("Authorization");
+
+        checkUserIsSignedIn(token);
+        // Find the user by the second email
+        EPerson ePerson = checkUserWasCreated(null, IDP_TEST_EPERSON, secondEmail, null);
+        deleteShibbolethUser(ePerson);
+    }
+
     private EPerson checkUserWasCreated(String netIdValue, String idpValue, String email, String name)
             throws SQLException {
         // Check if was created a user with such email and netid.
-        EPerson ePerson = ePersonService.findByNetid(context, Util.formatNetId(netIdValue, idpValue));
+        EPerson ePerson = null;
+        if (netIdValue != null) {
+            ePerson = ePersonService.findByNetid(context, Util.formatNetId(netIdValue, idpValue));
+        } else {
+            ePerson = ePersonService.findByEmail(context, email);
+        }
         assertTrue(Objects.nonNull(ePerson));
         if (email != null) {
             assertEquals(ePerson.getEmail(), email);

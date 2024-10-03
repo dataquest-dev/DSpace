@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -1208,20 +1209,17 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         if (value != null) {
             // If there are multiple values encoded in the shibboleth attribute
             // they are separated by a semicolon, and any semicolons in the
-            // attribute are escaped with a backslash. For this case we are just
-            // looking for the first attribute so we scan the value until we find
-            // the first unescaped semicolon and chop off everything else.
-            int idx = 0;
-            do {
-                idx = value.indexOf(';', idx);
-                if (idx != -1 && value.charAt(idx - 1) != '\\') {
-                    value = value.substring(0, idx);
-                    break;
-                }
-            } while (idx >= 0);
+            // attribute are escaped with a backslash.
+            // Step 1: Split the input string into email addresses
+            List<String> emails = Arrays.stream(value.split("(?<!\\\\);"))  // Split by unescaped semicolon
+                    .map(email -> email.replaceAll("\\\\;", ";")) // Unescape semicolons
+                    .collect(Collectors.toList());
 
-            // Unescape the semicolon after splitting
-            value = value.replaceAll("\\;", ";");
+            // Step 2: Sort the email list alphabetically
+            emails.sort(String::compareToIgnoreCase);
+
+            // Step 3: Get the first sorted email
+            value = emails.get(0);
         }
 
         return value;
