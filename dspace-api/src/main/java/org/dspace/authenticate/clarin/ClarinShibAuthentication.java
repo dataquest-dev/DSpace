@@ -557,26 +557,9 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
         // 1) First, look for a netid header.
         if (netidHeaders != null) {
-            // Go through all the netid headers and try to find a user. It could be e.g., `eppn`, `persistent-id`,..
-            for (String netidHeader : netidHeaders) {
-                netidHeader = netidHeader.trim();
-                String netid = shibheaders.get_single(netidHeader);
-                if (netid == null) {
-                    continue;
-                }
-
+            eperson = findEpersonByNetId(netidHeaders, shibheaders, eperson, ePersonService, context, true);
+            if (eperson != null) {
                 foundNetID = true;
-                eperson = ePersonService.findByNetid(context, netid);
-
-                if (eperson == null) {
-                    log.info(
-                            "Unable to identify EPerson based upon Shibboleth netid header: '" + netidHeader +
-                                    "'='" + netid + "'.");
-                } else {
-                    log.debug(
-                            "Identified EPerson based upon Shibboleth netid header: '" + netidHeader + "'='" +
-                                    netid + "'" + ".");
-                }
             }
         }
 
@@ -658,7 +641,6 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
         return eperson;
     }
-
 
     /**
      * Register a new eperson object. This method is called when no existing user was
@@ -1220,26 +1202,6 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
     }
 
     /**
-     * Sort the email addresses and return the first one.
-     * @param value The email addresses separated by semicolons.
-     */
-    public static String sortEmailsAndGetFirst(String value) {
-        // If there are multiple values encoded in the shibboleth attribute
-        // they are separated by a semicolon, and any semicolons in the
-        // attribute are escaped with a backslash.
-        // Step 1: Split the input string into email addresses
-        List<String> emails = Arrays.stream(value.split("(?<!\\\\);"))  // Split by unescaped semicolon
-                .map(email -> email.replaceAll("\\\\;", ";")) // Unescape semicolons
-                .collect(Collectors.toList());
-
-        // Step 2: Sort the email list alphabetically
-        emails.sort(String::compareToIgnoreCase);
-
-        // Step 3: Get the first sorted email
-        return emails.get(0);
-    }
-
-    /**
      * Find a particular Shibboleth hattributeeader value and return the values.
      * The attribute name uses a bit of fuzzy logic, so it will first try case
      * sensitive, then it will try lowercase, and finally it will try uppercase.
@@ -1345,6 +1307,54 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         return email;
     }
 
+    /**
+     * Find an EPerson by a NetID header. The method will go through all the netid headers and try to find a user.
+     */
+    public static EPerson findEpersonByNetId(String[] netidHeaders, ShibHeaders shibheaders, EPerson eperson,
+                                             EPersonService ePersonService, Context context, boolean logAllowed)
+            throws SQLException {
+        // Go through all the netid headers and try to find a user. It could be e.g., `eppn`, `persistent-id`,..
+        for (String netidHeader : netidHeaders) {
+            netidHeader = netidHeader.trim();
+            String netid = shibheaders.get_single(netidHeader);
+            if (netid == null) {
+                continue;
+            }
+
+            eperson = ePersonService.findByNetid(context, netid);
+
+            if (eperson == null && logAllowed) {
+                log.info(
+                        "Unable to identify EPerson based upon Shibboleth netid header: '" + netidHeader +
+                                "'='" + netid + "'.");
+            } else {
+                log.debug(
+                        "Identified EPerson based upon Shibboleth netid header: '" + netidHeader + "'='" +
+                                netid + "'" + ".");
+            }
+        }
+        return eperson;
+    }
+
+    /**
+     * Sort the email addresses and return the first one.
+     * @param value The email addresses separated by semicolons.
+     */
+    public static String sortEmailsAndGetFirst(String value) {
+        // If there are multiple values encoded in the shibboleth attribute
+        // they are separated by a semicolon, and any semicolons in the
+        // attribute are escaped with a backslash.
+        // Step 1: Split the input string into email addresses
+        List<String> emails = Arrays.stream(value.split("(?<!\\\\);"))  // Split by unescaped semicolon
+                .map(email -> email.replaceAll("\\\\;", ";")) // Unescape semicolons
+                .collect(Collectors.toList());
+
+        // Step 2: Sort the email list alphabetically
+        emails.sort(String::compareToIgnoreCase);
+
+        // Step 3: Get the first sorted email
+        return emails.get(0);
+    }
 
     /**
      * Get the first netid from the list of netid headers. E.g., eppn, persistent-id,...

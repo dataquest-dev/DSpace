@@ -166,27 +166,18 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         }
 
         EPerson ePerson = null;
-        // 1. Try find the user by the netid
-        // Retrieve the netid and email values from the header.
-        for (String netidHeader : shib_headers.getNetIdHeaders()) {
-            try {
-                netidHeader = netidHeader.trim();
-                String netid = shib_headers.get_single(netidHeader);
-                // If email is null and netid exist try to find the eperson by netid and load its email
-                if (StringUtils.isEmpty(email)) {
-                    ePerson = ePersonService.findByNetid(context, netid);
-                    email = Objects.isNull(email) ? this.getEpersonEmail(ePerson) : null;
-                }
-            } catch (SQLException ignored) {
-                //
-            }
+        try {
+            ePerson = ClarinShibAuthentication.findEpersonByNetId(shib_headers.getNetIdHeaders(), shib_headers, ePerson,
+                    ePersonService, context, false);
+        } catch (SQLException e) {
+            // It is logged in the ClarinShibAuthentication class.
         }
 
         if (Objects.isNull(ePerson) && StringUtils.isNotEmpty(email)) {
             try {
                 ePerson = ePersonService.findByEmail(context, email);
             } catch (SQLException e) {
-                //
+                // It is logged in the ClarinShibAuthentication class.
             }
         }
 
