@@ -335,14 +335,14 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             if (bitstream.getFormat(context).getMIMEType().equals("application/zip")) {
                 data = extractFile(inputStream, ARCHIVE_TYPE_ZIP);
                 try {
-                  fileInfos = FileTreeViewGenerator.parse(data);
+                    fileInfos = FileTreeViewGenerator.parse(data);
                 } catch (Exception e) {
                     log.error("Cannot extract file content because: {}", e.getMessage());
                 }
             } else if (bitstream.getFormat(context).getMIMEType().equals("application/x-tar")) {
                 data = extractFile(inputStream, ARCHIVE_TYPE_TAR);
                 try {
-                  fileInfos = FileTreeViewGenerator.parse(data);
+                    fileInfos = FileTreeViewGenerator.parse(data);
                 } catch (Exception e) {
                     log.error("Cannot extract file content because: {}", e.getMessage());
                 }
