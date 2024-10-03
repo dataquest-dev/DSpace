@@ -82,7 +82,10 @@ import org.xml.sax.SAXException;
 @Component(MetadataBitstreamWrapperRest.CATEGORY + "." + MetadataBitstreamWrapperRest.NAME)
 public class MetadataBitstreamRestRepository extends DSpaceRestRepository<MetadataBitstreamWrapperRest, Integer> {
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataBitstreamRestRepository.class);
-
+    private final String FILE_EXTENSION_ZIP = ".zip";
+    private final String FILE_EXTENSION_TAR = ".tar";
+    private final String ARCHIVE_TYPE_ZIP = "zip";
+    private final String ARCHIVE_TYPE_TAR = "tar";
     @Autowired
     HandleService handleService;
 
@@ -318,10 +321,10 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         } else {
             String data = "";
             if (bitstream.getFormat(context).getMIMEType().equals("application/zip")) {
-                data = extractFile(inputStream, "zip");
+                data = extractFile(inputStream, ARCHIVE_TYPE_ZIP);
                 fileInfos = FileTreeViewGenerator.parse(data);
             } else if (bitstream.getFormat(context).getMIMEType().equals("application/x-tar")) {
-                data = extractFile(inputStream, "tar");
+                data = extractFile(inputStream, ARCHIVE_TYPE_TAR);
                 fileInfos = FileTreeViewGenerator.parse(data);
             }
         }
@@ -372,7 +375,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
      * @throws IOException if an I/O error occurs while creating the file
      */
     private Path createTempFile(String fileType) throws IOException {
-        String extension = "tar".equals(fileType) ? ".tar" : ".zip";
+        String extension = FILE_EXTENSION_TAR.equals(fileType) ? FILE_EXTENSION_TAR : FILE_EXTENSION_ZIP;
         return Files.createTempFile("temp", extension);
     }
 
