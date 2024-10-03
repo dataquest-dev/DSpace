@@ -270,6 +270,28 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
         assertEquals(bitstreamService.findAll(context).size(), 0);
     }
 
+    @Test
+    public void importDeletedBitstreamTest() throws Exception {
+        assertEquals(bitstreamService.findAll(context).size(), 0);
+        //input data
+        ObjectNode checksumNode = jsonNodeFactory.objectNode();
+        checksumNode.set("checkSumAlgorithm", null);
+        checksumNode.set("value", null);
+        ObjectNode node = jsonNodeFactory.objectNode();
+        node.set("sizeBytes", null);
+        node.set("checkSum", checksumNode);
+
+        //create new bitstream for existing file
+        ObjectMapper mapper = new ObjectMapper();
+        getClient(token).perform(post("/api/clarin/import/core/bitstream")
+                        .content(mapper.writeValueAsBytes(node))
+                        .contentType(contentType)
+                        .param("internal_id", internalId)
+                        .param("storeNumber", "0")
+                        .param("deleted", "true"))
+                .andExpect(status().is(500));
+    }
+
     private void checkCreatedBitstream(UUID uuid, String internalId, int storeNumber,
                                        String bitstreamFormat, int sequence, boolean deleted, long sizeBytes,
                                        String checkSum) throws SQLException {
