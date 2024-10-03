@@ -379,7 +379,6 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
     /**
      * Adds a file path and its size to the list of file paths.
      * If the path represents a directory, appends a "/" to the path.
-     *
      * @param filePaths the list of file paths to add to
      * @param path the file or directory path
      * @param size the size of the file or directory
@@ -457,20 +456,22 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
      * @return an XML string representation of the file paths
      */
     private String buildXmlResponse(List<String> filePaths) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<root>");
-
+        // Is a folder regex
         String folderRegex = "/|\\d+";
         Pattern pattern = Pattern.compile(folderRegex);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<root>");
         Iterator<String> iterator = filePaths.iterator();
         int fileCounter = 0;
-
         while (iterator.hasNext() && fileCounter < maxPreviewCount) {
             String filePath = iterator.next();
+            
             // Check if the file is a folder
             Matcher matcher = pattern.matcher(filePath);
             if (!matcher.matches()) {
-                fileCounter++; // Count as a file
+                // It is a file
+                fileCounter++;
             }
             sb.append("<element>").append(filePath).append("</element>");
         }
@@ -485,7 +486,6 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
     /**
      * Extracts files from an InputStream, processes them based on the specified file type (tar or zip),
      * and returns an XML representation of the file paths.
-     *
      * @param inputStream the InputStream containing the file data
      * @param fileType    the type of file to extract ("tar" or "zip")
      * @return an XML string representing the extracted file paths
