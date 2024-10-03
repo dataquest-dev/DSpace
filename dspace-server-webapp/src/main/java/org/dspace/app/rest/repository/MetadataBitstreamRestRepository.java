@@ -466,7 +466,6 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         int fileCounter = 0;
         while (iterator.hasNext() && fileCounter < maxPreviewCount) {
             String filePath = iterator.next();
-            
             // Check if the file is a folder
             Matcher matcher = pattern.matcher(filePath);
             if (!matcher.matches()) {
