@@ -127,6 +127,9 @@ public interface WorkspaceItemService extends InProgressSubmissionService<Worksp
     public WorkspaceItem findByItem(Context context, Item item)
         throws SQLException;
 
+    public WorkspaceItem findByShareToken(Context context, String shareToken)
+            throws SQLException;
+
     /**
      * Get all workspace items in the whole system
      *

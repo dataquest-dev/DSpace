@@ -85,6 +85,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -143,6 +144,9 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
     @Autowired
     ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+
+    @Autowired
+    WorkspaceItemService workspaceItemService;
 
     private SubmissionConfigService submissionConfigService;
 
@@ -473,6 +477,27 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         boolean shouldDeleteFile = configurationService.getBooleanProperty("delete.big.file.after.upload", false);
         if (shouldDeleteFile) {
             FileUtils.forceDelete(file);
+        }
+    }
+
+    @SearchRestMethod(name = "shareToken")
+    public WorkspaceItemRest findByShareToken(@Parameter(value = "shareToken", required = true) String shareToken,
+                                            Pageable pageable) {
+        try {
+            Context context = obtainContext();
+            WorkspaceItem workspaceItem = workspaceItemService.findByShareToken(context, shareToken);
+            if (workspaceItem == null) {
+                // TODO log
+                return null;
+            }
+            if (!authorizeService.authorizeActionBoolean(context, workspaceItem.getItem(), Constants.READ)) {
+                // TODO log
+                throw new AccessDeniedException("The current user does not have rights to view the WorkflowItem");
+            }
+            return converter.toRest(workspaceItem, utils.obtainProjection());
+        } catch (SQLException e) {
+            // TODO log
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 

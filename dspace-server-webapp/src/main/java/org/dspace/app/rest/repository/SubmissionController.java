@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.ClarinAutoRegistrationController;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.RestAddressableModel;
+import org.dspace.app.rest.model.ShareSubmissionLinkDTO;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.WorkspaceItemService;
@@ -45,7 +46,7 @@ public class SubmissionController {
 
     @PreAuthorize("hasPermission(#wsoId, 'WORKSPACEITEM', 'WRITE')")
     @RequestMapping(method = RequestMethod.GET, value = "share")
-    public ResponseEntity generateShareLink(@RequestParam(name = "workspaceitemid", required = false) Integer wsoId,
+    public ResponseEntity<ShareSubmissionLinkDTO> generateShareLink(@RequestParam(name = "workspaceitemid", required = false) Integer wsoId,
                                           HttpServletRequest request) throws SQLException, AuthorizeException {
 
         Context context = ContextUtil.obtainContext(request);
@@ -68,6 +69,7 @@ public class SubmissionController {
         // Update workspace item with share link
         wsi.setShareToken(shareToken);
         workspaceItemService.update(context, wsi);
+        context.commit();
         // Send email to submitter with share link
         // Get submitter email
         EPerson currentUser = context.getCurrentUser();
@@ -80,8 +82,11 @@ public class SubmissionController {
             // TODO log and return something
         }
 
+        ShareSubmissionLinkDTO shareSubmissionLinkDTO = new ShareSubmissionLinkDTO();
+        shareSubmissionLinkDTO.setShareLink(shareLink);
+
         // Send share link in response
-        return ResponseEntity.ok().body(shareLink);
+        return ResponseEntity.ok().body(shareSubmissionLinkDTO);
     }
 
     private static String generateShareToken() {
@@ -99,7 +104,7 @@ public class SubmissionController {
         // Get submitter email
         String email = currentUser.getEmail();
         // Compose the url with the share token. The user will be redirected to the UI.
-        String shareTokenUrl = uiUrl + "/share-submission?id= " + wsi.getID() + "&share_token=" + wsi.getShareToken();
+        String shareTokenUrl = uiUrl + "/share-submission/change-submitter?share_token=" + wsi.getShareToken();
         try {
             Locale locale = context.getCurrentLocale();
             Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale, "share_submission"));
@@ -113,7 +118,7 @@ public class SubmissionController {
             bean.send();
         } catch (MessagingException | IOException e) {
             log.error("Unable send the email because: " + e.getMessage());
-            return null;
+            throw new RuntimeException("Unable send the email because: " + e.getMessage());
         }
         return shareTokenUrl;
     }
