@@ -12,15 +12,10 @@ import java.sql.SQLException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.patch.Operation;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DCDate;
-import org.dspace.content.Item;
-import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.ProvenanceService;
-import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
