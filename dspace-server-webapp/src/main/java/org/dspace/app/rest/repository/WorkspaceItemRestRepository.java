@@ -500,8 +500,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
             // It must return a Page because the FE cannot parse single result from the search endpoint
             return converter.toRestPage(witems, pageable, utils.obtainProjection());
         } catch (SQLException e) {
-            String errorMessage = "Cannot retrieve a workspace item with the share token: " + shareToken + " because: " +
-                    e.getMessage();
+            String errorMessage = "Cannot retrieve a workspace item with the share token: " + shareToken +
+                    " because: " + e.getMessage();
             log.error(errorMessage, e);
             throw new RuntimeException(errorMessage, e);
         }

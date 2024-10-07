@@ -39,8 +39,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * This class' purpose is to provide an API for sharing an in-progress submission. It allows the user to generate a share
- * link for a workspace item and to set the owner of the workspace item to the current user.
+ * This class' purpose is to provide an API for sharing an in-progress submission. It allows the user to generate
+ * a share link for a workspace item and to set the owner of the workspace item to the current user.
  */
 @RestController
 @RequestMapping("/api/" + RestAddressableModel.SUBMISSION)
@@ -65,8 +65,8 @@ public class SubmissionController {
 
     @PreAuthorize("hasPermission(#wsoId, 'WORKSPACEITEM', 'WRITE')")
     @RequestMapping(method = RequestMethod.GET, value = "share")
-    public ResponseEntity<ShareSubmissionLinkDTO> generateShareLink(@RequestParam(name = "workspaceitemid", required = false) Integer wsoId,
-                                          HttpServletRequest request) throws SQLException, AuthorizeException {
+    public ResponseEntity<ShareSubmissionLinkDTO> generateShareLink(@RequestParam(name = "workspaceitemid",
+            required = false) Integer wsoId, HttpServletRequest request) throws SQLException, AuthorizeException {
 
         Context context = ContextUtil.obtainContext(request);
         // Check the context is not null
