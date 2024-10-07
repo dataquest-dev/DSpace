@@ -7,10 +7,8 @@
  */
 package org.dspace.app.rest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.RemoveOperation;
@@ -34,13 +32,15 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
-import org.dspace.content.service.BitstreamService;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
-import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
+import org.dspace.discovery.SearchServiceException;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,37 +68,50 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
-    static String PROVENANCE = "dc.description.provenance";
-    private Collection  collection;
-    private ObjectMapper objectMapper = new ObjectMapper();
-    private JsonNode suite;
+    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    private ClarinLicenseLabelService clarinLicenseLabelService = ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
+    private ClarinLicenseService clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
 
-    @Autowired
-    private ItemService itemService;
-    @Autowired
-    private BitstreamService bitstreamService;
-    @Autowired
-    private ClarinLicenseResourceMappingService resourceMappingService;
-    @Autowired
-    private ClarinLicenseLabelService clarinLicenseLabelService;
-    @Autowired
-    private ClarinLicenseService clarinLicenseService;
-    @Autowired
-    private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+    private Collection  collection;
+    private Item item;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private JsonNode suite;
 
     @Before
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        //suite = objectMapper.readTree(getClass().getResourceAsStream("provenance-patch-suite.json"));
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
         collection = CollectionBuilder.createCollection(context, parentCommunity).build();
+        item = ItemBuilder.createItem(context, collection)
+                .withTitle("Public item 1")
+                .build();
+        context.restoreAuthSystemState();
         suite = objectMapper.readTree(getClass().getResourceAsStream("provenance-patch-suite.json"));
     }
 
+    @After
+    @Override
+    public void destroy() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // Delete community created in init()
+        try {
+            ItemBuilder.deleteItem(item.getID());
+            CollectionBuilder.deleteCollection(collection.getID());
+            CommunityBuilder.deleteCommunity(parentCommunity.getID());
+        } catch (Exception e) {
+            // ignore
+        }
+        context.restoreAuthSystemState();
+
+        item = null;
+        collection = null;
+        parentCommunity = null;
+        super.destroy();
+    }
 
     private String provenanceMetadataModified(String metadata) {
         // Regex to match the date pattern
@@ -112,7 +126,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         return rspModifiedProvenance;
     }
 
-    public void objectCheck(DSpaceObject obj, String respKey) {
+    private void objectCheck(DSpaceObject obj, String respKey) {
         String expectedSubStr = suite.get(respKey).asText();
         List<MetadataValue> metadata = obj.getMetadata();
         boolean contain = false;
@@ -130,54 +144,11 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         }
     }
 
-    private JsonNode preprocessingProvenance(String responseBody) throws JsonProcessingException {
-        //String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        JsonNode responseJson =  objectMapper.readTree(responseBody);
-        JsonNode responseMetadataJson = responseJson.get("metadata");
-        if (responseMetadataJson.get(PROVENANCE) != null) {
-            // In the provenance metadata, there is a timestamp indicating when they were added.
-            // To ensure accurate comparison, remove that date.
-            String rspProvenance = responseMetadataJson.get(PROVENANCE).toString();
-            // Regex to match the date pattern
-            String datePattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
-            Pattern pattern = Pattern.compile(datePattern);
-            Matcher matcher = pattern.matcher(rspProvenance);
-            String rspModifiedProvenance = rspProvenance;
-            while (matcher.find()) {
-                String dateString = matcher.group(0);
-                rspModifiedProvenance = rspModifiedProvenance.replaceAll(dateString, "");
-            }
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNodePrv = objectMapper.readTree(rspModifiedProvenance);
-            // Replace the origin metadata with a value with the timestamp removed
-            ((ObjectNode) responseJson.get("metadata")).put(PROVENANCE, jsonNodePrv);
-            return responseJson;
-        }
-        return null;
-    }
-
-    private Item createItem() {
-        context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection)
-                .withTitle("Public item 1")
-                .build();
-        context.restoreAuthSystemState();
-        return item;
-    }
-
     private Bundle createBundle(Item item, String bundleName) throws SQLException, AuthorizeException {
         context.turnOffAuthorisationSystem();
         Bundle bundle = BundleBuilder.createBundle(context, item).withName(bundleName).build();
         context.restoreAuthSystemState();
         return bundle;
-    }
-
-    private ClarinLicense createLicense(String name) throws SQLException, AuthorizeException {
-        context.turnOffAuthorisationSystem();
-        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
-        clarinLicense.setName(name);
-        context.restoreAuthSystemState();
-        return clarinLicense;
     }
 
     private Bitstream createBitstream(Item item, String bundleName) throws SQLException, AuthorizeException, IOException {
@@ -189,71 +160,178 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         return bitstream;
     }
 
+    private void deleteBitstream(Bitstream bitstream) throws SQLException, IOException {
+        while (!bitstream.getBundles().isEmpty()) {
+            deleteBundle(bitstream.getBundles().get(0).getID());
+        }
+        BitstreamBuilder.deleteBitstream(bitstream.getID());
+    }
+
+
+    private void deleteBundle(UUID uuid) throws SQLException, IOException {
+        BundleBuilder.deleteBundle(uuid);
+    }
+
+    private ClarinLicenseLabel createClarinLicenseLabel(String label, boolean extended, String title)
+            throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        ClarinLicenseLabel clarinLicenseLabel = ClarinLicenseLabelBuilder.createClarinLicenseLabel(context).build();
+        clarinLicenseLabel.setLabel(label);
+        clarinLicenseLabel.setExtended(extended);
+        clarinLicenseLabel.setTitle(title);
+        clarinLicenseLabelService.update(context, clarinLicenseLabel);
+        context.restoreAuthSystemState();
+        return clarinLicenseLabel;
+    }
+
+    private ClarinLicense createClarinLicense(String name, String definition)
+            throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+        clarinLicense.setDefinition(definition);
+        clarinLicense.setName(name);
+        HashSet<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
+        ClarinLicenseLabel clarinLicenseLabel = createClarinLicenseLabel("lbl", false, "Test Title");
+        clarinLicenseLabels.add(clarinLicenseLabel);
+        clarinLicense.setLicenseLabels(clarinLicenseLabels);
+        clarinLicenseService.update(context, clarinLicense);
+        context.restoreAuthSystemState();
+        return clarinLicense;
+    }
+
+    private void deleteClarinLicenseLable(Integer id) throws Exception {
+        ClarinLicenseLabelBuilder.deleteClarinLicenseLabel(id);
+    }
+
+    private void deleteClarinLicense(ClarinLicense license) throws Exception {
+        while (!license.getLicenseLabels().isEmpty()) {
+            deleteClarinLicenseLable(license.getLicenseLabels().get(0).getID());
+        }
+        ClarinLicenseBuilder.deleteClarinLicense(license.getID());
+    }
+
+    private Collection createCollection() {
+        context.turnOffAuthorisationSystem();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+        context.restoreAuthSystemState();
+        return col;
+    }
+
+    private void deleteCollection(UUID uuid) throws SearchServiceException, SQLException, IOException {
+        CollectionBuilder.deleteCollection(uuid);
+    }
+
+    private ClarinLicenseResourceMapping createResourceMapping(ClarinLicense license, Bitstream bitstream) throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        ClarinLicenseResourceMapping resourceMapping = ClarinLicenseResourceMappingBuilder.createClarinLicenseResourceMapping(context).build();
+        context.restoreAuthSystemState();
+        resourceMapping.setLicense(license);
+        resourceMapping.setBitstream(bitstream);
+        return resourceMapping;
+    }
+
+    @Test
+    public void updateLicenseTest() throws Exception {
+        Bitstream bitstream = createBitstream(item, Constants.LICENSE_BUNDLE_NAME);
+        ClarinLicense clarinLicense1 = createClarinLicense("Test 1", "Test Def");
+        createResourceMapping(clarinLicense1, bitstream);
+        ClarinLicense clarinLicense2 = createClarinLicense("Test 2", "Test Def");
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
+                        .param("licenseID", clarinLicense2.getID().toString()))
+                .andExpect(status().isOk());
+        objectCheck(itemService.find(context, item.getID()), "updateLicense");
+
+        deleteBitstream(bitstream);
+        deleteClarinLicense(clarinLicense1);
+        deleteClarinLicense(clarinLicense2);
+    }
+
+    @Test
+    public void addLicenseTest() throws Exception {
+        ClarinLicense clarinLicense = createClarinLicense("Test", "Test Def");
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
+                        .param("licenseID", clarinLicense.getID().toString()))
+                .andExpect(status().isOk());
+        objectCheck(itemService.find(context, item.getID()), "addLicense");
+
+        deleteClarinLicense(clarinLicense);
+    }
+
+    @Test
+    public void removeLicenseTest() throws Exception {
+        Bitstream bitstream = createBitstream(item, Constants.LICENSE_BUNDLE_NAME);
+        ClarinLicense clarinLicense = createClarinLicense("Test", "Test Def");
+        createResourceMapping(clarinLicense, bitstream);
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
+                        .param("licenseID", "-1"))
+                .andExpect(status().isOk());
+        objectCheck(itemService.find(context, item.getID()), "removeLicense");
+
+        deleteBitstream(bitstream);
+        deleteClarinLicense(clarinLicense);
+    }
+
     @Test
     public void makeDiscoverableTest() throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
-        Item item = createItem();
         List<Operation> ops = new ArrayList<>();
         ReplaceOperation replaceOperation = new ReplaceOperation("/discoverable", true);
         ops.add(replaceOperation);
         String patchBody = getPatchContent(ops);
 
-        // make discoverable
         getClient(token).perform(patch("/api/core/items/" + item.getID())
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
-                .andExpect(jsonPath("$.discoverable", Matchers.is(true)))
-                .andReturn();
+                .andExpect(jsonPath("$.discoverable", Matchers.is(true)));
+
         objectCheck(itemService.find(context, item.getID()), "discoverable");
     }
 
     @Test
     public void makeNonDiscoverableTest() throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
-        Item item = createItem();
-        //item.setDiscoverable(true);
         List<Operation> ops = new ArrayList<>();
         ReplaceOperation replaceOperation = new ReplaceOperation("/discoverable", false);
         ops.add(replaceOperation);
         String patchBody = getPatchContent(ops);
 
-        // make non-discoverable
         getClient(token).perform(patch("/api/core/items/" + item.getID())
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
+
         objectCheck(itemService.find(context, item.getID()), "nonDiscoverable");
     }
 
 
     @Test
     public void addedToMappedCollTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
-        Item item = createItem();
-        context.restoreAuthSystemState();
+        Collection coll = createCollection();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-
         getClient(adminToken).perform(
                 post("/api/core/items/" + item.getID() + "/mappedCollections/")
                         .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
                         .content(
-                                "https://localhost:8080/spring-rest/api/core/collections/" + col1.getID() + "\n"
+                                "https://localhost:8080/spring-rest/api/core/collections/" + coll.getID() + "\n"
                         )
         );
-        objectCheck(itemService.find(context, item.getID()), "mapped");
+        objectCheck(itemService.find(context, item.getID()), "mappedCol");
+
+        deleteCollection(coll.getID());
     }
 
     @Test
-    public void addMetadata() throws Exception {
-        Item item = createItem();
-
+    public void addItemMetadataTest() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
-
-        // Modify the entityType and verify the response already contains this modification
         List<Operation> ops = new ArrayList<>();
         AddOperation addOperation = new AddOperation("/metadata/dc.title", "Test");
         ops.add(addOperation);
@@ -263,13 +341,11 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        objectCheck(itemService.find(context, item.getID()), "addMetadata");
+        objectCheck(itemService.find(context, item.getID()), "addItemMtd");
     }
 
     @Test
-    public void replaceMetadata() throws Exception {
-        Item item = createItem();
-
+    public void replaceItemMetadataTest() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
         int index = 0;
         // Modify the entityType and verify the response already contains this modification
@@ -282,15 +358,13 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        objectCheck(itemService.find(context, item.getID()), "replaceMetadata");
+        objectCheck(itemService.find(context, item.getID()), "replaceItemMtd");
     }
 
     @Test
-    public void removeMetadata() throws Exception {
-        Item item = createItem();
-        String adminToken = getAuthToken(admin.getEmail(), password);
+    public void removeItemMetadataTest() throws Exception {
         int index = 0;
-        // Modify the entityType and verify the response already contains this modification
+        String adminToken = getAuthToken(admin.getEmail(), password);
         List<Operation> ops = new ArrayList<>();
         RemoveOperation removeOperation = new RemoveOperation("/metadata/dc.title/" + index);
         ops.add(removeOperation);
@@ -300,16 +374,32 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        objectCheck(itemService.find(context, item.getID()), "removeMetadata");
+        objectCheck(itemService.find(context, item.getID()), "removeItemMtd");
     }
 
     @Test
-    public void removeMetadataBitstream() throws Exception {
-        Item item = createItem();
+    public void removeBitstreamMetadataTest() throws Exception {
         Bitstream bitstream = createBitstream(item, "test");
+
         String adminToken = getAuthToken(admin.getEmail(), password);
-        int index = 0;
-        // Modify the entityType and verify the response already contains this modification
+        List<Operation> ops = new ArrayList<>();
+        AddOperation addOperation = new AddOperation("/metadata/dc.description", "test");
+        ops.add(addOperation);
+        String patchBody = getPatchContent(ops);
+        getClient(adminToken).perform(patch("/api/core/bitstreams/" + bitstream.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
+
+        deleteBitstream(bitstream);
+    }
+
+    @Test
+    public void addBitstreamMetadataTest() throws Exception {
+        Bitstream bitstream = createBitstream(item, "test");
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
         List<Operation> ops = new ArrayList<>();
         AddOperation addOperation = new AddOperation("/metadata/dc.description", "test");
         ops.add(addOperation);
@@ -322,32 +412,14 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void addMetadataBitstream() throws Exception {
-        Item item = createItem();
-        Bitstream bitstream = createBitstream(item, "test");
-        String adminToken = getAuthToken(admin.getEmail(), password);
-        // Modify the entityType and verify the response already contains this modification
-        List<Operation> ops = new ArrayList<>();
-        AddOperation addOperation = new AddOperation("/metadata/dc.description", "test");
-        ops.add(addOperation);
-        String patchBody = getPatchContent(ops);
-        getClient(adminToken).perform(patch("/api/core/bitstreams/" + bitstream.getID())
-                        .content(patchBody)
-                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
-    }
-
-    @Test
-    public void updateMetadataBitstream() throws Exception {
-        Item item = createItem();
+    public void updateMetadataBitstreamTest() throws Exception {
         Bitstream bitstream = createBitstream(item, "test");
         bitstream.setName(context, "test");
+
         String adminToken = getAuthToken(admin.getEmail(), password);
         int index = 0;
-        //Modify the entityType and verify the response already contains this modification
         List<Operation> ops = new ArrayList<>();
-        ReplaceOperation replaceOperation = new ReplaceOperation("/metadata/dc.title/" + index, "test 1");
+        ReplaceOperation replaceOperation = new ReplaceOperation("/metadata/dc.title/" + index + "/value", "test 1");
         ops.add(replaceOperation);
         String patchBody = getPatchContent(ops);
         getClient(adminToken).perform(patch("/api/core/bitstreams/" + bitstream.getID())
@@ -355,14 +427,15 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
         objectCheck(itemService.find(context, item.getID()), "replaceBitstreamMtd");
+
+        deleteBitstream(bitstream);
     }
 
     @Test
-    public void removeBitstreamFromItem() throws Exception {
-        Item item = createItem();
+    public void removeBitstreamFromItemTest() throws Exception {
         Bitstream bitstream = createBitstream(item, "test");
+
         String adminToken = getAuthToken(admin.getEmail(), password);
-        // Modify the entityType and verify the response already contains this modification
         List<Operation> ops = new ArrayList<>();
         RemoveOperation removeOperation = new RemoveOperation("/bitstreams/" + bitstream.getID());
         ops.add(removeOperation);
@@ -371,11 +444,12 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON));
         objectCheck(itemService.find(context, item.getID()), "removeBitstream");
+
+        deleteBitstream(bitstream);
     }
 
     @Test
-    public void addBitstreamToItem() throws Exception {
-        Item item = createItem();
+    public void addBitstreamToItemTest() throws Exception {
         Bundle bundle = createBundle(item, "test");
 
         String token = getAuthToken(admin.getEmail(), password);
@@ -389,98 +463,15 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         .file(file))
                 .andExpect(status().isCreated());
         objectCheck(itemService.find(context, item.getID()), "addBitstream");
-    }
 
-    /**
-     * Create Clarin License Label object for testing purposes.
-     */
-    private ClarinLicenseLabel createClarinLicenseLabel(String label, boolean extended, String title)
-            throws SQLException, AuthorizeException {
-        ClarinLicenseLabel clarinLicenseLabel = ClarinLicenseLabelBuilder.createClarinLicenseLabel(context).build();
-        clarinLicenseLabel.setLabel(label);
-        clarinLicenseLabel.setExtended(extended);
-        clarinLicenseLabel.setTitle(title);
-
-        clarinLicenseLabelService.update(context, clarinLicenseLabel);
-        return clarinLicenseLabel;
-    }
-
-    private ClarinLicense createClarinLicense(String name, String definition)
-            throws SQLException, AuthorizeException {
-        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
-        clarinLicense.setDefinition(definition);
-        clarinLicense.setName(name);
-
-        // add ClarinLicenseLabels to the ClarinLicense
-        HashSet<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
-        ClarinLicenseLabel clarinLicenseLabel = createClarinLicenseLabel("lbl", false, "Test Title");
-        clarinLicenseLabels.add(clarinLicenseLabel);
-        clarinLicense.setLicenseLabels(clarinLicenseLabels);
-
-        clarinLicenseService.update(context, clarinLicense);
-        return clarinLicense;
-    }
-
-    private ClarinLicenseResourceMapping createResourceMapping(ClarinLicense license, Bitstream bitstream) throws SQLException, AuthorizeException {
-        ClarinLicenseResourceMapping resourceMapping = ClarinLicenseResourceMappingBuilder.createClarinLicenseResourceMapping(context).build();
-        resourceMapping.setLicense(license);
-        resourceMapping.setBitstream(bitstream);
-        return resourceMapping;
-    }
-
-    @Test
-    public void updateLicenseTest() throws Exception {
-        Item item = createItem();
-        Bitstream bitstream = createBitstream(item, Constants.LICENSE_BUNDLE_NAME);
-        ClarinLicense clarinLicense1 = createClarinLicense("Test 1", "Test Def");
-        ClarinLicenseResourceMapping resourceMapping = createResourceMapping(clarinLicense1, bitstream);
-        ClarinLicense clarinLicense2 = createClarinLicense("Test 2", "Test Def");
-
-        String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
-                        .param("licenseID", clarinLicense2.getID().toString()))
-                .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "updateLicense");
-    }
-
-    @Test
-    public void addLicenseTest() throws Exception {
-        Item item = createItem();
-        ClarinLicense clarinLicense = createClarinLicense("Test", "Test Def");
-        String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
-                        .param("licenseID", clarinLicense.getID().toString()))
-                .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "addLicense");
-    }
-
-    @Test
-    public void removeLicenseTest() throws Exception {
-        Item item = createItem();
-        Bitstream bitstream = createBitstream(item, Constants.LICENSE_BUNDLE_NAME);
-        ClarinLicense clarinLicense = createClarinLicense("Test", "Test Def");
-        ClarinLicenseResourceMapping resourceMapping = createResourceMapping(clarinLicense, bitstream);
-
-        String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles"))
-                .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "removeLicense");
-    }
-
-    private Collection createCollection() {
-        context.turnOffAuthorisationSystem();
-        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
-        context.restoreAuthSystemState();
-        return col;
+        deleteBundle(bundle.getID());
     }
 
     @Test
     public void moveItemColTest() throws Exception {
-        Item item = createItem();
         Collection col = createCollection();
 
         String token = getAuthToken(admin.getEmail(), password);
-
         getClient(token)
                 .perform(put("/api/core/items/" + item.getID() + "/owningCollection/")
                         .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
@@ -489,5 +480,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                         ))
                 .andExpect(status().isOk());
         objectCheck(itemService.find(context, item.getID()), "movedItemCol");
+
+        deleteCollection(col.getID());
     }
 }
