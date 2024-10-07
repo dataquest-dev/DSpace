@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
 public class BitstreamRemoveOperation extends PatchOperation<Bitstream> {
     @Autowired
     BitstreamService bitstreamService;
-
     @Autowired
     AuthorizeService authorizeService;
     public static final String OPERATION_PATH_BITSTREAM_REMOVE = "/bitstreams/";

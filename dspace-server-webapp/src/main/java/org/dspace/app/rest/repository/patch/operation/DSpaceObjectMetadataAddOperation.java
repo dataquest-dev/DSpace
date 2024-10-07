@@ -9,8 +9,6 @@ package org.dspace.app.rest.repository.patch.operation;
 
 import java.sql.SQLException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Operation;
@@ -36,7 +34,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends PatchOperation<R> {
-    private static final Logger log = LogManager.getLogger();
 
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;

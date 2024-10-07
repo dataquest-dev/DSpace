@@ -186,6 +186,7 @@ public class ItemAddBundleController {
         if (Objects.nonNull(clarinLicense)) {
             clarinLicenseService.addLicenseMetadataToItem(context, clarinLicense, item);
         }
+
         itemService.update(context, item);
         context.commit();
 

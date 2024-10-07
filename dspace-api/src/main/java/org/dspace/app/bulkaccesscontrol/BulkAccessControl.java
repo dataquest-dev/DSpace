@@ -451,7 +451,6 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
     }
 
     /**
-    /**
      * create the new resource policies of item.
      * then, call {@link ItemService#adjustItemPolicies(
      * Context, Item, Collection)} to adjust item's default policies.
@@ -463,6 +462,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
      */
     private void setItemPolicies(Item item, BulkAccessControlInput accessControl)
         throws SQLException, AuthorizeException {
+
         accessControl
             .getItem()
             .getAccessConditions()
@@ -583,6 +583,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
      */
     private void setBitstreamPolicies(Bitstream bitstream, Item item, BulkAccessControlInput accessControl)
         throws SQLException, AuthorizeException {
+
         accessControl.getBitstream()
                      .getAccessConditions()
                      .forEach(accessCondition -> createResourcePolicy(bitstream, accessCondition,

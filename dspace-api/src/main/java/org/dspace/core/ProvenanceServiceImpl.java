@@ -36,7 +36,7 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProvenanceServiceImpl implements ProvenanceService {
-    private static final Logger log = LogManager.getLogger();
+    private static final Logger log = LogManager.getLogger(ProvenanceServiceImpl.class);
 
     @Autowired
     private ItemService itemService;
@@ -49,16 +49,13 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     @Autowired
     private BitstreamService bitstreamService;
 
-    private ProvenanceMessageProvider messageProvider = new ProvenanceMessageProviderImpl();
-
-
+    private final ProvenanceMessageProvider messageProvider = new ProvenanceMessageProviderImpl();
 
     private void addProvenanceMetadata(Context context, Item item, String msg)
             throws SQLException, AuthorizeException {
         itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                "description", "provenance", "en", msg.toString());
-        itemService.update(context, item); // Update item in DB
-        //context.commit();
+                "description", "provenance", "en", msg);
+        itemService.update(context, item);
     }
 
     private String extractAccessConditions(List<AccessCondition> accessConditions) {
@@ -74,6 +71,24 @@ public class ProvenanceServiceImpl implements ProvenanceService {
             return null;
         }
         return items.get(0);
+    }
+
+    private String findLicenseInBundles(Item item, String bundleName, String currentLicense, Context context)
+            throws SQLException {
+        List<Bundle> bundles = item.getBundles(bundleName);
+        for (Bundle clarinBundle : bundles) {
+            List<Bitstream> bitstreamList = clarinBundle.getBitstreams();
+            for (Bitstream bundleBitstream : bitstreamList) {
+                if (Objects.isNull(currentLicense)) {
+                    List<ClarinLicenseResourceMapping> mappings =
+                            this.clarinResourceMappingService.findByBitstreamUUID(context, bundleBitstream.getID());
+                    if (!mappings.isEmpty()) {
+                        return mappings.get(0).getLicense().getName();
+                    }
+                }
+            }
+        }
+        return currentLicense;
     }
 
     @Override
@@ -121,25 +136,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
                     "bitstream", bitstream.getID());
             addProvenanceMetadata(context, item, msg);
         }
-    }
-
-    // Method to find license in the bundles
-    private String findLicenseInBundles(Item item, String bundleName, String currentLicense, Context context)
-            throws SQLException {
-        List<Bundle> bundles = item.getBundles(bundleName);
-        for (Bundle clarinBundle : bundles) {
-            List<Bitstream> bitstreamList = clarinBundle.getBitstreams();
-            for (Bitstream bundleBitstream : bitstreamList) {
-                if (Objects.isNull(currentLicense)) {
-                    List<ClarinLicenseResourceMapping> mappings =
-                            this.clarinResourceMappingService.findByBitstreamUUID(context, bundleBitstream.getID());
-                    if (!mappings.isEmpty()) {
-                        return mappings.get(0).getLicense().getName();
-                    }
-                }
-            }
-        }
-        return currentLicense;
     }
 
     @Override
@@ -194,14 +190,12 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     public void addMetadata(Context context, DSpaceObject dso, MetadataField metadataField)
             throws SQLException, AuthorizeException {
         if (Constants.ITEM == dso.getType()) {
-            // Add suitable provenance
             String msg = messageProvider.getMessage(context, "itemMetadata",
                     messageProvider.getMetadataField(metadataField), "added");
             addProvenanceMetadata(context, (Item) dso, msg);
         }
 
         if (dso.getType() == Constants.BITSTREAM) {
-            // Add suitable provenance
             Bitstream bitstream = (Bitstream) dso;
             Item item = getItem(context, bitstream);
             if (!Objects.isNull(item)) {
@@ -228,7 +222,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
             oldMtdKey = mtd.get(0).getMetadataField();
             oldMtdValue = mtd.get(0).getValue();
         }
-        // Add suitable provenance
         Bitstream bitstream = (Bitstream) dso;
         Item item = getItem(context, bitstream);
         if (!Objects.isNull(item)) {
@@ -248,7 +241,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         // Remember removed mtd
         String oldMtdKey = messageProvider.getMetadataField(metadataValues.get(indexInt).getMetadataField());
         String oldMtdValue = metadataValues.get(indexInt).getValue();
-        // Add suitable provenance
         String msg = messageProvider.getMessage(context, "itemMetadata",
                 (Item) dso, messageProvider.getMetadata(oldMtdKey, oldMtdValue), "deleted");
         addProvenanceMetadata(context, (Item) dso, msg);
@@ -273,7 +265,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
             return;
         }
 
-        // Add suitable provenance
         Bitstream bitstream = (Bitstream) dso;
         Item item = getItem(context, bitstream);
         if (!Objects.isNull(item)) {
@@ -287,7 +278,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     @Override
     public void makeDiscoverable(Context context, Item item, boolean discoverable)
             throws SQLException, AuthorizeException {
-        // Add suitable provenance
         String msg = messageProvider.getMessage(context, "discoverable",
                 item, discoverable ? "" : "non-") + messageProvider.addCollectionsToMessage(item);
         addProvenanceMetadata(context, item, msg);

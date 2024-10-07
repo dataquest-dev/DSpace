@@ -11,8 +11,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
@@ -43,7 +41,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends PatchOperation<R> {
-    private static final Logger log = LogManager.getLogger();
 
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;

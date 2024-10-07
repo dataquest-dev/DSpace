@@ -28,19 +28,17 @@ import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProvenanceMessageProviderImpl implements ProvenanceMessageProvider {
+    private static final String PROVENANCE_MSG_JSON = "provenance_messages.json";
     private Map<String, String> messageTemplates;
-
-    @Autowired
     private InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
 
-    @Autowired
     public ProvenanceMessageProviderImpl() {
         loadMessageTemplates();
     }
 
     private void loadMessageTemplates() {
         ObjectMapper mapper = new ObjectMapper();
-        try (InputStream inputStream = getClass().getResourceAsStream("provenance_messages.json")) {
+        try (InputStream inputStream = getClass().getResourceAsStream(PROVENANCE_MSG_JSON)) {
             if (inputStream == null) {
                 throw new RuntimeException("Failed to find message templates file");
             }

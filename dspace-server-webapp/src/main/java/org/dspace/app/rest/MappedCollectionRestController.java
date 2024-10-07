@@ -108,10 +108,7 @@ public class MappedCollectionRestController {
 
                 collectionService.addItem(context, collectionToMapTo, item);
                 collectionService.update(context, collectionToMapTo);
-
-                // Add suitable provenance
                 provenanceService.mappedItem(context, item, collectionToMapTo);
-
                 itemService.update(context, item);
             } else {
                 throw new UnprocessableEntityException("Not a valid collection or item uuid.");
@@ -158,10 +155,7 @@ public class MappedCollectionRestController {
             if (collection.getID() != owningCollectionUuid && item.getCollections().contains(collection)) {
                 collectionService.removeItem(context, collection, item);
                 collectionService.update(context, collection);
-
-                // Add suitable provenance
                 provenanceService.deletedItemFromMapped(context,item, collection);
-
                 itemService.update(context, item);
                 context.commit();
             }

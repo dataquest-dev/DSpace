@@ -180,9 +180,9 @@
             "language":"en","authority":null,"confidence":-1,"place":1},
           {"value":"Item metadata (dc.title) was added by first (admin) last (admin) (admin@email.com) on ",
             "language":"en","authority":null,"confidence":-1,"place":2},
-          {"value":"Item metadata (dc.title: title A) was deleted by first (admin) last (admin) (admin@email.com) on ",
+          {"value":"Item metadata (dc.title: title A) was deleted by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
             "language":"en","authority":null,"confidence":-1,"place":3},
-          {"value":"Item metadata (dc.title: title A) was deleted by first (admin) last (admin) (admin@email.com) on ",
+          {"value":"Item metadata (dc.title: title A) was deleted by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
             "language":"en","authority":null,"confidence":-1,"place":4}
         ],
         "dc.title": [
@@ -208,9 +208,9 @@
             "language": "en", "authority": null, "confidence": -1, "place": 1},
           {"value": "Item metadata (dc.title) was added by first (admin) last (admin) (admin@email.com) on ",
             "language": "en", "authority": null, "confidence": -1, "place": 2},
-          {"value": "Item metadata (dc.title: title A) was deleted by first (admin) last (admin) (admin@email.com) on ",
+          {"value": "Item metadata (dc.title: title A) was deleted by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
             "language": "en", "authority": null, "confidence": -1, "place": 3},
-          {"value": "Item metadata (dc.title: title A) was deleted by first (admin) last (admin) (admin@email.com) on ",
+          {"value": "Item metadata (dc.title: title A) was deleted by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
             "language": "en", "authority": null, "confidence": -1, "place": 4}
         ]
       }

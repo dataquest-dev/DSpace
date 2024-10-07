@@ -2439,8 +2439,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         context.restoreAuthSystemState();
         String token = getAuthToken(asUser.getEmail(), password);
 
-        new MetadataPatchSuite("item-metadata-patch-suite.json")
-                .runWith(getClient(token), "/api/core/items/" + item.getID(), expectedStatus);
+        new MetadataPatchSuite().runWith(getClient(token), "/api/core/items/" + item.getID(), expectedStatus);
     }
 
     /**
