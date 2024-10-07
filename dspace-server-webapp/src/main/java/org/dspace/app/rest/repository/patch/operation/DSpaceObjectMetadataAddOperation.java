@@ -75,8 +75,8 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                     metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence(), indexInt);
             provenanceService.addMetadata(context, dso, metadataField);
         } catch (SQLException e) {
-                throw new DSpaceBadRequestException("SQLException in DspaceObjectMetadataAddOperation.add trying to add " +
-                        "metadata to dso.", e);
+            throw new DSpaceBadRequestException("SQLException in DspaceObjectMetadataAddOperation.add trying to add " +
+                    "metadata to dso.", e);
         } catch (AuthorizeException e) {
             throw new DSpaceBadRequestException(
                     "AuthorizeException in DspaceObjectMetadataAddOperation.add " +
