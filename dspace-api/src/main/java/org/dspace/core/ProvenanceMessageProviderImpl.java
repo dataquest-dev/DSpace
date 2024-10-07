@@ -25,7 +25,6 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.eperson.EPerson;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProvenanceMessageProviderImpl implements ProvenanceMessageProvider {
     private static final String PROVENANCE_MSG_JSON = "provenance_messages.json";
