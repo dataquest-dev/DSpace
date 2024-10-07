@@ -161,8 +161,9 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     }
 
     private void deleteBitstream(Bitstream bitstream) throws SQLException, IOException {
-        while (!bitstream.getBundles().isEmpty()) {
-            deleteBundle(bitstream.getBundles().get(0).getID());
+        int size = bitstream.getBundles().size();
+        for (int i = 0; i < size; i++) {
+            deleteBundle(bitstream.getBundles().get(i).getID());
         }
         BitstreamBuilder.deleteBitstream(bitstream.getID());
     }
@@ -204,8 +205,9 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     }
 
     private void deleteClarinLicense(ClarinLicense license) throws Exception {
-        while (!license.getLicenseLabels().isEmpty()) {
-            deleteClarinLicenseLable(license.getLicenseLabels().get(0).getID());
+        int size = license.getLicenseLabels().size();
+        for (int i = 0; i < size; i++) {
+            deleteClarinLicenseLable(license.getLicenseLabels().get(i).getID());
         }
         ClarinLicenseBuilder.deleteClarinLicense(license.getID());
     }
@@ -230,11 +232,15 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         return resourceMapping;
     }
 
+    private void deleteResourceMapping(Integer id) throws Exception {
+        ClarinLicenseResourceMappingBuilder.delete(id);
+    }
+
     @Test
     public void updateLicenseTest() throws Exception {
         Bitstream bitstream = createBitstream(item, Constants.LICENSE_BUNDLE_NAME);
         ClarinLicense clarinLicense1 = createClarinLicense("Test 1", "Test Def");
-        createResourceMapping(clarinLicense1, bitstream);
+        ClarinLicenseResourceMapping mapping = createResourceMapping(clarinLicense1, bitstream);
         ClarinLicense clarinLicense2 = createClarinLicense("Test 2", "Test Def");
 
         String token = getAuthToken(admin.getEmail(), password);
@@ -246,6 +252,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         deleteBitstream(bitstream);
         deleteClarinLicense(clarinLicense1);
         deleteClarinLicense(clarinLicense2);
+        deleteResourceMapping(mapping.getID());
     }
 
     @Test
@@ -265,7 +272,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     public void removeLicenseTest() throws Exception {
         Bitstream bitstream = createBitstream(item, Constants.LICENSE_BUNDLE_NAME);
         ClarinLicense clarinLicense = createClarinLicense("Test", "Test Def");
-        createResourceMapping(clarinLicense, bitstream);
+        ClarinLicenseResourceMapping mapping = createResourceMapping(clarinLicense, bitstream);
 
         String token = getAuthToken(admin.getEmail(), password);
         getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
@@ -275,10 +282,12 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
 
         deleteBitstream(bitstream);
         deleteClarinLicense(clarinLicense);
+        deleteResourceMapping(mapping.getID());
     }
 
     @Test
     public void makeDiscoverableTest() throws Exception {
+        item.setDiscoverable(false);
         String token = getAuthToken(admin.getEmail(), password);
         List<Operation> ops = new ArrayList<>();
         ReplaceOperation replaceOperation = new ReplaceOperation("/discoverable", true);
@@ -297,6 +306,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void makeNonDiscoverableTest() throws Exception {
+        item.setDiscoverable(true);
         String token = getAuthToken(admin.getEmail(), password);
         List<Operation> ops = new ArrayList<>();
         ReplaceOperation replaceOperation = new ReplaceOperation("/discoverable", false);
@@ -310,7 +320,6 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
 
         objectCheck(itemService.find(context, item.getID()), "nonDiscoverable");
     }
-
 
     @Test
     public void addedToMappedCollTest() throws Exception {
@@ -348,7 +357,6 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     public void replaceItemMetadataTest() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
         int index = 0;
-        // Modify the entityType and verify the response already contains this modification
         List<Operation> ops = new ArrayList<>();
         ReplaceOperation replaceOperation = new ReplaceOperation("/metadata/dc.title/" + index, "Test");
         ops.add(replaceOperation);
