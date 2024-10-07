@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.io.FileUtils;
@@ -84,8 +85,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -481,23 +482,28 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
     }
 
     @SearchRestMethod(name = "shareToken")
-    public WorkspaceItemRest findByShareToken(@Parameter(value = "shareToken", required = true) String shareToken,
+    public Page<WorkspaceItemRest> findByShareToken(@Parameter(value = "shareToken", required = true) String shareToken,
                                             Pageable pageable) {
         try {
             Context context = obtainContext();
-            WorkspaceItem workspaceItem = workspaceItemService.findByShareToken(context, shareToken);
-            if (workspaceItem == null) {
-                // TODO log
-                return null;
+            List<WorkspaceItem> witems  = workspaceItemService.findByShareToken(context, shareToken);
+            if (CollectionUtils.isEmpty(witems)) {
+                String errorMessage = "The workspace item with share token:" + shareToken + " does not exist.";
+                log.error(errorMessage);
+                throw new BadRequestException(errorMessage);
             }
-            if (!authorizeService.authorizeActionBoolean(context, workspaceItem.getItem(), Constants.READ)) {
-                // TODO log
-                throw new AccessDeniedException("The current user does not have rights to view the WorkflowItem");
+            if (!authorizeService.authorizeActionBoolean(context, witems.get(0).getItem(), Constants.READ)) {
+                String errorMessage = "The current user does not have rights to view the WorkflowItem";
+                log.error(errorMessage);
+                throw new AccessDeniedException(errorMessage);
             }
-            return converter.toRest(workspaceItem, utils.obtainProjection());
+            // It must return a Page because the FE cannot parse single result from the search endpoint
+            return converter.toRestPage(witems, pageable, utils.obtainProjection());
         } catch (SQLException e) {
-            // TODO log
-            throw new RuntimeException(e.getMessage(), e);
+            String errorMessage = "Cannot retrieve a workspace item with the share token: " + shareToken + " because: " +
+                    e.getMessage();
+            log.error(errorMessage, e);
+            throw new RuntimeException(errorMessage, e);
         }
     }
 

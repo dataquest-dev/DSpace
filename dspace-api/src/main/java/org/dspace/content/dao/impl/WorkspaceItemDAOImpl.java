@@ -82,11 +82,11 @@ public class WorkspaceItemDAOImpl extends AbstractHibernateDAO<WorkspaceItem> im
     }
 
     @Override
-    public WorkspaceItem findByShareToken(Context context, String shareToken) throws SQLException {
+    public List<WorkspaceItem> findByShareToken(Context context, String shareToken) throws SQLException {
         Query query = createQuery(context,
                 "from WorkspaceItem ws where ws.shareToken = :shareToken");
         query.setParameter("shareToken", shareToken);
-        return uniqueResult(query);
+        return list(query);
     }
 
     @Override
