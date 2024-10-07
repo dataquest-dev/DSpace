@@ -524,15 +524,6 @@ public class HandlePlugin implements HandleStorage {
         }
     }
 
-    private static void loadHandleClarinAndConfigService() {
-        if (Objects.isNull(handleClarinService)) {
-            handleClarinService = ContentServiceFactory.getInstance().getHandleClarinService();
-        }
-        if (Objects.isNull(configurationService)) {
-            configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-        }
-    }
-
     /**
      * Load the repository email from the configuration. The mail is in the property `help.mail`.
      *
