@@ -70,7 +70,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    private ClarinLicenseLabelService clarinLicenseLabelService = ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
+    private ClarinLicenseLabelService clarinLicenseLabelService =
+            ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
     private ClarinLicenseService clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
 
     private Collection  collection;
@@ -152,7 +153,8 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         return bundle;
     }
 
-    private Bitstream createBitstream(Item item, String bundleName) throws SQLException, AuthorizeException, IOException {
+    private Bitstream createBitstream(Item item, String bundleName)
+            throws SQLException, AuthorizeException, IOException {
         context.turnOffAuthorisationSystem();
         Bundle bundle = createBundle(item, Objects.isNull(bundleName) ? "test" : bundleName);
         Bitstream bitstream = BitstreamBuilder.createBitstream(context, bundle,
@@ -466,7 +468,8 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         String token = getAuthToken(admin.getEmail(), password);
         String input = "Hello, World!";
         context.turnOffAuthorisationSystem();
-        MockMultipartFile file = new MockMultipartFile("file", "hello.txt", org.springframework.http.MediaType.TEXT_PLAIN_VALUE,
+        MockMultipartFile file = new MockMultipartFile("file", "hello.txt",
+                org.springframework.http.MediaType.TEXT_PLAIN_VALUE,
                 input.getBytes());
         context.restoreAuthSystemState();
         getClient(token)
