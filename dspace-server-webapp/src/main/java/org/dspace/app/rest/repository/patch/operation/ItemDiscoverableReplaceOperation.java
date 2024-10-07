@@ -46,7 +46,6 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
             item.setDiscoverable(discoverable);
             try {
                 provenanceService.makeDiscoverable(context, item, discoverable);
-                //tu
             } catch (SQLException ex) {
                 throw new RuntimeException("SQLException occurred when item making " + (discoverable ? "" : "non-")
                         + "discoverable.", ex);
