@@ -44,7 +44,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -223,9 +222,11 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         CollectionBuilder.deleteCollection(uuid);
     }
 
-    private ClarinLicenseResourceMapping createResourceMapping(ClarinLicense license, Bitstream bitstream) throws SQLException, AuthorizeException {
+    private ClarinLicenseResourceMapping createResourceMapping(ClarinLicense license, Bitstream bitstream)
+            throws SQLException, AuthorizeException {
         context.turnOffAuthorisationSystem();
-        ClarinLicenseResourceMapping resourceMapping = ClarinLicenseResourceMappingBuilder.createClarinLicenseResourceMapping(context).build();
+        ClarinLicenseResourceMapping resourceMapping =
+                ClarinLicenseResourceMappingBuilder.createClarinLicenseResourceMapping(context).build();
         context.restoreAuthSystemState();
         resourceMapping.setLicense(license);
         resourceMapping.setBitstream(bitstream);

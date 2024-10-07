@@ -7,6 +7,11 @@
  */
 package org.dspace.core;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,11 +34,6 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class ProvenanceServiceImpl implements ProvenanceService {
     private static final Logger log = LogManager.getLogger();
@@ -77,7 +77,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     }
 
     @Override
-    public void setItemPolicies(Context context, Item item, BulkAccessControlInput accessControl) throws SQLException, AuthorizeException {
+    public void setItemPolicies(Context context, Item item, BulkAccessControlInput accessControl)
+            throws SQLException, AuthorizeException {
         String resPoliciesStr = extractAccessConditions(accessControl.getItem().getAccessConditions());
         if (!resPoliciesStr.isEmpty()) {
             String msg = messageProvider.getMessage(context,"accessCondition", resPoliciesStr,
@@ -87,7 +88,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     }
 
     @Override
-    public String removedReadPolicies(Context context, DSpaceObject dso, String type) throws SQLException, AuthorizeException {
+    public String removedReadPolicies(Context context, DSpaceObject dso, String type)
+            throws SQLException, AuthorizeException {
         List<ResourcePolicy> resPolicies = resourcePolicyService.find(context, dso, type);
         if (resPolicies.isEmpty()) {
             return null;
@@ -111,7 +113,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     }
 
     @Override
-    public void setBitstreamPolicies(Context context, Bitstream bitstream, Item item, BulkAccessControlInput accessControl) throws SQLException, AuthorizeException {
+    public void setBitstreamPolicies(Context context, Bitstream bitstream, Item item,
+                                     BulkAccessControlInput accessControl) throws SQLException, AuthorizeException {
         String accConditionsStr = extractAccessConditions(accessControl.getBitstream().getAccessConditions());
         if (!accConditionsStr.isEmpty()) {
             String msg = messageProvider.getMessage(context,"accessCondition", accConditionsStr,
@@ -163,7 +166,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     }
 
     @Override
-    public void deletedItemFromMapped(Context context, Item item, Collection collection) throws SQLException, AuthorizeException {
+    public void deletedItemFromMapped(Context context, Item item, Collection collection)
+            throws SQLException, AuthorizeException {
         String msg = messageProvider.getMessage(context, "deletedItemFromMapped",
                item.getID(), collection.getID());
         addProvenanceMetadata(context, item, msg);
@@ -180,7 +184,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     }
 
     @Override
-    public void addMetadata(Context context, DSpaceObject dso, MetadataField metadataField) throws SQLException, AuthorizeException {
+    public void addMetadata(Context context, DSpaceObject dso, MetadataField metadataField)
+            throws SQLException, AuthorizeException {
         if (Constants.ITEM == dso.getType()) {
             // Add suitable provenance
             String msg = messageProvider.getMessage(context, "itemMetadata",
@@ -202,13 +207,15 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     }
 
     @Override
-    public void removeMetadata(Context context, DSpaceObject dso, MetadataField metadataField) throws SQLException, AuthorizeException {
+    public void removeMetadata(Context context, DSpaceObject dso, MetadataField metadataField)
+            throws SQLException, AuthorizeException {
         if (dso.getType() != Constants.BITSTREAM) {
             return;
         }
         String oldMtdKey = null;
         String oldMtdValue = null;
-        List<MetadataValue> mtd = bitstreamService.getMetadata((Bitstream) dso, metadataField.getMetadataSchema().getName(),
+        List<MetadataValue> mtd = bitstreamService.getMetadata((Bitstream) dso,
+                metadataField.getMetadataSchema().getName(),
                 metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
         if (!CollectionUtils.isEmpty(mtd)) {
             oldMtdKey = mtd.get(0).getMetadataField().getElement();
@@ -241,7 +248,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     }
 
     @Override
-    public void replaceMetadata(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal) throws SQLException, AuthorizeException {
+    public void replaceMetadata(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal)
+            throws SQLException, AuthorizeException {
         if (dso.getType() != Constants.ITEM) {
             return;
         }
@@ -252,7 +260,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     }
 
     @Override
-    public void replaceMetadataSingle(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal) throws SQLException, AuthorizeException {
+    public void replaceMetadataSingle(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal)
+            throws SQLException, AuthorizeException {
         if (dso.getType() != Constants.BITSTREAM) {
             return;
         }
@@ -269,7 +278,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     }
 
     @Override
-    public void makeDiscoverable(Context context, Item item, boolean discoverable) throws SQLException, AuthorizeException {
+    public void makeDiscoverable(Context context, Item item, boolean discoverable)
+            throws SQLException, AuthorizeException {
         // Add suitable provenance
         String msg = messageProvider.getMessage(context, "discoverable",
                 item, discoverable ? "" : "non-") + messageProvider.addCollectionsToMessage(item);

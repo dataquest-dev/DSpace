@@ -7,6 +7,15 @@
  */
 package org.dspace.core;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
@@ -19,14 +28,6 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ProvenanceMessageProviderImpl implements ProvenanceMessageProvider {
     private Map<String, String> messageTemplates;
@@ -41,15 +42,19 @@ public class ProvenanceMessageProviderImpl implements ProvenanceMessageProvider 
 
     private void loadMessageTemplates() {
         ObjectMapper mapper = new ObjectMapper();
-        try {
-            messageTemplates = mapper.readValue(Files.readAllBytes(Paths.get("C:\\workspace\\DSpace\\dspace-api\\src\\main\\java\\org\\dspace\\core\\provenance_messages.json")), Map.class);
+        try (InputStream inputStream = getClass().getResourceAsStream("provenance_messages.json")) {
+            if (inputStream == null) {
+                throw new RuntimeException("Failed to find message templates file");
+            }
+            messageTemplates = mapper.readValue(inputStream, Map.class);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load message templates", e);
         }
     }
 
     @Override
-    public String getMessage(Context context, String templateKey, Item item, Object... args) throws SQLException, AuthorizeException {
+    public String getMessage(Context context, String templateKey, Item item, Object... args)
+            throws SQLException, AuthorizeException {
         String msg = getMessage(context, templateKey, args);
         msg = msg + "\n" + installItemService.getBitstreamProvenanceMessage(context, item);
         return msg;
@@ -77,7 +82,7 @@ public class ProvenanceMessageProviderImpl implements ProvenanceMessageProvider 
     }
 
     @Override
-    public String addCollectionsToMessage(Item item) throws SQLException, AuthorizeException {
+    public String addCollectionsToMessage(Item item) {
         String msg = "Item was in collections:\n";
         List<Collection> collsList = item.getCollections();
         for (Collection coll : collsList) {
