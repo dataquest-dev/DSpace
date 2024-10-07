@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest.repository;
 
 import java.io.IOException;
@@ -41,6 +48,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * This class' purpose is to provide an API for sharing an in-progress submission. It allows the user to generate
  * a share link for a workspace item and to set the owner of the workspace item to the current user.
+ *
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @RestController
 @RequestMapping("/api/" + RestAddressableModel.SUBMISSION)
