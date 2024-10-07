@@ -150,7 +150,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
     @Override
     public void moveItem(Context context, Item item, Collection collection) throws SQLException, AuthorizeException {
-       String msg = messageProvider.getMessage(context, "moveItem", item, collection.getID());
+        String msg = messageProvider.getMessage(context, "moveItem", item, collection.getID());
         // Update item in DB
         // Because a user can move an item without authorization turn off authorization
         context.turnOffAuthorisationSystem();
