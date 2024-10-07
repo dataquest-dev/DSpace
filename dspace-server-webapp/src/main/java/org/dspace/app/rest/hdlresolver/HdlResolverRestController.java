@@ -173,60 +173,38 @@ public class HdlResolverRestController {
     }
 
     /**
-     * Maps the handle to a correct response.
+     * Maps the handle to url.
      *
      * @param request        HttpServletRequest
      * @param handleResolver HdlResolverDTO - Handle resolver
-     * @return One element list using String if found, else null String.
+     * @return String if found, else null String.
      */
     private String resolveToURL(HttpServletRequest request, HdlResolverDTO handleResolver) {
-        return mapAsJson(this.hdlResolverService.resolveToURL(ContextUtil.obtainContext(request), handleResolver));
+        return this.hdlResolverService.resolveToURL(ContextUtil.obtainContext(request), handleResolver);
     }
 
     /**
-     * Maps the handle to a correct response.
+     * Resolves the metadata based on the given request and handle resolver.
      *
-     * @param request        HttpServletRequest
-     * @param handleResolver HdlResolverDTO - Handle resolver
-     * @return One element list using String if found, else null String.
+     * @param request        the HTTP request containing the metadata parameter
+     * @param handleResolver the handle resolver containing the handle
+     * @return a JSON representation of the URL or the handle values map, or "null" in case of an error
      */
     private String resolveToMtd(HttpServletRequest request, HdlResolverDTO handleResolver) {
-
+        String url = resolveToURL(request, handleResolver);
         String param = request.getParameter("metadata");
         if (StringUtils.isBlank(param)) {
-            return resolveToURL(request, handleResolver);
+            return mapAsJson(url);
         }
-
-        Map<String, String> resultMap = new HashMap<>();
-        HandlePlugin hp = new HandlePlugin();
         String handle = handleResolver.getHandle();
-        if (Objects.isNull(handle)) {
-            return "null";
-        }
-        HandleValue[] handleValues = null;
         try {
-            byte[][] rawValues = hp.getRawHandleValues(handle.getBytes(), new int[]{}, new byte[][]{});
-            handleValues = new HandleValue[rawValues.length];
-            for (int i = 0; i < rawValues.length; i++) {
-                byte[] hvalueB = rawValues[i];
-                handleValues[i] = new HandleValue();
-                Encoder.decodeHandleValue(hvalueB, 0, handleValues[i]);
-            }
+            Map<String, String> map = HandlePlugin.getMapHandleValues(handle);
+            map.put("URL", url);
+            return mapAsJson(map);
         } catch (HandleException e) {
-            log.error(e);
+            log.error("Failed to resolve handle values for handle: " + handle, e);
         }
-        if (handleValues == null) {
-            return "null";
-        }
-
-        for (int i = 0; i < handleValues.length; i++) {
-            HandleValue handleVal = handleValues[i];
-            String key = new String(handleVal.getType(), StandardCharsets.UTF_8).toLowerCase();
-            String val = new String(handleVal.getData(), StandardCharsets.UTF_8);
-            resultMap.put(key, val);
-        }
-
-        return mapAsJson(resultMap);
+        return "null";
     }
 
     protected String mapAsJson(final String resolvedUrl) {
