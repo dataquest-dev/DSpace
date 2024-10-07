@@ -123,22 +123,31 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    @Override
-    public void editLicense(Context context, Item item, boolean newLicense) throws SQLException, AuthorizeException {
-        String oldLicense = null;
-        List<Bundle> bundles = item.getBundles(Constants.LICENSE_BUNDLE_NAME);
+    // Method to find license in the bundles
+    private String findLicenseInBundles(Item item, String bundleName, String currentLicense, Context context)
+            throws SQLException {
+        List<Bundle> bundles = item.getBundles(bundleName);
         for (Bundle clarinBundle : bundles) {
             List<Bitstream> bitstreamList = clarinBundle.getBitstreams();
             for (Bitstream bundleBitstream : bitstreamList) {
-                if (Objects.isNull(oldLicense)) {
+                if (Objects.isNull(currentLicense)) {
                     List<ClarinLicenseResourceMapping> mappings =
-                            this.clarinResourceMappingService.findByBitstreamUUID(
-                                    context, bundleBitstream.getID());
+                            this.clarinResourceMappingService.findByBitstreamUUID(context, bundleBitstream.getID());
                     if (!mappings.isEmpty()) {
-                        oldLicense = mappings.get(0).getLicense().getName();
+                        return mappings.get(0).getLicense().getName();
                     }
                 }
             }
+        }
+        return currentLicense;
+    }
+
+    @Override
+    public void editLicense(Context context, Item item, boolean newLicense) throws SQLException, AuthorizeException {
+        String oldLicense = null;
+        oldLicense = findLicenseInBundles(item, Constants.LICENSE_BUNDLE_NAME, oldLicense, context);
+        if (oldLicense == null) {
+            oldLicense = findLicenseInBundles(item, Constants.CONTENT_BUNDLE_NAME, oldLicense, context);
         }
 
         String msg = messageProvider.getMessage(context, "editLicense", item,
@@ -160,16 +169,14 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
     @Override
     public void mappedItem(Context context, Item item, Collection collection) throws SQLException, AuthorizeException {
-        String msg = messageProvider.getMessage(context, "mappedItem",
-                item.getID(), collection.getID());
+        String msg = messageProvider.getMessage(context, "mappedItem", collection.getID());
         addProvenanceMetadata(context, item, msg);
     }
 
     @Override
     public void deletedItemFromMapped(Context context, Item item, Collection collection)
             throws SQLException, AuthorizeException {
-        String msg = messageProvider.getMessage(context, "deletedItemFromMapped",
-               item.getID(), collection.getID());
+        String msg = messageProvider.getMessage(context, "deletedItemFromMapped", collection.getID());
         addProvenanceMetadata(context, item, msg);
     }
 
@@ -212,13 +219,13 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         if (dso.getType() != Constants.BITSTREAM) {
             return;
         }
-        String oldMtdKey = null;
+        MetadataField oldMtdKey = null;
         String oldMtdValue = null;
         List<MetadataValue> mtd = bitstreamService.getMetadata((Bitstream) dso,
                 metadataField.getMetadataSchema().getName(),
                 metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
         if (!CollectionUtils.isEmpty(mtd)) {
-            oldMtdKey = mtd.get(0).getMetadataField().getElement();
+            oldMtdKey = mtd.get(0).getMetadataField();
             oldMtdValue = mtd.get(0).getValue();
         }
         // Add suitable provenance
@@ -226,7 +233,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         Item item = getItem(context, bitstream);
         if (!Objects.isNull(item)) {
             String msg = messageProvider.getMessage(context, "bitstreamMetadata", item,
-                    messageProvider.getMetadata(oldMtdKey, oldMtdValue),
+                    messageProvider.getMetadata(messageProvider.getMetadataField(oldMtdKey), oldMtdValue),
                     "deleted from", messageProvider.getBitstreamMessage(bitstream));
             addProvenanceMetadata(context, item, msg);
         }

@@ -92,7 +92,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
                 .withTitle("Public item 1")
                 .build();
         context.restoreAuthSystemState();
-        suite = objectMapper.readTree(getClass().getResourceAsStream("provenance-patch-suite.json"));
+        suite = objectMapper.readTree(getClass().getResourceAsStream("provenance-test.json"));
     }
 
     @After
