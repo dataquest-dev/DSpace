@@ -114,7 +114,7 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
                 .andExpect(jsonPath("$.title", StringContains.containsString("Public item 1")))
                 .andExpect(jsonPath("$.repository", is(configurationService.getProperty("dspace.name"))))
                 .andExpect(jsonPath("$.reportemail",
-                        StringContains.containsString(configurationService.getProperty("handle.reportemail"))))
+                        StringContains.containsString("dspace-help@ufal.mff.cuni.cz")))
                 .andExpect(jsonPath("$.submitdate").exists());
     }
 
