@@ -7,11 +7,12 @@
  */
 package org.dspace.app.rest.hdlresolver;
 
-import static org.junit.Assert.assertTrue;
-
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.not;
+
+import static org.junit.Assert.assertTrue;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -22,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import org.json.JSONObject;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -32,6 +32,7 @@ import org.dspace.content.Item;
 import org.dspace.handle.hdlresolver.HdlResolverServiceImpl;
 import org.dspace.services.ConfigurationService;
 import org.hamcrest.core.StringContains;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
