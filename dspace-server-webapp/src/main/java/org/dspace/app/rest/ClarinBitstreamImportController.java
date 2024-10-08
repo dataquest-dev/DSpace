@@ -137,7 +137,7 @@ public class ClarinBitstreamImportController {
 
             Boolean deleted = Boolean.parseBoolean(deletedString);
             //set size bytes
-            if (!Objects.isNull(bitstreamRest.getSizeBytes())) {
+            if (Objects.nonNull(bitstreamRest.getSizeBytes())) {
                 bitstream.setSizeBytes(bitstreamRest.getSizeBytes());
             } else {
                 log.info("SizeBytes is null. Bitstream UUID: " + bitstream.getID());
