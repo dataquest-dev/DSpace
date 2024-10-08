@@ -981,13 +981,14 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                 .withIssueDate("2017-10-17")
                 .withShareToken(shareToken)
                 .build();
+        context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(get("/api/submission/workspaceitems/search/shareToken")
                         .param("shareToken", shareToken)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.workspaceitems[0].id", is(wItem.getID())));;
+                .andExpect(jsonPath("$._embedded.workspaceitems[0].id", is(wItem.getID())));
     }
 
     /**
