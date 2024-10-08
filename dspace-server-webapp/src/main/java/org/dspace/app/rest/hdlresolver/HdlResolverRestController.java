@@ -197,7 +197,9 @@ public class HdlResolverRestController {
         String handle = handleResolver.getHandle();
         try {
             Map<String, String> metadata = HandlePlugin.getMapHandleValues(handle);
-            result.put("metadata", mapAsJson(metadata));
+            for (Map.Entry<String, String> entry : metadata.entrySet()) {
+                result.put(entry.getKey().toLowerCase(), entry.getValue());
+            }
             return mapAsJson(result);
         } catch (HandleException e) {
             log.error("Failed to resolve handle values for handle: " + handle, e);

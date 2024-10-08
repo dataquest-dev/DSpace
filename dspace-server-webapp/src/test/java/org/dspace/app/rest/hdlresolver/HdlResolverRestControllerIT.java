@@ -9,8 +9,8 @@ package org.dspace.app.rest.hdlresolver;
 
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -19,7 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
@@ -30,7 +29,6 @@ import org.dspace.content.Item;
 import org.dspace.handle.hdlresolver.HdlResolverServiceImpl;
 import org.dspace.services.ConfigurationService;
 import org.hamcrest.core.StringContains;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
@@ -108,23 +106,17 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
         context.restoreAuthSystemState();
 
         // ** END GIVEN **
-
-        MvcResult result = getClient()
+        getClient()
                 .perform(get(HdlResolverRestController.RESOLVE  + publicItem1.getHandle())
                     .param("metadata", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url",
                         StringContains.containsString("123456789/testHdlResolver")))
-                .andExpect(jsonPath("$.metadata").exists())
-                .andReturn();
-
-        String metadata = new JSONObject(result.getResponse().getContentAsString()).get("metadata").toString();
-        JSONObject jsonObject = new JSONObject(metadata);
-
-        assert Objects.equals(jsonObject.get("TITLE"), "Public item 1");
-        assert Objects.equals(jsonObject.get("REPORTEMAIL"), configurationService.getProperty("handle.reportemail"));
-        assert Objects.equals(jsonObject.get("REPOSITORY"), configurationService.getProperty("dspace.name"));
-        assertTrue(jsonObject.has("SUBMITDATE"));
+                .andExpect(jsonPath("$.title", StringContains.containsString("Public item 1")))
+                .andExpect(jsonPath("$.repository", is(configurationService.getProperty("dspace.name"))))
+                .andExpect(jsonPath("$.reportemail",
+                        StringContains.containsString(configurationService.getProperty("handle.reportemail"))))
+                .andExpect(jsonPath("$.submitdate").exists());
     }
 
     @Test
