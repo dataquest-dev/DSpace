@@ -8,6 +8,7 @@
 package org.dspace.app.rest.hdlresolver;
 
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -186,16 +187,18 @@ public class HdlResolverRestController {
      * @return a JSON representation of the URL or the handle values map, or "null" in case of an error
      */
     private String resolveToMtd(HttpServletRequest request, HdlResolverDTO handleResolver) {
+        Map<String, String> result = new HashMap<>();
         String url = resolveToURL(request, handleResolver);
         String param = request.getParameter("metadata");
         if (StringUtils.isBlank(param)) {
             return mapAsJson(url);
         }
+        result.put("url", url);
         String handle = handleResolver.getHandle();
         try {
-            Map<String, String> map = HandlePlugin.getMapHandleValues(handle);
-            map.put("URL", url);
-            return mapAsJson(map);
+            Map<String, String> metadata = HandlePlugin.getMapHandleValues(handle);
+            result.put("metadata", mapAsJson(metadata));
+            return mapAsJson(result);
         } catch (HandleException e) {
             log.error("Failed to resolve handle values for handle: " + handle, e);
         }
