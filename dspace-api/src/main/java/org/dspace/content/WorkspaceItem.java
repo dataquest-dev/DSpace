@@ -76,7 +76,6 @@ public class WorkspaceItem
     @Column(name = "share_token")
     private String shareToken = null;
 
-
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.content.service.WorkspaceItemService#create(Context, Collection, boolean)}
