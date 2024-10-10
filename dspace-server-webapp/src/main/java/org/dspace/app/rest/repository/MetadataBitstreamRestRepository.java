@@ -83,8 +83,6 @@ import org.xml.sax.SAXException;
 @Component(MetadataBitstreamWrapperRest.CATEGORY + "." + MetadataBitstreamWrapperRest.NAME)
 public class MetadataBitstreamRestRepository extends DSpaceRestRepository<MetadataBitstreamWrapperRest, Integer> {
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataBitstreamRestRepository.class);
-    private final String FILE_EXTENSION_ZIP = ".zip";
-    private final String FILE_EXTENSION_TAR = ".tar";
     private final String ARCHIVE_TYPE_ZIP = "zip";
     private final String ARCHIVE_TYPE_TAR = "tar";
     // This constant is used to limit the length of the preview content stored in the database to prevent
@@ -395,7 +393,8 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
      * @throws IOException if an I/O error occurs while creating the file
      */
     private Path createTempFile(String fileType) throws IOException {
-        String extension = FILE_EXTENSION_TAR.equals(fileType) ? FILE_EXTENSION_TAR : FILE_EXTENSION_ZIP;
+        String extension = ARCHIVE_TYPE_TAR.equals(fileType) ?
+                String.format(".%s", ARCHIVE_TYPE_TAR) : String.format(".%s", ARCHIVE_TYPE_ZIP);
         return Files.createTempFile("temp", extension);
     }
 
@@ -440,7 +439,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 long fileSize = Files.size(path);
                 addFilePath(filePaths, path.toString().substring(1), fileSize);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("An error occurred while getting the size of the zip file.", e);
             }
         });
     }
@@ -450,11 +449,11 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
      * @param zipFileSystem the FileSystem to close
      */
     private void closeFileSystem(FileSystem zipFileSystem) {
-        if (!Objects.isNull(zipFileSystem)) {
+        if (Objects.nonNull(zipFileSystem)) {
             try {
                 zipFileSystem.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("An error occurred while closing the zip file.", e);
             }
         }
     }
@@ -464,11 +463,11 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
      * @param tempFile the Path object representing the temporary file to delete
      */
     private void deleteTempFile(Path tempFile) {
-        if (!Objects.isNull(tempFile)) {
+        if (Objects.nonNull(tempFile)) {
             try {
                 Files.delete(tempFile);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("An error occurred while deleting temp file.", e);
             }
         }
     }
@@ -525,14 +524,14 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
 
             // Process the file based on its type
-            if ("tar".equals(fileType)) {
+            if (ARCHIVE_TYPE_TAR.equals(fileType)) {
                 processTarFile(filePaths, tempFile);
             } else {
                 zipFileSystem = FileSystems.newFileSystem(tempFile, (ClassLoader) null);
                 processZipFile(filePaths, zipFileSystem);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(String.format("An error occurred while extracting file of type %s.", fileType), e);
         } finally {
             closeFileSystem(zipFileSystem);
             deleteTempFile(tempFile);
