@@ -22,6 +22,8 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +41,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extends PatchOperation<R> {
+    private static final Logger log = LoggerFactory.getLogger(DSpaceObjectMetadataReplaceOperation.class);
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;
 
@@ -194,6 +197,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
     private void replaceSinglePropertyOfMdValue(Context context, DSpaceObject dso, DSpaceObjectService dsoService,
                                                 MetadataField metadataField,
                                                 String index, String propertyOfMd, String valueMdProperty) {
+        String msg;
         try {
             List<MetadataValue> metadataValues = dsoService.getMetadata(dso,
                     metadataField.getMetadataSchema().getName(), metadataField.getElement(),
@@ -225,13 +229,15 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
             throw new IllegalArgumentException("Not all numbers are valid numbers. " +
                     "(Index and confidence should be nr)", e);
         } catch (SQLException e) {
-            throw new DSpaceBadRequestException(
-                    "SQLException in DspaceObjectMetadataReplaceOperation.replaceSinglePropertyOfMdValue " +
-                            "trying to replace metadata from dso.", e);
+            msg = "SQLException in DspaceObjectMetadataReplaceOperation.replaceSinglePropertyOfMdValue " +
+                    "trying to replace metadata from dso.";
+            log.error(msg, e);
+            throw new DSpaceBadRequestException(msg, e);
         } catch (AuthorizeException e) {
-            throw new DSpaceBadRequestException(
-                    "AuthorizeException in DspaceObjectMetadataReplaceOperation.replaceSinglePropertyOfMdValue " +
-                            "trying to replace metadata from dso.", e);
+            msg = "AuthorizeException in DspaceObjectMetadataReplaceOperation.replaceSinglePropertyOfMdValue " +
+                    "trying to replace metadata from dso.";
+            log.error(msg, e);
+            throw new DSpaceBadRequestException(msg, e);
         }
     }
 

@@ -25,9 +25,19 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.eperson.EPerson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * The ProvenanceMessageProviderImpl class implements the ProvenanceMessageProvider interface,
+ * providing methods to generate provenance messages for DSpace items. It loads message templates
+ * from a JSON file and formats messages based on the context, including user details and timestamps.
+ *
+ * @author Michaela Paurikova (dspace at dataquest.sk)
+ */
 public class ProvenanceMessageProviderImpl implements ProvenanceMessageProvider {
     private static final String PROVENANCE_MSG_JSON = "provenance_messages.json";
+    private static final Logger log = LoggerFactory.getLogger(ProvenanceMessageProviderImpl.class);
     private Map<String, String> messageTemplates;
     private InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
 
@@ -37,13 +47,18 @@ public class ProvenanceMessageProviderImpl implements ProvenanceMessageProvider 
 
     private void loadMessageTemplates() {
         ObjectMapper mapper = new ObjectMapper();
+        String msg;
         try (InputStream inputStream = getClass().getResourceAsStream(PROVENANCE_MSG_JSON)) {
             if (inputStream == null) {
-                throw new RuntimeException("Failed to find message templates file");
+                msg = "Failed to find message templates file.";
+                log.error(msg);
+                throw new RuntimeException(msg);
             }
             messageTemplates = mapper.readValue(inputStream, Map.class);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load message templates", e);
+            msg = "Failed to load message templates.";
+            log.error(msg);
+            throw new RuntimeException(msg, e);
         }
     }
 

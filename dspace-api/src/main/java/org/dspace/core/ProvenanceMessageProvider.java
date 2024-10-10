@@ -18,6 +18,8 @@ import org.dspace.content.MetadataField;
 
 /**
  * Interface for providing provenance messages.
+ *
+ * @author Michaela Paurikova (dspace at dataquest.sk)
  */
 public interface ProvenanceMessageProvider {
     public String getMessage(Context context, String templateKey, Object... args)

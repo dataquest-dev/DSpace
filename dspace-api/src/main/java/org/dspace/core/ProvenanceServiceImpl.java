@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.bulkaccesscontrol.model.AccessCondition;
@@ -35,6 +36,12 @@ import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * ProvenanceServiceImpl is responsible for creating provenance metadata for items based on the actions performed.
+ * It implements the ProvenanceService interface.
+ *
+ * @author Michaela Paurikova (dspace at dataquest.sk)
+ */
 public class ProvenanceServiceImpl implements ProvenanceService {
     private static final Logger log = LogManager.getLogger(ProvenanceServiceImpl.class);
 
@@ -82,7 +89,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
                 if (Objects.isNull(currentLicense)) {
                     List<ClarinLicenseResourceMapping> mappings =
                             this.clarinResourceMappingService.findByBitstreamUUID(context, bundleBitstream.getID());
-                    if (!mappings.isEmpty()) {
+                    if (CollectionUtils.isNotEmpty(mappings)) {
                         return mappings.get(0).getLicense().getName();
                     }
                 }
@@ -95,7 +102,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     public void setItemPolicies(Context context, Item item, BulkAccessControlInput accessControl)
             throws SQLException, AuthorizeException {
         String resPoliciesStr = extractAccessConditions(accessControl.getItem().getAccessConditions());
-        if (!resPoliciesStr.isEmpty()) {
+        if (StringUtils.isNotBlank(resPoliciesStr)) {
             String msg = messageProvider.getMessage(context,"accessCondition", resPoliciesStr,
                     "item", item.getID());
             addProvenanceMetadata(context, item, msg);
@@ -118,7 +125,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         } else if (dso.getType() == Constants.BITSTREAM) {
             Bitstream bitstream = (Bitstream) dso;
             Item item = getItem(context, bitstream);
-            if (!Objects.isNull(item)) {
+            if (Objects.nonNull(item)) {
                 String msg = messageProvider.getMessage(context,"resourcePoliciesRemoved",
                         resPoliciesStr.isEmpty() ? "empty" : resPoliciesStr, "bitstream", bitstream.getID());
                 addProvenanceMetadata(context, item, msg);
@@ -131,7 +138,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     public void setBitstreamPolicies(Context context, Bitstream bitstream, Item item,
                                      BulkAccessControlInput accessControl) throws SQLException, AuthorizeException {
         String accConditionsStr = extractAccessConditions(accessControl.getBitstream().getAccessConditions());
-        if (!accConditionsStr.isEmpty()) {
+        if (StringUtils.isNotBlank(accConditionsStr)) {
             String msg = messageProvider.getMessage(context,"accessCondition", accConditionsStr,
                     "bitstream", bitstream.getID());
             addProvenanceMetadata(context, item, msg);
@@ -179,7 +186,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     @Override
     public void deleteBitstream(Context context,Bitstream bitstream) throws SQLException, AuthorizeException {
         Item item = getItem(context, bitstream);
-        if (!Objects.isNull(item)) {
+        if (Objects.nonNull(item)) {
             String msg = messageProvider.getMessage(context, "editBitstream", item,
                     item.getID(), messageProvider.getBitstreamMessage(bitstream));
             addProvenanceMetadata(context, item, msg);
@@ -198,7 +205,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         if (dso.getType() == Constants.BITSTREAM) {
             Bitstream bitstream = (Bitstream) dso;
             Item item = getItem(context, bitstream);
-            if (!Objects.isNull(item)) {
+            if (Objects.nonNull(item)) {
                 String msg = messageProvider.getMessage(context, "bitstreamMetadata", item,
                         messageProvider.getMetadataField(metadataField), "added by",
                         messageProvider.getBitstreamMessage(bitstream));
@@ -218,13 +225,13 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         List<MetadataValue> mtd = bitstreamService.getMetadata((Bitstream) dso,
                 metadataField.getMetadataSchema().getName(),
                 metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
-        if (!CollectionUtils.isEmpty(mtd)) {
+        if (CollectionUtils.isNotEmpty(mtd)) {
             oldMtdKey = mtd.get(0).getMetadataField();
             oldMtdValue = mtd.get(0).getValue();
         }
         Bitstream bitstream = (Bitstream) dso;
         Item item = getItem(context, bitstream);
-        if (!Objects.isNull(item)) {
+        if (Objects.nonNull(item)) {
             String msg = messageProvider.getMessage(context, "bitstreamMetadata", item,
                     messageProvider.getMetadata(messageProvider.getMetadataField(oldMtdKey), oldMtdValue),
                     "deleted from", messageProvider.getBitstreamMessage(bitstream));
@@ -267,7 +274,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
         Bitstream bitstream = (Bitstream) dso;
         Item item = getItem(context, bitstream);
-        if (!Objects.isNull(item)) {
+        if (Objects.nonNull(item)) {
             String msg = messageProvider.getMessage(context, "itemReplaceSingleMetadata", item,
                     messageProvider.getBitstreamMessage(bitstream),
                     messageProvider.getMetadata(messageProvider.getMetadataField(metadataField), oldMtdVal));

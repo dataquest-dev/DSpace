@@ -20,6 +20,12 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 
+/**
+ * The ProvenanceService interface defines methods for creating provenance metadata
+ * for items based on the actions performed.
+ *
+ * @author Michaela Paurikova (dspace at dataquest.sk)
+ */
 public interface ProvenanceService {
     public void setBitstreamPolicies(Context context, Bitstream bitstream, Item item,
                                      BulkAccessControlInput accessControl) throws SQLException, AuthorizeException;

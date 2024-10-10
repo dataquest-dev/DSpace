@@ -15,6 +15,8 @@ import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,6 +35,7 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
      * Path in json body of patch that uses this operation
      */
     private static final String OPERATION_PATH_DISCOVERABLE = "/discoverable";
+    private static final Logger log = LoggerFactory.getLogger(ItemDiscoverableReplaceOperation.class);
 
     @Override
     public R perform(Context context, R object, Operation operation) {
@@ -44,14 +47,19 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
                 throw new UnprocessableEntityException("A template item cannot be discoverable.");
             }
             item.setDiscoverable(discoverable);
+            String msg;
             try {
                 provenanceService.makeDiscoverable(context, item, discoverable);
             } catch (SQLException ex) {
-                throw new RuntimeException("SQLException occurred when item making " + (discoverable ? "" : "non-")
-                        + "discoverable.", ex);
+                msg = "SQLException occurred when item making " + (discoverable ? "" : "non-")
+                        + "discoverable.";
+                log.error(msg, ex);
+                throw new RuntimeException(msg, ex);
             } catch (AuthorizeException ex) {
-                throw new RuntimeException("AuthorizeException occurred when item making "
-                        + (discoverable ? "" : "non-") + "discoverable.", ex);
+                msg = "AuthorizeException occurred when item making "
+                        + (discoverable ? "" : "non-") + "discoverable.";
+                log.error(msg, ex);
+                throw new RuntimeException(msg, ex);
             }
             return object;
         } else {
