@@ -172,9 +172,10 @@ public class HdlResolverRestController {
      * Maps the handle to a correct response.
      * If the metadata parameter is provided, return additional handle values.
      *
-     * @param request        the HTTP request containing the metadata parameter
-     * @param handleResolver the handle resolver containing the handle
-     * @return a JSON representation of the URL or the handle values map, or "null" in case of an error
+     * @param request        HttpServletRequest
+     * @param handleResolver HdlResolverDTO - Handle resolver
+     * @return One element list using String if found, else map of metadata if param is entered,
+     * else "null" in case of an error
      */
     private String resolveToURL(HttpServletRequest request, HdlResolverDTO handleResolver) {
         String url = this.hdlResolverService.resolveToURL(ContextUtil.obtainContext(request), handleResolver);
