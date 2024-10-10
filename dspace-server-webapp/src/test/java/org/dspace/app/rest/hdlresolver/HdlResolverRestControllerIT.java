@@ -92,7 +92,6 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
         context.turnOffAuthorisationSystem();
 
         // ** START GIVEN **
-
         parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
 
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1")
