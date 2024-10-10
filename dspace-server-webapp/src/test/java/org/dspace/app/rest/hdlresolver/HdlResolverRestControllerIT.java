@@ -108,13 +108,13 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
                 .perform(get(HdlResolverRestController.RESOLVE  + publicItem1.getHandle())
                     .param("metadata", "true"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.url",
+                .andExpect(jsonPath("$.URL",
                         StringContains.containsString("123456789/testHdlResolver")))
-                .andExpect(jsonPath("$.title", StringContains.containsString("Public item 1")))
-                .andExpect(jsonPath("$.repository", is(configurationService.getProperty("dspace.name"))))
-                .andExpect(jsonPath("$.reportemail",
+                .andExpect(jsonPath("$.TITLE", StringContains.containsString("Public item 1")))
+                .andExpect(jsonPath("$.REPOSITORY", is(configurationService.getProperty("dspace.name"))))
+                .andExpect(jsonPath("$.REPORTEMAIL",
                         StringContains.containsString("dspace-help@ufal.mff.cuni.cz")))
-                .andExpect(jsonPath("$.submitdate").exists());
+                .andExpect(jsonPath("$.SUBMITDATE").exists());
     }
 
     @Test

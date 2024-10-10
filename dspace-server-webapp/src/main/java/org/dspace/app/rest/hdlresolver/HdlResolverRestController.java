@@ -106,7 +106,7 @@ public class HdlResolverRestController {
         if (!handleResolver.isValid()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } else {
-            return new ResponseEntity<>(this.resolveToMtd(request, handleResolver), HttpStatus.OK);
+            return new ResponseEntity<>(this.resolveToURL(request, handleResolver), HttpStatus.OK);
         }
     }
 
@@ -169,38 +169,24 @@ public class HdlResolverRestController {
     }
 
     /**
-     * Maps the handle to url.
-     *
-     * @param request        HttpServletRequest
-     * @param handleResolver HdlResolverDTO - Handle resolver
-     * @return String if found, else null String.
-     */
-    private String resolveToURL(HttpServletRequest request, HdlResolverDTO handleResolver) {
-        return this.hdlResolverService.resolveToURL(ContextUtil.obtainContext(request), handleResolver);
-    }
-
-    /**
-     * Resolves the metadata based on the given request and handle resolver.
+     * Maps the handle to a correct response.
+     * If the metadata parameter is provided, return additional handle values.
      *
      * @param request        the HTTP request containing the metadata parameter
      * @param handleResolver the handle resolver containing the handle
      * @return a JSON representation of the URL or the handle values map, or "null" in case of an error
      */
-    private String resolveToMtd(HttpServletRequest request, HdlResolverDTO handleResolver) {
-        Map<String, String> result = new HashMap<>();
-        String url = resolveToURL(request, handleResolver);
+    private String resolveToURL(HttpServletRequest request, HdlResolverDTO handleResolver) {
+        String url = this.hdlResolverService.resolveToURL(ContextUtil.obtainContext(request), handleResolver);
         String param = request.getParameter("metadata");
         if (StringUtils.isBlank(param)) {
             return mapAsJson(url);
         }
-        result.put("url", url);
         String handle = handleResolver.getHandle();
         try {
             Map<String, String> metadata = HandlePlugin.getMapHandleValues(handle);
-            for (Map.Entry<String, String> entry : metadata.entrySet()) {
-                result.put(entry.getKey().toLowerCase(), entry.getValue());
-            }
-            return mapAsJson(result);
+            metadata.put("URL", url);
+            return mapAsJson(metadata);
         } catch (HandleException e) {
             log.error("Failed to resolve handle values for handle: " + handle, e);
         }
