@@ -413,6 +413,8 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
                     "`dc.identifier.uri` wasn't found.");
         }
 
+        // Find the handle in the canonical form (with the prefix) because the handle in the request might not have it
+        // and the handle in the database does have it.
         String handlePrefix = configurationService.getProperty("handle.canonical.prefix");
         String normalizedHandle = handle;
         if (!handle.startsWith(handlePrefix)) {
