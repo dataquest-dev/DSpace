@@ -196,8 +196,6 @@ public class MetadataValidation extends AbstractValidation {
 
         }
 
-
-        // Begin the actual validation loop
         return errors;
     }
 

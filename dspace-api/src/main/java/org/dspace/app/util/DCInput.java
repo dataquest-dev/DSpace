@@ -274,7 +274,7 @@ public class DCInput {
     }
 
     private void insertToTypeBind(String typeBindDef) {
-        if (typeBindDef != null && typeBindDef.trim().length() > 0) {
+        if (StringUtils.isNotEmpty(typeBindDef)) {
             String[] types = typeBindDef.split(",");
             for (String type : types) {
                 typeBind.add(type.trim());
