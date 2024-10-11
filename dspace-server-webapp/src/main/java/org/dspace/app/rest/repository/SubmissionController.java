@@ -151,6 +151,13 @@ public class SubmissionController {
 
         // Set the owner of the workspace item to the current user
         EPerson currentUser = context.getCurrentUser();
+        // If the current user is null, throw an exception
+        if (currentUser == null) {
+            String errorMessage = "The current user is not valid, it cannot be null.";
+            log.error(errorMessage);
+            throw new BadRequestException(errorMessage);
+        }
+
         wsi.getItem().setSubmitter(currentUser);
         workspaceItemService.update(context, wsi);
         WorkspaceItemRest wsiRest = converter.toRest(wsi, utils.obtainProjection());
