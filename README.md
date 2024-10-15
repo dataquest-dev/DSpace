@@ -141,5 +141,7 @@ DSpace uses third-party libraries which may be distributed under different licen
 in the [LICENSES_THIRD_PARTY](LICENSES_THIRD_PARTY) file.
  <!-- two -->
 
+
 # Additional notes
-https://github.com/dataquest-dev/DSpace
+
+This project is tested with BrowserStack.
