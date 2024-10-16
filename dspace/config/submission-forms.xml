@@ -183,9 +183,9 @@
                     <dc-element>format</dc-element>
                     <repeatable>false</repeatable>
                     <label>Formát</label>
-                    <input-type>onebox</input-type>
+                    <input-type value-pairs-name="common_types">dropdown</input-type>
                     <hint>Označení typu souboru.</hint>
-                    <required>Musíte zadat formát.</required>
+                    <required></required>
                 </field>
             </row>
 
