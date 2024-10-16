@@ -209,8 +209,8 @@
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
-                    <hint>Trvalé URL. Odkaz na datové soubory uložené v jiných repozitářích, v OBD/DK zůstává jen záznam metadat.</hint>
-                    <required>Musíte zadat Identifikátory-URI.</required>
+                    <hint>Trvalé URL. Odkaz na datové soubory uložené v jiných repozitářích.</hint>
+                    <required></required>
                 </field>
             </row>
 
