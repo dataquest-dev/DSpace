@@ -90,7 +90,19 @@
                     <required></required>
                 </field>
             </row>
-
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>date</dc-element>
+                    <dc-qualifier>issued</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Datum publikování záznamu</label>
+                    <style>col-sm-4</style>
+                    <input-type>date</input-type>
+                    <hint>Datum publikování záznamu</hint>
+                    <required>Musíte zadat datum publikování záznamu</required>
+                </field>
+            </row>
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
