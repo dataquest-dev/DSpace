@@ -130,7 +130,7 @@
                     <dc-qualifier>iso</dc-qualifier>
                     <repeatable>false</repeatable>
                     <label>Jazyk</label>
-                    <input-type value-pairs-name="common_iso_languages">onebox</input-type>
+                    <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
                     <hint>Jazyk, který se váže k dokumentaci.</hint>
                     <required>Musíte vybrat jazyk. Jazyk, v kterým je psána dokumentace.</required>
                 </field>
@@ -172,7 +172,7 @@
                     <repeatable>false</repeatable>
                     <label>Verze</label>
                     <input-type>onebox</input-type>
-                    <hint>V jaké fázi publikačního procesu se dokument nachází (např. preprint, vydavatelská verze). Vyplní se pokud je dokument v některé z fází publikačního procesu.</hint>
+                    <hint></hint>
                     <required></required>
                 </field>
             </row>
