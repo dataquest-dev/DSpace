@@ -90,7 +90,19 @@
                     <required></required>
                 </field>
             </row>
-
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>date</dc-element>
+                    <dc-qualifier>issued</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Datum publikování záznamu</label>
+                    <style>col-sm-4</style>
+                    <input-type>date</input-type>
+                    <hint>Datum publikování záznamu</hint>
+                    <required>Musíte zadat datum publikování záznamu</required>
+                </field>
+            </row>
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -128,9 +140,9 @@
                     <dc-schema>dc</dc-schema>
                     <dc-element>language</dc-element>
                     <dc-qualifier>iso</dc-qualifier>
-                    <repeatable>true</repeatable>
+                    <repeatable>false</repeatable>
                     <label>Jazyk</label>
-                    <input-type value-pairs-name="common_iso_languages">onebox</input-type>
+                    <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
                     <hint>Jazyk, který se váže k dokumentaci.</hint>
                     <required>Musíte vybrat jazyk. Jazyk, v kterým je psána dokumentace.</required>
                 </field>
@@ -172,7 +184,7 @@
                     <repeatable>false</repeatable>
                     <label>Verze</label>
                     <input-type>onebox</input-type>
-                    <hint>V jaké fázi publikačního procesu se dokument nachází (např. preprint, vydavatelská verze). Vyplní se pokud je dokument v některé z fází publikačního procesu.</hint>
+                    <hint></hint>
                     <required></required>
                 </field>
             </row>
@@ -183,9 +195,9 @@
                     <dc-element>format</dc-element>
                     <repeatable>false</repeatable>
                     <label>Formát</label>
-                    <input-type>onebox</input-type>
+                    <input-type value-pairs-name="common_types">dropdown</input-type>
                     <hint>Označení typu souboru.</hint>
-                    <required>Musíte zadat formát.</required>
+                    <required></required>
                 </field>
             </row>
 
@@ -197,8 +209,8 @@
                     <repeatable>true</repeatable>
                     <label>Identifikátory-URI</label>
                     <input-type>onebox</input-type>
-                    <hint>Trvalé URL. Odkaz na datové soubory uložené v jiných repozitářích, v OBD/DK zůstává jen záznam metadat.</hint>
-                    <required>Musíte zadat Identifikátory-URI.</required>
+                    <hint>Trvalé URL. Odkaz na datové soubory uložené v jiných repozitářích.</hint>
+                    <required></required>
                 </field>
             </row>
 
@@ -2004,20 +2016,56 @@
                 <stored-value/>
             </pair>
             <pair>
-                <displayed-value>Corpus</displayed-value>
-                <stored-value>corpus</stored-value>
+                <displayed-value>Dataset</displayed-value>
+                <stored-value>dataset</stored-value>
             </pair>
             <pair>
-                <displayed-value>Lexical conceptual</displayed-value>
-                <stored-value>lexicalConceptualResource</stored-value>
+                <displayed-value>Image</displayed-value>
+                <stored-value>image</stored-value>
             </pair>
             <pair>
-                <displayed-value>Language description</displayed-value>
-                <stored-value>languageDescription</stored-value>
+                <displayed-value>Image/Diagram</displayed-value>
+                <stored-value>imageDiagram</stored-value>
             </pair>
             <pair>
-                <displayed-value>Technology / Tool / Service</displayed-value>
-                <stored-value>toolService</stored-value>
+                <displayed-value>Image/Drawing</displayed-value>
+                <stored-value>imageDrawing</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Image/Figure</displayed-value>
+                <stored-value>imageFigure</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Image/Photo</displayed-value>
+                <stored-value>imagePhoto</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Image/Other</displayed-value>
+                <stored-value>imageOther</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Model</displayed-value>
+                <stored-value>model</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Presentation</displayed-value>
+                <stored-value>presentation</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Other</displayed-value>
+                <stored-value>other</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Software</displayed-value>
+                <stored-value>software</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Video/audio</displayed-value>
+                <stored-value>videoAudio</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Workflow</displayed-value>
+                <stored-value>workflow</stored-value>
             </pair>
             <!--<pair> <displayed-value>Evaluation package</displayed-value> <stored-value>evaluationPackage</stored-value>
               </pair> -->
@@ -2033,44 +2081,48 @@
                 <stored-value></stored-value>
             </pair>
             <pair>
-                <displayed-value>English (United States)</displayed-value>
-                <stored-value>en_US</stored-value>
+                <displayed-value>Čeština</displayed-value>
+                <stored-value>cs</stored-value>
             </pair>
             <pair>
-                <displayed-value>English</displayed-value>
+                <displayed-value>Slovenština</displayed-value>
+                <stored-value>sk</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Ruština</displayed-value>
+                <stored-value>ru</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Angličtina</displayed-value>
                 <stored-value>en</stored-value>
             </pair>
             <pair>
-                <displayed-value>Spanish</displayed-value>
+                <displayed-value>Angličtina (USA)</displayed-value>
+                <stored-value>en_US</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Španělština</displayed-value>
                 <stored-value>es</stored-value>
             </pair>
             <pair>
-                <displayed-value>German</displayed-value>
+                <displayed-value>Němčina</displayed-value>
                 <stored-value>de</stored-value>
             </pair>
             <pair>
-                <displayed-value>French</displayed-value>
+                <displayed-value>Francouzština</displayed-value>
                 <stored-value>fr</stored-value>
             </pair>
             <pair>
-                <displayed-value>Italian</displayed-value>
+                <displayed-value>Italština</displayed-value>
                 <stored-value>it</stored-value>
             </pair>
             <pair>
-                <displayed-value>Japanese</displayed-value>
+                <displayed-value>Japonština</displayed-value>
                 <stored-value>ja</stored-value>
             </pair>
             <pair>
-                <displayed-value>Chinese</displayed-value>
+                <displayed-value>Čínština</displayed-value>
                 <stored-value>zh</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Portuguese</displayed-value>
-                <stored-value>pt</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Turkish</displayed-value>
-                <stored-value>tr</stored-value>
             </pair>
             <pair>
                 <displayed-value>(Other)</displayed-value>
