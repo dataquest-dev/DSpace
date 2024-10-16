@@ -2004,20 +2004,56 @@
                 <stored-value/>
             </pair>
             <pair>
-                <displayed-value>Corpus</displayed-value>
-                <stored-value>corpus</stored-value>
+                <displayed-value>Dataset</displayed-value>
+                <stored-value>dataset</stored-value>
             </pair>
             <pair>
-                <displayed-value>Lexical conceptual</displayed-value>
-                <stored-value>lexicalConceptualResource</stored-value>
+                <displayed-value>Image</displayed-value>
+                <stored-value>image</stored-value>
             </pair>
             <pair>
-                <displayed-value>Language description</displayed-value>
-                <stored-value>languageDescription</stored-value>
+                <displayed-value>Image/Diagram</displayed-value>
+                <stored-value>imageDiagram</stored-value>
             </pair>
             <pair>
-                <displayed-value>Technology / Tool / Service</displayed-value>
-                <stored-value>toolService</stored-value>
+                <displayed-value>Image/Drawing</displayed-value>
+                <stored-value>imageDrawing</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Image/Figure</displayed-value>
+                <stored-value>imageFigure</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Image/Photo</displayed-value>
+                <stored-value>imagePhoto</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Image/Other</displayed-value>
+                <stored-value>imageOther</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Model</displayed-value>
+                <stored-value>model</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Presentation</displayed-value>
+                <stored-value>presentation</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Other</displayed-value>
+                <stored-value>other</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Software</displayed-value>
+                <stored-value>software</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Video/audio</displayed-value>
+                <stored-value>videoAudio</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Workflow</displayed-value>
+                <stored-value>workflow</stored-value>
             </pair>
             <!--<pair> <displayed-value>Evaluation package</displayed-value> <stored-value>evaluationPackage</stored-value>
               </pair> -->
