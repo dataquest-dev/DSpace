@@ -58,6 +58,12 @@ public class VersionedHandleIdentifierProviderIT extends AbstractIntegrationTest
                 .build();
     }
 
+    @After
+    @Override
+    public void destroy() throws Exception {
+        super.destroy();
+    }
+
     private void registerProvider(Class type) {
         // Register our new provider
         IdentifierProvider identifierProvider =
