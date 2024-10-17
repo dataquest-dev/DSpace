@@ -25,9 +25,11 @@ import org.dspace.app.rest.model.hateoas.BitstreamResource;
 import org.dspace.app.rest.repository.BundleRestRepository;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bundle;
 import org.dspace.content.service.BundleService;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ControllerUtils;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -77,6 +79,9 @@ public class BundleUploadBitstreamController {
     @Autowired
     private ConverterService converter;
 
+    @Autowired
+    private ProvenanceService provenanceService;
+
     /**
      * Method to upload a Bitstream to a Bundle with the given UUID in the URL. This will create a Bitstream with the
      * file provided in the request and attach this to the Item that matches the UUID in the URL.
@@ -103,12 +108,26 @@ public class BundleUploadBitstreamController {
             throw new ResourceNotFoundException("The given uuid did not resolve to a Bundle on the server: " + uuid);
         }
         InputStream fileInputStream = null;
+        String msg;
         try {
             fileInputStream = uploadfile.getInputStream();
         } catch (IOException e) {
             log.error("Something went wrong when trying to read the inputstream from the given file in the request",
                       e);
             throw new UnprocessableEntityException("The InputStream from the file couldn't be read", e);
+        }
+        try {
+            provenanceService.uploadBitstream(context, bundle);
+        } catch (SQLException ex) {
+            msg = "SQLException in BundleUploadBitstreamConverter.uploadBitstream when " +
+                    "adding new provenance metadata.";
+            log.error(msg, ex);
+            throw new RuntimeException(msg, ex);
+        } catch (AuthorizeException ex) {
+            msg = "AuthorizeException in BundleUploadBitstreamConverter.uploadBitstream " +
+                    "when adding new provenance metadata.";
+            log.error(msg, ex);
+            throw new RuntimeException(msg, ex);
         }
 
         BitstreamRest bitstreamRest = bundleRestRepository.uploadBitstream(

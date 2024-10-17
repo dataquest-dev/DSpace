@@ -12,11 +12,14 @@ import java.sql.SQLException;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.MetadataField;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +37,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends PatchOperation<R> {
 
+    private static final Logger log = LoggerFactory.getLogger(DSpaceObjectMetadataAddOperation.class);
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;
 
@@ -62,6 +66,7 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                      MetadataValueRest metadataValue, String index) {
         metadataPatchUtils.checkMetadataFieldNotNull(metadataField);
         int indexInt = 0;
+        String msg;
         if (index != null && index.equals("-")) {
             indexInt = -1;
         }
@@ -69,9 +74,17 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
             dsoService.addAndShiftRightMetadata(context, dso, metadataField.getMetadataSchema().getName(),
                     metadataField.getElement(), metadataField.getQualifier(), metadataValue.getLanguage(),
                     metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence(), indexInt);
+            provenanceService.addMetadata(context, dso, metadataField);
         } catch (SQLException e) {
-            throw new DSpaceBadRequestException("SQLException in DspaceObjectMetadataAddOperation.add trying to add " +
-                    "metadata to dso.", e);
+            msg = "SQLException in DspaceObjectMetadataAddOperation.add trying to add " +
+                    "metadata to dso.";
+            log.error(msg, e);
+            throw new DSpaceBadRequestException(msg, e);
+        } catch (AuthorizeException e) {
+            msg =  "AuthorizeException in DspaceObjectMetadataAddOperation.add " +
+                    "trying to add metadata to dso.";
+            log.error(msg, e);
+            throw new DSpaceBadRequestException(msg, e);
         }
     }
 

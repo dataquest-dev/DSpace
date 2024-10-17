@@ -14,6 +14,7 @@ import java.util.List;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
@@ -21,6 +22,8 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +44,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends PatchOperation<R> {
 
+    private static final Logger log = LoggerFactory.getLogger(DSpaceObjectMetadataRemoveOperation.class);
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;
 
@@ -66,8 +70,10 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
     private void remove(Context context, DSpaceObject dso, DSpaceObjectService dsoService, MetadataField metadataField,
                         String index) {
         metadataPatchUtils.checkMetadataFieldNotNull(metadataField);
+        String msg;
         try {
             if (index == null) {
+                provenanceService.removeMetadata(context, dso, metadataField);
                 // remove all metadata of this type
                 dsoService.clearMetadata(context, dso, metadataField.getMetadataSchema().getName(),
                         metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
@@ -79,6 +85,7 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                 int indexInt = Integer.parseInt(index);
                 if (indexInt >= 0 && metadataValues.size() > indexInt
                         && metadataValues.get(indexInt) != null) {
+                    provenanceService.removeMetadataAtIndex(context, dso, metadataValues, indexInt);
                     // remove that metadata
                     dsoService.removeMetadataValues(context, dso,
                             Arrays.asList(metadataValues.get(indexInt)));
@@ -91,9 +98,16 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
             throw new IllegalArgumentException("This index (" + index + ") is not valid number.", e);
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new UnprocessableEntityException("There is no metadata of this type at that index");
-        } catch (SQLException e) {
-            throw new DSpaceBadRequestException("SQLException in DspaceObjectMetadataRemoveOperation.remove " +
-                    "trying to remove metadata from dso.", e);
+        } catch (SQLException ex) {
+            msg = "SQLException in DspaceObjectMetadataRemoveOperation.remove " +
+                    "trying to remove metadata from dso.";
+            log.error(msg, ex);
+            throw new DSpaceBadRequestException(msg, ex);
+        } catch (AuthorizeException ex) {
+            msg = "AuthorizeException in DspaceObjectMetadataRemoveOperation.remove " +
+                    "trying to replace metadata from dso.";
+            log.error(msg, ex);
+            throw new DSpaceBadRequestException(msg, ex);
         }
     }
 

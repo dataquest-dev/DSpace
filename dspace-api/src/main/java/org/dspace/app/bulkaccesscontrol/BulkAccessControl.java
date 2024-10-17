@@ -55,6 +55,8 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
@@ -111,6 +113,8 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
     protected String eperson = null;
 
+    protected ProvenanceService provenanceService;
+
     @Override
     @SuppressWarnings("unchecked")
     public void setup() throws ParseException {
@@ -143,6 +147,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
         help = commandLine.hasOption('h');
         filename = commandLine.getOptionValue('f');
         uuids = commandLine.hasOption('u') ? Arrays.asList(commandLine.getOptionValues('u')) : null;
+        this.provenanceService = CoreServiceFactory.getInstance().getProvenanceService();
     }
 
     @Override
@@ -465,6 +470,8 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
                 itemAccessConditions.get(accessCondition.getName())));
 
         itemService.adjustItemPolicies(context, item, item.getOwningCollection(), false);
+
+        provenanceService.setItemPolicies(context, item, accessControl);
     }
 
     /**
@@ -552,6 +559,10 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
      */
     private void removeReadPolicies(DSpaceObject dso, String type) {
         try {
+            String resPoliciesStr = provenanceService.removedReadPolicies(context, dso, type);
+            if (Objects.isNull(resPoliciesStr)) {
+                return;
+            }
             resourcePolicyService.removePolicies(context, dso, type, Constants.READ);
         } catch (SQLException | AuthorizeException e) {
             throw new BulkAccessControlException(e);
@@ -580,6 +591,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
         itemService.adjustBitstreamPolicies(context, item, item.getOwningCollection(), bitstream);
         mediaFilterService.updatePoliciesOfDerivativeBitstreams(context, item, bitstream);
+        provenanceService.setBitstreamPolicies(context, bitstream, item, accessControl);
     }
 
     /**

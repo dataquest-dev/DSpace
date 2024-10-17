@@ -7,6 +7,7 @@
  */
 package org.dspace.core.factory;
 
+import org.dspace.core.ProvenanceService;
 import org.dspace.core.service.LicenseService;
 import org.dspace.core.service.NewsService;
 import org.dspace.core.service.PluginService;
@@ -28,6 +29,8 @@ public abstract class CoreServiceFactory {
     public abstract PluginService getPluginService();
 
     public abstract ClientInfoService getClientInfoService();
+
+    public abstract ProvenanceService getProvenanceService();
 
     public static CoreServiceFactory getInstance() {
         return DSpaceServicesFactory.getInstance().getServiceManager()

@@ -30,6 +30,7 @@ import org.dspace.content.Item;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,6 +57,9 @@ public class MappedCollectionRestController {
 
     @Autowired
     Utils utils;
+
+    @Autowired
+    ProvenanceService provenanceService;
 
     /**
      * This method will add an Item to a Collection. The Collection object is encapsulated in the request due to the
@@ -104,6 +108,7 @@ public class MappedCollectionRestController {
 
                 collectionService.addItem(context, collectionToMapTo, item);
                 collectionService.update(context, collectionToMapTo);
+                provenanceService.mappedItem(context, item, collectionToMapTo);
                 itemService.update(context, item);
             } else {
                 throw new UnprocessableEntityException("Not a valid collection or item uuid.");
@@ -150,13 +155,13 @@ public class MappedCollectionRestController {
             if (collection.getID() != owningCollectionUuid && item.getCollections().contains(collection)) {
                 collectionService.removeItem(context, collection, item);
                 collectionService.update(context, collection);
+                provenanceService.deletedItemFromMapped(context,item, collection);
                 itemService.update(context, item);
                 context.commit();
             }
         } else {
             throw new UnprocessableEntityException("Not a valid collection or item uuid.");
         }
-
     }
 
     private void checkIfItemIsTemplate(Item item) {

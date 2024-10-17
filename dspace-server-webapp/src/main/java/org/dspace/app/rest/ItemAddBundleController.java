@@ -38,6 +38,7 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +98,9 @@ public class ItemAddBundleController {
 
     @Autowired
     ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+
+    @Autowired
+    ProvenanceService provenanceService;
 
     /**
      * Method to add a Bundle to an Item with the given UUID in the URL. This will create a Bundle with the
@@ -165,6 +169,7 @@ public class ItemAddBundleController {
             log.warn("Cannot find clarin license with id: " + licenseId + ". The old license will be detached, " +
                     "but the new one will not be attached.");
         }
+        provenanceService.editLicense(context, item, !Objects.isNull(clarinLicense));
         List<Bundle> bundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
         for (Bundle clarinBundle : bundles) {
             List<Bitstream> bitstreamList = clarinBundle.getBitstreams();

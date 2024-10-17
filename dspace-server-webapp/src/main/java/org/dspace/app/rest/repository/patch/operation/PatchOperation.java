@@ -12,7 +12,11 @@ import java.sql.SQLException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Base class for all resource patch operations.
@@ -25,6 +29,15 @@ public abstract class PatchOperation<M> {
     public static final String OPERATION_COPY = "copy";
     public static final String OPERATION_MOVE = "move";
     public static final String OPERATION_REMOVE = "remove";
+
+    @Autowired
+    InstallItemService installItemService;
+
+    @Autowired
+    ItemService itemService;
+
+    @Autowired
+    ProvenanceService provenanceService;
 
     /**
      * Updates the rest model by applying the patch operation.

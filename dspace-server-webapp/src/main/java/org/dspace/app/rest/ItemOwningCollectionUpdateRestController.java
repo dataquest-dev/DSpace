@@ -32,6 +32,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -64,6 +65,9 @@ public class ItemOwningCollectionUpdateRestController {
 
     @Autowired
     Utils utils;
+
+    @Autowired
+    ProvenanceService provenanceService;
 
     /**
      * This method will update the owning collection of the item that correspond to the provided item uuid, effectively
@@ -125,6 +129,7 @@ public class ItemOwningCollectionUpdateRestController {
                                 final boolean inheritPolicies)
             throws SQLException, IOException, AuthorizeException {
         itemService.move(context, item, currentCollection, targetCollection, inheritPolicies);
+        provenanceService.moveItem(context, item, currentCollection);
         // Necessary because Controller does not pass through general RestResourceController, and as such does not do
         // its commit in DSpaceRestRepository.createAndReturn() or similar
         context.commit();

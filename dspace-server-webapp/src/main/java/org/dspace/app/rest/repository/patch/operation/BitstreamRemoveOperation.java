@@ -53,8 +53,8 @@ public class BitstreamRemoveOperation extends PatchOperation<Bitstream> {
             throw new RESTBitstreamNotFoundException(bitstreamIDtoDelete);
         }
         authorizeBitstreamRemoveAction(context, bitstreamToDelete, Constants.DELETE);
-
         try {
+            provenanceService.deleteBitstream(context, bitstreamToDelete);
             bitstreamService.delete(context, bitstreamToDelete);
         } catch (AuthorizeException | IOException e) {
             throw new RuntimeException(e.getMessage(), e);
