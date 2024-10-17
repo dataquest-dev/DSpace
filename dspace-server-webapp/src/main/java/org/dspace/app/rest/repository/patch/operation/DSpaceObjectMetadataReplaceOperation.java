@@ -152,6 +152,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
     private void replaceSingleMetadataValue(Context context, DSpaceObject dso, DSpaceObjectService dsoService,
                                             MetadataField metadataField, MetadataValueRest metadataValue,
                                             String index) {
+        String msg;
         try {
             List<MetadataValue> metadataValues = dsoService.getMetadata(dso,
                     metadataField.getMetadataSchema().getName(), metadataField.getElement(),
@@ -175,13 +176,15 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("This index (" + index + ") is not valid number.", e);
         } catch (SQLException e) {
-            throw new DSpaceBadRequestException(
-                    "SQLException in DspaceObjectMetadataReplaceOperation.replaceSingleMetadataValue " +
-                    "trying to replace metadata from dso.", e);
+            msg = "SQLException in DspaceObjectMetadataReplaceOperation.replaceSingleMetadataValue " +
+                    "trying to replace metadata from dso.";
+            log.error(msg, e);
+            throw new DSpaceBadRequestException(msg, e);
         } catch (AuthorizeException e) {
-            throw new DSpaceBadRequestException(
-                    "AuthorizeException in DspaceObjectMetadataReplaceOperation.replaceSingleMetadataValue " +
-                            "trying to replace metadata from dso.", e);
+            msg = "AuthorizeException in DspaceObjectMetadataReplaceOperation.replaceSingleMetadataValue " +
+                    "trying to replace metadata from dso.";
+            log.error(msg, e);
+            throw new DSpaceBadRequestException(msg, e);
         }
     }
 
