@@ -17,6 +17,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Context;
@@ -155,13 +156,16 @@ public class EPersonBuilder extends AbstractDSpaceObjectBuilder<EPerson> {
             return;
         }
 
-        ClarinUserRegistration userRegistration = userRegistrations.get(0);
-        if (Objects.isNull(userRegistration)) {
-            return;
-        }
-
         context.turnOffAuthorisationSystem();
-        clarinUserRegistrationService.delete(context, userRegistration);
+        for (ClarinUserRegistration userRegistration : userRegistrations) {
+            List<ClarinUserMetadata> clarinUserMetadataList = userRegistration.getUserMetadata();
+            for (ClarinUserMetadata clarinUserMetadata : clarinUserMetadataList) {
+                clarinUserMetadata = context.reloadEntity(clarinUserMetadata);
+                clarinUserMetadataService.delete(context, clarinUserMetadata);
+            }
+            clarinUserRegistrationService.delete(context, userRegistration);
+        }
+        context.complete();
         context.restoreAuthSystemState();
     }
 
