@@ -177,10 +177,6 @@ public class SubmissionController {
     private String sendShareLinkEmail(Context context, WorkspaceItem wsi, EPerson currentUser) {
         // Get the UI URL from the configuration
         String uiUrl = configurationService.getProperty("dspace.ui.url");
-        String helpDeskEmail = configurationService.getProperty("lr.help.mail", "");
-        String helpDeskPhoneNum = configurationService.getProperty("lr.help.phone", "");
-        String dspaceName = configurationService.getProperty("dspace.name", "");
-        String dspaceNameShort = configurationService.getProperty("dspace.name.short", "");
         // Get submitter email
         String email = currentUser.getEmail();
         // Compose the url with the share token. The user will be redirected to the UI.
@@ -189,11 +185,6 @@ public class SubmissionController {
             Locale locale = context.getCurrentLocale();
             Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale, "share_submission"));
             bean.addArgument(shareTokenUrl);
-            bean.addArgument(helpDeskEmail);
-            bean.addArgument(helpDeskPhoneNum);
-            bean.addArgument(dspaceNameShort);
-            bean.addArgument(dspaceName);
-            bean.addArgument(uiUrl);
             bean.addRecipient(email);
             bean.send();
         } catch (MessagingException | IOException e) {
