@@ -98,7 +98,7 @@ public class CreateMissingIdentifiersIT
     @After
     public void destroy() throws Exception {
         super.destroy();
-        DSpaceServicesFactory.getInstance().getServiceManager().getApplicationContext().refresh();
+        //DSpaceServicesFactory.getInstance().getServiceManager().getApplicationContext().refresh();
     }
 
     private void registerProvider(Class type) {
