@@ -57,22 +57,31 @@ public class ClarinLicenseImportController {
             throw new RuntimeException("Context is null!");
         }
         //get param
-        UUID epersonUUID = UUID.fromString(request.getParameter("eperson"));
-        EPerson ePerson = ePersonService.find(context, epersonUUID);
+        String epersonParam = request.getParameter("eperson");
+        EPerson ePerson = null;
+        if (Objects.nonNull(epersonParam)) {
+            UUID epersonUUID = UUID.fromString(request.getParameter("eperson"));
+            ePerson = ePersonService.find(context, epersonUUID);
+        }
 
-        //set current user to eperson and create license
-        EPerson currUser = context.getCurrentUser();
-        context.setCurrentUser(ePerson);
+        EPerson currUser = null;
+        // Set the current user to the EPerson if the EPerson was found and create the license.
+        if (Objects.nonNull(ePerson)) {
+            currUser = context.getCurrentUser();
+            context.setCurrentUser(ePerson);
+        }
+
         //turn off authorization
         context.turnOffAuthorisationSystem();
         ClarinLicenseRest clarinLicenseRest = clarinLicenseRestRepository.createAndReturn();
         context.restoreAuthSystemState();
-        //set back current use
-        context.setCurrentUser(currUser);
+
+        // Restore the current user if one was previously set.
+        if (Objects.nonNull(ePerson)) {
+            context.setCurrentUser(currUser);
+        }
 
         context.complete();
         return clarinLicenseRest;
     }
-
-
 }
