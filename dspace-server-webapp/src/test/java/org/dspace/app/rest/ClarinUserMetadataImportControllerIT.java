@@ -159,9 +159,6 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         assertEquals(clarinUserMetadata.getTransaction().getCreatedOn().getTime(),
                 getDateFromString("2012-09-19T10:30:03.741633").getTime());
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
-
-        //clean all
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     @Test
@@ -206,9 +203,6 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         assertEquals(clarinUserMetadata.getTransaction().getCreatedOn().getTime(),
                 getDateFromString("2012-09-19T10:30:03.741633").getTime());
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
-
-        //clean all
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     // The user metadata shouldn't be updated, but it should be added
@@ -266,9 +260,6 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         assertEquals(clarinUserMetadata.getTransaction().getCreatedOn().getTime(),
                 getDateFromString("2012-09-19T10:30:03.741633").getTime());
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
-
-        //clean all
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     /**
