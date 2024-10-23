@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinLicense;
+import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
 import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinUserRegistrationService;
@@ -73,6 +75,18 @@ public class ClarinUserRegistrationBuilder extends AbstractBuilder<ClarinUserReg
                 for (ClarinUserMetadata clarinUserMetadata : clarinUserMetadataList) {
                     clarinUserMetadata = c.reloadEntity(clarinUserMetadata);
                     clarinUserMetadataService.delete(c, clarinUserMetadata);
+                }
+
+                List<ClarinLicense> clarinLicenses = clarinUserRegistration.getClarinLicenses();
+                for (ClarinLicense license : clarinLicenses) {
+                    license = c.reloadEntity(license);
+                    clarinLicenseService.delete(c, license);
+                }
+
+                List<ClarinLicenseResourceUserAllowance> licenseResourceUserAllowances = clarinUserRegistration.getLicenseResourceUserAllowances();
+                for (ClarinLicenseResourceUserAllowance resourceUserAllowance : licenseResourceUserAllowances) {
+                    resourceUserAllowance = c.reloadEntity(resourceUserAllowance);
+                    clarinLicenseResourceUserAllowanceService.delete(c, resourceUserAllowance);
                 }
             }
             delete(c, clarinUserRegistration);
