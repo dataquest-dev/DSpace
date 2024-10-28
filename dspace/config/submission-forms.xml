@@ -195,7 +195,7 @@
                     <dc-element>format</dc-element>
                     <repeatable>false</repeatable>
                     <label>Formát</label>
-                    <input-type value-pairs-name="common_types">dropdown</input-type>
+                    <input-type value-pairs-name="openaire_types">dropdown</input-type>
                     <hint>Označení typu souboru.</hint>
                     <required></required>
                 </field>
