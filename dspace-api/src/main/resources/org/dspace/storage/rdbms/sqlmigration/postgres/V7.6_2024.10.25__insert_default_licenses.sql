@@ -1,4 +1,12 @@
 --
+-- The contents of this file are subject to the license and copyright
+-- detailed in the LICENSE and NOTICE files at the root of the source
+-- tree and available online at
+--
+-- http://www.dspace.org/license/
+--
+
+--
 -- Default License Definitions with Associated License Labels and Mappings
 -- NOTE: Do NOT use this file if your repository already contains licenses.
 --
