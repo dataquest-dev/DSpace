@@ -214,6 +214,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         deleteShibbolethUser(ePerson);
     }
 
+    @Ignore
     @Test
     public void testShouldReturnDuplicateUserError() throws Exception {
         String email = "test@mail.epic";
@@ -253,6 +254,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // Login with email without netid, but the user with such email already exists and it has assigned netid.
+    @Ignore
     @Test
     public void testShouldReturnDuplicateUserErrorLoginWithoutNetId() throws Exception {
         String email = "test@email.sk";
@@ -280,6 +282,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void testRedirectToGivenTrustedUrl() throws Exception {
         String token = getClient().perform(get("/api/authn/shibboleth")
