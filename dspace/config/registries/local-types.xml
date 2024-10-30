@@ -215,4 +215,11 @@
     <scope_note>Trvalé URL. Odkaz na další verze datasetů.</scope_note>
   </dc-type>
 
+  <dc-type>
+    <schema>local</schema>
+    <element>file</element>
+    <qualifier>remoteUrl</qualifier>
+    <scope_note>URL s odkazem na dataset, který se nachází ve vzdáleném repozitáři.</scope_note>
+  </dc-type>
+
 </dspace-dc-types>
