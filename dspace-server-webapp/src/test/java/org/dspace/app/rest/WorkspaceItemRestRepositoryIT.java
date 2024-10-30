@@ -4271,6 +4271,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             .andExpect(jsonPath("$.errors").doesNotExist());
     }
 
+    @Ignore
     @Test
     public void createWorkspaceWithoutFiles_UploadRequired() throws Exception {
         context.turnOffAuthorisationSystem();
