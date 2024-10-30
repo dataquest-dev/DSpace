@@ -117,7 +117,6 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
      * Test the IdP hasn't sent the `Shib-Identity-Provider` or `SHIB-NETID` header.
      */
     @Ignore
-    @Test
     public void shouldReturnMissingHeadersFromIdpExceptionBecauseOfMissingIdp() throws Exception {
         String idp = "Test Idp";
 
@@ -136,7 +135,6 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
      */
     // HERE
     @Ignore
-    @Test
     public void shouldReturnUserWithoutEmailException() throws Exception {
         // Create a new netId because the user shouldn't exist
         String netId  = NET_ID_TEST_EPERSON + 986;
@@ -161,7 +159,6 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
      * @throws Exception
      */
     @Ignore
-    @Test
     public void userFillInEmailAndShouldBeRegisteredByVerificationToken() throws Exception {
         String email = "test@mail.epic";
         String netId = email;
@@ -218,7 +215,6 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     @Ignore
-    @Test
     public void testShouldReturnDuplicateUserError() throws Exception {
         String email = "test@mail.epic";
         String netId = email;
@@ -258,7 +254,6 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
 
     // Login with email without netid, but the user with such email already exists and it has assigned netid.
     @Ignore
-    @Test
     public void testShouldReturnDuplicateUserErrorLoginWithoutNetId() throws Exception {
         String email = "test@email.sk";
         String netId = email;
@@ -286,7 +281,6 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
     @Ignore
-    @Test
     public void testRedirectToGivenTrustedUrl() throws Exception {
         String token = getClient().perform(get("/api/authn/shibboleth")
                         .param("redirectUrl", "http://localhost:8080/server/api/authn/status")
