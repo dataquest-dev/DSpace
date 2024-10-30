@@ -255,6 +255,19 @@
                 </field>
             </row>
 
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>file</dc-element>
+                    <dc-qualifier>remoteUrl</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Odkaz na dataset</label>
+                    <input-type>onebox</input-type>
+                    <hint>URL s odkazem na dataset, který se nachází ve vzdáleném repozitáři.</hint>
+                    <required></required>
+                </field>
+            </row>
+
             <!-- Question: `dc.project.id` changed to `dc.description.sponsorship`  -->
             <row>
                 <field>
