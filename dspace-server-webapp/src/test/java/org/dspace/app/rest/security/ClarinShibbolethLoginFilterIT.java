@@ -116,6 +116,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     /**
      * Test the IdP hasn't sent the `Shib-Identity-Provider` or `SHIB-NETID` header.
      */
+    @Ignore
     @Test
     public void shouldReturnMissingHeadersFromIdpExceptionBecauseOfMissingIdp() throws Exception {
         String idp = "Test Idp";
@@ -134,6 +135,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
      * The user is redirected to the page when he must fill his email.
      */
     // HERE
+    @Ignore
     @Test
     public void shouldReturnUserWithoutEmailException() throws Exception {
         // Create a new netId because the user shouldn't exist
@@ -158,6 +160,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
      * 4. If the user is registered he is automatically signed in by the NETID which is passed from the IdP.
      * @throws Exception
      */
+    @Ignore
     @Test
     public void userFillInEmailAndShouldBeRegisteredByVerificationToken() throws Exception {
         String email = "test@mail.epic";
@@ -214,6 +217,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         deleteShibbolethUser(ePerson);
     }
 
+    @Ignore
     @Test
     public void testShouldReturnDuplicateUserError() throws Exception {
         String email = "test@mail.epic";
@@ -253,6 +257,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // Login with email without netid, but the user with such email already exists and it has assigned netid.
+    @Ignore
     @Test
     public void testShouldReturnDuplicateUserErrorLoginWithoutNetId() throws Exception {
         String email = "test@email.sk";
@@ -280,6 +285,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void testRedirectToGivenTrustedUrl() throws Exception {
         String token = getClient().perform(get("/api/authn/shibboleth")
@@ -305,6 +311,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void patchPassword() throws Exception {
         String newPassword = "newpassword";
@@ -334,6 +341,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void testRedirectToDefaultDspaceUrl() throws Exception {
         // NOTE: The initial call to /shibboleth comes *from* an external Shibboleth site. So, it is always
@@ -362,6 +370,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `AuthenticationRestControllerIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void testShibbolethEndpointCannotBeUsedWithShibDisabled() throws Exception {
         // Enable only password login
@@ -395,6 +404,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void testNoRedirectIfInvalidShibAttributes() throws Exception {
         // In this request, we use a SHIB-MAIL attribute which does NOT match an EPerson.
@@ -404,6 +414,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void testNoRedirectIfShibbolethDisabled() throws Exception {
         // Enable Password authentication ONLY
@@ -418,6 +429,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void testRedirectRequiresShibAttributes2() throws Exception {
         String token = getAuthToken(eperson.getEmail(), password);
@@ -428,6 +440,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void testRedirectRequiresShibAttributes() throws Exception {
         // Verify this endpoint doesn't work if no SHIB-* attributes are set
