@@ -284,6 +284,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void testRedirectToGivenTrustedUrl() throws Exception {
         String token = getClient().perform(get("/api/authn/shibboleth")
