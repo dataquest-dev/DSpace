@@ -53,7 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk).
  */
-@Ignore
 public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegrationTest {
 
     public static final String[] SHIB_ONLY = {"org.dspace.authenticate.clarin.ClarinShibAuthentication"};
@@ -437,6 +436,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
+    @Ignore
     @Test
     public void testRedirectToAnotherGivenTrustedUrl() throws Exception {
         getClient().perform(get("/api/authn/shibboleth")
@@ -448,6 +448,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(redirectedUrl("http://anotherdspacehost:4000/home"));
     }
 
+    @Ignore
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
     @Test
     public void testRedirectToGivenUntrustedUrl() throws Exception {
@@ -462,6 +463,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(status().isBadRequest());
     }
 
+    @Ignore
     @Test
     public void testISOShibHeaders() throws Exception {
         String testMail = "test@email.edu";
@@ -486,6 +488,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         deleteShibbolethUser(ePerson);
     }
 
+    @Ignore
     @Test
     public void testUTF8ShibHeaders() throws Exception {
         String testMail = "test@email.edu";
@@ -510,6 +513,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         deleteShibbolethUser(ePerson);
     }
 
+    @Ignore
     @Test
     public void testRedirectToMissingHeadersWithRedirectUrlParam() throws Exception {
         String expectedMissingHeadersUrl = configurationService.getProperty("dspace.ui.url") + "/login/missing-headers";
@@ -523,6 +527,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // eppn is set
+    @Ignore
     @Test
     public void testSuccessFullLoginEppnNetId() throws Exception {
         String token = getClient().perform(get("/api/authn/shibboleth")
@@ -540,6 +545,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // persistent-id is set
+    @Ignore
     @Test
     public void testSuccessFullLoginPersistentIdNetId() throws Exception {
         String token = getClient().perform(get("/api/authn/shibboleth")
@@ -555,6 +561,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         deleteShibbolethUser(ePerson);
     }
 
+    @Ignore
     @Test
     public void testSuccessFullLoginWithTwoEmails() throws Exception {
         String firstEmail = "efg@test.edu";
@@ -573,6 +580,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
     }
 
     // The user has changed the email. But that email is already used by another user.
+    @Ignore
     @Test
     public void testDuplicateEmailError() throws Exception {
         String userWithEppnEmail = "user@eppn.sk";
