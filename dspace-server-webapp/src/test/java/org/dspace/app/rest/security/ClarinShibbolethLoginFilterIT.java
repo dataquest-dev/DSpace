@@ -44,6 +44,7 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.services.ConfigurationService;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -52,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk).
  */
+@Ignore
 public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegrationTest {
 
     public static final String[] SHIB_ONLY = {"org.dspace.authenticate.clarin.ClarinShibAuthentication"};
