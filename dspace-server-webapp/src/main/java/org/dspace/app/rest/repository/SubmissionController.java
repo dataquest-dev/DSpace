@@ -72,10 +72,11 @@ public class SubmissionController {
     @Autowired
     protected ConverterService converter;
 
-    @PreAuthorize("hasPermission(#wsoId, 'WORKSPACEITEM', 'ADD')")
+    @PreAuthorize("hasPermission(#wsoId, 'WORKSPACEITEM', 'WRITE')")
     @RequestMapping(method = RequestMethod.GET, value = "share")
-    public ResponseEntity<ShareSubmissionLinkDTO> generateShareLink(@RequestParam(name = "workspaceitemid",
-            required = false) Integer wsoId, HttpServletRequest request) throws SQLException, AuthorizeException {
+    public ResponseEntity<ShareSubmissionLinkDTO> generateShareLink(@RequestParam(name = "workspaceitemid")
+                                                                        Integer wsoId, HttpServletRequest request)
+            throws SQLException, AuthorizeException {
 
         Context context = ContextUtil.obtainContext(request);
         // Check the context is not null
@@ -119,10 +120,10 @@ public class SubmissionController {
         return ResponseEntity.ok().body(shareSubmissionLinkDTO);
     }
 
-    @PreAuthorize("hasPermission(#wsoId, 'WORKSPACEITEM', 'ADD')")
-    @RequestMapping(method = RequestMethod.POST, value = "setOwner")
-    public WorkspaceItemRest setOwner(@RequestParam(name = "shareToken", required = false) String shareToken,
-                                      @RequestParam(name = "workspaceitemid", required = false) Integer wsoId,
+    @PreAuthorize("hasPermission(#wsoId, 'WORKSPACEITEM', 'WRITE')")
+    @RequestMapping(method = RequestMethod.GET, value = "setOwner")
+    public WorkspaceItemRest setOwner(@RequestParam(name = "shareToken") String shareToken,
+                                      @RequestParam(name = "workspaceitemid") Integer wsoId,
                                       HttpServletRequest request)
             throws SQLException, AuthorizeException {
 
@@ -167,8 +168,6 @@ public class SubmissionController {
         context.commit();
         return wsiRest;
     }
-
-
 
     private static String generateShareToken() {
         // UUID generates a 36-char string with hyphens, so we can strip them to get a 32-char string

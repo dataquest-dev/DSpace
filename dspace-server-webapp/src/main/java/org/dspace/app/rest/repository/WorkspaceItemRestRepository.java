@@ -102,6 +102,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
     public static final String OPERATION_PATH_SECTIONS = "sections";
 
+    public static final String SHARE_TOKEN = "shareToken";
+
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(WorkspaceItemRestRepository.class);
 
     @Autowired
@@ -481,8 +483,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         }
     }
 
-    @SearchRestMethod(name = "shareToken")
-    public Page<WorkspaceItemRest> findByShareToken(@Parameter(value = "shareToken", required = true) String shareToken,
+    @SearchRestMethod(name = SHARE_TOKEN)
+    public Page<WorkspaceItemRest> findByShareToken(@Parameter(value = SHARE_TOKEN, required = true) String shareToken,
                                             Pageable pageable) {
         try {
             Context context = obtainContext();
