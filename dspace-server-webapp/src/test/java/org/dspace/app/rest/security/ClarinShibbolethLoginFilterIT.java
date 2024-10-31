@@ -570,6 +570,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         checkUserIsSignedIn(token);
         // Find the user by the second email
         EPerson ePerson = checkUserWasCreated(null, IDP_TEST_EPERSON, secondEmail, null);
+        assertTrue(Objects.nonNull(ePerson));
         deleteShibbolethUser(ePerson);
     }
 
