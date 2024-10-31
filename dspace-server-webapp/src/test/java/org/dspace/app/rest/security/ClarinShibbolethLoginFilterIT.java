@@ -252,9 +252,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         EPersonBuilder.deleteEPerson(ePerson.getID());
     }
 
-    // THIS TEST IS WRONG!
     // Login with email without netid, but the user with such email already exists and it has assigned netid.
-    @Ignore
     @Test
     public void testShouldReturnDuplicateUserErrorLoginWithoutNetId() throws Exception {
         String email = "test@email.sk";
@@ -279,6 +277,9 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user?email=" + email))
                 .andReturn().getResponse().getHeader("Authorization");
 
+        // Check if was created a user with such email and netid.
+        EPerson ePerson = checkUserWasCreated(netId, IDP_TEST_EPERSON, email, null);
+        deleteShibbolethUser(ePerson);
     }
 
     // This test is copied from the `ShibbolethLoginFilterIT` and modified following the Clarin updates.
