@@ -72,7 +72,7 @@ public class SubmissionController {
     @Autowired
     protected ConverterService converter;
 
-    @PreAuthorize("hasPermission(#wsoId, 'WORKSPACEITEM', 'WRITE')")
+    @PreAuthorize("hasPermission(#wsoId, 'WORKSPACEITEM', 'ADD')")
     @RequestMapping(method = RequestMethod.GET, value = "share")
     public ResponseEntity<ShareSubmissionLinkDTO> generateShareLink(@RequestParam(name = "workspaceitemid",
             required = false) Integer wsoId, HttpServletRequest request) throws SQLException, AuthorizeException {
@@ -119,10 +119,11 @@ public class SubmissionController {
         return ResponseEntity.ok().body(shareSubmissionLinkDTO);
     }
 
-    @PreAuthorize("hasPermission(#wsoId, 'WORKSPACEITEM', 'WRITE')")
+    @PreAuthorize("hasPermission(#wsoId, 'WORKSPACEITEM', 'ADD')")
     @RequestMapping(method = RequestMethod.POST, value = "setOwner")
-    public WorkspaceItemRest setOwner(@RequestParam(name = "shareToken", required = false)
-                                                           String shareToken, HttpServletRequest request)
+    public WorkspaceItemRest setOwner(@RequestParam(name = "shareToken", required = false) String shareToken,
+                                      @RequestParam(name = "workspaceitemid", required = false) Integer wsoId,
+                                      HttpServletRequest request)
             throws SQLException, AuthorizeException {
 
         Context context = ContextUtil.obtainContext(request);
@@ -180,7 +181,8 @@ public class SubmissionController {
         // Get submitter email
         String email = currentUser.getEmail();
         // Compose the url with the share token. The user will be redirected to the UI.
-        String shareTokenUrl = uiUrl + "/share-submission/change-submitter?share_token=" + wsi.getShareToken();
+        String shareTokenUrl = uiUrl + "/share-submission/change-submitter?share_token=" + wsi.getShareToken() +
+                "&workspaceitemid=" + wsi.getID();
         try {
             Locale locale = context.getCurrentLocale();
             Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale, "share_submission"));
