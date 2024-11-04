@@ -13,7 +13,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -99,7 +98,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         assertThat(updatedWsi.getSubmitter().getEmail(), is(SUBMITTER_EMAIL));
         assertThat(updatedWsi.getSubmitter().getEmail(), not(currentUser.getEmail()));
 
-        EPerson adminUser = ePersonService.findByEmail(context, admin.getEmail());  
+        EPerson adminUser = ePersonService.findByEmail(context, admin.getEmail());
         context.setCurrentUser(adminUser);
         // Set workspace item owner to the current user
         getClient(adminToken).perform(get("/api/submission/setOwner")
