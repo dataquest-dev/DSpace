@@ -9,13 +9,16 @@ package org.dspace.app.rest.repository;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -110,6 +113,12 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
                                                       @RequestParam(name = "searchValue", required = false)
                                                         String searchValue,
                                                       PagedResourcesAssembler assembler) throws SearchServiceException {
+        if (isAllowedSearching(autocompleteCustom)) {
+            String errorMessage = "Searching for autocompleteCustom: " + autocompleteCustom + " is not allowed";
+            log.warn(errorMessage);
+            throw new BadRequestException(errorMessage);
+        }
+
         Pageable pageable = utils.getPageable(optionalPageable);
         List<VocabularyEntryRest> results;
         // Load suggestions from the specific source (Solr or JSON)
@@ -361,5 +370,23 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
      */
     private String removeAutocompleteCustomPrefix(String prefix, String autocompleteCustom) {
         return autocompleteCustom.replace(prefix, "");
+    }
+
+    /**
+     * Check if the autocompleteCustom parameter is allowed to be searched.
+     * To allow searching, the `autocomplete.custom.allowed` property must be defined in the configuration.
+     */
+    private boolean isAllowedSearching(String autocompleteCustom) {
+        // Check if the autocompleteCustom parameter is allowed to be searched
+        String[] allowedAutocompleteCustom = configurationService.getArrayProperty("autocomplete.custom.allowed", null);
+
+        // If the allowedAutocompleteCustom parameter is not defined, return false
+        if (Objects.isNull(allowedAutocompleteCustom)) {
+            return false;
+        }
+
+        // Convert the allowedAutocompleteCustom array to a list
+        List<String> allowedAutocompleteCustomList = Arrays.asList(allowedAutocompleteCustom);
+        return allowedAutocompleteCustomList.contains(autocompleteCustom);
     }
 }
