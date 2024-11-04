@@ -381,11 +381,28 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
 
     <xsl:template name="ms_language_inside">
         <xsl:param name="isoCode"/>
+        <xsl:variable name="langValue">
+            <xsl:choose>
+                <xsl:when test="$isoCode = 'en'">eng</xsl:when>
+                <xsl:when test="$isoCode = 'spa'">es</xsl:when>
+                <xsl:when test="$isoCode = 'deu'">de</xsl:when>
+                <xsl:when test="$isoCode = 'fra'">fr</xsl:when>
+                <xsl:when test="$isoCode = 'ita'">it</xsl:when>
+                <xsl:when test="$isoCode = 'jpn'">ja</xsl:when>
+                <xsl:when test="$isoCode = 'zho'">zh</xsl:when>
+                <xsl:when test="$isoCode = 'por'">pt</xsl:when>
+                <xsl:when test="$isoCode = 'tur'">tr</xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$isoCode"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
         <ms:languageTag>
-            <xsl:value-of select="$isoCode"/>
+            <xsl:value-of select="$langValue"/>
         </ms:languageTag>
         <ms:languageId>
-            <xsl:value-of select="$isoCode"/>
+            <xsl:value-of select="$langValue"/>
         </ms:languageId>
     </xsl:template>
 
