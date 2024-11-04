@@ -113,7 +113,8 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
                                                       @RequestParam(name = "searchValue", required = false)
                                                         String searchValue,
                                                       PagedResourcesAssembler assembler) throws SearchServiceException {
-        if (isAllowedSearching(autocompleteCustom)) {
+        // If the searching for the autocompleteCustom parameter is not allowed, return an error
+        if (!isAllowedSearching(autocompleteCustom)) {
             String errorMessage = "Searching for autocompleteCustom: " + autocompleteCustom + " is not allowed";
             log.warn(errorMessage);
             throw new BadRequestException(errorMessage);
@@ -378,7 +379,8 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
      */
     private boolean isAllowedSearching(String autocompleteCustom) {
         // Check if the autocompleteCustom parameter is allowed to be searched
-        String[] allowedAutocompleteCustom = configurationService.getArrayProperty("autocomplete.custom.allowed", null);
+        String[] allowedAutocompleteCustom = configurationService.getArrayProperty("autocomplete.custom.allowed",
+                new String[0]);
 
         // If the allowedAutocompleteCustom parameter is not defined, return false
         if (Objects.isNull(allowedAutocompleteCustom)) {
