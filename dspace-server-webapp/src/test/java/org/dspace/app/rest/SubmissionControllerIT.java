@@ -99,11 +99,12 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         assertThat(updatedWsi.getSubmitter().getEmail(), is(SUBMITTER_EMAIL));
         assertThat(updatedWsi.getSubmitter().getEmail(), not(currentUser.getEmail()));
 
-        EPerson adminUser = ePersonService.findByEmail(context, admin.getEmail());
+        EPerson adminUser = ePersonService.findByEmail(context, admin.getEmail());  
         context.setCurrentUser(adminUser);
         // Set workspace item owner to the current user
-        getClient(adminToken).perform(post("/api/submission/setOwner")
+        getClient(adminToken).perform(get("/api/submission/setOwner")
                 .param("shareToken", updatedWsi.getShareToken())
+                .param("workspaceitemid", updatedWsi.getID().toString())
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
