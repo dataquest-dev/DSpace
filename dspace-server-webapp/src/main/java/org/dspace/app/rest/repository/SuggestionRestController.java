@@ -382,6 +382,9 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
         String[] allowedAutocompleteCustom = configurationService.getArrayProperty("autocomplete.custom.allowed",
                 new String[0]);
 
+        // Remove `?query` from the autocompleteCustom parameter if it contains this specific query parameter
+        String normalizedAutocompleteCustom = updateAutocompleteAndQuery(autocompleteCustom, null);
+
         // If the allowedAutocompleteCustom parameter is not defined, return false
         if (Objects.isNull(allowedAutocompleteCustom)) {
             return false;
@@ -389,6 +392,6 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
 
         // Convert the allowedAutocompleteCustom array to a list
         List<String> allowedAutocompleteCustomList = Arrays.asList(allowedAutocompleteCustom);
-        return allowedAutocompleteCustomList.contains(autocompleteCustom);
+        return allowedAutocompleteCustomList.contains(normalizedAutocompleteCustom);
     }
 }
