@@ -381,28 +381,18 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
 
     <xsl:template name="ms_language_inside">
         <xsl:param name="isoCode"/>
-        <xsl:variable name="langValue">
+        <xsl:variable name="modifiedIsoCode">
             <xsl:choose>
-                <xsl:when test="$isoCode = 'en'">eng</xsl:when>
-                <xsl:when test="$isoCode = 'spa'">es</xsl:when>
-                <xsl:when test="$isoCode = 'deu'">de</xsl:when>
-                <xsl:when test="$isoCode = 'fra'">fr</xsl:when>
-                <xsl:when test="$isoCode = 'ita'">it</xsl:when>
-                <xsl:when test="$isoCode = 'jpn'">ja</xsl:when>
-                <xsl:when test="$isoCode = 'zho'">zh</xsl:when>
-                <xsl:when test="$isoCode = 'por'">pt</xsl:when>
-                <xsl:when test="$isoCode = 'tur'">tr</xsl:when>
-                <xsl:otherwise>
-                    <xsl:value-of select="$isoCode"/>
-                </xsl:otherwise>
+                <xsl:when test="$isoCode = 'eng'">en</xsl:when>
+                <xsl:when test="$isoCode = 'ces'">cs</xsl:when>
+                <xsl:otherwise><xsl:value-of select="$isoCode"/></xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-
         <ms:languageTag>
-            <xsl:value-of select="$langValue"/>
+            <xsl:value-of select="$modifiedIsoCode"/>
         </ms:languageTag>
         <ms:languageId>
-            <xsl:value-of select="$langValue"/>
+            <xsl:value-of select="$modifiedIsoCode"/>
         </ms:languageId>
     </xsl:template>
 
@@ -624,7 +614,8 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                     test="doc:metadata/doc:element[@name='local']/doc:element[@name='size']/doc:element[@name='info']/doc:element/doc:field[@name='value']">
                 <xsl:for-each
                         select="doc:metadata/doc:element[@name='local']/doc:element[@name='size']/doc:element[@name='info']/doc:element/doc:field[@name='value']">
-                    <xsl:variable name="size_arr" select="tokenize(., '@@')"/>
+                    <xsl:variable name="size_arr" select="tokenize(., ';')"/>
+                    <!-- Remove non-numeric characters (e.g., 'words', 'bytes') -->
                     <xsl:call-template name="size">
                         <xsl:with-param name="amount" select="$size_arr[1]"/>
                         <xsl:with-param name="unit" select="$size_arr[2]"/>
@@ -633,7 +624,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
             </xsl:when>
             <xsl:otherwise>
                 <xsl:call-template name="size">
-                    <xsl:with-param name="amount" select="sum(exsl:node-set($files)/doc:element[@name='bitstream']/doc:field[@name='size']/text())"/>
+                    <xsl:with-param name="amount" select="format-number(sum(exsl:node-set($files)/doc:element[@name='bitstream']/doc:field[@name='size']/text()), '0')"/>
                     <xsl:with-param name="unit" select="'bytes'"/>
                 </xsl:call-template>
             </xsl:otherwise>
