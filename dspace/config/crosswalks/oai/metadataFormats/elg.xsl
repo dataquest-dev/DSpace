@@ -615,7 +615,6 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                 <xsl:for-each
                         select="doc:metadata/doc:element[@name='local']/doc:element[@name='size']/doc:element[@name='info']/doc:element/doc:field[@name='value']">
                     <xsl:variable name="size_arr" select="tokenize(., ';')"/>
-                    <!-- Remove non-numeric characters (e.g., 'words', 'bytes') -->
                     <xsl:call-template name="size">
                         <xsl:with-param name="amount" select="$size_arr[1]"/>
                         <xsl:with-param name="unit" select="$size_arr[2]"/>
