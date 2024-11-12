@@ -238,9 +238,8 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
         // The user e-mail is not stored in the `shibheaders` but in the `clarinVerificationToken`.
         // The email was added to the `clarinVerificationToken` in the ClarinShibbolethFilter.
-        String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
-        clarinVerificationToken = clarinVerificationTokenService.findByNetID(context,
-                shibheaders.get_single(netidHeader));
+        String[] netidHeaders = configurationService.getArrayProperty("authentication-shibboleth.netid-header");
+        clarinVerificationToken = clarinVerificationTokenService.findByNetID(context, netidHeaders, shibheaders);
         // CLARIN
 
         // Initialize the additional EPerson metadata.
@@ -248,7 +247,6 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
         // Should we auto register new users.
         boolean autoRegister = configurationService.getBooleanProperty("authentication-shibboleth.autoregister", true);
-        String[] netidHeaders = configurationService.getArrayProperty("authentication-shibboleth.netid-header");
 
         // Four steps to authenticate a user
         try {

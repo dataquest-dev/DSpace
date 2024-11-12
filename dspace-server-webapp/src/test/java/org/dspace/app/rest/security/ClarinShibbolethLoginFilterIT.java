@@ -606,6 +606,21 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         deleteShibbolethUser(ePerson);
     }
 
+    //  mail=null, eppn=null, persistent-id=somestring
+    @Test
+    public void shouldAskForEmailWhenHasPersistentId() throws Exception {
+        String persistentId = "some pid";
+
+        // Try to log in a user without email, but with persistent id. The user should be redirected to the page where
+        // he will fill in the user email.
+        getClient().perform(get("/api/authn/shibboleth")
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header(NET_ID_PERSISTENT_ID, persistentId))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost:4000/login/auth-failed?netid=" +
+                        Util.formatNetId(persistentId, IDP_TEST_EPERSON)));
+    }
+
     private EPerson checkUserWasCreated(String netIdValue, String idpValue, String email, String name)
             throws SQLException {
         // Check if was created a user with such email and netid.

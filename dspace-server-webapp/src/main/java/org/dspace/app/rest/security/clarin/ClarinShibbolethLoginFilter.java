@@ -344,23 +344,21 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         Context context = ContextUtil.obtainContext(req);
         String authenticateHeaderValue = restAuthenticationService.getWwwAuthenticateHeaderValue(req, res);
 
-        // Load header keys from cfg
-        String netidHeader = configurationService.getProperty("authentication-shibboleth.netid-header");
-
         // Store the header which the Idp has sent to the ShibHeaders object and save that header into the table
         // `verification_token` because after successful authentication the Idp headers will be showed for the user in
         // the another page.
         // Store header values in the ShibHeaders because of String issues.
         ShibHeaders shib_headers = new ShibHeaders(req);
-        String netid = shib_headers.get_single(netidHeader);
+        String[] netIdHeaders = shib_headers.getNetIdHeaders();
+        String netId = getNetIdFromShibHeaders(netIdHeaders, shib_headers);
 
         // Store the Idp headers associated with the current netid.
+        ClarinVerificationToken clarinVerificationToken;
         try {
-            ClarinVerificationToken clarinVerificationToken =
-                    clarinVerificationTokenService.findByNetID(context, netid);
+            clarinVerificationToken = clarinVerificationTokenService.findByNetID(context, netId);
             if (Objects.isNull(clarinVerificationToken)) {
                 clarinVerificationToken = clarinVerificationTokenService.create(context);
-                clarinVerificationToken.setePersonNetID(netid);
+                clarinVerificationToken.setePersonNetID(netId);
             }
             clarinVerificationToken.setShibHeaders(shib_headers.toString());
             clarinVerificationTokenService.update(context, clarinVerificationToken);
@@ -370,7 +368,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
                     + e.getMessage());
         }
 
-        this.netId = netid;
+        this.netId = netId;
     }
 
     private String getEpersonEmail(EPerson ePerson) {
@@ -378,6 +376,21 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
             return null;
         }
         return ePerson.getEmail();
+    }
+
+    /**
+     * Get the netId from the ShibHeaders object. The netId is stored in the headers which are defined in the
+     * `authentication-shibboleth.netid-headers` property.
+     * @return netId or null
+     */
+    private String getNetIdFromShibHeaders(String[] netIdHeaders, ShibHeaders shibHeaders) {
+        for (String netidHeader : netIdHeaders) {
+            String netID = shibHeaders.get_single(netidHeader);
+            if (StringUtils.isNotEmpty(netID)) {
+                return netID;
+            }
+        }
+        return null;
     }
 }
 
