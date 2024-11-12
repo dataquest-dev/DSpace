@@ -77,7 +77,8 @@ public class ClarinVerificationTokenServiceImpl implements ClarinVerificationTok
     }
 
     @Override
-    public ClarinVerificationToken findByNetID(Context context, String[] netIdHeaders, ShibHeaders shibHeaders) throws SQLException {
+    public ClarinVerificationToken findByNetID(Context context, String[] netIdHeaders, ShibHeaders shibHeaders)
+            throws SQLException {
         for (String netidHeader : netIdHeaders) {
             String netID = shibHeaders.get_single(netidHeader);
             ClarinVerificationToken clarinVerificationToken = clarinVerificationTokenDAO.findByNetID(context, netID);
