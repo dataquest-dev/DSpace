@@ -385,6 +385,18 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
             <xsl:choose>
                 <xsl:when test="$isoCode = 'eng'">en</xsl:when>
                 <xsl:when test="$isoCode = 'ces'">cs</xsl:when>
+                <xsl:when test="$isoCode = 'lit'">lt</xsl:when>
+                <xsl:when test="$isoCode = 'urd'">ur</xsl:when>
+                <xsl:when test="$isoCode = 'sme'">se</xsl:when>
+                <xsl:when test="$isoCode = 'kor'">ko</xsl:when>
+                <xsl:when test="$isoCode = 'uig'">ug</xsl:when>
+                <xsl:when test="$isoCode = 'vie'">vi</xsl:when>
+                <xsl:when test="$isoCode = 'bel'">be</xsl:when>
+                <xsl:when test="$isoCode = 'tur'">tr</xsl:when>
+                <xsl:when test="$isoCode = 'san'">sa</xsl:when>
+                <xsl:when test="$isoCode = 'slk'">sk</xsl:when>
+                <xsl:when test="$isoCode = 'ukr'">uk</xsl:when>
+                <xsl:when test="$isoCode = 'rus'">ru</xsl:when>
                 <xsl:otherwise><xsl:value-of select="$isoCode"/></xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
