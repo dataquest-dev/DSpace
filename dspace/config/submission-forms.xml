@@ -1,8 +1,8 @@
-        <?xml version="1.0"?>
-                <!DOCTYPE input-forms SYSTEM "submission-forms.dtd">
+<?xml version="1.0"?>
+<!DOCTYPE input-forms SYSTEM "submission-forms.dtd">
 
 
-        <input-forms>
+<input-forms>
 
     <!-- The form-definitions map lays out the detailed definition of all the -->
     <!-- submission forms. Each separate form set has a unique name as an     -->
