@@ -658,6 +658,18 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         Util.formatNetId(netId, idp)));
     }
 
+    @Test
+    public void shouldSendShibbolethAuthError() throws Exception {
+        String idp = "Test Idp";
+
+        // Try to authenticate but the Shibboleth doesn't send the email or netid in the header,
+        // so the user won't be registered but the user will be redirected to the login page with the error message.
+        getClient().perform(get("/api/authn/shibboleth")
+                        .header("Shib-Identity-Provider", idp))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost:4000/login?error=shibboleth-authentication-failed"));
+    }
+
     private EPerson checkUserWasCreated(String netIdValue, String idpValue, String email, String name)
             throws SQLException {
         // Check if was created a user with such email and netid.
