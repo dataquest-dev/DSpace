@@ -261,6 +261,7 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         String missingHeadersUrl = "missing-headers";
         String userWithoutEmailUrl = "auth-failed";
         String duplicateUser = "duplicate-user";
+        String cannotAuthenticate = "shibboleth-authentication-failed";
 
         // Compose the redirect URL
         if (this.isMissingHeadersFromIdp) {
@@ -270,6 +271,11 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         } else if (StringUtils.isNotEmpty(this.netId)) {
             // netId is set if the user doesn't have the email
             redirectUrl += userWithoutEmailUrl + "?netid=" + this.netId;
+        } else {
+            // Remove the last slash from the URL `login/`
+            String redirectUrlWithoutSlash = redirectUrl.endsWith("/") ?
+                    Utils.replaceLast(redirectUrl, "/", "") : redirectUrl;
+            redirectUrl = redirectUrlWithoutSlash + "?error=" + cannotAuthenticate;
         }
 
         response.sendRedirect(redirectUrl);
