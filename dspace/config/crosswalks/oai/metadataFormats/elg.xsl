@@ -432,7 +432,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                 <xsl:when test="$isoCode = 'mar'">mr</xsl:when>
                 <xsl:when test="$isoCode = 'mlt'">mt</xsl:when>
                 <xsl:when test="$isoCode = 'nld'">nl</xsl:when>
-                <xsl:when test="$isoCode = 'nno'">no</xsl:when>
+                <xsl:when test="$isoCode = 'nno'">nn</xsl:when>
                 <xsl:when test="$isoCode = 'nob'">nb</xsl:when>
                 <xsl:when test="$isoCode = 'ron'">ro</xsl:when>
                 <xsl:when test="$isoCode = 'slv'">sl</xsl:when>
@@ -479,7 +479,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                 <xsl:when test="$isoCode = 'cha'">ch</xsl:when>
                 <xsl:when test="$isoCode = 'che'">ce</xsl:when>
                 <xsl:when test="$isoCode = 'chv'">cv</xsl:when>
-                <xsl:when test="$isoCode = 'cor'">co</xsl:when>
+                <xsl:when test="$isoCode = 'cor'">kw</xsl:when>
                 <xsl:when test="$isoCode = 'cre'">cr</xsl:when>
                 <xsl:when test="$isoCode = 'div'">dv</xsl:when>
                 <xsl:when test="$isoCode = 'dzo'">dz</xsl:when>
@@ -489,9 +489,9 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                 <xsl:when test="$isoCode = 'ful'">ff</xsl:when>
                 <xsl:when test="$isoCode = 'hat'">ht</xsl:when>
                 <xsl:when test="$isoCode = 'hau'">ha</xsl:when>
-                <xsl:when test="$isoCode = 'her'">he</xsl:when>
+                <xsl:when test="$isoCode = 'her'">hz</xsl:when>
                 <xsl:when test="$isoCode = 'hmo'">ho</xsl:when>
-                <xsl:when test="$isoCode = 'ibo'">io</xsl:when>
+                <xsl:when test="$isoCode = 'ibo'">ig</xsl:when>
                 <xsl:when test="$isoCode = 'iku'">iu</xsl:when>
                 <xsl:when test="$isoCode = 'ile'">ie</xsl:when>
                 <xsl:when test="$isoCode = 'ina'">ia</xsl:when>
@@ -507,7 +507,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                 <xsl:when test="$isoCode = 'kon'">kg</xsl:when>
                 <xsl:when test="$isoCode = 'kur'">ku</xsl:when>
                 <xsl:when test="$isoCode = 'lao'">lo</xsl:when>
-                <xsl:when test="$isoCode = 'lin'">li</xsl:when>
+                <xsl:when test="$isoCode = 'lin'">ln</xsl:when>
                 <xsl:when test="$isoCode = 'ltz'">lb</xsl:when>
                 <xsl:when test="$isoCode = 'lug'">lg</xsl:when>
                 <xsl:when test="$isoCode = 'mah'">mh</xsl:when>
@@ -515,7 +515,7 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                 <xsl:when test="$isoCode = 'mob'">mn</xsl:when>
                 <xsl:when test="$isoCode = 'mri'">mi</xsl:when>
                 <xsl:when test="$isoCode = 'msa'">ms</xsl:when>
-                <xsl:when test="$isoCode = 'mya'">ma</xsl:when>
+                <xsl:when test="$isoCode = 'mya'">my</xsl:when>
                 <xsl:when test="$isoCode = 'nau'">na</xsl:when>
                 <xsl:when test="$isoCode = 'nav'">nv</xsl:when>
                 <xsl:when test="$isoCode = 'ndo'">ng</xsl:when>
@@ -555,6 +555,16 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                 <xsl:when test="$isoCode = 'yor'">yo</xsl:when>
                 <xsl:when test="$isoCode = 'zha'">za</xsl:when>
                 <xsl:when test="$isoCode = 'zul'">zu</xsl:when>
+                <xsl:when test="$isoCode = 'bos'">bs</xsl:when>
+                <xsl:when test="$isoCode = 'cos'">co</xsl:when>
+                <xsl:when test="$isoCode = 'epo'">eo</xsl:when>
+                <xsl:when test="$isoCode = 'grn'">gn</xsl:when>
+                <xsl:when test="$isoCode = 'zul'">zu</xsl:when>
+                <xsl:when test="$isoCode = 'ido'">io</xsl:when>
+                <xsl:when test="$isoCode = 'lim'">li</xsl:when>
+                <xsl:when test="$isoCode = 'mon'">mn</xsl:when>
+                <xsl:when test="$isoCode = 'bos'">bs</xsl:when>
+                <xsl:when test="$isoCode = 'kin'">rw</xsl:when>
                 <xsl:otherwise><xsl:value-of select="$isoCode"/></xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
