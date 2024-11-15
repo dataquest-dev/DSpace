@@ -161,7 +161,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
 
         //clean all
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
     }
 
     @Test
@@ -208,7 +208,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
 
         //clean all
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
     }
 
     // The user metadata shouldn't be updated, but it should be added
@@ -268,7 +268,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
 
         //clean all
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
     }
 
     /**

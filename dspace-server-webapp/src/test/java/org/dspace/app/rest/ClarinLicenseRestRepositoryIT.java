@@ -317,7 +317,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 ClarinLicenseBuilder.deleteClarinLicense(idRef.get());
             }
         }
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
     }
 
     // Edit

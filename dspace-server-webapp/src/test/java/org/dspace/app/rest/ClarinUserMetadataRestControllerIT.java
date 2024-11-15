@@ -13,6 +13,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.htrace.shaded.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import org.dspace.app.rest.model.ClarinUserMetadataRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
@@ -239,7 +241,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
     }
 
     @Test
@@ -293,7 +295,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
     }
 
     @Test
@@ -342,7 +344,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
     }
 
     @Test
@@ -400,7 +402,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
     }
 
     // Confirmation = 1
@@ -563,7 +565,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(jsonPath("$.page.totalElements", is(2)));
 
         // Delete all created user metadata - clean test environment
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
     }
 
     private WorkspaceItem createWorkspaceItemWithFile(boolean secondBitstream) {
