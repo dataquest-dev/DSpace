@@ -9,6 +9,7 @@ package org.dspace.app.statistics.clarin;
 
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +27,6 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.matomo.java.tracking.CustomVariable;
 import org.matomo.java.tracking.MatomoException;
 import org.matomo.java.tracking.MatomoRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +69,6 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
     @Override
     protected void preTrack(Context context, MatomoRequest matomoRequest, Item item, HttpServletRequest request) {
         super.preTrack(context, matomoRequest, item, request);
-
         matomoRequest.setSiteId(siteId);
         log.debug("Logging to site " + matomoRequest.getSiteId());
         String itemIdentifier = getItemIdentifier(item);
@@ -81,7 +80,9 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
             matomoRequest.setActionUrl(itemIdentifier);
         }
         try {
-            matomoRequest.setPageCustomVariable(new CustomVariable("source", "bitstream"), 1);
+            LinkedHashMap<Long, Object> handle = new LinkedHashMap<>();
+            handle.put(1L, "bitstream");
+            matomoRequest.setDimensions(handle);
         } catch (MatomoException e) {
             log.error(e);
         }
