@@ -104,7 +104,7 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
      * The search is performed on the specific index or a specific json file that is defined
      * by the autocompleteCustom parameter.
      */
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     @RequestMapping(method = RequestMethod.GET)
     public PagedModel<VocabularyEntryResource> filter(@Nullable HttpServletRequest request,
                                                       @Nullable Pageable optionalPageable,

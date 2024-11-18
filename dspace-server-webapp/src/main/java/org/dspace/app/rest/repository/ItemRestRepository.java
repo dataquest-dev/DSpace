@@ -52,7 +52,6 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
-import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -111,9 +110,6 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
 
     @Autowired
     private SolrOAIReindexer solrOAIReindexer;
-
-    @Autowired
-    ConfigurationService configurationService;
 
     public ItemRestRepository(ItemService dsoService) {
         super(dsoService);

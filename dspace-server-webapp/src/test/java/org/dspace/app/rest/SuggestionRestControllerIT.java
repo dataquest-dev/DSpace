@@ -63,8 +63,9 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
      */
     @Test
     public void testSearchBySubjectAcSolrIndex() throws Exception {
+        String userToken = getAuthToken(eperson.getEmail(), password);
         // substring = find only by the `test` value
-        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-subject_ac&searchValue=" +
+        getClient(userToken).perform(get("/api/suggestions?autocompleteCustom=solr-subject_ac&searchValue=" +
                         SUBJECT_SEARCH_VALUE.substring(0, 4)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
@@ -81,8 +82,9 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
      */
     @Test
     public void testSearchBySubjectAcSolrIndex_noResults() throws Exception {
+        String userToken = getAuthToken(eperson.getEmail(), password);
         // substring = find only by the `test` value
-        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-subject_ac&searchValue=" +
+        getClient(userToken).perform(get("/api/suggestions?autocompleteCustom=solr-subject_ac&searchValue=" +
                         "no such subject"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
@@ -95,7 +97,9 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
      */
     @Test
     public void testSearchByLanguageFromJson() throws Exception {
-        getClient().perform(get("/api/suggestions?autocompleteCustom=json_static-iso_langs.json&searchValue=" +
+        String userToken = getAuthToken(eperson.getEmail(), password);
+        getClient(userToken).perform(
+                get("/api/suggestions?autocompleteCustom=json_static-iso_langs.json&searchValue=" +
                         LANGUAGE_SEARCH_VALUE_KEY))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
@@ -113,7 +117,9 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
      */
     @Test
     public void testSearchByLanguageFromJson_noResults() throws Exception {
-        getClient().perform(get("/api/suggestions?autocompleteCustom=json_static-iso_langs.json&searchValue=" +
+        String userToken = getAuthToken(eperson.getEmail(), password);
+        getClient(userToken).perform(
+                get("/api/suggestions?autocompleteCustom=json_static-iso_langs.json&searchValue=" +
                         "no such language"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
@@ -127,7 +133,9 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
      */
     @Test
     public void testSearchBySpecificQueryFromSolr() throws Exception {
-        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-title_ac?query=title_ac:**&searchValue=" +
+        String userToken = getAuthToken(eperson.getEmail(), password);
+        getClient(userToken).perform(
+                get("/api/suggestions?autocompleteCustom=solr-title_ac?query=title_ac:**&searchValue=" +
                         ITEM_TITLE.substring(0, 4)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
@@ -146,11 +154,23 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
      */
     @Test
     public void testSearchBySpecificQueryFromSolr_noresults() throws Exception {
-        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-title_ac?query=title_ac:**&searchValue=" +
+        String userToken = getAuthToken(eperson.getEmail(), password);
+        getClient(userToken).perform(
+                get("/api/suggestions?autocompleteCustom=solr-title_ac?query=title_ac:**&searchValue=" +
                         "no such title"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$.page.totalElements", is(0)))
                 .andExpect(jsonPath("$._embedded.vocabularyEntryRests").doesNotExist());
+    }
+
+    /**
+     * Should return 401 Forbidden
+     */
+    @Test
+    public void testShouldNotAuthorized() throws Exception {
+        getClient().perform(get("/api/suggestions?autocompleteCustom=solr-title_ac?query=title_ac:**&searchValue=" +
+                        "no such title"))
+                .andExpect(status().isUnauthorized());
     }
 }
