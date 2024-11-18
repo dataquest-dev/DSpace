@@ -364,6 +364,21 @@
             </row>
             <row>
                 <field>
+                    <dc-schema>metashare</dc-schema>
+                    <dc-element>ResourceInfo#ResourceComponentType#ToolServiceInfo</dc-element>
+                    <dc-qualifier>languageDependent</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Language Dependent</label>
+                    <type-bind>toolService</type-bind>
+                    <input-type value-pairs-name="metashare_languageDependent">list</input-type>
+                    <hint>Indicate whether the operation of the tool or service is
+                        language dependent or not
+                    </hint>
+                    <required>Please indicate whether the tool is language dependent</required>
+                </field>
+            </row>
+            <row>
+                <field>
                     <dc-schema>local</dc-schema>
                     <dc-element>bitstream</dc-element>
                     <dc-qualifier>redirectToURL</dc-qualifier>
@@ -383,87 +398,6 @@
                 </field>
             </row>
         </form>
-
-        <!-- TODO - Rows, that are not in dspace 5 -->
-        <!--            <row>-->
-        <!--                <field>-->
-        <!--                    <dc-schema>dc</dc-schema>-->
-        <!--                    <dc-element>identifier</dc-element>-->
-        <!--                    <dc-qualifier>citation</dc-qualifier>-->
-        <!--                    <repeatable>false</repeatable>-->
-        <!--                    <label>Citation</label>-->
-        <!--                    <input-type>onebox</input-type>-->
-        <!--                    <hint>Enter the standard citation for the previously issued instance of this item.</hint>-->
-        <!--                    <required></required>-->
-        <!--                </field>-->
-        <!--            </row>-->
-        <!--            <row>-->
-        <!--                <field>-->
-        <!--                    <dc-schema>dc</dc-schema>-->
-        <!--                    <dc-element>relation</dc-element>-->
-        <!--                    <dc-qualifier>ispartofseries</dc-qualifier>-->
-        <!--                    <repeatable>true</repeatable>-->
-        <!--                    <label>Series/Report No.</label>-->
-        <!--                    <type-bind>Technical Report</type-bind>-->
-        <!--                    <input-type>series</input-type>-->
-        <!--                    <hint>Enter the series and number assigned to this item by your community.</hint>-->
-        <!--                    <required></required>-->
-        <!--                </field>-->
-        <!--            </row>-->
-        <!--            <row>-->
-        <!--                <field>-->
-        <!--                    <dc-schema>dc</dc-schema>-->
-        <!--                    <dc-element>identifier</dc-element>-->
-        <!--                    <dc-qualifier></dc-qualifier>-->
-        <!--                    &lt;!&ndash; An input-type of qualdrop_value MUST be marked as repeatable &ndash;&gt;-->
-        <!--                    <repeatable>true</repeatable>-->
-        <!--                    <label>Identifiers</label>-->
-        <!--                    <input-type value-pairs-name="common_identifiers">qualdrop_value</input-type>-->
-        <!--                    <hint>If the item has any identification numbers or codes associated with-->
-        <!--                        it, please enter the types and the actual numbers or codes.-->
-        <!--                    </hint>-->
-        <!--                    <required></required>-->
-        <!--                </field>-->
-        <!--            </row>-->
-        <!--            <row>-->
-        <!--                <field>-->
-        <!--                    <dc-schema>metashare</dc-schema>-->
-        <!--                    <dc-element>ResourceInfo#ResourceComponentType#ToolServiceInfo</dc-element>-->
-        <!--                    <dc-qualifier>languageDependent</dc-qualifier>-->
-        <!--                    <repeatable>false</repeatable>-->
-        <!--                    <label>Language Dependent</label>-->
-        <!--                    <type-bind>toolService</type-bind>-->
-        <!--                    <input-type value-pairs-name="metashare_languageDependent">list</input-type>-->
-        <!--                    <hint>Indicate whether the operation of the tool or service is-->
-        <!--                        language dependent or not-->
-        <!--                    </hint>-->
-        <!--                    <required>Please indicate whether the tool is language dependent</required>-->
-        <!--                </field>-->
-        <!--            </row>-->
-        <!--            <row>-->
-        <!--                <field>-->
-        <!--                    <dc-schema>dc</dc-schema>-->
-        <!--                    <dc-element>description</dc-element>-->
-        <!--                    <dc-qualifier>abstract</dc-qualifier>-->
-        <!--                    <repeatable>false</repeatable>-->
-        <!--                    <label>Abstract</label>-->
-        <!--                    <input-type>textarea</input-type>-->
-        <!--                    <hint>Enter the abstract of the item.</hint>-->
-        <!--                    <required></required>-->
-        <!--                </field>-->
-        <!--            </row>-->
-        <!--            <row>-->
-        <!--                <field>-->
-        <!--                    <dc-schema>dc</dc-schema>-->
-        <!--                    <dc-element>description</dc-element>-->
-        <!--                    <dc-qualifier>sponsorship</dc-qualifier>-->
-        <!--                    <repeatable>false</repeatable>-->
-        <!--                    <label>Sponsors</label>-->
-        <!--                    <input-type>textarea</input-type>-->
-        <!--                    <hint>Enter the names of any sponsors and/or funding codes in the box.</hint>-->
-        <!--                    <required></required>-->
-        <!--                </field>-->
-        <!--            </row>-->
 
         <!-- Form which defines the second page/section of the "traditional" DSpace submission process,
              often used when depositing normal Items. -->
