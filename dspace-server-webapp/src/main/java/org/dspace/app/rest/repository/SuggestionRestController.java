@@ -235,7 +235,10 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
         // return only metadata field values
         discoverQuery.addSearchField(autocompleteCustom);
 
-        Utils.normalizeDiscoverQuery(discoverQuery, searchValue, autocompleteCustom);
+        String normalizedQuery = Utils.normalizeDiscoverQuery(searchValue, autocompleteCustom);
+        if (StringUtils.isNotBlank(normalizedQuery)) {
+            discoverQuery.setQuery(normalizedQuery);
+        }
 
         // Search for the results
         DiscoverResult searchResult = searchService.search(context, discoverQuery);

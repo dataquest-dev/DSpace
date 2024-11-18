@@ -120,7 +120,11 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
             throw new IllegalArgumentException("Cannot create a DiscoverQuery from the arguments.");
         }
 
-        Utils.normalizeDiscoverQuery(discoverQuery, searchValue, metadataField);
+        String normalizedQuery = Utils.normalizeDiscoverQuery(searchValue, metadataField);
+        if (StringUtils.isNotBlank(normalizedQuery)) {
+            discoverQuery.setQuery(normalizedQuery);
+        }
+
         List<MetadataValueWrapper> metadataValueWrappers = new ArrayList<>();
         try {
             DiscoverResult searchResult = searchService.search(context, discoverQuery);

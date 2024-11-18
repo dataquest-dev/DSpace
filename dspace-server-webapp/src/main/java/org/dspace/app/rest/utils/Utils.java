@@ -1143,12 +1143,11 @@ public class Utils {
 
     /**
      * Update the solr DiscoverQuery because in some cases it won't search properly numbers and characters together.
-     * @param discoverQuery to update
      * @param searchValue searching value
      * @param searchField it could be special solr index or metadata field
      * @return updated DiscoverQuery
      */
-    public static DiscoverQuery normalizeDiscoverQuery(DiscoverQuery discoverQuery, String searchValue,
+    public static String normalizeDiscoverQuery(String searchValue,
                                                        String searchField) {
         // regex if searchValue consist of numbers and characters
         // \d - digit
@@ -1163,11 +1162,9 @@ public class Utils {
         if (patternNumber.matcher(searchValue).matches() && patternString.matcher(searchValue).matches()) {
             List<String> characterList = extractCharacterListFromString(searchValue);
             List<String> numberList = extractNumberListFromString(searchValue);
-
-            String newQuery = composeQueryWithNumbersAndChars(searchField, characterList, numberList);
-            discoverQuery.setQuery(newQuery);
+            return composeQueryWithNumbersAndChars(searchField, characterList, numberList);
         }
-        return discoverQuery;
+        return null;
     }
 
     /**
