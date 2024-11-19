@@ -7,6 +7,12 @@
  */
 package org.dspace.administer;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.time.DateUtils;
 import org.dspace.authorize.AuthorizeException;
@@ -19,12 +25,6 @@ import org.dspace.scripts.service.ProcessService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Script to cleanup the old processes in the specified state.
