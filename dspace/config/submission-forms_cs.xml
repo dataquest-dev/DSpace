@@ -30,10 +30,10 @@
                     <dc-element>title</dc-element>
                     <dc-qualifier></dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Title</label>
+                    <label>Název</label>
                     <input-type>onebox</input-type>
-                    <hint>Enter the name of the file.</hint>
-                    <required>You must enter a name for this file</required>
+                    <hint>Zadejte název souboru.</hint>
+                    <required>Musíte zadat název tohoto souboru.</required>
                 </field>
             </row>
             <row>
@@ -41,9 +41,9 @@
                     <dc-schema>dc</dc-schema>
                     <dc-element>description</dc-element>
                     <repeatable>true</repeatable>
-                    <label>Description</label>
+                    <label>Popis</label>
                     <input-type>textarea</input-type>
-                    <hint>Enter a description for the file</hint>
+                    <hint>Zadejte popis souboru.</hint>
                     <required></required>
                 </field>
             </row>
@@ -3194,29 +3194,28 @@
          Uncomment the example row of the complex input type definition to see this input in the submission UI. -->
     <form-complex-definitions>
         <definition name="contact_person">
-            <input name="givenname" input-type="text" label="Contact person's given name" required="true"/>
-            <input name="surname" input-type="text" label="Contact person's surname" hint="Family name" required="true"/>
-            <input name="email" input-type="text" label="Contact person's email" regex="[^@]+@[^\.@]+\.[^@]+" required="true"/>
-            <input name="affiliation" input-type="autocomplete" label="Contact person's institution name" required="true"/>
+            <input name="givenname" input-type="text" label="Vlastní jméno kontaktní osoby" required="true"/>
+            <input name="surname" input-type="text" label="Příjmení kontaktní osoby" hint="Rodné příjmení" required="true"/>
+            <input name="email" input-type="text" label="E-mail kontaktní osoby" regex="[^@]+@[^\.@]+\.[^@]+" required="true"/>
+            <input name="affiliation" input-type="autocomplete" label="Organizace kontaktní osoby" required="true"/>
         </definition>
 
         <definition name="funding">
-            <input name="type" input-type="dropdown" label="Funding type" value-pairs-name="metashare_funding" required="true"/>
-            <input name="code"  input-type="autocomplete" label="Grant no. or funding project code" placeholder="Start typing the name/number of the grant..." required="true"/>
-            <input name="orgname" input-type="text" label="Funding organization" required="true"/>
-            <input name="projname" input-type="autocomplete" label="Funding project name" required="true"/>
-            <input name="openaire_id" input-type="text" label="EU Project Identifier (OpenAIRE)" readonly="true" placeholder="Filled out automatically..." mapped-to-if-not-default="dc.relation" required="true"/>
+            <input name="type" input-type="dropdown" label="Druh financí" value-pairs-name="metashare_funding" required="true"/>
+            <input name="code"  input-type="autocomplete" label="Číslo grantu, nebo kód financujícího projektu" placeholder="Začněte psát jméno/číslo grantu..." required="true"/>
+            <input name="orgname" input-type="text" label="Financující organizace" required="true"/>
+            <input name="projname" input-type="autocomplete" label="Zdroj financí (jméno projektku)" required="true"/>
+            <input name="openaire_id" input-type="text" label="EU Project Identifier (OpenAIRE)" readonly="true" placeholder="Vyplněno automaticky..." mapped-to-if-not-default="dc.relation" required="true"/>
         </definition>
 
         <definition name="sizeInfo">
             <input name="size" input-type="text" regex="\d+\.?\d*" required="true"/>
-            <input name="unit" input-type="dropdown" value-pairs-name="metashare_sizeunit" label="Unit" required="true"/>
+            <input name="unit" input-type="dropdown" value-pairs-name="metashare_sizeunit" label="Jednotka" required="true"/>
         </definition>
 
         <definition name="clariahSizeInfo">
             <input name="size" input-type="text" regex="\d+\.?\d*" required="true"/>
-            <input name="unit" input-type="autocomplete" label="Unit"
-                   required="true"/>
+            <input name="unit" input-type="autocomplete" label="Jednotka" required="true"/>
         </definition>
     </form-complex-definitions>
 </input-forms>
