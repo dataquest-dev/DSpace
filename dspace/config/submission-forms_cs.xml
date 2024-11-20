@@ -22,6 +22,7 @@
 
     <form-definitions>
         <!-- Form used for entering in Bitstream/File metadata after uploading a file -->
+        <!-- TRANSLATE THIS -->
         <form name="bitstream-metadata">
             <row>
                 <field>
@@ -55,45 +56,18 @@
                  Uncomment it and the complex input will be showed in the submission UI. -->
             <row>
                 <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>contact</dc-element>
-                    <dc-qualifier>person</dc-qualifier>
-                    <repeatable>true</repeatable>
-                    <label>Contact person</label>
-                    <style>col-sm-5</style>
-                    <input-type complex-definition-ref="contact_person">complex</input-type>
-                    <hint>This is contact person</hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>sponsor</dc-element>
-                    <repeatable>true</repeatable>
-                    <label>Funding</label>
-                    <style>col-sm-5</style>
-                    <input-type complex-definition-ref="funding">complex</input-type>
-                    <hint>This is funding</hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
                     <dc-schema>dc</dc-schema>
-                    <dc-element>contributor</dc-element>
-                    <dc-qualifier>author</dc-qualifier>
+                    <dc-element>type</dc-element>
+                    <dc-qualifier></dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Author</label>
-                    <input-type autocomplete-custom="solr-author_ac">autocomplete</input-type>
-                    <hint>Enter the author's name (Family name, Given names).</hint>
-                    <required></required>
-                    <!-- Example ACL field definition.
-                         Uncomment it and the Author input field will be showed only for the admin.
-                     policy=(allow|deny),action=(read|write),grantee-type=(user|group),grantee-id=(<UUID>)
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl> -->
+                    <label>Zvolte typ dat</label>
+                    <input-type value-pairs-name="common_types">dropdown</input-type>
+                    <hint>"Corpus" označuje textové, řečové i multimodální korpusy.
+                        "Lexical Conceptual Resource" zahrnuje lexikony, ontologie, slovníky, seznamy slov apod.
+                        "Language Description" zahrnuje jazykové modely a gramatiky.
+                        "Technology / Tool / Service" se používá pro nástroje, systémy, systémové komponenty atd.
+                    </hint>
+                    <required>Prosím zvolte typ dat pro váš příspěvek.</required>
                 </field>
             </row>
             <row>
@@ -118,7 +92,7 @@
                     <input-type>onebox</input-type>
                     <hint>Uveďte URL projektu</hint>
                     <required/>
-                    <regex>http.*</regex>
+                    <regex>URL musí začínat http/https</regex>
                 </field>
             </row>
             <row>
@@ -131,7 +105,7 @@
                     <input-type>onebox</input-type>
                     <hint>URL se vzorky dat, v případě nástrojů předvedení výstupu.</hint>
                     <required/>
-                    <regex>http.*</regex>
+                    <regex>URL musi začínat http/https</regex>
                 </field>
             </row>
             <row>
@@ -140,11 +114,11 @@
                     <dc-element>relation</dc-element>
                     <dc-qualifier>isreferencedby</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Other Titles</label>
+                    <label>Odkazy na záznam</label>
                     <input-type>onebox</input-type>
-                    <hint>If the item has any alternative titles, please enter them here.</hint>
-                    <required></required>
-					<regex>http.*</regex>
+                    <hint>Odkaz na původní článek, který zmiňuje tento záznam.</hint>
+                    <required/>
+                    <regex>URL musi začínat http/https</regex>
                 </field>
             </row>
             <row>
@@ -153,219 +127,23 @@
                     <dc-element>date</dc-element>
                     <dc-qualifier>issued</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Date of Issue</label>
+                    <label>Datum vydání</label>
                     <style>col-sm-4</style>
                     <input-type>date</input-type>
-                    <hint>Please give the date of previous publication or public distribution.
-                        You can leave out the day and/or month if they aren't applicable.
-                    </hint>
-                    <required>You must enter at least the year.</required>
+                    <hint>Uveďte prosím datum vydání příspěvku, např 2014-01-21 nebo alespoň rok.</hint>
+                    <required>Musíte uvést datum v platném formátu.</required>
                 </field>
 
                 <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>publisher</dc-element>
                     <dc-qualifier></dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Publisher</label>
+                    <repeatable>true</repeatable>
+                    <label>Vydavatel</label>
                     <style>col-sm-8</style>
                     <input-type autocomplete-custom="solr-publisher_ac">autocomplete</input-type>
-                    <hint>Enter the name of the publisher of the previously issued instance of this item.</hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>identifier</dc-element>
-                    <dc-qualifier>citation</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Citation</label>
-                    <input-type>onebox</input-type>
-                    <hint>Enter the standard citation for the previously issued instance of this item.</hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>relation</dc-element>
-                    <dc-qualifier>ispartofseries</dc-qualifier>
-                    <repeatable>true</repeatable>
-                    <label>Series/Report No.</label>
-                    <type-bind>Technical Report</type-bind>
-                    <input-type>series</input-type>
-                    <hint>Enter the series and number assigned to this item by your community.</hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>identifier</dc-element>
-                    <dc-qualifier></dc-qualifier>
-                    <!-- An input-type of qualdrop_value MUST be marked as repeatable -->
-                    <repeatable>true</repeatable>
-                    <label>Identifiers</label>
-                    <input-type value-pairs-name="common_identifiers">qualdrop_value</input-type>
-                    <hint>If the item has any identification numbers or codes associated with
-                        it, please enter the types and the actual numbers or codes.
-                    </hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>type</dc-element>
-                    <dc-qualifier></dc-qualifier>
-                    <repeatable>true</repeatable>
-                    <label>Type</label>
-                    <input-type value-pairs-name="common_types">dropdown</input-type>
-                    <hint>Select the type of content of the item.
-                    </hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>language</dc-element>
-                    <dc-qualifier>iso</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Language</label>
-                    <type-bind>corpus,lexicalConceptualResource,languageDescription</type-bind>
-                    <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
-                    <hint>Select the language of the main content of the item. If the language does not appear in the
-                        list, please select 'Other'. If the content does not really have a language (for example, if it
-                        is a dataset or an image) please select 'N/A'.
-                    </hint>
-                    <required>Please choose a language for the resource.</required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>language</dc-element>
-                    <dc-qualifier>iso</dc-qualifier>
-                    <repeatable>true</repeatable>
-                    <label>Language</label>
-                    <type-bind>toolService</type-bind>
-                    <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
-                    <hint>If the tool/service is language dependent, select the appropriate language(s). Otherwise leave the field empty. Multiple languages are possible. Start typing the language and use autocomplete form that will appear.</hint>
-                    <required/>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>size</dc-element>
-                    <dc-qualifier>info</dc-qualifier>
-                    <repeatable>true</repeatable>
-                    <label>Size</label>
-                    <type-bind>corpus,languageDescription,lexicalConceptualResource</type-bind>
-                    <input-type complex-definition-ref="sizeInfo">complex</input-type>
-                    <hint>You can state the extent of the submitted data, eg. the number of tokens.</hint>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>metashare</dc-schema>
-                    <dc-element>ResourceInfo#ContentInfo</dc-element>
-                    <dc-qualifier>mediaType</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Media type</label>
-                    <type-bind>corpus,lexicalConceptualResource</type-bind>
-                    <input-type value-pairs-name="metashare_media_corpus_lcr">dropdown</input-type>
-                    <hint>Media type of the main content of the item e.g., "text" for
-                        textual corpora or "audio" for audio recordings.
-                    </hint>
-                    <required>Media type is required</required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>metashare</dc-schema>
-                    <dc-element>ResourceInfo#ContentInfo</dc-element>
-                    <dc-qualifier>mediaType</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Media type</label>
-                    <type-bind>languageDescription</type-bind>
-                    <input-type value-pairs-name="metashare_media_ld">dropdown</input-type>
-                    <hint>Media type of the main content of the item e.g., "text" for
-                        textual corpora or "audio" for audio recordings.
-                    </hint>
-                    <required>Media type is required</required>
-                </field>
-            </row>
-
-            <!-- Help field... different values based on resource type -->
-            <row>
-                <field>
-                    <dc-schema>metashare</dc-schema>
-                    <dc-element>ResourceInfo#ContentInfo</dc-element>
-                    <dc-qualifier>detailedType</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Detailed type</label>
-                    <type-bind>toolService</type-bind>
-                    <input-type value-pairs-name="metashare_detailed_toolService">dropdown</input-type>
-                    <hint/>
-                    <required>Choose one of the types</required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>metashare</dc-schema>
-                    <dc-element>ResourceInfo#ContentInfo</dc-element>
-                    <dc-qualifier>detailedType</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Detailed type</label>
-                    <type-bind>languageDescription</type-bind>
-                    <input-type value-pairs-name="metashare_detailed_languageDescription">dropdown</input-type>
-                    <hint/>
-                    <required>Choose one of the types</required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>metashare</dc-schema>
-                    <dc-element>ResourceInfo#ContentInfo</dc-element>
-                    <dc-qualifier>detailedType</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Detailed type</label>
-                    <type-bind>lexicalConceptualResource</type-bind>
-                    <input-type value-pairs-name="metashare_detailed_lexicalConceptualResource">dropdown</input-type>
-                    <hint/>
-                    <required>Choose one of the types</required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>metashare</dc-schema>
-                    <dc-element>ResourceInfo#ResourceComponentType#ToolServiceInfo</dc-element>
-                    <dc-qualifier>languageDependent</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Language Dependent</label>
-                    <type-bind>toolService</type-bind>
-                    <input-type value-pairs-name="metashare_languageDependent">list</input-type>
-                    <hint>Indicate whether the operation of the tool or service is
-                        language dependent or not
-                    </hint>
-                    <required>Please indicate whether the tool is language dependent</required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>local</dc-schema>
-                    <dc-element>hasCMDI</dc-element>
-                    <repeatable>true</repeatable>
-                    <label>Has CMDI file</label>
-                    <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
-                    <hint>Are you going to upload cmdi file?</hint>
-                    <required></required>
-                    <acl>
-                        policy=deny,action=read,grantee-type=user,grantee-id=*
-                    </acl>
+                    <hint>Uveďte vydavatele předchozího vydání, nebo vaši domovskou instituci. Začnete-li vyplňovat vydavatele, objeví se nápověda. Nechcete-li nápovědu využít, stiskněte ESC.</hint>
+                    <required>Musíte uvést vydavatele.</required>
                 </field>
             </row>
             <row>
@@ -374,10 +152,10 @@
                     <dc-element>hidden</dc-element>
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
-                    <label>Hidden but harvestable</label>
+                    <label>Má být tento příspěvek skryt při procházení/vyhledávání? (Admin only field)</label>
                     <style>col-sm-4</style>
                     <input-type value-pairs-name="hidden_list">list</input-type>
-                    <hint>Should item be harvestable thru OAI-PMH but behave like private?</hint>
+                    <hint>Uveďte, má-li být záznam skryt ve vyhledávání a procházení. Pro příspěvky pro weblicht kombinujte s "Nahrát cmdi".</hint>
                     <required/>
                     <acl>
                         policy=deny,action=read,grantee-type=user,grantee-id=*
@@ -387,16 +165,223 @@
             <row>
                 <field>
                     <dc-schema>local</dc-schema>
+                    <dc-element>hasCMDI</dc-element>
+                    <repeatable>true</repeatable>
+                    <label>Chystáte se nahrát cmdi soubor? (Admin only field)</label>
+                    <input-type value-pairs-name="hasCMDI_checkbox">list</input-type>
+                    <hint>Uveďte, jestli se chystáte v dalším kroku nahrát cmdi soubor. Kombinujte se schováváním záznamů pro weblicht příspěvky.</hint>
+                    <required></required>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>contributor</dc-element>
+                    <dc-qualifier>author</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Autoři</label>
+                    <input-type autocomplete-custom="solr-author_ac">autocomplete</input-type>
+                    <hint>Uveďte jména autorů tohoto záznamu. Začnete-li vyplňovat příjmení, objeví se nápověda. Nechcete-li nápovědu využít, stiskněte ESC.</hint>
+                    <required>Uveďte prosím autora(y)</required>
+                    <!-- Example ACL field definition.
+                         Uncomment it and the Author input field will be showed only for the admin.
+                     policy=(allow|deny),action=(read|write),grantee-type=(user|group),grantee-id=(<UUID>)
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl> -->
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>contact</dc-element>
+                    <dc-qualifier>person</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Kontaktní osoba</label>
+                    <style>col-sm-5</style>
+                    <input-type complex-definition-ref="contact_person">complex</input-type>
+                    <hint>Osoba, která bude kontaktována v případě problémů s tímto záznamem.</hint>
+                    <required>Vyplňte prosím všechna pole u kontaktní osoby</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>sponsor</dc-element>
+                    <repeatable>true</repeatable>
+                    <label>Financování</label>
+                    <style>col-sm-5</style>
+                    <input-type complex-definition-ref="funding">complex</input-type>
+                    <hint>Uveďte sponzory a zdroje financí podporující vznik práce popsané v tomto příspěvku.</hint>
+                    <required></required>
+                </field>
+            </row>
+        </form>
+
+        <form name="traditionalpagetwo">
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>description</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Popis</label>
+                    <input-type>textarea</input-type>
+                    <hint>Popište nahrávaná data.</hint>
+                    <required>Uveďte prosím popis.</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>language</dc-element>
+                    <dc-qualifier>iso</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Jazyk</label>
+                    <type-bind>corpus,lexicalConceptualResource,languageDescription</type-bind>
+                    <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
+                    <hint>Vyberte jazyky, jichž se data tohoto záznamu týkají. Je možné zvolit více jazyků. Začnete-li psát, objeví se nápověda. Je lepší vyjmenovat všechny dotčené jazyky (pokud jich je větší množství, kontaktujte podporu), než používat iso kód 'mul'. </hint>
+                    <required>Prosím zvolte jazyk.</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>language</dc-element>
+                    <dc-qualifier>iso</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Jazyk</label>
+                    <type-bind>toolService</type-bind>
+                    <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
+                    <hint>Pokud je nástroj/služba jazykově závislá, uveďte potřebné jazyky. Jinak můžete nechat nevyplněné. Je možné zvolit více jazyků. Začnete-li psát, objeví se nápověda.</hint>
+                    <required/>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>subject</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <!-- An input-type of tag MUST be marked as repeatable -->
+                    <repeatable>true</repeatable>
+                    <label>Klíčová slova</label>
+                    <input-type>tag</input-type>
+                    <hint>Uveďte vhodná klíčová slova, nebo fráze a zmáčkněte tlačítko přidat.
+                        Klíčová slova buď přidávejte po jednom, nebo je oddělte čárkou, nebo středníkem. Začnete-li psát, objeví se nápověda.
+                    </hint>
+                    <required>Uveďte alespoň jedno klíčové slovo.</required>
+                    <vocabulary>srsc</vocabulary>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>size</dc-element>
+                    <dc-qualifier>info</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Velikost</label>
+                    <type-bind>corpus,languageDescription,lexicalConceptualResource</type-bind>
+                    <input-type complex-definition-ref="sizeInfo">complex</input-type>
+                    <hint>Můžete uvést rozsah nahraných dat, například počet tokenů.</hint>
+                </field>
+            </row>
+
+            <!-- Help field... different values based on resource type -->
+            <row>
+                <field>
+                    <dc-schema>metashare</dc-schema>
+                    <dc-element>ResourceInfo#ContentInfo</dc-element>
+                    <dc-qualifier>mediaType</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Typ média</label>
+                    <type-bind>corpus,lexicalConceptualResource</type-bind>
+                    <input-type value-pairs-name="metashare_media_corpus_lcr">dropdown</input-type>
+                    <hint>Zvolte druh média tohoto záznamu, např. "text" pro textový korpus, "audio" pro audio nahrávky.</hint>
+                    <required>Uveďte typ média</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>metashare</dc-schema>
+                    <dc-element>ResourceInfo#ContentInfo</dc-element>
+                    <dc-qualifier>mediaType</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Typ média</label>
+                    <type-bind>languageDescription</type-bind>
+                    <input-type value-pairs-name="metashare_media_ld">dropdown</input-type>
+                    <hint>Zvolte druh média tohoto záznamu, např. "text" pro textový korpus, "audio" pro audio nahrávky.</hint>
+                    <required>Uveďte typ média</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>metashare</dc-schema>
+                    <dc-element>ResourceInfo#ContentInfo</dc-element>
+                    <dc-qualifier>detailedType</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Podtyp</label>
+                    <type-bind>toolService</type-bind>
+                    <input-type value-pairs-name="metashare_detailed_toolService">dropdown</input-type>
+                    <hint/>
+                    <required>Zvolte jeden z podtypů</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>metashare</dc-schema>
+                    <dc-element>ResourceInfo#ContentInfo</dc-element>
+                    <dc-qualifier>detailedType</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Podtyp</label>
+                    <type-bind>languageDescription</type-bind>
+                    <input-type value-pairs-name="metashare_detailed_languageDescription">dropdown</input-type>
+                    <hint/>
+                    <required>Zvolte jeden z podtypů</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>metashare</dc-schema>
+                    <dc-element>ResourceInfo#ContentInfo</dc-element>
+                    <dc-qualifier>detailedType</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Podtyp</label>
+                    <type-bind>lexicalConceptualResource</type-bind>
+                    <input-type value-pairs-name="metashare_detailed_lexicalConceptualResource">dropdown</input-type>
+                    <hint/>
+                    <required>Zvolte jeden z podtypů</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>metashare</dc-schema>
+                    <dc-element>ResourceInfo#ResourceComponentType#ToolServiceInfo</dc-element>
+                    <dc-qualifier>languageDependent</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Jazykově zavislý</label>
+                    <type-bind>toolService</type-bind>
+                    <input-type value-pairs-name="metashare_languageDependent">list</input-type>
+                    <hint>Uveďte zda funkce nástroje či služby závisí na konkrétním jazyku.</hint>
+                    <required>Uveďte prosím zda je nástroj jazykově závislý.</required>
+                </field>
+            </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
                     <dc-element>bitstream</dc-element>
                     <dc-qualifier>redirectToURL</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Big file URL</label>
+                    <label>Upload file from URI (Admin only field)</label>
                     <input-type>onebox</input-type>
                     <hint>
-                        The actual maximum upload size of the file is 4GB. To upload a file bigger than the
-                        maximum upload size, enter the URL of that large file. The admin must know the URL
-                        of that bitstream file. Then, click on the 'Save' button, and the file will start
-                        to upload. The file path must be an absolute path.
+                        Please enter the full path of the file, either from the local server or an HTTP location.
+                        The maximum upload size for a file is 4GB. To upload a file larger than this limit, provide the
+                        URL of the file. Ensure the admin is aware of the URL of the bitstream file.
+                        Once the file path or URL is entered, click the 'Save' button to begin the upload.
+                        Note: The file path must be an absolute path.
                     </hint>
                     <required></required>
                     <acl>
@@ -405,65 +390,9 @@
                 </field>
             </row>
         </form>
-
+        <!--/ TRANSLATE THIS -->
         <!-- Form which defines the second page/section of the "traditional" DSpace submission process,
              often used when depositing normal Items. -->
-        <form name="traditionalpagetwo">
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>subject</dc-element>
-                    <dc-qualifier></dc-qualifier>
-                    <!-- An input-type of tag MUST be marked as repeatable -->
-                    <repeatable>true</repeatable>
-                    <label>Keywords</label>
-                    <input-type autocomplete-custom="solr-subject_ac">autocomplete</input-type>
-                    <hint>Enter appropriate subject keyword or phrase and press the Add button. You can repeat it for
-                        multiple keywords or use separators i.e., Enter and comma, which will split it accordingly.
-                        Start typing the keyword and use autocomplete form that will appear. End your input by pressing
-                        ESC if you don't want to use the preselected value.
-                    </hint>
-                    <required>Please enter at least one subject related to your submission</required>
-                    <vocabulary>srsc</vocabulary>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>description</dc-element>
-                    <dc-qualifier>abstract</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Abstract</label>
-                    <input-type>textarea</input-type>
-                    <hint>Enter the abstract of the item.</hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>description</dc-element>
-                    <dc-qualifier>sponsorship</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Sponsors</label>
-                    <input-type>textarea</input-type>
-                    <hint>Enter the names of any sponsors and/or funding codes in the box.</hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>description</dc-element>
-                    <dc-qualifier></dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Description</label>
-                    <input-type>textarea</input-type>
-                    <hint>Enter any other description or comments in this box.</hint>
-                    <required></required>
-                </field>
-            </row>
-        </form>
 
 
         <!-- Form which defines the *first* metadata page/section for depositing Publication Entities.
@@ -670,16 +599,16 @@
                     <hint>Enter the birth date of the person</hint>
                 </field>
             </row>
-<!--            <row>-->
-<!--                <field>-->
-<!--                    <dc-schema>person</dc-schema>-->
-<!--                    <dc-element>identifier</dc-element>-->
-<!--                    <dc-qualifier>staffid</dc-qualifier>-->
-<!--                    <label>Staff ID</label>-->
-<!--                    <input-type>onebox</input-type>-->
-<!--                    <hint>Enter the staff id of the person</hint>-->
-<!--                </field>-->
-<!--            </row>-->
+            <!--            <row>-->
+            <!--                <field>-->
+            <!--                    <dc-schema>person</dc-schema>-->
+            <!--                    <dc-element>identifier</dc-element>-->
+            <!--                    <dc-qualifier>staffid</dc-qualifier>-->
+            <!--                    <label>Staff ID</label>-->
+            <!--                    <input-type>onebox</input-type>-->
+            <!--                    <hint>Enter the staff id of the person</hint>-->
+            <!--                </field>-->
+            <!--            </row>-->
             <row>
                 <field>
                     <dc-schema>person</dc-schema>
@@ -711,36 +640,36 @@
                     <hint>Enter the id of the project</hint>
                 </field>
             </row>
-<!--            <row>-->
-<!--                <field>-->
-<!--                    <dc-schema>project</dc-schema>-->
-<!--                    <dc-element>identifier</dc-element>-->
-<!--                    <dc-qualifier>status</dc-qualifier>-->
-<!--                    <label>Status</label>-->
-<!--                    <input-type value-pairs-name="project_status">dropdown</input-type>-->
-<!--                    <hint>Enter the status of the project</hint>-->
-<!--                </field>-->
-<!--            </row>-->
-<!--            <row>-->
-<!--                <field>-->
-<!--                    <dc-schema>project</dc-schema>-->
-<!--                    <dc-element>identifier</dc-element>-->
-<!--                    <dc-qualifier>startdate</dc-qualifier>-->
-<!--                    <label>Start date</label>-->
-<!--                    <input-type>date</input-type>-->
-<!--                    <hint>Enter the start date of the project</hint>-->
-<!--                </field>-->
-<!--            </row>-->
-<!--            <row>-->
-<!--                <field>-->
-<!--                    <dc-schema>project</dc-schema>-->
-<!--                    <dc-element>identifier</dc-element>-->
-<!--                    <dc-qualifier>expectedcompletion</dc-qualifier>-->
-<!--                    <label>Expected Completion</label>-->
-<!--                    <input-type>date</input-type>-->
-<!--                    <hint>Enter the expected completion date of the project</hint>-->
-<!--                </field>-->
-<!--            </row>-->
+            <!--            <row>-->
+            <!--                <field>-->
+            <!--                    <dc-schema>project</dc-schema>-->
+            <!--                    <dc-element>identifier</dc-element>-->
+            <!--                    <dc-qualifier>status</dc-qualifier>-->
+            <!--                    <label>Status</label>-->
+            <!--                    <input-type value-pairs-name="project_status">dropdown</input-type>-->
+            <!--                    <hint>Enter the status of the project</hint>-->
+            <!--                </field>-->
+            <!--            </row>-->
+            <!--            <row>-->
+            <!--                <field>-->
+            <!--                    <dc-schema>project</dc-schema>-->
+            <!--                    <dc-element>identifier</dc-element>-->
+            <!--                    <dc-qualifier>startdate</dc-qualifier>-->
+            <!--                    <label>Start date</label>-->
+            <!--                    <input-type>date</input-type>-->
+            <!--                    <hint>Enter the start date of the project</hint>-->
+            <!--                </field>-->
+            <!--            </row>-->
+            <!--            <row>-->
+            <!--                <field>-->
+            <!--                    <dc-schema>project</dc-schema>-->
+            <!--                    <dc-element>identifier</dc-element>-->
+            <!--                    <dc-qualifier>expectedcompletion</dc-qualifier>-->
+            <!--                    <label>Expected Completion</label>-->
+            <!--                    <input-type>date</input-type>-->
+            <!--                    <hint>Enter the expected completion date of the project</hint>-->
+            <!--                </field>-->
+            <!--            </row>-->
             <row>
                 <relation-field>
                     <relationship-type>isProjectOfPerson</relationship-type>
@@ -1575,6 +1504,7 @@
             </row>
         </form>
 
+        <!-- THIS -->
         <form name="clariahSubmissionsPageOne">
             <row>
                 <field>
@@ -1650,7 +1580,7 @@
                     <dc-element>hidden</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Should this item be hidden from browse</label>
+                    <label>Should this item be hidden from browse/search? (Admin only field)</label>
                     <input-type value-pairs-name="hidden_list">list</input-type>
                     <hint>Indicate whether you want to hide this item from browse and search. Combine with "Upload cmdi"
                         for weblicht submissions.
@@ -1667,7 +1597,7 @@
                     <dc-element>hasMetadata</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Are you going to upload cmdi file?</label>
+                    <label>Are you going to upload cmdi file? (Admin only field)</label>
                     <input-type value-pairs-name="metashare_languageDependent">list</input-type>
                     <!-- true/false value -->
                     <hint>Indicate whether you will upload cmdi file in the next step. Combine with "hide" for weblicht
@@ -1721,7 +1651,7 @@
                     <label>Data provider</label>
                     <input-type autocomplete-custom="solr-dataProvider_ac">autocomplete</input-type>
                     <hint>This concerns the digital object (not the analog
-                        original). An institution from which the data come. Used e.g. to give proper attribution. Generally
+                        original). An institution from which the data come. Used e.g., to give proper attribution. Generally
                         different from publisher.</hint>
                     <required/>
                 </field>
@@ -1776,6 +1706,9 @@
                     <required>Please give us a description</required>
                 </field>
             </row>
+            <!-- When you configure special field for the `type-bind` you must update it in the `submit.type-bind.field`
+            configuration property like this: `<INPUT_METADATA_FIELD>=><TYPE_BIND_FIELD>`
+            e.g. `dc.language.iso=>edm.type`-->
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -1854,6 +1787,27 @@
                     <hint>You can state the extent of the submitted data, eg. the number of tokens.</hint>
                 </field>
             </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>bitstream</dc-element>
+                    <dc-qualifier>redirectToURL</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Upload file from URI (Admin only field)</label>
+                    <input-type>onebox</input-type>
+                    <hint>
+                        Please enter the full path of the file, either from the local server or an HTTP location.
+                        The maximum upload size for a file is 4GB. To upload a file larger than this limit, provide the
+                        URL of the file. Ensure the admin is aware of the URL of the bitstream file.
+                        Once the file path or URL is entered, click the 'Save' button to begin the upload.
+                        Note: The file path must be an absolute path.
+                    </hint>
+                    <required></required>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
         </form>
 
         <form name="teachingSubmissionsPageOne">
@@ -1922,7 +1876,7 @@
                     <dc-element>hidden</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Should this item be hidden from browse/search?</label>
+                    <label>Should this item be hidden from browse/search? (Admin only field)</label>
                     <input-type value-pairs-name="hidden_list">list</input-type>
                     <hint>Indicate whether you want to hide this item from browse and search. Combine with "Upload cmdi"
                         for weblicht submissions.
@@ -1939,7 +1893,7 @@
                     <dc-element>hasMetadata</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Are you going to upload cmdi file?</label>
+                    <label>Are you going to upload cmdi file? (Admin only field)</label>
                     <input-type value-pairs-name="metashare_languageDependent">list</input-type>
                     <!-- true/false value -->
                     <hint>Indicate whether you will upload cmdi file in the next step. Combine with "hide" for weblicht
@@ -1954,12 +1908,12 @@
         </form>
 
         <form name="teachingSubmissionsPageTwo">
-                <!-- who's involved
-                        authors
-                        publisher
-                        funding
-                        contact
-                -->
+            <!-- who's involved
+                    authors
+                    publisher
+                    funding
+                    contact
+            -->
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -2089,6 +2043,27 @@
                     <required/>
                 </field>
             </row>
+            <row>
+                <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>bitstream</dc-element>
+                    <dc-qualifier>redirectToURL</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Upload file from URI (Admin only field)</label>
+                    <input-type>onebox</input-type>
+                    <hint>
+                        Please enter the full path of the file, either from the local server or an HTTP location.
+                        The maximum upload size for a file is 4GB. To upload a file larger than this limit, provide the
+                        URL of the file. Ensure the admin is aware of the URL of the bitstream file.
+                        Once the file path or URL is entered, click the 'Save' button to begin the upload.
+                        Note: The file path must be an absolute path.
+                    </hint>
+                    <required></required>
+                    <acl>
+                        policy=deny,action=read,grantee-type=user,grantee-id=*
+                    </acl>
+                </field>
+            </row>
         </form>
 
         <form name="specialFields">
@@ -2098,9 +2073,9 @@
                     <dc-element>submission</dc-element>
                     <dc-qualifier>note</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Vzkaz</label>
+                    <label>Note</label>
                     <input-type>textarea</input-type>
-                    <hint>Zde můžete zanechat vzkaz editorům.</hint>
+                    <hint>Leave a note for the editors/reviewers</hint>
                     <required></required>
                 </field>
             </row>
@@ -2114,7 +2089,7 @@
                     <repeatable>true</repeatable>
                     <label>Replaces</label>
                     <input-type autocomplete-custom="solr-handle_title_ac">autocomplete</input-type>
-                    <hint>URL příbuzného záznamu, který je tímto záznamem nahrazen. Pokud je příbuzný záznam v tomto repozitáři, začněte psát jeho název, nebo handle a vyberte záznam z nabídky.</hint>
+                    <hint>URL to a related resource that is supplanted, displaced, or superseded by the described resource. If the replaced resource is in this repository start typing its name or handle and select the resource from the autocomplete popup.</hint>
                     <required/>
                 </field>
             </row>
@@ -2126,9 +2101,9 @@
                     <dc-element>relation</dc-element>
                     <dc-qualifier>isreplacedby</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Is replaced by</label>
+                    <label>Is replaced by (Admin only field)</label>
                     <input-type autocomplete-custom="solr-handle_title_ac">autocomplete</input-type>
-                    <hint>Příbuzný záznam, který nahrazuje tento.</hint>
+                    <hint>A related resource that supplants, displaces, or supersedes the described resource.</hint>
                     <required/>
                     <acl>
                         policy=deny,action=read,grantee-type=user,grantee-id=*
@@ -3201,7 +3176,7 @@
         </value-pairs>
         <value-pairs value-pairs-name="hidden_list" dc-term="">
             <pair>
-                <displayed-value>Hidden</displayed-value>
+                <displayed-value>Yes</displayed-value>
                 <stored-value>hidden</stored-value>
             </pair>
         </value-pairs>
@@ -3219,15 +3194,15 @@
          Uncomment the example row of the complex input type definition to see this input in the submission UI. -->
     <form-complex-definitions>
         <definition name="contact_person">
-            <input name="givenname" input-type="text" label="Given name"/>
-            <input name="surname" input-type="text" label="Surname"/>
-            <input name="email" input-type="text" label="Email" regex="[^@]+@[^\.@]+\.[^@]+"/>
-            <input name="affiliation" input-type="autocomplete" label="Affiliation"/>
+            <input name="givenname" input-type="text" label="Contact person's given name" required="true"/>
+            <input name="surname" input-type="text" label="Contact person's surname" hint="Family name" required="true"/>
+            <input name="email" input-type="text" label="Contact person's email" regex="[^@]+@[^\.@]+\.[^@]+" required="true"/>
+            <input name="affiliation" input-type="autocomplete" label="Contact person's institution name" required="true"/>
         </definition>
 
         <definition name="funding">
             <input name="type" input-type="dropdown" label="Funding type" value-pairs-name="metashare_funding" required="true"/>
-            <input name="code"  input-type="autocomplete" label="Grant no. or funding project code" required="true"/>
+            <input name="code"  input-type="autocomplete" label="Grant no. or funding project code" placeholder="Start typing the name/number of the grant..." required="true"/>
             <input name="orgname" input-type="text" label="Funding organization" required="true"/>
             <input name="projname" input-type="autocomplete" label="Funding project name" required="true"/>
             <input name="openaire_id" input-type="text" label="EU Project Identifier (OpenAIRE)" readonly="true" placeholder="Filled out automatically..." mapped-to-if-not-default="dc.relation" required="true"/>
