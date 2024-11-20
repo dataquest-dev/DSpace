@@ -7,6 +7,7 @@
  */
 package org.dspace.app.statistics.clarin;
 
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 
@@ -56,6 +57,10 @@ public class ClarinMatomoOAITracker extends ClarinMatomoTracker {
         log.debug("Logging to site " + matomoRequest.getSiteId());
         try {
             matomoRequest.setPageCustomVariable(new CustomVariable("source", "oai"), 1);
+            // Add the Item handle into the request as a custom dimension
+            LinkedHashMap<Long, Object> handleDimension = new LinkedHashMap<>();
+            handleDimension.put(11L, item.getHandle());
+            matomoRequest.setDimensions(handleDimension);
         } catch (MatomoException e) {
             log.error(e);
         }
