@@ -108,22 +108,22 @@ public class HibernateDBConnection implements DBConnection<Session> {
         return sessionFactory.getCurrentSession().getTransaction();
     }
 
-    @PostConstruct
-    public void startConnectionLogging() {
-        // Start a thread to log active connection metrics periodically
-        new Thread(() -> {
-            while (true) {
-                try {
-                    logHibernateStatistics();
-                    logDatabaseMetaData();
-                    Thread.sleep(10000); // Log every 10 seconds
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }).start();
-    }
+//    @PostConstruct
+//    public void startConnectionLogging() {
+//        // Start a thread to log active connection metrics periodically
+//        new Thread(() -> {
+//            while (true) {
+//                try {
+//                    logHibernateStatistics();
+//                    logDatabaseMetaData();
+//                    Thread.sleep(10000); // Log every 10 seconds
+//                } catch (InterruptedException e) {
+//                    Thread.currentThread().interrupt();
+//                    break;
+//                }
+//            }
+//        }).start();
+//    }
 
     /**
      * Check if Hibernate Session is still "alive" / open. An open Session may or may not have an open Transaction
