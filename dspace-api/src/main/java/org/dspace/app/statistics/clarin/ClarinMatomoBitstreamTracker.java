@@ -27,6 +27,7 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.matomo.java.tracking.CustomVariable;
 import org.matomo.java.tracking.MatomoException;
 import org.matomo.java.tracking.MatomoRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,9 +81,11 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
             matomoRequest.setActionUrl(itemIdentifier);
         }
         try {
-            LinkedHashMap<Long, Object> handle = new LinkedHashMap<>();
-            handle.put(1L, "bitstream");
-            matomoRequest.setDimensions(handle);
+            matomoRequest.setPageCustomVariable(new CustomVariable("source", "bitstream"), 1);
+            // Add the Item handle into the request as a custom dimension
+            LinkedHashMap<Long, Object> handleDimension = new LinkedHashMap<>();
+            handleDimension.put(10L, item.getHandle());
+            matomoRequest.setDimensions(handleDimension);
         } catch (MatomoException e) {
             log.error(e);
         }

@@ -9,12 +9,10 @@ package org.dspace.app.statistics.clarin;
 
 import java.util.Calendar;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpResponse;
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ClarinServiceFactory;
@@ -134,18 +132,13 @@ public class ClarinMatomoTracker {
      * @param matomoRequest prepared MatomoRequest for sending
      */
     public void sendTrackingRequest(MatomoRequest matomoRequest) {
-        try {
-            Future<HttpResponse> response = tracker.sendRequestAsync(matomoRequest);
-            // usually not needed:
-            HttpResponse httpResponse = response.get();
-            int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode > 399) {
-                // problem
-                log.error("Matomo tracker error the response has status code: " + statusCode);
+        CompletableFuture<MatomoRequest> completableFuture = tracker.sendRequestAsync(matomoRequest);
+
+        completableFuture.whenComplete((result, exception) -> {
+            if (exception != null) {
+                log.error("Matomo tracker error - the response exception message: {}", exception.getMessage());
             }
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     protected String getFullURL(HttpServletRequest request) {
