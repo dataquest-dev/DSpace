@@ -269,6 +269,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
 
         //clean all
         ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
+
     }
 
     /**
