@@ -167,6 +167,7 @@
                     <excludes>
                         <exclude>src/test/resources/**</exclude>
                         <exclude>src/test/data/**</exclude>
+                        <exclude>src/main/resources/testing/**</exclude>
                         <!-- Ignore license header requirements on Flyway upgrade scripts -->
                         <exclude>src/main/resources/org/dspace/storage/rdbms/flywayupgrade/**</exclude>
                     </excludes>
