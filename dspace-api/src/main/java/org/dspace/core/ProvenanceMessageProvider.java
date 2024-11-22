@@ -7,29 +7,123 @@
  */
 package org.dspace.core;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
+import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.InstallItemService;
+import org.dspace.eperson.EPerson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Interface for providing provenance messages.
+ * The ProvenanceMessageProviderImpl class implements the ProvenanceMessageProvider interface,
+ * providing methods to generate provenance messages for DSpace items. It loads message templates
+ * from a JSON file and formats messages based on the context, including user details and timestamps.
  *
  * @author Michaela Paurikova (dspace at dataquest.sk)
  */
-public interface ProvenanceMessageProvider {
-    public String getMessage(Context context, String templateKey, Object... args)
-            throws SQLException, AuthorizeException;
+public class ProvenanceMessageProvider {
+    private static final String PROVENANCE_MSG_JSON = "provenance_messages.json";
+    private static final Logger log = LoggerFactory.getLogger(ProvenanceMessageProvider.class);
+    private Map<String, String> messageTemplates;
+    private InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+
+    public ProvenanceMessageProvider() {
+        loadMessageTemplates();
+    }
+
+    private void loadMessageTemplates() {
+        ObjectMapper mapper = new ObjectMapper();
+        String msg;
+        try (InputStream inputStream = getClass().getResourceAsStream(PROVENANCE_MSG_JSON)) {
+            if (inputStream == null) {
+                msg = "Failed to find message templates file.";
+                log.error(msg);
+                throw new RuntimeException(msg);
+            }
+            messageTemplates = mapper.readValue(inputStream, Map.class);
+        } catch (IOException e) {
+            msg = "Failed to load message templates.";
+            log.error(msg);
+            throw new RuntimeException(msg, e);
+        }
+    }
+
     public String getMessage(Context context, String templateKey, Item item, Object... args)
-            throws SQLException, AuthorizeException;
-    public String getMessage(String templateKey, Object... args);
-    public String addCollectionsToMessage(Item item);
-    public String getBitstreamMessage(Bitstream bitstream);
-    public String getResourcePoliciesMessage(List<ResourcePolicy> resPolicies);
-    public String getMetadata(String oldMtdKey, String oldMtdValue);
-    public String getMetadataField(MetadataField metadataField);
+            throws SQLException, AuthorizeException {
+        String msg = getMessage(context, templateKey, args);
+        msg = msg + "\n" + installItemService.getBitstreamProvenanceMessage(context, item);
+        return msg;
+    }
+
+    public String getMessage(String templateKey, Object... args) {
+        String template = messageTemplates.get(templateKey);
+        if (template == null) {
+            throw new IllegalArgumentException("No message template found for key: " + templateKey);
+        }
+        return String.format(template, args);
+    }
+
+    public String getMessage(Context context, String templateKey, Object... args) {
+        EPerson currentUser = context.getCurrentUser();
+        String timestamp = DCDate.getCurrent().toString();
+        String details = getMessage(templateKey, args);
+        return String.format("%s by %s (%s) on %s",
+                details,
+                currentUser.getFullName(),
+                currentUser.getEmail(),
+                timestamp);
+    }
+
+    public String addCollectionsToMessage(Item item) {
+        String msg = "Item was in collections:\n";
+        List<Collection> collsList = item.getCollections();
+        for (Collection coll : collsList) {
+            msg = msg + coll.getName() + " (ID: " + coll.getID() + ")\n";
+        }
+        return msg;
+    }
+
+    public String getBitstreamMessage(Bitstream bitstream) {
+        // values of deleted bitstream
+        String msg = bitstream.getName() + ": " +
+                bitstream.getSizeBytes() + " bytes, checksum: " +
+                bitstream.getChecksum() + " (" +
+                bitstream.getChecksumAlgorithm() + ")\n";
+        return msg;
+    }
+
+    public String getResourcePoliciesMessage(List<ResourcePolicy> resPolicies) {
+        return resPolicies.stream()
+                .filter(rp -> rp.getAction() == Constants.READ)
+                .map(rp -> String.format("[%s, %s, %d, %s, %s, %s, %s]",
+                        rp.getRpName(), rp.getRpType(), rp.getAction(),
+                        rp.getEPerson() != null ? rp.getEPerson().getEmail() : null,
+                        rp.getGroup() != null ? rp.getGroup().getName() : null,
+                        rp.getStartDate() != null ? rp.getStartDate().toString() : null,
+                        rp.getEndDate() != null ? rp.getEndDate().toString() : null))
+                .collect(Collectors.joining(";"));
+    }
+
+    public String getMetadata(String oldMtdKey, String oldMtdValue) {
+        return oldMtdKey + ": " + oldMtdValue;
+    }
+
+    public String getMetadataField(MetadataField metadataField) {
+        return metadataField.toString()
+                .replace('_', '.');
+    }
 }

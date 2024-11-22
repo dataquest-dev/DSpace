@@ -37,7 +37,6 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Provenance is responsible for creating provenance metadata for items based on the actions performed.
@@ -53,7 +52,7 @@ public class ProvenanceProvider {
     private ClarinLicenseResourceMappingService clarinResourceMappingService = ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
 
-    private final ProvenanceMessageProvider messageProvider = new ProvenanceMessageProviderImpl();
+    private final ProvenanceMessageProvider messageProvider = new ProvenanceMessageProvider();
 
     private void addProvenanceMetadata(Context context, Item item, String msg)
             throws SQLException, AuthorizeException {
