@@ -1579,7 +1579,7 @@
                     <input-type>onebox</input-type>
                     <hint>Link to original paper that references this dataset.</hint>
                     <required/>
-                    <regex>http.*</regex>
+                    <regex>The supplied url must start with http/https</regex>
                 </field>
             </row>
             <row>
@@ -1875,7 +1875,7 @@
                     <input-type>onebox</input-type>
                     <hint>Link to original paper that references this dataset.</hint>
                     <required/>
-                    <regex>http.*</regex>
+                    <regex>The supplied url must start with http/https</regex>
                 </field>
             </row>
             <row>
@@ -2111,7 +2111,10 @@
                     <repeatable>true</repeatable>
                     <label>Replaces</label>
                     <input-type autocomplete-custom="solr-handle_title_ac">autocomplete</input-type>
-                    <hint>URL to a related resource that is supplanted, displaced, or superseded by the described resource. If the replaced resource is in this repository start typing its name or handle and select the resource from the autocomplete popup.</hint>
+                    <hint>URL to a related resource that is supplanted, displaced, or superseded by the described
+                        resource. If the replaced resource is in this repository start typing its name or handle and select the
+                        resource from the autocomplete popup.
+                    </hint>
                     <required/>
                 </field>
             </row>

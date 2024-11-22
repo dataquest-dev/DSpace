@@ -22,7 +22,6 @@
 
     <form-definitions>
         <!-- Form used for entering in Bitstream/File metadata after uploading a file -->
-        <!-- TRANSLATE THIS -->
         <form name="bitstream-metadata">
             <row>
                 <field>
@@ -374,14 +373,14 @@
                     <dc-element>bitstream</dc-element>
                     <dc-qualifier>redirectToURL</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Upload file from URI (Admin only field)</label>
+                    <label>Nahrát soubor z URI (Admin only field)</label>
                     <input-type>onebox</input-type>
                     <hint>
-                        Please enter the full path of the file, either from the local server or an HTTP location.
-                        The maximum upload size for a file is 4GB. To upload a file larger than this limit, provide the
-                        URL of the file. Ensure the admin is aware of the URL of the bitstream file.
-                        Once the file path or URL is entered, click the 'Save' button to begin the upload.
-                        Note: The file path must be an absolute path.
+                        Prosím, zadejte úplnou cestu k souboru, ať už z místního serveru, nebo z webové lokace (HTTP).
+                        Maximální velikost nahrávaného souboru je 4 GB. Pokud chcete nahrát soubor větší než tento limit, zadejte jeho URL.
+                        Ujistěte se, že administrátor je obeznámen s URL souboru datového proudu (bitstream).
+                        Jakmile zadáte cestu k souboru nebo URL, klikněte na tlačítko „Uložit“ pro zahájení nahrávání.
+                        Poznámka: Cesta k souboru musí být absolutní.
                     </hint>
                     <required></required>
                     <acl>
@@ -390,7 +389,6 @@
                 </field>
             </row>
         </form>
-        <!--/ TRANSLATE THIS -->
         <!-- Form which defines the second page/section of the "traditional" DSpace submission process,
              often used when depositing normal Items. -->
 
@@ -1504,7 +1502,6 @@
             </row>
         </form>
 
-        <!-- THIS -->
         <form name="clariahSubmissionsPageOne">
             <row>
                 <field>
@@ -1512,12 +1509,12 @@
                     <dc-element>type</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Select the kind of resource you are submitting</label>
+                    <label>Zvolte druh záznamu</label>
                     <input-type value-pairs-name="edm_types">dropdown</input-type>
-                    <hint>Choose one of TEXT, VIDEO, SOUND, IMAGE, 3D. If choosing
-                        TEXT consider adding the resource among other Language Resources. Images are visual resources for users to
-                        look at. Text materials are meant to be read and not looked at.</hint>
-                    <required>Please select one of the options.</required>
+                    <hint>Vyberte z TEXT, VIDEO, ZVUK, OBRAZ, 3D. Pokud zvolíte TEXT,
+                        zvažte, jestli se nejedná o Language Resource (jazykový zdroj). Obrazy jsou vizuální materiály, na které se
+                        uživatelé mohou dívat. Textové materiály jsou určeny ke čtení a nikoli k dívání.</hint>
+                    <required>Zvolte prosím jednu z možností</required>
                 </field>
             </row>
             <row>
@@ -1526,10 +1523,10 @@
                     <dc-element>title</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Title</label>
+                    <label>Název</label>
                     <input-type>onebox</input-type>
-                    <hint>Enter the main title of the item in English.</hint>
-                    <required>You must enter a main title for this item.</required>
+                    <hint>Uveďte anglický název tohoto příspěvku.</hint>
+                    <required>Musíte uvést název.</required>
                 </field>
             </row>
             <row>
@@ -1538,11 +1535,9 @@
                     <dc-element>demo</dc-element>
                     <dc-qualifier>uri</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Demo URL</label>
+                    <label>URL dema</label>
                     <input-type>onebox</input-type>
-                    <hint>A url with samples of the resource or, in the case of tools,
-                        of samples of the output.
-                    </hint>
+                    <hint>URL se vzorky dat, v případě nástrojů předvedení výstupu.</hint>
                     <required/>
                     <regex>http.*</regex>
                 </field>
@@ -1553,11 +1548,11 @@
                     <dc-element>relation</dc-element>
                     <dc-qualifier>isreferencedby</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Referenced by</label>
+                    <label>Odkazy na záznam</label>
                     <input-type>onebox</input-type>
-                    <hint>Link to original paper that references this dataset.</hint>
+                    <hint>Odkaz na původní článek, který zmiňuje tento záznam.</hint>
                     <required/>
-                    <regex>http.*</regex>
+                    <regex>URL musi začínat http/https</regex>
                 </field>
             </row>
             <row>
@@ -1566,12 +1561,10 @@
                     <dc-element>date</dc-element>
                     <dc-qualifier>issued</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Date issued</label>
+                    <label>Datum vydání</label>
                     <input-type>date</input-type>
-                    <hint>Please give the date when the submission data were issued if any e.g., 2014-01-21 or at least
-                        the year.
-                    </hint>
-                    <required>You must enter the date or at least the year in a valid format.</required>
+                    <hint>Uveďte prosím datum vydání příspěvku, např 2014-01-21 nebo alespoň rok.</hint>
+                    <required>Musíte uvést datum v platném formátu.</required>
                 </field>
             </row>
             <row>
@@ -1580,11 +1573,9 @@
                     <dc-element>hidden</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Should this item be hidden from browse/search? (Admin only field)</label>
+                    <label>Má být tento příspěvek skryt při procházení/vyhledávání? (Admin only field)</label>
                     <input-type value-pairs-name="hidden_list">list</input-type>
-                    <hint>Indicate whether you want to hide this item from browse and search. Combine with "Upload cmdi"
-                        for weblicht submissions.
-                    </hint>
+                    <hint>Uveďte, má-li být záznam skryt ve vyhledávání a procházení. Pro příspěvky pro weblicht kombinujte s "Nahrát cmdi".</hint>
                     <required/>
                     <acl>
                         policy=deny,action=read,grantee-type=user,grantee-id=*
@@ -1597,12 +1588,10 @@
                     <dc-element>hasMetadata</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Are you going to upload cmdi file? (Admin only field)</label>
+                    <label>Chystáte se nahrát cmdi soubor? (Admin only field)</label>
                     <input-type value-pairs-name="metashare_languageDependent">list</input-type>
                     <!-- true/false value -->
-                    <hint>Indicate whether you will upload cmdi file in the next step. Combine with "hide" for weblicht
-                        submissions.
-                    </hint>
+                    <hint>Uveďte, jestli se chystáte v dalším kroku nahrát cmdi soubor. Kombinujte se schováváním záznamů pro weblicht příspěvky.</hint>
                     <required/>
                     <acl>
                         policy=deny,action=read,grantee-type=user,grantee-id=*
@@ -1617,13 +1606,10 @@
                     <dc-element>contributor</dc-element>
                     <dc-qualifier>author</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Authors</label>
+                    <label>Autoři</label>
                     <input-type>clarin-name</input-type>
-                    <hint>Enter the names of the authors of this item. Start typing the author's last name and use
-                        autocomplete form that will appear if applicable. End your input by pressing ESC if you don't
-                        want to use the preselected value.
-                    </hint>
-                    <required>Please add author(s)</required>
+                    <hint>Uveďte jména autorů tohoto záznamu. Začnete-li vyplňovat příjmení, objeví se nápověda. Nechcete-li nápovědu využít, stiskněte ESC.</hint>
+                    <required>Uveďte prosím autora(y)</required>
                 </field>
             </row>
             <row>
@@ -1632,14 +1618,12 @@
                     <dc-element>publisher</dc-element>
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
-                    <label>Publisher</label>
+                    <label>Vydavatel</label>
                     <input-type autocomplete-custom="solr-publisher_ac">autocomplete</input-type>
-                    <hint>The name of the publisher of the original analog or born
-                        digital object. Use your home institution if this is a born digital object being published now. Start typing the
-                        publisher and use autocomplete form that will appear if applicable. End your input by pressing ESC if you
-                        don't want to use the preselected value.
-                    </hint>
-                    <required>You must enter the name of the publisher.</required>
+                    <hint>Uveďte vydavatele analogového originálu, případně
+                        vydavatele "born digital" originálu. Pokud se jedná o právě zrozený zdroj, uveďte vaši domovskou instituci. Začnete-li
+                        vyplňovat vydavatele, objeví se nápověda. Nechcete-li nápovědu využít, stiskněte ESC.</hint>
+                    <required>Musíte uvést vydavatele.</required>
                 </field>
             </row>
             <row>
@@ -1648,11 +1632,11 @@
                     <dc-element>dataProvider</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Data provider</label>
+                    <label>Poskytovatel dat</label>
                     <input-type autocomplete-custom="solr-dataProvider_ac">autocomplete</input-type>
-                    <hint>This concerns the digital object (not the analog
-                        original). An institution from which the data come. Used e.g., to give proper attribution. Generally
-                        different from publisher.</hint>
+                    <hint>Týká se digitálního objektu, nikoliv analogového
+                        originálu. Instituce, od které data pocházejí. Např. pro uvedení původu u některých licencí. Obecně se bude
+                        lišit od vydavatele.</hint>
                     <required/>
                 </field>
             </row>
@@ -1662,10 +1646,10 @@
                     <dc-element>contact</dc-element>
                     <dc-qualifier>person</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Contact person</label>
+                    <label>Kontaktní osoba</label>
                     <input-type complex-definition-ref="contact_person">complex</input-type>
-                    <hint>Person to contact in case of any issues with this submission.</hint>
-                    <required>Please fill all the fields for the contact person.</required>
+                    <hint>Osoba, která bude kontaktována v případě problémů s tímto záznamem.</hint>
+                    <required>Vyplňte prosím všechna pole u kontaktní osoby</required>
                 </field>
             </row>
             <row>
@@ -1673,9 +1657,9 @@
                     <dc-schema>local</dc-schema>
                     <dc-element>sponsor</dc-element>
                     <repeatable>true</repeatable>
-                    <label>Funding</label>
+                    <label>Financování</label>
                     <input-type complex-definition-ref="funding">complex</input-type>
-                    <hint>Acknowledge sponsors and funding that supported work described by this submission.</hint>
+                    <hint>Uveďte sponzory a zdroje financí podporující vznik práce popsané v tomto příspěvku.</hint>
                 </field>
             </row>
         </form>
@@ -1686,11 +1670,11 @@
                     <dc-element>type</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>The type of the resource</label>
+                    <label>Typ záznamu</label>
                     <input-type autocomplete-custom="solr-dctype_ac">autocomplete</input-type>
-                    <hint>The type should be different from what you have
-                        entered in the first step. Examples: photo or painting for IMAGE, book or letter for TEXT, etc.</hint>
-                    <required>Type is required</required>
+                    <hint>Typ by měl být odlišný od druhu, který jste zvolili v
+                        prvním kroku. Například: fotografie nebo malba pro druh OBRAZ, kniha nebo dopis pro typ TEXT apod.</hint>
+                    <required>Vyplňte typ</required>
                 </field>
             </row>
             <row>
@@ -1700,10 +1684,10 @@
                     <dc-element>description</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Description</label>
+                    <label>Popis</label>
                     <input-type>textarea</input-type>
-                    <hint>Enter a description of the submitted data.</hint>
-                    <required>Please give us a description</required>
+                    <hint>Popište nahrávaná data.</hint>
+                    <required>Uveďte prosím popis.</required>
                 </field>
             </row>
             <!-- When you configure special field for the `type-bind` you must update it in the `submit.type-bind.field`
@@ -1715,13 +1699,15 @@
                     <dc-element>language</dc-element>
                     <dc-qualifier>iso</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Pick the languages of the TEXT</label>
+                    <label>Vyberte jazyky TEXTu</label>
                     <type-bind field="edm.type">TEXT</type-bind>
                     <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
-                    <hint>Select the language of the main content of the item. Multiple languages are possible. Start
-                        typing the language and use autocomplete form that will appear if applicable. Better to list all the languages then to use the 'mul' iso code (if there are too many, contact support).
+                    <hint>
+                        Vyberte jazyky, jichž se data tohoto záznamu týkají. Je možné zvolit více jazyků. Začnete-li psát,
+                        objeví se nápověda. Je lepší vyjmenovat všechny dotčené jazyky (pokud jich je větší množství, kontaktujte podporu),
+                        než používat iso kód 'mul'.
                     </hint>
-                    <required>The language is required for TEXT resources</required>
+                    <required>Pro TEXTy je jazyk povinný</required>
                 </field>
             </row>
             <row>
@@ -1730,12 +1716,13 @@
                     <dc-element>language</dc-element>
                     <dc-qualifier>iso</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Language</label>
+                    <label>Jazyk</label>
                     <type-bind field="edm.type">VIDEO,IMAGE,SOUND,3D</type-bind>
                     <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
-                    <hint>Optionally, select the language of the main content
-                        of the item. Multiple languages are possible. Start
-                        typing the language and use autocomplete form that will appear if applicable. Better to list all the languages then to use the 'mul' iso code (if there are too many, contact support).
+                    <hint>
+                        Volitelné. Vyberte jazyky, jichž se data tohoto záznamu týkají. Je možné zvolit více jazyků. Začnete-li psát,
+                        objeví se nápověda. Je lepší vyjmenovat všechny dotčené jazyky (pokud jich je větší množství, kontaktujte podporu),
+                        než používat iso kód 'mul'.
                     </hint>
                     <required/>
                 </field>
@@ -1747,17 +1734,16 @@
                     <dc-qualifier/>
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
-                    <label>Subject Keywords</label>
+                    <label>Klíčová slova</label>
                     <input-type autocomplete-custom="solr-subject_ac">autocomplete</input-type>
-                    <hint>Enter appropriate subject keyword or phrase and press
-                        the Add button. Use keywords to specify also people, places and times (period, era, date range etc) the resource
-                        is about. You	can use hierarchical subjects, separate the hierarchy levels with two colons (::). Eg.
-                        People::John Doe, Places::New York, Times::WWII.
-                        You can repeat it	for multiple keywords or use separators i.e., comma and semicolon, which will split it accordingly.
-                        Start typing the keyword and use autocomplete form that will appear. End your input by pressing
-                        ESC if you don't want to use the preselected value.
+                    <hint>Uveďte vhodná klíčová slova, nebo fráze a zmáčkněte
+                        tlačítko přidat.
+                        Klíčová slova využijte také pro lidi, místa a časy (období, éry, rozsah dat apod.) o kterých záznam je.
+                        Možnost využítvat hierarchické předměty. Oddělte jednotlivé úrovně hierarchie dvěma dvojtečkami (::).
+                        Např. People::Jára Cimrman, Places::Liptákov, Times::počátek 20. století.
+                        Klíčová slova buď přidávejte po jednom, nebo je oddělte čárkou, nebo středníkem. Začnete-li psát, objeví se nápověda.
                     </hint>
-                    <required>Please enter at least one subject related to your submission</required>
+                    <required>Uveďte alespoň jedno klíčové slovo.</required>
                 </field>
             </row>
             <row>
@@ -1766,12 +1752,12 @@
                     <dc-element>identifier</dc-element>
                     <dc-qualifier>other</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Alternate identifiers</label>
+                    <label>Jiné identifikátory</label>
                     <!-- qualdrop_value on dc.identifier messes with how we use dc.identifier.uri, even if uri is not
                      in the pairs it's showed in submission and you can delete it.-->
                     <input-type>onebox</input-type>
-                    <hint>The item will get a handle. If the item has any
-                        identification numbers	or codes associated with it, please enter the types and the actual numbers or codes.
+                    <hint>Pro tento záznam bude vytvořen handle. Pokud má
+                        zdroj přidělený jiný identifikátor, nebo kód, uveďte jej i jeho typ.
                     </hint>
                     <required/>
                 </field>
@@ -1782,9 +1768,9 @@
                     <dc-element>size</dc-element>
                     <dc-qualifier>info</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Size</label>
+                    <label>Velikost</label>
                     <input-type complex-definition-ref="clariahSizeInfo">complex</input-type>
-                    <hint>You can state the extent of the submitted data, eg. the number of tokens.</hint>
+                    <hint>Můžete uvést rozsah nahraných dat, například počet tokenů.</hint>
                 </field>
             </row>
             <row>
@@ -1793,14 +1779,14 @@
                     <dc-element>bitstream</dc-element>
                     <dc-qualifier>redirectToURL</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Upload file from URI (Admin only field)</label>
+                    <label>Nahrát soubor z URI (Admin only field)</label>
                     <input-type>onebox</input-type>
                     <hint>
-                        Please enter the full path of the file, either from the local server or an HTTP location.
-                        The maximum upload size for a file is 4GB. To upload a file larger than this limit, provide the
-                        URL of the file. Ensure the admin is aware of the URL of the bitstream file.
-                        Once the file path or URL is entered, click the 'Save' button to begin the upload.
-                        Note: The file path must be an absolute path.
+                        Prosím, zadejte úplnou cestu k souboru, ať už z místního serveru, nebo z webové lokace (HTTP).
+                        Maximální velikost nahrávaného souboru je 4 GB. Pokud chcete nahrát soubor větší než tento limit, zadejte jeho URL.
+                        Ujistěte se, že administrátor je obeznámen s URL souboru datového proudu (bitstream).
+                        Jakmile zadáte cestu k souboru nebo URL, klikněte na tlačítko „Uložit“ pro zahájení nahrávání.
+                        Poznámka: Cesta k souboru musí být absolutní.
                     </hint>
                     <required></required>
                     <acl>
@@ -1824,10 +1810,10 @@
                     <dc-element>title</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Title</label>
+                    <label>Název</label>
                     <input-type>onebox</input-type>
-                    <hint>Enter the main title of the item in English.</hint>
-                    <required>You must enter a main title for this item.</required>
+                    <hint>Uveďte anglický název tohoto příspěvku.</hint>
+                    <required>Musíte uvést název.</required>
                 </field>
             </row>
             <row>
@@ -1836,9 +1822,9 @@
                     <dc-element>demo</dc-element>
                     <dc-qualifier>uri</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Course homepage</label>
+                    <label>Stránky kurzu</label>
                     <input-type>onebox</input-type>
-                    <hint>Course homepage</hint>
+                    <hint>Stránky kurzu</hint>
                     <required/>
                     <regex>http.*</regex>
                 </field>
@@ -1849,11 +1835,11 @@
                     <dc-element>relation</dc-element>
                     <dc-qualifier>isreferencedby</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Referenced by</label>
+                    <label>Odkazy na záznam</label>
                     <input-type>onebox</input-type>
-                    <hint>Link to original paper that references this dataset.</hint>
+                    <hint>Odkaz na původní článek, který zmiňuje tento záznam.</hint>
                     <required/>
-                    <regex>http.*</regex>
+                    <regex>URL musi začínat http/https</regex>
                 </field>
             </row>
             <row>
@@ -1862,12 +1848,10 @@
                     <dc-element>date</dc-element>
                     <dc-qualifier>issued</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Date issued</label>
+                    <label>Datum vydání</label>
                     <input-type>date</input-type>
-                    <hint>Please give the date when the submission data were issued if any e.g., 2014-01-21 or at least
-                        the year.
-                    </hint>
-                    <required>You must enter the date or at least the year in a valid format.</required>
+                    <hint>Uveďte prosím datum vydání příspěvku, např 2014-01-21 nebo alespoň rok.</hint>
+                    <required>Musíte uvést datum v platném formátu.</required>
                 </field>
             </row>
             <row>
@@ -1876,11 +1860,9 @@
                     <dc-element>hidden</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Should this item be hidden from browse/search? (Admin only field)</label>
+                    <label>Má být tento příspěvek skryt při procházení/vyhledávání? (Admin only field)</label>
                     <input-type value-pairs-name="hidden_list">list</input-type>
-                    <hint>Indicate whether you want to hide this item from browse and search. Combine with "Upload cmdi"
-                        for weblicht submissions.
-                    </hint>
+                    <hint>Uveďte, má-li být záznam skryt ve vyhledávání a procházení. Pro příspěvky pro weblicht kombinujte s "Nahrát cmdi".</hint>
                     <required/>
                     <acl>
                         policy=deny,action=read,grantee-type=user,grantee-id=*
@@ -1893,12 +1875,10 @@
                     <dc-element>hasMetadata</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Are you going to upload cmdi file? (Admin only field)</label>
+                    <label>Chystáte se nahrát cmdi soubor? (Admin only field)</label>
                     <input-type value-pairs-name="metashare_languageDependent">list</input-type>
                     <!-- true/false value -->
-                    <hint>Indicate whether you will upload cmdi file in the next step. Combine with "hide" for weblicht
-                        submissions.
-                    </hint>
+                    <hint>Uveďte, jestli se chystáte v dalším kroku nahrát cmdi soubor. Kombinujte se schováváním záznamů pro weblicht příspěvky.</hint>
                     <required/>
                     <acl>
                         policy=deny,action=read,grantee-type=user,grantee-id=*
@@ -1920,13 +1900,10 @@
                     <dc-element>contributor</dc-element>
                     <dc-qualifier>author</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Authors</label>
+                    <label>Autoři</label>
                     <input-type>clarin-name</input-type>
-                    <hint>Enter the names of the authors of this item. Start typing the author's last name and use
-                        autocomplete form that will appear if applicable. End your input by pressing ESC if you don't
-                        want to use the preselected value.
-                    </hint>
-                    <required>Please add author(s)</required>
+                    <hint>Uveďte jména autorů tohoto záznamu. Začnete-li vyplňovat příjmení, objeví se nápověda. Nechcete-li nápovědu využít, stiskněte ESC.</hint>
+                    <required>Uveďte prosím autora(y)</required>
                 </field>
             </row>
             <row>
@@ -1935,14 +1912,12 @@
                     <dc-element>publisher</dc-element>
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
-                    <label>Publisher</label>
+                    <label>Vydavatel</label>
                     <input-type autocomplete-custom="solr-publisher_ac">autocomplete</input-type>
-                    <hint>The name of the publisher of the original analog or born
-                        digital object. Use your home institution if this is a born digital object being published now. Start typing the
-                        publisher and use autocomplete form that will appear if applicable. End your input by pressing ESC if you
-                        don't want to use the preselected value.
-                    </hint>
-                    <required>You must enter the name of the publisher.</required>
+                    <hint>Uveďte vydavatele analogového originálu, případně
+                        vydavatele "born digital" originálu. Pokud se jedná o právě zrozený zdroj, uveďte vaši domovskou instituci. Začnete-li
+                        vyplňovat vydavatele, objeví se nápověda. Nechcete-li nápovědu využít, stiskněte ESC.</hint>
+                    <required>Musíte uvést vydavatele.</required>
                 </field>
             </row>
             <row>
@@ -1951,10 +1926,10 @@
                     <dc-element>contact</dc-element>
                     <dc-qualifier>person</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Contact person</label>
+                    <label>Kontaktní osoba</label>
                     <input-type complex-definition-ref="contact_person">complex</input-type>
-                    <hint>Person to contact in case of any issues with this submission.</hint>
-                    <required>Please fill all the fields for the contact person.</required>
+                    <hint>Osoba, která bude kontaktována v případě problémů s tímto záznamem.</hint>
+                    <required>Vyplňte prosím všechna pole u kontaktní osoby</required>
                 </field>
             </row>
             <row>
@@ -1962,9 +1937,9 @@
                     <dc-schema>local</dc-schema>
                     <dc-element>sponsor</dc-element>
                     <repeatable>true</repeatable>
-                    <label>Funding</label>
+                    <label>Financování</label>
                     <input-type complex-definition-ref="funding">complex</input-type>
-                    <hint>Acknowledge sponsors and funding that supported work described by this submission.</hint>
+                    <hint>Uveďte sponzory a zdroje financí podporující vznik práce popsané v tomto příspěvku.</hint>
                 </field>
             </row>
         </form>
@@ -1976,12 +1951,12 @@
                     <dc-element>type</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>The type of the resource</label>
+                    <label>Typ záznamu</label>
                     <style>d-none</style>
                     <input-type value-pairs-name="teaching_materials">dropdown</input-type>
                     <default-value>teachingMaterials</default-value>
-                    <hint>This is here to autofill a value. The value should not be changed.</hint>
-                    <required>Please select a resource type for your submission.</required>
+                    <hint>Toto pole je zde pro automatické vyplnění hodnoty. Hodnota by neměla být měněna.</hint>
+                    <required>Prosím zvolte typ dat pro váš příspěvek.</required>
                 </field>
             </row>
             <row>
@@ -1990,10 +1965,10 @@
                     <dc-element>description</dc-element>
                     <dc-qualifier/>
                     <repeatable>false</repeatable>
-                    <label>Description</label>
+                    <label>Popis</label>
                     <input-type>textarea</input-type>
-                    <hint>Enter a description of the submitted data.</hint>
-                    <required>Please give us a description</required>
+                    <hint>Popište nahrávaná data.</hint>
+                    <required>Uveďte prosím popis.</required>
                 </field>
             </row>
             <row>
@@ -2002,12 +1977,13 @@
                     <dc-element>language</dc-element>
                     <dc-qualifier>iso</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Language</label>
+                    <label>Jazyk</label>
                     <input-type autocomplete-custom="json_static-iso_langs.json">autocomplete</input-type>
-                    <hint>Select the language of the main content of the item. Multiple languages are possible. Start
-                        typing the language and use autocomplete form that will appear if applicable. Better to list all the languages then to use the 'mul' iso code (if there are too many, contact support).
+                    <hint>
+                        Vyberte jazyky, jichž se data tohoto záznamu týkají. Je možné zvolit více jazyků. Začnete-li psát, objeví se nápověda.
+                        Je lepší vyjmenovat všechny dotčené jazyky (pokud jich je větší množství, kontaktujte podporu), než používat iso kód 'mul'.
                     </hint>
-                    <required>Please choose a language for the resource.</required>
+                    <required>Prosím zvolte jazyk.</required>
                 </field>
             </row>
             <row>
@@ -2017,14 +1993,13 @@
                     <dc-qualifier/>
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
-                    <label>Subject Keywords</label>
+                    <label>Klíčová slova</label>
                     <input-type autocomplete-custom="solr-subject_ac">autocomplete</input-type>
-                    <hint>Enter appropriate subject keyword or phrase and press the Add button. You can repeat it for
-                        multiple keywords or use separators i.e., comma and semicolon, which will split it accordingly.
-                        Start typing the keyword and use autocomplete form that will appear. End your input by pressing
-                        ESC if you don't want to use the preselected value.
+                    <hint>
+                        Uveďte vhodná klíčová slova, nebo fráze a zmáčkněte tlačítko přidat.
+                        Klíčová slova buď přidávejte po jednom, nebo je oddělte čárkou, nebo středníkem. Začnete-li psát, objeví se nápověda.
                     </hint>
-                    <required>Please enter at least one subject related to your submission</required>
+                    <required>Uveďte alespoň jedno klíčové slovo.</required>
                 </field>
             </row>
             <row>
@@ -2033,12 +2008,13 @@
                     <dc-element>identifier</dc-element>
                     <dc-qualifier>other</dc-qualifier>
                     <repeatable>true</repeatable>
-                    <label>Alternate identifiers</label>
+                    <label>Jiné identifikátory</label>
                     <!-- qualdrop_value on dc.identifier messes with how we use dc.identifier.uri, even if uri is not
                      in the pairs it's showed in submission and you can delete it.-->
                     <input-type>onebox</input-type>
-                    <hint>The item will get a handle. If the item has any
-                        identification numbers	or codes associated with it, please enter the types and the actual numbers or codes.
+                    <hint>
+                        Pro tento záznam bude vytvořen handle. Pokud má
+                        zdroj přidělený jiný identifikátor, nebo kód, uveďte jej i jeho typ.
                     </hint>
                     <required/>
                 </field>
@@ -2049,14 +2025,14 @@
                     <dc-element>bitstream</dc-element>
                     <dc-qualifier>redirectToURL</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Upload file from URI (Admin only field)</label>
+                    <label>Nahrát soubor z URI (Admin only field)</label>
                     <input-type>onebox</input-type>
                     <hint>
-                        Please enter the full path of the file, either from the local server or an HTTP location.
-                        The maximum upload size for a file is 4GB. To upload a file larger than this limit, provide the
-                        URL of the file. Ensure the admin is aware of the URL of the bitstream file.
-                        Once the file path or URL is entered, click the 'Save' button to begin the upload.
-                        Note: The file path must be an absolute path.
+                        Prosím, zadejte úplnou cestu k souboru, ať už z místního serveru, nebo z webové lokace (HTTP).
+                        Maximální velikost nahrávaného souboru je 4 GB. Pokud chcete nahrát soubor větší než tento limit, zadejte jeho URL.
+                        Ujistěte se, že administrátor je obeznámen s URL souboru datového proudu (bitstream).
+                        Jakmile zadáte cestu k souboru nebo URL, klikněte na tlačítko „Uložit“ pro zahájení nahrávání.
+                        Poznámka: Cesta k souboru musí být absolutní.
                     </hint>
                     <required></required>
                     <acl>
@@ -2066,16 +2042,16 @@
             </row>
         </form>
 
-        <form name="specialFields">
+        <form name="specialFields" >
             <row>
                 <field>
                     <dc-schema>local</dc-schema>
                     <dc-element>submission</dc-element>
                     <dc-qualifier>note</dc-qualifier>
                     <repeatable>false</repeatable>
-                    <label>Note</label>
+                    <label>Vzkaz</label>
                     <input-type>textarea</input-type>
-                    <hint>Leave a note for the editors/reviewers</hint>
+                    <hint>Zde můžete zanechat vzkaz editorům.</hint>
                     <required></required>
                 </field>
             </row>
@@ -2089,7 +2065,10 @@
                     <repeatable>true</repeatable>
                     <label>Replaces</label>
                     <input-type autocomplete-custom="solr-handle_title_ac">autocomplete</input-type>
-                    <hint>URL to a related resource that is supplanted, displaced, or superseded by the described resource. If the replaced resource is in this repository start typing its name or handle and select the resource from the autocomplete popup.</hint>
+                    <hint>
+                        URL příbuzného záznamu, který je tímto záznamem nahrazen.
+                        Pokud je příbuzný záznam v tomto repozitáři, začněte psát jeho název, nebo handle a vyberte záznam z nabídky.
+                    </hint>
                     <required/>
                 </field>
             </row>
@@ -2103,7 +2082,7 @@
                     <repeatable>true</repeatable>
                     <label>Is replaced by (Admin only field)</label>
                     <input-type autocomplete-custom="solr-handle_title_ac">autocomplete</input-type>
-                    <hint>A related resource that supplants, displaces, or supersedes the described resource.</hint>
+                    <hint>Příbuzný záznam, který nahrazuje tento.</hint>
                     <required/>
                     <acl>
                         policy=deny,action=read,grantee-type=user,grantee-id=*
@@ -2131,7 +2110,7 @@
     <form-value-pairs>
         <value-pairs value-pairs-name="hasCMDI_checkbox" dc-term="identifier">
             <pair>
-                <displayed-value>Yes</displayed-value>
+                <displayed-value>Ano</displayed-value>
                 <stored-value>true</stored-value>
             </pair>
         </value-pairs>
@@ -2725,11 +2704,11 @@
                 <stored-value>VIDEO</stored-value>
             </pair>
             <pair>
-                <displayed-value>SOUND</displayed-value>
+                <displayed-value>ZVUK</displayed-value>
                 <stored-value>SOUND</stored-value>
             </pair>
             <pair>
-                <displayed-value>IMAGE</displayed-value>
+                <displayed-value>OBRAZ</displayed-value>
                 <stored-value>IMAGE</stored-value>
             </pair>
             <pair>
@@ -3166,17 +3145,17 @@
 
         <value-pairs value-pairs-name="metashare_languageDependent" dc-term="">
             <pair>
-                <displayed-value>Yes</displayed-value>
+                <displayed-value>Ano</displayed-value>
                 <stored-value>true</stored-value>
             </pair>
             <pair>
-                <displayed-value>No</displayed-value>
+                <displayed-value>Ne</displayed-value>
                 <stored-value>false</stored-value>
             </pair>
         </value-pairs>
         <value-pairs value-pairs-name="hidden_list" dc-term="">
             <pair>
-                <displayed-value>Yes</displayed-value>
+                <displayed-value>Ano</displayed-value>
                 <stored-value>hidden</stored-value>
             </pair>
         </value-pairs>
