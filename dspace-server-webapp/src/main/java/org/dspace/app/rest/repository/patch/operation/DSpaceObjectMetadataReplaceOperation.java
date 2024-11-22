@@ -168,7 +168,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                 existingMdv.setLanguage(metadataValue.getLanguage());
                 existingMdv.setValue(metadataValue.getValue());
                 dsoService.setMetadataModified(dso);
-                provenanceService.replaceMetadata(context, dso, metadataField, oldMtdVal);
+                provenanceProvider.replaceMetadata(context, dso, metadataField, oldMtdVal);
 
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
@@ -224,7 +224,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                     existingMdv.setValue(valueMdProperty);
                 }
                 dsoService.setMetadataModified(dso);
-                provenanceService.replaceMetadataSingle(context, dso, metadataField, oldMtdVal);
+                provenanceProvider.replaceMetadataSingle(context, dso, metadataField, oldMtdVal);
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
             }

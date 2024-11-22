@@ -74,7 +74,7 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
             dsoService.addAndShiftRightMetadata(context, dso, metadataField.getMetadataSchema().getName(),
                     metadataField.getElement(), metadataField.getQualifier(), metadataValue.getLanguage(),
                     metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence(), indexInt);
-            provenanceService.addMetadata(context, dso, metadataField);
+            provenanceProvider.addMetadata(context, dso, metadataField);
         } catch (SQLException e) {
             msg = "SQLException in DspaceObjectMetadataAddOperation.add trying to add " +
                     "metadata to dso.";

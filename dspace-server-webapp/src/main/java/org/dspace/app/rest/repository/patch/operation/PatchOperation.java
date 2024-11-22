@@ -13,8 +13,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.core.Context;
-import org.dspace.core.ProvenanceService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.dspace.core.ProvenanceProvider;
 
 /**
  * Base class for all resource patch operations.
@@ -28,8 +27,7 @@ public abstract class PatchOperation<M> {
     public static final String OPERATION_MOVE = "move";
     public static final String OPERATION_REMOVE = "remove";
 
-    @Autowired
-    ProvenanceService provenanceService;
+    ProvenanceProvider provenanceProvider = new ProvenanceProvider();
 
     /**
      * Updates the rest model by applying the patch operation.

@@ -49,7 +49,7 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
             item.setDiscoverable(discoverable);
             String msg;
             try {
-                provenanceService.makeDiscoverable(context, item, discoverable);
+                provenanceProvider.makeDiscoverable(context, item, discoverable);
             } catch (SQLException ex) {
                 msg = "SQLException occurred when item making " + (discoverable ? "" : "non-")
                         + "discoverable.";

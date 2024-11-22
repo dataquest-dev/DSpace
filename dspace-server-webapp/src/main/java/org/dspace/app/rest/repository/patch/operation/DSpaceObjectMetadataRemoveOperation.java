@@ -73,7 +73,7 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
         String msg;
         try {
             if (index == null) {
-                provenanceService.removeMetadata(context, dso, metadataField);
+                provenanceProvider.removeMetadata(context, dso, metadataField);
                 // remove all metadata of this type
                 dsoService.clearMetadata(context, dso, metadataField.getMetadataSchema().getName(),
                         metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
@@ -85,7 +85,7 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                 int indexInt = Integer.parseInt(index);
                 if (indexInt >= 0 && metadataValues.size() > indexInt
                         && metadataValues.get(indexInt) != null) {
-                    provenanceService.removeMetadataAtIndex(context, dso, metadataValues, indexInt);
+                    provenanceProvider.removeMetadataAtIndex(context, dso, metadataValues, indexInt);
                     // remove that metadata
                     dsoService.removeMetadataValues(context, dso,
                             Arrays.asList(metadataValues.get(indexInt)));

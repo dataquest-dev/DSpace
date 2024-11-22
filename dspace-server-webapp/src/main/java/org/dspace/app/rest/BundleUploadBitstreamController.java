@@ -29,7 +29,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bundle;
 import org.dspace.content.service.BundleService;
 import org.dspace.core.Context;
-import org.dspace.core.ProvenanceService;
+import org.dspace.core.ProvenanceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ControllerUtils;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -79,8 +79,7 @@ public class BundleUploadBitstreamController {
     @Autowired
     private ConverterService converter;
 
-    @Autowired
-    private ProvenanceService provenanceService;
+    private ProvenanceProvider provenanceProvider = new ProvenanceProvider();
 
     /**
      * Method to upload a Bitstream to a Bundle with the given UUID in the URL. This will create a Bitstream with the
@@ -117,7 +116,7 @@ public class BundleUploadBitstreamController {
             throw new UnprocessableEntityException("The InputStream from the file couldn't be read", e);
         }
         try {
-            provenanceService.uploadBitstream(context, bundle);
+            provenanceProvider.uploadBitstream(context, bundle);
         } catch (SQLException ex) {
             msg = "SQLException in BundleUploadBitstreamConverter.uploadBitstream when " +
                     "adding new provenance metadata.";

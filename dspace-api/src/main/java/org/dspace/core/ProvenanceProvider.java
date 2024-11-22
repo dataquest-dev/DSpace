@@ -20,6 +20,7 @@ import org.dspace.app.bulkaccesscontrol.model.AccessCondition;
 import org.dspace.app.bulkaccesscontrol.model.BulkAccessControlInput;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -30,6 +31,8 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
@@ -37,24 +40,18 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * ProvenanceServiceImpl is responsible for creating provenance metadata for items based on the actions performed.
- * It implements the ProvenanceService interface.
+ * Provenance is responsible for creating provenance metadata for items based on the actions performed.
  *
  * @author Michaela Paurikova (dspace at dataquest.sk)
  */
-public class ProvenanceServiceImpl implements ProvenanceService {
-    private static final Logger log = LogManager.getLogger(ProvenanceServiceImpl.class);
+public class ProvenanceProvider {
+    private static final Logger log = LogManager.getLogger(ProvenanceProvider.class);
 
-    @Autowired
-    private ItemService itemService;
-    @Autowired
-    private ResourcePolicyService resourcePolicyService;
-    @Autowired
-    private ClarinItemService clarinItemService;
-    @Autowired
-    private ClarinLicenseResourceMappingService clarinResourceMappingService;
-    @Autowired
-    private BitstreamService bitstreamService;
+    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    private ResourcePolicyService resourcePolicyService = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+    private ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
+    private ClarinLicenseResourceMappingService clarinResourceMappingService = ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
+    private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
 
     private final ProvenanceMessageProvider messageProvider = new ProvenanceMessageProviderImpl();
 
@@ -98,7 +95,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         return currentLicense;
     }
 
-    @Override
     public void setItemPolicies(Context context, Item item, BulkAccessControlInput accessControl)
             throws SQLException, AuthorizeException {
         String resPoliciesStr = extractAccessConditions(accessControl.getItem().getAccessConditions());
@@ -109,7 +105,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    @Override
     public String removedReadPolicies(Context context, DSpaceObject dso, String type)
             throws SQLException, AuthorizeException {
         List<ResourcePolicy> resPolicies = resourcePolicyService.find(context, dso, type);
@@ -134,7 +129,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         return resPoliciesStr;
     }
 
-    @Override
     public void setBitstreamPolicies(Context context, Bitstream bitstream, Item item,
                                      BulkAccessControlInput accessControl) throws SQLException, AuthorizeException {
         String accConditionsStr = extractAccessConditions(accessControl.getBitstream().getAccessConditions());
@@ -145,7 +139,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    @Override
     public void editLicense(Context context, Item item, boolean newLicense) throws SQLException, AuthorizeException {
         String oldLicense = null;
         oldLicense = findLicenseInBundles(item, Constants.LICENSE_BUNDLE_NAME, oldLicense, context);
@@ -159,8 +152,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         addProvenanceMetadata(context, item, msg);
     }
 
-
-    @Override
     public void moveItem(Context context, Item item, Collection collection) throws SQLException, AuthorizeException {
         String msg = messageProvider.getMessage(context, "moveItem", item, collection.getID());
         // Update item in DB
@@ -170,20 +161,17 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         context.restoreAuthSystemState();
     }
 
-    @Override
     public void mappedItem(Context context, Item item, Collection collection) throws SQLException, AuthorizeException {
         String msg = messageProvider.getMessage(context, "mappedItem", collection.getID());
         addProvenanceMetadata(context, item, msg);
     }
 
-    @Override
     public void deletedItemFromMapped(Context context, Item item, Collection collection)
             throws SQLException, AuthorizeException {
         String msg = messageProvider.getMessage(context, "deletedItemFromMapped", collection.getID());
         addProvenanceMetadata(context, item, msg);
     }
 
-    @Override
     public void deleteBitstream(Context context,Bitstream bitstream) throws SQLException, AuthorizeException {
         Item item = getItem(context, bitstream);
         if (Objects.nonNull(item)) {
@@ -193,7 +181,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    @Override
     public void addMetadata(Context context, DSpaceObject dso, MetadataField metadataField)
             throws SQLException, AuthorizeException {
         if (Constants.ITEM == dso.getType()) {
@@ -214,7 +201,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    @Override
     public void removeMetadata(Context context, DSpaceObject dso, MetadataField metadataField)
             throws SQLException, AuthorizeException {
         if (dso.getType() != Constants.BITSTREAM) {
@@ -239,7 +225,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    @Override
     public void removeMetadataAtIndex(Context context, DSpaceObject dso, List<MetadataValue> metadataValues,
                                       int indexInt) throws SQLException, AuthorizeException {
         if (dso.getType() != Constants.ITEM) {
@@ -253,7 +238,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         addProvenanceMetadata(context, (Item) dso, msg);
     }
 
-    @Override
     public void replaceMetadata(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal)
             throws SQLException, AuthorizeException {
         if (dso.getType() != Constants.ITEM) {
@@ -265,7 +249,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         addProvenanceMetadata(context, (Item) dso, msg);
     }
 
-    @Override
     public void replaceMetadataSingle(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal)
             throws SQLException, AuthorizeException {
         if (dso.getType() != Constants.BITSTREAM) {
@@ -282,7 +265,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    @Override
     public void makeDiscoverable(Context context, Item item, boolean discoverable)
             throws SQLException, AuthorizeException {
         String msg = messageProvider.getMessage(context, "discoverable",
@@ -290,7 +272,6 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         addProvenanceMetadata(context, item, msg);
     }
 
-    @Override
     public void uploadBitstream(Context context, Bundle bundle) throws SQLException, AuthorizeException {
         Item item = bundle.getItems().get(0);
         String msg = messageProvider.getMessage(context, "bundleAdded", item, bundle.getID());

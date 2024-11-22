@@ -68,7 +68,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
+public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     private ClarinLicenseLabelService clarinLicenseLabelService =
             ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
