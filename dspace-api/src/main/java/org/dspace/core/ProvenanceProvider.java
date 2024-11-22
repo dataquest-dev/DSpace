@@ -39,7 +39,7 @@ import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 
 /**
- * Provenance is responsible for creating provenance metadata for items based on the actions performed.
+ * ProvenanceProviderrest is responsible for creating provenance metadata for items based on the actions performed.
  *
  * @author Michaela Paurikova (dspace at dataquest.sk)
  */
@@ -47,9 +47,12 @@ public class ProvenanceProvider {
     private static final Logger log = LogManager.getLogger(ProvenanceProvider.class);
 
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    private ResourcePolicyService resourcePolicyService = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+    private ResourcePolicyService resourcePolicyService =
+            AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+
     private ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
-    private ClarinLicenseResourceMappingService clarinResourceMappingService = ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
+    private ClarinLicenseResourceMappingService clarinResourceMappingService =
+            ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
 
     private final ProvenanceMessageProvider messageProvider = new ProvenanceMessageProvider();

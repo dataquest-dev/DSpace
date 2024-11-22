@@ -29,8 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The ProvenanceMessageProviderImpl class implements the ProvenanceMessageProvider interface,
- * providing methods to generate provenance messages for DSpace items. It loads message templates
+ * The ProvenanceMessageProvider providing methods to generate provenance messages for DSpace items.
+ * It loads message templates
  * from a JSON file and formats messages based on the context, including user details and timestamps.
  *
  * @author Michaela Paurikova (dspace at dataquest.sk)
