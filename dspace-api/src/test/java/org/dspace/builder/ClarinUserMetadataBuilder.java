@@ -56,6 +56,7 @@ public class ClarinUserMetadataBuilder extends AbstractBuilder<ClarinUserMetadat
             if (clarinUserMetadata != null) {
                 clarinUserMetadataService.delete(c, clarinUserMetadata);
             }
+            c.restoreAuthSystemState();
             c.complete();
         }
     }
