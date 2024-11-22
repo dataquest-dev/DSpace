@@ -7,12 +7,17 @@
  */
 package org.dspace.testing;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
 import org.apache.commons.cli.ParseException;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.utils.DSpace;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 
 public class Testing extends DSpaceRunnable<TestingScriptConfiguration> {
 
@@ -32,7 +37,8 @@ public class Testing extends DSpaceRunnable<TestingScriptConfiguration> {
         System.out.println("Hello world from java");
         try {
             // loading python scripts stored in resources
-            InputStream scriptInputStream = getClass().getClassLoader().getResourceAsStream("python-script.py");
+            InputStream scriptInputStream =
+                    getClass().getClassLoader().getResourceAsStream("testing/python-script.py");
             if (scriptInputStream == null) {
                 throw new FileNotFoundException("Python script not found in resources");
             }
@@ -49,7 +55,8 @@ public class Testing extends DSpaceRunnable<TestingScriptConfiguration> {
             processBuilder.directory(tempFile.getParentFile());
             Process process = processBuilder.start();
 
-            InputStreamReader inputStreamReader = new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8);
+            InputStreamReader inputStreamReader =
+                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8);
             BufferedReader reader = new BufferedReader(inputStreamReader);
 
             // reading the scripts output and then outputs it to the  console
