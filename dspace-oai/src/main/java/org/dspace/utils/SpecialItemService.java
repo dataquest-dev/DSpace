@@ -11,6 +11,10 @@ package org.dspace.utils;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.parsers.DocumentBuilder;
@@ -18,17 +22,27 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.dspace.app.util.DCInput;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
+import org.dspace.xoai.exceptions.InvalidMetadataFieldException;
+import org.dspace.xoai.services.impl.DSpaceFieldResolver;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -266,6 +280,104 @@ public class SpecialItemService {
             return null;
         }
     }
+
+    // Helper method to find the item by its handle
+    private static Item findItemByHandle(ClarinItemService clarinItemService,
+                                         Context context, MetadataField metadataField, String handle) {
+        try {
+            List<Item> itemList = clarinItemService.findByHandle(context, metadataField, handle);
+            return (itemList.isEmpty()) ? null : itemList.get(0);
+        } catch (SQLException e) {
+            log.error("Error retrieving item by handle.", e);
+            return null;
+        }
+    }
+
+    // Helper method to get the embargo start date from the resource policies
+    private static Date getEmbargoStartDate(Context context, Item item) throws SQLException {
+        ResourcePolicyService resPolicyService = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+        Date startDate = null;
+        for (Bundle bundle : item.getBundles()) {
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                List<ResourcePolicy> resPolList = resPolicyService.find(context, bitstream, Constants.READ);
+                for (ResourcePolicy resPol : resPolList) {
+                    Date date = resPol.getStartDate();
+                    if (startDate == null || (date != null && date.compareTo(startDate) > 0)) {
+                        startDate = date;
+                    }
+                }
+            }
+        }
+        return startDate;
+    }
+
+    public static String getAvailable(String identifierUri) {
+        Context context = new Context();
+        ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
+        try {
+            // Find the metadata field for "dc.identifier.uri"
+            MetadataField metadataField = findMetadataField(context, "dc.identifier.uri");
+            if (metadataField == null) {
+                log.error("Metadata field for 'dc.identifier.uri' not found.");
+                return null;
+            }
+
+            // Retrieve the item using the handle
+            Item item = findItemByHandle(clarinItemService, context, metadataField, identifierUri);
+            if (item == null) {
+                log.error(String.format("Item for handle %s doesn't exist!", identifierUri));
+                return null;
+            }
+
+            // Check if there is an embargo or get the earliest available date
+            Date startDate = getEmbargoStartDate(context, item);
+            if (startDate == null) {
+                startDate = getAvailableDate(context, item);
+            }
+            return (startDate != null) ? startDate.toString() : null;
+        } catch (SQLException | InvalidMetadataFieldException ex) {
+            log.error("Error in getAvailable method: ", ex);
+        }
+        return null;
+    }
+
+    // Helper method to find the metadata field "dc.identifier.uri"
+    private static MetadataField findMetadataField(Context context, String mtd) throws SQLException {
+        MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
+        return metadataFieldService.findByString(context, mtd, '.');
+    }
+
+    // Helper method to get the available date from the metadata values
+    private static Date getAvailableDate(Context context, Item item)
+            throws SQLException, InvalidMetadataFieldException {
+        DSpaceFieldResolver dSpaceFieldResolver = new DSpaceFieldResolver();
+        List<MetadataValue> metadataValueList = item.getMetadata();
+        int fieldID = dSpaceFieldResolver.getFieldID(context, "dc.date.available");
+        Date startDate = null;
+
+        for (MetadataValue mtd : metadataValueList) {
+            if (mtd.getMetadataField().getID() == fieldID) {
+                Date availableDate = parseDate(mtd.getValue());
+                if (startDate == null || (availableDate != null && availableDate.compareTo(startDate) > 0)) {
+                    startDate = availableDate;
+                }
+            }
+        }
+        return startDate;
+    }
+
+    // Helper method to parse a date from a string
+    private static Date parseDate(String dateString) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); // Example format
+        dateFormat.setLenient(false); // Set lenient to false to avoid parsing incorrect dates
+
+        try {
+            return dateFormat.parse(dateString); // Attempt to parse the date
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
 
     public static boolean hasOwnMetadata(List<MetadataValue> metadataValues) {
         if (metadataValues.size() == 1 && metadataValues.get(0).getValue().equalsIgnoreCase("true")) {
