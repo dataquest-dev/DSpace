@@ -91,7 +91,7 @@
                     <input-type>onebox</input-type>
                     <hint>Uveďte URL projektu</hint>
                     <required/>
-                    <regex>URL musí začínat http/https</regex>
+                    <regex>http.*</regex>
                 </field>
             </row>
             <row>
@@ -104,7 +104,7 @@
                     <input-type>onebox</input-type>
                     <hint>URL se vzorky dat, v případě nástrojů předvedení výstupu.</hint>
                     <required/>
-                    <regex>URL musi začínat http/https</regex>
+                    <regex>http.*</regex>
                 </field>
             </row>
             <row>
@@ -117,7 +117,7 @@
                     <input-type>onebox</input-type>
                     <hint>Odkaz na původní článek, který zmiňuje tento záznam.</hint>
                     <required/>
-                    <regex>URL musi začínat http/https</regex>
+                    <regex>http.*</regex>
                 </field>
             </row>
             <row>
@@ -1552,7 +1552,7 @@
                     <input-type>onebox</input-type>
                     <hint>Odkaz na původní článek, který zmiňuje tento záznam.</hint>
                     <required/>
-                    <regex>URL musi začínat http/https</regex>
+                    <regex>http.*</regex>
                 </field>
             </row>
             <row>
@@ -1839,7 +1839,7 @@
                     <input-type>onebox</input-type>
                     <hint>Odkaz na původní článek, který zmiňuje tento záznam.</hint>
                     <required/>
-                    <regex>URL musi začínat http/https</regex>
+                    <regex>http.*</regex>
                 </field>
             </row>
             <row>

@@ -91,7 +91,7 @@
                     <input-type>onebox</input-type>
                     <hint>Enter the project url.</hint>
                     <required/>
-                    <regex>The supplied url must start with http/https</regex>
+                    <regex>http.*</regex>
                 </field>
             </row>
             <row>
@@ -104,7 +104,7 @@
                     <input-type>onebox</input-type>
                     <hint>A url with samples of the resource or, in the case of tools,of samples of the output.</hint>
                     <required/>
-                    <regex>The supplied url must start with http/https</regex>
+                    <regex>http.*</regex>
                 </field>
             </row>
             <row>
@@ -117,7 +117,7 @@
                     <input-type>onebox</input-type>
                     <hint>Link to original paper that references this dataset.</hint>
                     <required/>
-                    <regex>The supplied url must start with http/https</regex>
+                    <regex>http.*</regex>
                 </field>
             </row>
             <row>
@@ -1579,7 +1579,7 @@
                     <input-type>onebox</input-type>
                     <hint>Link to original paper that references this dataset.</hint>
                     <required/>
-                    <regex>The supplied url must start with http/https</regex>
+                    <regex>http.*</regex>
                 </field>
             </row>
             <row>
@@ -1875,7 +1875,7 @@
                     <input-type>onebox</input-type>
                     <hint>Link to original paper that references this dataset.</hint>
                     <required/>
-                    <regex>The supplied url must start with http/https</regex>
+                    <regex>http.*</regex>
                 </field>
             </row>
             <row>
