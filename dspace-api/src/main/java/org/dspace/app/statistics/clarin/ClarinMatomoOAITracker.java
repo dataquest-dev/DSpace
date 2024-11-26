@@ -7,7 +7,6 @@
  */
 package org.dspace.app.statistics.clarin;
 
-import java.util.LinkedHashMap;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 
