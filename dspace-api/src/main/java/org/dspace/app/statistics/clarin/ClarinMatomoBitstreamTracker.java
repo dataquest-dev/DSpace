@@ -84,7 +84,7 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
             matomoRequest.setPageCustomVariable(new CustomVariable("source", "bitstream"), 1);
             // Add the Item handle into the request as a custom dimension
             LinkedHashMap<Long, Object> handleDimension = new LinkedHashMap<>();
-            handleDimension.put(10L, item.getHandle());
+            handleDimension.put(1L, item.getHandle());
             matomoRequest.setDimensions(handleDimension);
         } catch (MatomoException e) {
             log.error(e);
