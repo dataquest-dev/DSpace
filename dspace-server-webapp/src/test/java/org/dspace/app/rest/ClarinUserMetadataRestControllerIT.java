@@ -239,7 +239,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
-        ClarinUserRegistrationBuilder.deleteClarinUserRegistration(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     @Test
@@ -293,7 +293,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
-        ClarinUserRegistrationBuilder.deleteClarinUserRegistration(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     @Test
@@ -343,7 +343,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
 
-        ClarinUserRegistrationBuilder.deleteClarinUserRegistration(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     @Test
@@ -401,7 +401,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
-        ClarinUserRegistrationBuilder.deleteClarinUserRegistration(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     // Confirmation = 1
@@ -564,7 +564,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(jsonPath("$.page.totalElements", is(2)));
 
         // Delete all created user metadata - clean test environment
-        ClarinUserRegistrationBuilder.deleteClarinUserRegistration(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     private WorkspaceItem createWorkspaceItemWithFile(boolean secondBitstream) {

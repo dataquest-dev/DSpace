@@ -36,6 +36,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.builder.ClarinLicenseLabelBuilder;
 import org.dspace.builder.ClarinUserRegistrationBuilder;
+import org.dspace.builder.ClarinUserMetadataBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
@@ -160,7 +161,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
 
         //clean all
-        ClarinUserRegistrationBuilder.deleteClarinUserRegistration(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     @Test
@@ -207,7 +208,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
 
         //clean all
-        ClarinUserRegistrationBuilder.deleteClarinUserRegistration(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     // The user metadata shouldn't be updated, but it should be added
@@ -267,7 +268,7 @@ public class ClarinUserMetadataImportControllerIT extends AbstractEntityIntegrat
         assertEquals(clarinUserMetadata.getTransaction().getToken(), "111");
 
         //clean all
-        ClarinUserRegistrationBuilder.deleteClarinUserRegistration(clarinUserRegistration.getID());
+        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 
     /**
