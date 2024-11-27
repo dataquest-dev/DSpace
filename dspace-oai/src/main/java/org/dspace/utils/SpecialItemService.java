@@ -321,7 +321,7 @@ public class SpecialItemService {
      * @param mtd The metadata field string
      * @return The MetadataField object, or null if not found.
      */
-    private static MetadataField findMetadataField(Context context, String mtd){
+    private static MetadataField findMetadataField(Context context, String mtd) {
         MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
         try {
             return metadataFieldService.findByString(context, mtd, '.');
@@ -351,13 +351,14 @@ public class SpecialItemService {
     }
 
     /**
-     * Retrieves the embargo start date for the given item bitstreams. If an embargo has ended, the end date is returned.
+     * Retrieves the embargo start date for the given item bitstreams.
+     * If an embargo has ended, the end date is returned.
      *
      * @param context The DSpace context
      * @param item The item whose embargo date is to be retrieved.
      * @return The start or end date of the embargo, or null if no embargo exists.
      */
-    private static Date getEmbargoDate(Context context, Item item){
+    private static Date getEmbargoDate(Context context, Item item) {
         ResourcePolicyService resPolicyService = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
         Date startDate = null;
         for (Bundle bundle : item.getBundles()) {
