@@ -300,7 +300,15 @@ public class SpecialItemService {
         }
 
         // Retrieve the item using the handle
-        Item item = findItemByHandle(context, metadataField, identifierUri);
+        ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
+        Item item;
+        try {
+            List<Item> itemList = clarinItemService.findByHandle(context, metadataField, identifierUri);
+            item = itemList.isEmpty() ? null : itemList.get(0);
+        } catch (SQLException e) {
+            log.error("Error retrieving item by handle.", e);
+            return null;
+        }
         if (Objects.isNull(item)) {
             log.error(String.format("Item for handle %s doesn't exist!", identifierUri));
             return null;
@@ -327,25 +335,6 @@ public class SpecialItemService {
             return metadataFieldService.findByString(context, mtd, '.');
         } catch (SQLException e) {
             log.error(String.format("Error finding metadata field %s.", mtd), e);
-            return null;
-        }
-    }
-
-    /**
-     * Finds an item in DSpace using the provided handle and metadata field.
-     *
-     * @param context The DSpace context
-     * @param metadataField The metadata field used for item search
-     * @param handle The handle (identifier) of the item.
-     * @return The Item object, or null if no item is found.
-     */
-    private static Item findItemByHandle(Context context, MetadataField metadataField, String handle) {
-        ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
-        try {
-            List<Item> itemList = clarinItemService.findByHandle(context, metadataField, handle);
-            return (itemList.isEmpty()) ? null : itemList.get(0);
-        } catch (SQLException e) {
-            log.error("Error retrieving item by handle.", e);
             return null;
         }
     }
