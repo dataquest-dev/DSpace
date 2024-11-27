@@ -49,7 +49,6 @@ public class ClarinUserMetadataBuilder extends AbstractBuilder<ClarinUserMetadat
         if (Objects.isNull(id)) {
             return;
         }
-
         try (Context c = new Context()) {
             c.turnOffAuthorisationSystem();
             ClarinUserMetadata clarinUserMetadata = clarinUserMetadataService.find(c, id);
@@ -57,31 +56,7 @@ public class ClarinUserMetadataBuilder extends AbstractBuilder<ClarinUserMetadat
             if (clarinUserMetadata != null) {
                 clarinUserMetadataService.delete(c, clarinUserMetadata);
             }
-            c.restoreAuthSystemState();
             c.complete();
-        }
-    }
-
-    public static void deleteClarinUserMetadata(ClarinUserRegistration registration) throws Exception {
-        if (Objects.isNull(registration)) {
-            return;
-        }
-
-        try (Context c = new Context()) {
-            c.turnOffAuthorisationSystem();
-            registration = c.reloadEntity(registration);
-            for (ClarinUserMetadata metadata : registration.getUserMetadata()) {
-                Integer id = metadata.getID();
-                ClarinUserMetadata clarinUserMetadata = clarinUserMetadataService.find(c, id);
-
-                if (clarinUserMetadata != null) {
-                    clarinUserMetadataService.delete(c, clarinUserMetadata);
-                }
-            }
-            c.restoreAuthSystemState();
-            c.complete();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 

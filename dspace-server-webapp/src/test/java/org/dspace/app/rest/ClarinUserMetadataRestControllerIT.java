@@ -342,7 +342,6 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
-
         ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration.getID());
     }
 

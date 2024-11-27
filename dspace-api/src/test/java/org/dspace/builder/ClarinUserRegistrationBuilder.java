@@ -77,7 +77,6 @@ public class ClarinUserRegistrationBuilder extends AbstractBuilder<ClarinUserReg
                 }
             }
             delete(c, clarinUserRegistration);
-            c.restoreAuthSystemState();
             c.complete();
             indexingService.commit();
         }
