@@ -366,8 +366,8 @@ public class SpecialItemService {
                 try {
                     resPolList = resPolicyService.find(context, bitstream, Constants.READ);
                 } catch (SQLException e) {
-                    log.error(String.format("Error during finding resource policies READ for bitstream %s"),
-                            bitstream.getID());
+                    log.error(String.format("Error during finding resource policies READ for bitstream %s",
+                            bitstream.getID().toString()));
                     return null;
                 }
                 for (ResourcePolicy resPol : resPolList) {
