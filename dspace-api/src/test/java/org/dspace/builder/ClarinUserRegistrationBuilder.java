@@ -58,6 +58,7 @@ public class ClarinUserRegistrationBuilder extends AbstractBuilder<ClarinUserReg
             if (clarinUserRegistration != null) {
                 clarinUserRegistrationService.delete(c, clarinUserRegistration);
             }
+            c.restoreAuthSystemState();
             c.complete();
         }
     }

@@ -36,7 +36,6 @@ import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.builder.ClarinLicenseLabelBuilder;
-import org.dspace.builder.ClarinUserMetadataBuilder;
 import org.dspace.builder.ClarinUserRegistrationBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -317,7 +316,7 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
                 ClarinLicenseBuilder.deleteClarinLicense(idRef.get());
             }
         }
-        ClarinUserMetadataBuilder.deleteClarinUserMetadata(clarinUserRegistration);
+        ClarinUserRegistrationBuilder.deleteClarinUserRegistration(clarinUserRegistration.getID());
     }
 
     // Edit
