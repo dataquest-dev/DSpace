@@ -64,6 +64,7 @@ import org.xml.sax.InputSource;
  */
 public class SpecialItemService {
     private SpecialItemService() {}
+    private static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     /** log4j logger */
     private static final org.apache.logging.log4j.Logger log = org.apache.logging.log4j
             .LogManager.getLogger(SpecialItemService.class);
@@ -410,30 +411,28 @@ public class SpecialItemService {
     }
 
     /**
-     * Converts date object to string formatted in the pattern yyyy-MM-dd'T'HH:mm:ss'Z'.
+     * Converts date object to string formatted in the pattern.
      *
      * @param date The date
      * @return A string representation of the provided date
      */
     private static String parseDateToString(Date date) {
-        String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+        SimpleDateFormat dateFormat = new SimpleDateFormat(FORMAT);
         return dateFormat.format(date);
     }
 
     /**
-     * Parses a date string in the format "yyyy-MM-dd'T'HH:mm:ss'Z'" into a Date object.
+     * Parses a date string in the format into a Date object.
      *
-     * @param dateString The date string to be parsed.
+     * @param dateString date string to be parsed.
      * @return A Date object representing the parsed date, or null if parsing fails.
      */
     private static Date parseStringToDate(String dateString) {
-        String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+        SimpleDateFormat dateFormat = new SimpleDateFormat(FORMAT);
         try {
             return dateFormat.parse(dateString);
         } catch (ParseException e) {
-            log.warn(String.format("Date %s cannot be parsed using the format %s.", dateString, format));
+            log.warn(String.format("Date %s cannot be parsed using the format %s.", dateString, FORMAT));
             return null;
         }
     }
