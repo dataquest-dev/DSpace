@@ -14,6 +14,9 @@ import java.io.Reader;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -319,7 +322,7 @@ public class SpecialItemService {
         if (Objects.isNull(startDate)) {
             startDate = getAvailableDate(context, item);
         }
-        return (Objects.nonNull(startDate)) ? startDate.toString() : null;
+        return (Objects.nonNull(startDate)) ? parseDateToString(startDate) : null;
     }
 
     /**
@@ -396,7 +399,7 @@ public class SpecialItemService {
         Date startDate = null;
         for (MetadataValue mtd : metadataValueList) {
             if (mtd.getMetadataField().getID() == fieldID) {
-                Date availableDate = parseDate(mtd.getValue());
+                Date availableDate = parseStringToDate(mtd.getValue());
                 if (Objects.isNull(startDate) || (Objects.nonNull(availableDate)
                         && availableDate.compareTo(startDate) > 0)) {
                     startDate = availableDate;
@@ -407,17 +410,28 @@ public class SpecialItemService {
     }
 
     /**
-     * Parses a date string in the format "yyyy-MM-dd" into a Date object.
+     * Converts date object to string formatted in the pattern yyyy-MM-dd'T'HH:mm:ss'Z'.
+     *
+     * @param date The date
+     * @return A string representation of the provided date
+     */
+    private static String parseDateToString(Date date) {
+        String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+        return dateFormat.format(date);
+    }
+
+    /**
+     * Parses a date string in the format "yyyy-MM-dd'T'HH:mm:ss'Z'" into a Date object.
      *
      * @param dateString The date string to be parsed.
      * @return A Date object representing the parsed date, or null if parsing fails.
      */
-    private static Date parseDate(String dateString) {
-        String format = "yyyy-MM-dd";
-        SimpleDateFormat dateFormat = new SimpleDateFormat(format); // Example format
-        dateFormat.setLenient(false); // Set lenient to false to avoid parsing incorrect dates
+    private static Date parseStringToDate(String dateString) {
+        String format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
         try {
-            return dateFormat.parse(dateString); // Attempt to parse the date
+            return dateFormat.parse(dateString);
         } catch (ParseException e) {
             log.warn(String.format("Date %s cannot be parsed using the format %s.", dateString, format));
             return null;
