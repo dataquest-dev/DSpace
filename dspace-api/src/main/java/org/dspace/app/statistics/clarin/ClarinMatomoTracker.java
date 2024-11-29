@@ -177,8 +177,7 @@ public class ClarinMatomoTracker {
             for (String candidateIp : ips) {
                 // Validate if it's an IPv4 address
                 if (isIPv4Address(candidateIp)) {
-                    ip = candidateIp;
-                    break;
+                    return candidateIp;
                 }
             }
         }
