@@ -167,7 +167,6 @@ public class ClarinMatomoTracker {
      * @return only the first valid IPv4 address
      */
     protected String getIpAddress(HttpServletRequest request) {
-        String ip = "";
         String header = request.getHeader("X-Forwarded-For");
         if (header == null) {
             header = request.getRemoteAddr();
@@ -181,7 +180,7 @@ public class ClarinMatomoTracker {
                 }
             }
         }
-        return ip;
+        return null;
     }
 
     private boolean isIPv4Address(String ip) {
