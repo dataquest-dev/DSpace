@@ -28,8 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.ws.rs.core.MediaType;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.RemoveOperation;
@@ -76,8 +74,6 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
 
     private Collection  collection;
     private Item item;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private JsonNode suite;
 
     @Before
     @Override
@@ -92,7 +88,6 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                 .withTitle("Public item 1")
                 .build();
         context.restoreAuthSystemState();
-        suite = objectMapper.readTree(getClass().getResourceAsStream("provenance-test.json"));
     }
 
     @After
@@ -128,21 +123,20 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
         return rspModifiedProvenance;
     }
 
-    private void objectCheck(DSpaceObject obj, String respKey) {
-        String expectedSubStr = suite.get(respKey).asText();
+    private void objectCheck(DSpaceObject obj, String expectedMessage) throws Exception {
         List<MetadataValue> metadata = obj.getMetadata();
         boolean contain = false;
         for (MetadataValue value : metadata) {
             if (!Objects.equals(value.getMetadataField().toString(), "dc_description_provenance")) {
                 continue;
             }
-            if (provenanceMetadataModified(value.getValue()).contains(expectedSubStr)) {
+            if (provenanceMetadataModified(value.getValue()).contains(expectedMessage)) {
                 contain = true;
                 break;
             }
         }
         if (!contain) {
-            Assert.fail("Metadata provenance do not contain expected data: " + expectedSubStr);
+            Assert.fail("Metadata provenance do not contain expected data: " + expectedMessage);
         }
     }
 
@@ -252,7 +246,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
                         .param("licenseID", clarinLicense2.getID().toString()))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "updateLicense");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.UPDATE_LICENSE.getTemplate());
 
         deleteBitstream(bitstream);
         deleteClarinLicense(clarinLicense1);
@@ -268,7 +262,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
                         .param("licenseID", clarinLicense.getID().toString()))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "addLicense");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.ADD_LICENSE.getTemplate());
 
         deleteClarinLicense(clarinLicense);
     }
@@ -283,7 +277,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(put("/api/core/items/" + item.getID() + "/bundles")
                         .param("licenseID", "-1"))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "removeLicense");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.REMOVE_LICENSE.getTemplate());
 
         deleteBitstream(bitstream);
         deleteClarinLicense(clarinLicense);
@@ -306,7 +300,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                 .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
                 .andExpect(jsonPath("$.discoverable", Matchers.is(true)));
 
-        objectCheck(itemService.find(context, item.getID()), "discoverable");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.DISCOVERABLE.getTemplate());
     }
 
     @Test
@@ -323,7 +317,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        objectCheck(itemService.find(context, item.getID()), "nonDiscoverable");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.NON_DISCOVERABLE.getTemplate());
     }
 
     @Test
@@ -338,7 +332,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                                 "https://localhost:8080/spring-rest/api/core/collections/" + coll.getID() + "\n"
                         )
         );
-        objectCheck(itemService.find(context, item.getID()), "mappedCol");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.MAPPED_COL.getTemplate());
 
         deleteCollection(coll.getID());
     }
@@ -355,7 +349,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        objectCheck(itemService.find(context, item.getID()), "addItemMtd");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.ADD_ITEM_MTD.getTemplate());
     }
 
     @Test
@@ -371,7 +365,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        objectCheck(itemService.find(context, item.getID()), "replaceItemMtd");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.REPLACE_ITEM_MTD.getTemplate());
     }
 
     @Test
@@ -387,7 +381,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
 
-        objectCheck(itemService.find(context, item.getID()), "removeItemMtd");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.REMOVE_ITEM_MTD.getTemplate());
     }
 
     @Test
@@ -403,7 +397,8 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
+        objectCheck(itemService.find(context, item.getID()),
+                ProvenanceExpectedMessages.REMOVE_BITSTREAM_MTD.getTemplate());
 
         deleteBitstream(bitstream);
     }
@@ -421,7 +416,8 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "removeBitstreamMtd");
+        objectCheck(itemService.find(context, item.getID()),
+                ProvenanceExpectedMessages.REMOVE_BITSTREAM_MTD.getTemplate());
     }
 
     @Test
@@ -439,7 +435,8 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "replaceBitstreamMtd");
+        objectCheck(itemService.find(context, item.getID()),
+                ProvenanceExpectedMessages.REPLACE_BITSTREAM_MTD.getTemplate());
 
         deleteBitstream(bitstream);
     }
@@ -456,7 +453,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
         getClient(adminToken).perform(patch("/api/core/bitstreams")
                         .content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON));
-        objectCheck(itemService.find(context, item.getID()), "removeBitstream");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.REMOVE_BITSTREAM.getTemplate());
 
         deleteBitstream(bitstream);
     }
@@ -476,7 +473,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                 .perform(MockMvcRequestBuilders.multipart("/api/core/bundles/" + bundle.getID() + "/bitstreams")
                         .file(file))
                 .andExpect(status().isCreated());
-        objectCheck(itemService.find(context, item.getID()), "addBitstream");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.ADD_BITSTREAM.getTemplate());
 
         deleteBundle(bundle.getID());
     }
@@ -493,7 +490,7 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
                                 "https://localhost:8080/spring-rest/api/core/collections/" + col.getID()
                         ))
                 .andExpect(status().isOk());
-        objectCheck(itemService.find(context, item.getID()), "movedItemCol");
+        objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.MOVED_ITEM_COL.getTemplate());
 
         deleteCollection(col.getID());
     }

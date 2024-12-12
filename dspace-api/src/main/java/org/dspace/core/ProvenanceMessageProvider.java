@@ -7,14 +7,10 @@
  */
 package org.dspace.core;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
@@ -36,51 +32,28 @@ import org.slf4j.LoggerFactory;
  * @author Michaela Paurikova (dspace at dataquest.sk)
  */
 public class ProvenanceMessageProvider {
-    private static final String PROVENANCE_MSG_JSON = "provenance_messages.json";
-    private static final Logger log = LoggerFactory.getLogger(ProvenanceMessageProvider.class);
-    private Map<String, String> messageTemplates;
     private InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
 
-    public ProvenanceMessageProvider() {
-        loadMessageTemplates();
-    }
+    public ProvenanceMessageProvider() {}
 
-    private void loadMessageTemplates() {
-        ObjectMapper mapper = new ObjectMapper();
-        String msg;
-        try (InputStream inputStream = getClass().getResourceAsStream(PROVENANCE_MSG_JSON)) {
-            if (inputStream == null) {
-                msg = "Failed to find message templates file.";
-                log.error(msg);
-                throw new RuntimeException(msg);
-            }
-            messageTemplates = mapper.readValue(inputStream, Map.class);
-        } catch (IOException e) {
-            msg = "Failed to load message templates.";
-            log.error(msg);
-            throw new RuntimeException(msg, e);
-        }
-    }
-
-    public String getMessage(Context context, String templateKey, Item item, Object... args)
+    public String getMessage(Context context, String messageTemplate, Item item, Object... args)
             throws SQLException, AuthorizeException {
-        String msg = getMessage(context, templateKey, args);
+        String msg = getMessage(context, messageTemplate, args);
         msg = msg + "\n" + installItemService.getBitstreamProvenanceMessage(context, item);
         return msg;
     }
 
-    public String getMessage(String templateKey, Object... args) {
-        String template = messageTemplates.get(templateKey);
-        if (template == null) {
-            throw new IllegalArgumentException("No message template found for key: " + templateKey);
+    public String validateMessageTemplate(String messageTemplate, Object... args) {
+        if (messageTemplate == null) {
+            throw new IllegalArgumentException("The message template is null!");
         }
-        return String.format(template, args);
+        return String.format(messageTemplate, args);
     }
 
-    public String getMessage(Context context, String templateKey, Object... args) {
+    public String getMessage(Context context, String messageTemplate, Object... args) {
         EPerson currentUser = context.getCurrentUser();
         String timestamp = DCDate.getCurrent().toString();
-        String details = getMessage(templateKey, args);
+        String details = validateMessageTemplate(messageTemplate, args);
         return String.format("%s by %s (%s) on %s",
                 details,
                 currentUser.getFullName(),
