@@ -107,11 +107,10 @@ public class ProvenanceProvider {
         }
     }
 
-    public String removedReadPolicies(Context context, DSpaceObject dso, String type)
+    public void removeReadPolicies(Context context, DSpaceObject dso, List<ResourcePolicy> resPolicies)
             throws SQLException, AuthorizeException {
-        List<ResourcePolicy> resPolicies = resourcePolicyService.find(context, dso, type);
         if (resPolicies.isEmpty()) {
-            return null;
+            return;
         }
         String resPoliciesStr = messageProvider.getResourcePoliciesMessage(resPolicies);
         if (dso.getType() == Constants.ITEM) {
@@ -128,7 +127,6 @@ public class ProvenanceProvider {
                 addProvenanceMetadata(context, item, msg);
             }
         }
-        return resPoliciesStr;
     }
 
     public void setBitstreamPolicies(Context context, Bitstream bitstream, Item item,
