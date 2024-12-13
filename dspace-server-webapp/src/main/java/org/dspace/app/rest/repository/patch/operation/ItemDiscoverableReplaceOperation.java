@@ -7,16 +7,15 @@
  */
 package org.dspace.app.rest.repository.patch.operation;
 
-import java.sql.SQLException;
-
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,6 +36,9 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
     private static final String OPERATION_PATH_DISCOVERABLE = "/discoverable";
     private static final Logger log = LoggerFactory.getLogger(ItemDiscoverableReplaceOperation.class);
 
+    @Autowired
+    ProvenanceService provenanceService;
+
     @Override
     public R perform(Context context, R object, Operation operation) {
         checkOperationValue(operation.getValue());
@@ -47,7 +49,7 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
                 throw new UnprocessableEntityException("A template item cannot be discoverable.");
             }
             item.setDiscoverable(discoverable);
-            provenanceProvider.makeDiscoverable(context, item, discoverable);
+            provenanceService.makeDiscoverable(context, item, discoverable);
             return object;
         } else {
             throw new DSpaceBadRequestException("ItemDiscoverableReplaceOperation does not support this operation");

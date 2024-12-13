@@ -29,10 +29,10 @@ import org.dspace.eperson.EPerson;
  *
  * @author Michaela Paurikova (dspace at dataquest.sk)
  */
-public class ProvenanceMessageProvider {
+public class ProvenanceMessageFormatter {
     private InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
 
-    public ProvenanceMessageProvider() {}
+    public ProvenanceMessageFormatter() {}
 
     public String getMessage(Context context, String messageTemplate, Item item, Object... args)
             throws SQLException, AuthorizeException {

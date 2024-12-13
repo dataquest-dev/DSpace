@@ -14,7 +14,6 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Operation;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
@@ -22,6 +21,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +44,8 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
     private static final Logger log = LoggerFactory.getLogger(DSpaceObjectMetadataReplaceOperation.class);
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;
+    @Autowired
+    ProvenanceService provenanceService;
 
     @Override
     public R perform(Context context, R resource, Operation operation) throws SQLException {
@@ -168,7 +170,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                 existingMdv.setLanguage(metadataValue.getLanguage());
                 existingMdv.setValue(metadataValue.getValue());
                 dsoService.setMetadataModified(dso);
-                provenanceProvider.replaceMetadata(context, dso, metadataField, oldMtdVal);
+                provenanceService.replaceMetadata(context, dso, metadataField, oldMtdVal);
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
             }
@@ -213,7 +215,7 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                     existingMdv.setValue(valueMdProperty);
                 }
                 dsoService.setMetadataModified(dso);
-                provenanceProvider.replaceMetadataSingle(context, dso, metadataField, oldMtdVal);
+                provenanceService.replaceMetadataSingle(context, dso, metadataField, oldMtdVal);
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
             }

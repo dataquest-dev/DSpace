@@ -7,6 +7,11 @@
  */
 package org.dspace.core;
 
+/**
+ * The ProvenanceMessageTemplates enum provides message templates for provenance messages.
+ *
+ * @author Michaela Paurikova (dspace at dataquest.sk)
+ */
 public enum ProvenanceMessageTemplates {
     ACCESS_CONDITION("Access condition (%s) was added to %s (%s)"),
     RESOURCE_POLICIES_REMOVED("Resource policies (%s) of %s (%s) were removed"),

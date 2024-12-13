@@ -14,7 +14,6 @@ import java.util.List;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
@@ -22,6 +21,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +47,8 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
     private static final Logger log = LoggerFactory.getLogger(DSpaceObjectMetadataRemoveOperation.class);
     @Autowired
     DSpaceObjectMetadataPatchUtils metadataPatchUtils;
+    @Autowired
+    ProvenanceService provenanceService;
 
     @Override
     public R perform(Context context, R resource, Operation operation) throws SQLException {
@@ -76,7 +78,7 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                 // remove all metadata of this type
                 dsoService.clearMetadata(context, dso, metadataField.getMetadataSchema().getName(),
                         metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
-                provenanceProvider.removeMetadata(context, dso, metadataField);
+                provenanceService.removeMetadata(context, dso, metadataField);
             } else {
                 // remove metadata at index
                 List<MetadataValue> metadataValues = dsoService.getMetadata(dso,
@@ -88,7 +90,7 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                     // remove that metadata
                     dsoService.removeMetadataValues(context, dso,
                             Arrays.asList(metadataValues.get(indexInt)));
-                    provenanceProvider.removeMetadataAtIndex(context, dso, metadataValues, indexInt);
+                    provenanceService.removeMetadataAtIndex(context, dso, metadataValues, indexInt);
                 } else {
                     throw new UnprocessableEntityException("UnprocessableEntityException - There is no metadata of " +
                             "this type at that index");

@@ -20,8 +20,6 @@ import org.dspace.app.bulkaccesscontrol.model.AccessCondition;
 import org.dspace.app.bulkaccesscontrol.model.BulkAccessControlInput;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
-import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
@@ -31,36 +29,41 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
-import org.dspace.content.factory.ClarinServiceFactory;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * ProvenanceProviderrest is responsible for creating provenance metadata for items based on the actions performed.
+ * ProvenanceServiceImpl is an implementation of ProvenanceService.
  *
  * @author Michaela Paurikova (dspace at dataquest.sk)
  */
-public class ProvenanceProvider {
-    private static final Logger log = LogManager.getLogger(ProvenanceProvider.class);
+public class ProvenanceServiceImpl implements ProvenanceService {
+    private static final Logger log = LogManager.getLogger(ProvenanceServiceImpl.class);
 
-    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    private ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
-    private ClarinLicenseResourceMappingService clarinResourceMappingService =
-            ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
-    private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+    @Autowired
+    private ItemService itemService;
+    @Autowired
+    private ClarinItemService clarinItemService;
+    @Autowired
+    private ClarinLicenseResourceMappingService clarinResourceMappingService;
+    @Autowired
+    private BitstreamService bitstreamService;
 
-    private final ProvenanceMessageProvider messageProvider = new ProvenanceMessageProvider();
+    private final ProvenanceMessageFormatter messageProvider = new ProvenanceMessageFormatter();
 
-    public void setItemPolicies(Context context, Item item, BulkAccessControlInput accessControl)
-            throws SQLException, AuthorizeException {
+    public void setItemPolicies(Context context, Item item, BulkAccessControlInput accessControl) {
         String resPoliciesStr = extractAccessConditions(accessControl.getItem().getAccessConditions());
         if (StringUtils.isNotBlank(resPoliciesStr)) {
             String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ACCESS_CONDITION.getTemplate(),
                     resPoliciesStr, "item", item.getID());
-            addProvenanceMetadata(context, item, msg);
+            try {
+                addProvenanceMetadata(context, item, msg);
+            } catch (SQLException | AuthorizeException e) {
+                log.error("Unable to add new provenance metadata when setting item policies.", e);
+            }
         }
     }
 
@@ -114,8 +117,8 @@ public class ProvenanceProvider {
                 oldLicense = findLicenseInBundles(item, Constants.CONTENT_BUNDLE_NAME, oldLicense, context);
             }
 
-            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.EDIT_LICENSE.getTemplate(), item,
-                    Objects.isNull(oldLicense) ? "empty" : oldLicense,
+            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.EDIT_LICENSE.getTemplate(),
+                    item, Objects.isNull(oldLicense) ? "empty" : oldLicense,
                     !newLicense ? "removed" : Objects.isNull(oldLicense) ? "added" : "updated");
             addProvenanceMetadata(context, item, msg);
         } catch (SQLException | AuthorizeException e) {
@@ -160,12 +163,12 @@ public class ProvenanceProvider {
         }
     }
 
-    public void deleteBitstream(Context context,Bitstream bitstream) {
+    public void deleteBitstream(Context context, Bitstream bitstream, Item item) {
         try {
-            Item item = findItemByBitstream(context, bitstream);
             if (Objects.nonNull(item)) {
-                String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.EDIT_BITSTREAM.getTemplate(),
-                        item, item.getID(), messageProvider.getMessage(bitstream));
+                String msg = messageProvider.getMessage(context,
+                        ProvenanceMessageTemplates.EDIT_BITSTREAM.getTemplate(), item, item.getID(),
+                        messageProvider.getMessage(bitstream));
                 addProvenanceMetadata(context, item, msg);
             }
         } catch (SQLException | AuthorizeException e) {
@@ -315,8 +318,14 @@ public class ProvenanceProvider {
                 .collect(Collectors.joining(";"));
     }
 
-    private Item findItemByBitstream(Context context, Bitstream bitstream) throws SQLException {
-        List<Item> items = clarinItemService.findByBitstreamUUID(context, bitstream.getID());
+    public Item findItemByBitstream(Context context, Bitstream bitstream) {
+        List<Item> items = null;
+        try {
+            items = clarinItemService.findByBitstreamUUID(context, bitstream.getID());
+        } catch (SQLException e) {
+            log.error("Unable to find item by bitstream (" + bitstream.getID() + " ).", e);
+            return null;
+        }
         if (items.isEmpty()) {
             log.warn("Bitstream (" + bitstream.getID() + ") is not assigned to any item.");
             return null;

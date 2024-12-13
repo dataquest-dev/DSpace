@@ -56,7 +56,7 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.ProvenanceProvider;
+import org.dspace.core.ProvenanceServiceImpl;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
@@ -70,6 +70,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.model.AccessConditionOption;
 import org.dspace.utils.DSpace;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Implementation of {@link DSpaceRunnable} to perform a bulk access control via json file.
@@ -113,7 +114,8 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
     protected String eperson = null;
 
-    protected ProvenanceProvider provenanceProvider = new ProvenanceProvider();
+    @Autowired
+    protected ProvenanceServiceImpl provenanceService;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -469,7 +471,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
                 itemAccessConditions.get(accessCondition.getName())));
 
         itemService.adjustItemPolicies(context, item, item.getOwningCollection(), false);
-        provenanceProvider.setItemPolicies(context, item, accessControl);
+        provenanceService.setItemPolicies(context, item, accessControl);
     }
 
     /**
@@ -560,7 +562,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
             // Get all read policies of the dso before removing them
             List<ResourcePolicy> resPolicies = resourcePolicyService.find(context, dso, type);
             resourcePolicyService.removePolicies(context, dso, type, Constants.READ);
-            provenanceProvider.removeReadPolicies(context, dso, resPolicies);
+            provenanceService.removeReadPolicies(context, dso, resPolicies);
         } catch (SQLException | AuthorizeException e) {
             throw new BulkAccessControlException(e);
         }
@@ -588,7 +590,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
         itemService.adjustBitstreamPolicies(context, item, item.getOwningCollection(), bitstream);
         mediaFilterService.updatePoliciesOfDerivativeBitstreams(context, item, bitstream);
-        provenanceProvider.setBitstreamPolicies(context, bitstream, item, accessControl);
+        provenanceService.setBitstreamPolicies(context, bitstream, item, accessControl);
     }
 
     /**

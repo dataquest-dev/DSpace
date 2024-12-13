@@ -25,11 +25,9 @@ import org.dspace.app.rest.model.hateoas.BitstreamResource;
 import org.dspace.app.rest.repository.BundleRestRepository;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bundle;
 import org.dspace.content.service.BundleService;
 import org.dspace.core.Context;
-import org.dspace.core.ProvenanceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ControllerUtils;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -79,8 +77,6 @@ public class BundleUploadBitstreamController {
     @Autowired
     private ConverterService converter;
 
-    private ProvenanceProvider provenanceProvider = new ProvenanceProvider();
-
     /**
      * Method to upload a Bitstream to a Bundle with the given UUID in the URL. This will create a Bitstream with the
      * file provided in the request and attach this to the Item that matches the UUID in the URL.
@@ -117,7 +113,6 @@ public class BundleUploadBitstreamController {
         BitstreamRest bitstreamRest = bundleRestRepository.uploadBitstream(
                 context, bundle, uploadfile.getOriginalFilename(), fileInputStream, properties);
         BitstreamResource bitstreamResource = converter.toResource(bitstreamRest);
-        provenanceProvider.uploadBitstream(context, bundle);
 
         return ControllerUtils.toResponseEntity(HttpStatus.CREATED, new HttpHeaders(), bitstreamResource);
     }

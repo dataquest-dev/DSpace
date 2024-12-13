@@ -51,8 +51,6 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
-import org.dspace.content.factory.ClarinServiceFactory;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
@@ -63,14 +61,17 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
-    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    private ClarinLicenseLabelService clarinLicenseLabelService =
-            ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
-    private ClarinLicenseService clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
+public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
+    @Autowired
+    private ItemService itemService;
+    @Autowired
+    private ClarinLicenseLabelService clarinLicenseLabelService;
+    @Autowired
+    private ClarinLicenseService clarinLicenseService;
 
     private Collection  collection;
     private Item item;
@@ -108,131 +109,6 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
         collection = null;
         parentCommunity = null;
         super.destroy();
-    }
-
-    private String provenanceMetadataModified(String metadata) {
-        // Regex to match the date pattern
-        String datePattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
-        Pattern pattern = Pattern.compile(datePattern);
-        Matcher matcher = pattern.matcher(metadata);
-        String rspModifiedProvenance = metadata;
-        while (matcher.find()) {
-            String dateString = matcher.group(0);
-            rspModifiedProvenance = rspModifiedProvenance.replaceAll(dateString, "");
-        }
-        return rspModifiedProvenance;
-    }
-
-    private void objectCheck(DSpaceObject obj, String expectedMessage) throws Exception {
-        List<MetadataValue> metadata = obj.getMetadata();
-        boolean contain = false;
-        for (MetadataValue value : metadata) {
-            if (!Objects.equals(value.getMetadataField().toString(), "dc_description_provenance")) {
-                continue;
-            }
-            if (provenanceMetadataModified(value.getValue()).contains(expectedMessage)) {
-                contain = true;
-                break;
-            }
-        }
-        if (!contain) {
-            Assert.fail("Metadata provenance do not contain expected data: " + expectedMessage);
-        }
-    }
-
-    private Bundle createBundle(Item item, String bundleName) throws SQLException, AuthorizeException {
-        context.turnOffAuthorisationSystem();
-        Bundle bundle = BundleBuilder.createBundle(context, item).withName(bundleName).build();
-        context.restoreAuthSystemState();
-        return bundle;
-    }
-
-    private Bitstream createBitstream(Item item, String bundleName)
-            throws SQLException, AuthorizeException, IOException {
-        context.turnOffAuthorisationSystem();
-        Bundle bundle = createBundle(item, Objects.isNull(bundleName) ? "test" : bundleName);
-        Bitstream bitstream = BitstreamBuilder.createBitstream(context, bundle,
-                toInputStream("Test Content", defaultCharset())).build();
-        context.restoreAuthSystemState();
-        return bitstream;
-    }
-
-    private void deleteBitstream(Bitstream bitstream) throws SQLException, IOException {
-        int size = bitstream.getBundles().size();
-        for (int i = 0; i < size; i++) {
-            deleteBundle(bitstream.getBundles().get(i).getID());
-        }
-        BitstreamBuilder.deleteBitstream(bitstream.getID());
-    }
-
-
-    private void deleteBundle(UUID uuid) throws SQLException, IOException {
-        BundleBuilder.deleteBundle(uuid);
-    }
-
-    private ClarinLicenseLabel createClarinLicenseLabel(String label, boolean extended, String title)
-            throws SQLException, AuthorizeException {
-        context.turnOffAuthorisationSystem();
-        ClarinLicenseLabel clarinLicenseLabel = ClarinLicenseLabelBuilder.createClarinLicenseLabel(context).build();
-        clarinLicenseLabel.setLabel(label);
-        clarinLicenseLabel.setExtended(extended);
-        clarinLicenseLabel.setTitle(title);
-        clarinLicenseLabelService.update(context, clarinLicenseLabel);
-        context.restoreAuthSystemState();
-        return clarinLicenseLabel;
-    }
-
-    private ClarinLicense createClarinLicense(String name, String definition)
-            throws SQLException, AuthorizeException {
-        context.turnOffAuthorisationSystem();
-        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
-        clarinLicense.setDefinition(definition);
-        clarinLicense.setName(name);
-        HashSet<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
-        ClarinLicenseLabel clarinLicenseLabel = createClarinLicenseLabel("lbl", false, "Test Title");
-        clarinLicenseLabels.add(clarinLicenseLabel);
-        clarinLicense.setLicenseLabels(clarinLicenseLabels);
-        clarinLicenseService.update(context, clarinLicense);
-        context.restoreAuthSystemState();
-        return clarinLicense;
-    }
-
-    private void deleteClarinLicenseLable(Integer id) throws Exception {
-        ClarinLicenseLabelBuilder.deleteClarinLicenseLabel(id);
-    }
-
-    private void deleteClarinLicense(ClarinLicense license) throws Exception {
-        int size = license.getLicenseLabels().size();
-        for (int i = 0; i < size; i++) {
-            deleteClarinLicenseLable(license.getLicenseLabels().get(i).getID());
-        }
-        ClarinLicenseBuilder.deleteClarinLicense(license.getID());
-    }
-
-    private Collection createCollection() {
-        context.turnOffAuthorisationSystem();
-        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
-        context.restoreAuthSystemState();
-        return col;
-    }
-
-    private void deleteCollection(UUID uuid) throws SearchServiceException, SQLException, IOException {
-        CollectionBuilder.deleteCollection(uuid);
-    }
-
-    private ClarinLicenseResourceMapping createResourceMapping(ClarinLicense license, Bitstream bitstream)
-            throws SQLException, AuthorizeException {
-        context.turnOffAuthorisationSystem();
-        ClarinLicenseResourceMapping resourceMapping =
-                ClarinLicenseResourceMappingBuilder.createClarinLicenseResourceMapping(context).build();
-        context.restoreAuthSystemState();
-        resourceMapping.setLicense(license);
-        resourceMapping.setBitstream(bitstream);
-        return resourceMapping;
-    }
-
-    private void deleteResourceMapping(Integer id) throws Exception {
-        ClarinLicenseResourceMappingBuilder.delete(id);
     }
 
     @Test
@@ -493,5 +369,131 @@ public class ProvenanceProviderIT extends AbstractControllerIntegrationTest {
         objectCheck(itemService.find(context, item.getID()), ProvenanceExpectedMessages.MOVED_ITEM_COL.getTemplate());
 
         deleteCollection(col.getID());
+    }
+
+
+    private String provenanceMetadataModified(String metadata) {
+        // Regex to match the date pattern
+        String datePattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
+        Pattern pattern = Pattern.compile(datePattern);
+        Matcher matcher = pattern.matcher(metadata);
+        String rspModifiedProvenance = metadata;
+        while (matcher.find()) {
+            String dateString = matcher.group(0);
+            rspModifiedProvenance = rspModifiedProvenance.replaceAll(dateString, "");
+        }
+        return rspModifiedProvenance;
+    }
+
+    private void objectCheck(DSpaceObject obj, String expectedMessage) throws Exception {
+        List<MetadataValue> metadata = obj.getMetadata();
+        boolean contain = false;
+        for (MetadataValue value : metadata) {
+            if (!Objects.equals(value.getMetadataField().toString(), "dc_description_provenance")) {
+                continue;
+            }
+            if (provenanceMetadataModified(value.getValue()).contains(expectedMessage)) {
+                contain = true;
+                break;
+            }
+        }
+        if (!contain) {
+            Assert.fail("Metadata provenance do not contain expected data: " + expectedMessage);
+        }
+    }
+
+    private Bundle createBundle(Item item, String bundleName) throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        Bundle bundle = BundleBuilder.createBundle(context, item).withName(bundleName).build();
+        context.restoreAuthSystemState();
+        return bundle;
+    }
+
+    private Bitstream createBitstream(Item item, String bundleName)
+            throws SQLException, AuthorizeException, IOException {
+        context.turnOffAuthorisationSystem();
+        Bundle bundle = createBundle(item, Objects.isNull(bundleName) ? "test" : bundleName);
+        Bitstream bitstream = BitstreamBuilder.createBitstream(context, bundle,
+                toInputStream("Test Content", defaultCharset())).build();
+        context.restoreAuthSystemState();
+        return bitstream;
+    }
+
+    private void deleteBitstream(Bitstream bitstream) throws SQLException, IOException {
+        int size = bitstream.getBundles().size();
+        for (int i = 0; i < size; i++) {
+            deleteBundle(bitstream.getBundles().get(i).getID());
+        }
+        BitstreamBuilder.deleteBitstream(bitstream.getID());
+    }
+
+
+    private void deleteBundle(UUID uuid) throws SQLException, IOException {
+        BundleBuilder.deleteBundle(uuid);
+    }
+
+    private ClarinLicenseLabel createClarinLicenseLabel(String label, boolean extended, String title)
+            throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        ClarinLicenseLabel clarinLicenseLabel = ClarinLicenseLabelBuilder.createClarinLicenseLabel(context).build();
+        clarinLicenseLabel.setLabel(label);
+        clarinLicenseLabel.setExtended(extended);
+        clarinLicenseLabel.setTitle(title);
+        clarinLicenseLabelService.update(context, clarinLicenseLabel);
+        context.restoreAuthSystemState();
+        return clarinLicenseLabel;
+    }
+
+    private ClarinLicense createClarinLicense(String name, String definition)
+            throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
+        clarinLicense.setDefinition(definition);
+        clarinLicense.setName(name);
+        HashSet<ClarinLicenseLabel> clarinLicenseLabels = new HashSet<>();
+        ClarinLicenseLabel clarinLicenseLabel = createClarinLicenseLabel("lbl", false, "Test Title");
+        clarinLicenseLabels.add(clarinLicenseLabel);
+        clarinLicense.setLicenseLabels(clarinLicenseLabels);
+        clarinLicenseService.update(context, clarinLicense);
+        context.restoreAuthSystemState();
+        return clarinLicense;
+    }
+
+    private void deleteClarinLicenseLable(Integer id) throws Exception {
+        ClarinLicenseLabelBuilder.deleteClarinLicenseLabel(id);
+    }
+
+    private void deleteClarinLicense(ClarinLicense license) throws Exception {
+        int size = license.getLicenseLabels().size();
+        for (int i = 0; i < size; i++) {
+            deleteClarinLicenseLable(license.getLicenseLabels().get(i).getID());
+        }
+        ClarinLicenseBuilder.deleteClarinLicense(license.getID());
+    }
+
+    private Collection createCollection() {
+        context.turnOffAuthorisationSystem();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+        context.restoreAuthSystemState();
+        return col;
+    }
+
+    private void deleteCollection(UUID uuid) throws SearchServiceException, SQLException, IOException {
+        CollectionBuilder.deleteCollection(uuid);
+    }
+
+    private ClarinLicenseResourceMapping createResourceMapping(ClarinLicense license, Bitstream bitstream)
+            throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        ClarinLicenseResourceMapping resourceMapping =
+                ClarinLicenseResourceMappingBuilder.createClarinLicenseResourceMapping(context).build();
+        context.restoreAuthSystemState();
+        resourceMapping.setLicense(license);
+        resourceMapping.setBitstream(bitstream);
+        return resourceMapping;
+    }
+
+    private void deleteResourceMapping(Integer id) throws Exception {
+        ClarinLicenseResourceMappingBuilder.delete(id);
     }
 }
