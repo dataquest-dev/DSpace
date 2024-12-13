@@ -169,22 +169,11 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
                 existingMdv.setValue(metadataValue.getValue());
                 dsoService.setMetadataModified(dso);
                 provenanceProvider.replaceMetadata(context, dso, metadataField, oldMtdVal);
-
             } else {
                 throw new UnprocessableEntityException("There is no metadata of this type at that index");
             }
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("This index (" + index + ") is not valid number.", e);
-        } catch (SQLException e) {
-            msg = "SQLException in DspaceObjectMetadataReplaceOperation.replaceSingleMetadataValue " +
-                    "trying to replace metadata from dso.";
-            log.error(msg, e);
-            throw new DSpaceBadRequestException(msg, e);
-        } catch (AuthorizeException e) {
-            msg = "AuthorizeException in DspaceObjectMetadataReplaceOperation.replaceSingleMetadataValue " +
-                    "trying to replace metadata from dso.";
-            log.error(msg, e);
-            throw new DSpaceBadRequestException(msg, e);
         }
     }
 
@@ -231,16 +220,6 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Not all numbers are valid numbers. " +
                     "(Index and confidence should be nr)", e);
-        } catch (SQLException e) {
-            msg = "SQLException in DspaceObjectMetadataReplaceOperation.replaceSinglePropertyOfMdValue " +
-                    "trying to replace metadata from dso.";
-            log.error(msg, e);
-            throw new DSpaceBadRequestException(msg, e);
-        } catch (AuthorizeException e) {
-            msg = "AuthorizeException in DspaceObjectMetadataReplaceOperation.replaceSinglePropertyOfMdValue " +
-                    "trying to replace metadata from dso.";
-            log.error(msg, e);
-            throw new DSpaceBadRequestException(msg, e);
         }
     }
 

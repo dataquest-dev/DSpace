@@ -73,10 +73,10 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
         String msg;
         try {
             if (index == null) {
-                provenanceProvider.removeMetadata(context, dso, metadataField);
                 // remove all metadata of this type
                 dsoService.clearMetadata(context, dso, metadataField.getMetadataSchema().getName(),
                         metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
+                provenanceProvider.removeMetadata(context, dso, metadataField);
             } else {
                 // remove metadata at index
                 List<MetadataValue> metadataValues = dsoService.getMetadata(dso,
@@ -85,10 +85,10 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                 int indexInt = Integer.parseInt(index);
                 if (indexInt >= 0 && metadataValues.size() > indexInt
                         && metadataValues.get(indexInt) != null) {
-                    provenanceProvider.removeMetadataAtIndex(context, dso, metadataValues, indexInt);
                     // remove that metadata
                     dsoService.removeMetadataValues(context, dso,
                             Arrays.asList(metadataValues.get(indexInt)));
+                    provenanceProvider.removeMetadataAtIndex(context, dso, metadataValues, indexInt);
                 } else {
                     throw new UnprocessableEntityException("UnprocessableEntityException - There is no metadata of " +
                             "this type at that index");
@@ -101,11 +101,6 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
         } catch (SQLException ex) {
             msg = "SQLException in DspaceObjectMetadataRemoveOperation.remove " +
                     "trying to remove metadata from dso.";
-            log.error(msg, ex);
-            throw new DSpaceBadRequestException(msg, ex);
-        } catch (AuthorizeException ex) {
-            msg = "AuthorizeException in DspaceObjectMetadataRemoveOperation.remove " +
-                    "trying to replace metadata from dso.";
             log.error(msg, ex);
             throw new DSpaceBadRequestException(msg, ex);
         }

@@ -47,20 +47,7 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
                 throw new UnprocessableEntityException("A template item cannot be discoverable.");
             }
             item.setDiscoverable(discoverable);
-            String msg;
-            try {
-                provenanceProvider.makeDiscoverable(context, item, discoverable);
-            } catch (SQLException ex) {
-                msg = "SQLException occurred when item making " + (discoverable ? "" : "non-")
-                        + "discoverable.";
-                log.error(msg, ex);
-                throw new RuntimeException(msg, ex);
-            } catch (AuthorizeException ex) {
-                msg = "AuthorizeException occurred when item making "
-                        + (discoverable ? "" : "non-") + "discoverable.";
-                log.error(msg, ex);
-                throw new RuntimeException(msg, ex);
-            }
+            provenanceProvider.makeDiscoverable(context, item, discoverable);
             return object;
         } else {
             throw new DSpaceBadRequestException("ItemDiscoverableReplaceOperation does not support this operation");

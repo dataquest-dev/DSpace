@@ -54,8 +54,8 @@ public class BitstreamRemoveOperation extends PatchOperation<Bitstream> {
         }
         authorizeBitstreamRemoveAction(context, bitstreamToDelete, Constants.DELETE);
         try {
-            provenanceProvider.deleteBitstream(context, bitstreamToDelete);
             bitstreamService.delete(context, bitstreamToDelete);
+            provenanceProvider.deleteBitstream(context, bitstreamToDelete);
         } catch (AuthorizeException | IOException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

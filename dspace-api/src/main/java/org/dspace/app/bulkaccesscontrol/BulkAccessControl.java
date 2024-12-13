@@ -469,7 +469,6 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
                 itemAccessConditions.get(accessCondition.getName())));
 
         itemService.adjustItemPolicies(context, item, item.getOwningCollection(), false);
-
         provenanceProvider.setItemPolicies(context, item, accessControl);
     }
 

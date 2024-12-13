@@ -47,15 +47,260 @@ public class ProvenanceProvider {
     private static final Logger log = LogManager.getLogger(ProvenanceProvider.class);
 
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    private ResourcePolicyService resourcePolicyService =
-            AuthorizeServiceFactory.getInstance().getResourcePolicyService();
-
     private ClarinItemService clarinItemService = ClarinServiceFactory.getInstance().getClarinItemService();
     private ClarinLicenseResourceMappingService clarinResourceMappingService =
             ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
 
     private final ProvenanceMessageProvider messageProvider = new ProvenanceMessageProvider();
+
+    public void setItemPolicies(Context context, Item item, BulkAccessControlInput accessControl)
+            throws SQLException, AuthorizeException {
+        String resPoliciesStr = extractAccessConditions(accessControl.getItem().getAccessConditions());
+        if (StringUtils.isNotBlank(resPoliciesStr)) {
+            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ACCESS_CONDITION.getTemplate(),
+                    resPoliciesStr, "item", item.getID());
+            addProvenanceMetadata(context, item, msg);
+        }
+    }
+
+    public void removeReadPolicies(Context context, DSpaceObject dso, List<ResourcePolicy> resPolicies) {
+        if (resPolicies.isEmpty()) {
+            return;
+        }
+        String resPoliciesStr = messageProvider.getMessage(resPolicies);
+        try {
+            if (dso.getType() == Constants.ITEM) {
+                Item item = (Item) dso;
+                String msg = messageProvider.getMessage(context,
+                        ProvenanceMessageTemplates.RESOURCE_POLICIES_REMOVED.getTemplate(),
+                        resPoliciesStr.isEmpty() ? "empty" : resPoliciesStr, "item", item.getID());
+                addProvenanceMetadata(context, item, msg);
+            } else if (dso.getType() == Constants.BITSTREAM) {
+                Bitstream bitstream = (Bitstream) dso;
+                Item item = findItemByBitstream(context, bitstream);
+                if (Objects.nonNull(item)) {
+                    String msg = messageProvider.getMessage(context,
+                            ProvenanceMessageTemplates.RESOURCE_POLICIES_REMOVED.getTemplate(),
+                            resPoliciesStr.isEmpty() ? "empty" : resPoliciesStr, "bitstream", bitstream.getID());
+                    addProvenanceMetadata(context, item, msg);
+                }
+            }
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to remove read policies from the DSpace object.", e);
+        }
+    }
+
+    public void setBitstreamPolicies(Context context, Bitstream bitstream, Item item,
+                                     BulkAccessControlInput accessControl) {
+        String accConditionsStr = extractAccessConditions(accessControl.getBitstream().getAccessConditions());
+        if (StringUtils.isNotBlank(accConditionsStr)) {
+            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ACCESS_CONDITION.getTemplate(),
+                    accConditionsStr, "bitstream", bitstream.getID());
+            try {
+                addProvenanceMetadata(context, item, msg);
+            } catch (SQLException | AuthorizeException e) {
+                log.error("Unable to add new provenance metadata when setting bitstream policies.", e);
+            }
+        }
+    }
+
+    public void editLicense(Context context, Item item, boolean newLicense) {
+        String oldLicense = null;
+
+        try {
+            oldLicense = findLicenseInBundles(item, Constants.LICENSE_BUNDLE_NAME, oldLicense, context);
+            if (oldLicense == null) {
+                oldLicense = findLicenseInBundles(item, Constants.CONTENT_BUNDLE_NAME, oldLicense, context);
+            }
+
+            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.EDIT_LICENSE.getTemplate(), item,
+                    Objects.isNull(oldLicense) ? "empty" : oldLicense,
+                    !newLicense ? "removed" : Objects.isNull(oldLicense) ? "added" : "updated");
+            addProvenanceMetadata(context, item, msg);
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when editing Item's license.", e);
+        }
+
+    }
+
+    public void moveItem(Context context, Item item, Collection collection) {
+        try {
+            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.MOVE_ITEM.getTemplate(),
+                    item, collection.getID());
+            // Update item in DB
+            // Because a user can move an item without authorization turn off authorization
+            context.turnOffAuthorisationSystem();
+            addProvenanceMetadata(context, item, msg);
+            context.restoreAuthSystemState();
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when moving an item to a different collection.",
+                    e);
+        }
+    }
+
+    public void mappedItem(Context context, Item item, Collection collection) {
+        String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.MAPPED_ITEM.getTemplate(),
+                collection.getID());
+        try {
+            addProvenanceMetadata(context, item, msg);
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when mapping an item into a collection.", e);
+        }
+    }
+
+    public void deletedItemFromMapped(Context context, Item item, Collection collection) {
+        String msg = messageProvider.getMessage(context,
+                ProvenanceMessageTemplates.DELETED_ITEM_FROM_MAPPED.getTemplate(), collection.getID());
+        try {
+            addProvenanceMetadata(context, item, msg);
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when deleting an item from a mapped collection.",
+                    e);
+        }
+    }
+
+    public void deleteBitstream(Context context,Bitstream bitstream) {
+        try {
+            Item item = findItemByBitstream(context, bitstream);
+            if (Objects.nonNull(item)) {
+                String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.EDIT_BITSTREAM.getTemplate(),
+                        item, item.getID(), messageProvider.getMessage(bitstream));
+                addProvenanceMetadata(context, item, msg);
+            }
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when deleting a bitstream.", e);
+        }
+    }
+
+    public void addMetadata(Context context, DSpaceObject dso, MetadataField metadataField) {
+        try {
+            if (Constants.ITEM == dso.getType()) {
+                String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
+                        messageProvider.getMetadataField(metadataField), "added");
+                addProvenanceMetadata(context, (Item) dso, msg);
+            }
+
+            if (dso.getType() == Constants.BITSTREAM) {
+                Bitstream bitstream = (Bitstream) dso;
+                Item item = findItemByBitstream(context, bitstream);
+                if (Objects.nonNull(item)) {
+                    String msg = messageProvider.getMessage(context,
+                            ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
+                            messageProvider.getMetadataField(metadataField), "added by",
+                            messageProvider.getMessage(bitstream));
+                    addProvenanceMetadata(context, item, msg);
+                }
+            }
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when adding metadata to a DSpace object.", e);
+        }
+    }
+
+    public void removeMetadata(Context context, DSpaceObject dso, MetadataField metadataField) {
+        if (dso.getType() != Constants.BITSTREAM) {
+            return;
+        }
+        MetadataField oldMtdKey = null;
+        String oldMtdValue = null;
+        List<MetadataValue> mtd = bitstreamService.getMetadata((Bitstream) dso,
+                metadataField.getMetadataSchema().getName(),
+                metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
+        if (CollectionUtils.isNotEmpty(mtd)) {
+            oldMtdKey = mtd.get(0).getMetadataField();
+            oldMtdValue = mtd.get(0).getValue();
+        }
+        Bitstream bitstream = (Bitstream) dso;
+        try {
+            Item item = findItemByBitstream(context, bitstream);
+            if (Objects.nonNull(item)) {
+                String msg = messageProvider.getMessage(context,
+                        ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
+                        messageProvider.getMetadata(messageProvider.getMetadataField(oldMtdKey), oldMtdValue),
+                        "deleted from", messageProvider.getMessage(bitstream));
+                addProvenanceMetadata(context, item, msg);
+            }
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when removing metadata from a dso.", e);
+        }
+
+    }
+
+    public void removeMetadataAtIndex(Context context, DSpaceObject dso, List<MetadataValue> metadataValues,
+                                      int indexInt) {
+        if (dso.getType() != Constants.ITEM) {
+            return;
+        }
+        // Remember removed mtd
+        String oldMtdKey = messageProvider.getMetadataField(metadataValues.get(indexInt).getMetadataField());
+        String oldMtdValue = metadataValues.get(indexInt).getValue();
+        try {
+            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
+                    (Item) dso, messageProvider.getMetadata(oldMtdKey, oldMtdValue), "deleted");
+            addProvenanceMetadata(context, (Item) dso, msg);
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when removing metadata at a specific index " +
+                    "from a dso", e);
+        }
+    }
+
+    public void replaceMetadata(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal) {
+        if (dso.getType() != Constants.ITEM) {
+            return;
+        }
+        try {
+            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
+                    (Item) dso,messageProvider.getMetadata(messageProvider.getMetadataField(metadataField),
+                            oldMtdVal), "updated");
+            addProvenanceMetadata(context, (Item) dso, msg);
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when replacing metadata in a dso.", e);
+        }
+
+    }
+
+    public void replaceMetadataSingle(Context context, DSpaceObject dso, MetadataField metadataField,
+                                      String oldMtdVal) {
+        if (dso.getType() != Constants.BITSTREAM) {
+            return;
+        }
+
+        Bitstream bitstream = (Bitstream) dso;
+        try {
+            Item item = findItemByBitstream(context, bitstream);
+            if (Objects.nonNull(item)) {
+                String msg = messageProvider.getMessage(context,
+                        ProvenanceMessageTemplates.ITEM_REPLACE_SINGLE_METADATA.getTemplate(), item,
+                        messageProvider.getMessage(bitstream),
+                        messageProvider.getMetadata(messageProvider.getMetadataField(metadataField), oldMtdVal));
+                addProvenanceMetadata(context, item, msg);;
+            }
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when replacing metadata in a item.", e);
+        }
+    }
+
+    public void makeDiscoverable(Context context, Item item, boolean discoverable) {
+        try {
+            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.DISCOVERABLE.getTemplate(),
+                    item, discoverable ? "" : "non-") + messageProvider.getMessage(item);
+            addProvenanceMetadata(context, item, msg);
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when making an item discoverable.", e);
+        }
+    }
+
+    public void uploadBitstream(Context context, Bundle bundle) {
+        Item item = bundle.getItems().get(0);
+        try {
+            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.BUNDLE_ADDED.getTemplate(),
+                    item, bundle.getID());
+            addProvenanceMetadata(context,item, msg);
+            itemService.update(context, item);
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when updating an item's bitstream.", e);
+        }
+    }
 
     private void addProvenanceMetadata(Context context, Item item, String msg)
             throws SQLException, AuthorizeException {
@@ -95,206 +340,5 @@ public class ProvenanceProvider {
             }
         }
         return currentLicense;
-    }
-
-    public void setItemPolicies(Context context, Item item, BulkAccessControlInput accessControl)
-            throws SQLException, AuthorizeException {
-        String resPoliciesStr = extractAccessConditions(accessControl.getItem().getAccessConditions());
-        if (StringUtils.isNotBlank(resPoliciesStr)) {
-            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ACCESS_CONDITION.getTemplate(),
-                    resPoliciesStr, "item", item.getID());
-            addProvenanceMetadata(context, item, msg);
-        }
-    }
-
-    public void removeReadPolicies(Context context, DSpaceObject dso, List<ResourcePolicy> resPolicies)
-            throws SQLException, AuthorizeException {
-        if (resPolicies.isEmpty()) {
-            return;
-        }
-        String resPoliciesStr = messageProvider.getMessage(resPolicies);
-        if (dso.getType() == Constants.ITEM) {
-            Item item = (Item) dso;
-            String msg = messageProvider.getMessage(context,
-                    ProvenanceMessageTemplates.RESOURCE_POLICIES_REMOVED.getTemplate(),
-                    resPoliciesStr.isEmpty() ? "empty" : resPoliciesStr, "item", item.getID());
-            addProvenanceMetadata(context, item, msg);
-        } else if (dso.getType() == Constants.BITSTREAM) {
-            Bitstream bitstream = (Bitstream) dso;
-            Item item = findItemByBitstream(context, bitstream);
-            if (Objects.nonNull(item)) {
-                String msg = messageProvider.getMessage(context,
-                         ProvenanceMessageTemplates.RESOURCE_POLICIES_REMOVED.getTemplate(),
-                        resPoliciesStr.isEmpty() ? "empty" : resPoliciesStr, "bitstream", bitstream.getID());
-                addProvenanceMetadata(context, item, msg);
-            }
-        }
-    }
-
-    public void setBitstreamPolicies(Context context, Bitstream bitstream, Item item,
-                                     BulkAccessControlInput accessControl) throws SQLException, AuthorizeException {
-        String accConditionsStr = extractAccessConditions(accessControl.getBitstream().getAccessConditions());
-        if (StringUtils.isNotBlank(accConditionsStr)) {
-            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ACCESS_CONDITION.getTemplate(),
-                    accConditionsStr, "bitstream", bitstream.getID());
-            addProvenanceMetadata(context, item, msg);
-        }
-    }
-
-    public void editLicense(Context context, Item item, boolean newLicense) throws SQLException, AuthorizeException {
-        String oldLicense = null;
-        oldLicense = findLicenseInBundles(item, Constants.LICENSE_BUNDLE_NAME, oldLicense, context);
-        if (oldLicense == null) {
-            oldLicense = findLicenseInBundles(item, Constants.CONTENT_BUNDLE_NAME, oldLicense, context);
-        }
-
-        String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.EDIT_LICENSE.getTemplate(), item,
-                Objects.isNull(oldLicense) ? "empty" : oldLicense,
-                !newLicense ? "removed" : Objects.isNull(oldLicense) ? "added" : "updated");
-        addProvenanceMetadata(context, item, msg);
-    }
-
-    public void moveItem(Context context, Item item, Collection collection) throws SQLException, AuthorizeException {
-        String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.MOVE_ITEM.getTemplate(),
-                item, collection.getID());
-        // Update item in DB
-        // Because a user can move an item without authorization turn off authorization
-        context.turnOffAuthorisationSystem();
-        addProvenanceMetadata(context, item, msg);
-        context.restoreAuthSystemState();
-    }
-
-    public void mappedItem(Context context, Item item, Collection collection) throws SQLException, AuthorizeException {
-        String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.MAPPED_ITEM.getTemplate(),
-                collection.getID());
-        addProvenanceMetadata(context, item, msg);
-    }
-
-    public void deletedItemFromMapped(Context context, Item item, Collection collection)
-            throws SQLException, AuthorizeException {
-        String msg = messageProvider.getMessage(context,
-                ProvenanceMessageTemplates.DELETED_ITEM_FROM_MAPPED.getTemplate(), collection.getID());
-        addProvenanceMetadata(context, item, msg);
-    }
-
-    public void deleteBitstream(Context context,Bitstream bitstream) throws SQLException, AuthorizeException {
-        Item item = findItemByBitstream(context, bitstream);
-        if (Objects.nonNull(item)) {
-            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.EDIT_BITSTREAM.getTemplate(),
-                    item, item.getID(), messageProvider.getMessage(bitstream));
-            addProvenanceMetadata(context, item, msg);
-        }
-    }
-
-    public void addMetadata(Context context, DSpaceObject dso, MetadataField metadataField)
-            throws SQLException, AuthorizeException {
-        if (Constants.ITEM == dso.getType()) {
-            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
-                    messageProvider.getMetadataField(metadataField), "added");
-            addProvenanceMetadata(context, (Item) dso, msg);
-        }
-
-        if (dso.getType() == Constants.BITSTREAM) {
-            Bitstream bitstream = (Bitstream) dso;
-            Item item = findItemByBitstream(context, bitstream);
-            if (Objects.nonNull(item)) {
-                String msg = messageProvider.getMessage(context,
-                        ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
-                        messageProvider.getMetadataField(metadataField), "added by",
-                        messageProvider.getMessage(bitstream));
-                addProvenanceMetadata(context, item, msg);
-            }
-        }
-    }
-
-    public void removeMetadata(Context context, DSpaceObject dso, MetadataField metadataField)
-            throws SQLException, AuthorizeException {
-        if (dso.getType() != Constants.BITSTREAM) {
-            return;
-        }
-        MetadataField oldMtdKey = null;
-        String oldMtdValue = null;
-        List<MetadataValue> mtd = bitstreamService.getMetadata((Bitstream) dso,
-                metadataField.getMetadataSchema().getName(),
-                metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
-        if (CollectionUtils.isNotEmpty(mtd)) {
-            oldMtdKey = mtd.get(0).getMetadataField();
-            oldMtdValue = mtd.get(0).getValue();
-        }
-        Bitstream bitstream = (Bitstream) dso;
-        Item item = findItemByBitstream(context, bitstream);
-        if (Objects.nonNull(item)) {
-            String msg = messageProvider.getMessage(context,
-                    ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
-                    messageProvider.getMetadata(messageProvider.getMetadataField(oldMtdKey), oldMtdValue),
-                    "deleted from", messageProvider.getMessage(bitstream));
-            addProvenanceMetadata(context, item, msg);
-        }
-    }
-
-    public void removeMetadataAtIndex(Context context, DSpaceObject dso, List<MetadataValue> metadataValues,
-                                      int indexInt) throws SQLException, AuthorizeException {
-        if (dso.getType() != Constants.ITEM) {
-            return;
-        }
-        // Remember removed mtd
-        String oldMtdKey = messageProvider.getMetadataField(metadataValues.get(indexInt).getMetadataField());
-        String oldMtdValue = metadataValues.get(indexInt).getValue();
-        String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
-                (Item) dso, messageProvider.getMetadata(oldMtdKey, oldMtdValue), "deleted");
-        addProvenanceMetadata(context, (Item) dso, msg);
-    }
-
-    public void replaceMetadata(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal)
-            throws SQLException, AuthorizeException {
-        if (dso.getType() != Constants.ITEM) {
-            return;
-        }
-        String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
-                (Item) dso,messageProvider.getMetadata(messageProvider.getMetadataField(metadataField),
-                        oldMtdVal), "updated");
-        addProvenanceMetadata(context, (Item) dso, msg);
-    }
-
-    public void replaceMetadataSingle(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal)
-            throws SQLException, AuthorizeException {
-        if (dso.getType() != Constants.BITSTREAM) {
-            return;
-        }
-
-        Bitstream bitstream = (Bitstream) dso;
-        Item item = findItemByBitstream(context, bitstream);
-        if (Objects.nonNull(item)) {
-            String msg = messageProvider.getMessage(context,
-                    ProvenanceMessageTemplates.ITEM_REPLACE_SINGLE_METADATA.getTemplate(), item,
-                    messageProvider.getMessage(bitstream),
-                    messageProvider.getMetadata(messageProvider.getMetadataField(metadataField), oldMtdVal));
-            addProvenanceMetadata(context, item, msg);;
-        }
-    }
-
-    public void makeDiscoverable(Context context, Item item, boolean discoverable)
-            throws SQLException, AuthorizeException {
-        String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.DISCOVERABLE.getTemplate(),
-                item, discoverable ? "" : "non-") + messageProvider.getMessage(item);
-        addProvenanceMetadata(context, item, msg);
-    }
-
-    public void uploadBitstream(Context context, Bundle bundle) {
-        Item item = bundle.getItems().get(0);
-        try {
-            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.BUNDLE_ADDED.getTemplate(),
-                    item, bundle.getID());
-            addProvenanceMetadata(context,item, msg);
-            itemService.update(context, item);
-        } catch (SQLException ex) {
-            String msg = "SQLException in BundleUploadBitstreamConverter.uploadBitstream when " +
-                    "adding new provenance metadata.";
-            log.error(msg, ex);
-        } catch (AuthorizeException ex) {
-            String msg = "AuthorizeException in BundleUploadBitstreamConverter.uploadBitstream " +
-                    "when adding new provenance metadata.";
-            log.error(msg, ex);
-        }
     }
 }

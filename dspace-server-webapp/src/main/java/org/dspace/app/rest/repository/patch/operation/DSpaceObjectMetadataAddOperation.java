@@ -80,11 +80,6 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                     "metadata to dso.";
             log.error(msg, e);
             throw new DSpaceBadRequestException(msg, e);
-        } catch (AuthorizeException e) {
-            msg =  "AuthorizeException in DspaceObjectMetadataAddOperation.add " +
-                    "trying to add metadata to dso.";
-            log.error(msg, e);
-            throw new DSpaceBadRequestException(msg, e);
         }
     }
 
