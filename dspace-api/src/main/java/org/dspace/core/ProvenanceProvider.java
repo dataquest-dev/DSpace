@@ -280,11 +280,21 @@ public class ProvenanceProvider {
         addProvenanceMetadata(context, item, msg);
     }
 
-    public void uploadBitstream(Context context, Bundle bundle) throws SQLException, AuthorizeException {
+    public void uploadBitstream(Context context, Bundle bundle) {
         Item item = bundle.getItems().get(0);
-        String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.BUNDLE_ADDED.getTemplate(),
-                item, bundle.getID());
-        addProvenanceMetadata(context,item, msg);
-        itemService.update(context, item);
+        try {
+            String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.BUNDLE_ADDED.getTemplate(),
+                    item, bundle.getID());
+            addProvenanceMetadata(context,item, msg);
+            itemService.update(context, item);
+        } catch (SQLException ex) {
+            String msg = "SQLException in BundleUploadBitstreamConverter.uploadBitstream when " +
+                    "adding new provenance metadata.";
+            log.error(msg, ex);
+        } catch (AuthorizeException ex) {
+            String msg = "AuthorizeException in BundleUploadBitstreamConverter.uploadBitstream " +
+                    "when adding new provenance metadata.";
+            log.error(msg, ex);
+        }
     }
 }

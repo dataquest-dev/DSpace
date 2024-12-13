@@ -107,7 +107,6 @@ public class BundleUploadBitstreamController {
             throw new ResourceNotFoundException("The given uuid did not resolve to a Bundle on the server: " + uuid);
         }
         InputStream fileInputStream = null;
-        String msg;
         try {
             fileInputStream = uploadfile.getInputStream();
         } catch (IOException e) {
@@ -115,23 +114,10 @@ public class BundleUploadBitstreamController {
                       e);
             throw new UnprocessableEntityException("The InputStream from the file couldn't be read", e);
         }
-        try {
-            provenanceProvider.uploadBitstream(context, bundle);
-        } catch (SQLException ex) {
-            msg = "SQLException in BundleUploadBitstreamConverter.uploadBitstream when " +
-                    "adding new provenance metadata.";
-            log.error(msg, ex);
-            throw new RuntimeException(msg, ex);
-        } catch (AuthorizeException ex) {
-            msg = "AuthorizeException in BundleUploadBitstreamConverter.uploadBitstream " +
-                    "when adding new provenance metadata.";
-            log.error(msg, ex);
-            throw new RuntimeException(msg, ex);
-        }
-
         BitstreamRest bitstreamRest = bundleRestRepository.uploadBitstream(
                 context, bundle, uploadfile.getOriginalFilename(), fileInputStream, properties);
         BitstreamResource bitstreamResource = converter.toResource(bitstreamRest);
+        provenanceProvider.uploadBitstream(context, bundle);
 
         return ControllerUtils.toResponseEntity(HttpStatus.CREATED, new HttpHeaders(), bitstreamResource);
     }
