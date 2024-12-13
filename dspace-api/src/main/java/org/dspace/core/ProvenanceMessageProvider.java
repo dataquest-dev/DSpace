@@ -21,8 +21,6 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.eperson.EPerson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The ProvenanceMessageProvider providing methods to generate provenance messages for DSpace items.
@@ -43,13 +41,6 @@ public class ProvenanceMessageProvider {
         return msg;
     }
 
-    public String validateMessageTemplate(String messageTemplate, Object... args) {
-        if (messageTemplate == null) {
-            throw new IllegalArgumentException("The message template is null!");
-        }
-        return String.format(messageTemplate, args);
-    }
-
     public String getMessage(Context context, String messageTemplate, Object... args) {
         EPerson currentUser = context.getCurrentUser();
         String timestamp = DCDate.getCurrent().toString();
@@ -61,7 +52,7 @@ public class ProvenanceMessageProvider {
                 timestamp);
     }
 
-    public String addCollectionsToMessage(Item item) {
+    public String getMessage(Item item) {
         String msg = "Item was in collections:\n";
         List<Collection> collsList = item.getCollections();
         for (Collection coll : collsList) {
@@ -70,7 +61,7 @@ public class ProvenanceMessageProvider {
         return msg;
     }
 
-    public String getBitstreamMessage(Bitstream bitstream) {
+    public String getMessage(Bitstream bitstream) {
         // values of deleted bitstream
         String msg = bitstream.getName() + ": " +
                 bitstream.getSizeBytes() + " bytes, checksum: " +
@@ -79,7 +70,7 @@ public class ProvenanceMessageProvider {
         return msg;
     }
 
-    public String getResourcePoliciesMessage(List<ResourcePolicy> resPolicies) {
+    public String getMessage(List<ResourcePolicy> resPolicies) {
         return resPolicies.stream()
                 .filter(rp -> rp.getAction() == Constants.READ)
                 .map(rp -> String.format("[%s, %s, %d, %s, %s, %s, %s]",
@@ -98,5 +89,12 @@ public class ProvenanceMessageProvider {
     public String getMetadataField(MetadataField metadataField) {
         return metadataField.toString()
                 .replace('_', '.');
+    }
+
+    private String validateMessageTemplate(String messageTemplate, Object... args) {
+        if (messageTemplate == null) {
+            throw new IllegalArgumentException("The provenance message template is null!");
+        }
+        return String.format(messageTemplate, args);
     }
 }

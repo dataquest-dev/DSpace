@@ -112,7 +112,7 @@ public class ProvenanceProvider {
         if (resPolicies.isEmpty()) {
             return;
         }
-        String resPoliciesStr = messageProvider.getResourcePoliciesMessage(resPolicies);
+        String resPoliciesStr = messageProvider.getMessage(resPolicies);
         if (dso.getType() == Constants.ITEM) {
             Item item = (Item) dso;
             String msg = messageProvider.getMessage(context,
@@ -181,7 +181,7 @@ public class ProvenanceProvider {
         Item item = getItem(context, bitstream);
         if (Objects.nonNull(item)) {
             String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.EDIT_BITSTREAM.getTemplate(),
-                    item, item.getID(), messageProvider.getBitstreamMessage(bitstream));
+                    item, item.getID(), messageProvider.getMessage(bitstream));
             addProvenanceMetadata(context, item, msg);
         }
     }
@@ -201,7 +201,7 @@ public class ProvenanceProvider {
                 String msg = messageProvider.getMessage(context,
                         ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
                         messageProvider.getMetadataField(metadataField), "added by",
-                        messageProvider.getBitstreamMessage(bitstream));
+                        messageProvider.getMessage(bitstream));
                 addProvenanceMetadata(context, item, msg);
             }
         }
@@ -227,7 +227,7 @@ public class ProvenanceProvider {
             String msg = messageProvider.getMessage(context,
                     ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
                     messageProvider.getMetadata(messageProvider.getMetadataField(oldMtdKey), oldMtdValue),
-                    "deleted from", messageProvider.getBitstreamMessage(bitstream));
+                    "deleted from", messageProvider.getMessage(bitstream));
             addProvenanceMetadata(context, item, msg);
         }
     }
@@ -267,7 +267,7 @@ public class ProvenanceProvider {
         if (Objects.nonNull(item)) {
             String msg = messageProvider.getMessage(context,
                     ProvenanceMessageTemplates.ITEM_REPLACE_SINGLE_METADATA.getTemplate(), item,
-                    messageProvider.getBitstreamMessage(bitstream),
+                    messageProvider.getMessage(bitstream),
                     messageProvider.getMetadata(messageProvider.getMetadataField(metadataField), oldMtdVal));
             addProvenanceMetadata(context, item, msg);;
         }
@@ -276,7 +276,7 @@ public class ProvenanceProvider {
     public void makeDiscoverable(Context context, Item item, boolean discoverable)
             throws SQLException, AuthorizeException {
         String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.DISCOVERABLE.getTemplate(),
-                item, discoverable ? "" : "non-") + messageProvider.addCollectionsToMessage(item);
+                item, discoverable ? "" : "non-") + messageProvider.getMessage(item);
         addProvenanceMetadata(context, item, msg);
     }
 
