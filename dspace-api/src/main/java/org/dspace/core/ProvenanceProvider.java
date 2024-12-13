@@ -70,7 +70,7 @@ public class ProvenanceProvider {
                 .collect(Collectors.joining(";"));
     }
 
-    private Item getItem(Context context, Bitstream bitstream) throws SQLException {
+    private Item findItemByBitstream(Context context, Bitstream bitstream) throws SQLException {
         List<Item> items = clarinItemService.findByBitstreamUUID(context, bitstream.getID());
         if (items.isEmpty()) {
             log.warn("Bitstream (" + bitstream.getID() + ") is not assigned to any item.");
@@ -121,7 +121,7 @@ public class ProvenanceProvider {
             addProvenanceMetadata(context, item, msg);
         } else if (dso.getType() == Constants.BITSTREAM) {
             Bitstream bitstream = (Bitstream) dso;
-            Item item = getItem(context, bitstream);
+            Item item = findItemByBitstream(context, bitstream);
             if (Objects.nonNull(item)) {
                 String msg = messageProvider.getMessage(context,
                          ProvenanceMessageTemplates.RESOURCE_POLICIES_REMOVED.getTemplate(),
@@ -178,7 +178,7 @@ public class ProvenanceProvider {
     }
 
     public void deleteBitstream(Context context,Bitstream bitstream) throws SQLException, AuthorizeException {
-        Item item = getItem(context, bitstream);
+        Item item = findItemByBitstream(context, bitstream);
         if (Objects.nonNull(item)) {
             String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.EDIT_BITSTREAM.getTemplate(),
                     item, item.getID(), messageProvider.getMessage(bitstream));
@@ -196,7 +196,7 @@ public class ProvenanceProvider {
 
         if (dso.getType() == Constants.BITSTREAM) {
             Bitstream bitstream = (Bitstream) dso;
-            Item item = getItem(context, bitstream);
+            Item item = findItemByBitstream(context, bitstream);
             if (Objects.nonNull(item)) {
                 String msg = messageProvider.getMessage(context,
                         ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
@@ -222,7 +222,7 @@ public class ProvenanceProvider {
             oldMtdValue = mtd.get(0).getValue();
         }
         Bitstream bitstream = (Bitstream) dso;
-        Item item = getItem(context, bitstream);
+        Item item = findItemByBitstream(context, bitstream);
         if (Objects.nonNull(item)) {
             String msg = messageProvider.getMessage(context,
                     ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
@@ -263,7 +263,7 @@ public class ProvenanceProvider {
         }
 
         Bitstream bitstream = (Bitstream) dso;
-        Item item = getItem(context, bitstream);
+        Item item = findItemByBitstream(context, bitstream);
         if (Objects.nonNull(item)) {
             String msg = messageProvider.getMessage(context,
                     ProvenanceMessageTemplates.ITEM_REPLACE_SINGLE_METADATA.getTemplate(), item,
