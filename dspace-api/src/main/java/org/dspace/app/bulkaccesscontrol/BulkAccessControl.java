@@ -56,7 +56,7 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.ProvenanceServiceImpl;
+import org.dspace.core.ProvenanceService;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
@@ -70,7 +70,6 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.model.AccessConditionOption;
 import org.dspace.utils.DSpace;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Implementation of {@link DSpaceRunnable} to perform a bulk access control via json file.
@@ -114,8 +113,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
 
     protected String eperson = null;
 
-    @Autowired
-    protected ProvenanceServiceImpl provenanceService;
+    protected ProvenanceService provenanceService = ContentServiceFactory.getInstance().getProvenanceService();
 
     @Override
     @SuppressWarnings("unchecked")

@@ -30,7 +30,7 @@ import org.dspace.content.Item;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
-import org.dspace.core.ProvenanceServiceImpl;
+import org.dspace.core.ProvenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,7 +59,7 @@ public class MappedCollectionRestController {
     Utils utils;
 
     @Autowired
-    ProvenanceServiceImpl provenanceService;
+    ProvenanceService provenanceService;
 
     /**
      * This method will add an Item to a Collection. The Collection object is encapsulated in the request due to the

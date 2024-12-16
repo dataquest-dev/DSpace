@@ -35,7 +35,7 @@ import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.ProvenanceServiceImpl;
+import org.dspace.core.ProvenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -71,7 +71,7 @@ public class BundleRestRepository extends DSpaceObjectRestRepository<Bundle, Bun
     private BitstreamFormatService bitstreamFormatService;
 
     @Autowired
-    private ProvenanceServiceImpl provenanceService;
+    private ProvenanceService provenanceService;
 
     public BundleRestRepository(BundleService dsoService) {
         super(dsoService);

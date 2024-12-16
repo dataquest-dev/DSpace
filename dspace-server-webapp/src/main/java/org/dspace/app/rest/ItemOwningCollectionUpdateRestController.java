@@ -32,7 +32,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.ProvenanceServiceImpl;
+import org.dspace.core.ProvenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -67,7 +67,7 @@ public class ItemOwningCollectionUpdateRestController {
     Utils utils;
 
     @Autowired
-    ProvenanceServiceImpl provenanceService;
+    ProvenanceService provenanceService;
 
     /**
      * This method will update the owning collection of the item that correspond to the provided item uuid, effectively

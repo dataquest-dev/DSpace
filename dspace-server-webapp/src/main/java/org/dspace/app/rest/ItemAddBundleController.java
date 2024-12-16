@@ -38,7 +38,7 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.ProvenanceServiceImpl;
+import org.dspace.core.ProvenanceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,7 +100,7 @@ public class ItemAddBundleController {
     ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
     @Autowired
-    ProvenanceServiceImpl provenanceService;
+    ProvenanceService provenanceService;
 
     /**
      * Method to add a Bundle to an Item with the given UUID in the URL. This will create a Bundle with the
