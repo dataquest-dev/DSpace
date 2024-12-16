@@ -169,7 +169,6 @@ public class ItemAddBundleController {
             log.warn("Cannot find clarin license with id: " + licenseId + ". The old license will be detached, " +
                     "but the new one will not be attached.");
         }
-
         List<Bundle> bundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
         for (Bundle clarinBundle : bundles) {
             List<Bitstream> bitstreamList = clarinBundle.getBitstreams();
@@ -186,6 +185,7 @@ public class ItemAddBundleController {
         if (Objects.nonNull(clarinLicense)) {
             clarinLicenseService.addLicenseMetadataToItem(context, clarinLicense, item);
         }
+
         itemService.update(context, item);
         provenanceService.editLicense(context, item, !Objects.isNull(clarinLicense));
         context.commit();
