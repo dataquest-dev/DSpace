@@ -169,6 +169,7 @@ public class Context implements AutoCloseable {
      * Initializes a new context object.
      */
     protected void init() {
+        log.info("Initializing new context, mode: {}", mode);
         updateDatabase();
 
         if (eventService == null) {
@@ -392,6 +393,7 @@ public class Context implements AutoCloseable {
      *                      or closing the connection
      */
     public void complete() throws SQLException {
+        log.info("Completing context.");
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("complete() was called on a closed Context object. No changes to commit.");
@@ -405,9 +407,12 @@ public class Context implements AutoCloseable {
                 commit();
             }
         } finally {
+            log.info("Going to close a connection.");
             if (dbConnection != null) {
+                log.info("Closing connection.");
                 // Free the DB connection and invalidate the Context
                 dbConnection.closeDBConnection();
+                log.info("Connection closed.");
                 dbConnection = null;
             }
         }
@@ -584,6 +589,7 @@ public class Context implements AutoCloseable {
      * is a no-op.
      */
     public void abort() {
+        log.info("Aborting context.");
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("abort() was called on a closed Context object. No changes to abort.");
@@ -599,9 +605,12 @@ public class Context implements AutoCloseable {
             log.error("Error rolling back transaction during an abort()", se);
         } finally {
             try {
+                log.info("Going to close a connection.");
                 if (dbConnection != null) {
+                    log.info("Closing connection.");
                     // Free the DB connection & invalidate the Context
                     dbConnection.closeDBConnection();
+                    log.info("Connection closed.");
                     dbConnection = null;
                 }
             } catch (Exception ex) {
