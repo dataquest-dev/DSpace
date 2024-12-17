@@ -170,6 +170,7 @@ public class Context implements AutoCloseable {
      */
     protected void init() {
     try {
+        log.info("Initializing new context, mode: {}", mode);
         updateDatabase();
 
         if (eventService == null) {
@@ -396,6 +397,8 @@ public class Context implements AutoCloseable {
      *                      or closing the connection
      */
     public void complete() throws SQLException {
+        log.info("Completing context.");
+        // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("complete() was called on a closed Context object. No changes to commit.");
             return;
@@ -409,10 +412,12 @@ public class Context implements AutoCloseable {
             log.error("Error committing transaction in complete()", e);
             throw e; // Rethrow to signal failure to higher-level logic
         } finally {
+            log.info("Going to close a connection.");
             if (dbConnection != null) {
                 try {
+                    log.info("Closing connection.");
                     dbConnection.closeDBConnection();
-                    log.info("Database connection closed after complete().");
+                    log.info("Connection closed.");
                     dbConnection = null;
                 } catch (SQLException ex) {
                     log.error("Error closing the database connection after complete()", ex);
@@ -595,6 +600,7 @@ public class Context implements AutoCloseable {
      * is a no-op.
      */
     public void abort() {
+        log.info("Aborting context.");
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("abort() was called on a closed Context object. No changes to abort.");
@@ -611,7 +617,9 @@ public class Context implements AutoCloseable {
             log.error("Error rolling back transaction during an abort()", se);
         } finally {
             try {
+                log.info("Going to close a connection.");
                 if (dbConnection != null) {
+                    log.info("Closing connection.");
                     // Free the DB connection & invalidate the Context
                     dbConnection.closeDBConnection();
                     log.info("Database connection closed during abort().");
