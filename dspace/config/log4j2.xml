@@ -31,7 +31,7 @@
             <!-- NOTE: The %equals patterns are providing a default value of "unknown" if "correlationID" or
                  "requestID" are not currently set in the ThreadContext. -->
             <Layout type='PatternLayout'
-                    pattern='%d %-5p %equals{%X{correlationID}}{}{unknown} %equals{%X{requestID}}{}{unknown} %c @ %m%n'/>
+                    pattern='%d %t %-5p %equals{%X{correlationID}}{}{unknown} %equals{%X{requestID}}{}{unknown} %c @ %m%n'/>
             <policies>
                 <policy type='TimeBasedTriggeringPolicy'>yyyy-MM-dd</policy>
             </policies>
