@@ -169,9 +169,9 @@ public class Context implements AutoCloseable {
      * Initializes a new context object.
      */
     protected void init() {
-    try {
-        log.info("Initializing new context, mode: {}", mode);
-        updateDatabase();
+        try {
+            log.info("Initializing new context, mode: {}", mode);
+            updateDatabase();
 
             if (eventService == null) {
                 eventService = EventServiceFactory.getInstance().getEventService();
