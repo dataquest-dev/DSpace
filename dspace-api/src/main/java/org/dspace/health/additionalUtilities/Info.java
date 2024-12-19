@@ -5,17 +5,16 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.health;
-
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
-//import src.main.java.org.dspace.xoai.services.impl.config.DSpaceConfigurationService;
-
+package org.dspace.health.additionalUtilities;
 
 import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.Scanner;
+
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
+//import src.main.java.org.dspace.xoai.services.impl.config.DSpaceConfigurationService;
 
 public class Info {
 

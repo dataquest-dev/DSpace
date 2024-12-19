@@ -7,12 +7,16 @@
  */
 package org.dspace.health;
 
+import org.dspace.health.additionalUtilities.Info;
+
 public class AdditionalInfoCheck extends Check {
 
     @Override
     protected String run(ReportInfo ri) {
         String output = "";
 
+        output += String.format(
+                "Server uptime: %s\n", Info.get_proc_uptime());
         output += String.format(
                 "JVM uptime: %s\n", Info.get_jvm_uptime());
         output += String.format(
