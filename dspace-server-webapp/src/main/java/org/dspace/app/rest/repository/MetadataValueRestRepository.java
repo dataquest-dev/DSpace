@@ -195,7 +195,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
 
 
     @Override
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public MetadataValueWrapperRest findOne(Context context, Integer id) {
         MetadataValueWrapper metadataValueWrapper = new MetadataValueWrapper();
         try {
