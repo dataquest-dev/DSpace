@@ -261,30 +261,17 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
      */
     private void processSolrSearchResults(DiscoverResult searchResult, String autocompleteCustom, String searchValue,
                                           List<VocabularyEntryRest> results) {
-        searchResult.getIndexableObjects().forEach(object -> {
-            if (!(object instanceof IndexableItem)) {
-                return;
-            }
-            IndexableItem item = (IndexableItem) object;
-            // Get all search documents for the item.
-            searchResult.getSearchDocument(item).forEach((searchDocument) -> {
+        searchResult.getFacetResult(autocompleteCustom).forEach(facetResult -> {
+            String displayedValue = facetResult.getDisplayedValue();
+            if (displayedValue.contains(searchValue)) {
+                // Create a new VocabularyEntryRest object
                 VocabularyEntryRest vocabularyEntryRest = new VocabularyEntryRest();
-                // All values from Item's specific index - it could contain values we are not looking for.
-                // The must be filtered out.
-                List<String> docValues = searchDocument.getSearchFieldValues(autocompleteCustom);
+                vocabularyEntryRest.setDisplay(displayedValue);
+                vocabularyEntryRest.setValue(displayedValue);
 
-                // Filter values that contain searchValue
-                List<String> filteredValues = docValues.stream()
-                        .filter(value -> value.contains(searchValue))
-                        .collect(Collectors.toList());
-
-                // Add filtered values to the results. It contains only values that contain searchValue.
-                filteredValues.forEach(value -> {
-                    vocabularyEntryRest.setDisplay(value);
-                    vocabularyEntryRest.setValue(value);
-                    results.add(vocabularyEntryRest);
-                });
-            });
+                // Add the filtered value to the results
+                results.add(vocabularyEntryRest);
+            }
         });
     }
 
