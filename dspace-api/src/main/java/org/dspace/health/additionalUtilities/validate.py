@@ -14,4 +14,4 @@ if not sys.argv[1].startswith("http"):
 print("\nFirst argument is " + sys.argv[0])
 print("\nSecond argument is " + sys.argv[1])
 
-validator.main()
+validator.main({"base_url":"http://localhost:8080/server/oai/"})

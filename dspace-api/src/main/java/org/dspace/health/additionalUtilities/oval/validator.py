@@ -163,6 +163,7 @@ class Validator(object):
             self.results['HTTPMethod'] = ('warning', message)
             self.method = 'GET'
 
+        # Protocol Version
         self.protocol_version = get_protocol_version(
             self.base_url, self.method)
         if self.protocol_version is None:
@@ -227,6 +228,7 @@ class Validator(object):
         except Exception as exc:
             message = "Could not compare basic URLs: %s" % str(exc)
             self.results['BaseURLMatch'] = ('unverified', message)
+            print('Self.base_url - ' + self.base_url)
             return
         if urlparse(response.url).netloc != urlparse(self.base_url).netloc:
             message = "Requests seem to be redirected to: %s" % response.url
