@@ -29,10 +29,12 @@ import org.dspace.app.rest.model.VocabularyEntryRest;
 import org.dspace.app.rest.model.hateoas.VocabularyEntryResource;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -230,8 +232,12 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
         DiscoverQuery discoverQuery = new DiscoverQuery();
         // Process the custom query if it contains the specific query parameter `?query=`
         autocompleteCustom = updateAutocompleteAndQuery(autocompleteCustom, discoverQuery);
-        // TODO - search facets and process facet results instead of indexable objects
-        discoverQuery.setMaxResults(500);
+        DiscoverFacetField facetField = new DiscoverFacetField(autocompleteCustom,
+                "terms", // facet type (assuming "terms" for text fields)
+                -1,                                   // no limit (get all facet values)
+                DiscoveryConfigurationParameters.SORT.VALUE   // sorting order
+        );
+        discoverQuery.addFacetField(facetField);
         // return only metadata field values
         discoverQuery.addSearchField(autocompleteCustom);
 

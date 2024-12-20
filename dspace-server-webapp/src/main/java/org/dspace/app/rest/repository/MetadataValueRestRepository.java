@@ -27,11 +27,13 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataValueService;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -175,7 +177,12 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
     private DiscoverQuery createDiscoverQuery(String metadataField, String searchValue) {
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.setQuery(metadataField + ":" + "*" + searchValue + "*");
-        discoverQuery.setMaxResults(500);
+        DiscoverFacetField facetField = new DiscoverFacetField(metadataField,
+                "terms", // facet type (assuming "terms" for text fields)
+                -1,                                   // no limit (get all facet values)
+                DiscoveryConfigurationParameters.SORT.VALUE   // sorting order
+        );
+        discoverQuery.addFacetField(facetField);
         // return only metadata field values
         discoverQuery.addSearchField(metadataField);
         discoverQuery.addFilterQueries("search.resourcetype:" + IndexableItem.TYPE);
