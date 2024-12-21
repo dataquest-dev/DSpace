@@ -800,6 +800,11 @@ public class Context implements AutoCloseable {
          * If a context is garbage-collected, we roll back and free up the
          * database connection if there is one.
          */
+        log.info("finalize() method - isDbConnection null: {}", dbConnection == null);
+        if (dbConnection != null) {
+            log.info("finalize() method - isTransActionAlive: {}", dbConnection.isTransActionAlive());
+        }
+
         if (dbConnection != null && dbConnection.isTransActionAlive()) {
             log.info("finalize() method - calling abort()");
             abort();
