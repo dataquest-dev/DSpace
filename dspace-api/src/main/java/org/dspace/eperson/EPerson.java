@@ -24,6 +24,7 @@ import javax.persistence.Transient;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.DSpaceObjectLegacySupport;
 import org.dspace.content.Item;
@@ -124,7 +125,9 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport {
      * {@link org.dspace.eperson.service.EPersonService#create(Context)}
      */
     protected EPerson() {
-        log.info("EPerson created");
+        ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
+        Exception exception = new Exception("Stack trace for EPerson creation");
+        log.info("EPerson created", exception);
     }
 
     @Override
