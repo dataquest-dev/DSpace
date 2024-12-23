@@ -475,6 +475,7 @@ public class Context implements AutoCloseable {
                 // Commit our changes (this closes the transaction but leaves database connection open)
                 dbConnection.commit();
                 reloadContextBoundEntities();
+                log.info("commit() method - Committing transaction END.");
             } else {
                 log.info("commit() method - No database connection to commit to.");
             }
@@ -602,6 +603,7 @@ public class Context implements AutoCloseable {
                 dbConnection.rollback();
                 log.info("rollback() method - Transaction successfully rolled back.");
                 reloadContextBoundEntities();
+                log.info("rollback() method - Transaction successfully rolled back END.");
             }
         } catch (SQLException e) {
             log.error("Error rolling back transaction", e);
@@ -812,6 +814,7 @@ public class Context implements AutoCloseable {
 
         log.info("finalize() method - calling super.finalize().");
         super.finalize();
+        log.info("finalize() method - calling super.finalize() END.");
     }
 
     public void shutDownDatabase() throws SQLException {
