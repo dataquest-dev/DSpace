@@ -168,7 +168,10 @@ def get_protocol_version(base_url, method):
     pversion_re = re.compile(r'<protocolVersion>(.*?)</protocolVersion>')
     try:
         response = fetch_data(base_url, method, {'verb': 'Identify'})
-    except Exception:
+        if isinstance(response, bytes):
+            response = response.decode('utf-8')
+    except Exception as exc:
+        print(f"Error fetching data: {exc}")
         return None
     m = pversion_re.search(response)
     if m is not None:
@@ -180,6 +183,8 @@ def get_granularity(base_url, method):
     granularity_re = re.compile(r'<granularity>(.*?)</granularity>')
     try:
         response = fetch_data(base_url, method, {'verb': 'Identify'})
+        if isinstance(response, bytes):
+            response = response.decode('utf-8')
     except Exception:
         return None
     m = granularity_re.search(response)
@@ -214,10 +219,14 @@ def get_repository_information(base_url, method):
     email_re = re.compile(r'<adminEmail>(.*?)</adminEmail>')
     try:
         response = fetch_data(base_url, method, {'verb': 'Identify'})
+        if isinstance(response, bytes):
+            response = response.decode('utf-8')
+        print(response)
     except Exception:
         return ('[ERROR: Could not fetch Identify response]',
                 '[ERROR: Could not fetch Identify response]')
     name_match = name_re.search(response)
+    print(name_match)
     if name_match is None:
         name = '[Could not find name in Identify.]'
     else:

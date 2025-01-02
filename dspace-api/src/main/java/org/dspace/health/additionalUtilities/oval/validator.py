@@ -12,6 +12,8 @@
 import random
 import urllib.request
 import urllib.error
+import requests
+from requests import Request
 from urllib.parse import urlencode, urlparse
 from urllib.request import urlopen
 import re
@@ -26,7 +28,7 @@ from functools import reduce
 
 from oval.harvester import configure_record_iterator, configure_request, \
     get_protocol_version, check_HTTP_methods, \
-    get_repository_information, get_granularity  # , fetch_data
+    get_repository_information, get_granularity, fetch_data
 
 from oval import ISO_639_3_CODES, ISO_639_2B_CODES
 from oval import ISO_639_2T_CODES, ISO_639_1_CODES
@@ -145,6 +147,7 @@ class Validator(object):
         self.base_url = normalize_base_url(base_url)
         self.timeout = timeout
         self.results = {}
+        self.session = requests.Session()
 
         # HTTP-Method
         supported_methods = check_HTTP_methods(self.base_url)
@@ -223,13 +226,30 @@ class Validator(object):
         """Compare the field baseURL in Identify response with self.base_url.
         Some servers redirect requests to new endpoints.
         """
+#         try:
+#             response = urlopen(self.base_url)
+#         except Exception as exc:
+#             message = "Could not compare basic URLs: %s" % str(exc)
+#             self.results['BaseURLMatch'] = ('unverified', message)
+#             print('Self.base_url - ' + self.base_url)
+#             return
+#         if urlparse(response.url).netloc != urlparse(self.base_url).netloc:
+#             message = "Requests seem to be redirected to: %s" % response.url
+#             self.results["BaseURLMatch"] = ("warning", message)
         try:
-            response = urlopen(self.base_url)
-        except Exception as exc:
+            print("Self.baseurl in function in try block is " + self.base_url)
+
+            # Make an HTTP request using requests
+            response = self.session.get(self.base_url, allow_redirects=True)
+            response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+
+        except requests.RequestException as exc:  # Catch any requests exceptions
             message = "Could not compare basic URLs: %s" % str(exc)
             self.results['BaseURLMatch'] = ('unverified', message)
-            print('Self.base_url - ' + self.base_url)
+            print('Self.base_url in exception ' + self.base_url)
             return
+
+        # Check if the URL was redirected
         if urlparse(response.url).netloc != urlparse(self.base_url).netloc:
             message = "Requests seem to be redirected to: %s" % response.url
             self.results["BaseURLMatch"] = ("warning", message)
@@ -263,7 +283,7 @@ class Validator(object):
             xml_string = etree.tounicode(tree)
             schema_locs = set(re.findall(
                 r'schemaLocation="(.*?)"', xml_string, re.DOTALL))
-            schema_tree = etree.XML(SCHEMA_TEMPLATE)
+            schema_tree = etree.XML(SCHEMA_TEMPLATE.encode('utf-8'))
             for s in set(schema_locs):
                 ns_locs_raw = s.split()
                 try:
