@@ -35,7 +35,6 @@ import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
-import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * Hibernate implementation of the DBConnection.
@@ -108,12 +107,13 @@ public class HibernateDBConnection implements DBConnection<Session> {
         return sessionFactory.getCurrentSession().getTransaction();
     }
 
-    // This method will run every 10 seconds
-    @Scheduled(fixedRate = 10000) // Fixed rate in milliseconds
-    public void logConnectionMetrics() {
-        logHibernateStatistics();
-        logDatabaseMetaData();
-    }
+    // TODO - this is not working as expected.
+//    // This method will run every 10 seconds
+//    @Scheduled(fixedRate = 10000) // Fixed rate in milliseconds
+//    public void logConnectionMetrics() {
+//        logHibernateStatistics();
+//        logDatabaseMetaData();
+//    }
 
     /**
      * Check if Hibernate Session is still "alive" / open. An open Session may or may not have an open Transaction
