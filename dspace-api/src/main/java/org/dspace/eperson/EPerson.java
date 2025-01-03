@@ -124,8 +124,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport {
      * {@link org.dspace.eperson.service.EPersonService#create(Context)}
      */
     protected EPerson() {
-        Exception exception = new Exception("Stack trace for EPerson creation");
-        log.info("EPerson created", exception);
+        log.info("EPerson created");
     }
 
     @Override
