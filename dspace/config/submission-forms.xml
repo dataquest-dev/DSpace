@@ -137,16 +137,16 @@
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
-                    <dc-element>creator</dc-element>
-                    <repeatable>false</repeatable>
-                    <label>Creator</label>
+                    <dc-element>contributor</dc-element>
+                    <repeatable>true</repeatable>
+                    <label>Contributor</label>
                     <input-type autocomplete-custom="solr-author_ac">autocomplete</input-type>
                     <hint>An entity primarily responsible for making the resource.
                         Start typing the author's last name and use
                         autocomplete form that will appear if applicable. End your input by pressing ESC if you don't
                         want to use the preselected value.
                     </hint>
-                    <required>Please add author</required>
+                    <required>Please add author(s).</required>
                     <!-- Example ACL field definition.
                          Uncomment it and the Author input field will be showed only for the admin.
                      policy=(allow|deny),action=(read|write),grantee-type=(user|group),grantee-id=(<UUID>)
