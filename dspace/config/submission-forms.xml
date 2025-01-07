@@ -79,7 +79,6 @@
                     <label>Identifier</label>
                     <input-type>onebox</input-type>
                     <hint>An unambiguous reference to the resource within a given context.</hint>
-                    <required>You must enter an unambiguous reference to the resource.</required>
                 </field>
             </row>
             <row>
@@ -158,7 +157,7 @@
             </row>
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>location</dc-element>
                     <dc-qualifier></dc-qualifier>
                     <repeatable>false</repeatable>
@@ -225,7 +224,6 @@
                     <input-type>textarea</input-type>
                     <hint>A list of subunits of the resource.</hint>
                     <required>Please enter a list of subunits of the resource.</required>
-                    <vocabulary>srsc</vocabulary>
                 </field>
             </row>
             <row>
@@ -238,12 +236,11 @@
                     <input-type>textarea</input-type>
                     <hint>A summary of the resource.</hint>
                     <required>Please enter a summary of the resource.</required>
-                    <vocabulary>srsc</vocabulary>
                 </field>
             </row>
             <row>
                 <field>
-                    <dc-schema>dc</dc-schema>
+                    <dc-schema>local</dc-schema>
                     <dc-element>accrualMethod</dc-element>
                     <dc-qualifier></dc-qualifier>
                     <repeatable>false</repeatable>
@@ -256,18 +253,6 @@
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
-                    <dc-element>format</dc-element>
-                    <dc-qualifier></dc-qualifier>
-                    <repeatable>true</repeatable>
-                    <label>Format</label>
-                    <input-type>onebox</input-type>
-                    <hint>The file format, physical medium, or dimensions of the resource.</hint>
-                    <required>Please enter the file format, physical medium, or dimensions of the resource.</required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
                     <dc-element>coverage</dc-element>
                     <dc-qualifier>spatial</dc-qualifier>
                     <repeatable>false</repeatable>
@@ -275,7 +260,6 @@
                     <input-type>textarea</input-type>
                     <hint>Spatial characteristics of the resource.</hint>
                     <required>Please enter a spatial characteristics of the resource.</required>
-                    <vocabulary>srsc</vocabulary>
                 </field>
             </row>
             <row>
@@ -288,20 +272,18 @@
                     <input-type>textarea</input-type>
                     <hint>A bibliographic reference for the resource.</hint>
                     <required>Please enter a bibliographic reference(s) for the resource.</required>
-                    <vocabulary>srsc</vocabulary>
                 </field>
             </row>
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
-                    <dc-element>accessRights</dc-element>
+                    <dc-element>rights</dc-element>
                     <dc-qualifier></dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Access Rights</label>
                     <input-type>textarea</input-type>
                     <hint>Information about who access the resource or an indication of its security status. Access Rights may include information regarding access or restrictions based on privacy, security, or other policies.</hint>
                     <required>Please enter an information about the access right(s).</required>
-                    <vocabulary>srsc</vocabulary>
                 </field>
             </row>
         </form>
