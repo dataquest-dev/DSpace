@@ -1011,7 +1011,7 @@ public class Context implements AutoCloseable {
      * @throws SQLException When reloading one of the entities fails.
      */
     private void reloadContextBoundEntities() throws SQLException {
-//        currentUser = reloadEntity(currentUser);
+        currentUser = reloadEntity(currentUser);
     }
 
     public String getAuthenticationMethod() {
