@@ -942,6 +942,7 @@ public class Context implements AutoCloseable {
      */
     @SuppressWarnings("unchecked")
     public <E extends ReloadableEntity> E reloadEntity(E entity) throws SQLException {
+        log.debug("Reloading entity from the database: {}", entity);
         return (E) dbConnection.reloadEntity(entity);
     }
 
