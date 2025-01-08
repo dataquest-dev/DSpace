@@ -164,7 +164,6 @@
                     <label>Location</label>
                     <input-type>onebox</input-type>
                     <hint>A spatial region or named place.</hint>
-                    <required>Please enter a spatial region or named place.</required>
                 </field>
             </row>
             <row>
@@ -177,7 +176,6 @@
                     <input-type>date</input-type>
                     <hint>A point or period of time associated with an event in the lifecycle of the resource if any e.g., 2014-01-21 or at least
                         the year.</hint>
-                    <required>Please enter a point or period of time associated with an event in the lifecycle of the resource.</required>
                 </field>
             </row>
         </form>
@@ -219,9 +217,9 @@
                     <dc-schema>dc</dc-schema>
                     <dc-element>description</dc-element>
                     <dc-qualifier>tableofcontents</dc-qualifier>
-                    <repeatable>false</repeatable>
+                    <repeatable>true</repeatable>
                     <label>Table of contents</label>
-                    <input-type>textarea</input-type>
+                    <input-type>onebox</input-type>
                     <hint>A list of subunits of the resource.</hint>
                     <required>Please enter a list of subunits of the resource.</required>
                 </field>
@@ -243,11 +241,10 @@
                     <dc-schema>local</dc-schema>
                     <dc-element>accrualMethod</dc-element>
                     <dc-qualifier></dc-qualifier>
-                    <repeatable>false</repeatable>
+                    <repeatable>true</repeatable>
                     <label>Accrual method</label>
                     <input-type value-pairs-name="accrual_method_types">dropdown</input-type>
                     <hint>The method acknowledgeby which items are added to a collection.</hint>
-                    <required>Please enter the method acknowledgeby which items are added to a collection.</required>
                 </field>
             </row>
             <row>
@@ -259,7 +256,6 @@
                     <label>Spatial</label>
                     <input-type>textarea</input-type>
                     <hint>Spatial characteristics of the resource.</hint>
-                    <required>Please enter a spatial characteristics of the resource.</required>
                 </field>
             </row>
             <row>
@@ -269,9 +265,8 @@
                     <dc-qualifier>citation</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Bibliographic Citation</label>
-                    <input-type>textarea</input-type>
+                    <input-type>onebox</input-type>
                     <hint>A bibliographic reference for the resource.</hint>
-                    <required>Please enter a bibliographic reference(s) for the resource.</required>
                 </field>
             </row>
             <row>
@@ -281,7 +276,7 @@
                     <dc-qualifier></dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Access Rights</label>
-                    <input-type>textarea</input-type>
+                    <input-type>onebox</input-type>
                     <hint>Information about who access the resource or an indication of its security status. Access Rights may include information regarding access or restrictions based on privacy, security, or other policies.</hint>
                     <required>Please enter an information about the access right(s).</required>
                 </field>
