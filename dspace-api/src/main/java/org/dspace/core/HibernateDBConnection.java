@@ -225,16 +225,21 @@ public class HibernateDBConnection implements DBConnection<Session> {
     @Override
     @SuppressWarnings("unchecked")
     public <E extends ReloadableEntity> E reloadEntity(final E entity) throws SQLException {
-        log.info("reloadEntity() method ");
-        if (entity == null) {
-            log.info("Entity is null - return null");
-            return null;
-        } else if (getSession().contains(entity)) {
-            log.info("Entity is in the session - return entity with ID {}", entity.getID());
-            return entity;
-        } else {
-            log.info("Entity is not in the session - return entity with ID {}", entity.getID());
-            return (E) getSession().get(HibernateProxyHelper.getClassWithoutInitializingProxy(entity), entity.getID());
+        try {
+            log.info("reloadEntity() method ");
+            if (entity == null) {
+                log.info("Entity is null - return null");
+                return null;
+            } else if (getSession().contains(entity)) {
+                log.info("Entity is in the session - return entity with ID {}", entity.getID());
+                return entity;
+            } else {
+                log.info("Entity is not in the session - return entity with ID {}", entity.getID());
+                return (E) getSession().get(HibernateProxyHelper.getClassWithoutInitializingProxy(entity), entity.getID());
+            }
+        } catch (Exception e) {
+            log.error("Error reloading entity: {}", e.getMessage());
+            throw new SQLException("Error reloading entity: " + e.getMessage(), e);
         }
     }
 
