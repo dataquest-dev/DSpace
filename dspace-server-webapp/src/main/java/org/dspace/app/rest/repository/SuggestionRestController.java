@@ -232,7 +232,7 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
         // Process the custom query if it contains the specific query parameter `?query=`
         autocompleteCustom = updateAutocompleteAndQuery(autocompleteCustom, discoverQuery);
         DiscoverFacetField facetField = new DiscoverFacetField(autocompleteCustom,
-                "terms", // facet type (assuming "terms" for text fields)
+                DiscoveryConfigurationParameters.TYPE_STANDARD,
                 -1,                                   // no limit (get all facet values)
                 DiscoveryConfigurationParameters.SORT.VALUE   // sorting order
         );
