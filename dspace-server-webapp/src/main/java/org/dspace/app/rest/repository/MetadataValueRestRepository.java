@@ -118,9 +118,8 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
         // Perform a search, but only retrieve the total count of results, not the actual objects
         DiscoverResult searchResult = createAndRunDiscoverResult(context, metadataField, searchValue, 0);
         long totalResultsLong = searchResult.getTotalSearchResults();
-        // Safely convert the total result count (long) to int
-        // If the result count exceeds the range of int, set it to Integer.MAX_VALUE
-        int totalResults = (totalResultsLong < Integer.MIN_VALUE || totalResultsLong > Integer.MAX_VALUE) ?
+        // Safe conversion from long to int
+        int totalResults =  (totalResultsLong > Integer.MAX_VALUE) ?
                 Integer.MAX_VALUE : (int) totalResultsLong;
         // Perform the search again, this time retrieving the actual results based on the total count
         searchResult = createAndRunDiscoverResult(context, metadataField, searchValue, totalResults);
@@ -189,8 +188,6 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
     }
 
     private DiscoverQuery createDiscoverQuery(String metadataField, String searchValue, int maxResults) {
-        // convert to lowercase to make search case-insensitive
-       // searchValue = searchValue.toLowerCase();
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.setQuery(metadataField + ":" + "*" + searchValue + "*");
         discoverQuery.setMaxResults(maxResults);
