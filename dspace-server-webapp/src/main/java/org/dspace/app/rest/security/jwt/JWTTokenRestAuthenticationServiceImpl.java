@@ -262,6 +262,7 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
             resetCSRFToken(request, response);
         }
         response.setHeader(AUTHORIZATION_HEADER, String.format("%s %s", AUTHORIZATION_TYPE, token));
+        log.info("DQ: Added token to request");
     }
 
     /**

@@ -35,7 +35,6 @@ import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
-import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * Hibernate implementation of the DBConnection.
@@ -108,12 +107,13 @@ public class HibernateDBConnection implements DBConnection<Session> {
         return sessionFactory.getCurrentSession().getTransaction();
     }
 
-    // This method will run every 10 seconds
-    @Scheduled(fixedRate = 10000) // Fixed rate in milliseconds
-    public void logConnectionMetrics() {
-        logHibernateStatistics();
-        logDatabaseMetaData();
-    }
+    // TODO - this is not working as expected.
+//    // This method will run every 10 seconds
+//    @Scheduled(fixedRate = 10000) // Fixed rate in milliseconds
+//    public void logConnectionMetrics() {
+//        logHibernateStatistics();
+//        logDatabaseMetaData();
+//    }
 
     /**
      * Check if Hibernate Session is still "alive" / open. An open Session may or may not have an open Transaction
@@ -225,12 +225,21 @@ public class HibernateDBConnection implements DBConnection<Session> {
     @Override
     @SuppressWarnings("unchecked")
     public <E extends ReloadableEntity> E reloadEntity(final E entity) throws SQLException {
-        if (entity == null) {
-            return null;
-        } else if (getSession().contains(entity)) {
-            return entity;
-        } else {
-            return (E) getSession().get(HibernateProxyHelper.getClassWithoutInitializingProxy(entity), entity.getID());
+        try {
+            log.info("reloadEntity() method ");
+            if (entity == null) {
+                log.info("reloadEntity() - Entity is null - return null");
+                return null;
+            } else if (getSession().contains(entity)) {
+                log.info("reloadEntity() - Entity is in the session - return entity with ID {}", entity.getID());
+                return entity;
+            } else {
+                log.info("reloadEntity() - Entity is not in the session - return entity with ID {}", entity.getID());
+                return (E) getSession().get(HibernateProxyHelper.getClassWithoutInitializingProxy(entity), entity.getID());
+            }
+        } catch (Exception e) {
+            log.error("reloadEntity() - Error reloading entity: {}", e.getMessage());
+            throw new SQLException("Error reloading entity: " + e.getMessage(), e);
         }
     }
 

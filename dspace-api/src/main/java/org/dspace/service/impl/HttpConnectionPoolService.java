@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.amazonaws.http.IdleConnectionReaper;
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;
 import org.apache.http.HttpResponse;
@@ -64,16 +65,16 @@ public class HttpConnectionPoolService {
     /** Keep connections open at least this long, if the response did not
      *  specify:  milliseconds
      */
-    private static final int DEFAULT_KEEPALIVE = 5 * 1000;
+    private static final int DEFAULT_KEEPALIVE = 5 * 100000;
 
     /** Pooled connection maximum lifetime:  seconds */
-    private static final int DEFAULT_TTL = 10 * 60;
+    private static final int DEFAULT_TTL = 1000000;
 
     /** Clean up stale connections this often:  milliseconds */
-    private static final int CHECK_INTERVAL = 1000;
+    private static final int CHECK_INTERVAL = 1000000;
 
     /** Connection idle if unused for this long:  seconds */
-    private static final int IDLE_INTERVAL = 30;
+    private static final int IDLE_INTERVAL = 300;
 
     private PoolingHttpClientConnectionManager connManager;
 
@@ -91,6 +92,7 @@ public class HttpConnectionPoolService {
 
     @PostConstruct
     protected void init() {
+        IdleConnectionReaper.shutdown();
         connManager = new PoolingHttpClientConnectionManager(
                 configurationService.getIntProperty(configPrefix + ".client.timeToLive", DEFAULT_TTL),
                 TimeUnit.SECONDS);
