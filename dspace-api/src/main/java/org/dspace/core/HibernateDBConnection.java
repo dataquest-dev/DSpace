@@ -235,7 +235,8 @@ public class HibernateDBConnection implements DBConnection<Session> {
     }
 
     @Override
-    public void setConnectionMode(final boolean batchOptimized, final boolean readOnlyOptimized) throws SQLException {
+    public void setConnectionMode(final boolean batchOptimized, final boolean readOnlyOptimized)
+            throws SQLException {
         this.batchModeEnabled = batchOptimized;
         this.readOnlyEnabled = readOnlyOptimized;
         configureDatabaseMode();
