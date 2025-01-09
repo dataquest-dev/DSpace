@@ -122,11 +122,15 @@ def fetch_data(base_url, method, params, retries=5, timeout=None):
     for _ in range(retries):
         try:
             response = urlopen(request, None, timeout=timeout)
-            return response.read()
+            response_read = response.read()
+            # print(response_read)
+            return response_read
         except URLError as e:
             if hasattr(e, 'reason'):
+                # print(f"URLError reason: {e.reason}")
                 raise
             elif hasattr(e, 'code'):
+                # print(f"URLError code: {e.code}")
                 if e.code == 503:
                     try:
                         wait_time = int(e.hdrs.get('Retry-After'))
@@ -139,6 +143,7 @@ def fetch_data(base_url, method, params, retries=5, timeout=None):
                 else:
                     raise
         except Exception:
+            print(f"Exception reason")
             raise
 
 
@@ -171,7 +176,6 @@ def get_protocol_version(base_url, method):
         if isinstance(response, bytes):
             response = response.decode('utf-8')
     except Exception as exc:
-        print(f"Error fetching data: {exc}")
         return None
     m = pversion_re.search(response)
     if m is not None:
@@ -209,8 +213,10 @@ def check_HTTP_methods(base_url):
             response = fetch_data(base_url, method, {'verb': 'Identify'})
         except Exception:
             pass
-        if response and "badVerb" not in response:
-            methods.append(method)
+        if response:
+            response = response.decode('utf-8')
+            if "badVerb" not in response:
+                methods.append(method)
     return methods
 
 
@@ -221,21 +227,19 @@ def get_repository_information(base_url, method):
         response = fetch_data(base_url, method, {'verb': 'Identify'})
         if isinstance(response, bytes):
             response = response.decode('utf-8')
-        print(response)
     except Exception:
         return ('[ERROR: Could not fetch Identify response]',
                 '[ERROR: Could not fetch Identify response]')
     name_match = name_re.search(response)
-    print(name_match)
     if name_match is None:
         name = '[Could not find name in Identify.]'
     else:
-        name = name_match.group(1).decode('utf8')
+        name = name_match.group(1)
     email_match = email_re.search(response)
     if email_match is None:
         email = '[Could not find email in Identify.]'
     else:
-        email = email_match.group(1).decode('utf8')
+        email = email_match.group(1)
     return name, email
 
 
@@ -312,16 +316,18 @@ def configure_record_iterator(
         def _get_resumption_token(self, xml_tree):
             token = xml_tree.find(
                 './/' + self.oai_namespace + 'resumptionToken')
+            # print("xmltree " + str(xml_tree))
             if token is None:
                 return None
             else:
+                print("Resumption Token is " + token.text)
                 return token.text
 
         def _get_records(self, xml_tree):
             records = xml_tree.findall(
                 './/' + self.oai_namespace + self.element)
             if self.deleted is False:
-                records = filter(self._is_not_deleted, records)
+                records = list(filter(self._is_not_deleted, records))
             return records
 
         def _next_batch(self):
@@ -335,7 +341,7 @@ def configure_record_iterator(
                 if self.record_list == [] and self.token is None:
                     raise StopIteration
 
-        def next(self):
+        def __next__(self):
             if (len(self.record_list) == 0 and self.token is None):
                 raise StopIteration
             elif len(self.record_list) == 0:

@@ -147,7 +147,6 @@ class Validator(object):
         self.base_url = normalize_base_url(base_url)
         self.timeout = timeout
         self.results = {}
-        self.session = requests.Session()
 
         # HTTP-Method
         supported_methods = check_HTTP_methods(self.base_url)
@@ -158,7 +157,7 @@ class Validator(object):
         elif len(supported_methods) == 1:
             supported_method = supported_methods[0]
             message = 'Server accepts only %s requests.' % supported_method
-            self.results['HTTPMethod'] = ('error', message)
+            self.results['HTTPMethod'] = ('warning', message)
             self.method = supported_method
         else:
             message = ('Could not determine supported HTTP methods. '
@@ -226,30 +225,16 @@ class Validator(object):
         """Compare the field baseURL in Identify response with self.base_url.
         Some servers redirect requests to new endpoints.
         """
-#         try:
-#             response = urlopen(self.base_url)
-#         except Exception as exc:
-#             message = "Could not compare basic URLs: %s" % str(exc)
-#             self.results['BaseURLMatch'] = ('unverified', message)
-#             print('Self.base_url - ' + self.base_url)
-#             return
-#         if urlparse(response.url).netloc != urlparse(self.base_url).netloc:
-#             message = "Requests seem to be redirected to: %s" % response.url
-#             self.results["BaseURLMatch"] = ("warning", message)
         try:
-            print("Self.baseurl in function in try block is " + self.base_url)
+            response = requests.get(self.base_url, allow_redirects=True)
+            response.raise_for_status()
+            self.results['BaseURLMatch'] = ('ok', "Base URLs matches without redirection")
 
-            # Make an HTTP request using requests
-            response = self.session.get(self.base_url, allow_redirects=True)
-            response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
-
-        except requests.RequestException as exc:  # Catch any requests exceptions
+        except requests.RequestException as exc:
             message = "Could not compare basic URLs: %s" % str(exc)
             self.results['BaseURLMatch'] = ('unverified', message)
-            print('Self.base_url in exception ' + self.base_url)
             return
 
-        # Check if the URL was redirected
         if urlparse(response.url).netloc != urlparse(self.base_url).netloc:
             message = "Requests seem to be redirected to: %s" % response.url
             self.results["BaseURLMatch"] = ("warning", message)
@@ -269,6 +254,7 @@ class Validator(object):
                 tree = self.request_oai(
                     verb=verb, metadataPrefix=metadataPrefix,
                     identifier=identifier)
+            # print("ValidateXML: " + str(tree))
         except XMLSyntaxError as exc:
             message = '%s response is not well-formed: %s' % (
                 verb, str(exc))
@@ -281,6 +267,7 @@ class Validator(object):
             return
         try:
             xml_string = etree.tounicode(tree)
+            # print("XMLString " + xml_string)
             schema_locs = set(re.findall(
                 r'schemaLocation="(.*?)"', xml_string, re.DOTALL))
             schema_tree = etree.XML(SCHEMA_TEMPLATE.encode('utf-8'))
@@ -561,6 +548,7 @@ class Validator(object):
             return
         resumption_token = tree.find('.//' + self.oai + 'resumptionToken')
         if resumption_token is None:
+            print("Resumption Token is None")
             message = 'Resumption requests could not be checked: No resumptionToken found'
             self.results['ResumptionToken'] = ('unverified', message)
             return
@@ -713,7 +701,9 @@ class Validator(object):
         try:
             tree = self.request_oai(
                 verb='ListRecords', metadataPrefix='oai_dc')
-        except Exception:
+            self.results['DoubleUTF8'] = ('ok', "No double-encoded UTF-8 characters detected")
+        except Exception as exc:
+            self.results['DoubleUTF8'] = ('unverified', str(exc))
             return
         descriptions = tree.findall('.//' + DC + 'description')
         description_texts = [
@@ -767,32 +757,35 @@ def main(args=None):
     val = Validator(base_url)
     try:
         import unicodedata
-        val.repository_name = unicodedata.normalize(
-            'NFKD', val.repository_name).encode('ascii', 'ignore')
-    except:
-        pass
+        if val.repository_name:
+            val.repository_name = unicodedata.normalize(
+                'NFKD', str(val.repository_name)).encode('ascii', 'ignore')
+        else:
+            print("Val.repository_name is empty or None.")
+    except Exception as exc:
+        print(f"An error occured: {exc}")
     print("Repository: %s" % val.repository_name)
 
     # Run checks
-    val.check_identify_base_url()
-    val.validate_XML('Identify')
-    val.validate_XML('ListRecords')
-    val.check_resumption_token('ListRecords')
-    val.reasonable_batch_size('ListRecords')
-    val.reasonable_batch_size('ListIdentifiers')
-    val.dc_language_ISO()
-    val.dc_date_ISO()
-    val.minimal_dc_elements()
+    val.check_identify_base_url() # BaseURLMatch
+    val.validate_XML('Identify') # IdentifyXML
+    val.validate_XML('ListRecords') # ListRecordsXML
+    val.check_resumption_token('ListRecords') # ResumptionToken
+    val.reasonable_batch_size('ListRecords') # ListRecordsBatch
+    val.reasonable_batch_size('ListIdentifiers') # ListIdentifiersBatch
+    val.dc_language_ISO() # ISO639
+    val.dc_date_ISO() # ISO8601
+    val.minimal_dc_elements() # MinimalDC
 
     if val.granularity == 'day':
-        val.incremental_harvesting('ListRecords', 'day')
+        val.incremental_harvesting('ListRecords', 'day') # IncrementalListRecordsday
     elif val.granularity == 'full':
-        val.incremental_harvesting('ListRecords', 'day')
-        val.incremental_harvesting('ListRecords', 'full')
-    val.dc_identifier_abs()
-    val.check_deleting_strategy()
-    val.check_double_utf8()
-    val.check_handle()
+        val.incremental_harvesting('ListRecords', 'day') # IncrementalListRecordsday
+        val.incremental_harvesting('ListRecords', 'full') # IncrementalListRecordsfull
+    val.dc_identifier_abs() # DCIdentifierURL
+    val.check_deleting_strategy() # DeletingStrategy
+    val.check_double_utf8() # DoubleUTF8
+    val.check_handle() # Handle
     # val.indexed_in_BASE()
 
     # pprint(val.results, indent=4)

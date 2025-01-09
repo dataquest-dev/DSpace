@@ -10,8 +10,14 @@ package org.dspace.health.additionalUtilities;
 import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
+import java.io.EOFException;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class IOUtils {
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(IOUtils.class);
@@ -44,5 +50,40 @@ public class IOUtils {
             log.error( e );
         }
         return message;
+    }
+
+    /**
+     *
+     * @param input_file
+     * @return
+     * @throws InstantiationException
+     */
+    static public BufferedReader safe_reader( String input_file )
+            throws EOFException, InstantiationException
+    {
+
+        File file = new File(input_file);
+        String file_id = file.getPath();
+
+        if( !file.exists() ) {
+            throw new InstantiationException( file_id + " does not exist!" );
+        }
+        if( file.exists() && 0 == file.length() ) {
+            throw new EOFException( file_id + " is empty!" );
+        }
+
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(file), Charset.forName("UTF8")) );
+        } catch( IOException e ) {
+            throw new InstantiationException( file_id + " exception while reading: " + e.toString() );
+        }
+
+        return reader;
+    }
+
+    static public String today_string() {
+        return new SimpleDateFormat("yyyy-MM-dd").format(new Date());
     }
 }
