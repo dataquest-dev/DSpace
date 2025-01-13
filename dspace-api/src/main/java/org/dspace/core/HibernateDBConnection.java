@@ -235,7 +235,8 @@ public class HibernateDBConnection implements DBConnection<Session> {
                 return entity;
             } else {
                 log.info("reloadEntity() - Entity is not in the session - return entity with ID {}", entity.getID());
-                return (E) getSession().get(HibernateProxyHelper.getClassWithoutInitializingProxy(entity), entity.getID());
+                return (E) getSession().get(HibernateProxyHelper.getClassWithoutInitializingProxy(entity),
+                        entity.getID());
             }
         } catch (Exception e) {
             log.error("reloadEntity() - Error reloading entity: {}", e.getMessage());

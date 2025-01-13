@@ -307,6 +307,8 @@ public class SolrOAIReindexer {
             return;
         }
         try {
+            solrServerResolver.getServer().deleteByQuery("item.id:" + item.getID().toString());
+            solrServerResolver.getServer().commit();
             SolrInputDocument solrInput = index(item);
             solrServerResolver.getServer().add(solrInput);
             solrServerResolver.getServer().commit();
