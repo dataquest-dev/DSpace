@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import javax.xml.stream.XMLStreamException;
 
 import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
@@ -28,6 +29,7 @@ import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocumentList;
@@ -307,11 +309,11 @@ public class SolrOAIReindexer {
             return;
         }
         try {
-            solrServerResolver.getServer().deleteByQuery("item.id:" + item.getID().toString());
-            solrServerResolver.getServer().commit();
+            this.deleteItemByQuery(item.getID());
+            SolrClient solrClient = solrServerResolver.getServer();
             SolrInputDocument solrInput = index(item);
-            solrServerResolver.getServer().add(solrInput);
-            solrServerResolver.getServer().commit();
+            solrClient.add(solrInput);
+            solrClient.commit();
             cacheService.deleteAll();
             itemCacheService.deleteAll();
         } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
@@ -328,8 +330,7 @@ public class SolrOAIReindexer {
 
     public void deleteItem(Item item) {
         try {
-            solrServerResolver.getServer().deleteByQuery("item.id:" + item.getID().toString());
-            solrServerResolver.getServer().commit();
+            this.deleteItemByQuery(item.getID());
             cacheService.deleteAll();
             itemCacheService.deleteAll();
         } catch (SolrServerException | IOException e) {
@@ -357,5 +358,11 @@ public class SolrOAIReindexer {
         }
 
         return false;
+    }
+
+    private void deleteItemByQuery(UUID itemId) throws SolrServerException, IOException {
+        SolrClient solrClient = solrServerResolver.getServer();
+        solrClient.deleteByQuery("item.id:" + itemId.toString());
+        solrClient.commit();
     }
 }

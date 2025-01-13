@@ -295,7 +295,7 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             } catch (SQLException excSQL) {
                 throw new RuntimeException(excSQL.getMessage(), excSQL);
             }
-            //this.reindexSolrOAI(resourcePolicy.getdSpaceObject());
+            this.reindexSolrOAI(resourcePolicy.getdSpaceObject());
             return converter.toRest(resourcePolicy, utils.obtainProjection());
         }
     }
@@ -318,9 +318,7 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
         } catch (SQLException e) {
             throw new RuntimeException("Unable to delete ResourcePolicy with id = " + id, e);
         }
-        if (Objects.nonNull(dso) && dso instanceof Item) {
-            solrOAIReindexer.reindexItem((Item) dso);
-        }
+        this.reindexSolrOAI(resourcePolicy.getdSpaceObject());
     }
 
     @Override
