@@ -295,6 +295,7 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             } catch (SQLException excSQL) {
                 throw new RuntimeException(excSQL.getMessage(), excSQL);
             }
+            //this.reindexSolrOAI(resourcePolicy.getdSpaceObject());
             return converter.toRest(resourcePolicy, utils.obtainProjection());
         }
     }
@@ -307,16 +308,18 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
         try {
             resourcePolicy = resourcePolicyService.find(context, id);
             dso = resourcePolicy.getdSpaceObject();
+            solrOAIReindexer.deleteItem((Item) dso);
             if (resourcePolicy == null) {
                 throw new ResourceNotFoundException(
                     ResourcePolicyRest.CATEGORY + "." + ResourcePolicyRest.NAME + " with id: " + id + " not found");
             }
             resourcePolicyService.delete(context, resourcePolicy);
+            this.reindexSolrOAI(dso);
         } catch (SQLException e) {
             throw new RuntimeException("Unable to delete ResourcePolicy with id = " + id, e);
         }
         if (Objects.nonNull(dso) && dso instanceof Item) {
-            solrOAIReindexer.deleteItem((Item) dso);
+            solrOAIReindexer.reindexItem((Item) dso);
         }
     }
 
