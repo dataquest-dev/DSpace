@@ -70,6 +70,10 @@ public class HibernateDBConnection implements DBConnection<Session> {
 
     private static final Logger log = LogManager.getLogger(HibernateDBConnection.class);
 
+    public HibernateDBConnection() {
+        log.info("HibernateDBConnection created");
+    }
+
     /**
      * Retrieves the current Session from Hibernate (per our settings, Hibernate is configured to create one Session
      * per thread). If Session doesn't yet exist, it is created. A Transaction is also initialized (or reinintialized)
@@ -83,9 +87,7 @@ public class HibernateDBConnection implements DBConnection<Session> {
         // NOTE: a Session cannot be used until a Transaction is started.
         if (!isTransActionAlive()) {
             log.info("getSession() - Starting new transaction");
-            getTransactionPid();
             sessionFactory.getCurrentSession().beginTransaction();
-            getTransactionPid();
             log.info("getSession() - New transaction started");
             configureDatabaseMode();
         }
@@ -141,9 +143,7 @@ public class HibernateDBConnection implements DBConnection<Session> {
     public void rollback() throws SQLException {
         if (isTransActionAlive()) {
             log.info("rollback() - rolling back transaction");
-            getTransactionPid();
             getTransaction().rollback();
-            getTransactionPid();
             log.info("rollback() - transaction rolled back");
         }
     }
@@ -160,10 +160,9 @@ public class HibernateDBConnection implements DBConnection<Session> {
     public void closeDBConnection() throws SQLException {
         if (sessionFactory.getCurrentSession() != null && sessionFactory.getCurrentSession().isOpen()) {
             log.info("closeDBConnection() - Closing current session");
-            getTransactionPid();
+            // 1. rollbackol transaction
             sessionFactory.getCurrentSession().close();
             log.info("closeDBConnection() - Session closed");
-            getTransactionPid();
         }
     }
 
@@ -184,10 +183,8 @@ public class HibernateDBConnection implements DBConnection<Session> {
             // Flush synchronizes the database with in-memory objects in Session (and frees up that memory)
             getSession().flush();
             log.info("commit() - commiting transaction");
-            getTransactionPid();
             // Commit those results to the database & ends the Transaction
             getTransaction().commit();
-            getTransactionPid();
             log.info("commit() - transaction committed");
         }
     }
@@ -437,24 +434,6 @@ public class HibernateDBConnection implements DBConnection<Session> {
         } else {
             return "SessionFactory is not available for logging Hibernate statistics.";
         }
-    }
-
-    // Method to get the current transaction's PID from PostgreSQL
-    public Integer getTransactionPid() {
-        Integer pid = -1;
-        try {
-            Session session = sessionFactory.getCurrentSession(); // Get the current session
-            String sql = "SELECT pg_backend_pid()"; // SQL query to get the PID
-
-            // Execute the query and get the PID
-            NativeQuery<Integer> query = session.createNativeQuery(sql);
-            pid = query.getSingleResult();  // Get the single result
-
-            log.info("Current transaction PID: " + pid); // Optional logging
-        } catch (Exception e) {
-            log.error("Cannot get PID because: " + e.getMessage());
-        }
-        return pid;
     }
 }
 

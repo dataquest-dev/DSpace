@@ -12,12 +12,12 @@
         <!-- Log level for all DSpace-specific code (org.dspace.*)
              Possible values (from most to least info):
 	     DEBUG, INFO, WARN, ERROR, FATAL -->
-        <Property name='loglevel.dspace'>DEBUG</Property>
+        <Property name='loglevel.dspace'>INFO</Property>
 
         <!-- Log level for other third-party tools/APIs used by DSpace
              Possible values (from most to least info):
 	     DEBUG, INFO, WARN, ERROR, FATAL -->
-        <Property name='loglevel.other'>DEBUG</Property>
+        <Property name='loglevel.other'>INFO</Property>
     </Properties>
 
     <Appenders>

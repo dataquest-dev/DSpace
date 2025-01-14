@@ -77,8 +77,10 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
     @Override
     public void addAuthenticationDataForUser(HttpServletRequest request, HttpServletResponse response,
             DSpaceAuthentication authentication, boolean addCookie) throws IOException {
+        Context context = null;
         try {
-            Context context = ContextUtil.obtainContext(request);
+            log.info("DQ: addAuthenticationDataForUser()");
+            context = ContextUtil.obtainContext(request);
             context.setCurrentUser(ePersonService.findByEmail(context, authentication.getName()));
 
             String token = loginJWTTokenHandler.createTokenForEPerson(context, request,
@@ -87,11 +89,23 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
 
             // Add newly generated auth token to the response
             addTokenToResponse(request, response, token, addCookie);
+            log.info("DQ: addAuthenticationDataForUser() END");
 
         } catch (JOSEException e) {
             log.error("JOSE Exception", e);
         } catch (SQLException e) {
             log.error("SQL error when adding authentication", e);
+        } finally {
+            // Complete the context to avoid transactions getting stuck in the connection pool in the
+            // `idle in transaction` state.
+            // TODO add an issue link
+            if (context != null && context.isValid()) {
+                try {
+                    context.complete();
+                } catch (SQLException e) {
+                    log.error("{} occurred while trying to close", e.getMessage(), e);
+                }
+            }
         }
     }
 

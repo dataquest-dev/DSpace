@@ -185,6 +185,7 @@ public class Context implements AutoCloseable {
                 eventService = EventServiceFactory.getInstance().getEventService();
             }
             if (dbConnection == null) {
+                log.info("Context init() - Creating a new database connection.");
                 // Obtain a non-auto-committing connection
                 dbConnection = new DSpace().getServiceManager()
                                            .getServiceByName(null, DBConnection.class);
@@ -192,6 +193,17 @@ public class Context implements AutoCloseable {
                     log.fatal("Cannot obtain the bean which provides a database connection. " +
                                   "Check previous entries in the dspace.log to find why the db failed to initialize.");
                 }
+            } else {
+                log.info("Context init() - Using existing database connection.");
+            }
+            log.info("Context init() - dbConnection.isSessionAlive(): {}", dbConnection.isSessionAlive());
+            log.info("Context init() - dbConnection.isTransActionAlive(): {}", dbConnection.isTransActionAlive());
+
+            if (dbConnection.isSessionAlive()) {
+                log.warn("!!!!!!!******");
+            }
+            if (dbConnection.isTransActionAlive()) {
+                log.warn("!!!!!!!");
             }
 
             currentUser = null;
@@ -809,6 +821,11 @@ public class Context implements AutoCloseable {
 
         if (dbConnection != null && dbConnection.isTransActionAlive()) {
             log.info("finalize() method - calling abort()");
+            abort();
+        }
+
+        if (dbConnection != null && dbConnection.isSessionAlive()) {
+            log.info("DQ: !!!! finalize() method - calling abort() !!!!");
             abort();
         }
 
