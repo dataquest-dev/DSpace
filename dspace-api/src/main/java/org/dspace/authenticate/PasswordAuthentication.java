@@ -252,9 +252,14 @@ public class PasswordAuthentication
         // Abort the context to avoid transactions getting stuck in the connection pool in the
         // `idle in transaction` state.
         // TODO add an issue link
-        if (context != null && context.isValid()) {
-            context.abort();
+        try {
+            if (context != null && context.isValid()) {
+                context.abort();
+            }
+        } catch (Exception e) {
+            log.error("Error aborting context", e);
         }
+
         return null;
     }
 
