@@ -23,7 +23,6 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.DSpaceObjectLegacySupport;
 import org.dspace.content.Item;
@@ -44,7 +43,6 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
 @Table(name = "eperson")
 public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport {
-    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(EPerson.class);
     @Column(name = "eperson_id", insertable = false, updatable = false)
     private Integer legacyId;
 
@@ -124,7 +122,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport {
      * {@link org.dspace.eperson.service.EPersonService#create(Context)}
      */
     protected EPerson() {
-        log.info("EPerson created");
+
     }
 
     @Override

@@ -169,40 +169,35 @@ public class Context implements AutoCloseable {
      * Initializes a new context object.
      */
     protected void init() {
-        try {
-            log.info("Initializing new context, mode: {}", mode);
-            updateDatabase();
+        updateDatabase();
 
-            if (eventService == null) {
-                eventService = EventServiceFactory.getInstance().getEventService();
-            }
-            if (dbConnection == null) {
-                // Obtain a non-auto-committing connection
-                dbConnection = new DSpace().getServiceManager()
-                                           .getServiceByName(null, DBConnection.class);
-                if (dbConnection == null) {
-                    log.fatal("Cannot obtain the bean which provides a database connection. " +
-                                  "Check previous entries in the dspace.log to find why the db failed to initialize.");
-                }
-            }
-
-            currentUser = null;
-            currentLocale = I18nUtil.getDefaultLocale();
-            extraLogInfo = "";
-            ignoreAuth = false;
-
-            specialGroups = new HashSet<>();
-
-            authStateChangeHistory = new ConcurrentLinkedDeque<>();
-            authStateClassCallHistory = new ConcurrentLinkedDeque<>();
-
-            if (this.mode != null) {
-                setMode(this.mode);
-            }
-        } catch (Exception e) {
-            log.error("Error initializing Context", e);
-            throw e; // Fail fast if initialization cannot be completed
+        if (eventService == null) {
+            eventService = EventServiceFactory.getInstance().getEventService();
         }
+        if (dbConnection == null) {
+            // Obtain a non-auto-committing connection
+            dbConnection = new DSpace().getServiceManager()
+                                       .getServiceByName(null, DBConnection.class);
+            if (dbConnection == null) {
+                log.fatal("Cannot obtain the bean which provides a database connection. " +
+                              "Check previous entries in the dspace.log to find why the db failed to initialize.");
+            }
+        }
+
+        currentUser = null;
+        currentLocale = I18nUtil.getDefaultLocale();
+        extraLogInfo = "";
+        ignoreAuth = false;
+
+        specialGroups = new HashSet<>();
+
+        authStateChangeHistory = new ConcurrentLinkedDeque<>();
+        authStateClassCallHistory = new ConcurrentLinkedDeque<>();
+
+        if (this.mode != null) {
+            setMode(this.mode);
+        }
+
     }
 
     /**
@@ -397,7 +392,6 @@ public class Context implements AutoCloseable {
      *                      or closing the connection
      */
     public void complete() throws SQLException {
-        log.info("Completing context.");
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("complete() was called on a closed Context object. No changes to commit.");
@@ -405,23 +399,16 @@ public class Context implements AutoCloseable {
         }
 
         try {
+            // As long as we have a valid, writeable database connection,
+            // commit changes. Otherwise, we'll just close the DB connection (see below)
             if (!isReadOnly()) {
-                commit(); // Commit the transaction
+                commit();
             }
-        } catch (Exception e) {
-            log.error("Error committing transaction in complete()", e);
-            throw e; // Rethrow to signal failure to higher-level logic
         } finally {
-            log.info("Going to close a connection.");
             if (dbConnection != null) {
-                try {
-                    log.info("Closing connection.");
-                    dbConnection.closeDBConnection();
-                    log.info("Connection closed.");
-                    dbConnection = null;
-                } catch (SQLException ex) {
-                    log.error("Error closing the database connection after complete()", ex);
-                }
+                // Free the DB connection and invalidate the Context
+                dbConnection.closeDBConnection();
+                dbConnection = null;
             }
         }
     }
@@ -581,11 +568,8 @@ public class Context implements AutoCloseable {
                 dbConnection.rollback();
                 reloadContextBoundEntities();
             }
-        } catch (SQLException e) {
-            log.error("Error rolling back transaction", e);
-            throw e; // Signal failure to the caller
         } finally {
-            events = null; // Clear events
+            events = null;
         }
     }
 
@@ -600,7 +584,6 @@ public class Context implements AutoCloseable {
      * is a no-op.
      */
     public void abort() {
-        log.info("Aborting context.");
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("abort() was called on a closed Context object. No changes to abort.");
@@ -611,24 +594,20 @@ public class Context implements AutoCloseable {
             // Rollback ONLY if we have a database transaction, and it is NOT Read Only
             if (!isReadOnly() && isTransactionAlive()) {
                 dbConnection.rollback();
-                log.info("Transaction successfully rolled back during abort().");
             }
         } catch (SQLException se) {
             log.error("Error rolling back transaction during an abort()", se);
         } finally {
             try {
-                log.info("Going to close a connection.");
                 if (dbConnection != null) {
-                    log.info("Closing connection.");
                     // Free the DB connection & invalidate the Context
                     dbConnection.closeDBConnection();
-                    log.info("Database connection closed during abort().");
                     dbConnection = null;
                 }
             } catch (Exception ex) {
-                log.error("Error closing the database connection during abort()", ex);
+                log.error("Error closing the database connection", ex);
             }
-            events = null; // Clear events to release resources
+            events = null;
         }
     }
 
@@ -638,12 +617,8 @@ public class Context implements AutoCloseable {
      */
     @Override
     public void close() {
-        try {
-            if (isValid()) {
-                abort();
-            }
-        } catch (Exception e) {
-            log.error("Error during context closure", e);
+        if (isValid()) {
+            abort();
         }
     }
 
