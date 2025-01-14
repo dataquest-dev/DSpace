@@ -356,6 +356,7 @@ public class HibernateDBConnection implements DBConnection<Session> {
         }
     }
 
+
     /**
      * Log the Hibernate statistics (e.g. open sessions, closed sessions, transactions, connections obtained)
      */

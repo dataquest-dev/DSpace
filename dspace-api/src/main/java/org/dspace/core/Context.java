@@ -1013,6 +1013,9 @@ public class Context implements AutoCloseable {
         return "Hibernate statistics are not available for this database connection";
     }
 
+    /**
+     * Get the hash of the context object. This hash is based on the memory address of the object.
+     */
     public String getHash() {
         return String.valueOf(System.identityHashCode(this));
     }
