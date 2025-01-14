@@ -113,14 +113,6 @@ public class HibernateDBConnection implements DBConnection<Session> {
         return sessionFactory.getCurrentSession().getTransaction();
     }
 
-    // TODO - this is not working as expected.
-//    // This method will run every 10 seconds
-//    @Scheduled(fixedRate = 10000) // Fixed rate in milliseconds
-//    public void logConnectionMetrics() {
-//        logHibernateStatistics();
-//        logDatabaseMetaData();
-//    }
-
     /**
      * Check if Hibernate Session is still "alive" / open. An open Session may or may not have an open Transaction
      * (so isTransactionAlive() may return false even if isSessionAlive() returns true). A Session may be reused for
