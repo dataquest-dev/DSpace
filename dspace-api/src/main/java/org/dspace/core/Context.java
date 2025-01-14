@@ -202,6 +202,7 @@ public class Context implements AutoCloseable {
         if (this.mode != null) {
             setMode(this.mode);
         }
+
     }
 
     /**
@@ -402,15 +403,19 @@ public class Context implements AutoCloseable {
 
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
+            log.info("complete() was called on a closed Context object. No changes to commit.");
             return;
         }
 
         try {
+            // As long as we have a valid, writeable database connection,
+            // commit changes. Otherwise, we'll just close the DB connection (see below)
             if (!isReadOnly()) {
                 commit();
             }
         } finally {
             if (dbConnection != null) {
+                // Free the DB connection and invalidate the Context
                 dbConnection.closeDBConnection();
                 dbConnection = null;
             }
@@ -434,6 +439,7 @@ public class Context implements AutoCloseable {
 
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
+            log.info("commit() was called on a closed Context object. No changes to commit.");
             return;
         }
 
@@ -569,6 +575,7 @@ public class Context implements AutoCloseable {
 
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
+            log.info("rollback() was called on a closed Context object. No changes to abort.");
             return;
         }
 
@@ -600,6 +607,7 @@ public class Context implements AutoCloseable {
 
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
+            log.info("abort() was called on a closed Context object. No changes to abort.");
             return;
         }
 
@@ -609,7 +617,7 @@ public class Context implements AutoCloseable {
                 dbConnection.rollback();
             }
         } catch (SQLException se) {
-            log.error("Error rolling back transaction.", se);
+            log.error("Error rolling back transaction during an abort()", se);
         } finally {
             try {
                 if (dbConnection != null) {
@@ -618,7 +626,7 @@ public class Context implements AutoCloseable {
                     dbConnection = null;
                 }
             } catch (Exception ex) {
-                log.error("Error closing the database connection.", ex);
+                log.error("Error closing the database connection", ex);
             }
             events = null;
         }
@@ -764,10 +772,6 @@ public class Context implements AutoCloseable {
          * database connection if there is one.
          */
         if (dbConnection != null && dbConnection.isTransActionAlive()) {
-            abort();
-        }
-
-        if (dbConnection != null && dbConnection.isSessionAlive()) {
             abort();
         }
 
