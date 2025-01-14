@@ -122,6 +122,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport {
      * {@link org.dspace.eperson.service.EPersonService#create(Context)}
      */
     protected EPerson() {
+
     }
 
     @Override

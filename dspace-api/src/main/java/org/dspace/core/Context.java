@@ -170,42 +170,37 @@ public class Context implements AutoCloseable {
      * Initializes a new context object.
      */
     protected void init() {
-        try {
-            if (log.isDebugEnabled()) {
-                log.debug("Initializing new context with hash: {}.", getHash());
-            }
+        if (log.isDebugEnabled()) {
+            log.debug("Initializing new context with hash: {}.", getHash());
+        }
 
-            updateDatabase();
+        updateDatabase();
 
-            if (eventService == null) {
-                eventService = EventServiceFactory.getInstance().getEventService();
-            }
+        if (eventService == null) {
+            eventService = EventServiceFactory.getInstance().getEventService();
+        }
+        if (dbConnection == null) {
+            // Obtain a non-auto-committing connection
+            dbConnection = new DSpace().getServiceManager()
+                                       .getServiceByName(null, DBConnection.class);
             if (dbConnection == null) {
-                // Obtain a non-auto-committing connection
-                dbConnection = new DSpace().getServiceManager()
-                                           .getServiceByName(null, DBConnection.class);
-                if (dbConnection == null) {
-                    log.fatal("Cannot obtain the bean which provides a database connection. " +
-                                  "Check previous entries in the dspace.log to find why the db failed to initialize.");
-                }
+                log.fatal("Cannot obtain the bean which provides a database connection. " +
+                              "Check previous entries in the dspace.log to find why the db failed to initialize.");
             }
+        }
 
-            currentUser = null;
-            currentLocale = I18nUtil.getDefaultLocale();
-            extraLogInfo = "";
-            ignoreAuth = false;
+        currentUser = null;
+        currentLocale = I18nUtil.getDefaultLocale();
+        extraLogInfo = "";
+        ignoreAuth = false;
 
-            specialGroups = new HashSet<>();
+        specialGroups = new HashSet<>();
 
-            authStateChangeHistory = new ConcurrentLinkedDeque<>();
-            authStateClassCallHistory = new ConcurrentLinkedDeque<>();
+        authStateChangeHistory = new ConcurrentLinkedDeque<>();
+        authStateClassCallHistory = new ConcurrentLinkedDeque<>();
 
-            if (this.mode != null) {
-                setMode(this.mode);
-            }
-        } catch (Exception e) {
-            log.error("Error initializing Context", e);
-            throw e; // Fail fast if initialization cannot be completed
+        if (this.mode != null) {
+            setMode(this.mode);
         }
     }
 
@@ -412,7 +407,7 @@ public class Context implements AutoCloseable {
 
         try {
             if (!isReadOnly()) {
-                commit(); // Commit the transaction
+                commit();
             }
         } finally {
             if (dbConnection != null) {
@@ -584,7 +579,7 @@ public class Context implements AutoCloseable {
                 reloadContextBoundEntities();
             }
         } finally {
-            events = null; // Clear events
+            events = null;
         }
     }
 
@@ -614,7 +609,7 @@ public class Context implements AutoCloseable {
                 dbConnection.rollback();
             }
         } catch (SQLException se) {
-            log.error("abort() method - Error rolling back transaction.", se);
+            log.error("Error rolling back transaction.", se);
         } finally {
             try {
                 if (dbConnection != null) {
@@ -623,9 +618,9 @@ public class Context implements AutoCloseable {
                     dbConnection = null;
                 }
             } catch (Exception ex) {
-                log.error("abort() method - Error closing the database connection.", ex);
+                log.error("Error closing the database connection.", ex);
             }
-            events = null; // Clear events to release resources
+            events = null;
         }
     }
 
@@ -904,7 +899,6 @@ public class Context implements AutoCloseable {
      */
     @SuppressWarnings("unchecked")
     public <E extends ReloadableEntity> E reloadEntity(E entity) throws SQLException {
-        log.debug("Reloading entity from the database: {}", entity);
         return (E) dbConnection.reloadEntity(entity);
     }
 
