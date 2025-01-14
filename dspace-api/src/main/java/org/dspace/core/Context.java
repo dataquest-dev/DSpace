@@ -141,8 +141,6 @@ public class Context implements AutoCloseable {
     }
 
     protected Context(EventService eventService, DBConnection dbConnection) {
-        ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
-        log.info("Creating new context with event service and database connection.");
         this.eventService = eventService;
         this.dbConnection = dbConnection;
         init();
@@ -154,8 +152,6 @@ public class Context implements AutoCloseable {
      * No user is authenticated.
      */
     public Context() {
-        ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
-        log.info("Creating new context.");
         init();
     }
 
@@ -166,8 +162,6 @@ public class Context implements AutoCloseable {
      * @param mode The mode to use when opening the context.
      */
     public Context(Mode mode) {
-        ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
-        log.info("Creating new context with mode: {}", mode);
         this.mode = mode;
         init();
     }
@@ -177,15 +171,16 @@ public class Context implements AutoCloseable {
      */
     protected void init() {
         try {
-            ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
-            log.info("Initializing new context, mode: {}", mode);
+            if (log.isDebugEnabled()) {
+                log.debug("Initializing new context with hash: {}.", getHash());
+            }
+
             updateDatabase();
 
             if (eventService == null) {
                 eventService = EventServiceFactory.getInstance().getEventService();
             }
             if (dbConnection == null) {
-                log.info("Context init() - Creating a new database connection.");
                 // Obtain a non-auto-committing connection
                 dbConnection = new DSpace().getServiceManager()
                                            .getServiceByName(null, DBConnection.class);
@@ -193,17 +188,6 @@ public class Context implements AutoCloseable {
                     log.fatal("Cannot obtain the bean which provides a database connection. " +
                                   "Check previous entries in the dspace.log to find why the db failed to initialize.");
                 }
-            } else {
-                log.info("Context init() - Using existing database connection.");
-            }
-            log.info("Context init() - dbConnection.isSessionAlive(): {}", dbConnection.isSessionAlive());
-            log.info("Context init() - dbConnection.isTransActionAlive(): {}", dbConnection.isTransActionAlive());
-
-            if (dbConnection.isSessionAlive()) {
-                log.warn("!!!!!!!******");
-            }
-            if (dbConnection.isTransActionAlive()) {
-                log.warn("!!!!!!!");
             }
 
             currentUser = null;
@@ -417,33 +401,23 @@ public class Context implements AutoCloseable {
      *                      or closing the connection
      */
     public void complete() throws SQLException {
-        ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
-        log.info("Completing context.");
+        if (log.isDebugEnabled()) {
+            log.debug("Completing context with hash: {}.", getHash());
+        }
+
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
-            log.info("complete() was called on a closed Context object. No changes to commit.");
             return;
         }
 
         try {
             if (!isReadOnly()) {
-                log.info("complete() method - Going to commit transaction - is not read only.");
                 commit(); // Commit the transaction
             }
-        } catch (Exception e) {
-            log.error("complete() method - Error committing transaction.", e);
-            throw e; // Rethrow to signal failure to higher-level logic
         } finally {
-            log.info("complete() method - Going to close a connection.");
             if (dbConnection != null) {
-                try {
-                    log.info("complete() method - Closing connection.");
-                    dbConnection.closeDBConnection();
-                    log.info("complete() method - Connection closed.");
-                    dbConnection = null;
-                } catch (SQLException ex) {
-                    log.error("complete() method - Error closing the database connection.", ex);
-                }
+                dbConnection.closeDBConnection();
+                dbConnection = null;
             }
         }
     }
@@ -459,37 +433,32 @@ public class Context implements AutoCloseable {
      * @throws SQLException When committing the transaction in the database fails.
      */
     public void commit() throws SQLException {
-        ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
-        log.info("Committing context.");
+        if (log.isDebugEnabled()) {
+            log.debug("Committing context with hash: {}.", getHash());
+        }
+
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
-            log.info("commit() was called on a closed Context object. No changes to commit.");
             return;
         }
 
         if (isReadOnly()) {
-            log.error("commit() method - You cannot commit a read-only context");
             throw new UnsupportedOperationException("You cannot commit a read-only context");
         }
 
         try {
             // Dispatch events before committing changes to the database,
             // as the consumers may change something too
-            log.info("commit() method - Dispatching events.");
             dispatchEvents();
         } finally {
             if (log.isDebugEnabled()) {
-                log.debug("commit() method - Cache size on commit is " + getCacheSize());
+                log.debug("Cache size on commit is " + getCacheSize());
             }
 
             if (dbConnection != null) {
-                log.info("commit() method - Committing transaction.");
                 // Commit our changes (this closes the transaction but leaves database connection open)
                 dbConnection.commit();
                 reloadContextBoundEntities();
-                log.info("commit() method - Committing transaction END.");
-            } else {
-                log.info("commit() method - No database connection to commit to.");
             }
         }
     }
@@ -599,27 +568,21 @@ public class Context implements AutoCloseable {
      * @throws SQLException When rollbacking the transaction in the database fails.
      */
     public void rollback() throws SQLException {
-        ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
-        log.info("Rolling back context.");
+        if (log.isDebugEnabled()) {
+            log.debug("Rolling back context with hash: {}.", getHash());
+        }
+
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
-            log.info("rollback() was called on a closed Context object. No changes to abort.");
             return;
         }
 
         try {
-            log.info("rollback() method - Going to rollback transaction.");
             // Rollback ONLY if we have a database transaction, and it is NOT Read Only
             if (!isReadOnly() && isTransactionAlive()) {
-                log.info("rollback() method - Rolling back transaction.");
                 dbConnection.rollback();
-                log.info("rollback() method - Transaction successfully rolled back.");
                 reloadContextBoundEntities();
-                log.info("rollback() method - Transaction successfully rolled back END.");
             }
-        } catch (SQLException e) {
-            log.error("Error rolling back transaction", e);
-            throw e; // Signal failure to the caller
         } finally {
             events = null; // Clear events
         }
@@ -636,11 +599,12 @@ public class Context implements AutoCloseable {
      * is a no-op.
      */
     public void abort() {
-        ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
-        log.info("Aborting context.");
+        if (log.isDebugEnabled()) {
+            log.debug("Aborting context with hash: {}.", getHash());
+        }
+
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
-            log.info("abort() was called on a closed Context object. No changes to abort.");
             return;
         }
 
@@ -648,18 +612,14 @@ public class Context implements AutoCloseable {
             // Rollback ONLY if we have a database transaction, and it is NOT Read Only
             if (!isReadOnly() && isTransactionAlive()) {
                 dbConnection.rollback();
-                log.info("abort() method - Transaction successfully rolled back.");
             }
         } catch (SQLException se) {
             log.error("abort() method - Error rolling back transaction.", se);
         } finally {
             try {
-                log.info("abort() method - Going to close a connection.");
                 if (dbConnection != null) {
-                    log.info("abort() method - Closing connection.");
                     // Free the DB connection & invalidate the Context
                     dbConnection.closeDBConnection();
-                    log.info("abort() method - Database connection closed");
                     dbConnection = null;
                 }
             } catch (Exception ex) {
@@ -675,15 +635,11 @@ public class Context implements AutoCloseable {
      */
     @Override
     public void close() {
-        ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
-        log.info("Closing context.");
-        try {
-            if (isValid()) {
-                log.info("close() method - calling abort().");
-                abort();
-            }
-        } catch (Exception e) {
-            log.error("close() method - Error during context closure", e);
+        if (log.isDebugEnabled()) {
+            log.debug("Closing context with hash: {}.", getHash());
+        }
+        if (isValid()) {
+            abort();
         }
     }
 
@@ -808,30 +764,19 @@ public class Context implements AutoCloseable {
      */
     @Override
     protected void finalize() throws Throwable {
-        ThreadContext.put("classID", String.valueOf(System.identityHashCode(this)));
-        log.info("Finalizing context.");
         /*
          * If a context is garbage-collected, we roll back and free up the
          * database connection if there is one.
          */
-        log.info("finalize() method - isDbConnection null: {}", dbConnection == null);
-        if (dbConnection != null) {
-            log.info("finalize() method - isTransActionAlive: {}", dbConnection.isTransActionAlive());
-        }
-
         if (dbConnection != null && dbConnection.isTransActionAlive()) {
-            log.info("finalize() method - calling abort()");
             abort();
         }
 
         if (dbConnection != null && dbConnection.isSessionAlive()) {
-            log.info("DQ: !!!! finalize() method - calling abort() !!!!");
             abort();
         }
 
-        log.info("finalize() method - calling super.finalize().");
         super.finalize();
-        log.info("finalize() method - calling super.finalize() END.");
     }
 
     public void shutDownDatabase() throws SQLException {
@@ -1068,5 +1013,9 @@ public class Context implements AutoCloseable {
             return ((HibernateDBConnection) dbConnection).getHibernateStatistics();
         }
         return "Hibernate statistics are not available for this database connection";
+    }
+
+    public String getHash() {
+        return String.valueOf(System.identityHashCode(this));
     }
 }

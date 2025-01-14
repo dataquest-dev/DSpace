@@ -79,7 +79,6 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
             DSpaceAuthentication authentication, boolean addCookie) throws IOException {
         Context context = null;
         try {
-            log.info("DQ: addAuthenticationDataForUser()");
             context = ContextUtil.obtainContext(request);
             context.setCurrentUser(ePersonService.findByEmail(context, authentication.getName()));
 
@@ -89,7 +88,6 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
 
             // Add newly generated auth token to the response
             addTokenToResponse(request, response, token, addCookie);
-            log.info("DQ: addAuthenticationDataForUser() END");
 
         } catch (JOSEException e) {
             log.error("JOSE Exception", e);
@@ -276,7 +274,6 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
             resetCSRFToken(request, response);
         }
         response.setHeader(AUTHORIZATION_HEADER, String.format("%s %s", AUTHORIZATION_TYPE, token));
-        log.info("DQ: Added token to request");
     }
 
     /**

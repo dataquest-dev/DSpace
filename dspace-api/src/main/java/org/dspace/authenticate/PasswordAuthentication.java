@@ -253,11 +253,7 @@ public class PasswordAuthentication
         // `idle in transaction` state.
         // TODO add an issue link
         if (context != null && context.isValid()) {
-            try {
-                context.complete();
-            } catch (SQLException e) {
-                log.error("{} occurred while trying to close", e.getMessage(), e);
-            }
+            context.abort();
         }
         return null;
     }

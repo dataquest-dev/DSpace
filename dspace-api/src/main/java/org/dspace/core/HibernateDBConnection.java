@@ -69,10 +69,6 @@ public class HibernateDBConnection implements DBConnection<Session> {
 
     private static final Logger log = LogManager.getLogger(HibernateDBConnection.class);
 
-    public HibernateDBConnection() {
-        log.info("HibernateDBConnection created");
-    }
-
     /**
      * Retrieves the current Session from Hibernate (per our settings, Hibernate is configured to create one Session
      * per thread). If Session doesn't yet exist, it is created. A Transaction is also initialized (or reinintialized)
@@ -85,9 +81,7 @@ public class HibernateDBConnection implements DBConnection<Session> {
         // If we don't yet have a live transaction, start a new one
         // NOTE: a Session cannot be used until a Transaction is started.
         if (!isTransActionAlive()) {
-            log.info("getSession() - Starting new transaction");
             sessionFactory.getCurrentSession().beginTransaction();
-            log.info("getSession() - New transaction started");
             configureDatabaseMode();
         }
         // Return the current Hibernate Session object (Hibernate will create one if it doesn't yet exist)
@@ -133,9 +127,7 @@ public class HibernateDBConnection implements DBConnection<Session> {
     @Override
     public void rollback() throws SQLException {
         if (isTransActionAlive()) {
-            log.info("rollback() - rolling back transaction");
             getTransaction().rollback();
-            log.info("rollback() - transaction rolled back");
         }
     }
 
@@ -150,9 +142,7 @@ public class HibernateDBConnection implements DBConnection<Session> {
     @Override
     public void closeDBConnection() throws SQLException {
         if (sessionFactory.getCurrentSession() != null && sessionFactory.getCurrentSession().isOpen()) {
-            log.info("closeDBConnection() - Closing current session");
             sessionFactory.getCurrentSession().close();
-            log.info("closeDBConnection() - Session closed");
         }
     }
 
@@ -172,10 +162,8 @@ public class HibernateDBConnection implements DBConnection<Session> {
                                                                           TransactionStatus.ROLLING_BACK)) {
             // Flush synchronizes the database with in-memory objects in Session (and frees up that memory)
             getSession().flush();
-            log.info("commit() - commiting transaction");
             // Commit those results to the database & ends the Transaction
             getTransaction().commit();
-            log.info("commit() - transaction committed");
         }
     }
 
@@ -229,22 +217,12 @@ public class HibernateDBConnection implements DBConnection<Session> {
     @Override
     @SuppressWarnings("unchecked")
     public <E extends ReloadableEntity> E reloadEntity(final E entity) throws SQLException {
-        try {
-            log.info("reloadEntity() method ");
-            if (entity == null) {
-                log.info("reloadEntity() - Entity is null - return null");
-                return null;
-            } else if (getSession().contains(entity)) {
-                log.info("reloadEntity() - Entity is in the session - return entity with ID {}", entity.getID());
-                return entity;
-            } else {
-                log.info("reloadEntity() - Entity is not in the session - return entity with ID {}", entity.getID());
-                return (E) getSession().get(HibernateProxyHelper.getClassWithoutInitializingProxy(entity),
-                        entity.getID());
-            }
-        } catch (Exception e) {
-            log.error("reloadEntity() - Error reloading entity: {}", e.getMessage());
-            throw new SQLException("Error reloading entity: " + e.getMessage(), e);
+        if (entity == null) {
+            return null;
+        } else if (getSession().contains(entity)) {
+            return entity;
+        } else {
+            return (E) getSession().get(HibernateProxyHelper.getClassWithoutInitializingProxy(entity), entity.getID());
         }
     }
 
@@ -377,7 +355,6 @@ public class HibernateDBConnection implements DBConnection<Session> {
             getSession().flush();
         }
     }
-
 
     /**
      * Log the Hibernate statistics (e.g. open sessions, closed sessions, transactions, connections obtained)

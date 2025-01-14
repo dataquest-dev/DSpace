@@ -121,7 +121,6 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
     @ExceptionHandler(IOException.class)
     protected void handleIOException(HttpServletRequest request, HttpServletResponse response, Exception ex)
         throws IOException {
-        log.error("Custom log: An internal read or write operation failed", ex);
         sendErrorResponse(request, response, ex,
                           "An internal read or write operation failed",
                           HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
