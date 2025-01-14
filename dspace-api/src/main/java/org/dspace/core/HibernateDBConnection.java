@@ -30,7 +30,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.proxy.HibernateProxyHelper;
-import org.hibernate.query.NativeQuery;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -160,7 +159,6 @@ public class HibernateDBConnection implements DBConnection<Session> {
     public void closeDBConnection() throws SQLException {
         if (sessionFactory.getCurrentSession() != null && sessionFactory.getCurrentSession().isOpen()) {
             log.info("closeDBConnection() - Closing current session");
-            // 1. rollbackol transaction
             sessionFactory.getCurrentSession().close();
             log.info("closeDBConnection() - Session closed");
         }
