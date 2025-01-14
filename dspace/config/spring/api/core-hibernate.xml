@@ -52,7 +52,6 @@
         <property name="maxConnLifetimeMillis" value="${db.maxconnlifetime}"/>
         <property name="removeAbandonedOnBorrow" value="${db.removeabandoned}"/>
         <property name="removeAbandonedTimeout" value="${db.removeabandonedtimeout}"/>
-        <property name="logAbandoned" value="true"/>
-    </bean>
+        </bean>
 
 </beans>

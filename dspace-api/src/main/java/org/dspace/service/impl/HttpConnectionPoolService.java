@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.amazonaws.http.IdleConnectionReaper;
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;
 import org.apache.http.HttpResponse;
@@ -92,7 +91,6 @@ public class HttpConnectionPoolService {
 
     @PostConstruct
     protected void init() {
-        IdleConnectionReaper.shutdown();
         connManager = new PoolingHttpClientConnectionManager(
                 configurationService.getIntProperty(configPrefix + ".client.timeToLive", DEFAULT_TTL),
                 TimeUnit.SECONDS);
