@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.ThreadContext;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.DSpaceObject;
 import org.dspace.eperson.EPerson;
