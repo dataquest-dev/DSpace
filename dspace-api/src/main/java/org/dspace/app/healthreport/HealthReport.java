@@ -62,7 +62,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
 
         if (commandLine.hasOption('e')) {
             email = commandLine.getOptionValue('e');
-            handler.logInfo("\nEmail where the health report will be send: " + email);
+            handler.logInfo("\nReport sent to this email address: " + email);
         }
 
         if (commandLine.hasOption('c')) {
@@ -71,11 +71,10 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
                 specificCheck = Integer.parseInt(checkOption);
                 if (specificCheck < 0 || specificCheck >= getNumberOfChecks()) {
                     specificCheck = -1;
-                    throw new IllegalArgumentException("Invalid value: " + specificCheck + ". It must be between 0 and " + (getNumberOfChecks() - 1) + ".");
                 }
-                handler.logInfo("\nOnly one specific task will be executed: " + specificCheck);
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid value, must be a number");
+                log.info("Invalid value for check. It has to be a number from the displayed range.");
+                return;
             }
         }
 
@@ -84,7 +83,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             try {
                 forLastNDays = Integer.parseInt(daysOption);
             } catch (NumberFormatException e) {
-                System.out.println("Invalid value for last N days, N must be a number");
+                log.info("Invalid value for last N days. Argument f has to be a number.");
                 return;
             }
         }
@@ -117,17 +116,17 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             Check check = check_entry.getValue();
 
             if (check instanceof InfoCheck) {
-                sbReport.append("\n\n######################\n").append(name).append(":\n");
+                sbReport.append("\n######################\n\n").append(name).append(":\n");
                 sbReport.append(((InfoCheck) check).run(ri));
             } else if (check instanceof ItemCheck) {
-                sbReport.append("\n\n######################\n").append(name).append(":\n");
+                sbReport.append("\n######################\n\n").append(name).append(":\n");
                 sbReport.append(((ItemCheck) check).run(ri));
             } else if (check instanceof UserCheck) {
-                sbReport.append("\n\n######################\n").append(name).append(":\n");
+                sbReport.append("\n######################\n\n").append(name).append(":\n");
                 sbReport.append(((UserCheck) check).run(ri));
             }
         }
-        
+
         // save output to file
         if (fileName != null) {
             Context context = new Context();
@@ -140,7 +139,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             context.complete();
         }
 
-        // send an email
+        // send email to email address from argument
         if (email != null) {
             System.out.println(email);
             if (!email.contains("@")) {
@@ -157,7 +156,6 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
                 e.addRecipient(email);
                 e.addArgument(sbReport.toString());
                 e.send();
-                System.out.println("email_path " + email_path + "; email " + email);
             } catch (IOException | MessagingException e) {
                 log.error("Error sending email:", e);
                 System.err.println("Error sending email:\n" + e.getMessage());

@@ -36,14 +36,14 @@ public class HealthReportScriptConfiguration<T extends HealthReport> extends Scr
                     "Send report to this email address.");
             options.getOption("e").setType(String.class);
             options.addOption("c", "check", true,
-                    String.format("Perform only specific check (use index from 0 to %d).", HealthReport.getNumberOfChecks() - 1));
+                    String.format("Perform only specific check (use index from 0 to %d, otherwise perform default checks).", HealthReport.getNumberOfChecks() - 1));
             options.getOption("c").setType(String.class);
             options.addOption("f", "for", true,
-                    "Report for last N days.");
+                    "Report for last N days. Used only in general information for now.");
             options.getOption("f").setType(String.class);
             options.addOption("o", "output", true,
                     "Save report to the file.");
-// short report, max of..,
+
             super.options =  options;
         }
         return options;
