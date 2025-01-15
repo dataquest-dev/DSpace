@@ -26,7 +26,6 @@ public class HealthReportScriptConfiguration<T extends HealthReport> extends Scr
         this.dspaceRunnableclass = dspaceRunnableClass;
     }
 
-    // TODO: modify options and their features/properties
     @Override
     public Options getOptions() {
         if (options == null) {
@@ -37,13 +36,11 @@ public class HealthReportScriptConfiguration<T extends HealthReport> extends Scr
                     "Send report to this email address.");
             options.getOption("e").setType(String.class);
             options.addOption("c", "check", true,
-                    "Perform only specific check (use index starting from 0).");
+                    String.format("Perform only specific check (use index from 0 to %d).", HealthReport.getNumberOfChecks() - 1));
             options.getOption("c").setType(String.class);
             options.addOption("f", "for", true,
                     "Report for last N days.");
             options.getOption("f").setType(String.class);
-            options.addOption("v", "verbose", false,
-                    "Verbose report.");
             options.addOption("o", "output", true,
                     "Save report to the file.");
 // short report, max of..,

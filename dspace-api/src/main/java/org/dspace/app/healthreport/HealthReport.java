@@ -25,6 +25,8 @@ import javax.mail.MessagingException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.apache.commons.io.IOUtils.toInputStream;
 
@@ -34,10 +36,13 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             = DSpaceServicesFactory.getInstance().getConfigurationService();
     private static final Logger log = LogManager.getLogger(HealthReport.class);
     private EPersonService ePersonService;
+//    private static final Map<String, Check> checks =
+//            Collections.unmodifiableMap(Report.checks()); instead of checks?
+    private static final LinkedHashMap<String, Check> checks = Report.checks();
 
     private boolean info = false;
     private String email;
-    private int specificCheck;
+    private int specificCheck = -1;
     private int forLastNDays = configurationService.getIntProperty("healthcheck.last_n_days");
     private String fileName;
 
@@ -64,6 +69,10 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             String checkOption = commandLine.getOptionValue('c');
             try {
                 specificCheck = Integer.parseInt(checkOption);
+                if (specificCheck < 0 || specificCheck >= getNumberOfChecks()) {
+                    specificCheck = -1;
+                    throw new IllegalArgumentException("Invalid value: " + specificCheck + ". It must be between 0 and " + (getNumberOfChecks() - 1) + ".");
+                }
                 handler.logInfo("\nOnly one specific task will be executed: " + specificCheck);
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("Invalid value, must be a number");
@@ -75,12 +84,9 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             try {
                 forLastNDays = Integer.parseInt(daysOption);
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid value, must be a number");
+                System.out.println("Invalid value for last N days, N must be a number");
+                return;
             }
-        }
-
-        if (commandLine.hasOption('v')) {
-
         }
 
         if (commandLine.hasOption('o')) {
@@ -97,29 +103,37 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
 
         ReportInfo ri = new ReportInfo(this.forLastNDays);
 
+        StringBuilder sbReport = new StringBuilder();
+        sbReport.append("\n\nHEALTH REPORT:\n");
 
+        int pos = -1;
+        for (Map.Entry<String, Check> check_entry : Report.checks().entrySet()) {
+            ++pos;
+            if (specificCheck != -1 && specificCheck != pos) {
+                continue;
+            }
 
+            String name = check_entry.getKey();
+            Check check = check_entry.getValue();
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n\nHEALTH REPORT:\n");
-        sb.append("\nGeneral Information:\n");
-        InfoCheck infoCheck = new InfoCheck();
-        sb.append(infoCheck.run(ri));
-
-        sb.append("\nItem Summary:\n");
-        ItemCheck itemCheck = new ItemCheck();
-        sb.append(itemCheck.run(ri));
-
-        sb.append("\nUser Summary:\n");
-        UserCheck userCheck = new UserCheck();
-        sb.append(userCheck.run(ri));
-
+            if (check instanceof InfoCheck) {
+                sbReport.append("\n\n######################\n").append(name).append(":\n");
+                sbReport.append(((InfoCheck) check).run(ri));
+            } else if (check instanceof ItemCheck) {
+                sbReport.append("\n\n######################\n").append(name).append(":\n");
+                sbReport.append(((ItemCheck) check).run(ri));
+            } else if (check instanceof UserCheck) {
+                sbReport.append("\n\n######################\n").append(name).append(":\n");
+                sbReport.append(((UserCheck) check).run(ri));
+            }
+        }
+        
         // save output to file
         if (fileName != null) {
             Context context = new Context();
             context.setCurrentUser(ePersonService.find(context, this.getEpersonIdentifier()));
 
-            InputStream inputStream = toInputStream(sb.toString(), StandardCharsets.UTF_8);
+            InputStream inputStream = toInputStream(sbReport.toString(), StandardCharsets.UTF_8);
             handler.writeFilestream(context, fileName, inputStream, "export");
 
             context.restoreAuthSystemState();
@@ -140,17 +154,17 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
                 log.info(String.format(
                         "Looking for email template at [%s]", email_path));
                 Email e = Email.getEmail(email_path);
-                e.addRecipient(email.toString());
-                e.addArgument(sb.toString());
+                e.addRecipient(email);
+                e.addArgument(sbReport.toString());
                 e.send();
-                System.out.println("email_path " + email_path + "; email " + email.toString());
+                System.out.println("email_path " + email_path + "; email " + email);
             } catch (IOException | MessagingException e) {
                 log.error("Error sending email:", e);
                 System.err.println("Error sending email:\n" + e.getMessage());
             }
         }
 
-        handler.logInfo(sb.toString());
+        handler.logInfo(sbReport.toString());
     }
 
     public void printHelp() {
@@ -158,31 +172,24 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
                 "You can choose from these available options:\n" +
                 "  -i, --info            Show help information\n" +
                 "  -e, --email           Send report to specified email address\n" +
-                "  -c, --check           Perform only specific check by index\n" +
+                "  -c, --check           Perform only specific check by index (0-" + (getNumberOfChecks() - 1) + ")\n" +
                 "  -f, --for             Specify the last N days to consider\n" +
-                "  -v, --verbose         Verbose report\n" +
-                "  -o, --outputFile      Specify a file to save the output\n" +
-                "  -m, --maxResults      Limit the number of results displayed\n\n" +
-                "If you want to execute only one check using -c, use check index:\n" +
-                "   0. General Information\n   1. Item Summary\n   2. User Summary\n"
+                "  -o, --output          Specify a file to save the report\n\n" +
+//                "  -m, --maxResults      Limit the number of results displayed\n\n" +
+                "If you want to execute only one check using -c, use check index:\n" + checksNamesToString() + "\n"
         );
     }
 
-//    private void store(String name, long took, String report) {
-//        name += String.format(" [took: %ds] [# lines: %d]",
-//                took / 1000,
-//                new StringTokenizer(report, "\r\n").countTokens()
-//        );
-//
-//        String one_summary = String.format(
-//                "\n#### %s\n%s\n\n###############################\n",
-//                name,
-//                report.replaceAll("\\s+$", "")
-//        );
-//        //summary_.append(one_summary);
-//
-//        // output it
-//        System.out.println(one_summary);
-//
-//    }
+    public String checksNamesToString() {
+        StringBuilder names = new StringBuilder();
+        int pos = 0;
+        for (String name : checks.keySet()) {
+            names.append(String.format("   %d. %s\n", pos++, name));
+        }
+        return names.toString();
+    }
+
+    public static int getNumberOfChecks() {
+        return checks.size();
+    }
 }
