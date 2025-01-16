@@ -169,6 +169,10 @@ public class Context implements AutoCloseable {
      * Initializes a new context object.
      */
     protected void init() {
+        if (log.isDebugEnabled()) {
+            log.debug("Initializing new context with hash: {}.", getHash());
+        }
+
         updateDatabase();
 
         if (eventService == null) {
@@ -392,6 +396,10 @@ public class Context implements AutoCloseable {
      *                      or closing the connection
      */
     public void complete() throws SQLException {
+        if (log.isDebugEnabled()) {
+            log.debug("Completing context with hash: {}.", getHash());
+        }
+
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("complete() was called on a closed Context object. No changes to commit.");
@@ -424,6 +432,10 @@ public class Context implements AutoCloseable {
      * @throws SQLException When committing the transaction in the database fails.
      */
     public void commit() throws SQLException {
+        if (log.isDebugEnabled()) {
+            log.debug("Committing context with hash: {}.", getHash());
+        }
+
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("commit() was called on a closed Context object. No changes to commit.");
@@ -556,6 +568,10 @@ public class Context implements AutoCloseable {
      * @throws SQLException When rollbacking the transaction in the database fails.
      */
     public void rollback() throws SQLException {
+        if (log.isDebugEnabled()) {
+            log.debug("Rolling back context with hash: {}.", getHash());
+        }
+
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("rollback() was called on a closed Context object. No changes to abort.");
@@ -584,6 +600,10 @@ public class Context implements AutoCloseable {
      * is a no-op.
      */
     public void abort() {
+        if (log.isDebugEnabled()) {
+            log.debug("Aborting context with hash: {}.", getHash());
+        }
+
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("abort() was called on a closed Context object. No changes to abort.");
@@ -617,6 +637,9 @@ public class Context implements AutoCloseable {
      */
     @Override
     public void close() {
+        if (log.isDebugEnabled()) {
+            log.debug("Closing context with hash: {}.", getHash());
+        }
         if (isValid()) {
             abort();
         }
@@ -987,5 +1010,12 @@ public class Context implements AutoCloseable {
             return ((HibernateDBConnection) dbConnection).getHibernateStatistics();
         }
         return "Hibernate statistics are not available for this database connection";
+    }
+
+    /**
+     * Get the hash of the context object. This hash is based on the memory address of the object.
+     */
+    public String getHash() {
+        return String.valueOf(System.identityHashCode(this));
     }
 }
