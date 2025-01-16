@@ -173,10 +173,6 @@ public class Context implements AutoCloseable {
             log.debug("Initializing new context with hash: {}.", getHash());
         }
 
-        if (isTransactionAlive()) {
-            log.warn("Initializing a context while an active transaction exists.");
-        }
-
         updateDatabase();
 
         if (eventService == null) {
@@ -189,6 +185,11 @@ public class Context implements AutoCloseable {
             if (dbConnection == null) {
                 log.fatal("Cannot obtain the bean which provides a database connection. " +
                               "Check previous entries in the dspace.log to find why the db failed to initialize.");
+            } else {
+                if (isTransactionAlive()) {
+                    log.warn("Initializing a context while an active transaction exists. Context with hash: {}.",
+                             getHash());
+                }
             }
         }
 
