@@ -93,17 +93,6 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
             log.error("JOSE Exception", e);
         } catch (SQLException e) {
             log.error("SQL error when adding authentication", e);
-        } finally {
-            // Complete the context to avoid transactions getting stuck in the connection pool in the
-            // `idle in transaction` state.
-            // TODO add an issue link
-            if (context != null && context.isValid()) {
-                try {
-                    context.complete();
-                } catch (SQLException e) {
-                    log.error("{} occurred while trying to close", e.getMessage(), e);
-                }
-            }
         }
     }
 

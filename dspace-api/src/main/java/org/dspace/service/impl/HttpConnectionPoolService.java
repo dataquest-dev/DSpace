@@ -64,16 +64,16 @@ public class HttpConnectionPoolService {
     /** Keep connections open at least this long, if the response did not
      *  specify:  milliseconds
      */
-    private static final int DEFAULT_KEEPALIVE = 5 * 1000;
+    private static final int DEFAULT_KEEPALIVE = 5 * 100000;
 
     /** Pooled connection maximum lifetime:  seconds */
-    private static final int DEFAULT_TTL = 10 * 60;
+    private static final int DEFAULT_TTL = 1000000;
 
     /** Clean up stale connections this often:  milliseconds */
-    private static final int CHECK_INTERVAL = 1000;
+    private static final int CHECK_INTERVAL = 1000000;
 
     /** Connection idle if unused for this long:  seconds */
-    private static final int IDLE_INTERVAL = 30;
+    private static final int IDLE_INTERVAL = 300;
 
     private PoolingHttpClientConnectionManager connManager;
 

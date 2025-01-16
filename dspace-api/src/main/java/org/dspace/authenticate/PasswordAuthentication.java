@@ -249,17 +249,6 @@ public class PasswordAuthentication
     public String loginPageURL(Context context,
                                HttpServletRequest request,
                                HttpServletResponse response) {
-        // Abort the context to avoid transactions getting stuck in the connection pool in the
-        // `idle in transaction` state.
-        // TODO add an issue link
-        try {
-            if (context != null && context.isValid()) {
-                context.abort();
-            }
-        } catch (Exception e) {
-            log.error("Error aborting context", e);
-        }
-
         return null;
     }
 
