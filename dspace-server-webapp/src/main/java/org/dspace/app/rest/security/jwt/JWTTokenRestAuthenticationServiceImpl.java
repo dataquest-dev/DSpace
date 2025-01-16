@@ -77,9 +77,8 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
     @Override
     public void addAuthenticationDataForUser(HttpServletRequest request, HttpServletResponse response,
             DSpaceAuthentication authentication, boolean addCookie) throws IOException {
-        Context context = null;
         try {
-            context = ContextUtil.obtainContext(request);
+            Context context = ContextUtil.obtainContext(request);
             context.setCurrentUser(ePersonService.findByEmail(context, authentication.getName()));
 
             String token = loginJWTTokenHandler.createTokenForEPerson(context, request,
