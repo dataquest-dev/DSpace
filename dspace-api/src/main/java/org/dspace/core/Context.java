@@ -173,6 +173,10 @@ public class Context implements AutoCloseable {
             log.debug("Initializing new context with hash: {}.", getHash());
         }
 
+        if (isTransactionAlive()) {
+            log.warn("Initializing a context while an active transaction exists.");
+        }
+
         updateDatabase();
 
         if (eventService == null) {
