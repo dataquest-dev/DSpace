@@ -108,7 +108,7 @@
                 <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>date</dc-element>
-                    <dc-qualifier>submitted</dc-qualifier>
+                    <dc-qualifier>issued</dc-qualifier>
                     <repeatable>false</repeatable>
                     <label>Date Submitted</label>
                     <style>col-sm-4</style>
