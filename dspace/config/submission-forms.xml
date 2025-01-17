@@ -166,18 +166,6 @@
                     <hint>A spatial region or named place.</hint>
                 </field>
             </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>date</dc-element>
-                    <dc-qualifier></dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>Date</label>
-                    <input-type>date</input-type>
-                    <hint>A point or period of time associated with an event in the lifecycle of the resource if any e.g., 2014-01-21 or at least
-                        the year.</hint>
-                </field>
-            </row>
         </form>
 
         <form name="traditionalpagetwo">
