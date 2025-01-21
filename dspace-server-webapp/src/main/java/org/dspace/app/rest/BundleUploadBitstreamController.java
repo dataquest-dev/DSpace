@@ -110,6 +110,7 @@ public class BundleUploadBitstreamController {
                       e);
             throw new UnprocessableEntityException("The InputStream from the file couldn't be read", e);
         }
+
         BitstreamRest bitstreamRest = bundleRestRepository.uploadBitstream(
                 context, bundle, uploadfile.getOriginalFilename(), fileInputStream, properties);
         BitstreamResource bitstreamResource = converter.toResource(bitstreamRest);

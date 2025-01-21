@@ -187,7 +187,7 @@ public class ItemAddBundleController {
         }
 
         itemService.update(context, item);
-        provenanceService.editLicense(context, item, !Objects.isNull(clarinLicense));
+        provenanceService.updateLicense(context, item, !Objects.isNull(clarinLicense));
         context.commit();
 
         return converter.toRest(item, utils.obtainProjection());

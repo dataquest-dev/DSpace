@@ -61,7 +61,7 @@ public interface ProvenanceService {
      * @param item item to which the license is edited
      * @param newLicense true if the license is new, false if it's edited
      */
-    void editLicense(Context context, Item item, boolean newLicense);
+    void updateLicense(Context context, Item item, boolean newLicense);
 
     /**
      * Add a provenance message to the item when it's moved to a collection

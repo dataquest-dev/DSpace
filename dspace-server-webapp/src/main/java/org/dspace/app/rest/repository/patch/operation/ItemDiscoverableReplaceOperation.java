@@ -13,8 +13,6 @@ import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.ProvenanceService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +32,6 @@ public class ItemDiscoverableReplaceOperation<R> extends PatchOperation<R> {
      * Path in json body of patch that uses this operation
      */
     private static final String OPERATION_PATH_DISCOVERABLE = "/discoverable";
-    private static final Logger log = LoggerFactory.getLogger(ItemDiscoverableReplaceOperation.class);
 
     @Autowired
     ProvenanceService provenanceService;

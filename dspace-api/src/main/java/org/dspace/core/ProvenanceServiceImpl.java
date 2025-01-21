@@ -108,7 +108,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    public void editLicense(Context context, Item item, boolean newLicense) {
+    public void updateLicense(Context context, Item item, boolean newLicense) {
         String oldLicense = null;
 
         try {

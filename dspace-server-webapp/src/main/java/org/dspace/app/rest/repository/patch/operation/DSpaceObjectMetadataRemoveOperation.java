@@ -72,7 +72,6 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
     private void remove(Context context, DSpaceObject dso, DSpaceObjectService dsoService, MetadataField metadataField,
                         String index) {
         metadataPatchUtils.checkMetadataFieldNotNull(metadataField);
-        String msg;
         try {
             if (index == null) {
                 // remove all metadata of this type
@@ -101,6 +100,7 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new UnprocessableEntityException("There is no metadata of this type at that index");
         } catch (SQLException ex) {
+            String msg;
             msg = "SQLException in DspaceObjectMetadataRemoveOperation.remove " +
                     "trying to remove metadata from dso.";
             log.error(msg, ex);

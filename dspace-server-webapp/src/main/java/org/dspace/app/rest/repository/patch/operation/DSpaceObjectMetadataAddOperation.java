@@ -68,7 +68,6 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                      MetadataValueRest metadataValue, String index) {
         metadataPatchUtils.checkMetadataFieldNotNull(metadataField);
         int indexInt = 0;
-        String msg;
         if (index != null && index.equals("-")) {
             indexInt = -1;
         }
@@ -78,6 +77,7 @@ public class DSpaceObjectMetadataAddOperation<R extends DSpaceObject> extends Pa
                     metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence(), indexInt);
             provenanceService.addMetadata(context, dso, metadataField);
         } catch (SQLException e) {
+            String msg;
             msg = "SQLException in DspaceObjectMetadataAddOperation.add trying to add " +
                     "metadata to dso.";
             log.error(msg, e);
