@@ -113,9 +113,8 @@ public interface ProvenanceService {
      *
      * @param context DSpace context object
      * @param dso DSpace object from which the metadata is removed
-     * @param metadataField metadata field that is removed
      */
-    void removeMetadata(Context context, DSpaceObject dso, MetadataField metadataField);
+    void removeMetadata(Context context, DSpaceObject dso, String schema, String element, String qualifier);
 
     /**
      * Add a provenance message to the item when metadata is removed at a given index

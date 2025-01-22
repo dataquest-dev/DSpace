@@ -200,19 +200,19 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    public void removeMetadata(Context context, DSpaceObject dso, MetadataField metadataField) {
+    public void removeMetadata(Context context, DSpaceObject dso, String schema, String element, String qualifier) {
         if (dso.getType() != Constants.BITSTREAM) {
             return;
         }
         MetadataField oldMtdKey = null;
         String oldMtdValue = null;
-        List<MetadataValue> mtd = bitstreamService.getMetadata((Bitstream) dso,
-                metadataField.getMetadataSchema().getName(),
-                metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
-        if (CollectionUtils.isNotEmpty(mtd)) {
-            oldMtdKey = mtd.get(0).getMetadataField();
-            oldMtdValue = mtd.get(0).getValue();
+        List<MetadataValue> mtd = bitstreamService.getMetadata((Bitstream) dso, schema, element, qualifier, Item.ANY);
+        if (CollectionUtils.isEmpty(mtd)) {
+            // Do not add any provenance message when there are no metadata to remove
+            return;
         }
+        oldMtdKey = mtd.get(0).getMetadataField();
+        oldMtdValue = mtd.get(0).getValue();
         Bitstream bitstream = (Bitstream) dso;
         try {
             Item item = findItemByBitstream(context, bitstream);

@@ -191,7 +191,6 @@ public class DSpaceObjectMetadataReplaceOperation<R extends DSpaceObject> extend
     private void replaceSinglePropertyOfMdValue(Context context, DSpaceObject dso, DSpaceObjectService dsoService,
                                                 MetadataField metadataField,
                                                 String index, String propertyOfMd, String valueMdProperty) {
-        String msg;
         try {
             List<MetadataValue> metadataValues = dsoService.getMetadata(dso,
                     metadataField.getMetadataSchema().getName(), metadataField.getElement(),

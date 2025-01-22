@@ -30,12 +30,16 @@ import org.dspace.eperson.EPerson;
  * @author Michaela Paurikova (dspace at dataquest.sk)
  */
 public class ProvenanceMessageFormatter {
-    private InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+    private InstallItemService installItemService;
 
     public ProvenanceMessageFormatter() {}
 
     public String getMessage(Context context, String messageTemplate, Item item, Object... args)
             throws SQLException, AuthorizeException {
+        // Initialize InstallItemService if it is not initialized.
+        if (installItemService == null) {
+            installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+        }
         String msg = getMessage(context, messageTemplate, args);
         msg = msg + "\n" + installItemService.getBitstreamProvenanceMessage(context, item);
         return msg;

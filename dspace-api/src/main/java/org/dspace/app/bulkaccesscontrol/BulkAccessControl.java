@@ -45,7 +45,6 @@ import org.dspace.app.mediafilter.service.MediaFilterService;
 import org.dspace.app.util.DSpaceObjectUtilsImpl;
 import org.dspace.app.util.service.DSpaceObjectUtils;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
@@ -557,10 +556,7 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
      */
     private void removeReadPolicies(DSpaceObject dso, String type) {
         try {
-            // Get all read policies of the dso before removing them
-            List<ResourcePolicy> resPolicies = resourcePolicyService.find(context, dso, type);
             resourcePolicyService.removePolicies(context, dso, type, Constants.READ);
-            provenanceService.removeReadPolicies(context, dso, resPolicies);
         } catch (SQLException | AuthorizeException e) {
             throw new BulkAccessControlException(e);
         }

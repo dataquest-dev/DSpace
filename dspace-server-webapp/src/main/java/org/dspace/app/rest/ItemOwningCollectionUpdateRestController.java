@@ -129,7 +129,6 @@ public class ItemOwningCollectionUpdateRestController {
                                 final boolean inheritPolicies)
             throws SQLException, IOException, AuthorizeException {
         itemService.move(context, item, currentCollection, targetCollection, inheritPolicies);
-        provenanceService.moveItem(context, item, currentCollection);
         // Necessary because Controller does not pass through general RestResourceController, and as such does not do
         // its commit in DSpaceRestRepository.createAndReturn() or similar
         context.commit();
