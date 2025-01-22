@@ -43,7 +43,6 @@ public class ClarinLicenseResourceMappingBuilder extends AbstractBuilder<ClarinL
             return;
         }
         try (Context c = new Context()) {
-            c.turnOffAuthorisationSystem();
             ClarinLicenseResourceMapping clarinLicense = clarinLicenseResourceMappingService.find(c, id);
 
             if (clarinLicense != null) {
