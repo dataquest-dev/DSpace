@@ -77,7 +77,6 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
                 // remove all metadata of this type
                 dsoService.clearMetadata(context, dso, metadataField.getMetadataSchema().getName(),
                         metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
-                provenanceService.removeMetadata(context, dso, metadataField);
             } else {
                 // remove metadata at index
                 List<MetadataValue> metadataValues = dsoService.getMetadata(dso,
@@ -100,11 +99,8 @@ public class DSpaceObjectMetadataRemoveOperation<R extends DSpaceObject> extends
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new UnprocessableEntityException("There is no metadata of this type at that index");
         } catch (SQLException ex) {
-            String msg;
-            msg = "SQLException in DspaceObjectMetadataRemoveOperation.remove " +
-                    "trying to remove metadata from dso.";
-            log.error(msg, ex);
-            throw new DSpaceBadRequestException(msg, ex);
+            throw new DSpaceBadRequestException("SQLException in DspaceObjectMetadataRemoveOperation.remove" +
+                    " trying to remove metadata from dso.", ex);
         }
     }
 
