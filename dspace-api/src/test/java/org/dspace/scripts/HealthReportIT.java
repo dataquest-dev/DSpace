@@ -26,7 +26,7 @@ import org.junit.Test;
  */
 public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
     @Test
-    public void testWithoutProcessToDelete() throws Exception {
+    public void testDefaultHealthcheckRun() throws Exception {
 
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
 
