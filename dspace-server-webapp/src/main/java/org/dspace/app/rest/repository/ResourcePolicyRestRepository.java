@@ -307,11 +307,11 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
         DSpaceObject dso = null;
         try {
             resourcePolicy = resourcePolicyService.find(context, id);
-            dso = resourcePolicy.getdSpaceObject();
             if (resourcePolicy == null) {
                 throw new ResourceNotFoundException(
                     ResourcePolicyRest.CATEGORY + "." + ResourcePolicyRest.NAME + " with id: " + id + " not found");
             }
+            dso = resourcePolicy.getdSpaceObject();
             resourcePolicyService.delete(context, resourcePolicy);
         } catch (SQLException e) {
             throw new RuntimeException("Unable to delete ResourcePolicy with id = " + id, e);
