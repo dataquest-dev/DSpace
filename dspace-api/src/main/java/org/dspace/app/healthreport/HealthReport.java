@@ -86,7 +86,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
     @Override
     public void setup() throws ParseException {
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-        // 	`-i`: Info, show help information.
+        // `-i`: Info, show help information.
         if (commandLine.hasOption('i')) {
             info = true;
             return;
