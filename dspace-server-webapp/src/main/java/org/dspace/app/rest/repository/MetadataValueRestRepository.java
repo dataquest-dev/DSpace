@@ -160,9 +160,7 @@ public class MetadataValueRestRepository extends DSpaceRestRepository<MetadataVa
                 this.createDiscoverQuery(metadataField, searchValue, maxResults);
 
         if (ObjectUtils.isEmpty(discoverQuery)) {
-            String msg = "Cannot create a DiscoverQuery from the arguments.";
-            log.error(msg);
-            throw new IllegalArgumentException(msg);
+            throw new IllegalArgumentException("Cannot create a DiscoverQuery from the arguments.");
         }
 
         String normalizedQuery = Utils.normalizeDiscoverQuery(searchValue, metadataField);
