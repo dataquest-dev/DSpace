@@ -12,6 +12,8 @@ import static org.apache.commons.io.IOUtils.toInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -26,11 +28,8 @@ import org.dspace.core.I18nUtil;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.health.Check;
-import org.dspace.health.InfoCheck;
-import org.dspace.health.ItemCheck;
 import org.dspace.health.Report;
 import org.dspace.health.ReportInfo;
-import org.dspace.health.UserCheck;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -151,15 +150,12 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             String name = check_entry.getKey();
             Check check = check_entry.getValue();
 
-            sbReport.append("\n######################\n\n").append(name).append(":\n");
+            log.info("#{}. Processing [{}] at [{}]", position, name, new SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
 
-            if (check instanceof InfoCheck) {
-                sbReport.append(((InfoCheck) check).run(ri));
-            } else if (check instanceof ItemCheck) {
-                sbReport.append(((ItemCheck) check).run(ri));
-            } else if (check instanceof UserCheck) {
-                sbReport.append(((UserCheck) check).run(ri));
-            }
+            sbReport.append("\n######################\n\n").append(name).append(":\n");
+            check.report(ri);
+            sbReport.append(check.getReport());
         }
 
         // save output to file
