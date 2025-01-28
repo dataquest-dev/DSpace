@@ -30,7 +30,9 @@ import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.rest.utils.SolrOAIReindexer;
 import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
@@ -114,6 +116,9 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
     @Autowired
     private SolrOAIReindexer solrOAIReindexer;
 
+    @Autowired
+    private ResourcePolicyService resourcePolicyService;
+
     private SubmissionConfigService submissionConfigService;
 
     public WorkflowItemRestRepository() throws SubmissionConfigReaderException {
@@ -172,6 +177,25 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
         }
         try {
             source = submissionService.createWorkflowItem(context, stringList.get(0));
+            boolean isValidSubmitter = context.getCurrentUser().getGroups().stream()
+                    .anyMatch(g -> {
+                        if (source.getItem().getOwningCollection() != null) {
+                            String groupName = g.getName();
+                            String expectedGroupName = "COLLECTION_" +
+                                    source.getItem().getOwningCollection().getID() + "_SUBMIT";
+                            return groupName.equals(expectedGroupName);
+                        }
+                        return false;
+                    });
+            if (isValidSubmitter) {
+                context.turnOffAuthorisationSystem();
+                ResourcePolicy resPol = resourcePolicyService.create(context);
+                resPol.setAction(Constants.WRITE);
+                resPol.setdSpaceObject(source.getItem());
+                resPol.setEPerson(context.getCurrentUser());
+                context.restoreAuthSystemState();
+            }
+
         } catch (AuthorizeException e) {
             throw new RESTAuthorizationException(e);
         } catch (WorkflowException e) {
