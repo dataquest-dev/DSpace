@@ -901,8 +901,9 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
                     .anyMatch(resPol -> resPol.getAction() == Constants.WRITE &&
                             resPol.getEPerson() != null &&
                             resPol.getEPerson().getID().equals(submitter.getID()));
+            // submitter is a member of the submit group
+            // the resource policy was created
             assert found;
-
         } finally {
             // remove the workflowitem if any
             WorkflowItemBuilder.deleteWorkflowItem(idRef.get());
@@ -929,7 +930,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
                     .withPassword("dspace")
                     .build();
 
-            //3. create submitter group with member
+            //3. create admin group with member
             GroupBuilder.createCollectionAdminGroup(context, col1).addMember(submitter).build();
 
             context.setCurrentUser(submitter);
@@ -961,8 +962,9 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
                     .anyMatch(resPol -> resPol.getAction() == Constants.WRITE &&
                             resPol.getEPerson() != null &&
                             resPol.getEPerson().getID().equals(submitter.getID()));
+            // submitter is a member of the admin group, not the submit group—therefore,
+            // the resource policy was not created
             assert !found;
-
         } finally {
             // remove the workflowitem if any
             WorkflowItemBuilder.deleteWorkflowItem(idRef.get());
