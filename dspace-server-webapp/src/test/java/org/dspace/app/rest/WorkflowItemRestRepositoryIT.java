@@ -911,7 +911,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
     }
 
     @Test
-    public void createWorkflowItemSubmitterRestPolicyCorrectCollectionTest() throws Exception {
+    public void createWorkflowItemSubmitterRestPolicyCorrectCollectionNameTest() throws Exception {
         context.turnOffAuthorisationSystem();
         //Set property
         String colName = "Collection 1";
@@ -924,9 +924,71 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
             parentCommunity = CommunityBuilder.createCommunity(context)
                     .withName("Parent Community")
                     .build();
-            Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1")
+            Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName(colName)
                     .withWorkflowGroup(1, admin).build();
 
+            //2. create a normal user to use as submitter
+            EPerson submitter = EPersonBuilder.createEPerson(context)
+                    .withEmail("submitter@example.com")
+                    .withPassword("dspace")
+                    .build();
+
+            //3. create submitter group with member
+            GroupBuilder.createCollectionSubmitterGroup(context, col1).addMember(submitter).build();
+
+            context.setCurrentUser(submitter);
+
+            //4. a workspace item
+            WorkspaceItem wsitem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                    .withTitle("Submission Item")
+                    .withIssueDate("2017-10-17")
+                    .grantLicense()
+                    .build();
+            wsitem.getItem().setOwningCollection(col1);
+            context.restoreAuthSystemState();
+
+            // get the submitter auth token
+            String authToken = getAuthToken(submitter.getEmail(), "dspace");
+
+            // submit the workspaceitem to start the workflow
+            getClient(authToken)
+                    .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
+                            .content("/api/submission/workspaceitems/" + wsitem.getID())
+                            .contentType(textUriContentType))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$",
+                            WorkflowItemMatcher.matchItemWithTitleAndDateIssued(null, "Submission Item", "2017-10-17")))
+                    .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+
+            List<ResourcePolicy> list = resourcePolicyService.find(context, wsitem.getItem());
+            boolean found = list.stream()
+                    .anyMatch(resPol -> resPol.getAction() == Constants.WRITE &&
+                            resPol.getEPerson() != null &&
+                            resPol.getEPerson().getID().equals(submitter.getID()));
+            // submitter is a member of the submit group
+            // the resource policy was created
+            assert found;
+        } finally {
+            // remove the workflowitem if any
+            WorkflowItemBuilder.deleteWorkflowItem(idRef.get());
+        }
+    }
+
+    @Test
+    public void createWorkflowItemSubmitterRestPolicyCorrectCollectionUUIDTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // hold the id of the created workflow item
+        AtomicReference<Integer> idRef = new AtomicReference<Integer>();
+        try {
+            //** GIVEN **
+            //1. A community with one collection.
+            parentCommunity = CommunityBuilder.createCommunity(context)
+                    .withName("Parent Community")
+                    .build();
+            Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1")
+                    .withWorkflowGroup(1, admin).build();
+            //Set property
+            configurationService.setProperty("lr.allow.edit.metadata", col1.getID().toString());
             //2. create a normal user to use as submitter
             EPerson submitter = EPersonBuilder.createEPerson(context)
                     .withEmail("submitter@example.com")
