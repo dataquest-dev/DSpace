@@ -11,7 +11,11 @@ import static org.dspace.xmlworkflow.state.actions.processingaction.ProcessingAc
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,9 +37,11 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
+import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -119,6 +125,9 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
     @Autowired
     private ResourcePolicyService resourcePolicyService;
 
+    @Autowired
+    private CollectionService collectionService;
+
     private SubmissionConfigService submissionConfigService;
 
     public WorkflowItemRestRepository() throws SubmissionConfigReaderException {
@@ -177,25 +186,11 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
         }
         try {
             source = submissionService.createWorkflowItem(context, stringList.get(0));
-            boolean isValidSubmitter = context.getCurrentUser().getGroups().stream()
-                    .anyMatch(g -> {
-                        if (source.getItem().getOwningCollection() != null) {
-                            String groupName = g.getName();
-                            String expectedGroupName = "COLLECTION_" +
-                                    source.getItem().getOwningCollection().getID() + "_SUBMIT";
-                            return groupName.equals(expectedGroupName);
-                        }
-                        return false;
-                    });
-            if (isValidSubmitter) {
-                context.turnOffAuthorisationSystem();
-                ResourcePolicy resPol = resourcePolicyService.create(context);
-                resPol.setAction(Constants.WRITE);
-                resPol.setdSpaceObject(source.getItem());
-                resPol.setEPerson(context.getCurrentUser());
-                context.restoreAuthSystemState();
+            if (isCollectionAllowedForSubmitterEditing(source.getItem().getOwningCollection())) {
+                if (isValidSubmitter(context, source.getItem())) {
+                    createResourcePolicy(context, source.getItem(), Constants.WRITE);
+                }
             }
-
         } catch (AuthorizeException e) {
             throw new RESTAuthorizationException(e);
         } catch (WorkflowException e) {
@@ -211,6 +206,77 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
             return null;
         }
         return converter.toRest(source, utils.obtainProjection());
+    }
+
+    /**
+     * Checks if the provided collection is allowed for submitter metadata editing.
+     *
+     * This method retrieves a list of allowed collection names and IDs from the system configuration,
+     * and checks if the given collection's name or ID matches any of the allowed values.
+     *
+     * @param collection The collection to be checked.
+     * @return True if the collection's name or ID is in the allowed list for submitter editing, false otherwise.
+     * @throws SQLException If there is an issue retrieving the configuration or querying the database.
+     */
+    private boolean isCollectionAllowedForSubmitterEditing(Collection collection) throws SQLException {
+        if (Objects.isNull(collection)) {
+            return false;
+        }
+        // Retrieve the allowed collections for submitter edition as an array
+        String[] editableCollections = configurationService.getArrayProperty("lr.allow.edit.metadata");
+
+        if (Objects.isNull(editableCollections) || editableCollections.length == 0) {
+            return false;
+        }
+
+        Set<String> allowedNamesOrIds = new HashSet<>(Arrays.asList(editableCollections));
+
+        // Check if the provided collection's name or ID is in the allowed set
+        return allowedNamesOrIds.contains(collection.getName()) ||
+                allowedNamesOrIds.contains(collection.getID().toString());
+    }
+
+    /**
+     * Checks if the current user is a valid submitter for the given item.
+     *
+     * @param context The current DSpace context.
+     * @param item The item for which the submitter validation is being checked.
+     * @return True if the current user belongs to the valid submitter group
+     *          for the item's owning collection, false otherwise.
+     */
+    private boolean isValidSubmitter(Context context, Item item) {
+        if (Objects.isNull(item)) {
+            return false;
+        }
+        return context.getCurrentUser().getGroups().stream()
+                .anyMatch(g -> {
+                    if (item.getOwningCollection() != null) {
+                        String groupName = g.getName();
+                        String expectedGroupName = "COLLECTION_" +
+                                item.getOwningCollection().getID() + "_SUBMIT";
+                        return groupName.equals(expectedGroupName);
+                    }
+                    return false;
+                });
+    }
+
+    /**
+     * Creates a resource policy for an item, granting the specified action to the current user.
+     *
+     * @param context The current DSpace context.
+     * @param item The item for which the resource policy is being created.
+     * @param action The action to be assigned to the resource policy (e.g., write, read).
+     * @throws SQLException If there is an issue interacting with the database.
+     * @throws AuthorizeException If the current user does not have sufficient authorization
+     *                            to create the resource policy.
+     */
+    private void createResourcePolicy(Context context, Item item, int action) throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        ResourcePolicy resPol = resourcePolicyService.create(context);
+        resPol.setAction(action);
+        resPol.setdSpaceObject(item);
+        resPol.setEPerson(context.getCurrentUser());
+        context.restoreAuthSystemState();
     }
 
     @Override
