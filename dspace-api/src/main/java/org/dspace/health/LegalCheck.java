@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
@@ -40,8 +41,8 @@ public class LegalCheck extends Check {
     private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService =
             ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
 
-    private HashMap<String, Integer> licensesCount = new HashMap<>();
-    private List<ClarinLicense> licenseIDs = new ArrayList<>();
+    private Map<String, Integer> licensesCount = new HashMap<>();
+    private List<ClarinLicense> clarinLicenses = new ArrayList<>();
 
     @Override
     protected String run(ReportInfo ri) {
@@ -101,36 +102,60 @@ public class LegalCheck extends Check {
                         + firstBitstream.getName() + " " + firstBitstream.getID());
                 UUID uuid = firstBitstream.getID(); // compare
 
-                for (ClarinLicenseResourceMapping licenseResourceMapping : licenseResourceMappings) {
-                    if (licenseResourceMapping.getBitstream().getID() == uuid) {
-                        // pridat do listu skor license id
-                        System.out.println(" PRIDAJ DO HASH MAP " + uuid);
-                        System.out.println("License id " + licenseResourceMapping.getLicense());
-                        licenseIDs.add(licenseResourceMapping.getLicense());
+                try {
+                    List<ClarinLicenseResourceMapping> clarinLicenseResourceMappingList =
+                            clarinLicenseResourceMappingService.findByBitstreamUUID(context, uuid);
+                    for (ClarinLicenseResourceMapping clarinLicenseResourceMapping :
+                            clarinLicenseResourceMappingList) {
+                        System.out.println("size : " +
+                                clarinLicenseResourceMapping.getLicense().getLicenseLabels().size());
+                        System.out.println("--- " +
+                                clarinLicenseResourceMapping.getLicense().getID() + " " +
+                                clarinLicenseResourceMapping.getLicense().getName() + " ---");
+                        System.out.println("Get license labels " +
+                                clarinLicenseResourceMapping.getLicense().getLicenseLabels());
+                        System.out.println("get(0).getLabel() " +
+                                clarinLicenseResourceMapping.getLicense().getLicenseLabels().get(0).getLabel());
+                        System.out.println("is extended " +
+                                clarinLicenseResourceMapping.getLicense().getLicenseLabels().get(0).isExtended());
+                        if (!clarinLicenseResourceMapping.getLicense().getLicenseLabels().get(0).isExtended()) {
+                            licensesCount.put(
+                                    clarinLicenseResourceMapping.getLicense().getLicenseLabels().get(0).getLabel(),
+                                    licensesCount.getOrDefault(clarinLicenseResourceMapping.getLicense()
+                                            .getLicenseLabels().get(0).getLabel(), 0) + 1);
+                        }
                     }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
+
+//                for (ClarinLicenseResourceMapping licenseResourceMapping : licenseResourceMappings) {
+//                    if (licenseResourceMapping.getBitstream().getID() == uuid) {
+//                        // pridat do listu skor license id
+//                        System.out.println(" PRIDAJ DO HASH MAP " + uuid);
+//                        System.out.println("License id " + licenseResourceMapping.getLicense().getID());
+//
+//                        clarinLicenses.add(licenseResourceMapping.getLicense());
+//
+//                    } else {
+//                        System.out.println("NEPRIDAJ DO HASHMAP " + uuid);
+//                    }
+//                }
+                System.out.println();
+
 
             } else {
                 System.out.println("Item does not have an bitstream.");
             }
 
-//            ClarinLicense clarinLicense = new ClarinLicense();
-//            ClarinLicenseResourceMappingServiceImpl clarinLicenseResourceMappingService =
-//            new ClarinLicenseResourceMappingServiceImpl();
-//            try {
-//                List<ClarinLicenseResourceMapping> findbyLicenseID =
-//                clarinLicenseResourceMappingService.findAllByLicenseId(context, 5);
-//                sb.append("-------->").append(findbyLicenseID.toString());
-//            } catch (SQLException e) {
-//                System.out.println("EXCEPTION OCCURRED");
-//                throw new RuntimeException(e);
-//            }
-
             System.out.println("Item " + " is " + item.getName());
         }
 
-        sb.append(licenseIDs.toString());
-        // prejst cez license id a zistit ake typy licencie (label ) to je
+        sb.append("RESULT:\n");
+        for (Map.Entry<String, Integer> result : licensesCount.entrySet()) {
+            sb.append(result.getKey()).append(": ").append(result.getValue());
+        }
+        // sb.append(clarinLicenses.toString());
 
         context.close();
         return sb.toString();
