@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -32,6 +33,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.IsoLangCodes;
 import org.dspace.embargo.service.EmbargoService;
+import org.dspace.eperson.EPerson;
 import org.dspace.event.Event;
 import org.dspace.identifier.Identifier;
 import org.dspace.identifier.IdentifierException;
@@ -117,7 +119,8 @@ public class InstallItemServiceImpl implements InstallItemService {
         itemService.inheritCollectionDefaultPolicies(c, item, collection, false);
 
         //Allow submitter to edit item
-        if (isCollectionAllowedForSubmitterEditing(item.getOwningCollection())) {
+        if (isCollectionAllowedForSubmitterEditing(item.getOwningCollection()) &&
+                isInSubmitGroup(c.getCurrentUser(), item.getOwningCollection().getID())) {
             createResourcePolicy(c, item, Constants.WRITE);
         }
 
@@ -379,6 +382,20 @@ public class InstallItemServiceImpl implements InstallItemService {
         // Check if the provided collection's name or ID is in the allowed set
         return allowedNamesOrIds.contains(collection.getName()) ||
                 allowedNamesOrIds.contains(collection.getID().toString());
+    }
+
+    /**
+     * Checks if the given EPerson is in a submitter of the collection.
+     * A submit group is identified by the name containing "SUBMITT" and the collection UUID.
+     *
+     * @param eperson      the EPerson whose is checked
+     * @param collectionUUID the UUID of the collection to check group names
+     * @return true if the EPerson is in a submitter, false otherwise
+     */
+    private boolean isInSubmitGroup(EPerson eperson, UUID collectionUUID) {
+        return eperson.getGroups().stream()
+                .anyMatch(group -> group.getName().contains("SUBMIT") &&
+                        group.getName().contains(collectionUUID.toString()));
     }
 
     /**

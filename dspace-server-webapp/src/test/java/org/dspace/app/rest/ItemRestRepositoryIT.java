@@ -2742,6 +2742,9 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
             Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1")
                     .withAdminGroup(user).build();
+            //Set property
+            configurationService.setProperty("lr.allow.edit.metadata", col1.getID().toString());
+
             context.setCurrentUser(user);
 
             //4. a workspace item
