@@ -8,16 +8,18 @@
 package org.dspace.health;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
-import org.dspace.content.clarin.ClarinLicenseResourceMappingServiceImpl;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
@@ -31,9 +33,12 @@ import org.dspace.core.Context;
  * @author Matus Kasak (dspace at dataquest.sk)
  */
 public class LegalCheck extends Check {
-    private ClarinLicenseLabelService clarinLicenseLabelService = ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
-    private ClarinLicenseService clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
-    private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService = ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
+    private ClarinLicenseLabelService clarinLicenseLabelService =
+            ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
+    private ClarinLicenseService clarinLicenseService =
+            ClarinServiceFactory.getInstance().getClarinLicenseService();
+    private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService =
+            ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
 
     private HashMap<String, Integer> licensesCount = new HashMap<>();
     private List<ClarinLicense> licenseIDs = new ArrayList<>();
@@ -83,7 +88,8 @@ public class LegalCheck extends Check {
             Item item = it.next();
 
             sb.append('\n');
-//            sb.append(item.toString()).append("---").append(item.getBundles().toString()).append("---").append(item.getBundles().size());
+//            sb.append(item.toString()).append("---").append(item.getBundles()
+//            .toString()).append("---").append(item.getBundles().size());
 //            sb.append('\n');
             //some items do not have a bitstream
             // TODO bitstreams can be empty
@@ -91,7 +97,8 @@ public class LegalCheck extends Check {
             if (!bitstreams.isEmpty()) {
                 // one bitstream is enough as there is only one license for all bitstreams in item
                 Bitstream firstBitstream = bitstreams.get(0);
-                System.out.println("First bitstream of item is " + firstBitstream.getName() + " " + firstBitstream.getID());
+                System.out.println("First bitstream of item is "
+                        + firstBitstream.getName() + " " + firstBitstream.getID());
                 UUID uuid = firstBitstream.getID(); // compare
 
                 for (ClarinLicenseResourceMapping licenseResourceMapping : licenseResourceMappings) {
@@ -108,9 +115,11 @@ public class LegalCheck extends Check {
             }
 
 //            ClarinLicense clarinLicense = new ClarinLicense();
-//            ClarinLicenseResourceMappingServiceImpl clarinLicenseResourceMappingService = new ClarinLicenseResourceMappingServiceImpl();
+//            ClarinLicenseResourceMappingServiceImpl clarinLicenseResourceMappingService =
+//            new ClarinLicenseResourceMappingServiceImpl();
 //            try {
-//                List<ClarinLicenseResourceMapping> findbyLicenseID = clarinLicenseResourceMappingService.findAllByLicenseId(context, 5);
+//                List<ClarinLicenseResourceMapping> findbyLicenseID =
+//                clarinLicenseResourceMappingService.findAllByLicenseId(context, 5);
 //                sb.append("-------->").append(findbyLicenseID.toString());
 //            } catch (SQLException e) {
 //                System.out.println("EXCEPTION OCCURRED");
