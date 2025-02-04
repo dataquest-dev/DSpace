@@ -371,7 +371,7 @@ public class InstallItemServiceImpl implements InstallItemService {
             return false;
         }
         // Retrieve the allowed collections for submitter edition as an array
-        String[] editableCollections = configurationService.getArrayProperty("lr.allow.edit.metadata");
+        String[] editableCollections = configurationService.getArrayProperty("allow.edit.metadata", new String[] {});
 
         if (Objects.isNull(editableCollections) || editableCollections.length == 0) {
             return false;
@@ -386,7 +386,7 @@ public class InstallItemServiceImpl implements InstallItemService {
 
     /**
      * Checks if the given EPerson is in a submitter of the collection.
-     * A submit group is identified by the name containing "SUBMITT" and the collection UUID.
+     * A submit group is identified by the name containing "SUBMIT" and the collection UUID.
      *
      * @param eperson      the EPerson whose is checked
      * @param collectionUUID the UUID of the collection to check group names

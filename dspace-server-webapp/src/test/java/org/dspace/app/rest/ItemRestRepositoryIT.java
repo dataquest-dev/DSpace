@@ -56,7 +56,6 @@ import org.dspace.app.rest.matcher.BundleMatcher;
 import org.dspace.app.rest.matcher.CollectionMatcher;
 import org.dspace.app.rest.matcher.HalMatcher;
 import org.dspace.app.rest.matcher.ItemMatcher;
-import org.dspace.app.rest.matcher.WorkflowItemMatcher;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.MetadataRest;
 import org.dspace.app.rest.model.MetadataValueRest;
@@ -2619,7 +2618,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
             Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1")
                     .withSubmitterGroup(submitter).build();
             //Set property
-            configurationService.setProperty("lr.allow.edit.metadata", col1.getID().toString());
+            configurationService.setProperty("allow.edit.metadata", col1.getID().toString());
             context.setCurrentUser(submitter);
 
             //4. a workspace item
@@ -2661,7 +2660,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void createItemAsSubmitterRestPolicyIncorrectCollectionNameTest() throws Exception {
+    public void createItemAsSubmitterCollectionNameNotInConfigTest() throws Exception {
         context.turnOffAuthorisationSystem();
         Item item = null;
         //disable file upload mandatory
@@ -2743,7 +2742,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
             Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1")
                     .withAdminGroup(user).build();
             //Set property
-            configurationService.setProperty("lr.allow.edit.metadata", col1.getID().toString());
+            configurationService.setProperty("allow.edit.metadata", col1.getID().toString());
 
             context.setCurrentUser(user);
 
@@ -2791,7 +2790,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         Item item = null;
         //Set property
         String colName = "Collection 1";
-        configurationService.setProperty("lr.allow.edit.metadata", colName);
+        configurationService.setProperty("allow.edit.metadata", colName);
         //disable file upload mandatory
         configurationService.setProperty("webui.submit.upload.required", false);
         try {
