@@ -2648,7 +2648,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .anyMatch(resPol -> resPol.getAction() == Constants.WRITE &&
                             resPol.getEPerson() != null &&
                             resPol.getEPerson().getID().equals(submitter.getID()));
-            // submitter is a member of the submit group
+            // submitter is a member of the submit group, collection ID is in property
             // the resource policy was created
             assert found;
         } finally {
@@ -2709,7 +2709,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .anyMatch(resPol -> resPol.getAction() == Constants.WRITE &&
                             resPol.getEPerson() != null &&
                             resPol.getEPerson().getID().equals(submitter.getID()));
-            // submitter is a member of the submit group
+            // submission is member of submit group, collection name is not in property
             // the resource policy was not created
             assert !found;
         } finally {
@@ -2773,7 +2773,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .anyMatch(resPol -> resPol.getAction() == Constants.WRITE &&
                             resPol.getEPerson() != null &&
                             resPol.getEPerson().getID().equals(user.getID()));
-            // submitter is a member of the submit group
+            // submitter is not a member of the submit group
             // the resource policy was not created
             assert !found;
         } finally {
@@ -2838,7 +2838,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .anyMatch(resPol -> resPol.getAction() == Constants.WRITE &&
                             resPol.getEPerson() != null &&
                             resPol.getEPerson().getID().equals(submitter.getID()));
-            // submitter is a member of the submit group
+            // submitter is a member of the submit group, collection name is in property
             // the resource policy was created
             assert found;
         } finally {
