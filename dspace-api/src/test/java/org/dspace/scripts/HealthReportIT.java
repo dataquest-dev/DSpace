@@ -18,6 +18,12 @@ import java.util.List;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.ItemBuilder;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.Item;
 import org.junit.Test;
 
 /**
@@ -40,4 +46,46 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(messages, hasSize(1));
         assertThat(messages, hasItem(containsString("HEALTH REPORT:")));
     }
+
+    @Test
+    public void testLegalCheck() throws Exception {
+        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
+        context.turnOffAuthorisationSystem();
+        Community rootCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community community = CommunityBuilder.createSubCommunity(context, rootCommunity)
+                .withName("Sub Community A")
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                .withName("Collection 1")
+                .withSubmitterGroup(eperson)
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withTitle("Test Item Without Bitstream")
+                .build();
+
+        String[] args = new String[] { "health-report", "-c", "3" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+
+        assertThat(testDSpaceRunnableHandler.getErrorMessages(), empty());
+        List<String> messages = testDSpaceRunnableHandler.getInfoMessages();
+        assertThat(messages, hasSize(1));
+        assertThat(messages, hasItem(containsString("no license")));
+    }
+    // NOVY TEST
+    // Pouzijes builder na vytvorenie Itemu bez bitstreamu (WorkspaceItemBuilder, ItemBUilder(
+    /**
+     *         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+     *                 .withTitle("Test WorkspaceItem")
+     *                 .withIssueDate("2017-10-17")
+     *                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf)
+     *                 .build();
+     *
+     *         return witem;
+     */
+    // Zavolat report iba pre LegalCheck
+    // assertThat noLicense
 }

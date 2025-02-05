@@ -28,6 +28,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
 /**
+ * This check provides information about the number of items categorized by license type.
  * @author Matus Kasak (dspace at dataquest.sk)
  */
 public class LegalCheck extends Check {
