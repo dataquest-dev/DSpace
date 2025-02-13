@@ -13,7 +13,12 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
@@ -21,14 +26,27 @@ import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.content.clarin.ClarinLicense;
+import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinLicenseResourceMapping;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
+import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.junit.Test;
 
 /**
  * Integration test for the HealthReport script
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ * @author Matus Kasak (dspace at dataquest.sk)
  */
 public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
     @Test
@@ -49,24 +67,65 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
 
     @Test
     public void testLegalCheck() throws Exception {
-        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
         context.turnOffAuthorisationSystem();
-        Community rootCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
-        Community community = CommunityBuilder.createSubCommunity(context, rootCommunity)
-                .withName("Sub Community A")
+
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("Community")
                 .build();
 
         Collection collection = CollectionBuilder.createCollection(context, community)
-                .withName("Collection 1")
+                .withName("Collection")
                 .withSubmitterGroup(eperson)
                 .build();
 
-        Item item = ItemBuilder.createItem(context, collection)
-                .withTitle("Test Item Without Bitstream")
+        Item itemPUB = ItemBuilder.createItem(context, collection)
+                .withTitle("Test item with Bitstream")
                 .build();
 
+        ItemBuilder.createItem(context, collection)
+                .withTitle("Test item without Bitstream")
+                .build();
+
+        BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
+        BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+        Bundle bundle = bundleService.create(context, itemPUB, "ORIGINAL");
+
+        String licenseText = "This is a PUB License.";
+        InputStream inputStream = new ByteArrayInputStream(licenseText.getBytes(StandardCharsets.UTF_8));
+
+        Bitstream bitstream = bitstreamService.create(context, bundle, inputStream);
+        bitstream.setDescription(context, "test bitstream");
+
+        ClarinLicenseService clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
+        ClarinLicenseLabelService clarinLicenseLabelService =
+                ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
+        ClarinLicenseResourceMappingService clarinLicenseResourceMappingService =
+                ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
+
+        ClarinLicenseLabel clarinLicenseLabel = clarinLicenseLabelService.create(context);
+        clarinLicenseLabel.setLabel("PUB");
+        clarinLicenseLabelService.update(context, clarinLicenseLabel);
+
+        ClarinLicense clarinLicense = clarinLicenseService.create(context);
+        clarinLicense.setName("Public Domain Mark (PUB)");
+        clarinLicense.setDefinition("http://creativecommons.org/publicdomain/mark/1.0/");
+
+        Set<ClarinLicenseLabel> licenseLabels = new HashSet<>();
+        licenseLabels.add(clarinLicenseLabel);
+        clarinLicense.setLicenseLabels(licenseLabels);
+        clarinLicenseService.update(context, clarinLicense);
+
+        ClarinLicenseResourceMapping mapping = clarinLicenseResourceMappingService.create(context);
+        mapping.setBitstream(bitstream);
+        mapping.setLicense(clarinLicense);
+        clarinLicenseResourceMappingService.update(context, mapping);
+
+        bitstreamService.update(context, bitstream);
+        bundleService.update(context, bundle);
+        context.commit();
+
+        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
+        // -c 3 run only third check, in this case Legal check
         String[] args = new String[] { "health-report", "-c", "3" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
@@ -74,18 +133,6 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
         List<String> messages = testDSpaceRunnableHandler.getInfoMessages();
         assertThat(messages, hasSize(1));
         assertThat(messages, hasItem(containsString("no license")));
+        assertThat(messages, hasItem(containsString("PUB")));
     }
-    // NOVY TEST
-    // Pouzijes builder na vytvorenie Itemu bez bitstreamu (WorkspaceItemBuilder, ItemBUilder(
-    /**
-     *         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-     *                 .withTitle("Test WorkspaceItem")
-     *                 .withIssueDate("2017-10-17")
-     *                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf)
-     *                 .build();
-     *
-     *         return witem;
-     */
-    // Zavolat report iba pre LegalCheck
-    // assertThat noLicense
 }
