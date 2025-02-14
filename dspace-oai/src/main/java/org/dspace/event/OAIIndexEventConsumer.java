@@ -38,10 +38,8 @@ public class OAIIndexEventConsumer implements Consumer {
     // collect Items, Collections, Communities that need indexing
     private Set<Item> itemsToUpdate = null;
 
-    DSpace dspace = new DSpace();
-
     public void initialize() throws Exception {
-
+        // No-op
     }
 
     /**
@@ -72,34 +70,34 @@ public class OAIIndexEventConsumer implements Consumer {
 
         int et = event.getEventType();
 
-        if(object != null && event.getObjectType() == Constants.ITEM){
+        if (object != null && event.getObjectType() == Constants.ITEM) {
             //update just object
             itemsToUpdate.add((Item)object);
             return;
         }
 
-        if(subject != null){
-            if(event.getSubjectType() == Constants.COLLECTION || event.getSubjectType() == Constants.COMMUNITY){
-                if(et == Event.MODIFY || et == Event.MODIFY_METADATA || et == Event.REMOVE || et == Event.DELETE){
+        if (subject != null) {
+            if (event.getSubjectType() == Constants.COLLECTION || event.getSubjectType() == Constants.COMMUNITY) {
+                if (et == Event.MODIFY || et == Event.MODIFY_METADATA || et == Event.REMOVE || et == Event.DELETE) {
                     //must update all the items
-                    if(subject.getType() == Constants.COMMUNITY){
-                        for(Collection col : ((Community)subject).getCollections()){
+                    if (subject.getType() == Constants.COMMUNITY) {
+                        for (Collection col : ((Community)subject).getCollections()) {
                             addAll(ctx, col);
                         }
-                    }else{
+                    } else {
                         addAll(ctx, (Collection)subject);
                     }
                 }
-            }else if(event.getSubjectType() == Constants.BITSTREAM || event.getSubjectType() == Constants.BUNDLE){
+            } else if (event.getSubjectType() == Constants.BITSTREAM || event.getSubjectType() == Constants.BUNDLE) {
                 //must update owning items regardless the event
-                if(subject.getType() == Constants.BITSTREAM){
-                    for(Bundle bun : ((Bitstream)subject).getBundles()){
+                if (subject.getType() == Constants.BITSTREAM) {
+                    for (Bundle bun : ((Bitstream)subject).getBundles()) {
                         itemsToUpdate.addAll(bun.getItems());
                     }
                 } else {
                     itemsToUpdate.addAll(((Bundle)subject).getItems());
                 }
-            }else if(event.getSubjectType() == Constants.ITEM){
+            } else if (event.getSubjectType() == Constants.ITEM) {
                 //any event reindex this item
                 itemsToUpdate.add((Item)subject);
             }
@@ -108,7 +106,7 @@ public class OAIIndexEventConsumer implements Consumer {
 
     private void addAll(Context context, Collection col) throws SQLException {
         Iterator<Item> i = itemService.findByCollection(context, col);
-        while(i.hasNext()){
+        while (i.hasNext()) {
             itemsToUpdate.add(i.next());
         }
     }
@@ -148,9 +146,8 @@ public class OAIIndexEventConsumer implements Consumer {
         } catch (Exception e) {
             itemsToUpdate = null;
             throw e;
-        }
-        finally {
-            if(anonymousContext!=null){
+        } finally {
+            if (anonymousContext != null) {
                 anonymousContext.complete();
             }
         }
@@ -158,6 +155,5 @@ public class OAIIndexEventConsumer implements Consumer {
 
     public void finish(Context ctx) throws Exception {
         // No-op
-
     }
 }
