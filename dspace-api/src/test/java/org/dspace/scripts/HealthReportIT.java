@@ -41,6 +41,7 @@ import org.dspace.content.service.BundleService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.core.Constants;
 import org.junit.Test;
 
 /**
@@ -49,6 +50,11 @@ import org.junit.Test;
  * @author Matus Kasak (dspace at dataquest.sk)
  */
 public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
+    private static final String PUB_LABEL = "PUB";
+    private static final String PUB_LICENSE_NAME = "Public Domain Mark (PUB)";
+    private static final String PUB_LICENSE_URL = "http://creativecommons.org/publicdomain/mark/1.0/";
+    private static final String LICENSE_TEXT = "This is a PUB License.";
+
     @Test
     public void testDefaultHealthcheckRun() throws Exception {
 
@@ -88,27 +94,24 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
 
         BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
         BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
-        Bundle bundle = bundleService.create(context, itemPUB, "ORIGINAL");
-
-        String licenseText = "This is a PUB License.";
-        InputStream inputStream = new ByteArrayInputStream(licenseText.getBytes(StandardCharsets.UTF_8));
-
-        Bitstream bitstream = bitstreamService.create(context, bundle, inputStream);
-        bitstream.setDescription(context, "test bitstream");
-
         ClarinLicenseService clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
         ClarinLicenseLabelService clarinLicenseLabelService =
                 ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
         ClarinLicenseResourceMappingService clarinLicenseResourceMappingService =
                 ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
 
+        Bundle bundle = bundleService.create(context, itemPUB, Constants.DEFAULT_BUNDLE_NAME);
+        InputStream inputStream = new ByteArrayInputStream(LICENSE_TEXT.getBytes(StandardCharsets.UTF_8));
+
+        Bitstream bitstream = bitstreamService.create(context, bundle, inputStream);
+
         ClarinLicenseLabel clarinLicenseLabel = clarinLicenseLabelService.create(context);
-        clarinLicenseLabel.setLabel("PUB");
+        clarinLicenseLabel.setLabel(PUB_LABEL);
         clarinLicenseLabelService.update(context, clarinLicenseLabel);
 
         ClarinLicense clarinLicense = clarinLicenseService.create(context);
-        clarinLicense.setName("Public Domain Mark (PUB)");
-        clarinLicense.setDefinition("http://creativecommons.org/publicdomain/mark/1.0/");
+        clarinLicense.setName(PUB_LICENSE_NAME);
+        clarinLicense.setDefinition(PUB_LICENSE_URL);
 
         Set<ClarinLicenseLabel> licenseLabels = new HashSet<>();
         licenseLabels.add(clarinLicenseLabel);
@@ -118,8 +121,8 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
         ClarinLicenseResourceMapping mapping = clarinLicenseResourceMappingService.create(context);
         mapping.setBitstream(bitstream);
         mapping.setLicense(clarinLicense);
-        clarinLicenseResourceMappingService.update(context, mapping);
 
+        clarinLicenseResourceMappingService.update(context, mapping);
         bitstreamService.update(context, bitstream);
         bundleService.update(context, bundle);
         context.commit();
