@@ -752,7 +752,7 @@ public class XOAI {
         solrClient.commit();
     }
 
-    public void indexItems(java.util.Collection<Item> items) throws Exception{
+    public void indexItems(java.util.Collection<Item> items) throws Exception {
         for (Item item : items) {
             try {
                 deleteItemByQuery(item);
