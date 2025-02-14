@@ -274,7 +274,6 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
                 throw new RuntimeException(excSQL.getMessage(), excSQL);
             }
             reindexSolrOAI(resourcePolicy.getdSpaceObject());
-            return converter.toRest(resourcePolicy, utils.obtainProjection());
         } else {
             try {
                 UUID groupUuid = UUID.fromString(groupUuidStr);
