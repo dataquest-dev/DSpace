@@ -7,6 +7,11 @@
  */
 package org.dspace.event;
 
+import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -18,15 +23,9 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.utils.DSpace;
 import org.dspace.xoai.app.BasicConfiguration;
 import org.dspace.xoai.app.XOAI;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
-import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 public class OAIIndexEventConsumer implements Consumer {
     /**
