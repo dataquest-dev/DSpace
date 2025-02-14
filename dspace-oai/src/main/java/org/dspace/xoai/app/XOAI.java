@@ -114,7 +114,6 @@ public class XOAI {
                 new AnnotationConfigApplicationContext(BasicConfiguration.class);
         cacheService = applicationContext.getBean(XOAICacheService.class);
         itemCacheService = applicationContext.getBean(XOAIItemCacheService.class);
-
     }
 
     private List<String> getFileFormats(Item item) {

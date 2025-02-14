@@ -226,10 +226,6 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         clone.setRpDescription((String) ObjectUtils.clone(resourcePolicy.getRpDescription()));
         update(context, clone);
         DSpaceObject dso = resourcePolicy.getdSpaceObject();
-        if (dso instanceof Item) {
-            Item item = (Item) dso;
-            context.addEvent(new Event(Event.MODIFY, -1, null, Constants.ITEM, item.getID(), ""));
-        }
         return clone;
     }
 

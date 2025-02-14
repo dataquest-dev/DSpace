@@ -10,6 +10,7 @@ package org.dspace.event;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -27,6 +28,11 @@ import org.dspace.xoai.app.BasicConfiguration;
 import org.dspace.xoai.app.XOAI;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+/**
+ * The OAIIndexEventConsumer determining which items need to be indexed or updated based on the event type and subject.
+ * It listens for changes to items, collections, communities, bundles, and bitstreams, and updates the OAI index accordingly.
+ * The indexing is done using the XOAI indexer after all relevant items are collected.
+ */
 public class OAIIndexEventConsumer implements Consumer {
     /**
      * log4j logger
@@ -34,6 +40,7 @@ public class OAIIndexEventConsumer implements Consumer {
     private static Logger log = Logger.getLogger(OAIIndexEventConsumer.class);
 
     ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
     // collect Items, Collections, Communities that need indexing
     private Set<Item> itemsToUpdate = null;
 
@@ -66,40 +73,41 @@ public class OAIIndexEventConsumer implements Consumer {
         DSpaceObject subject = event.getSubject(ctx);
         DSpaceObject object = event.getObject(ctx);
 
-
         int et = event.getEventType();
 
         if (object != null && event.getObjectType() == Constants.ITEM) {
-            //update just object
+            //just update the object
             itemsToUpdate.add((Item)object);
             return;
         }
 
-        if (subject != null) {
-            if (event.getSubjectType() == Constants.COLLECTION || event.getSubjectType() == Constants.COMMUNITY) {
-                if (et == Event.MODIFY || et == Event.MODIFY_METADATA || et == Event.REMOVE || et == Event.DELETE) {
-                    //must update all the items
-                    if (subject.getType() == Constants.COMMUNITY) {
-                        for (Collection col : ((Community)subject).getCollections()) {
-                            addAll(ctx, col);
-                        }
-                    } else {
-                        addAll(ctx, (Collection)subject);
-                    }
-                }
-            } else if (event.getSubjectType() == Constants.BITSTREAM || event.getSubjectType() == Constants.BUNDLE) {
-                //must update owning items regardless the event
-                if (subject.getType() == Constants.BITSTREAM) {
-                    for (Bundle bun : ((Bitstream)subject).getBundles()) {
-                        itemsToUpdate.addAll(bun.getItems());
+        if (Objects.isNull(subject)) {
+            return;
+        }
+
+        if (event.getSubjectType() == Constants.COLLECTION || event.getSubjectType() == Constants.COMMUNITY) {
+            if (et == Event.MODIFY || et == Event.MODIFY_METADATA || et == Event.REMOVE || et == Event.DELETE) {
+                //must update all the items
+                if (subject.getType() == Constants.COMMUNITY) {
+                    for (Collection col : ((Community)subject).getCollections()) {
+                        addAll(ctx, col);
                     }
                 } else {
-                    itemsToUpdate.addAll(((Bundle)subject).getItems());
+                    addAll(ctx, (Collection)subject);
                 }
-            } else if (event.getSubjectType() == Constants.ITEM) {
-                //any event reindex this item
-                itemsToUpdate.add((Item)subject);
             }
+        } else if (event.getSubjectType() == Constants.BITSTREAM || event.getSubjectType() == Constants.BUNDLE) {
+            //must update owning items regardless the event
+            if (subject.getType() == Constants.BITSTREAM) {
+                for (Bundle bun : ((Bitstream)subject).getBundles()) {
+                    itemsToUpdate.addAll(bun.getItems());
+                }
+            } else {
+                itemsToUpdate.addAll(((Bundle)subject).getItems());
+            }
+        } else if (event.getSubjectType() == Constants.ITEM) {
+            //any event reindex this item
+            itemsToUpdate.add((Item)subject);
         }
     }
 
@@ -119,29 +127,30 @@ public class OAIIndexEventConsumer implements Consumer {
 
         Context anonymousContext = null;
         try {
-            if (itemsToUpdate != null) {
-
-                Set<Item> filtered = new HashSet<Item>(itemsToUpdate.size());
-                for (Item item : itemsToUpdate) {
-                    if (item.getHandle() == null) {
-                        // probably submission item, skip
-                        continue;
-                    }
-                    filtered.add(item);
-                }
-
-                // "free" the resources
-                itemsToUpdate = null;
-
-                anonymousContext = new Context();
-                XOAI indexer = new XOAI(anonymousContext, false, false);
-                AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
-                        new Class[] { BasicConfiguration.class });
-                applicationContext.getAutowireCapableBeanFactory()
-                        .autowireBean(indexer);
-                indexer.indexItems(filtered);
-                applicationContext.close();
+            if (Objects.isNull(itemsToUpdate)) {
+                return;
             }
+
+            Set<Item> filtered = new HashSet<Item>(itemsToUpdate.size());
+            for (Item item : itemsToUpdate) {
+                if (item.getHandle() == null) {
+                    // probably submission item, skip
+                    continue;
+                }
+                filtered.add(item);
+            }
+
+            // "free" the resources
+            itemsToUpdate = null;
+
+            anonymousContext = new Context();
+            XOAI indexer = new XOAI(anonymousContext, false, false);
+            AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
+                    new Class[] { BasicConfiguration.class });
+            applicationContext.getAutowireCapableBeanFactory()
+                    .autowireBean(indexer);
+            indexer.indexItems(filtered);
+            applicationContext.close();
         } catch (Exception e) {
             itemsToUpdate = null;
             throw e;
