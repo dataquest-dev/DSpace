@@ -20,6 +20,24 @@
     <bean id="org.dspace.identifier.HandleIdentifierProvider" class="org.dspace.identifier.VersionedHandleIdentifierProvider" scope="singleton">
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
     </bean>
+
+    <bean id="org.dspace.identifier.DOIIdentifierProvider"
+          class="org.dspace.identifier.VersionedDOIIdentifierProvider"
+          scope="singleton">
+        <property name="configurationService"
+                  ref="org.dspace.services.ConfigurationService"/>
+        <property name="DOIConnector"
+                  ref="org.dspace.identifier.doi.DOIConnector"/>
+    </bean>
+
+    <bean id="org.dspace.identifier.doi.DOIConnector"
+          class="org.dspace.identifier.doi.DataCiteConnector">
+        <property name='DATACITE_SCHEME' value='https'/>
+        <property name='DATACITE_HOST' value='mds.test.datacite.org'/>
+        <property name='DATACITE_DOI_PATH' value='/doi/'/>
+        <property name='DATACITE_METADATA_PATH' value='/metadata/'/>
+        <property name='disseminationCrosswalkName' value="DataCite"/>
+    </bean>
     <!--
            The VersionedHandleIdentifierProviderWithCanonicalHandles
            preserves the first handle for every new version. Whenever

@@ -17,7 +17,10 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.identifier.doi.DOIConnector;
 import org.dspace.identifier.doi.DOIIdentifierException;
@@ -188,6 +191,49 @@ public class ClarinVersionedDOIIdentifierProvider extends DOIIdentifierProvider 
         } catch (SQLException ex) {
             log.warn("SQLException while changing status of DOI {} to be registered.", ex);
             throw new RuntimeException(ex);
+        }
+        try {
+            populateDOIMetadata(context, dso, doi.getDoi());
+        } catch (SQLException ex) {
+            throw new RuntimeException("Unable to create handle '"
+                    + identifier + "' for "
+                    + Constants.typeText[dso.getType()] + " " + dso.getID()
+                    + " in cause of a problem with the database: ", ex);
+        }
+    }
+
+    protected void populateDOIMetadata(Context context, DSpaceObject dso, String doi) throws IdentifierException, SQLException {
+        boolean identifierExists = false;
+        String externalForm = doiService.DOIToExternalForm(doi);
+        DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(dso);
+        List<MetadataValue> identifiers = dsoService
+                .getMetadata(dso, MetadataSchemaEnum.DC.getName(), DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
+        dsoService.clearMetadata(context, dso, MetadataSchemaEnum.DC.getName(),
+                DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
+        for (MetadataValue identifier : identifiers) {
+            if (this.supports(identifier.getValue())) {
+                // ignore handles
+                log.debug("Removing identifier " + identifier.getValue());
+                continue;
+            }
+            log.debug("Preserving identifier " + identifier.getValue());
+            dsoService.addMetadata(context,
+                    dso,
+                    identifier.getMetadataField(),
+                    identifier.getLanguage(),
+                    identifier.getValue(),
+                    identifier.getAuthority(),
+                    identifier.getConfidence());
+        }
+
+        if (StringUtils.isNotBlank(doi)) {
+            try {
+                saveDOIToObject(context, dso, doi);
+            } catch (AuthorizeException ae) {
+                throw new IdentifierException("Not authorized to save a DOI as metadata of an dso!", ae);
+            } catch (SQLException sqle) {
+                throw new RuntimeException(sqle);
+            }
         }
     }
 
