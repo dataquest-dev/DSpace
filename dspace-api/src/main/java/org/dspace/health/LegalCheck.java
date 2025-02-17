@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.amazonaws.util.CollectionUtils;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
@@ -71,6 +72,11 @@ public class LegalCheck extends Check {
             try {
                 List<ClarinLicenseResourceMapping> clarinLicenseResourceMappingList =
                         clarinLicenseResourceMappingService.findByBitstreamUUID(context, uuid);
+
+                if (CollectionUtils.isNullOrEmpty(clarinLicenseResourceMappingList)) {
+                    log.error("No license mapping found for bitstream with uuid {}", uuid);
+                    continue;
+                }
 
                 // Every resource mapping between license and the bitstream has only one record,
                 // because the bitstream has unique UUID, so get the first record from the List
