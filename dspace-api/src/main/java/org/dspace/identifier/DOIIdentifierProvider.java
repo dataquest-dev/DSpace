@@ -320,7 +320,16 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         }
     }
 
-    protected void populateDOIMetadata(Context context, DSpaceObject dso, String doi) throws IdentifierException, SQLException {
+    /**
+     * Added new DOI to the dc.identifier.doi metadata of a DSpaceObject.
+     * @param context Context
+     * @param dso     Dspace object identified by the doi
+     * @param doi     The new Doi identifier
+     * @throws IdentifierException
+     * @throws SQLException
+     */
+    protected void populateDOIMetadata(Context context, DSpaceObject dso, String doi)
+            throws IdentifierException, SQLException {
         boolean identifierExists = false;
         String externalForm = doiService.DOIToExternalForm(doi);
         DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(dso);
@@ -339,8 +348,6 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
                 throw new IdentifierException("Not authorized to save a DOI as metadata of an dso!", ae);
             } catch (SQLException sqle) {
                 throw new RuntimeException(sqle);
-            } catch (IdentifierException e) {
-                throw new RuntimeException(e);
             }
         }
     }

@@ -250,9 +250,17 @@ public class VersionedDOIIdentifierProvider extends DOIIdentifierProvider implem
         }
     }
 
-    protected void populateDOIMetadata(Context context, DSpaceObject dso, String doi) throws IdentifierException, SQLException {
-        boolean identifierExists = false;
-        String externalForm = doiService.DOIToExternalForm(doi);
+    /**
+     * Removed an already existing DOI from the metadata.
+     * Added new DOI to the dc.identifier.doi metadata of a DSpaceObject.
+     * @param context Context
+     * @param dso     Dspace object identified by the doi
+     * @param doi     The new Doi identifier
+     * @throws IdentifierException
+     * @throws SQLException
+     */
+    protected void populateDOIMetadata(Context context, DSpaceObject dso, String doi)
+            throws IdentifierException, SQLException {
         DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(dso);
         List<MetadataValue> identifiers = dsoService
                 .getMetadata(dso, MetadataSchemaEnum.DC.getName(), DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
