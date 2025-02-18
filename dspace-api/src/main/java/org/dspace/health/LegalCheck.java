@@ -29,7 +29,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
 /**
- * This check provides information about the number of items categorized by license type.
+ * This check provides information about the number of items categorized by clarin license type (PUB/RES/ACA).
  * @author Matus Kasak (dspace at dataquest.sk)
  */
 public class LegalCheck extends Check {

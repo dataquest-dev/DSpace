@@ -24,8 +24,6 @@ public abstract class CoreServiceFactory {
 
     public abstract LicenseService getLicenseService();
 
-    public abstract ClarinLicenseLabelService getLicenseLabelService();
-
     public abstract NewsService getNewsService();
 
     public abstract PluginService getPluginService();
