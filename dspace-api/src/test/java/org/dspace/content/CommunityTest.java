@@ -878,8 +878,6 @@ public class CommunityTest extends AbstractDSpaceObjectTest {
         // Allow current Item REMOVE perms (needed to delete Item)
         doNothing().when(authorizeServiceSpy)
                    .authorizeAction(any(Context.class), any(Item.class), eq(Constants.REMOVE), eq(true));
-        doNothing().when(authorizeServiceSpy)
-                .authorizeAction(any(Context.class), any(Item.class), eq(Constants.WRITE), eq(true));
 
         // Create a dummy Community hierarchy to test delete with
         // Turn off authorization temporarily to create some test objects.
