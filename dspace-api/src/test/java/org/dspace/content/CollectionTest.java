@@ -997,7 +997,7 @@ public class CollectionTest extends AbstractDSpaceObjectTest {
         // Allow Collection ADMIN perms
         doNothing().when(authorizeServiceSpy).authorizeAction(context, collection, Constants.ADMIN);
         // Allow Item WRITE perms
-        doNothing().when(authorizeServiceSpy).authorizeAction(context, any(Item.class), Constants.WRITE);
+        doNothing().when(authorizeServiceSpy).authorizeAction(any(Context.class), any(Item.class), eq(Constants.WRITE));
 
         UUID id = collection.getID();
         collectionService.delete(context, collection);
