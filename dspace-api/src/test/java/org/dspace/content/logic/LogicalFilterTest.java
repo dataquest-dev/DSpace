@@ -10,6 +10,10 @@ package org.dspace.content.logic;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,12 +61,14 @@ import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
+import org.dspace.core.Context;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Unit tests for logical filters, conditions and operators
@@ -81,6 +87,11 @@ public class LogicalFilterTest extends AbstractUnitTest {
     private MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
     private AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+    /**
+     * Spy of AuthorizeService to use for tests
+     * (initialized / setup in @Before method)
+     */
+    private AuthorizeService authorizeServiceSpy;
 
     // Logger
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(LogicalFilterTest.class);
@@ -118,6 +129,8 @@ public class LogicalFilterTest extends AbstractUnitTest {
     public void init() {
         super.init();
         try {
+            authorizeServiceSpy = spy(authorizeService);
+            ReflectionTestUtils.setField(itemService, "authorizeService", authorizeServiceSpy);
             context.turnOffAuthorisationSystem();
             // Set up logical statement lists for operator testing
             setUpStatements();
@@ -588,7 +601,9 @@ public class LogicalFilterTest extends AbstractUnitTest {
      * Test a simple filter using the ReadableByGroupCondition
      */
     @Test
-    public void testReadableByGroupCondition() {
+    public void testReadableByGroupCondition() throws SQLException, AuthorizeException {
+        doNothing().when(authorizeServiceSpy)
+                .authorizeAction(any(Context.class), any(Item.class), eq(Constants.WRITE), eq(true));
         // Instantiate new filter for testing this condition
         DefaultFilter filter = new DefaultFilter();
         Condition condition = new ReadableByGroupCondition();
