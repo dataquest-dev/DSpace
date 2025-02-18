@@ -7,7 +7,6 @@
  */
 package org.dspace.core.factory;
 
-import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.core.service.LicenseService;
 import org.dspace.core.service.NewsService;
 import org.dspace.core.service.PluginService;
