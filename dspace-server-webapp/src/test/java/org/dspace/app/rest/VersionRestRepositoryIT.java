@@ -938,8 +938,8 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.id")));
 
             //Versioned item
-            UUID idVerionedRef = UUID.fromString(idRef.toString());
-            Item versionedItem = itemService.find(context, idVerionedRef);
+            Version version = versioningService.getVersion(context, idRef.get());
+            Item versionedItem = itemService.find(context, version.getItem().getID());
             DSpaceObjectService<DSpaceObject> dsoVersionedService = contentServiceFactory.getDSpaceObjectService(versionedItem);
             List<MetadataValue> versionedIdentifiers = dsoVersionedService
                     .getMetadata(item, MetadataSchemaEnum.DC.getName(), "identifier", "doi", Item.ANY);
