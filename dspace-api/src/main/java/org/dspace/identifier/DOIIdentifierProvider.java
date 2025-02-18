@@ -1100,7 +1100,6 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
      */
     protected void saveDOIToObject(Context context, DSpaceObject dso, String doi)
             throws SQLException, AuthorizeException, IdentifierException {
-        // FIXME
         if (!(dso instanceof Item)) {
             throw new IllegalArgumentException("We currently support DOIs for Items only, not for " +
                 contentServiceFactory.getDSpaceObjectService(dso).getTypeText(dso) + ".");

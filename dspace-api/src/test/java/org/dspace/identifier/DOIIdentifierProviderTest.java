@@ -15,7 +15,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeNotNull;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -29,6 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.AbstractUnitTest;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -43,6 +46,8 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
 import org.dspace.identifier.doi.DOIConnector;
 import org.dspace.identifier.doi.DOIIdentifierException;
 import org.dspace.identifier.doi.DOIIdentifierNotApplicableException;
@@ -56,6 +61,7 @@ import org.dspace.workflow.factory.WorkflowServiceFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Tests for {@link DOIIdentifierProvider}.
@@ -88,6 +94,12 @@ public class DOIIdentifierProviderTest
     private static DOIConnector connector;
     private DOIIdentifierProvider provider;
 
+    /**
+     * Spy of AuthorizeService to use for tests
+     * (initialized / setup in @Before method)
+     */
+    private AuthorizeService authorizeServiceSpy;
+
     public DOIIdentifierProviderTest() {
     }
 
@@ -116,6 +128,9 @@ public class DOIIdentifierProviderTest
             collectionService.update(context, collection);
             //we need to commit the changes so we don't block the table for testing
             context.restoreAuthSystemState();
+
+            authorizeServiceSpy = spy(authorizeService);
+            ReflectionTestUtils.setField(itemService, "authorizeService", authorizeServiceSpy);
 
             config = DSpaceServicesFactory.getInstance().getConfigurationService();
             // Configure the service under test.
@@ -657,6 +672,10 @@ public class DOIIdentifierProviderTest
     public void testCreate_and_Register_DOI()
         throws SQLException, SQLException, AuthorizeException, IOException,
         IdentifierException, WorkflowException, IllegalAccessException {
+        // Allow Item WRITE perms
+        doNothing().when(authorizeServiceSpy)
+                .authorizeAction(any(Context.class), any(Item.class), eq(Constants.WRITE));
+
         Item item = newItem();
 
         // Register, skipping the filter

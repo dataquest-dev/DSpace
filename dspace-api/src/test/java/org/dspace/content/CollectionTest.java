@@ -725,6 +725,9 @@ public class CollectionTest extends AbstractDSpaceObjectTest {
         // Allow Item REMOVE perms
         doNothing().when(authorizeServiceSpy)
                    .authorizeAction(any(Context.class), any(Item.class), eq(Constants.REMOVE));
+        // Allow Item WRITE perms
+        doNothing().when(authorizeServiceSpy)
+                .authorizeAction(any(Context.class), any(Item.class), eq(Constants.WRITE));
 
         // create & add item first
         context.turnOffAuthorisationSystem();
