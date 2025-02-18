@@ -952,7 +952,7 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
             assertTrue("Identifiers size of item is 1", identifiers.size() == 1);
 
             //the identifiers should be different
-            assertNotEquals(identifiers.get(0), versionedIdentifiers.get(0));
+            assertNotEquals(identifiers.get(0).getValue(), versionedIdentifiers.get(0).getValue());
         } finally {
             VersionBuilder.delete(idRef.get());
         }
