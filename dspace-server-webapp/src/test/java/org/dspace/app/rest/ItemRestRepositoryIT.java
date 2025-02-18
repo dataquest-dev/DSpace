@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -85,12 +86,17 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataSchemaEnum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
@@ -130,6 +136,8 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
     private ResourcePolicyService resourcePolicyService;
     @Autowired
     private ItemService itemService;
+    @Autowired
+    protected ContentServiceFactory contentServiceFactory;
 
     private Item publication1;
     private Item author1;
@@ -3035,6 +3043,53 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                          org.springframework.data.rest.webmvc.RestMediaTypes.TEXT_URI_LIST_VALUE))
                                      .content("https://localhost:8080/server/api/integration/externalsources/" +
                                                   "mock/entryValues/one")).andExpect(status().isUnauthorized());
+    }
+
+
+    @Test
+    public void testDOIIdentifierInMetadataExistsAfterCreateItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+
+        context.restoreAuthSystemState();
+
+        UUID idRef = null;
+        AtomicReference<UUID> idRefNoEmbeds = new AtomicReference<UUID>();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            ItemRest itemRest = new ItemRest();
+            itemRest.setName("Test");
+            itemRest.setInArchive(true);
+            itemRest.setDiscoverable(true);
+            itemRest.setWithdrawn(false);
+
+
+            String token = getAuthToken(admin.getEmail(), password);
+            MvcResult mvcResult = getClient(token).perform(post("/api/core/items?owningCollection=" +
+                            col1.getID().toString())
+                            .content(mapper.writeValueAsBytes(itemRest)).contentType(contentType))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+
+            String content = mvcResult.getResponse().getContentAsString();
+            Map<String,Object> map = mapper.readValue(content, Map.class);
+            String itemUuidString = String.valueOf(map.get("uuid"));
+
+            idRef = UUID.fromString(itemUuidString);
+            Item item = itemService.find(context, idRef);
+            DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(item);
+            List<MetadataValue> identifiers = dsoService
+                    .getMetadata(item, MetadataSchemaEnum.DC.getName(), "identifier", "doi", Item.ANY);
+            assertTrue("Identifiers size of item is 1", identifiers.size() == 1);
+        } finally {
+            ItemBuilder.deleteItem(idRef);
+        }
     }
 
     @Test

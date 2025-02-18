@@ -34,9 +34,14 @@ import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.RelationshipBuilder;
 import org.dspace.content.Collection;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataSchemaEnum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.RelationshipType;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.orcid.factory.OrcidServiceFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,6 +77,8 @@ public class OrcidEntityFactoryServiceIT extends AbstractIntegrationTestWithData
     private Collection publications;
 
     private Collection projects;
+
+    protected ContentServiceFactory contentServiceFactory = ContentServiceFactory.getInstance();
 
     @Before
     public void setup() {
@@ -149,11 +156,16 @@ public class OrcidEntityFactoryServiceIT extends AbstractIntegrationTestWithData
         assertThat(work.getExternalIdentifiers(), notNullValue());
 
         List<ExternalID> externalIds = work.getExternalIdentifiers().getExternalIdentifier();
-        assertThat(externalIds, hasSize(3));
+        assertThat(externalIds, hasSize(4));
         assertThat(externalIds, has(selfExternalId("doi", "doi-id")));
         assertThat(externalIds, has(selfExternalId("eid", "scopus-id")));
         assertThat(externalIds, has(selfExternalId("handle", publication.getHandle())));
-
+        DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(publication);
+        List<MetadataValue> identifiers = dsoService
+                .getMetadata(publication, MetadataSchemaEnum.DC.getName(), "identifier", "doi", Item.ANY);
+        for (MetadataValue mv : identifiers) {
+            assertThat(externalIds, has(selfExternalId("doi", mv.getValue())));
+        }
     }
 
     @Test
@@ -183,7 +195,7 @@ public class OrcidEntityFactoryServiceIT extends AbstractIntegrationTestWithData
         assertThat(work.getExternalIdentifiers(), notNullValue());
 
         List<ExternalID> externalIds = work.getExternalIdentifiers().getExternalIdentifier();
-        assertThat(externalIds, hasSize(1));
+        assertThat(externalIds, hasSize(2));
         assertThat(externalIds, has(selfExternalId("handle", publication.getHandle())));
     }
 

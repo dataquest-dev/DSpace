@@ -13,6 +13,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -57,8 +59,13 @@ import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataSchemaEnum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
@@ -106,6 +113,9 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    protected ContentServiceFactory contentServiceFactory;
 
     @Before
     public void setup() throws SQLException, AuthorizeException {
@@ -894,6 +904,55 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
                             hasJsonPath("$.type", is("version"))
                     )))
                     .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+        } finally {
+            VersionBuilder.delete(idRef.get());
+        }
+    }
+
+    @Test
+    public void testNewDOIIdentifierForNewVersionOfItemStoredInMetadata() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection test")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, col)
+                .withTitle("Test")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        AtomicReference<Integer> idRef = new AtomicReference<Integer>();
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        try {
+            getClient(adminToken).perform(post("/api/versioning/versions")
+                            .param("summary", "test summary!")
+                            .contentType(MediaType.parseMediaType(RestMediaTypes.TEXT_URI_LIST_VALUE))
+                            .content("/api/core/items/" + item.getID()))
+                    .andExpect(status().isCreated())
+                    .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+
+            //Versioned item
+            UUID idVerionedRef = UUID.fromString(idRef.toString());
+            Item versionedItem = itemService.find(context, idVerionedRef);
+            DSpaceObjectService<DSpaceObject> dsoVersionedService = contentServiceFactory.getDSpaceObjectService(versionedItem);
+            List<MetadataValue> versionedIdentifiers = dsoVersionedService
+                    .getMetadata(item, MetadataSchemaEnum.DC.getName(), "identifier", "doi", Item.ANY);
+            assertTrue("Identifiers size of versioned item is 1", versionedIdentifiers.size() == 1);
+
+            //item
+            DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(item);
+            List<MetadataValue> identifiers = dsoService
+                    .getMetadata(item, MetadataSchemaEnum.DC.getName(), "identifier", "doi", Item.ANY);
+            assertTrue("Identifiers size of item is 1", identifiers.size() == 1);
+
+            //the identifiers should be different
+            assertNotEquals(identifiers.get(0), versionedIdentifiers.get(0));
         } finally {
             VersionBuilder.delete(idRef.get());
         }
