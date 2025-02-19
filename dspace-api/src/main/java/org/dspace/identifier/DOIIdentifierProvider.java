@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -313,7 +314,7 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         try {
             populateDOIMetadata(context, dso, doi);
         } catch (SQLException ex) {
-            throw new RuntimeException("Unable to create handle '"
+            throw new RuntimeException("Unable to create doi '"
                     + identifier + "' for "
                     + Constants.typeText[dso.getType()] + " " + dso.getID()
                     + " in cause of a problem with the database: ", ex);

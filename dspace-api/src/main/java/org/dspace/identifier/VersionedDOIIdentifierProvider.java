@@ -242,7 +242,7 @@ public class VersionedDOIIdentifierProvider extends DOIIdentifierProvider implem
         try {
             populateDOIMetadata(context, dso, doi.getDoi());
         } catch (SQLException ex) {
-            throw new RuntimeException("Unable to create handle '"
+            throw new RuntimeException("Unable to create doi '"
                     + identifier + "' for "
                     + Constants.typeText[dso.getType()] + " " + dso.getID()
                     + " in cause of a problem with the database: ", ex);

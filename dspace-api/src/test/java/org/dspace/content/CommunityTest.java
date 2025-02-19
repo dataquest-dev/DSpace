@@ -869,9 +869,6 @@ public class CommunityTest extends AbstractDSpaceObjectTest {
         // Allow current Collection ADMIN perms (needed to delete a Collection)
         doNothing().when(authorizeServiceSpy)
                    .authorizeAction(any(Context.class), any(Collection.class), eq(Constants.ADMIN));
-        // Allow current Item WRITE perms (needed to remove identifiers from an Item prior to deletion)
-        doNothing().when(authorizeServiceSpy)
-                   .authorizeAction(any(Context.class), any(Item.class), eq(Constants.WRITE), eq(true));
         // Allow current Item DELETE perms (needed to delete Item)
         doNothing().when(authorizeServiceSpy)
                    .authorizeAction(any(Context.class), any(Item.class), eq(Constants.DELETE), eq(true));
