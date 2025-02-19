@@ -30,6 +30,8 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.handle.service.HandleService;
+import org.dspace.identifier.DOI;
+import org.dspace.identifier.service.DOIService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
@@ -81,6 +83,9 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
 
     @Autowired
     private HandleService handleService;
+
+    @Autowired
+    protected DOIService doiService;
 
     @SuppressWarnings("rawtypes")
     @Autowired(required = true)
@@ -161,6 +166,14 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
         }
         itemService.addMetadata(context, item, "dc", "relation", "isreplacedby", null,
                 handleref);
+        // Add metadata `dc.relation.isreplacedby` to the previous version item.
+        // The metadata value is: `dc.identifier.doi` from the new item.
+        DOI doi = doiService.findDOIByDSpaceObject(context, version.getItem());
+        if (Objects.isNull(doi) || org.apache.commons.lang3.StringUtils.isBlank(doi.getDoi())) {
+            throw new RuntimeException("Cannot get doi for item " + version.getItem().getID());
+        }
+        itemService.addMetadata(context, item, "dc", "relation", "isreplacedby", null,
+                doi.getDoi());
         return converter.toRest(version, utils.obtainProjection());
     }
 

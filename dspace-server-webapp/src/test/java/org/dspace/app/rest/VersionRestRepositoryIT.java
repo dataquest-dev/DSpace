@@ -939,8 +939,7 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
 
             //Versioned item
             Version version = versioningService.getVersion(context, idRef.get());
-            Item versionedItem = itemService.find(context, version.getItem().getID());
-            DSpaceObjectService<DSpaceObject> dsoVersionedService = contentServiceFactory.getDSpaceObjectService(versionedItem);
+            DSpaceObjectService<DSpaceObject> dsoVersionedService = contentServiceFactory.getDSpaceObjectService(version.getItem());
             List<MetadataValue> versionedIdentifiers = dsoVersionedService
                     .getMetadata(item, MetadataSchemaEnum.DC.getName(), "identifier", "doi", Item.ANY);
             assertTrue("Identifiers size of versioned item is 1", versionedIdentifiers.size() == 1);

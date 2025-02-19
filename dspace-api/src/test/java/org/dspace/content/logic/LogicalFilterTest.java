@@ -200,11 +200,18 @@ public class LogicalFilterTest extends AbstractUnitTest {
             collectionService.delete(context, collectionTwo);
             communityService.delete(context, communityOne);
             communityService.delete(context, communityTwo);
+            context.commit();
         } catch (Exception e) {
             // ignore
             log.error("Error cleaning up test resources: " + e.getMessage());
+            try {
+                context.rollback();
+            } catch (SQLException ex) {
+                log.error("Error rolling back transaction: " + ex.getMessage());
+            }
+        } finally {
+            context.restoreAuthSystemState();
         }
-        context.restoreAuthSystemState();
 
         // Set all class members to null
         communityOne = null;
