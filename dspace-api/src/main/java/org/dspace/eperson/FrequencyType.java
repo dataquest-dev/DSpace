@@ -39,7 +39,7 @@ public enum FrequencyType {
         SimpleDateFormat fullIsoEnd = new SimpleDateFormat("yyyy-MM-dd'T'23:59:59'Z'");
         switch (frequency) {
             case "D":
-                cal.add(Calendar.DAY_OF_MONTH, -1);
+                cal.add(Calendar.DAY_OF_MONTH, 0);
                 endDate = fullIsoEnd.format(cal.getTime());
                 startDate = fullIsoStart.format(cal.getTime());
                 break;
