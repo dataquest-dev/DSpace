@@ -52,7 +52,7 @@ import org.junit.Test;
 public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
     private static final String PUB_LABEL = "PUB";
     private static final String PUB_LICENSE_NAME = "Public Domain Mark (PUB)";
-    private static final String PUB_LICENSE_URL = "http://creativecommons.org/publicdomain/mark/1.0/";
+    private static final String PUB_LICENSE_URL = "https://creativecommons.org/publicdomain/mark/1.0/";
     private static final String LICENSE_TEXT = "This is a PUB License.";
 
     @Test
@@ -72,7 +72,7 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testLegalCheck() throws Exception {
+    public void testLicenseCheck() throws Exception {
         context.turnOffAuthorisationSystem();
 
         Community community = CommunityBuilder.createCommunity(context)
@@ -128,14 +128,15 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
         context.commit();
 
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        // -c 3 run only third check, in this case Legal check
+        // -c 3 run only third check, in this case License check
         String[] args = new String[] { "health-report", "-c", "3" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
         assertThat(testDSpaceRunnableHandler.getErrorMessages(), empty());
         List<String> messages = testDSpaceRunnableHandler.getInfoMessages();
         assertThat(messages, hasSize(1));
-        assertThat(messages, hasItem(containsString("no license")));
+        assertThat(messages, hasItem(containsString("no bundle")));
+        assertThat(messages, hasItem(containsString("UUIDs of items without license bundle:")));
         assertThat(messages, hasItem(containsString("PUB")));
     }
 }

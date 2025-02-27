@@ -8,6 +8,7 @@
 package org.dspace.health;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -29,14 +30,16 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
 /**
- * This check provides information about the number of items categorized by clarin license type (PUB/RES/ACA).
+ * This check provides information about the number of items categorized by clarin license type (PUB/RES/ACA),
+ * as well as details about items that are missing bundles, bitstreams, or license mappings.
  * @author Matus Kasak (dspace at dataquest.sk)
  */
-public class LegalCheck extends Check {
+public class LicenseCheck extends Check {
     private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService =
             ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
 
     private Map<String, Integer> licensesCount = new HashMap<>();
+    private Map<String, List<UUID>> problemItems = new HashMap<>();
 
     @Override
     protected String run(ReportInfo ri) {
@@ -56,13 +59,19 @@ public class LegalCheck extends Check {
 
             List<Bundle> bundles = item.getBundles(Constants.DEFAULT_BUNDLE_NAME);
             if (bundles.isEmpty()) {
-                licensesCount.put("no license", licensesCount.getOrDefault("no license", 0) + 1);
+                licensesCount.put("no bundle", licensesCount.getOrDefault("no bundle", 0) + 1);
                 continue;
+            }
+
+            if (item.getBundles(Constants.LICENSE_BUNDLE_NAME).isEmpty()) {
+                problemItems.computeIfAbsent("UUIDs of items without license bundle",
+                        k -> new ArrayList<>()).add(item.getID());
             }
 
             List<Bitstream> bitstreams = bundles.get(0).getBitstreams();
             if (bitstreams.isEmpty()) {
-                licensesCount.put("no license", licensesCount.getOrDefault("no license", 0) + 1);
+                problemItems.computeIfAbsent("UUIDs of items without bitstreams",
+                        k -> new ArrayList<>()).add(item.getID());
                 continue;
             }
 
@@ -75,6 +84,8 @@ public class LegalCheck extends Check {
 
                 if (CollectionUtils.isNullOrEmpty(clarinLicenseResourceMappingList)) {
                     log.error("No license mapping found for bitstream with uuid {}", uuid);
+                    problemItems.computeIfAbsent("UUIDs of bitstreams without license mappings",
+                            k -> new ArrayList<>()).add(uuid);
                     continue;
                 }
 
@@ -99,7 +110,17 @@ public class LegalCheck extends Check {
         }
 
         for (Map.Entry<String, Integer> result : licensesCount.entrySet()) {
-            sb.append(result.getKey()).append(": ").append(result.getValue()).append("\n");
+            sb.append(String.format("%-20s: %d\n", result.getKey(), result.getValue()));
+        }
+
+        if (!problemItems.isEmpty()) {
+            for (Map.Entry<String, List<UUID>> problemItems : problemItems.entrySet()) {
+                List<UUID> uuids = problemItems.getValue();
+                sb.append(String.format("\n%s: %d\n", problemItems.getKey(), uuids.size()));
+                for (UUID uuid : uuids) {
+                    sb.append(String.format("     %s\n", uuid));
+                }
+            }
         }
 
         context.close();
