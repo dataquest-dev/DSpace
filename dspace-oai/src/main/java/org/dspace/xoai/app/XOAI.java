@@ -730,18 +730,6 @@ public class XOAI {
         }
     }
 
-    private boolean isTest() {
-        try {
-            if (StringUtils.equals("jdbc:h2:mem:test", this.context.getDBConfig().getDatabaseUrl())) {
-                return true;
-            }
-        } catch (SQLException exception) {
-            return false;
-        }
-
-        return false;
-    }
-
     /**
      * Delete the item from Solr by the ID of the item
      */
@@ -757,14 +745,9 @@ public class XOAI {
                 deleteItemByQuery(item);
                 solrServerResolver.getServer().add(this.index(item));
             } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
-                // Do not throw RuntimeException in tests
-                if (this.isTest()) {
-                    log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
-                } else {
-                    log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
-                    throw new RuntimeException("Cannot reindex the item with ID: " + item.getID() + " because: "
-                            + e.getMessage());
-                }
+                log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
+                throw new RuntimeException("Cannot reindex the item with ID: " + item.getID() + " because: "
+                        + e.getMessage());
             }
         }
         solrServerResolver.getServer().commit();
