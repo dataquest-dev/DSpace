@@ -7,15 +7,23 @@
  */
 package org.dspace.content.service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.compress.archivers.ArchiveException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
+import org.dspace.content.Item;
 import org.dspace.content.PreviewContent;
 import org.dspace.core.Context;
+import org.dspace.util.FileInfo;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Service interface class for the PreviewContent object.
@@ -95,4 +103,16 @@ public interface PreviewContentService {
      * @throws SQLException  If a database error occurs
      */
     List<PreviewContent> findAll(Context context) throws SQLException;
+
+    boolean findOutCanPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException;
+
+    List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream, List<FileInfo> fileInfos) throws SQLException, AuthorizeException, IOException, ParserConfigurationException, ArchiveException, SAXException;
+
+    PreviewContent createPreviewContent(Context context, Bitstream bitstream, FileInfo fi) throws SQLException;
+
+    String composePreviewURL(Context context, Item item, Bitstream bitstream, String contextPath) throws SQLException;
+
+    FileInfo createFileInfo(PreviewContent pc);
+
+    List<FileInfo> processInputStreamToFilePreview(Context context, Bitstream bitstream, List<FileInfo> fileInfos, InputStream inputStream) throws SQLException, IOException;
 }
