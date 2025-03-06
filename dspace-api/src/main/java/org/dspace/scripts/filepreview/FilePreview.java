@@ -7,32 +7,6 @@
  */
 package org.dspace.scripts.filepreview;
 
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.lang3.StringUtils;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.MissingLicenseAgreementException;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
-import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
-import org.dspace.content.Item;
-import org.dspace.content.PreviewContent;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.ItemService;
-import org.dspace.content.service.PreviewContentService;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.dspace.scripts.DSpaceRunnable;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.util.FileInfo;
-import org.dspace.utils.DSpace;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -40,21 +14,48 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.lang3.StringUtils;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Item;
+import org.dspace.content.PreviewContent;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.PreviewContentService;
+import org.dspace.core.Context;
+import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.util.FileInfo;
+import org.dspace.utils.DSpace;
+import org.xml.sax.SAXException;
+
+/**
+ * This class is used to generate a preview for every file in DSpace that should have a preview.
+ * It can be run from the command line with the following options:
+ * `-i`: Info, show help information.
+ * `-u`: UUID of the Item for which to create a preview of its bitstreams.
+ * @author Milan Majchrak at (dspace at dataquest.sk)
+ */
 public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
+    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    private PreviewContentService previewContentService =
+            ContentServiceFactory.getInstance().getPreviewContentService();
 
-    private static final Logger log = LoggerFactory.getLogger(FilePreview.class);
     /**
      * `-i`: Info, show help information.
      */
     private boolean info = false;
 
+    /**
+     * `-u`: UUID of the Item for which to create a preview of its bitstreams.
+     */
     private String specificItemUUID = null;
 
-    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    private AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
-    private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-    private PreviewContentService previewContentService = ContentServiceFactory.getInstance().getPreviewContentService();
+
 
     @Override
     public FilePreviewConfiguration getScriptConfiguration() {
@@ -117,7 +118,8 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
         context.complete();
     }
 
-    private void generateItemFilePreviews(Context context, UUID itemUUID) throws SQLException, AuthorizeException, IOException, ParserConfigurationException, ArchiveException, SAXException {
+    private void generateItemFilePreviews(Context context, UUID itemUUID) throws SQLException, AuthorizeException,
+            IOException, ParserConfigurationException, ArchiveException, SAXException {
         Item item = itemService.find(context, itemUUID);
         if (Objects.isNull(item)) {
             handler.logError("Item with UUID: " + itemUUID + " not found.");

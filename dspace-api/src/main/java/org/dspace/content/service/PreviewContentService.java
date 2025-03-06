@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.dspace.authorize.AuthorizeException;
@@ -22,8 +23,6 @@ import org.dspace.content.PreviewContent;
 import org.dspace.core.Context;
 import org.dspace.util.FileInfo;
 import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Service interface class for the PreviewContent object.
@@ -104,15 +103,61 @@ public interface PreviewContentService {
      */
     List<PreviewContent> findAll(Context context) throws SQLException;
 
+    /**
+     * Find out if the bitstream could be previewed
+     *
+     * @param context DSpace context object
+     * @param bitstream check if this bitstream could be previewed
+     * @return true if the bitstream could be previewed, false otherwise
+     */
     boolean findOutCanPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException;
 
-    List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream, List<FileInfo> fileInfos) throws SQLException, AuthorizeException, IOException, ParserConfigurationException, ArchiveException, SAXException;
+    /**
+     * Return converted ZIP file content into FileInfo classes.
+     *
+     * @param context DSpace context object
+     * @param bitstream ZIP file bitstream
+     * @param fileInfos List which will be returned
+     * @return List of FileInfo classes where is wrapped ZIP file content
+     */
+    List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream, List<FileInfo> fileInfos)
+            throws SQLException, AuthorizeException, IOException, ParserConfigurationException,
+            ArchiveException, SAXException;
 
+    /**
+     * Create preview content from file info for bitstream.
+     *
+     * @param context   DSpace context object
+     * @param bitstream bitstream
+     * @param fi        file info
+     * @return          created preview content
+     * @throws SQLException If database error is occurred
+     */
     PreviewContent createPreviewContent(Context context, Bitstream bitstream, FileInfo fi) throws SQLException;
 
+    /**
+     * Compose download URL for calling `MetadataBitstreamController` to download single file or
+     * all files as a single ZIP file.
+     */
     String composePreviewURL(Context context, Item item, Bitstream bitstream, String contextPath) throws SQLException;
 
+    /**
+     * Create file info from preview content.
+     *
+     * @param pc  preview content
+     * @return    created file info
+     */
     FileInfo createFileInfo(PreviewContent pc);
 
-    List<FileInfo> processInputStreamToFilePreview(Context context, Bitstream bitstream, List<FileInfo> fileInfos, InputStream inputStream) throws SQLException, IOException;
+    /**
+     * Convert InputStream of the ZIP file into FileInfo classes.
+     *
+     * @param context DSpace context object
+     * @param bitstream previewing bitstream
+     * @param fileInfos List which will be returned
+     * @param inputStream content of the zip file
+     * @return List of FileInfo classes where is wrapped ZIP file content
+     */
+    List<FileInfo> processInputStreamToFilePreview(Context context, Bitstream bitstream, List<FileInfo> fileInfos,
+                                                   InputStream inputStream) throws SQLException, IOException;
 }

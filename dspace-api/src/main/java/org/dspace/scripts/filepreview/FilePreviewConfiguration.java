@@ -10,7 +10,11 @@ package org.dspace.scripts.filepreview;
 import org.apache.commons.cli.Options;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 
-public class FilePreviewConfiguration <T extends FilePreview> extends ScriptConfiguration<T> {
+/**
+ * This class represents a FilePreview that is used in the CLI.
+ * @author Milan Majchrak at (dspace at dataquest.sk)
+ */
+public class FilePreviewConfiguration<T extends FilePreview> extends ScriptConfiguration<T> {
 
     private Class<T> dspaceRunnableclass;
 

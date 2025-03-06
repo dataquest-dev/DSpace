@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -51,8 +52,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Service implementation for the PreviewContent object.
@@ -91,7 +90,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     public PreviewContent create(Context context, Bitstream bitstream, String name, String content,
                                  boolean isDirectory, String size, Map<String, PreviewContent> subPreviewContents)
             throws SQLException {
-        //no authorization required!
+        // no authorization required!
         // Create a table row
         PreviewContent previewContent = previewContentDAO.create(context, new PreviewContent(bitstream, name, content,
                 isDirectory, size, subPreviewContents));
@@ -136,13 +135,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         return previewContentDAO.findAll(context, PreviewContent.class);
     }
 
-    /**
-     * Find out if the bitstream could be previewed/
-     * @param context DSpace context object
-     * @param bitstream check if this bitstream could be previewed
-     * @return true/false
-     * @throws SQLException
-     */
     @Override
     public boolean findOutCanPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException {
         try {
@@ -160,19 +152,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         }
     }
 
-    /**
-     * Return converted ZIP file content into FileInfo classes.
-     * @param context DSpace context object
-     * @param bitstream ZIP file bitstream
-     * @param fileInfos List which will be returned
-     * @return
-     * @throws SQLException
-     * @throws AuthorizeException
-     * @throws IOException
-     * @throws ParserConfigurationException
-     * @throws ArchiveException
-     * @throws SAXException
-     */
     @Override
     public List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream, List<FileInfo> fileInfos)
             throws SQLException, AuthorizeException, IOException, ParserConfigurationException,
@@ -192,14 +171,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         return fileInfos;
     }
 
-    /**
-     * Create preview content from file info for bitstream.
-     * @param context   DSpace context object
-     * @param bitstream bitstream
-     * @param fi        file info
-     * @return          created preview content
-     * @throws SQLException If database error is occurred
-     */
     @Override
     public PreviewContent createPreviewContent(Context context, Bitstream bitstream, FileInfo fi) throws SQLException {
         Hashtable<String, PreviewContent> sub = createSubMap(fi.sub, value -> {
@@ -215,46 +186,13 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         return create(context, bitstream, fi.name, fi.content, fi.isDirectory, fi.size, sub);
     }
 
-    /**
-     * Define the hierarchy organization for preview content and file info.
-     * The hierarchy is established by the sub map.
-     * If a content item contains a sub map, it is considered a directory; if not, it is a file.
-     * @param sourceMap  sub map that is used as a pattern
-     * @param creator    creator function
-     * @return           created sub map
-     */
-    private <T, U> Hashtable<String, T> createSubMap(Map<String, U> sourceMap, Function<U, T> creator) {
-        if (sourceMap == null) {
-            return null;
-        }
-
-        Hashtable<String, T> sub = new Hashtable<>();
-        for (Map.Entry<String, U> entry : sourceMap.entrySet()) {
-            sub.put(entry.getKey(), creator.apply(entry.getValue()));
-        }
-        return sub;
-    }
-
-    /**
-     * Create file info from preview content.
-     * @param pc  preview content
-     * @return    created file info
-     */
+    @Override
     public FileInfo createFileInfo(PreviewContent pc) {
         Hashtable<String, FileInfo> sub = createSubMap(pc.sub, this::createFileInfo);
         return new FileInfo(pc.name, pc.content, pc.size, pc.isDirectory, sub);
     }
 
-    /**
-     * Convert InputStream of the ZIP file into FileInfo classes.
-     *
-     * @param context DSpace context object
-     * @param bitstream previewing bitstream
-     * @param fileInfos List which will be returned
-     * @param inputStream content of the zip file
-     * @return List of FileInfo classes where is wrapped ZIP file content
-     * @throws SQLException
-     */
+    @Override
     public List<FileInfo> processInputStreamToFilePreview(Context context, Bitstream bitstream,
                                                            List<FileInfo> fileInfos, InputStream inputStream)
             throws SQLException, IOException {
@@ -286,10 +224,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         return fileInfos;
     }
 
-    /**
-     * Compose download URL for calling `MetadataBitstreamController` to download single file or
-     * all files as a single ZIP file.
-     */
     public String composePreviewURL(Context context, Item item, Bitstream bitstream, String contextPath) {
         String identifier = null;
         if (Objects.nonNull(item) && Objects.nonNull(item.getHandle())) {
@@ -320,6 +254,26 @@ public class PreviewContentServiceImpl implements PreviewContentService {
 
         url += "&isAllowed=" + isAllowed;
         return url;
+    }
+
+    /**
+     * Define the hierarchy organization for preview content and file info.
+     * The hierarchy is established by the sub map.
+     * If a content item contains a sub map, it is considered a directory; if not, it is a file.
+     * @param sourceMap  sub map that is used as a pattern
+     * @param creator    creator function
+     * @return           created sub map
+     */
+    private <T, U> Hashtable<String, T> createSubMap(Map<String, U> sourceMap, Function<U, T> creator) {
+        if (sourceMap == null) {
+            return null;
+        }
+
+        Hashtable<String, T> sub = new Hashtable<>();
+        for (Map.Entry<String, U> entry : sourceMap.entrySet()) {
+            sub.put(entry.getKey(), creator.apply(entry.getValue()));
+        }
+        return sub;
     }
 
     /**
@@ -447,7 +401,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @param fileType    the type of file to extract ("tar" or "zip")
      * @return an XML string representing the extracted file paths
      */
-    public String extractFile(InputStream inputStream, String fileType) {
+    private String extractFile(InputStream inputStream, String fileType) {
         List<String> filePaths = new ArrayList<>();
         Path tempFile = null;
         FileSystem zipFileSystem = null;
@@ -482,7 +436,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @return content of the inputStream as a String
      * @throws IOException
      */
-    public String getFileContent(InputStream inputStream, boolean cutResult) throws IOException {
+    private String getFileContent(InputStream inputStream, boolean cutResult) throws IOException {
         StringBuilder content = new StringBuilder();
         // Generate the preview content in the UTF-8 encoding
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
@@ -521,6 +475,4 @@ public class PreviewContentServiceImpl implements PreviewContentService {
             return input;
         }
     }
-
-
 }
