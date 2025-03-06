@@ -88,12 +88,12 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
         }
 
         Context context = new Context();
+        context.turnOffAuthorisationSystem();
         if (StringUtils.isNotBlank(specificItemUUID)) {
             // Generate the preview only for a specific item
             generateItemFilePreviews(context, UUID.fromString(specificItemUUID));
         } else {
             // Generate the preview for all items
-            context.turnOffAuthorisationSystem();
             Iterator<Item> items = itemService.findAll(context);
 
             int count = 0;
