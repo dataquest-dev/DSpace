@@ -55,8 +55,6 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
      */
     private String specificItemUUID = null;
 
-
-
     @Override
     public FilePreviewConfiguration getScriptConfiguration() {
         return new DSpace().getServiceManager()
