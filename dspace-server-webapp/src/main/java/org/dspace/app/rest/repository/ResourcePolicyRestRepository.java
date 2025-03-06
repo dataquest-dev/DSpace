@@ -279,6 +279,18 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             } catch (SQLException excSQL) {
                 throw new RuntimeException(excSQL.getMessage(), excSQL);
             }
+        }
+
+        if (resourcePolicy != null) {
+
+            resourcePolicy.setRpType(resourcePolicyRest.getPolicyType());
+            resourcePolicy.setdSpaceObject(dspaceObject);
+            resourcePolicy.setRpName(resourcePolicyRest.getName());
+            resourcePolicy.setRpDescription(resourcePolicyRest.getDescription());
+            resourcePolicy.setAction(Constants.getActionID(resourcePolicyRest.getAction()));
+            resourcePolicy.setStartDate(resourcePolicyRest.getStartDate());
+            resourcePolicy.setEndDate(resourcePolicyRest.getEndDate());
+            resourcePolicyService.update(context, resourcePolicy);
             return converter.toRest(resourcePolicy, utils.obtainProjection());
         } else {
             throw new UnprocessableEntityException("A resource policy must contain a valid eperson or group");
