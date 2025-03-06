@@ -254,14 +254,6 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
         if (dspaceObject == null) {
             throw new UnprocessableEntityException("DSpaceObject with this uuid: " + resourceUuid + " not found");
         }
-        resourcePolicy = resourcePolicyService.create(context);
-        resourcePolicy.setRpType(resourcePolicyRest.getPolicyType());
-        resourcePolicy.setdSpaceObject(dspaceObject);
-        resourcePolicy.setRpName(resourcePolicyRest.getName());
-        resourcePolicy.setRpDescription(resourcePolicyRest.getDescription());
-        resourcePolicy.setAction(Constants.getActionID(resourcePolicyRest.getAction()));
-        resourcePolicy.setStartDate(resourcePolicyRest.getStartDate());
-        resourcePolicy.setEndDate(resourcePolicyRest.getEndDate());
 
         if (epersonUuidStr != null) {
             try {
@@ -270,8 +262,8 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
                 if (ePerson == null) {
                     throw new UnprocessableEntityException("EPerson with uuid: " + epersonUuid + " not found");
                 }
-                resourcePolicy.setEPerson(ePerson);
-                resourcePolicyService.update(context, resourcePolicy);
+                resourcePolicy = resourcePolicyService.create(context, ePerson, null);
+
             } catch (SQLException excSQL) {
                 throw new RuntimeException(excSQL.getMessage(), excSQL);
             }
@@ -283,13 +275,15 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
                 if (group == null) {
                     throw new UnprocessableEntityException("Group with uuid: " + groupUuid + " not found");
                 }
-                resourcePolicy.setGroup(group);
-                resourcePolicyService.update(context, resourcePolicy);
+                resourcePolicy = resourcePolicyService.create(context, null, group);
             } catch (SQLException excSQL) {
                 throw new RuntimeException(excSQL.getMessage(), excSQL);
             }
             return converter.toRest(resourcePolicy, utils.obtainProjection());
+        } else {
+            throw new UnprocessableEntityException("A resource policy must contain a valid eperson or group");
         }
+
     }
 
     @Override
