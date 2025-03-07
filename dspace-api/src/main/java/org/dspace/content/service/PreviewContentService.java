@@ -13,16 +13,13 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.commons.compress.archivers.ArchiveException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.content.PreviewContent;
 import org.dspace.core.Context;
 import org.dspace.util.FileInfo;
-import org.xml.sax.SAXException;
 
 /**
  * Service interface class for the PreviewContent object.
