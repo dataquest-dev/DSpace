@@ -30,7 +30,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 /**
  * The OAIIndexEventConsumer determining which items need to be indexed or updated based on the event type and subject.
- * It listens for changes to items, collections, communities, bundles, and bitstreams, and updates the OAI index accordingly.
+ * It listens for changes to items, collections, communities,
+ * bundles, and bitstreams, and updates the OAI index accordingly.
  * The indexing is done using the XOAI indexer after all relevant items are collected.
  */
 public class OAIIndexEventConsumer implements Consumer {

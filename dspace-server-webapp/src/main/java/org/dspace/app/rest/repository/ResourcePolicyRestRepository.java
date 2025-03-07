@@ -267,7 +267,6 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             } catch (SQLException excSQL) {
                 throw new RuntimeException(excSQL.getMessage(), excSQL);
             }
-            return converter.toRest(resourcePolicy, utils.obtainProjection());
         } else {
             try {
                 UUID groupUuid = UUID.fromString(groupUuidStr);
