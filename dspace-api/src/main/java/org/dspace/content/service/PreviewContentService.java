@@ -90,10 +90,10 @@ public interface PreviewContentService {
      * Find all preview content based on bitstream that are the root directory.
      *
      * @param context        DSpace context
-     * @param bitstream_id   The ID of the bitstream
+     * @param bitstream      The bitstream to get bitstream UUID
      * @throws SQLException  If a database error occurs
      */
-    List<PreviewContent> findRootByBitstream(Context context, UUID bitstream_id) throws SQLException;
+    List<PreviewContent> hasPreview(Context context, Bitstream bitstream) throws SQLException;
 
     /**
      * Find all preview contents from database.
@@ -110,19 +110,17 @@ public interface PreviewContentService {
      * @param bitstream check if this bitstream could be previewed
      * @return true if the bitstream could be previewed, false otherwise
      */
-    boolean findOutCanPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException;
+    boolean canPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException;
 
     /**
      * Return converted ZIP file content into FileInfo classes.
      *
      * @param context DSpace context object
      * @param bitstream ZIP file bitstream
-     * @param fileInfos List which will be returned
      * @return List of FileInfo classes where is wrapped ZIP file content
      */
-    List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream, List<FileInfo> fileInfos)
-            throws SQLException, AuthorizeException, IOException, ParserConfigurationException,
-            ArchiveException, SAXException;
+    List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream)
+            throws SQLException, AuthorizeException, IOException;
 
     /**
      * Create preview content from file info for bitstream.
@@ -154,10 +152,9 @@ public interface PreviewContentService {
      *
      * @param context DSpace context object
      * @param bitstream previewing bitstream
-     * @param fileInfos List which will be returned
      * @param inputStream content of the zip file
      * @return List of FileInfo classes where is wrapped ZIP file content
      */
-    List<FileInfo> processInputStreamToFilePreview(Context context, Bitstream bitstream, List<FileInfo> fileInfos,
-                                                   InputStream inputStream) throws SQLException, IOException;
+    List<FileInfo> processInputStreamToFilePreview(Context context, Bitstream bitstream, InputStream inputStream)
+            throws SQLException, IOException;
 }

@@ -109,14 +109,13 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
 
             for (Bitstream bitstream : bitstreams) {
                 String url = previewContentService.composePreviewURL(context, item, bitstream, contextPath);
-                List<FileInfo> fileInfos = new ArrayList<>();
-                boolean canPreview = previewContentService.findOutCanPreview(context, bitstream);
+                List<FileInfo> fileInfos = null;
+                boolean canPreview = previewContentService.canPreview(context, bitstream);
                 if (canPreview) {
-                    List<PreviewContent> prContents = previewContentService.findRootByBitstream(context,
-                            bitstream.getID());
+                    List<PreviewContent> prContents = previewContentService.hasPreview(context, bitstream);
                     // Generate new content if we didn't find any
                     if (prContents.isEmpty()) {
-                        fileInfos = previewContentService.getFilePreviewContent(context, bitstream, fileInfos);
+                        fileInfos = previewContentService.getFilePreviewContent(context, bitstream);
                         // Do not store HTML content in the database because it could be longer than the limit
                         // of the database column
                         if (!StringUtils.equals("text/html", bitstream.getFormat(context).getMIMEType())) {
@@ -125,6 +124,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                             }
                         }
                     } else {
+                        fileInfos = new ArrayList<>();
                         for (PreviewContent pc : prContents) {
                             fileInfos.add(previewContentService.createFileInfo(pc));
                         }

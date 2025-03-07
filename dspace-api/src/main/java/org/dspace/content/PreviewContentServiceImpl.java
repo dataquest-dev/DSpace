@@ -126,8 +126,8 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     @Override
-    public List<PreviewContent> findRootByBitstream(Context context, UUID bitstreamId) throws SQLException {
-        return previewContentDAO.findRootByBitstream(context, bitstreamId);
+    public List<PreviewContent> hasPreview(Context context, Bitstream bitstream) throws SQLException {
+        return previewContentDAO.hasPreview(context, bitstream);
     }
 
     @Override
@@ -136,7 +136,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     @Override
-    public boolean findOutCanPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException {
+    public boolean canPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException {
         try {
             // Check it is allowed by configuration
             boolean isAllowedByCfg = configurationService.getBooleanProperty("file.preview.enabled", true);
@@ -153,17 +153,17 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     @Override
-    public List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream, List<FileInfo> fileInfos)
-            throws SQLException, AuthorizeException, IOException, ParserConfigurationException,
-            ArchiveException, SAXException {
+    public List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream)
+            throws SQLException, AuthorizeException, IOException {
         InputStream inputStream = null;
+        List<FileInfo> fileInfos = null;
         try {
             inputStream = bitstreamService.retrieve(context, bitstream);
         } catch (MissingLicenseAgreementException e) { /* Do nothing */ }
 
         if (Objects.nonNull(inputStream)) {
             try {
-                fileInfos = processInputStreamToFilePreview(context, bitstream, fileInfos, inputStream);
+                fileInfos = processInputStreamToFilePreview(context, bitstream, inputStream);
             } catch (IllegalStateException e) {
                 log.error("Cannot process Input Stream to file preview because: " + e.getMessage());
             }
@@ -194,8 +194,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
 
     @Override
     public List<FileInfo> processInputStreamToFilePreview(Context context, Bitstream bitstream,
-                                                           List<FileInfo> fileInfos, InputStream inputStream)
+                                                          InputStream inputStream)
             throws SQLException, IOException {
+        List<FileInfo> fileInfos = new ArrayList<>();
         String bitstreamMimeType = bitstream.getFormat(context).getMIMEType();
         if (bitstreamMimeType.equals("text/plain")) {
             String data = getFileContent(inputStream, true);

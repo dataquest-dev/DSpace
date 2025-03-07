@@ -128,19 +128,17 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
         for (Bundle bundle : bundles) {
             List<Bitstream> bitstreams = bundle.getBitstreams();
             for (Bitstream bitstream : bitstreams) {
-                boolean canPreview = previewContentService.findOutCanPreview(context, bitstream);
+                boolean canPreview = previewContentService.canPreview(context, bitstream);
                 if (!canPreview) {
                     return;
                 }
-                List<FileInfo> fileInfos = new ArrayList<>();
-                List<PreviewContent> prContents = previewContentService.findRootByBitstream(context,
-                        bitstream.getID());
+                List<PreviewContent> prContents = previewContentService.hasPreview(context, bitstream);
                 // Generate new content if we didn't find any
                 if (!prContents.isEmpty()) {
                     return;
                 }
 
-                fileInfos = previewContentService.getFilePreviewContent(context, bitstream, fileInfos);
+                List<FileInfo> fileInfos = previewContentService.getFilePreviewContent(context, bitstream);
                 // Do not store HTML content in the database because it could be longer than the limit
                 // of the database column
                 if (StringUtils.equals("text/html", bitstream.getFormat(context).getMIMEType())) {
