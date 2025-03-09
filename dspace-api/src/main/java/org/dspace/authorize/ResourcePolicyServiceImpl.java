@@ -164,10 +164,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
                                  .updateLastModified(context, resourcePolicy.getdSpaceObject());
         }
         context.restoreAuthSystemState();
-        if (dso instanceof Item) {
-            Item item = (Item) dso;
-            context.addEvent(new Event(Event.MODIFY, -1, null, Constants.ITEM, item.getID(), ""));
-        }
+        addEventModify(context, dso);
     }
 
 
@@ -241,10 +238,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         c.turnOffAuthorisationSystem();
         contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
         c.restoreAuthSystemState();
-        if (o instanceof Item) {
-            Item item = (Item) o;
-            c.addEvent(new Event(Event.MODIFY, -1, null, Constants.ITEM, item.getID(), ""));
-        }
+        addEventModify(c, o);
     }
 
     @Override
@@ -253,10 +247,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         c.turnOffAuthorisationSystem();
         contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
         c.restoreAuthSystemState();
-        if (o instanceof Item) {
-            Item item = (Item) o;
-            c.addEvent(new Event(Event.MODIFY, -1, null, Constants.ITEM, item.getID(), ""));
-        }
+        addEventModify(c, o);
     }
 
     @Override
@@ -269,10 +260,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
         c.restoreAuthSystemState();
         provenanceService.removeReadPolicies(c, o, resPolicies);
-        if (o instanceof Item) {
-            Item item = (Item) o;
-            c.addEvent(new Event(Event.MODIFY, -1, null, Constants.ITEM, item.getID(), ""));
-        }
+        addEventModify(c, o);
     }
 
     @Override
@@ -282,10 +270,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         context.turnOffAuthorisationSystem();
         contentServiceFactory.getDSpaceObjectService(dso).updateLastModified(context, dso);
         context.restoreAuthSystemState();
-        if (dso instanceof Item) {
-            Item item = (Item) dso;
-            context.addEvent(new Event(Event.MODIFY, -1, null, Constants.ITEM, item.getID(), ""));
-        }
+        addEventModify(context, dso);
     }
 
     @Override
@@ -307,10 +292,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
     public void removeGroupPolicies(Context c, Group group) throws SQLException {
         List<ResourcePolicy> resourcePolicies = find(c, group);
         for (ResourcePolicy r : resourcePolicies) {
-            if (r.getdSpaceObject() instanceof Item) {
-                Item item = (Item) r.getdSpaceObject();
-                c.addEvent(new Event(Event.MODIFY, -1, null, Constants.ITEM, item.getID(), ""));
-            }
+            addEventModify(c, r.getdSpaceObject());
         }
         resourcePolicyDAO.deleteByGroup(c, group);
     }
@@ -324,10 +306,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
             c.turnOffAuthorisationSystem();
             contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
             c.restoreAuthSystemState();
-            if (o instanceof Item) {
-                Item item = (Item) o;
-                c.addEvent(new Event(Event.MODIFY, -1, null, Constants.ITEM, item.getID(), ""));
-            }
+            addEventModify(c, o);
         }
     }
 
@@ -338,10 +317,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         c.turnOffAuthorisationSystem();
         contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
         c.restoreAuthSystemState();
-        if (o instanceof Item) {
-            Item item = (Item) o;
-            c.addEvent(new Event(Event.MODIFY, -1, null, Constants.ITEM, item.getID(), ""));
-        }
+        addEventModify(c, o);
     }
 
 
@@ -373,10 +349,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
 
                 // FIXME: Check authorisation
                 resourcePolicyDAO.save(context, resourcePolicy);
-                if (resourcePolicy.getdSpaceObject() instanceof Item) {
-                    Item item = (Item) resourcePolicy.getdSpaceObject();
-                    context.addEvent(new Event(Event.MODIFY, -1, null, Constants.ITEM, item.getID(), ""));
-                }
+                addEventModify(context, resourcePolicy.getdSpaceObject());
             }
 
             //Update the last modified timestamp of all related DSpace Objects
@@ -474,5 +447,13 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
             isMy = true;
         }
         return isMy;
+    }
+
+    public void addEventModify(Context context, DSpaceObject dso) {
+        if (dso instanceof Item) {
+            Item item = (Item) dso;
+            context.addEvent(new Event(Event.MODIFY, -1, null,
+                    Constants.ITEM, item.getID(), ""));
+        }
     }
 }

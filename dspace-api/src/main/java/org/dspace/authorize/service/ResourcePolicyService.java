@@ -311,4 +311,11 @@ public interface ResourcePolicyService {
      */
     public boolean isMyResourcePolicy(Context context, EPerson eperson, Integer id) throws SQLException;
 
+    /**
+     * Add MODIFY event when the provided DSpaceObject is an Item.
+     *
+     * @param context The DSpace context.
+     * @param dso     The DSpaceObject.
+     */
+    public void addEventModify(Context context, DSpaceObject dso);
 }
