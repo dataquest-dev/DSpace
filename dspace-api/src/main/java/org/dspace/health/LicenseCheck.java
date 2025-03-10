@@ -64,14 +64,14 @@ public class LicenseCheck extends Check {
             }
 
             if (item.getBundles(Constants.LICENSE_BUNDLE_NAME).isEmpty()) {
-                problemItems.computeIfAbsent("UUIDs of items without license bundle",
-                        k -> new ArrayList<>()).add(item.getID());
+                problemItems.computeIfAbsent(
+                        "UUIDs of items without license bundle", k -> new ArrayList<>()).add(item.getID());
             }
 
             List<Bitstream> bitstreams = bundles.get(0).getBitstreams();
             if (bitstreams.isEmpty()) {
-                problemItems.computeIfAbsent("UUIDs of items without bitstreams",
-                        k -> new ArrayList<>()).add(item.getID());
+                problemItems.computeIfAbsent(
+                        "UUIDs of items without bitstreams", k -> new ArrayList<>()).add(item.getID());
                 continue;
             }
 
@@ -84,8 +84,8 @@ public class LicenseCheck extends Check {
 
                 if (CollectionUtils.isNullOrEmpty(clarinLicenseResourceMappingList)) {
                     log.error("No license mapping found for bitstream with uuid {}", uuid);
-                    problemItems.computeIfAbsent("UUIDs of bitstreams without license mappings",
-                            k -> new ArrayList<>()).add(uuid);
+                    problemItems.computeIfAbsent(
+                            "UUIDs of bitstreams without license mappings", k -> new ArrayList<>()).add(uuid);
                     continue;
                 }
 
