@@ -58,7 +58,7 @@ public class OAIIndexEventConsumer implements Consumer {
      */
     public void consume(Context ctx, Event event) throws Exception {
 
-        if (itemsToUpdate == null) {
+        if (Objects.isNull(itemsToUpdate)) {
             itemsToUpdate = new HashSet<Item>();
         }
 
@@ -76,7 +76,7 @@ public class OAIIndexEventConsumer implements Consumer {
 
         int et = event.getEventType();
 
-        if (object != null && event.getObjectType() == Constants.ITEM) {
+        if (Objects.nonNull(object) && event.getObjectType() == Constants.ITEM) {
             //just update the object
             itemsToUpdate.add((Item)object);
             return;
@@ -134,7 +134,7 @@ public class OAIIndexEventConsumer implements Consumer {
 
             Set<Item> filtered = new HashSet<Item>(itemsToUpdate.size());
             for (Item item : itemsToUpdate) {
-                if (item.getHandle() == null) {
+                if (Objects.isNull(item.getHandle())) {
                     // probably submission item, skip
                     continue;
                 }
@@ -156,7 +156,7 @@ public class OAIIndexEventConsumer implements Consumer {
             itemsToUpdate = null;
             throw e;
         } finally {
-            if (anonymousContext != null) {
+            if (Objects.nonNull(anonymousContext)) {
                 anonymousContext.complete();
             }
         }
