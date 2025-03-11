@@ -41,6 +41,22 @@ public class LicenseCheck extends Check {
     private Map<String, Integer> licensesCount = new HashMap<>();
     private Map<String, List<UUID>> problemItems = new HashMap<>();
 
+    /**
+     * Executes a license check on all repository items, compiling a report that counts items by license type and logs issues for items with missing bundles, bitstreams, or license mappings.
+     *
+     * <p>This method retrieves all items from the repository and verifies each item for:
+     * <ul>
+     *   <li>Presence of the default and license bundles</li>
+     *   <li>Existence of bitstreams in the default bundle</li>
+     *   <li>Availability of a license mapping for the first bitstream</li>
+     * </ul>
+     * It aggregates license counts based on non-extended license labels and records problematic item UUIDs under appropriate categories.
+     * </p>
+     *
+     * @param ri report information (provided for compatibility; not used in the check computation)
+     * @return a formatted report summarizing license counts and detected issues
+     * @throws RuntimeException if an error occurs while retrieving items or license mappings
+     */
     @Override
     protected String run(ReportInfo ri) {
         Context context = new Context();
