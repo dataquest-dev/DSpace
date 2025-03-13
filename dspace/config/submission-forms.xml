@@ -163,6 +163,19 @@
             </row>
             <row>
                 <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>identifier</dc-element>
+                    <dc-qualifier>eid</dc-qualifier>
+                    <!-- An input-type of qualdrop_value MUST be marked as repeatable -->
+                    <repeatable>true</repeatable>
+                    <label>EID Identifiers</label>
+                    <input-type>onebox</input-type>
+                    <hint>The EID of the article or EID of the article in the proceedings</hint>
+                    <required></required>
+                </field>
+            </row>
+            <row>
+                <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>type</dc-element>
                     <dc-qualifier></dc-qualifier>
