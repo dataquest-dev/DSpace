@@ -83,8 +83,10 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class XOAI {
     private static Logger log = LogManager.getLogger(XOAI.class);
 
-    private final XOAICacheService cacheService;
-    private final XOAIItemCacheService itemCacheService;
+    @Autowired
+    private XOAICacheService cacheService;
+    @Autowired
+    private XOAIItemCacheService itemCacheService;
 
     // needed because the solr query only returns 10 rows by default
     private final Context context;
@@ -111,8 +113,6 @@ public class XOAI {
     {
         AnnotationConfigApplicationContext applicationContext =
                 new AnnotationConfigApplicationContext(BasicConfiguration.class);
-        cacheService = applicationContext.getBean(XOAICacheService.class);
-        itemCacheService = applicationContext.getBean(XOAIItemCacheService.class);
     }
 
     private List<String> getFileFormats(Item item) {

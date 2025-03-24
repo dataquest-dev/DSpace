@@ -45,6 +45,7 @@ public class OAIIndexEventConsumer implements Consumer {
     // collect Items, Collections, Communities that need indexing
     private Set<Item> itemsToUpdate = null;
 
+    @Override
     public void initialize() throws Exception {
         // No-op
     }
