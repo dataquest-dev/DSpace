@@ -96,7 +96,7 @@ public class DSpaceApi {
             return;
         }
 
-        String url = configurationService.getProperty("dspace.url");
+        String url = configurationService.getProperty("dspace.server.url");
         url = url + (url.endsWith("/") ? "" : "/") + "handle/" + pid;
 
         /*
