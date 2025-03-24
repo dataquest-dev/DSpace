@@ -37,6 +37,7 @@ import org.dspace.handle.service.HandleClarinService;
 import org.dspace.handle.service.HandleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
@@ -111,6 +112,14 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
 
             // List of all founded handles
             List<Handle> handles = handleClarinService.findAll(context, sortingColumnDefinition);
+
+            // Adjust the page number if the offset exceeds the total number of items
+            if (pageable.getOffset() > handles.size()) {
+                // Calculate the last valid page number
+                int lastPage = handles.size() / pageable.getPageSize();
+                pageable = PageRequest.of(lastPage, pageable.getPageSize(), pageable.getSort());
+            }
+
             // Convert handles to page of handle rest
             return converter.toRestPage(handles, pageable, utils.obtainProjection());
         } catch (SQLException e) {
