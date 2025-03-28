@@ -99,6 +99,13 @@
 
   <dc-type>
     <schema>local</schema>
+    <element>relation</element>
+    <qualifier>IS</qualifier>
+    <scope_note>Link back to Information system</scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
     <element>size</element>
     <qualifier>info</qualifier>
   </dc-type>
