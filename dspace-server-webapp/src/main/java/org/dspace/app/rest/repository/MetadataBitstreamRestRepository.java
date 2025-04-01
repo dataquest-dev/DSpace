@@ -68,8 +68,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
     public Page<MetadataBitstreamWrapperRest> findByHandle(@Parameter(value = "handle", required = true) String handle,
                                                            @Parameter(value = "fileGrpType") String fileGrpType,
                                                            Pageable pageable)
-            throws SQLException, ParserConfigurationException, IOException, SAXException, AuthorizeException,
-            ArchiveException {
+            throws Exception {
         if (StringUtils.isBlank(handle)) {
             throw new DSpaceBadRequestException("handle cannot be null!");
         }

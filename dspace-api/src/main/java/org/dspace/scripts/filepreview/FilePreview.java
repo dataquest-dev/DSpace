@@ -99,8 +99,7 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
                 Item item = items.next();
                 try {
                     generateItemFilePreviews(context, item.getID());
-                } catch (SQLException | AuthorizeException | IOException | ParserConfigurationException |
-                        ArchiveException | SAXException e) {
+                } catch (Exception e) {
                     handler.logError("Error while generating preview for item with UUID: " + item.getID());
                     handler.logError(e.getMessage());
                 }
@@ -115,8 +114,7 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
         context.complete();
     }
 
-    private void generateItemFilePreviews(Context context, UUID itemUUID) throws SQLException, AuthorizeException,
-            IOException, ParserConfigurationException, ArchiveException, SAXException {
+    private void generateItemFilePreviews(Context context, UUID itemUUID) throws Exception {
         Item item = itemService.find(context, itemUUID);
         if (Objects.isNull(item)) {
             handler.logError("Item with UUID: " + itemUUID + " not found.");
