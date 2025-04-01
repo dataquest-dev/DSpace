@@ -7,18 +7,13 @@
  */
 package org.dspace.scripts.filepreview;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.lang3.StringUtils;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
@@ -30,7 +25,6 @@ import org.dspace.core.Context;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.util.FileInfo;
 import org.dspace.utils.DSpace;
-import org.xml.sax.SAXException;
 
 /**
  * This class is used to generate a preview for every file in DSpace that should have a preview.
