@@ -24,10 +24,10 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
+import org.dspace.core.Utils;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.matomo.java.tracking.CustomVariable;
 import org.matomo.java.tracking.MatomoException;
 import org.matomo.java.tracking.MatomoRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,11 +77,21 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
             log.error("Cannot track the item without Identifier URI.");
         } else {
             // Set PageURL to handle identifier
-            matomoRequest.setDownloadUrl(getFullURL(request));
+            String bitstreamUrl = getFullURL(request);
+            try {
+                String bitstreamId = Utils.fetchUUIDFromUrl(matomoRequest.getActionUrl());
+                bitstreamUrl = configurationService.getProperty("dspace.ui.url") + "/bitstream/handle/" +
+                        item.getHandle() + "/" + bitstreamId;
+            } catch (IllegalArgumentException e) {
+                log.error("Cannot get the Bitstream UUID from the URL {}", matomoRequest.getActionUrl());
+            }
+
+            // The bitstream URL is in the format `<DSPACE_UI_URL>/bitstream/handle/<ITEM_HANDLE>/<BITSTREAM_UUID>`
+            // if there is an error with the fetching the UUID, the original download URL is used
+            matomoRequest.setDownloadUrl(bitstreamUrl);
             matomoRequest.setActionUrl(itemIdentifier);
         }
         try {
-            matomoRequest.setPageCustomVariable(new CustomVariable("source", "bitstream"), 1);
             // Add the Item handle into the request as a custom dimension
             LinkedHashMap<Long, Object> handleDimension = new LinkedHashMap<>();
             handleDimension.put(configurationService.getLongProperty("matomo.custom.dimension.handle.id",
