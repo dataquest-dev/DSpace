@@ -39,6 +39,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
+/**
+ * Test class for the ClarinMatomoBitstreamTracker. Test the tracking of bitstream downloads.
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ */
 public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
 
     private static final String HANDLE = "123456789/1";
