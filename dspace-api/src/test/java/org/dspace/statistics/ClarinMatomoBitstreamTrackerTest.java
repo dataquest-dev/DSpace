@@ -81,7 +81,7 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
         when(matomoTracker.sendRequestAsync(any(MatomoRequest.class)))
                 .thenReturn(CompletableFuture.completedFuture(null));
 
-        clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream);
+        clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, false);
 
         String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" + bitstreamId;
         verifyMatomoRequest(expectedUrl);
@@ -96,7 +96,7 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
         when(matomoTracker.sendRequestAsync(any(MatomoRequest.class)))
                 .thenReturn(CompletableFuture.completedFuture(null));
 
-        clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream);
+        clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, false);
 
         String expectedUrl = BASE_URL + "/bitstreams/NOT_EXISTING_UUID/download";
         verifyMatomoRequest(expectedUrl);

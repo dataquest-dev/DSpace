@@ -125,13 +125,19 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
      * @param request current request
      * @param bit Bitstream which is downloading
      */
-    public void trackBitstreamDownload(Context context, HttpServletRequest request, Bitstream bit) throws SQLException {
+    public void trackBitstreamDownload(Context context, HttpServletRequest request, Bitstream bit, boolean isZip)
+            throws SQLException {
         // We only track a download request when serving a request without Range header. Do not track the
         // download if the downloading continues or the tracking is not allowed by the configuration.
         if (StringUtils.isNotBlank(request.getHeader("Range"))) {
             return;
         }
         if (BooleanUtils.isFalse(configurationService.getBooleanProperty("matomo.track.enabled"))) {
+            return;
+        }
+
+        if (Objects.isNull(bit)) {
+            log.error("The Bitstream is null - the statistics cannot be logged.");
             return;
         }
 
@@ -147,8 +153,14 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
             return;
         }
 
-        // Log the user which is downloading the bitstream
-        this.logUserDownloadingBitstream(context, bit);
+        if (!isZip) {
+            // Log the user which is downloading the bitstream
+            this.logUserDownloadingBitstream(context, bit);
+        } else {
+            // Track the zip file downloading event
+            this.logUserDownloadingZip(context, item);
+        }
+
         // Track the bitstream downloading event
         trackPage(context, request, item, "Bitstream Download / Single File");
     }
@@ -164,6 +176,18 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
         String logMessage = Objects.isNull(eperson)
                 ? MessageFormat.format(pattern, "ANONYMOUS", "null", bit.getName(), bit.getID())
                 : MessageFormat.format(pattern, eperson.getFullName(), eperson.getID(), bit.getName(), bit.getID());
+
+        log.info(logMessage);
+    }
+
+    private void logUserDownloadingZip(Context context, Item item) {
+        EPerson eperson = context.getCurrentUser();
+        String pattern = "The user name: {0}, uuid: {1} is downloading all bitstreams in a single ZIP file " +
+                "from the Item titled: {2}, handle: {3}.";
+        String logMessage = Objects.isNull(eperson)
+                ? MessageFormat.format(pattern, "ANONYMOUS", "null", item.getName(), item.getHandle())
+                : MessageFormat.format(pattern, eperson.getFullName(), eperson.getID(), item.getName(),
+                item.getHandle());
 
         log.info(logMessage);
     }
