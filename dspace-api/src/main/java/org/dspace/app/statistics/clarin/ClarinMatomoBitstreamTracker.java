@@ -180,6 +180,11 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
         log.info(logMessage);
     }
 
+    /**
+     * Log the user which is downloading all bitstreams in a single ZIP file
+     * @param context DSpace context object
+     * @param item Item from where the bitstream is downloading
+     */
     private void logUserDownloadingZip(Context context, Item item) {
         EPerson eperson = context.getCurrentUser();
         String pattern = "The user name: {0}, uuid: {1} is downloading all bitstreams in a single ZIP file " +
