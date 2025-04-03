@@ -83,7 +83,8 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
                 bitstreamUrl = configurationService.getProperty("dspace.ui.url") + "/bitstream/handle/" +
                         item.getHandle() + "/" + bitstreamId;
             } catch (IllegalArgumentException e) {
-                log.error("Cannot get the Bitstream UUID from the URL {}", matomoRequest.getActionUrl());
+                log.error("Cannot get the Bitstream UUID from the URL {}: {}", matomoRequest.getActionUrl(),
+                        e.getMessage(), e);
             }
 
             // The bitstream URL is in the format `<DSPACE_UI_URL>/bitstream/handle/<ITEM_HANDLE>/<BITSTREAM_UUID>`
