@@ -89,7 +89,7 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
         clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, false);
 
         String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" + bitstreamId;
-        verifyMatomoRequest(expectedUrl);
+        verifyMatomoRequest(expectedUrl, "Bitstream Download / Single File");
     }
 
     @Test
@@ -103,7 +103,7 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
         clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, false);
 
         String expectedUrl = BASE_URL + "/bitstreams/NOT_EXISTING_UUID/download";
-        verifyMatomoRequest(expectedUrl);
+        verifyMatomoRequest(expectedUrl, "Bitstream Download / Single File");
     }
 
     @Test
@@ -117,7 +117,7 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
         clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, true);
 
         String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" + bitstreamId;
-        verifyMatomoRequest(expectedUrl);
+        verifyMatomoRequest(expectedUrl, "Bitstream Download / Zip Archive");
     }
 
     @Test
@@ -169,13 +169,13 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
                 Item.ANY, false)).thenReturn(metadataValues);
     }
 
-    private void verifyMatomoRequest(String expectedUrl) {
+    private void verifyMatomoRequest(String expectedUrl, String pageName) {
         ArgumentCaptor<MatomoRequest> captor = ArgumentCaptor.forClass(MatomoRequest.class);
         verify(matomoTracker, times(1)).sendRequestAsync(captor.capture());
 
         MatomoRequest sentRequest = captor.getValue();
         assertNotNull(sentRequest);
-        assertEquals("Bitstream Download / Single File", sentRequest.getActionName());
+        assertEquals(pageName, sentRequest.getActionName());
         assertEquals("Action URL should match the request URL", expectedUrl, sentRequest.getDownloadUrl());
     }
 }
