@@ -27,6 +27,7 @@ import org.dspace.app.statistics.clarin.ClarinMatomoBitstreamTracker;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
@@ -66,6 +67,9 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
     private ItemService itemService;
 
     @Mock
+    private BitstreamService bitstreamService;
+
+    @Mock
     private Bitstream bitstream;
 
     @InjectMocks
@@ -83,12 +87,13 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
         UUID bitstreamId = UUID.randomUUID();
         mockRequest("/bitstreams/" + bitstreamId + "/download");
         mockBitstreamAndItem(bitstreamId);
+        when(bitstreamService.find(context, bitstreamId)).thenReturn(bitstream);
         when(matomoTracker.sendRequestAsync(any(MatomoRequest.class)))
                 .thenReturn(CompletableFuture.completedFuture(null));
 
         clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, false);
 
-        String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" + bitstreamId;
+        String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" + bitstream.getName();
         verifyMatomoRequest(expectedUrl, "Bitstream Download / Single File");
     }
 
@@ -111,12 +116,13 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
         UUID bitstreamId = UUID.randomUUID();
         mockRequest("/bitstreams/" + bitstreamId + "/download");
         mockBitstreamAndItem(bitstreamId);
+        when(bitstreamService.find(context, bitstreamId)).thenReturn(bitstream);
         when(matomoTracker.sendRequestAsync(any(MatomoRequest.class)))
                 .thenReturn(CompletableFuture.completedFuture(null));
 
         clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, true);
 
-        String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" + bitstreamId;
+        String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" + bitstream.getName();
         verifyMatomoRequest(expectedUrl, "Bitstream Download / Zip Archive");
     }
 
