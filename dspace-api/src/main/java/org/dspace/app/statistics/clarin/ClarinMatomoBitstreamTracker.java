@@ -7,6 +7,8 @@
  */
 package org.dspace.app.statistics.clarin;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.LinkedHashMap;
@@ -98,7 +100,7 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
                 }
 
                 bitstreamUrl = configurationService.getProperty("dspace.ui.url") + "/bitstream/handle/" +
-                        item.getHandle() + "/" + bitstream.getName();
+                        item.getHandle() + "/" + URLEncoder.encode(bitstream.getName(), StandardCharsets.UTF_8);
             } catch (IllegalArgumentException | BadRequestException | NotFoundException | SQLException e) {
                 log.error("Cannot get the Bitstream UUID from the URL {}: {}", matomoRequest.getActionUrl(),
                         e.getMessage(), e);

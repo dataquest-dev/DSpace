@@ -15,6 +15,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
@@ -80,6 +82,7 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
     @Before
     public void setUp() {
         context = new Context();
+        when(bitstream.getName()).thenReturn("Test bitstream");
     }
 
     @Test
@@ -93,7 +96,8 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
 
         clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, false);
 
-        String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" + bitstream.getName();
+        String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" +
+                URLEncoder.encode(bitstream.getName(), StandardCharsets.UTF_8);
         verifyMatomoRequest(expectedUrl, "Bitstream Download / Single File");
     }
 
@@ -122,7 +126,8 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
 
         clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, true);
 
-        String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" + bitstream.getName();
+        String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" +
+                URLEncoder.encode(bitstream.getName(), StandardCharsets.UTF_8);
         verifyMatomoRequest(expectedUrl, "Bitstream Download / Zip Archive");
     }
 
@@ -152,6 +157,21 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
 
         // Verify that no tracking request was sent
         verify(matomoTracker, times(0)).sendRequestAsync(any(MatomoRequest.class));
+    }
+
+    @Test
+    public void testTrackBitstreamDownloadWithNullBitstream() throws SQLException {
+        UUID bitstreamId = UUID.randomUUID();
+        mockRequest("/bitstreams/" + bitstreamId + "/download");
+        mockBitstreamAndItem(bitstreamId);
+        when(bitstreamService.find(context, bitstreamId)).thenReturn(null);
+        when(matomoTracker.sendRequestAsync(any(MatomoRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, false);
+
+        String expectedUrl = BASE_URL + "/bitstreams/" + bitstreamId + "/download";
+        verifyMatomoRequest(expectedUrl, "Bitstream Download / Single File");
     }
 
     private void mockRequest(String requestURI) {
