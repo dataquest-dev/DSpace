@@ -106,7 +106,7 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
                         e.getMessage(), e);
             }
 
-            // The bitstream URL is in the format `<DSPACE_UI_URL>/bitstream/handle/<ITEM_HANDLE>/<BITSTREAM_UUID>`
+            // The bitstream URL is in the format `<DSPACE_UI_URL>/bitstream/handle/<ITEM_HANDLE>/<BITSTREAM_NAME>`
             // if there is an error with the fetching the UUID, the original download URL is used
             matomoRequest.setDownloadUrl(bitstreamUrl);
             matomoRequest.setActionUrl(itemIdentifier);
