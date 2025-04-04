@@ -94,7 +94,6 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
 
     @Test
     public void testTrackBitstreamDownloadWrongUrl() throws SQLException {
-        context = new Context();
         UUID bitstreamId = UUID.randomUUID();
         mockRequest("/bitstreams/NOT_EXISTING_UUID/download");
         mockBitstreamAndItem(bitstreamId);
@@ -105,6 +104,48 @@ public class ClarinMatomoBitstreamTrackerTest extends AbstractDSpaceTest {
 
         String expectedUrl = BASE_URL + "/bitstreams/NOT_EXISTING_UUID/download";
         verifyMatomoRequest(expectedUrl);
+    }
+
+    @Test
+    public void testTrackZipDownload() throws SQLException {
+        UUID bitstreamId = UUID.randomUUID();
+        mockRequest("/bitstreams/" + bitstreamId + "/download");
+        mockBitstreamAndItem(bitstreamId);
+        when(matomoTracker.sendRequestAsync(any(MatomoRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, true);
+
+        String expectedUrl = LOCALHOST_URL + "/bitstream/handle/" + HANDLE + "/" + bitstreamId;
+        verifyMatomoRequest(expectedUrl);
+    }
+
+    @Test
+    public void testSkipTrackingWithRangeHeader() throws SQLException {
+        UUID bitstreamId = UUID.randomUUID();
+        mockRequest("/bitstreams/" + bitstreamId + "/download");
+        // Override Range header to be non-null
+        when(request.getHeader("Range")).thenReturn("bytes=0-1000");
+        mockBitstreamAndItem(bitstreamId);
+
+        clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, false);
+
+        // Verify that no tracking request was sent
+        verify(matomoTracker, times(0)).sendRequestAsync(any(MatomoRequest.class));
+    }
+
+    @Test
+    public void testNoItemFound() throws SQLException {
+        UUID bitstreamId = UUID.randomUUID();
+        mockRequest("/bitstreams/" + bitstreamId + "/download");
+        when(bitstream.getID()).thenReturn(bitstreamId);
+        // Return empty list to simulate no items found
+        when(clarinItemService.findByBitstreamUUID(context, bitstreamId)).thenReturn(Collections.emptyList());
+
+        clarinMatomoBitstreamTracker.trackBitstreamDownload(context, request, bitstream, false);
+
+        // Verify that no tracking request was sent
+        verify(matomoTracker, times(0)).sendRequestAsync(any(MatomoRequest.class));
     }
 
     private void mockRequest(String requestURI) {
