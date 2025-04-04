@@ -154,16 +154,18 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
             return;
         }
 
+        String pageName = "Bitstream Download / Single File";
         if (!isZip) {
             // Log the user which is downloading the bitstream
             this.logUserDownloadingBitstream(context, bit);
         } else {
             // Track the zip file downloading event
             this.logUserDownloadingZip(context, item);
+            pageName = "Bitstream Download / Zip Archive";
         }
 
         // Track the bitstream downloading event
-        trackPage(context, request, item, "Bitstream Download / Single File");
+        trackPage(context, request, item, pageName);
     }
 
     /**
