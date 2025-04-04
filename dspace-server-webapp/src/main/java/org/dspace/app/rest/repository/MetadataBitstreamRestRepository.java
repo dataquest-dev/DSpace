@@ -125,7 +125,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                         }
                     } catch (Exception e) {
                         log.error("Cannot create preview content for bitstream: {} because: {}",
-                                bitstream.getID(), e.getMessage());
+                                bitstream.getID(), e.getMessage(), e);
                     }
                 }
                 MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, fileInfos,
