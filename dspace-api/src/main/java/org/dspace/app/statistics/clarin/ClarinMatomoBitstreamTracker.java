@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import javax.naming.NameNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 
@@ -95,12 +96,17 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
                 // Get the bitstream using its UUID
                 Bitstream bitstream = bitstreamService.find(context, UUID.fromString(bitstreamId));
                 if (Objects.isNull(bitstream)) {
-                    throw new BadRequestException("The Bitstream with the UUID " + bitstreamId + " was not found.");
+                    throw new BadRequestException("The Bitstream: UUID = " + bitstreamId + " was not found.");
+                }
+
+                if (StringUtils.isBlank(bitstream.getName())) {
+                    throw new NameNotFoundException("The Bitstream: UUID = " + bitstreamId +
+                            " bitstream.getName() is null.");
                 }
 
                 bitstreamUrl = configurationService.getProperty("dspace.ui.url") + "/bitstream/handle/" +
-                        item.getHandle() + "/" + URLEncoder.encode("bitstream.getName()", StandardCharsets.UTF_8);
-            } catch (IllegalArgumentException | BadRequestException | SQLException e) {
+                        item.getHandle() + "/" + URLEncoder.encode(bitstream.getName(), StandardCharsets.UTF_8);
+            } catch (IllegalArgumentException | BadRequestException | SQLException | NameNotFoundException e) {
                 log.error("Cannot get the Bitstream UUID from the URL {}: {}", matomoRequest.getActionUrl(),
                         e.getMessage(), e);
             }
