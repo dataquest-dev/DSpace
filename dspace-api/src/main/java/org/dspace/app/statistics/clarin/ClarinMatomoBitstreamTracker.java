@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -27,6 +28,7 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
+import org.dspace.core.Utils;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -84,11 +86,11 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
             // Set PageURL to handle identifier
             String bitstreamUrl = getFullURL(request);
             try {
-//                // Get the Bitstream UUID from the URL
-//                String bitstreamId = Utils.fetchUUIDFromUrl(matomoRequest.getActionUrl());
-//                if (StringUtils.isBlank(bitstreamId)) {
-//                    throw new BadRequestException("The Bitstream UUID is blank.");
-//                }
+                // Get the Bitstream UUID from the URL
+                String bitstreamId = Utils.fetchUUIDFromUrl(matomoRequest.getActionUrl());
+                if (StringUtils.isBlank(bitstreamId)) {
+                    throw new BadRequestException("The Bitstream UUID is blank.");
+                }
 //                // Get the bitstream using its UUID
 //                Bitstream bitstream = bitstreamService.find(context, UUID.fromString(bitstreamId));
 //                if (Objects.isNull(bitstream)) {
@@ -97,7 +99,7 @@ public class ClarinMatomoBitstreamTracker extends ClarinMatomoTracker {
 
                 bitstreamUrl = configurationService.getProperty("dspace.ui.url") + "/bitstream/handle/" +
                         item.getHandle() + "/" + URLEncoder.encode("bitstream.getName()", StandardCharsets.UTF_8);
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | BadRequestException e) {
                 log.error("Cannot get the Bitstream UUID from the URL {}: {}", matomoRequest.getActionUrl(),
                         e.getMessage(), e);
             }
