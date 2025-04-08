@@ -314,7 +314,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     /**
      * Processes a TAR file, extracting its entries and adding their paths to the provided list.
      * @param filePaths the list to populate with the extracted file paths
-     * @param inputStream  the input stream for the process
+     * @param inputStream  the TAR file data
      * @throws IOException if an I/O error occurs while reading the TAR file
      */
     private void processTarFile(List<String> filePaths, InputStream inputStream) throws IOException {
@@ -332,7 +332,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     /**
      * Processes a ZIP file, extracting its entries and adding their paths to the provided list.
      * @param filePaths      the list to populate with the extracted file paths
-     * @param inputStream    the FileSystem object representing the ZIP file
+     * @param inputStream    the ZIP file data
      * @throws IOException   if an I/O error occurs while reading the ZIP file
      */
     private void processZipFile(List<String> filePaths, InputStream inputStream) throws IOException {
