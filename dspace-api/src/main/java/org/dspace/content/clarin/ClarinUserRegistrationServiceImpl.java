@@ -67,8 +67,10 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
         ClarinUserRegistration clarinUserRegistration = clarinUserRegistrationDAO
                 .findByID(context, ClarinUserRegistration.class, valueId);
 
+        if (Objects.isNull(clarinUserRegistration)) {
+            return null;
+        }
         this.authorizeClarinUserRegistrationAction(context, List.of(clarinUserRegistration));
-
         return clarinUserRegistration;
     }
 

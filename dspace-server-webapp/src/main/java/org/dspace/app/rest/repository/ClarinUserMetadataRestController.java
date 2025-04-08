@@ -475,9 +475,12 @@ public class ClarinUserMetadataRestController {
             clrua.setUserRegistration(clarinUserRegistration);
         }
         // Turn off the authorization system to update the user metadata because the ANONYMOUS user cannot update
-        context.turnOffAuthorisationSystem();
-        clarinLicenseResourceUserAllowanceService.update(context, clrua);
-        context.restoreAuthSystemState();
+        try {
+            context.turnOffAuthorisationSystem();
+            clarinLicenseResourceUserAllowanceService.update(context, clrua);
+        } finally {
+            context.restoreAuthSystemState();
+        }
         return clrua;
     }
 
@@ -510,9 +513,12 @@ public class ClarinUserMetadataRestController {
             clarinUserMetadata.setTransaction(clrua);
             clarinUserMetadata.setEperson(clarinUserRegistration);
             // Turn off the authorization system to update the user metadata because the ANONYMOUS user cannot update
-            context.turnOffAuthorisationSystem();
-            clarinUserMetadataService.update(context, clarinUserMetadata);
-            context.restoreAuthSystemState();
+            try {
+                context.turnOffAuthorisationSystem();
+                clarinUserMetadataService.update(context, clarinUserMetadata);
+            } finally {
+                context.restoreAuthSystemState();
+            }
         }
         return clarinUserMetadataList;
     }
@@ -578,9 +584,12 @@ public class ClarinUserMetadataRestController {
             clarinUserMetadata.setMetadataValue(clarinUserMetadataRest.getMetadataValue());
             clarinUserMetadata.setMetadataKey(clarinUserMetadataRest.getMetadataKey());
             // Turn off the authorization system to update the user metadata because the ANONYMOUS user cannot update
-            context.turnOffAuthorisationSystem();
-            clarinUserMetadataService.update(context, clarinUserMetadata);
-            context.restoreAuthSystemState();
+            try {
+                context.turnOffAuthorisationSystem();
+                clarinUserMetadataService.update(context, clarinUserMetadata);
+            } finally {
+                context.restoreAuthSystemState();
+            }
             // Add created ClarinUserMetadata to the list
             clarinUserMetadataList.add(clarinUserMetadata);
         }

@@ -56,8 +56,10 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
         ClarinLicenseResourceUserAllowance clrua = clarinLicenseResourceUserAllowanceDAO.findByID(context,
                 ClarinLicenseResourceUserAllowance.class, valueId);
 
+        if (Objects.isNull(clrua)) {
+            return null;
+        }
         this.authorizeClruaAction(context, List.of(clrua));
-
         return clrua;
     }
 

@@ -49,11 +49,13 @@ public class ClarinUserMetadataServiceImpl implements ClarinUserMetadataService 
 
     @Override
     public ClarinUserMetadata find(Context context, int valueId) throws SQLException, AuthorizeException {
-        ClarinUserMetadata clarinUserMetadata =  clarinUserMetadataDAO
+        ClarinUserMetadata clarinUserMetadata = clarinUserMetadataDAO
                 .findByID(context, ClarinUserMetadata.class, valueId);
 
+        if (Objects.isNull(clarinUserMetadata)) {
+            return null;
+        }
         this.authorizeClarinUserMetadataAction(context, List.of(clarinUserMetadata));
-
         return clarinUserMetadata;
     }
 
@@ -105,6 +107,9 @@ public class ClarinUserMetadataServiceImpl implements ClarinUserMetadataService 
 
         this.authorizeClarinUserMetadataAction(context, userMetadata);
 
+        if (userMetadata == null) {
+            userMetadata = List.of();
+        }
         return userMetadata;
     }
 
