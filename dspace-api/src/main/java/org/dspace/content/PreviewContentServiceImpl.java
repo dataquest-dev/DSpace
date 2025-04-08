@@ -311,35 +311,36 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         filePaths.add(fileInfo);
     }
 
-//    /**
-//     * Processes a TAR file, extracting its entries and adding their paths to the provided list.
-//     * @param filePaths the list to populate with the extracted file paths
-//     * @param tempFile  the temporary TAR file to process
-//     * @throws IOException if an I/O error occurs while reading the TAR file
-//     */
+    /**
+     * Processes a TAR file, extracting its entries and adding their paths to the provided list.
+     * @param filePaths the list to populate with the extracted file paths
+     * @param inputStream  the input stream for the process
+     * @throws IOException if an I/O error occurs while reading the TAR file
+     */
     private void processTarFile(List<String> filePaths, InputStream inputStream) throws IOException {
         try (TarArchiveInputStream tis = new TarArchiveInputStream(inputStream)) {
             TarArchiveEntry entry;
             while ((entry = tis.getNextTarEntry()) != null) {
-                // Add the file path and its size (from the TAR entry)
-                addFilePath(filePaths, entry.getName(), entry.getSize());
+                if (!entry.isDirectory()) {
+                    // Add the file path and its size (from the TAR entry)
+                    addFilePath(filePaths, entry.getName(), entry.getSize());
+                }
             }
         }
     }
 
-//    /**
-//     * Processes a ZIP file, extracting its entries and adding their paths to the provided list.
-//     * @param filePaths      the list to populate with the extracted file paths
-//     * @param zipFileSystem  the FileSystem object representing the ZIP file
-//     * @throws IOException if an I/O error occurs while reading the ZIP file
-//     */
+    /**
+     * Processes a ZIP file, extracting its entries and adding their paths to the provided list.
+     * @param filePaths      the list to populate with the extracted file paths
+     * @param inputStream    the FileSystem object representing the ZIP file
+     * @throws IOException   if an I/O error occurs while reading the ZIP file
+     */
     private void processZipFile(List<String> filePaths, InputStream inputStream) throws IOException {
         try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
             ZipEntry entry;
-            // Read each entry in the ZIP file
             while ((entry = zipInputStream.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {
-                    // For each file in the ZIP, you can get its size and path
+                    // Add the file path and its size (from the ZIP entry)
                     long fileSize = entry.getSize();
                     addFilePath(filePaths, entry.getName(), fileSize);
                 }
@@ -408,7 +409,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     /**
-     * Extracts files from an InputStream, processes them based on the specified file type (tar or zip),
+     * Processes  file data based on the specified file type (tar or zip),
      * and returns an XML representation of the file paths.
      * @param inputStream the InputStream containing the file data
      * @param fileType    the type of file to extract ("tar" or "zip")
@@ -416,28 +417,12 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      */
     private String extractFile(InputStream inputStream, String fileType) throws Exception {
         List<String> filePaths = new ArrayList<>();
-        //Path tempFile = null;
-        FileSystem zipFileSystem = null;
-
-        try {
-            // Create a temporary file based on the file type
-            //tempFile = createTempFile(fileType);
-
-            // Copy the input stream to the temporary file
-            //Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
-
-            // Process the file based on its type
-            if (ARCHIVE_TYPE_TAR.equals(fileType)) {
-                processTarFile(filePaths, inputStream);
-            } else {
-                //zipFileSystem = FileSystems.newFileSystem(tempFile, (ClassLoader) null);
-                processZipFile(filePaths, inputStream);
-            }
-        } finally {
-            closeFileSystem(zipFileSystem);
-            //deleteTempFile(tempFile);
+        // Process the file based on its type
+        if (ARCHIVE_TYPE_TAR.equals(fileType)) {
+            processTarFile(filePaths, inputStream);
+        } else {
+            processZipFile(filePaths, inputStream);
         }
-
         return buildXmlResponse(filePaths);
     }
 
