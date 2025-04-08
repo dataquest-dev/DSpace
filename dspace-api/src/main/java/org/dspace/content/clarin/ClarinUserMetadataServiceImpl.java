@@ -159,6 +159,12 @@ public class ClarinUserMetadataServiceImpl implements ClarinUserMetadataService 
         // Do not allow to get the userRegistration of another user
         EPerson currentUser = context.getCurrentUser();
         ClarinUserMetadata userMetadatum = userMetadata.get(0);
+
+        // Check if the userRegistration is not null
+        if (Objects.isNull(userMetadatum.getEperson())) {
+            return;
+        }
+
         UUID userRegistrationEpersonUUID = userMetadatum.getEperson().getPersonID();
         if (currentUser.getID().equals(userRegistrationEpersonUUID)) {
             return;

@@ -157,6 +157,12 @@ public class ClarinLicenseResourceUserAllowanceServiceImpl implements ClarinLice
         // Do not allow to get the userRegistration of another user
         EPerson currentUser = context.getCurrentUser();
         ClarinLicenseResourceUserAllowance clrua = clruaList.get(0);
+
+        // Check if the userRegistration is not null
+        if (Objects.isNull(clrua.getUserRegistration())) {
+            return;
+        }
+
         UUID userRegistrationEpersonUUID = clrua.getUserRegistration().getPersonID();
         if (currentUser.getID().equals(userRegistrationEpersonUUID)) {
             return;
