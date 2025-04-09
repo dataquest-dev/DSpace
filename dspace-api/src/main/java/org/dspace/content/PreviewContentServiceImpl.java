@@ -294,18 +294,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     /**
-     * Creates a temporary file with the appropriate extension based on the specified file type.
-     * @param fileType the type of file for which to create a temporary file
-     * @return a Path object representing the temporary file
-     * @throws IOException if an I/O error occurs while creating the file
-     */
-    private Path createTempFile(String fileType) throws IOException {
-        String extension = ARCHIVE_TYPE_TAR.equals(fileType) ?
-                String.format(".%s", ARCHIVE_TYPE_TAR) : String.format(".%s", ARCHIVE_TYPE_ZIP);
-        return Files.createTempFile("temp", extension);
-    }
-
-    /**
      * Adds a file path and its size to the list of file paths.
      * If the path represents a directory, appends a "/" to the path.
      * @param filePaths the list of file paths to add to
@@ -402,34 +390,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
 
         } finally {
             executorService.shutdown();
-        }
-    }
-
-    /**
-     * Closes the specified FileSystem resource if it is not null.
-     * @param zipFileSystem the FileSystem to close
-     */
-    private void closeFileSystem(FileSystem zipFileSystem) {
-        if (Objects.nonNull(zipFileSystem)) {
-            try {
-                zipFileSystem.close();
-            } catch (IOException e) {
-                log.error("An error occurred while closing the zip file.", e);
-            }
-        }
-    }
-
-    /**
-     * Deletes the specified temporary file if it is not null.
-     * @param tempFile the Path object representing the temporary file to delete
-     */
-    private void deleteTempFile(Path tempFile) {
-        if (Objects.nonNull(tempFile)) {
-            try {
-                Files.delete(tempFile);
-            } catch (IOException e) {
-                log.error("An error occurred while deleting temp file.", e);
-            }
         }
     }
 
