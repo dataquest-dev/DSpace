@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -76,6 +77,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     // Configured ZIP file preview limit (default: 1000) - if the ZIP file contains more files, it will be truncated
     @Value("${file.preview.zip.limit.length:1000}")
     private int maxPreviewCount;
+
+    @Value("${file.preview.archive.thread.pool.size:#{null}}")
+    private Integer archiveThreadPoolSize;
 
 
     @Autowired
@@ -299,7 +303,11 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @param size the size of the file or directory
      */
     private void addFilePath(List<String> filePaths, String path, long size) {
-        String fileInfo = (Files.isDirectory(Paths.get(path))) ? path + "/|" + size : path + "|" + size;
+        Path p = Paths.get(path);
+        if (!Files.exists(p)) {
+            throw new IllegalArgumentException("Path does not exist: " + path);
+        }
+        String fileInfo = Files.isDirectory(p) ? path + "/|" + size : path + "|" + size;
         filePaths.add(fileInfo);
     }
 
@@ -315,8 +323,10 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      */
     private void processTarFile(List<String> filePaths, InputStream inputStream)
             throws IOException, InterruptedException, ExecutionException {
-        int numProcessors = Runtime.getRuntime().availableProcessors();
-        ExecutorService executorService = Executors.newFixedThreadPool(numProcessors);
+        List<TarArchiveEntry> entries = new ArrayList<>();
+        int threadPoolSize = (archiveThreadPoolSize != null) ?
+                archiveThreadPoolSize : Runtime.getRuntime().availableProcessors();
+        ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
         List<Future<List<String>>> futures = new ArrayList<>();
 
         try (BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
@@ -325,24 +335,30 @@ public class PreviewContentServiceImpl implements PreviewContentService {
             TarArchiveEntry entry;
             while ((entry = tis.getNextTarEntry()) != null) {
                 if (!entry.isDirectory()) {
-                    String entryName = entry.getName();
-                    long fileSize = entry.getSize();
-
-                    // Submit a task to process each entry and return a list containing the path
-                    Callable<List<String>> task = () -> {
-                        List<String> localPaths = new ArrayList<>();
-                        addFilePath(localPaths, entryName, fileSize);
-                        return localPaths;
-                    };
-                    futures.add(executorService.submit(task));
+                    entries.add(entry);
                 }
             }
-
-            // Collect results from all tasks in a thread-safe manner
-            for (Future<List<String>> future : futures) {
-                filePaths.addAll(future.get());
+            // Process sequentially if below threshold
+            if (entries.size() < archiveThreadPoolSize) {
+                for (TarArchiveEntry e : entries) {
+                    addFilePath(filePaths, e.getName(), e.getSize());
+                }
+                return;
             }
-
+            // Process in parallel if above threshold
+            for (TarArchiveEntry e : entries) {
+                String entryName = e.getName();
+                long fileSize = e.getSize();
+                Callable<List<String>> task = () -> {
+                    List<String> localPaths = new ArrayList<>();
+                    addFilePath(localPaths, entryName, fileSize);
+                    return localPaths;
+                };
+                futures.add(executorService.submit(task));
+            }
+            for (Future<List<String>> future : futures) {
+                filePaths.addAll(future.get()); // Thread-safe addition
+            }
         } finally {
             executorService.shutdown();
         }
@@ -360,8 +376,10 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      */
     private void processZipFile(List<String> filePaths, InputStream inputStream)
             throws IOException, InterruptedException, ExecutionException {
-        int numProcessors = Runtime.getRuntime().availableProcessors();
-        ExecutorService executorService = Executors.newFixedThreadPool(numProcessors);
+        List<ZipEntry> entries = new ArrayList<>();
+            int threadPoolSize = (archiveThreadPoolSize != null) ?
+                    archiveThreadPoolSize : Runtime.getRuntime().availableProcessors();
+            ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
         List<Future<List<String>>> futures = new ArrayList<>();
 
         try (BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
@@ -370,22 +388,30 @@ public class PreviewContentServiceImpl implements PreviewContentService {
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {
-                    String entryName = entry.getName();
-                    long fileSize = entry.getSize();
-
-                    Callable<List<String>> task = () -> {
-                        List<String> localPaths = new ArrayList<>();
-                        addFilePath(localPaths, entryName, fileSize);
-                        return localPaths;
-                    };
-                    futures.add(executorService.submit(task));
+                    entries.add(entry);
                 }
             }
-
+            // Process sequentially if below threshold
+            if (entries.size() < archiveThreadPoolSize) {
+                for (ZipEntry e : entries) {
+                    addFilePath(filePaths, e.getName(), e.getSize());
+                }
+                return;
+            }
+            // Process in parallel if above threshold
+            for (ZipEntry e : entries) {
+                String entryName = e.getName();
+                long fileSize = e.getSize();
+                Callable<List<String>> task = () -> {
+                    List<String> localPaths = new ArrayList<>();
+                    addFilePath(localPaths, entryName, fileSize);
+                    return localPaths;
+                };
+                futures.add(executorService.submit(task));
+            }
             for (Future<List<String>> future : futures) {
                 filePaths.addAll(future.get()); // Thread-safe addition
             }
-
         } finally {
             executorService.shutdown();
         }
