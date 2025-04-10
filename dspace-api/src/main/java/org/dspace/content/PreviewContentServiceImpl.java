@@ -303,11 +303,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @param size the size of the file or directory
      */
     private void addFilePath(List<String> filePaths, String path, long size) {
-        Path p = Paths.get(path);
-        if (!Files.exists(p)) {
-            throw new IllegalArgumentException("Path does not exist: " + path);
-        }
-        String fileInfo = Files.isDirectory(p) ? path + "/|" + size : path + "|" + size;
+        String fileInfo = Files.isDirectory(Paths.get(path)) ? path + "/|" + size : path + "|" + size;
         filePaths.add(fileInfo);
     }
 
@@ -377,9 +373,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     private void processZipFile(List<String> filePaths, InputStream inputStream)
             throws IOException, InterruptedException, ExecutionException {
         List<ZipEntry> entries = new ArrayList<>();
-            int threadPoolSize = (archiveThreadPoolSize != null) ?
+        int threadPoolSize = (archiveThreadPoolSize != null) ?
                     archiveThreadPoolSize : Runtime.getRuntime().availableProcessors();
-            ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
+        ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
         List<Future<List<String>>> futures = new ArrayList<>();
 
         try (BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
