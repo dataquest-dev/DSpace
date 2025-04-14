@@ -230,11 +230,14 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
         assertEquals(ATOM_ENTRY_CONTENT_TYPE, response.getHeaders().getContentType().toString());
     }
 
+    // Test when the `swordv2-server.url` is null. The swordv2 server URL should be constructed using the default value
     @Test
     public void editMediaPathTest() throws SQLException, AuthorizeException {
         context.turnOffAuthorisationSystem();
-        // The swordv2 server url is composed and the default value is used when the swordv2-server.url is null
+        // The `swordv2` server URL is constructed, and the default value is used if `swordv2-server.url` is null.
         configurationService.setProperty("swordv2-server.url", null);
+        // The `dspace.server.url` must be updated following the same logic as the `swordv2-server.url`.
+        // The `getURL` method used a specific port.
         String dspaceServerUrl = configurationService.getProperty("dspace.server.url");
         configurationService.setProperty("dspace.server.url", getURL(""));
         try {
