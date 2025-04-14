@@ -7,7 +7,6 @@
  */
 package org.dspace.content;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,11 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,11 +70,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     // Configured ZIP file preview limit (default: 1000) - if the ZIP file contains more files, it will be truncated
     @Value("${file.preview.zip.limit.length:1000}")
     private int maxPreviewCount;
-
-    @Value("${file.preview.archive.thread.pool.size:#{null}}")
-    private Integer archiveThreadPoolSize;
-
-
+    
     @Autowired
     PreviewContentDAO previewContentDAO;
     @Autowired(required = true)
@@ -306,122 +296,40 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         filePaths.add(fileInfo);
     }
 
-    /*
-
-     * Processes a TAR file, extracting its entries and adding their paths and sizes to the provided list.
-     * Utilizes parallelism to process each TAR entry concurrently.
-     *
-     * @param filePaths the list to populate with the extracted file paths and sizes
-     * @param inputStream the InputStream containing the TAR file data
-
-
-
-
-
+    /**
+     * Processes a TAR file, extracting its entries and adding their paths to the provided list.
+     * @param filePaths the list to populate with the extracted file paths
+     * @param inputStream the TAR file data
      * @throws IOException if an I/O error occurs while reading the TAR file
-     * @throws InterruptedException if the current thread is interrupted while waiting for the completion of a task
-     * @throws ExecutionException if an exception occurs during the execution of a parallel task
      */
-    private void processTarFile(List<String> filePaths, InputStream inputStream)
-            throws IOException, InterruptedException, ExecutionException {
-        List<TarArchiveEntry> entries = new ArrayList<>();
-        int threadPoolSize = (archiveThreadPoolSize != null) ?
-                archiveThreadPoolSize : Runtime.getRuntime().availableProcessors();
-        ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
-        List<Future<List<String>>> futures = new ArrayList<>();
-
-        try (BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
-             TarArchiveInputStream tis = new TarArchiveInputStream(bufferedStream)) {
-
+    private void processTarFile(List<String> filePaths, InputStream inputStream) throws IOException {
+        try (TarArchiveInputStream tis = new TarArchiveInputStream(inputStream)) {
             TarArchiveEntry entry;
             while ((entry = tis.getNextTarEntry()) != null) {
                 if (!entry.isDirectory()) {
-                    entries.add(entry);
+                    // Add the file path and its size (from the TAR entry)
+                    addFilePath(filePaths, entry.getName(), entry.getSize());
                 }
             }
-            // Process sequentially if below threshold
-            if (entries.size() < archiveThreadPoolSize) {
-                for (TarArchiveEntry e : entries) {
-                    addFilePath(filePaths, e.getName(), e.getSize());
-                }
-                return;
-            }
-            // Process in parallel if above threshold
-            for (TarArchiveEntry e : entries) {
-                String entryName = e.getName();
-                long fileSize = e.getSize();
-                Callable<List<String>> task = () -> {
-                    List<String> localPaths = new ArrayList<>();
-                    addFilePath(localPaths, entryName, fileSize);
-                    return localPaths;
-                };
-                futures.add(executorService.submit(task));
-            }
-            for (Future<List<String>> future : futures) {
-                filePaths.addAll(future.get()); // Thread-safe addition
-            }
-        } finally {
-            executorService.shutdown();
         }
     }
 
     /**
-
-     * Processes a ZIP file, extracting its entries and adding their paths and sizes to the provided list.
-     * Utilizes parallelism to process each ZIP entry concurrently.
-     *
-     * @param filePaths the list to populate with the extracted file paths and sizes
-     * @param inputStream the InputStream containing the ZIP file data
-     * @throws IOException if an I/O error occurs while reading the ZIP file
-     * @throws InterruptedException if the current thread is interrupted while waiting for the completion of a task
-     * @throws ExecutionException if an exception occurs during the execution of a parallel task
-
-
-
-
-
-
+     * Processes a ZIP file, extracting its entries and adding their paths to the provided list.
+     * @param filePaths      the list to populate with the extracted file paths
+     * @param inputStream the ZIP file data
+     * @throws IOException   if an I/O error occurs while reading the ZIP file
      */
-    private void processZipFile(List<String> filePaths, InputStream inputStream)
-            throws IOException, InterruptedException, ExecutionException {
-        List<ZipEntry> entries = new ArrayList<>();
-        int threadPoolSize = (archiveThreadPoolSize != null) ?
-                    archiveThreadPoolSize : Runtime.getRuntime().availableProcessors();
-        ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
-        List<Future<List<String>>> futures = new ArrayList<>();
-
-        try (BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
-             ZipInputStream zipInputStream = new ZipInputStream(bufferedStream)) {
-
+    private void processZipFile(List<String> filePaths, InputStream inputStream) throws IOException {
+        try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {
-                    entries.add(entry);
+                    // Add the file path and its size (from the ZIP entry)
+                    long fileSize = entry.getSize();
+                    addFilePath(filePaths, entry.getName(), fileSize);
                 }
             }
-            // Process sequentially if below threshold
-            if (entries.size() < archiveThreadPoolSize) {
-                for (ZipEntry e : entries) {
-                    addFilePath(filePaths, e.getName(), e.getSize());
-                }
-                return;
-            }
-            // Process in parallel if above threshold
-            for (ZipEntry e : entries) {
-                String entryName = e.getName();
-                long fileSize = e.getSize();
-                Callable<List<String>> task = () -> {
-                    List<String> localPaths = new ArrayList<>();
-                    addFilePath(localPaths, entryName, fileSize);
-                    return localPaths;
-                };
-                futures.add(executorService.submit(task));
-            }
-            for (Future<List<String>> future : futures) {
-                filePaths.addAll(future.get()); // Thread-safe addition
-            }
-        } finally {
-            executorService.shutdown();
         }
     }
 
