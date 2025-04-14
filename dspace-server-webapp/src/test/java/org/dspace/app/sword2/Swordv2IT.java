@@ -235,68 +235,74 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
         context.turnOffAuthorisationSystem();
         // The swordv2 server url is composed and the default value is used when the swordv2-server.url is null
         configurationService.setProperty("swordv2-server.url", null);
-        // Create a top level community and one Collection
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
-        // Make sure our Collection allows the "eperson" user to submit into it
-        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
-                .withName("Test SWORDv2 Collection")
-                .withSubmitterGroup(eperson)
-                .build();
-        // Above changes MUST be committed to the database for SWORDv2 to see them.
-        context.commit();
-        context.restoreAuthSystemState();
+        String dspaceServerUrl = configurationService.getProperty("dspace.server.url");
+        configurationService.setProperty("dspace.server.url", getURL(""));
+        try {
+            // Create a top level community and one Collection
+            parentCommunity = CommunityBuilder.createCommunity(context)
+                    .withName("Parent Community")
+                    .build();
+            // Make sure our Collection allows the "eperson" user to submit into it
+            Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                    .withName("Test SWORDv2 Collection")
+                    .withSubmitterGroup(eperson)
+                    .build();
+            // Above changes MUST be committed to the database for SWORDv2 to see them.
+            context.commit();
+            context.restoreAuthSystemState();
 
-        // Add file
-        LinkedMultiValueMap<Object, Object> multipart = new LinkedMultiValueMap<>();
-        multipart.add("file", new FileSystemResource(Path.of("src", "test", "resources",
-                "org", "dspace", "app", "sword2", "example.zip")));
-        // Add required headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.setContentDisposition(ContentDisposition.attachment().filename("example.zip").build());
-        headers.set("Packaging", "http://purl.org/net/sword/package/METSDSpaceSIP");
-        headers.setAccept(List.of(MediaType.APPLICATION_ATOM_XML));
+            // Add file
+            LinkedMultiValueMap<Object, Object> multipart = new LinkedMultiValueMap<>();
+            multipart.add("file", new FileSystemResource(Path.of("src", "test", "resources",
+                    "org", "dspace", "app", "sword2", "example.zip")));
+            // Add required headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.setContentDisposition(ContentDisposition.attachment().filename("example.zip").build());
+            headers.set("Packaging", "http://purl.org/net/sword/package/METSDSpaceSIP");
+            headers.setAccept(List.of(MediaType.APPLICATION_ATOM_XML));
 
-        //----
-        // STEP 1: Verify upload/submit via SWORDv2 works
-        //----
-        // Send POST to upload Zip file via SWORD
-        ResponseEntity<String> response = postResponseAsString(COLLECTION_PATH + "/" + collection.getHandle(),
-                eperson.getEmail(), password,
-                new HttpEntity<>(multipart, headers));
+            //----
+            // STEP 1: Verify upload/submit via SWORDv2 works
+            //----
+            // Send POST to upload Zip file via SWORD
+            ResponseEntity<String> response = postResponseAsString(COLLECTION_PATH + "/" + collection.getHandle(),
+                    eperson.getEmail(), password,
+                    new HttpEntity<>(multipart, headers));
 
-        // Expect a 201 CREATED response with ATOM "entry" content returned
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(ATOM_ENTRY_CONTENT_TYPE, response.getHeaders().getContentType().toString());
-        // MUST return a "Location" header which is the "/swordv2/edit/[uuid]" URI of the created item
-        assertNotNull(response.getHeaders().getLocation());
+            // Expect a 201 CREATED response with ATOM "entry" content returned
+            assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertEquals(ATOM_ENTRY_CONTENT_TYPE, response.getHeaders().getContentType().toString());
+            // MUST return a "Location" header which is the "/swordv2/edit/[uuid]" URI of the created item
+            assertNotNull(response.getHeaders().getLocation());
 
-        String editLink = response.getHeaders().getLocation().toString();
+            String editLink = response.getHeaders().getLocation().toString();
 
-        // Body should include that link as the rel="edit" URL
-        assertThat(response.getBody(), containsString("<link href=\"" + editLink + "\" rel=\"edit\"/>"));
+            // Body should include that link as the rel="edit" URL
+            assertThat(response.getBody(), containsString("<link href=\"" + editLink + "\" rel=\"edit\"/>"));
 
-        //----
-        // STEP 2: Verify uploaded content can be read via SWORDv2
-        //----
-        // Edit URI should work when requested by the EPerson who did the deposit
-        HttpHeaders authHeaders = new HttpHeaders();
-        authHeaders.setBasicAuth(eperson.getEmail(), password);
-        RequestEntity request = RequestEntity.get(editLink)
-                .accept(MediaType.valueOf("application/atom+xml"))
-                .headers(authHeaders)
-                .build();
-        response = responseAsString(request);
-        // Expect a 200 response with ATOM feed content returned
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(ATOM_FEED_CONTENT_TYPE, response.getHeaders().getContentType().toString());
-        // Body should include links to bitstreams from the zip.
-        // This just verifies at least one /swordv2/edit-media/bitstream/* link exists.
-        assertThat(response.getBody(), containsString(getURL(MEDIA_RESOURCE_PATH + "/bitstream")));
-        // Verify Item title also is returned in the body
-        assertThat(response.getBody(), containsString("Attempts to detect retrotransposition"));
+            //----
+            // STEP 2: Verify uploaded content can be read via SWORDv2
+            //----
+            // Edit URI should work when requested by the EPerson who did the deposit
+            HttpHeaders authHeaders = new HttpHeaders();
+            authHeaders.setBasicAuth(eperson.getEmail(), password);
+            RequestEntity request = RequestEntity.get(editLink)
+                    .accept(MediaType.valueOf("application/atom+xml"))
+                    .headers(authHeaders)
+                    .build();
+            response = responseAsString(request);
+            // Expect a 200 response with ATOM feed content returned
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals(ATOM_FEED_CONTENT_TYPE, response.getHeaders().getContentType().toString());
+            // Body should include links to bitstreams from the zip.
+            // This just verifies at least one /swordv2/edit-media/bitstream/* link exists.
+            assertThat(response.getBody(), containsString(getURL(MEDIA_RESOURCE_PATH + "/bitstream")));
+            // Verify Item title also is returned in the body
+            assertThat(response.getBody(), containsString("Attempts to detect retrotransposition"));
+        } finally {
+            configurationService.setProperty("dspace.server.url", dspaceServerUrl);
+        }
     }
 
     /**
