@@ -14,6 +14,8 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -70,7 +72,8 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     // Configured ZIP file preview limit (default: 1000) - if the ZIP file contains more files, it will be truncated
     @Value("${file.preview.zip.limit.length:1000}")
     private int maxPreviewCount;
-    
+
+
     @Autowired
     PreviewContentDAO previewContentDAO;
     @Autowired(required = true)
@@ -292,7 +295,15 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @param size the size of the file or directory
      */
     private void addFilePath(List<String> filePaths, String path, long size) {
-        String fileInfo = Files.isDirectory(Paths.get(path)) ? path + "/|" + size : path + "|" + size;
+        String fileInfo = "";
+        try {
+            Path filePath = Paths.get(path);
+            boolean isDir = Files.isDirectory(filePath);
+            fileInfo = (isDir ? path + "/|" : path + "|") + size;
+        } catch (NullPointerException | InvalidPathException | SecurityException e) {
+            // Handle exception appropriately
+            throw e;
+        }
         filePaths.add(fileInfo);
     }
 
