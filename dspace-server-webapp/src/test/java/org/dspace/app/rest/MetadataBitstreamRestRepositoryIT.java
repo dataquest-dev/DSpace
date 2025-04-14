@@ -83,6 +83,9 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .withMimeType("application/x-gzip")
                 .build();
 
+        // Allow composing of file preview in the config
+        configurationService.setProperty("allow.compose.file-preview", true);
+
         context.restoreAuthSystemState();
 
         if (StringUtils.isBlank(url)) {
