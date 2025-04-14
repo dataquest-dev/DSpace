@@ -306,12 +306,18 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         filePaths.add(fileInfo);
     }
 
-    /**
+    /*
+
      * Processes a TAR file, extracting its entries and adding their paths and sizes to the provided list.
      * Utilizes parallelism to process each TAR entry concurrently.
      *
      * @param filePaths the list to populate with the extracted file paths and sizes
      * @param inputStream the InputStream containing the TAR file data
+
+
+
+
+
      * @throws IOException if an I/O error occurs while reading the TAR file
      * @throws InterruptedException if the current thread is interrupted while waiting for the completion of a task
      * @throws ExecutionException if an exception occurs during the execution of a parallel task
@@ -360,6 +366,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     /**
+
      * Processes a ZIP file, extracting its entries and adding their paths and sizes to the provided list.
      * Utilizes parallelism to process each ZIP entry concurrently.
      *
@@ -368,6 +375,12 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @throws IOException if an I/O error occurs while reading the ZIP file
      * @throws InterruptedException if the current thread is interrupted while waiting for the completion of a task
      * @throws ExecutionException if an exception occurs during the execution of a parallel task
+
+
+
+
+
+
      */
     private void processZipFile(List<String> filePaths, InputStream inputStream)
             throws IOException, InterruptedException, ExecutionException {
