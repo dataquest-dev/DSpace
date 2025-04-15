@@ -107,16 +107,15 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             for (Bitstream bitstream : bitstreams) {
                 String url = previewContentService.composePreviewURL(context, item, bitstream, contextPath);
                 List<FileInfo> fileInfos = new ArrayList<>();
-                boolean allowComposePreviewContent = configurationService.getBooleanProperty
-                        ("allow.compose.file-preview", false);
-                boolean canPreview = false;
-                if (allowComposePreviewContent) {
-                    canPreview = previewContentService.canPreview(context, bitstream);
-                    if (canPreview) {
-                        try {
-                            List<PreviewContent> prContents = previewContentService.hasPreview(context, bitstream);
-                            // Generate new content if we didn't find any
-                            if (prContents.isEmpty()) {
+                boolean canPreview = previewContentService.canPreview(context, bitstream);
+                if (canPreview) {
+                    try {
+                        List<PreviewContent> prContents = previewContentService.hasPreview(context, bitstream);
+                        // Generate new content if we didn't find any
+                        if (prContents.isEmpty()) {
+                            boolean allowComposePreviewContent = configurationService.getBooleanProperty
+                                    ("allow.compose.file-preview", false);
+                            if (allowComposePreviewContent) {
                                 fileInfos = previewContentService.getFilePreviewContent(context, bitstream);
                                 // Do not store HTML content in the database because it could be longer than the limit
                                 // of the database column
@@ -125,16 +124,16 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                                         previewContentService.createPreviewContent(context, bitstream, fi);
                                     }
                                 }
-                            } else {
-                                fileInfos = new ArrayList<>();
-                                for (PreviewContent pc : prContents) {
-                                    fileInfos.add(previewContentService.createFileInfo(pc));
-                                }
                             }
-                        } catch (Exception e) {
-                            log.error("Cannot create preview content for bitstream: {} because: {}",
-                                    bitstream.getID(), e.getMessage(), e);
+                        } else {
+                            fileInfos = new ArrayList<>();
+                            for (PreviewContent pc : prContents) {
+                                fileInfos.add(previewContentService.createFileInfo(pc));
+                            }
                         }
+                    } catch (Exception e) {
+                        log.error("Cannot create preview content for bitstream: {} because: {}",
+                                bitstream.getID(), e.getMessage(), e);
                     }
                 }
                 MetadataBitstreamWrapper bts = new MetadataBitstreamWrapper(bitstream, fileInfos,
