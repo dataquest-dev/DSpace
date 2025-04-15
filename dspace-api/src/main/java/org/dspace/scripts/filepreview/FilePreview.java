@@ -112,7 +112,7 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
 
             EPerson eperson = ePersonService.findByEmail(context, email);
             if (eperson == null) {
-                handler.logError("EPerson not found for email: " + email);
+                handler.logError("No EPerson found for this email: " + email);
                 return;
             }
 
