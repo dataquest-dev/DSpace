@@ -114,7 +114,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                         // Generate new content if we didn't find any
                         if (prContents.isEmpty()) {
                             boolean allowComposePreviewContent = configurationService.getBooleanProperty
-                                    ("allow.compose.file-preview", false);
+                                    ("create.file-preview.on-item-page-load", false);
                             if (allowComposePreviewContent) {
                                 fileInfos = previewContentService.getFilePreviewContent(context, bitstream);
                                 // Do not store HTML content in the database because it could be longer than the limit
