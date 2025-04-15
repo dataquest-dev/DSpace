@@ -301,8 +301,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
             boolean isDir = Files.isDirectory(filePath);
             fileInfo = (isDir ? path + "/|" : path + "|") + size;
         } catch (NullPointerException | InvalidPathException | SecurityException e) {
-            // Handle exception appropriately
-            throw e;
+            log.error(String.format("Failed to add file path. Path: '%s', Size: %d", path, size), e);
         }
         filePaths.add(fileInfo);
     }
