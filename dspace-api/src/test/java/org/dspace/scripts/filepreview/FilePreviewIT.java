@@ -8,11 +8,11 @@
 package org.dspace.scripts.filepreview;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
 
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -58,7 +58,7 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         InputStream previewZipIs = getClass().getResourceAsStream("preview-file-test.zip");
 
         context.turnOffAuthorisationSystem();
-        EPerson eperson = EPersonBuilder.createEPerson(context)
+        eperson = EPersonBuilder.createEPerson(context)
                 .withEmail("test@test.edu").withPassword(PASSWORD).build();
         Community community = CommunityBuilder.createCommunity(context).withName("Com").build();
         Collection collection = CollectionBuilder.createCollection(context, community).withName("Col").build();
