@@ -33,6 +33,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  * It listens for changes to items, collections, communities,
  * bundles, and bitstreams, and updates the OAI index accordingly.
  * The indexing is done using the XOAI indexer after all relevant items are collected.
+ *
+ * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
 public class OAIIndexEventConsumer implements Consumer {
     /**
@@ -42,12 +44,12 @@ public class OAIIndexEventConsumer implements Consumer {
 
     ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
-    // collect Items, Collections, Communities that need indexing
+    // Collect Items, Collections, Communities that need indexing.
     private Set<Item> itemsToUpdate = null;
 
     @Override
     public void initialize() throws Exception {
-        // No-op
+        // No-op.
     }
 
     /**
@@ -78,7 +80,7 @@ public class OAIIndexEventConsumer implements Consumer {
         int et = event.getEventType();
 
         if (Objects.nonNull(object) && event.getObjectType() == Constants.ITEM) {
-            //just update the object
+            // Just update the object.
             itemsToUpdate.add((Item)object);
             return;
         }
@@ -89,7 +91,7 @@ public class OAIIndexEventConsumer implements Consumer {
 
         if (event.getSubjectType() == Constants.COLLECTION || event.getSubjectType() == Constants.COMMUNITY) {
             if (et == Event.MODIFY || et == Event.MODIFY_METADATA || et == Event.REMOVE || et == Event.DELETE) {
-                //must update all the items
+                // Must update all the items.
                 if (subject.getType() == Constants.COMMUNITY) {
                     for (Collection col : ((Community)subject).getCollections()) {
                         addAll(ctx, col);
@@ -99,7 +101,7 @@ public class OAIIndexEventConsumer implements Consumer {
                 }
             }
         } else if (event.getSubjectType() == Constants.BITSTREAM || event.getSubjectType() == Constants.BUNDLE) {
-            //must update owning items regardless the event
+            // Must update owning items regardless the event.
             if (subject.getType() == Constants.BITSTREAM) {
                 for (Bundle bun : ((Bitstream)subject).getBundles()) {
                     itemsToUpdate.addAll(bun.getItems());
@@ -108,7 +110,7 @@ public class OAIIndexEventConsumer implements Consumer {
                 itemsToUpdate.addAll(((Bundle)subject).getItems());
             }
         } else if (event.getSubjectType() == Constants.ITEM) {
-            //any event reindex this item
+            // Any event reindex this item.
             itemsToUpdate.add((Item)subject);
         }
     }
@@ -136,13 +138,13 @@ public class OAIIndexEventConsumer implements Consumer {
             Set<Item> filtered = new HashSet<Item>(itemsToUpdate.size());
             for (Item item : itemsToUpdate) {
                 if (Objects.isNull(item.getHandle())) {
-                    // probably submission item, skip
+                    // Probably submission item, skip.
                     continue;
                 }
                 filtered.add(item);
             }
 
-            // "free" the resources
+            // "Free" the resources.
             itemsToUpdate = null;
 
             anonymousContext = new Context();
