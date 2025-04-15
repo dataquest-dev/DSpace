@@ -22,9 +22,13 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.WorkflowItemBuilder;
+import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.services.ConfigurationService;
+import org.dspace.workflow.WorkflowItem;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -440,6 +444,105 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
                                .accept(MediaType.valueOf("application/atom+xml"))
                                .headers(authHeaders)
                                .build();
+        response = responseAsString(request);
+        // Expect a 404 response as content was deleted
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    // test workspace delete - use org.dspace.sword2.WorkflowManagerDefault
+    @Test
+    public void testDeleteWorkspaceManagerDefault() throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        // Create a top level community and one Collection
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        // Make sure our Collection allows the "eperson" user to submit into it
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test SWORDv2 Collection")
+                .withSubmitterGroup(eperson)
+                .build();
+        // Above changes MUST be committed to the database for SWORDv2 to see them.
+        WorkspaceItem wsi = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                .withTitle("Test SWORDv2 Item")
+                .withAuthor("Test, Sam")
+                .withSubmitter(eperson)
+                .build();
+        context.commit();
+        context.restoreAuthSystemState();
+
+        // Edit URI should also allow user to DELETE the uploaded content
+        // The Item is in Workspace and not in workflow, so we can use the WorkflowManagerDefault to delete it.
+        configurationService.setProperty("plugin.single.org.dspace.sword2.WorkflowManager",
+                "org.dspace.sword2.WorkflowManagerDefault");
+        String editLink = getURL(EDIT_PATH + "/" + wsi.getItem().getID().toString());
+        HttpHeaders authHeaders = new HttpHeaders();
+        authHeaders.setBasicAuth(admin.getEmail(), password);
+        RequestEntity request = RequestEntity.delete(editLink)
+                .headers(authHeaders)
+                .build();
+        ResponseEntity<String> response = responseAsString(request);
+        configurationService.setProperty("plugin.single.org.dspace.sword2.WorkflowManager",
+                "org.dspace.sword2.WorkflowManagerUnrestricted");
+
+        // Expect a 204 No Content response
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        // Verify that Edit URI now returns a 404 (using eperson login info)
+        authHeaders = new HttpHeaders();
+        authHeaders.setBasicAuth(eperson.getEmail(), password);
+        request = RequestEntity.get(editLink)
+                .accept(MediaType.valueOf("application/atom+xml"))
+                .headers(authHeaders)
+                .build();
+        response = responseAsString(request);
+        // Expect a 404 response as content was deleted
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    // test workflow delete - use org.dspace.sword2.WorkflowManagerUnrestricted
+    @Test
+    public void testDeleteWorkflowManagerDefault() throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        // Create a top level community and one Collection
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        // Make sure our Collection allows the "eperson" user to submit into it
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test SWORDv2 Collection")
+                .withSubmitterGroup(eperson)
+                .build();
+        // Above changes MUST be committed to the database for SWORDv2 to see them.
+        WorkflowItem wfi = WorkflowItemBuilder.createWorkflowItem(context, collection)
+                .withTitle("Test SWORDv2 Item")
+                .withAuthor("Test, Sam")
+                .withSubmitter(eperson)
+                .build();
+        context.commit();
+        context.restoreAuthSystemState();
+
+        // Edit URI should allow user to DELETE the uploaded content
+        // The item is in workflow, so we need to use the WorkflowManagerUnrestricted to delete it. It is set in the
+        // @Before method
+        String editLink = getURL(EDIT_PATH + "/" + wfi.getItem().getID().toString());
+        HttpHeaders authHeaders = new HttpHeaders();
+        authHeaders.setBasicAuth(admin.getEmail(), password);
+        RequestEntity request = RequestEntity.delete(editLink)
+                .headers(authHeaders)
+                .build();
+        ResponseEntity<String> response = responseAsString(request);
+
+        // Expect a 204 No Content response
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        // Verify that Edit URI now returns a 404 (using eperson login info)
+        authHeaders = new HttpHeaders();
+        authHeaders.setBasicAuth(eperson.getEmail(), password);
+        request = RequestEntity.get(editLink)
+                .accept(MediaType.valueOf("application/atom+xml"))
+                .headers(authHeaders)
+                .build();
         response = responseAsString(request);
         // Expect a 404 response as content was deleted
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
