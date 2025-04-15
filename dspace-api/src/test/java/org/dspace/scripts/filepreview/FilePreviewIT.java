@@ -8,6 +8,7 @@
 package org.dspace.scripts.filepreview;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
@@ -23,6 +24,7 @@ import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
@@ -34,6 +36,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.eperson.EPerson;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,12 +50,16 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
     BitstreamFormatService bitstreamFormatService = ContentServiceFactory.getInstance().getBitstreamFormatService();
 
     Item item;
+    EPerson eperson;
+    String PASSWORD = "test";
 
     @Before
     public void setup() throws SQLException, AuthorizeException {
         InputStream previewZipIs = getClass().getResourceAsStream("preview-file-test.zip");
 
         context.turnOffAuthorisationSystem();
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+                .withEmail("test@test.edu").withPassword(PASSWORD).build();
         Community community = CommunityBuilder.createCommunity(context).withName("Com").build();
         Collection collection = CollectionBuilder.createCollection(context, community).withName("Col").build();
         WorkspaceItem wItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
@@ -86,10 +93,35 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    public void testUnauthorizedEmail() throws Exception {
+        // Run the script
+        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "file-preview"};
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+
+        // There should be no errors or warnings
+        assertEquals(testDSpaceRunnableHandler.getErrorMessages().size(), 1);
+        assertEquals(testDSpaceRunnableHandler.getErrorMessages().get(0), "Email is required for authentication.");
+    }
+
+    @Test
+    public void testUnauthorizedPassword() throws Exception {
+        // Run the script
+        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "file-preview", "-e", eperson.getEmail()};
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+
+        // There should be no errors or warnings
+        assertEquals(testDSpaceRunnableHandler.getErrorMessages().size(), 1);
+        assertEquals(testDSpaceRunnableHandler.getErrorMessages().get(0), "Password is required for authentication.");
+    }
+
+    @Test
     public void testForSpecificItem() throws Exception {
         // Run the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "file-preview", "-u", item.getID().toString() };
+        String[] args = new String[] { "file-preview", "-u", item.getID().toString(),
+                "-e", eperson.getEmail(), "-p",  PASSWORD};
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
         // There should be no errors or warnings
@@ -106,7 +138,7 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
     public void testForAllItem() throws Exception {
         // Run the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "file-preview" };
+        String[] args = new String[] { "file-preview", "-e", eperson.getEmail(), "-p",  PASSWORD};
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
         // There should be no errors or warnings
