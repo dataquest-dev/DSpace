@@ -12,7 +12,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
 
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -83,25 +82,15 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testWhenNoFilesRun() throws Exception {
-        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-
-        String[] args = new String[] { "file-preview" };
-        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-
-        checkNoError(testDSpaceRunnableHandler);
-    }
-
-    @Test
     public void testUnauthorizedEmail() throws Exception {
         // Run the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "file-preview"};
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
-        // There should be no errors or warnings
-        assertEquals(testDSpaceRunnableHandler.getErrorMessages().size(), 1);
-        assertEquals(testDSpaceRunnableHandler.getErrorMessages().get(0), "Email is required for authentication.");
+        List<String> messages = testDSpaceRunnableHandler.getErrorMessages();
+        assertThat(messages, hasSize(1));
+        assertThat(messages, hasItem(containsString("Email is required for authentication.")));
     }
 
     @Test
@@ -111,9 +100,19 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "file-preview", "-e", eperson.getEmail()};
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
-        // There should be no errors or warnings
-        assertEquals(testDSpaceRunnableHandler.getErrorMessages().size(), 1);
-        assertEquals(testDSpaceRunnableHandler.getErrorMessages().get(0), "Password is required for authentication.");
+        List<String> messages = testDSpaceRunnableHandler.getErrorMessages();
+        assertThat(messages, hasSize(1));
+        assertThat(messages, hasItem(containsString("Password is required for authentication.")));
+    }
+
+    @Test
+    public void testWhenNoFilesRun() throws Exception {
+        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
+
+        String[] args = new String[] { "file-preview", "-e", eperson.getEmail(), "-p",  PASSWORD };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+
+        checkNoError(testDSpaceRunnableHandler);
     }
 
     @Test
@@ -129,9 +128,11 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
 
         // There should be an info message about generating the file previews for the specified item
         List<String> messages = testDSpaceRunnableHandler.getInfoMessages();
-        assertThat(messages, hasSize(1));
+        assertThat(messages, hasSize(2));
         assertThat(messages, hasItem(containsString("Generate the file previews for the specified item with " +
                 "the given UUID: " + item.getID())));
+        assertThat(messages,
+                hasItem(containsString("Authentication successful for email:  " + eperson.getEmail())));
     }
 
     @Test
