@@ -42,12 +42,12 @@ public class FilePreviewConfiguration<T extends FilePreview> extends ScriptConfi
             options.addOption("e", "email", true,
                     "Email for authentication.");
             options.getOption("e").setType(String.class);
-            options.getOption("e").setRequired(false);
+            options.getOption("e").setRequired(true);
 
             options.addOption("p", "password", true,
                     "Password for authentication.");
             options.getOption("p").setType(String.class);
-            options.getOption("p").setRequired(false);
+            options.getOption("p").setRequired(true);
 
             super.options = options;
         }

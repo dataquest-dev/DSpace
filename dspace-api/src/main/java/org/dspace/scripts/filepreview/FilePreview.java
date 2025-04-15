@@ -120,6 +120,8 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
             if (AuthenticationMethod.SUCCESS != authenticated) {
                 handler.logError("Authentication failed for email: " + email);
                 return;
+            } else {
+                handler.logInfo("Authentication successful for email: " + email);
             }
 
             context.setCurrentUser(eperson);
