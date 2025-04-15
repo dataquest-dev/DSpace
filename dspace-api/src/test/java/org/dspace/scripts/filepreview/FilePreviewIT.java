@@ -132,7 +132,7 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         assertThat(messages, hasItem(containsString("Generate the file previews for the specified item with " +
                 "the given UUID: " + item.getID())));
         assertThat(messages,
-                hasItem(containsString("Authentication successful for email:  " + eperson.getEmail())));
+                hasItem(containsString("Authentication successful for email: " + eperson.getEmail())));
     }
 
     @Test
