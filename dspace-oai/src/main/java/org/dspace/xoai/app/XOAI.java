@@ -735,6 +735,9 @@ public class XOAI {
     private void deleteItemByQuery(Item item) throws SolrServerException, IOException {
         SolrClient solrClient = solrServerResolver.getServer();
         solrClient.deleteByQuery("item.id:" + item.getID().toString());
+        // Solr keeps changes in memory (transaction log) for performance.
+        // Without commit(), those changes aren't written to the actual index files.
+        // Queries won't reflect deletions (or any updates) until a commit or auto-commit happens.
         solrClient.commit();
     }
 
@@ -744,6 +747,8 @@ public class XOAI {
                 deleteItemByQuery(item);
                 solrServerResolver.getServer().add(this.index(item));
             } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
+                // If an exception occurs while indexing the item or adding it to the Solr server,
+                // the exception is logged, and no further items will be processed.
                 log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
                 throw new RuntimeException("Cannot reindex the item with ID: " + item.getID() + " because: "
                         + e.getMessage());

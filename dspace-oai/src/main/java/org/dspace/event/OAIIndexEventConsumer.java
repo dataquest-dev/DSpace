@@ -35,7 +35,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  * The indexing is done using the XOAI indexer after all relevant items are collected.
  *
  * Class is copied from UFAL/CLARIN-DSPACE (https://github.com/ufal/clarin-dspace) and modified by
- * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
+ * @author Michaela Paurikova (dspace at dataquest.sk)
  */
 public class OAIIndexEventConsumer implements Consumer {
     /**
