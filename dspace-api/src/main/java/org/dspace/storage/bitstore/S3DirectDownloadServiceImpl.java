@@ -39,6 +39,7 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
         BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
         this.s3Client = AmazonS3ClientBuilder.standard()
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
+                .withPathStyleAccessEnabled(true)
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .build();
     }
@@ -48,7 +49,7 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
             init();
         }
         java.util.Date expiration = new java.util.Date();
-        long expTimeMillis = expiration.getTime() + expirationSeconds * 1000;
+        long expTimeMillis = expiration.getTime() + expirationSeconds * 1000L;
         expiration.setTime(expTimeMillis);
         return s3Client.generatePresignedUrl(bucket, key, expiration).toString();
     }

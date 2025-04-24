@@ -2,7 +2,7 @@ package org.dspace.app.rest.model;
 
 import org.dspace.app.rest.RestResourceController;
 
-public class S3DirectDownloadDTORest extends BaseObjectRest<Integer> {
+public class S3DirectDownloadDTORest extends RestAddressableModel implements RestModel {
     public static final String NAME = "s3directdownload";
     public static final String CATEGORY = RestAddressableModel.CORE;
 
@@ -34,6 +34,11 @@ public class S3DirectDownloadDTORest extends BaseObjectRest<Integer> {
     }
 
     @Override
+    public String getType() {
+        return NAME;
+    }
+
+    @Override
     public String getCategory() {
         return CATEGORY;
     }
@@ -41,10 +46,5 @@ public class S3DirectDownloadDTORest extends BaseObjectRest<Integer> {
     @Override
     public Class getController() {
         return RestResourceController.class;
-    }
-
-    @Override
-    public String getType() {
-        return NAME;
     }
 }
