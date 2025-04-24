@@ -72,7 +72,7 @@ public class S3DownloadController {
 
         // WARN - hardcoded
         // TODO - fetch assetstore path of the bitstream and use it as objectKey
-//        String objectKey = "10/27/80/102780081019350462616804225709692058487";
+        String objectKey = "eighty-eight/15/23/63/152363485915157744195536472411491704057";
 
         // Generate pre-signed URL (1 hour expiration)
         String presignedUrl = s3DirectDownload.generatePresignedUrl(bucket, objectKey, 3600);
