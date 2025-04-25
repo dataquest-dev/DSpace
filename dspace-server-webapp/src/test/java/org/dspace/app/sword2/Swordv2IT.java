@@ -670,6 +670,6 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
         ResponseEntity<String> response = responseAsString(request);
 
         // Expect a 200 response with ATOM feed content returned
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }

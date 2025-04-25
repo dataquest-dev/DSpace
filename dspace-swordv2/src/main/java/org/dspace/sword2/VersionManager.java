@@ -44,23 +44,23 @@ public class VersionManager {
         throws SQLException, AuthorizeException, IOException {
         boolean keep = configurationService
             .getBooleanProperty("swordv2-server.versions.keep");
-//        Iterator<Bundle> bundles = item.getBundles().iterator();
-//        while (bundles.hasNext()) {
-//            Bundle b = bundles.next();
-//            if (name.equals(b.getName())) {
-//                bundles.remove();
-//                this.removeBundle(context, item, b, keep);
-//            }
-//        }
-        List<Bundle> bundlesToRemove = new ArrayList<>();
-        for (Bundle b : item.getBundles()) {
+        Iterator<Bundle> bundles = item.getBundles().iterator();
+        while (bundles.hasNext()) {
+            Bundle b = bundles.next();
             if (name.equals(b.getName())) {
-                bundlesToRemove.add(b);
+                bundles.remove();
+                this.removeBundle(context, item, b, keep);
             }
         }
-        for (Bundle b : bundlesToRemove) {
-            this.removeBundle(context, item, b, keep);
-        }
+//        List<Bundle> bundlesToRemove = new ArrayList<>();
+//        for (Bundle b : item.getBundles()) {
+//            if (name.equals(b.getName())) {
+//                bundlesToRemove.add(b);
+//            }
+//        }
+//        for (Bundle b : bundlesToRemove) {
+//            this.removeBundle(context, item, b, keep);
+//        }
     }
 
     public void removeBundle(Context context, Item item, Bundle source)
@@ -166,12 +166,12 @@ public class VersionManager {
         String oldName = "VER" + sdf.format(new Date());
         oldName = this.getNumberedName(item, oldName, 0);
 
-        Bundle old = bundleService.create(context, item, oldName);
-        List<Bitstream> bitstreams = source.getBitstreams();
-        for (Bitstream bitstream : bitstreams) {
-            bundleService
-                .addBitstream(context, old, bitstream);
-        }
+//        Bundle old = bundleService.create(context, item, oldName);
+//        List<Bitstream> bitstreams = source.getBitstreams();
+//        for (Bitstream bitstream : bitstreams) {
+//            bundleService
+//                .addBitstream(context, old, bitstream);
+//        }
     }
 
     private String getNumberedName(Item item, String name, int number)
