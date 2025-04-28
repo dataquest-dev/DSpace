@@ -228,8 +228,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
      */
     @PreAuthorize("hasAuthority('ADMIN')")
     private void updateHandle(Context context, Handle handleObject, String newHandleStr,
-                              DSpaceObject handleDso, String url, boolean archive)
-            throws AuthorizeException {
+                              DSpaceObject handleDso, String url, boolean archive) throws AuthorizeException {
         // End update if handleObject is null
         if ( Objects.isNull(handleObject)) {
             log.warn("Could not find handle record for " + newHandleStr);
