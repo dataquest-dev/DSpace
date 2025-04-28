@@ -163,7 +163,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
                 throw new UnprocessableEntityException("Can not create handle. Required fields are empty.");
             }
             handle = handleClarinService.createExternalHandle(context, handleRest.getHandle(),
-                   handleRest.getUrl());
+                   handleRest.getUrl(), handleRest.getDead(), handleRest.getDeadSince());
             // Save created handle
             handleClarinService.save(context, handle);
         } catch (SQLException e) {
@@ -228,7 +228,8 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
      */
     @PreAuthorize("hasAuthority('ADMIN')")
     private void updateHandle(Context context, Handle handleObject, String newHandleStr,
-                              DSpaceObject handleDso, String url, boolean archive) throws AuthorizeException {
+                              DSpaceObject handleDso, String url, boolean archive)
+            throws AuthorizeException {
         // End update if handleObject is null
         if ( Objects.isNull(handleObject)) {
             log.warn("Could not find handle record for " + newHandleStr);
