@@ -44,7 +44,6 @@ public class VersionManager {
         throws SQLException, AuthorizeException, IOException {
         boolean keep = configurationService
             .getBooleanProperty("swordv2-server.versions.keep");
-
         List<Bundle> bundlesToRemove = new ArrayList<>();
         for (Bundle b : item.getBundles()) {
             if (name.equals(b.getName())) {
