@@ -112,10 +112,9 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     @Override
     public Handle createExternalHandle(Context context, String handleStr, String url, Boolean dead, Date deadSince)
             throws SQLException, AuthorizeException {
-        // Check authorisation: Only admins may create DC types
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "Only administrators may modify the handle registry");
+                    "Only administrators may modify the external handle.");
         }
         Handle handle = this.createExternalHandle(context, handleStr, url);
         handle.setDead(dead);
@@ -127,10 +126,9 @@ public class HandleClarinServiceImpl implements HandleClarinService {
     @Override
     public Handle createExternalHandle(Context context, String handleStr, String url)
             throws SQLException, AuthorizeException {
-        // Check authorisation: Only admins may create DC types
         if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException(
-                    "Only administrators may modify the handle registry");
+                    "Only administrators may modify the external handle.");
         }
 
         String handleId;
