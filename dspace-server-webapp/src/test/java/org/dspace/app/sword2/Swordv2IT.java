@@ -13,6 +13,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
@@ -619,5 +620,54 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
         assertThat(response.getBody(),
                    containsString("<category term=\"http://dspace.org/state/archived\""));
     }
-}
 
+    @Test
+    public void updateFileTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // Create all content as the SAME EPERSON we will use to authenticate on this endpoint.
+        // THIS IS REQUIRED as the /statements endpoint will only show YOUR ITEM SUBMISSIONS.
+        context.setCurrentUser(eperson);
+        // Create a top level community and one Collection
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test SWORDv2 Collection")
+                .build();
+
+        // Add one Item into that Collection.
+        InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                .withTitle("Test WorkspaceItem")
+                .withIssueDate("2017-10-17")
+                .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf)
+                .build();
+        Item item = witem.getItem();
+
+        // Above changes MUST be committed to the database for SWORDv2 to see them.
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String editLink = getURL(MEDIA_RESOURCE_PATH + "/" + item.getID().toString());
+        // Load the ZIP file from the filesystem
+        FileSystemResource zipFile = new FileSystemResource(
+                Path.of("src", "test", "resources",
+                        "org", "dspace", "app", "sword2", "example.zip").toFile()
+        );
+
+        // Set up headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(admin.getEmail(), password);
+        headers.setContentType(MediaType.valueOf("application/zip"));
+        headers.setContentDisposition(ContentDisposition.attachment().filename("example.zip").build());
+
+        RequestEntity<FileSystemResource> request = RequestEntity
+                .put(editLink)
+                .headers(headers)
+                .body(zipFile);
+        ResponseEntity<String> response = responseAsString(request);
+
+        // Expect a 200 response with ATOM feed content returned
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+}
