@@ -82,7 +82,6 @@ public class BitstreamResourcePolicyAddPatchOperation extends AddPatchOperation<
                             name = newAccessCondition.getName();
                             provenanceService.setBitstreamPolicies(context, bitstream, item, name);
                         }
-                        context.commit();
                     }
                 }
                 idx++;
