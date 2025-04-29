@@ -1366,7 +1366,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
         context.restoreAuthSystemState();
 
-        MvcResult result = getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+        MvcResult result = getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Content-Type"))
                 .andExpect(header().string("Content-Type", "text/plain;charset=UTF-8"))
