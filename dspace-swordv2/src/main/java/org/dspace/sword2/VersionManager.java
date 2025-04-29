@@ -44,6 +44,8 @@ public class VersionManager {
         throws SQLException, AuthorizeException, IOException {
         boolean keep = configurationService
             .getBooleanProperty("swordv2-server.versions.keep");
+        // Add the bundle to the list of bundles to remove because the method `this.removeBundle`
+        // modifies the item's bundles, which can cause a ConcurrentModificationException.
         List<Bundle> bundlesToRemove = new ArrayList<>();
         for (Bundle b : item.getBundles()) {
             if (name.equals(b.getName())) {
