@@ -1,5 +1,10 @@
 package org.dspace.storage.bitstore.service;
 
+/**
+ * Service for generating presigned URLs for direct downloads from S3.
+ *
+ * @author Milan Majchrak (dspace at dataquest.sk)
+ */
 public interface S3DirectDownloadService {
     /**
      * Generate a presigned URL for downloading a file from S3.
