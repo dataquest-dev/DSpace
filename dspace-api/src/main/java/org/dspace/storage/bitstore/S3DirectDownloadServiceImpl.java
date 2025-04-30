@@ -7,6 +7,8 @@
  */
 package org.dspace.storage.bitstore;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import javax.annotation.PostConstruct;
@@ -42,6 +44,9 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
     private void init() {
         // Use the S3BitStoreService to get the AmazonS3 client - do not create a new one
         this.s3Client = s3BitStoreService.s3Service;
+        if (this.s3Client == null) {
+            log.error("Failed to initialize S3 client from S3BitStoreService");
+        }
     }
 
     public String generatePresignedUrl(String bucket, String key, int expirationSeconds, String desiredFilename) {
@@ -54,7 +59,14 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
                 .withMethod(HttpMethod.GET)
                 .withExpiration(expiration);
         // Add custom response header for filename - to download the file with the desired name
-        String contentDisposition = "attachment; filename=\"" + desiredFilename + "\"";
+        // Remove CRLF and quotes to prevent header injection
+        String safeName = desiredFilename.replaceAll("[\\r\\n\"]", "_");
+        // RFC-5987: percent-encode UTF-8, e.g. filename*=UTF-8''%E2%82%ACrates.txt
+        String encoded = URLEncoder.encode(desiredFilename, StandardCharsets.UTF_8);
+        String contentDisposition = String.format(
+                "attachment; filename=\"%s\"; filename*=UTF-8''%s",
+                safeName, encoded);
+
         request.addRequestParameter("response-content-disposition", contentDisposition);
         return s3Client.generatePresignedUrl(request).toString();
     }

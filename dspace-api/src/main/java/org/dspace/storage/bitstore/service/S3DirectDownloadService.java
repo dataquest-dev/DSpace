@@ -7,6 +7,8 @@
  */
 package org.dspace.storage.bitstore.service;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * Service for generating presigned URLs for direct downloads from S3.
  *
@@ -20,7 +22,8 @@ public interface S3DirectDownloadService {
      * @param key                The bitstream path in the S3 bucket
      * @param expirationSeconds  The number of seconds until the URL expires
      * @param bitstreamName      The name of the bitstream to be used in the Content-Disposition header
-     * @return
+     * @return                   A string containing the presigned URL for direct download access
      */
-    String generatePresignedUrl(String bucket, String key, int expirationSeconds, String bitstreamName);
+    String generatePresignedUrl(String bucket, String key, int expirationSeconds, String bitstreamName)
+            throws UnsupportedEncodingException;
 }

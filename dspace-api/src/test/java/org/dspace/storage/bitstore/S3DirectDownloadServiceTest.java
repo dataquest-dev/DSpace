@@ -15,6 +15,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.Date;
 
@@ -129,28 +130,31 @@ public class S3DirectDownloadServiceTest extends AbstractUnitTest {
         GeneratePresignedUrlRequest req = captureRequest();
 
         String cd = req.getRequestParameters().get("response-content-disposition");
-        // we expect it simply wraps in quotes; internal newlines/tabs are left verbatim
+        // verify the filename is properly sanitized
+        // newlines, tabs, and path traversal should be removed or escaped
         assertTrue(cd.startsWith("attachment; filename=\""));
         assertTrue(cd.endsWith("\""));
-        assertTrue(cd.contains("../secret\nname\t.txt"));
+        assertFalse(cd.contains("../"));
+        assertFalse(cd.contains("\n"));
+        assertFalse(cd.contains("\t"));
     }
 
     // Underlying AmazonS3 throws → bubbles up
     @Test(expected = RuntimeException.class)
-    public void amazonThrows() {
+    public void amazonThrows() throws UnsupportedEncodingException {
         when(amazonS3.generatePresignedUrl(any())).thenThrow(new RuntimeException("boom"));
         s3DirectDownloadService.generatePresignedUrl("b", "k", 1, "f");
     }
 
     // Bucket key == null → should NPE
     @Test(expected = NullPointerException.class)
-    public void nullBucket() {
+    public void nullBucket() throws UnsupportedEncodingException {
         s3DirectDownloadService.generatePresignedUrl(null, "k", 60, "f");
     }
 
     // Bucket key == null → should NPE
     @Test(expected = NullPointerException.class)
-    public void nullKey() {
+    public void nullKey() throws UnsupportedEncodingException {
         s3DirectDownloadService.generatePresignedUrl("b", null, 60, "f");
     }
 

@@ -1345,6 +1345,9 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     @Test
     public void testS3DirectDownloadRedirect() throws Exception {
+        // Enable S3 direct download for test
+        configurationService.setProperty("s3.download.direct.enabled", true);
+        String bucketName = configurationService.getProperty("assetstore.s3.bucketName");
         try {
             context.turnOffAuthorisationSystem();
             //** GIVEN **
@@ -1361,8 +1364,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                     .withAuthor("Smith, Donald").withAuthor("Doe, John")
                     .build();
 
-            // Enable S3 direct download for test
-            configurationService.setProperty("s3.download.direct.enabled", true);
             // Initialize S3BitStoreService because it is null in this test
             s3BitStoreService.init();
 
@@ -1384,10 +1385,18 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                     .andExpect(header().string("Location", containsString("response-content-disposition")))
                     .andExpect(header().string("Location", containsString(
                             URLEncoder.encode("filename=\"" + fileName + "\"", StandardCharsets.UTF_8))));
+
+            // Check that the not found response is returned when the bitstream does not exist
+            getClient().perform(get("/api/core/bitstreams/" + UUID.randomUUID() + "/content"))
+                    .andExpect(status().isNotFound());
+
+            // When bucket name is empty, the request should return 500
+            configurationService.setProperty("assetstore.s3.bucketName", "");
+            getClient().perform(get("/api/core/bitstreams/" + bitstreamId + "/content"))
+                    .andExpect(status().isInternalServerError());
         } finally {
-            // Clean up the S3BitStoreService
-            s3BitStoreService = null;
             configurationService.setProperty("s3.download.direct.enabled", false);
+            configurationService.setProperty("assetstore.s3.bucketName", bucketName);
         }
     }
 }

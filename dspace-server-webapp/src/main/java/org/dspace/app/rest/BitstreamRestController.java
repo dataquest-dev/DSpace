@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.Response;
 
 import org.apache.catalina.connector.ClientAbortException;
@@ -210,17 +211,37 @@ public class BitstreamRestController {
      * @return ResponseEntity with the location header set to the presigned URL
      */
     private ResponseEntity redirectToS3DownloadUrl(HttpHeaders httpHeaders, String bitName, String bitInternalId) {
-        String bucket = configurationService.getProperty("assetstore.s3.bucketName", "");
-        // Get the full path to the bitstream in the S3 bucket
-        String bitstreamPath = s3BitStoreService.getFullKey(bitInternalId);
-        // Generate a presigned URL for the bitstream with a 1-hour expiration time
-        int expirationTime = configurationService.getIntProperty("s3.download.direct.expiration", 3600);
-        String presignedUrl =
-                s3DirectDownloadService.generatePresignedUrl(bucket, bitstreamPath, expirationTime, bitName);
+        try {
+            String bucket = configurationService.getProperty("assetstore.s3.bucketName", "");
+            if (StringUtils.isBlank(bucket)) {
+                throw new InternalServerErrorException("S3 bucket name is not configured");
+            }
 
-        // Set the Location header to the presigned URL - this will redirect the client to the S3 URL
-        httpHeaders.setLocation(URI.create(presignedUrl));
-        return ResponseEntity.status(HttpStatus.FOUND).headers(httpHeaders).build();
+            // Get the full path to the bitstream in the S3 bucket
+            String bitstreamPath = s3BitStoreService.getFullKey(bitInternalId);
+            if (StringUtils.isBlank(bitstreamPath)) {
+                throw new InternalServerErrorException("Failed to get bitstream path for internal ID: " +
+                        bitInternalId);
+            }
+
+            // Generate a presigned URL for the bitstream with a configurable expiration time
+            int expirationTime = configurationService.getIntProperty("s3.download.direct.expiration", 3600);
+            log.debug("Generating presigned URL with expiration time of {} seconds", expirationTime);
+            String presignedUrl =
+                    s3DirectDownloadService.generatePresignedUrl(bucket, bitstreamPath, expirationTime, bitName);
+
+            if (StringUtils.isBlank(presignedUrl)) {
+                throw new InternalServerErrorException("Failed to generate presigned URL for bitstream: "
+                        + bitInternalId);
+            }
+
+            // Set the Location header to the presigned URL - this will redirect the client to the S3 URL
+            httpHeaders.setLocation(URI.create(presignedUrl));
+            return ResponseEntity.status(HttpStatus.FOUND).headers(httpHeaders).build();
+        } catch (Exception e) {
+            throw new InternalServerErrorException("Error generating S3 presigned URL for bitstream: " + bitInternalId,
+                    e);
+        }
     }
 
     private String getBitstreamName(Bitstream bit, BitstreamFormat format) {
