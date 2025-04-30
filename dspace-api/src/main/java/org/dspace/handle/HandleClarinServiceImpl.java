@@ -255,6 +255,7 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         }
 
         // <UFAL>
+        String partIdentifier = extractPartIdentifier(handleStr);
         handleStr = stripPartIdentifier(handleStr);
 
         // Find handle
@@ -275,7 +276,6 @@ public class HandleClarinServiceImpl implements HandleClarinService {
             // External handle
             url = handle.getUrl();
         }
-        String partIdentifier = extractPartIdentifier(handleStr);
         url = appendPartIdentifierToUrl(url, partIdentifier);
 
         log.debug("Resolved {} to {}", handle, url);
@@ -335,6 +335,11 @@ public class HandleClarinServiceImpl implements HandleClarinService {
 
         throw new IllegalStateException("Unsupported Handle Type "
                 + Constants.typeText[handleTypeId]);
+    }
+
+    @Override
+    public int count(Context context) throws SQLException {
+        return handleDAO.countRows(context);
     }
 
     /**
@@ -455,6 +460,21 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         this.save(context, handle);
         log.debug("Created new Handle with handle " + handleId);
         return handle;
+    }
+
+    @Override
+    public Handle findByHandleAndMagicToken(Context context, String handle, String token) throws SQLException {
+        Handle h = findByHandle(context, handle);
+        if (Objects.isNull(h) || Objects.isNull(h.getUrl()) || !h.getUrl().contains(MAGIC_BEAN)) {
+            return null;
+        }
+        org.dspace.handle.external.Handle magicHandle =
+                new org.dspace.handle.external.Handle(h.getHandle(), h.getUrl());
+        if (magicHandle.token.equals(token)) {
+            return h;
+        } else {
+            return null;
+        }
     }
 
     /**

@@ -8,6 +8,9 @@
 package org.dspace.app.rest;
 
 import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
+import static org.dspace.content.InstallItemServiceImpl.SET_OWNING_COLLECTION_EVENT_DETAIL;
+import static org.dspace.content.clarin.ClarinLicense.Confirmation;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -49,6 +52,8 @@ import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.core.Constants;
+import org.dspace.event.Event;
 import org.dspace.handle.PIDConfiguration;
 import org.dspace.services.ConfigurationService;
 import org.junit.Assert;
@@ -625,7 +630,8 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
         String clarinLicenseName = "Test Clarin License";
 
         // 2. Create clarin license with clarin license label
-        ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info", 0);
+        ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info",
+                Confirmation.NOT_REQUIRED);
 
         // creating replace operation
         Map<String, String> licenseReplaceOpValue = new HashMap<String, String>();
@@ -676,7 +682,8 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
         List<Operation> replaceOperations = new ArrayList<Operation>();
         // 2. Create Clarin License
         String clarinLicenseName = "Test Clarin License";
-        ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info", 0);
+        ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info",
+                Confirmation.NOT_REQUIRED);
         context.restoreAuthSystemState();
 
         // Creating replace operation
@@ -754,9 +761,10 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
         String updateClarinLicenseName = "Updated Clarin License";
 
         // 2. Create Clarin Licenses
-        ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info", 0);
+        ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info",
+                Confirmation.NOT_REQUIRED);
         ClarinLicense updatedClarinLicense =
-                createClarinLicense(updateClarinLicenseName, "Test Def2", "Test R Info2", 0);
+                createClarinLicense(updateClarinLicenseName, "Test Def2", "Test R Info2", Confirmation.NOT_REQUIRED);
         context.restoreAuthSystemState();
 
         // Creating replace operation
@@ -865,6 +873,10 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                 .withTitle("Item with custom handle")
                 .withIssueDate("2017-10-17")
                 .build();
+
+        // Add event here, because the `build()` remove all events.
+        context.addEvent(new Event(Event.MODIFY, Constants.ITEM, wItem.getItem().getID(),
+                SET_OWNING_COLLECTION_EVENT_DETAIL + col.getID()));
 
         Item installedItem = installItemService.installItem(context, wItem);
         context.restoreAuthSystemState();
@@ -985,10 +997,15 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(get("/api/submission/workspaceitems/search/shareToken")
-                        .param("shareToken", shareToken)
-                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .param("shareToken", shareToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.workspaceitems[0].id", is(wItem.getID())));
+
+        // test BadRequest response for invalid token
+        getClient(adminToken).perform(get("/api/submission/workspaceitems/search/shareToken")
+                        .param("shareToken", "invalid_token"))
+                .andExpect(status().isBadRequest())
+                .andExpect(status().reason(containsString("invalid_token does not exist")));
     }
 
     /**
@@ -1008,8 +1025,8 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
     /**
      * Create ClarinLicense object with ClarinLicenseLabel object for testing purposes.
      */
-    private ClarinLicense createClarinLicense(String name, String definition, String requiredInfo, int confirmation)
-            throws SQLException, AuthorizeException {
+    private ClarinLicense createClarinLicense(String name, String definition, String requiredInfo,
+                                              Confirmation confirmation) throws SQLException, AuthorizeException {
         ClarinLicense clarinLicense = ClarinLicenseBuilder.createClarinLicense(context).build();
         clarinLicense.setConfirmation(confirmation);
         clarinLicense.setDefinition(definition);
