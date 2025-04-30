@@ -20,6 +20,7 @@ import static org.dspace.content.BitstreamFormat.SUPPORTED;
 import static org.dspace.core.Constants.DEFAULT_BITSTREAM_READ;
 import static org.dspace.core.Constants.READ;
 import static org.dspace.core.Constants.WRITE;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
@@ -50,6 +51,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -84,6 +87,7 @@ import org.dspace.statistics.ObjectCount;
 import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
+import org.dspace.storage.bitstore.S3BitStoreService;
 import org.dspace.storage.bitstore.factory.StorageServiceFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -122,6 +126,9 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     @Autowired
     private CollectionService collectionService;
+
+    @Autowired
+    private S3BitStoreService s3BitStoreService;
 
     private Bitstream bitstream;
     private BitstreamFormat supportedFormat;
@@ -1334,5 +1341,53 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.synchronizedStore.checkSumAlgorithm", nullValue()));
 
 
+    }
+
+    @Test
+    public void testS3DirectDownloadRedirect() throws Exception {
+        try {
+            context.turnOffAuthorisationSystem();
+            //** GIVEN **
+            //1. A community-collection structure with one parent community and one collections.
+            parentCommunity = CommunityBuilder.createCommunity(context)
+                    .withName("Parent Community")
+                    .build();
+
+            Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                    .withName("Collection 1").build();
+            Item item = ItemBuilder.createItem(context, col1)
+                    .withTitle("Public item 1")
+                    .withIssueDate("2017-10-17")
+                    .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                    .build();
+
+            // Enable S3 direct download for test
+            configurationService.setProperty("s3.download.direct.enabled", true);
+            // Initialize S3BitStoreService because it is null in this test
+            s3BitStoreService.init();
+
+            String fileName = "testfile.txt";
+            // Create and upload a bitstream
+            bitstream = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))
+                    .withName(fileName)
+                    .build();
+            context.restoreAuthSystemState();
+
+            context.commit();
+
+            // Make a request to the /content endpoint and check the redirect URL
+            String bitstreamId = bitstream.getID().toString();
+            getClient().perform(get("/api/core/bitstreams/" + bitstreamId + "/content"))
+                    .andExpect(status().isFound()) // 302 Redirect
+                    .andExpect(header().exists("Location"))
+                    .andExpect(header().string("Location", containsString("https://")))
+                    .andExpect(header().string("Location", containsString("response-content-disposition")))
+                    .andExpect(header().string("Location", containsString(
+                            URLEncoder.encode("filename=\"" + fileName + "\"", StandardCharsets.UTF_8))));
+        } finally {
+            // Clean up the S3BitStoreService
+            s3BitStoreService = null;
+            configurationService.setProperty("s3.download.direct.enabled", false);
+        }
     }
 }

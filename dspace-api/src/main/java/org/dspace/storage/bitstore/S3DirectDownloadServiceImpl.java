@@ -1,4 +1,15 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.storage.bitstore;
+
+import java.time.Instant;
+import java.util.Date;
+import javax.annotation.PostConstruct;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
@@ -8,10 +19,6 @@ import org.dspace.storage.bitstore.service.S3DirectDownloadService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
-import java.time.Instant;
-import java.util.Date;
 
 /**
  * Implementation of the S3DirectDownloadService interface for generating presigned URLs for S3 downloads.
