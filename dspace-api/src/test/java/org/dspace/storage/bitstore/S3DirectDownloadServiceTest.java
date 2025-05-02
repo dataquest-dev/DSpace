@@ -142,9 +142,6 @@ public class S3DirectDownloadServiceTest extends AbstractUnitTest {
     // Underlying AmazonS3 throws → IllegalArgumentException
     @Test(expected = IllegalArgumentException.class)
     public void nullFilename() throws Exception {
-        URL fake = new URL("https://nullfn");
-        when(amazonS3.generatePresignedUrl(any(GeneratePresignedUrlRequest.class))).thenReturn(fake);
-
         s3DirectDownloadService.generatePresignedUrl("b", "k", 60, null);
     }
 
