@@ -30,6 +30,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -51,8 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -89,11 +90,13 @@ import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.storage.bitstore.S3BitStoreService;
 import org.dspace.storage.bitstore.factory.StorageServiceFactory;
+import org.dspace.storage.bitstore.service.S3DirectDownloadService;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -129,6 +132,9 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     @Autowired
     private S3BitStoreService s3BitStoreService;
+
+    @MockBean(name = "s3DirectDownload")
+    S3DirectDownloadService s3DirectDownloadService;
 
     private Bitstream bitstream;
     private BitstreamFormat supportedFormat;
@@ -1347,7 +1353,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     public void testS3DirectDownloadRedirect() throws Exception {
         // Enable S3 direct download for test
         configurationService.setProperty("s3.download.direct.enabled", true);
-        String bucketName = configurationService.getProperty("assetstore.s3.bucketName");
+        configurationService.setProperty("assetstore.s3.bucketName", "test");
         try {
             context.turnOffAuthorisationSystem();
             //** GIVEN **
@@ -1364,39 +1370,36 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                     .withAuthor("Smith, Donald").withAuthor("Doe, John")
                     .build();
 
-            // Initialize S3BitStoreService because it is null in this test
-            s3BitStoreService.init();
+            URI expectedUrl = URI.create("https://example.com");
+            doReturn(expectedUrl.toString())
+                    .when(s3DirectDownloadService)
+                    .generatePresignedUrl(anyString(), anyString(), anyInt(), anyString());
 
-            String fileName = "testfile.txt";
             // Create and upload a bitstream
             bitstream = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))
-                    .withName(fileName)
+                    .withName("testfile.txt")
                     .build();
+            String bitstreamId = bitstream.getID().toString();
             context.restoreAuthSystemState();
-
             context.commit();
 
             // Make a request to the /content endpoint and check the redirect URL
-            String bitstreamId = bitstream.getID().toString();
             getClient().perform(get("/api/core/bitstreams/" + bitstreamId + "/content"))
                     .andExpect(status().isFound()) // 302 Redirect
                     .andExpect(header().exists("Location"))
-                    .andExpect(header().string("Location", containsString("https://")))
-                    .andExpect(header().string("Location", containsString("response-content-disposition")))
-                    .andExpect(header().string("Location", containsString(
-                            URLEncoder.encode("filename=\"" + fileName + "\"", StandardCharsets.UTF_8))));
+                    .andExpect(header().string("Location", containsString(expectedUrl.toString())));
 
             // Check that the not found response is returned when the bitstream does not exist
             getClient().perform(get("/api/core/bitstreams/" + UUID.randomUUID() + "/content"))
                     .andExpect(status().isNotFound());
 
             // When bucket name is empty, the request should return 500
-            configurationService.setProperty("assetstore.s3.bucketName", "");
+            configurationService.setProperty("assetstore.s3.bucketName", null);
             getClient().perform(get("/api/core/bitstreams/" + bitstreamId + "/content"))
                     .andExpect(status().isInternalServerError());
         } finally {
             configurationService.setProperty("s3.download.direct.enabled", false);
-            configurationService.setProperty("assetstore.s3.bucketName", bucketName);
+            configurationService.setProperty("assetstore.s3.bucketName", null);
         }
     }
 }

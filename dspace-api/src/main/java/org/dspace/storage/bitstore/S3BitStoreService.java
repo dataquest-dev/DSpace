@@ -552,13 +552,6 @@ public class S3BitStoreService extends BaseBitStoreService {
     }
 
     /**
-     * Check if an object exists in the S3 bucket
-     */
-    public boolean doesObjectExist(String bucket, String bitstreamPath) {
-        return this.s3Service.doesObjectExist(bucket, bitstreamPath);
-    }
-
-    /**
      * Contains a command-line testing tool. Expects arguments:
      * -a accessKey -s secretKey -f assetFileName
      *

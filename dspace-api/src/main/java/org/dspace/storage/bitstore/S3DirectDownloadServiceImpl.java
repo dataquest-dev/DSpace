@@ -44,8 +44,16 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
     private void init() {
         // Use the S3BitStoreService to get the AmazonS3 client - do not create a new one
         this.s3Client = s3BitStoreService.s3Service;
-        if (this.s3Client == null) {
-            throw new IllegalStateException("Failed to initialize S3 client");
+        try {
+            if (this.s3Client == null) {
+                this.s3BitStoreService.init();
+                this.s3Client = s3BitStoreService.s3Service;
+                if (s3Client == null) {
+                    throw new RuntimeException("S3 client wasn't initialized in the S3BitStoreService.");
+                }
+            }
+        } catch(Exception e){
+            throw new RuntimeException("Cannot initialize the s3Client because:", e);
         }
     }
 
@@ -54,7 +62,7 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
             init();
         }
         // Verify object exists before generating URL
-        if (!s3BitStoreService.doesObjectExist(bucket, key)) {
+        if (!s3Client.doesObjectExist(bucket, key)) {
             log.error("Cannot generate presigned URL – object does not exist: bucket={}, key={}", bucket, key);
             throw new IllegalArgumentException("Requested S3 object does not exist");
         }
