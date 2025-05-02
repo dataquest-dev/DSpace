@@ -40,7 +40,6 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
 
     private AmazonS3 s3Client;
 
-    @PostConstruct
     private void init() {
         // Use the S3BitStoreService to get the AmazonS3 client - do not create a new one
         this.s3Client = s3BitStoreService.s3Service;
@@ -49,7 +48,7 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
                 this.s3BitStoreService.init();
                 this.s3Client = s3BitStoreService.s3Service;
                 if (s3Client == null) {
-                    log.error("S3 client wasn't initialized in the S3BitStoreService.");
+                    throw new RuntimeException("S3 client wasn't initialized in the S3BitStoreService.");
                 }
             }
         } catch (Exception e) {
