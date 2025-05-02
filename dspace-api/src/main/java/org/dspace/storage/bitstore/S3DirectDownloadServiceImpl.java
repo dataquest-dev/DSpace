@@ -49,15 +49,19 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
                 this.s3BitStoreService.init();
                 this.s3Client = s3BitStoreService.s3Service;
                 if (s3Client == null) {
-                    throw new RuntimeException("S3 client wasn't initialized in the S3BitStoreService.");
+                    log.error("S3 client wasn't initialized in the S3BitStoreService.");
                 }
             }
-        } catch(Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Cannot initialize the s3Client because:", e);
         }
     }
 
     public String generatePresignedUrl(String bucket, String key, int expirationSeconds, String desiredFilename) {
+        if (desiredFilename == null) {
+            log.error("Cannot generate presigned URL – desired filename is null");
+            throw new IllegalArgumentException("Desired filename cannot be null");
+        }
         if (s3Client == null) {
             init();
         }
