@@ -7,6 +7,8 @@
  */
 package org.dspace.content.clarin;
 
+import static org.dspace.content.clarin.ClarinLicense.Confirmation;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,7 @@ import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.NullArgumentException;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.dao.clarin.ClarinLicenseResourceMappingDAO;
@@ -202,23 +205,23 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
         }
 
         // Confirmation states:
-        // 0 - Not required
-        // 1 - Ask only once
-        // 2 - Ask always
-        // 3 - Allow anonymous
-        if (Objects.equals(clarinLicenseToAgree.getConfirmation(), 0)) {
+        // NOT_REQUIRED
+        // ASK_ONLY_ONCE
+        // ASK_ALWAYS
+        // ALLOW_ANONYMOUS
+        if (clarinLicenseToAgree.getConfirmation() == Confirmation.NOT_REQUIRED) {
             return null;
         }
 
         switch (clarinLicenseToAgree.getConfirmation()) {
-            case 1:
+            case ASK_ONLY_ONCE:
                 // Ask only once - check if the clarin license required info is filled in by the user
                 if (userFilledInRequiredInfo(context, clarinLicenseResourceMapping, userId)) {
                     return null;
                 }
                 return clarinLicenseToAgree;
-            case 2:
-            case 3:
+            case ASK_ALWAYS:
+            case ALLOW_ANONYMOUS:
                 return clarinLicenseToAgree;
             default:
                 return null;
@@ -234,7 +237,14 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
 
         // Find all records when the current user fill in some clarin license required info
         List<ClarinLicenseResourceUserAllowance> clarinLicenseResourceUserAllowances =
-                clarinLicenseResourceUserAllowanceService.findByEPersonId(context, userID);
+                null;
+        try {
+            clarinLicenseResourceUserAllowances = clarinLicenseResourceUserAllowanceService.findByEPersonId(context,
+                    userID);
+        } catch (AuthorizeException e) {
+            log.error("Cannot get the user registration for the user with id: {}", userID, e);
+            return false;
+        }
         // The user hasn't been filled in any information.
         if (CollectionUtils.isEmpty(clarinLicenseResourceUserAllowances)) {
             return false;
