@@ -202,12 +202,6 @@
         </analyzer>
     </fieldType>
 
-    <fieldType name="noLowKeywordFilter" class="solr.TextField" sortMissingLast="true" omitNorms="true">
-        <analyzer>
-            <tokenizer class="solr.KeywordTokenizerFactory"/>
-        </analyzer>
-    </fieldType>
-
     <!--
      SpellCheck analysis config based off of http://wiki.apache.org/solr/
      SpellCheckingAnalysis
