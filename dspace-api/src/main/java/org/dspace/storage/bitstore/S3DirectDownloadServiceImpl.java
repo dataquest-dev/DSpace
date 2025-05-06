@@ -7,6 +7,7 @@
  */
 package org.dspace.storage.bitstore;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -42,16 +43,19 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
     private void init() {
         // Use the S3BitStoreService to get the AmazonS3 client - do not create a new one
         this.s3Client = s3BitStoreService.s3Service;
-        try {
-            if (this.s3Client == null) {
-                this.s3BitStoreService.init();
+
+        if (this.s3Client == null) {
+            try {
+                s3BitStoreService.init();
                 this.s3Client = s3BitStoreService.s3Service;
-                if (s3Client == null) {
-                    throw new RuntimeException("S3 client wasn't initialized in the S3BitStoreService.");
-                }
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to initialize S3 client from S3BitStoreService", e);
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Cannot initialize the s3Client because:", e);
+
+            if (this.s3Client == null) {
+                throw new IllegalStateException("S3 client was not initialized after calling init() " +
+                        "on S3BitStoreService.");
+            }
         }
     }
 
