@@ -98,6 +98,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * Integration test to test the /api/core/bitstreams/[id]/* endpoints
@@ -1413,5 +1414,42 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             configurationService.setProperty("s3.download.direct.enabled", false);
             configurationService.setProperty("assetstore.s3.bucketName", null);
         }
+    }
+
+    @Test
+    public void testBitstreamContentTypeIsCorrect() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community and one collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+
+        //2. A public item with a bitstream
+        String bitstreamContent = "0123456789";
+
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            Item item = ItemBuilder.createItem(context, col1)
+                    .withTitle("Test item")
+                    .build();
+
+            bitstream = BitstreamBuilder.createBitstream(context, item, is)
+                    .withName("testfile.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+
+        context.restoreAuthSystemState();
+
+        MvcResult result = getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                .andExpect(status().isOk())
+                .andExpect(header().exists("Content-Type"))
+                .andExpect(header().string("Content-Type", "text/plain;charset=UTF-8"))
+                .andExpect(header().exists("Content-Disposition"))
+                .andExpect(header().exists("ETag"))
+                .andReturn();
     }
 }
