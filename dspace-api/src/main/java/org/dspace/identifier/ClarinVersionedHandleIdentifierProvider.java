@@ -61,6 +61,10 @@ public class ClarinVersionedHandleIdentifierProvider extends IdentifierProvider 
      * Prefix registered to no one
      */
     static final String EXAMPLE_PREFIX = "123456789";
+    /**
+     * Wild card for Dublin Core metadata qualifiers/languages
+     */
+    public static final String ANY = "*";
 
     private static final char DOT = '.';
 
@@ -195,9 +199,7 @@ public class ClarinVersionedHandleIdentifierProvider extends IdentifierProvider 
             // versioned (e.g. 123456789/100) one
             // just register it.
             createNewIdentifier(context, dso, identifier);
-            if (dso instanceof Item) {
-                populateHandleMetadata(context, (Item) dso, identifier);
-            }
+            populateHandleMetadata(context, dso, identifier);
         } catch (SQLException ex) {
             throw new RuntimeException("Unable to create handle '"
                     + identifier + "' for "
@@ -360,10 +362,9 @@ public class ClarinVersionedHandleIdentifierProvider extends IdentifierProvider 
         // identifiers which are not from type handle and add the new handle.
         DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(dso);
         List<MetadataValue> identifiers = dsoService.getMetadata(dso,
-                MetadataSchemaEnum.DC.getName(), "identifier", "uri",
-                Item.ANY);
+                MetadataSchemaEnum.DC.getName(), "identifier", "uri", ANY);
         dsoService.clearMetadata(context, dso, MetadataSchemaEnum.DC.getName(),
-                "identifier", "uri", Item.ANY);
+                "identifier", "uri", ANY);
         for (MetadataValue identifier : identifiers) {
             if (this.supports(identifier.getValue())) {
                 // ignore handles
