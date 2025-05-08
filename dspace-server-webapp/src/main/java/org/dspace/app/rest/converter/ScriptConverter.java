@@ -37,8 +37,11 @@ public class ScriptConverter implements DSpaceConverter<ScriptConfiguration, Scr
 
         List<ParameterRest> parameterRestList = new LinkedList<>();
         for (Option option : CollectionUtils.emptyIfNull(scriptConfiguration.getOptions().getOptions())) {
-            if (Objects.equals(scriptConfiguration.getName(), "file-preview") &&
-                    (Objects.equals(option.getOpt(), "e") || Objects.equals(option.getOpt(), "p"))) {
+            if ("file-preview".equalsIgnoreCase(scriptConfiguration.getName())
+                                        && (Objects.equals(option.getOpt(), "e")
+                                            || Objects.equals(option.getOpt(), "p")
+                                            || Objects.equals(option.getLongOpt(), "email")
+                                            || Objects.equals(option.getLongOpt(), "password"))) {
                 continue;
             }
             ParameterRest parameterRest = new ParameterRest();

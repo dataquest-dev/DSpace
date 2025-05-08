@@ -71,11 +71,6 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
 
     @Override
     public void setup() throws ParseException {
-        if (getEpersonIdentifier() == null &&
-                (!commandLine.hasOption("e") || !commandLine.hasOption("p"))) {
-            throw new ParseException("No eperson options have been provided.");
-        }
-
         // `-i`: Info, show help information.
         if (commandLine.hasOption('i')) {
             info = true;
@@ -92,6 +87,10 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
 
         epersonMail = commandLine.getOptionValue('e');
         epersonPassword = commandLine.getOptionValue('p');
+
+        if (getEpersonIdentifier() == null && (epersonMail == null || epersonPassword == null)) {
+            throw new ParseException("Provide both -e/--email and -p/--password when no eperson is supplied.");
+        }
     }
 
     @Override
