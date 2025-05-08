@@ -621,7 +621,8 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .containsString("INFO file-preview - " + process.getID() + " @ The script has started"));
             assertThat(content,
                     CoreMatchers.containsString(
-                            "INFO file-preview - " + process.getID() + " @ Authentication by user: " + admin.getEmail()));
+                            "INFO file-preview - " + process.getID() +
+                                    " @ Authentication by user: " + admin.getEmail()));
             assertThat(content, CoreMatchers
                     .containsString("INFO file-preview - " + process.getID() + " @ The script has completed"));
         } finally {
