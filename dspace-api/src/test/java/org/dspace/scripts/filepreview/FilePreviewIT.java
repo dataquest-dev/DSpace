@@ -12,6 +12,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -86,11 +88,8 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         // Run the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "file-preview"};
-        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-
-        List<String> messages = testDSpaceRunnableHandler.getErrorMessages();
-        assertThat(messages, hasSize(1));
-        assertThat(messages, hasItem(containsString("Email is required for authentication.")));
+        int run = ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+        assertEquals(1, run); // Since a ParseException was caught, expect return code 1
     }
 
     @Test
@@ -98,11 +97,8 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         // Run the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "file-preview", "-e", eperson.getEmail()};
-        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-
-        List<String> messages = testDSpaceRunnableHandler.getErrorMessages();
-        assertThat(messages, hasSize(1));
-        assertThat(messages, hasItem(containsString("Password is required for authentication.")));
+        int run = ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+        assertEquals(1, run); // Since a ParseException was caught, expect return code 1
     }
 
     @Test
@@ -110,8 +106,8 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
 
         String[] args = new String[] { "file-preview", "-e", eperson.getEmail(), "-p",  PASSWORD };
-        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-
+        int run = ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+        assertEquals(1, run);
         checkNoError(testDSpaceRunnableHandler);
     }
 
@@ -121,8 +117,8 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "file-preview", "-u", item.getID().toString(),
                 "-e", eperson.getEmail(), "-p",  PASSWORD};
-        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-
+        int run = ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+        assertEquals(0, run);
         // There should be no errors or warnings
         checkNoError(testDSpaceRunnableHandler);
 
@@ -140,8 +136,8 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         // Run the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "file-preview", "-e", eperson.getEmail(), "-p",  PASSWORD};
-        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-
+        int run = ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+        assertEquals(0, run);
         // There should be no errors or warnings
         checkNoError(testDSpaceRunnableHandler);
     }
