@@ -199,7 +199,9 @@ public class ClarinVersionedHandleIdentifierProvider extends IdentifierProvider 
             // versioned (e.g. 123456789/100) one
             // just register it.
             createNewIdentifier(context, dso, identifier);
-            populateHandleMetadata(context, dso, identifier);
+            if (dso instanceof Item || dso instanceof Collection || dso instanceof Community) {
+                populateHandleMetadata(context, dso, identifier);
+            }
         } catch (SQLException ex) {
             throw new RuntimeException("Unable to create handle '"
                     + identifier + "' for "
