@@ -107,7 +107,7 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
 
         String[] args = new String[] { "file-preview", "-e", eperson.getEmail(), "-p",  PASSWORD };
         int run = ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-        assertEquals(1, run);
+        assertEquals(0, run);
         checkNoError(testDSpaceRunnableHandler);
     }
 
@@ -128,7 +128,7 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         assertThat(messages, hasItem(containsString("Generate the file previews for the specified item with " +
                 "the given UUID: " + item.getID())));
         assertThat(messages,
-                hasItem(containsString("Authentication successful for email: " + eperson.getEmail())));
+                hasItem(containsString("Authentication by user: " + eperson.getEmail())));
     }
 
     @Test
