@@ -210,6 +210,43 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    public void createWithHandleTest() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        CommunityRest comm = new CommunityRest();
+        // We send a name but the created community should set this to the title
+        comm.setName("Test Top-Level Community");
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("handle.prefix", "123456789");
+        context.restoreAuthSystemState();
+        String handleStr = "123456789/test";
+        comm.setHandle(handleStr);
+
+        String authToken = getAuthToken(admin.getEmail(), password);
+        AtomicReference<String> handle = new AtomicReference<>();
+
+        getClient(authToken).perform(post("/api/core/communities")
+                        .content(mapper.writeValueAsBytes(comm))
+                        .contentType(contentType)
+                        .param("embed", CommunityMatcher.getNonAdminEmbeds()))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$", CommunityMatcher.matchNonAdminEmbeds()))
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.handle", is (handleStr))
+                )))
+                // capture "handle" returned in JSON response and check against the metadata
+                .andDo(result -> handle.set(
+                        read(result.getResponse().getContentAsString(), "$.handle")))
+                .andExpect(jsonPath("$",
+                        hasJsonPath("$.metadata", Matchers.allOf(
+                                        matchMetadataNotEmpty("dc.identifier.uri"),
+                                        matchMetadataStringEndsWith("dc.identifier.uri", handleStr)
+                                )
+                        )));
+
+    }
+
+    @Test
     public void createSubCommunityUnAuthorizedTest() throws Exception {
         //We turn off the authorization system in order to create the structure as defined below
         context.turnOffAuthorisationSystem();
