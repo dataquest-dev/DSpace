@@ -38,7 +38,7 @@
          a DOIConnector that handles all API calls to your DOI registration
          agency. Please configure a DOIConnector as well! -->
     <bean id="org.dspace.identifier.DOIIdentifierProvider"
-          class="org.dspace.identifier.VersionedDOIIdentifierProvider"
+          class="org.dspace.identifier.DOIIdentifierProvider"
           scope="singleton">
         <property name="configurationService"
                   ref="org.dspace.services.ConfigurationService"/>
