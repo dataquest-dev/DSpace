@@ -1237,6 +1237,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         context.restoreAuthSystemState();
 
         AtomicReference<String> handle = new AtomicReference<>();
+        AtomicReference<UUID> idRef = new AtomicReference<>();
 
         ObjectMapper mapper = new ObjectMapper();
         CollectionRest collectionRest = new CollectionRest();
@@ -1246,23 +1247,32 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         collectionRest.setHandle(handleStr);
 
         String authToken = getAuthToken(admin.getEmail(), password);
-        getClient(authToken).perform(post("/api/core/collections")
-                        .content(mapper.writeValueAsBytes(collectionRest))
-                        .param("parent", parentCommunity.getID().toString())
-                        .contentType(contentType)
-                        .param("embed", CollectionMatcher.getEmbedsParameter()))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$", Matchers.allOf(
-                        hasJsonPath("$.handle", is(handleStr)))))
-                // capture "handle" returned in JSON response and check against the metadata
-                .andDo(result -> handle.set(
-                        read(result.getResponse().getContentAsString(), "$.handle")))
-                .andExpect(jsonPath("$",
-                        hasJsonPath("$.metadata", Matchers.allOf(
-                                        matchMetadataNotEmpty("dc.identifier.uri"),
-                                        matchMetadataStringEndsWith("dc.identifier.uri", handle.get())
-                                )
-                        )));
+        try {
+            getClient(authToken).perform(post("/api/core/collections")
+                            .content(mapper.writeValueAsBytes(collectionRest))
+                            .param("parent", parentCommunity.getID().toString())
+                            .contentType(contentType)
+                            .param("embed", CollectionMatcher.getEmbedsParameter()))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$", Matchers.allOf(
+                            hasJsonPath("$.handle", is(handleStr)))))
+                    // capture "handle" returned in JSON response and check against the metadata
+                    .andDo(result -> handle.set(
+                            read(result.getResponse().getContentAsString(), "$.handle")))
+                    .andDo(result -> idRef.set(
+                            UUID.fromString(read(result.getResponse().getContentAsString(), "$.id"))))
+                    .andExpect(jsonPath("$",
+                            hasJsonPath("$.metadata", Matchers.allOf(
+                                            matchMetadataNotEmpty("dc.identifier.uri"),
+                                            matchMetadataStringEndsWith("dc.identifier.uri", handle.get())
+                                    )
+                            )));
+        } finally {
+            // Delete the created community (cleanup after ourselves!)
+            if (idRef.get() != null) {
+                CommunityBuilder.deleteCommunity(idRef.get());
+            }
+        }
     }
 
     @Test

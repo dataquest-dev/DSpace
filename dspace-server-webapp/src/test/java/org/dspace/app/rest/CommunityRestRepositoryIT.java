@@ -223,7 +223,9 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
 
         String authToken = getAuthToken(admin.getEmail(), password);
         AtomicReference<String> handle = new AtomicReference<>();
+        AtomicReference<UUID> idRef = new AtomicReference<>();
 
+        try {
         getClient(authToken).perform(post("/api/core/communities")
                         .content(mapper.writeValueAsBytes(comm))
                         .contentType(contentType)
@@ -237,12 +239,20 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
                 // capture "handle" returned in JSON response and check against the metadata
                 .andDo(result -> handle.set(
                         read(result.getResponse().getContentAsString(), "$.handle")))
+                .andDo(result -> idRef.set(
+                        UUID.fromString(read(result.getResponse().getContentAsString(), "$.id"))))
                 .andExpect(jsonPath("$",
                         hasJsonPath("$.metadata", Matchers.allOf(
                                         matchMetadataNotEmpty("dc.identifier.uri"),
                                         matchMetadataStringEndsWith("dc.identifier.uri", handleStr)
                                 )
                         )));
+        } finally {
+            // Delete the created community (cleanup after ourselves!)
+            if (idRef.get() != null) {
+                CommunityBuilder.deleteCommunity(idRef.get());
+            }
+        }
 
     }
 
