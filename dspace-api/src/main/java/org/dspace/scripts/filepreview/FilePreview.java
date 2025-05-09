@@ -183,6 +183,19 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
 
     }
 
+    /**
+     * Retrieves an EPerson object either by its identifier or by performing an email-based lookup.
+     * It then authenticates the EPerson using the provided email and password.
+     * If the authentication is successful, it returns the EPerson object; otherwise,
+     * it throws an AuthenticationException.
+     *
+     * @param context The Context object used for interacting with the DSpace database and service layer.
+     * @return The authenticated EPerson object corresponding to the provided email,
+     *         if authentication is successful.
+     * @throws SQLException If a database error occurs while retrieving or interacting with the EPerson data.
+     * @throws AuthenticationException If no EPerson is found for the provided email
+     *         or if the authentication fails.
+     */
     private EPerson getEperson(Context context) throws SQLException, AuthenticationException {
         if (getEpersonIdentifier() != null) {
             return ePersonService.find(context, getEpersonIdentifier());
