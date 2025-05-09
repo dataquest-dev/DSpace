@@ -1226,6 +1226,46 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
     }
 
     @Test
+    public void createWithHandleTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and one collection.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        configurationService.setProperty("handle.prefix", "123456789");
+        context.restoreAuthSystemState();
+
+        AtomicReference<String> handle = new AtomicReference<>();
+
+        ObjectMapper mapper = new ObjectMapper();
+        CollectionRest collectionRest = new CollectionRest();
+        // We send a name but the created collection should set this to the title
+        collectionRest.setName("Collection");
+        String handleStr = "123456789/test";
+        collectionRest.setHandle(handleStr);
+
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(post("/api/core/collections")
+                        .content(mapper.writeValueAsBytes(collectionRest))
+                        .param("parent", parentCommunity.getID().toString())
+                        .contentType(contentType)
+                        .param("embed", CollectionMatcher.getEmbedsParameter()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.handle", is(handleStr)))))
+                // capture "handle" returned in JSON response and check against the metadata
+                .andDo(result -> handle.set(
+                        read(result.getResponse().getContentAsString(), "$.handle")))
+                .andExpect(jsonPath("$",
+                        hasJsonPath("$.metadata", Matchers.allOf(
+                                        matchMetadataNotEmpty("dc.identifier.uri"),
+                                        matchMetadataStringEndsWith("dc.identifier.uri", handle.get())
+                                )
+                        )));
+    }
+
+    @Test
     public void createTestByAuthorizedUser() throws Exception {
         context.turnOffAuthorisationSystem();
 
