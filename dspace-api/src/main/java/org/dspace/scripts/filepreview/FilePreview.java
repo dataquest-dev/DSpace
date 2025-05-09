@@ -102,7 +102,7 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
 
         Context context = new Context();
         try {
-            context.setCurrentUser(getEperson((context)));
+            context.setCurrentUser(getAuthenticatedEperson((context)));
             handler.logInfo("Authentication by user: " + context.getCurrentUser().getEmail());
             if (StringUtils.isNotBlank(specificItemUUID)) {
                 // Generate the preview only for a specific item
@@ -196,7 +196,7 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
      * @throws AuthenticationException If no EPerson is found for the provided email
      *         or if the authentication fails.
      */
-    private EPerson getEperson(Context context) throws SQLException, AuthenticationException {
+    private EPerson getAuthenticatedEperson(Context context) throws SQLException, AuthenticationException {
         if (getEpersonIdentifier() != null) {
             return ePersonService.find(context, getEpersonIdentifier());
         }
