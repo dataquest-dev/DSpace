@@ -1233,7 +1233,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
-        configurationService.setProperty("handle.prefix", "123456789");
+        configurationService.setProperty("handle.prefix", "test");
         context.restoreAuthSystemState();
 
         AtomicReference<String> handle = new AtomicReference<>();
@@ -1243,7 +1243,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         CollectionRest collectionRest = new CollectionRest();
         // We send a name but the created collection should set this to the title
         collectionRest.setName("Collection");
-        String handleStr = "123456789/test";
+        String handleStr = "test/collection";
         collectionRest.setHandle(handleStr);
 
         String authToken = getAuthToken(admin.getEmail(), password);
@@ -1270,7 +1270,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         } finally {
             // Delete the created community (cleanup after ourselves!)
             if (idRef.get() != null) {
-                CommunityBuilder.deleteCommunity(idRef.get());
+                CollectionBuilder.deleteCollection(idRef.get());
             }
         }
     }

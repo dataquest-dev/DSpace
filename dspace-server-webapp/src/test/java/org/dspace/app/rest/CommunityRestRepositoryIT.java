@@ -224,9 +224,9 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
         comm.setMetadata(metadataRest);
 
         context.turnOffAuthorisationSystem();
-        configurationService.setProperty("handle.prefix", "123456789");
+        configurationService.setProperty("handle.prefix", "test");
         context.restoreAuthSystemState();
-        String handleStr = "123456789/test";
+        String handleStr = "test/community";
         comm.setHandle(handleStr);
 
         String authToken = getAuthToken(admin.getEmail(), password);
@@ -270,7 +270,9 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
                             )));
         } finally {
             // Delete the created community (cleanup after ourselves!)
-            CommunityBuilder.deleteCommunity(idRef.get());
+            if (idRef.get() != null) {
+                CommunityBuilder.deleteCommunity(idRef.get());
+            }
         }
     }
 
