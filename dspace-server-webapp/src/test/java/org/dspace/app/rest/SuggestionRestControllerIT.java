@@ -153,6 +153,27 @@ public class SuggestionRestControllerIT extends AbstractControllerIntegrationTes
      * Compose specific query from the definition and the search value.
      */
     @Test
+    public void testSearchBySpecificQueryFromSolrNoCaseSensitive() throws Exception {
+        String userToken = getAuthToken(eperson.getEmail(), password);
+        getClient(userToken).perform(
+                        get("/api/suggestions?autocompleteCustom=solr-title_ac?query=title_ac:**&searchValue=" +
+                                ITEM_TITLE.substring(0, 4).toLowerCase()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.vocabularyEntryRests", Matchers.hasItem(
+                        allOf(
+                                hasJsonPath("$.display", is(ITEM_TITLE)),
+                                hasJsonPath("$.value", is(ITEM_TITLE)),
+                                hasJsonPath("$.type", is("vocabularyEntry"))
+                        ))));
+    }
+
+    /**
+     * Should return suggestions from the solr `title_ac` index.
+     * Compose specific query from the definition and the search value.
+     */
+    @Test
     public void testSearchBySpecificQueryFromSolr_noresults() throws Exception {
         String userToken = getAuthToken(eperson.getEmail(), password);
         getClient(userToken).perform(
