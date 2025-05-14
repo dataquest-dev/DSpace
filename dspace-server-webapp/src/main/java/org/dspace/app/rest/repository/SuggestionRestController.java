@@ -262,7 +262,9 @@ public class SuggestionRestController extends AbstractDSpaceRestRepository {
                                           List<VocabularyEntryRest> results) {
         searchResult.getFacetResult(autocompleteCustom).forEach(facetResult -> {
             String displayedValue = facetResult.getDisplayedValue();
-            if (!displayedValue.contains(searchValue) && !displayedValue.toLowerCase().contains(searchValue)) {
+            if (!displayedValue.contains(searchValue) &&
+                    !displayedValue.toLowerCase().contains(searchValue) &&
+                    !displayedValue.toLowerCase().contains(searchValue.toLowerCase())) {
                 return;
             }
             // Create a new VocabularyEntryRest object
