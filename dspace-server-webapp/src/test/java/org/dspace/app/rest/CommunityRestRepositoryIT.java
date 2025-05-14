@@ -215,12 +215,10 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
         CommunityRest comm = new CommunityRest();
         // We send a name but the created community should set this to the title
         comm.setName("Test Community");
-
         MetadataRest metadataRest = new MetadataRest();
         MetadataValueRest title = new MetadataValueRest();
         title.setValue("Title Text");
         metadataRest.put("dc.title", title);
-
         comm.setMetadata(metadataRest);
 
         context.turnOffAuthorisationSystem();
@@ -251,11 +249,9 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
                             hasJsonPath("$._links.self.href", not(empty())),
                             hasJsonPath("$.metadata", Matchers.allOf(
                                             matchMetadata("dc.title", "Title Text")
-
                                     )
                             )
                     )))
-
                     // capture "handle" returned in JSON response and check against the metadata
                     .andDo(result -> handle.set(
                             read(result.getResponse().getContentAsString(), "$.handle")))
@@ -275,7 +271,6 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
             }
         }
     }
-
 
     @Test
     public void createSubCommunityUnAuthorizedTest() throws Exception {
