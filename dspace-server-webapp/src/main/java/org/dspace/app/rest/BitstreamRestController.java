@@ -184,11 +184,20 @@ public class BitstreamRestController {
             context.complete();
 
             boolean s3DirectDownload = configurationService.getBooleanProperty("s3.download.direct.enabled");
+
             //Send the data
             if (httpHeadersInitializer.isValid()) {
                 HttpHeaders httpHeaders = httpHeadersInitializer.initialiseHeaders();
                 if (s3DirectDownload) {
-                    return redirectToS3DownloadUrl(httpHeaders, name, bit.getInternalId());
+                    // Download only files which are stored in the `ORIGINAL` bundle, because some specific files are
+                    // not correctly downloaded and displayed in the UI when using presigned URLs. E.g., the
+                    // process output.
+                    boolean hasOriginalBundle = bit.getBundles().stream()
+                            .anyMatch(bundle -> "ORIGINAL".equals(bundle.getName()));
+
+                    if (hasOriginalBundle) {
+                        return redirectToS3DownloadUrl(httpHeaders, name, bit.getInternalId());
+                    }
                 }
 
                 if (RequestMethod.HEAD.name().equals(request.getMethod())) {
