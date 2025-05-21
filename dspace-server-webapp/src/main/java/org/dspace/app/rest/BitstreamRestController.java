@@ -184,7 +184,6 @@ public class BitstreamRestController {
             context.complete();
 
             boolean s3DirectDownload = configurationService.getBooleanProperty("s3.download.direct.enabled");
-
             //Send the data
             if (httpHeadersInitializer.isValid()) {
                 HttpHeaders httpHeaders = httpHeadersInitializer.initialiseHeaders();
