@@ -353,6 +353,10 @@ public class PreviewContentServiceImpl implements PreviewContentService {
             byte[] buffer = new byte[512];  // TAR header size is always 512 bytes
             long currentPos = 0;
             while (currentPos < fileSize) {
+                if (filePaths.size() >= maxPreviewCount) {
+                    filePaths.add("... (too many files)");
+                    break;
+                }
                 // Read the next 512-byte header
                 raf.seek(currentPos);
                 raf.readFully(buffer);
@@ -382,17 +386,29 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @return a TarHeader object containing file metadata
      */
     private TarHeader parseTarHeader(byte[] headerBytes) {
-        // Extract the file name (first 100 bytes)
-        String fileName = new String(headerBytes, 0, 100, StandardCharsets.US_ASCII).trim();
+        // Extract null-terminated file name from first 100 bytes
+        int nameEnd = 0;
+        while (nameEnd < 100 && headerBytes[nameEnd] != 0) {
+            nameEnd++;
+        }
+        String fileName = new String(headerBytes, 0, nameEnd, StandardCharsets.US_ASCII);
 
         // If the file name is empty, we've reached the end of the archive
         if (fileName.isEmpty()) {
             return null;
         }
 
-        // Extract the file size (octal value in bytes 124-135)
-        String sizeStr = new String(headerBytes, 124, 12, StandardCharsets.US_ASCII).trim();
-        long fileSize = Long.parseLong(sizeStr, 8); // TAR file sizes are stored in octal
+        // Extract and sanitize octal file size from bytes 124–135
+        String sizeStr = new String(headerBytes, 124, 12, StandardCharsets.US_ASCII)
+                .replace("\0", "").trim();
+
+        long fileSize;
+        try {
+            fileSize = sizeStr.isEmpty() ? 0L : Long.parseLong(sizeStr, 8);
+        } catch (NumberFormatException nfe) {
+            log.warn("Malformed TAR size '{}', treating as 0", sizeStr, nfe);
+            fileSize = 0L;
+        }
 
         return new TarHeader(fileName, fileSize);
     }
@@ -417,6 +433,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
 
             // Loop through all entries in the Central Directory
             for (long i = 0; i < eocd.totalEntries; i++) {
+                if (filePaths.size() >= maxPreviewCount) {
+                    break;
+                }
                 long currentEntryStart = raf.getFilePointer(); // Track entry position
 
                 int signature = readIntLE(raf);
