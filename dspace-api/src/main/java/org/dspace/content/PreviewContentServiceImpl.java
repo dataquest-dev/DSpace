@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -64,6 +66,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
 
     private final String ARCHIVE_TYPE_ZIP = "zip";
     private final String ARCHIVE_TYPE_TAR = "tar";
+
     // This constant is used to limit the length of the preview content stored in the database to prevent
     // the database from being overloaded with large amounts of data.
     private static final int MAX_PREVIEW_COUNT_LENGTH = 2000;
@@ -169,16 +172,30 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     @Override
-    public List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream)
-            throws Exception {
-        File file = null;
+    public List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream) throws Exception {
         List<FileInfo> fileInfos = null;
-        try {
-            file = bitstreamService.retrieveFile(context, bitstream);
-        } catch (MissingLicenseAgreementException e) { /* Do nothing */ }
+        File file = null;
 
-        if (Objects.nonNull(file)) {
-            fileInfos = processFileToFilePreview(context, bitstream, file);
+        try {
+            file = bitstreamService.retrieveFile(context, bitstream); // Retrieve the file
+
+            if (Objects.nonNull(file)) {
+                fileInfos = processFileToFilePreview(context, bitstream, file);
+            }
+        } catch (MissingLicenseAgreementException e) {
+            log.error("Missing license agreement: ", e);
+            throw e;
+        } catch (IOException e) {
+            log.error("IOException during file processing: ", e);
+            throw e;
+        } finally {
+            // Ensure the file is deleted
+            if (file != null && file.exists()) {
+                boolean deleted = file.delete(); // Delete the file to avoid leaks
+                if (!deleted) {
+                    log.warn("Failed to delete temporary file: " + file.getAbsolutePath());
+                }
+            }
         }
         return fileInfos;
     }
@@ -335,33 +352,25 @@ public class PreviewContentServiceImpl implements PreviewContentService {
             long fileSize = raf.length();
             byte[] buffer = new byte[512];  // TAR header size is always 512 bytes
             long currentPos = 0;
-
             while (currentPos < fileSize) {
                 // Read the next 512-byte header
                 raf.seek(currentPos);
                 raf.readFully(buffer);
-
                 // Parse the header to extract file metadata
                 TarHeader header = parseTarHeader(buffer);
-
                 if (header == null || header.fileName.isEmpty()) {
                     break;  // End of archive (empty header)
                 }
-
                 // Handle the file metadata
                 long fileContentSize = header.fileSize;
                 String fileName = header.fileName;
-
                 // Move to the file content position
                 currentPos += 512; // Move past the header
-                byte[] fileContent = new byte[(int) fileContentSize];
-                raf.readFully(fileContent); // Read the file content
-
-                // Add the file to the list (or process it further)
+                // Add the file to the list (only metadata needed)
                 addFilePath(filePaths, fileName, fileContentSize);
-
-                // Move to the next file's header (file content is padded to 512-byte boundary)
-                currentPos += (fileContentSize + 511) / 512 * 512;
+                // Skip payload and align to next header
+                currentPos += fileContentSize;                  // skip payload
+                currentPos = ((currentPos + 511) / 512) * 512;   // align to 512-byte boundary
             }
         }
     }
@@ -516,15 +525,12 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @throws IOException if the stream ends unexpectedly before reading 4 bytes
      */
     private int readIntLE(RandomAccessFile raf) throws IOException {
-        int b1 = raf.read();
-        if (b1 == -1) throw new IOException("Unexpected EOF while reading int (byte 1)");
-        int b2 = raf.read();
-        if (b2 == -1) throw new IOException("Unexpected EOF while reading int (byte 2)");
-        int b3 = raf.read();
-        if (b3 == -1) throw new IOException("Unexpected EOF while reading int (byte 3)");
-        int b4 = raf.read();
-        if (b4 == -1) throw new IOException("Unexpected EOF while reading int (byte 4)");
-        return (b1 & 0xFF) | ((b2 & 0xFF) << 8) | ((b3 & 0xFF) << 16) | ((b4 & 0xFF) << 24);
+        byte[] bytes = new byte[4];
+        raf.readFully(bytes);  // Zabezpečí načítanie všetkých 4 bajtov alebo hodí EOFException
+
+        return ByteBuffer.wrap(bytes)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .getInt();
     }
 
     /**
@@ -534,12 +540,15 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @return the 16-bit integer value read (interpreted in little-endian order)
      * @throws IOException if the stream ends unexpectedly before reading 2 bytes
      */
-    private int readShortLE(RandomAccessFile raf) throws IOException {
-        int b1 = raf.read();
-        if (b1 == -1) throw new IOException("Unexpected EOF while reading short (byte 1)");
-        int b2 = raf.read();
-        if (b2 == -1) throw new IOException("Unexpected EOF while reading short (byte 2)");
-        return (b1 & 0xFF) | ((b2 & 0xFF) << 8);
+    private short readShortLE(RandomAccessFile raf) throws IOException {
+        byte[] buffer = new byte[2];
+        if (raf.read(buffer) != 2) {
+            throw new IOException("Unexpected EOF while reading 2-byte little-endian short");
+        }
+
+        return ByteBuffer.wrap(buffer)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .getShort();
     }
 
     /**
@@ -550,31 +559,14 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @throws IOException if the stream ends unexpectedly before reading 8 bytes
      */
     private long readLongLE(RandomAccessFile raf) throws IOException {
-        long b1 = raf.read();
-        if (b1 == -1) throw new IOException("Unexpected EOF while reading long (byte 1)");
-        long b2 = raf.read();
-        if (b2 == -1) throw new IOException("Unexpected EOF while reading long (byte 2)");
-        long b3 = raf.read();
-        if (b3 == -1) throw new IOException("Unexpected EOF while reading long (byte 3)");
-        long b4 = raf.read();
-        if (b4 == -1) throw new IOException("Unexpected EOF while reading long (byte 4)");
-        long b5 = raf.read();
-        if (b5 == -1) throw new IOException("Unexpected EOF while reading long (byte 5)");
-        long b6 = raf.read();
-        if (b6 == -1) throw new IOException("Unexpected EOF while reading long (byte 6)");
-        long b7 = raf.read();
-        if (b7 == -1) throw new IOException("Unexpected EOF while reading long (byte 7)");
-        long b8 = raf.read();
-        if (b8 == -1) throw new IOException("Unexpected EOF while reading long (byte 8)");
+        byte[] buffer = new byte[8];
+        if (raf.read(buffer) != 8) {
+            throw new IOException("Unexpected EOF while reading 8-byte little-endian long");
+        }
 
-        return (b1 & 0xFFL) |
-                ((b2 & 0xFFL) << 8) |
-                ((b3 & 0xFFL) << 16) |
-                ((b4 & 0xFFL) << 24) |
-                ((b5 & 0xFFL) << 32) |
-                ((b6 & 0xFFL) << 40) |
-                ((b7 & 0xFFL) << 48) |
-                ((b8 & 0xFFL) << 56);
+        return ByteBuffer.wrap(buffer)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .getLong();
     }
 
     /**
@@ -586,14 +578,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @throws IndexOutOfBoundsException if there are not enough bytes from offset
      */
     private long parseLongLE(byte[] bytes, int offset) {
-        return (long) (bytes[offset] & 0xFF) |
-                ((long) (bytes[offset + 1] & 0xFF) << 8) |
-                ((long) (bytes[offset + 2] & 0xFF) << 16) |
-                ((long) (bytes[offset + 3] & 0xFF) << 24) |
-                ((long) (bytes[offset + 4] & 0xFF) << 32) |
-                ((long) (bytes[offset + 5] & 0xFF) << 40) |
-                ((long) (bytes[offset + 6] & 0xFF) << 48) |
-                ((long) (bytes[offset + 7] & 0xFF) << 56);
+        return ByteBuffer.wrap(bytes, offset, 8)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .getLong();
     }
 
     /**
@@ -725,6 +712,10 @@ public class PreviewContentServiceImpl implements PreviewContentService {
 
             String line;
             while ((line = reader.readLine()) != null) {
+                if (cutResult && content.length() > MAX_PREVIEW_COUNT_LENGTH) {
+                    content.append(" . . .");
+                    break;
+                }
                 content.append(line).append("\n");
             }
 

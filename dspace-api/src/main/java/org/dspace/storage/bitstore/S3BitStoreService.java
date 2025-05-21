@@ -323,7 +323,7 @@ public class S3BitStoreService extends BaseBitStoreService {
 
             return tempFile;
         } catch (AmazonClientException | InterruptedException e) {
-            log.error("get(" + key + ")", e);
+            log.error("getFile(" + key + ")", e);
             throw new IOException(e);
         }
     }
