@@ -607,7 +607,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
                     (buffer[i + 2] & 0xFF) == 0x05 &&
                     (buffer[i + 3] & 0xFF) == 0x06) {
 
-                if (i + 22 > buffer.length) continue; // Avoid out-of-bounds read
+                if (i + 22 > buffer.length) {
+                    continue; // Avoid out-of-bounds read
+                }
 
                 int totalEntriesOnDisk16 = (buffer[i + 8] & 0xFF) | ((buffer[i + 9] & 0xFF) << 8);
                 int totalEntries16 = (buffer[i + 10] & 0xFF) | ((buffer[i + 11] & 0xFF) << 8);
