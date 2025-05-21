@@ -32,12 +32,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.tools.ant.taskdefs.Tar;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
@@ -471,10 +466,12 @@ public class PreviewContentServiceImpl implements PreviewContentService {
                     int pointer = 0;
                     while (pointer + 4 <= extraFieldLength) {
                         int headerId = (extraFieldBytes[pointer] & 0xFF) | ((extraFieldBytes[pointer + 1] & 0xFF) << 8);
-                        int dataSize = (extraFieldBytes[pointer + 2] & 0xFF) | ((extraFieldBytes[pointer + 3] & 0xFF) << 8);
+                        int dataSize = (extraFieldBytes[pointer + 2] & 0xFF) |
+                                ((extraFieldBytes[pointer + 3] & 0xFF) << 8);
 
                         if (pointer + 4 + dataSize > extraFieldLength) {
-                            System.err.println("Warning: Malformed extra field with ID 0x" + Integer.toHexString(headerId));
+                            System.err.println("Warning: Malformed extra field with ID 0x"
+                                    + Integer.toHexString(headerId));
                             break;
                         }
 
@@ -519,10 +516,14 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @throws IOException if the stream ends unexpectedly before reading 4 bytes
      */
     private int readIntLE(RandomAccessFile raf) throws IOException {
-        int b1 = raf.read(); if (b1 == -1) throw new IOException("Unexpected EOF while reading int (byte 1)");
-        int b2 = raf.read(); if (b2 == -1) throw new IOException("Unexpected EOF while reading int (byte 2)");
-        int b3 = raf.read(); if (b3 == -1) throw new IOException("Unexpected EOF while reading int (byte 3)");
-        int b4 = raf.read(); if (b4 == -1) throw new IOException("Unexpected EOF while reading int (byte 4)");
+        int b1 = raf.read();
+        if (b1 == -1) throw new IOException("Unexpected EOF while reading int (byte 1)");
+        int b2 = raf.read();
+        if (b2 == -1) throw new IOException("Unexpected EOF while reading int (byte 2)");
+        int b3 = raf.read();
+        if (b3 == -1) throw new IOException("Unexpected EOF while reading int (byte 3)");
+        int b4 = raf.read();
+        if (b4 == -1) throw new IOException("Unexpected EOF while reading int (byte 4)");
         return (b1 & 0xFF) | ((b2 & 0xFF) << 8) | ((b3 & 0xFF) << 16) | ((b4 & 0xFF) << 24);
     }
 
@@ -534,8 +535,10 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @throws IOException if the stream ends unexpectedly before reading 2 bytes
      */
     private int readShortLE(RandomAccessFile raf) throws IOException {
-        int b1 = raf.read(); if (b1 == -1) throw new IOException("Unexpected EOF while reading short (byte 1)");
-        int b2 = raf.read(); if (b2 == -1) throw new IOException("Unexpected EOF while reading short (byte 2)");
+        int b1 = raf.read();
+        if (b1 == -1) throw new IOException("Unexpected EOF while reading short (byte 1)");
+        int b2 = raf.read();
+        if (b2 == -1) throw new IOException("Unexpected EOF while reading short (byte 2)");
         return (b1 & 0xFF) | ((b2 & 0xFF) << 8);
     }
 
@@ -547,14 +550,22 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @throws IOException if the stream ends unexpectedly before reading 8 bytes
      */
     private long readLongLE(RandomAccessFile raf) throws IOException {
-        long b1 = raf.read(); if (b1 == -1) throw new IOException("Unexpected EOF while reading long (byte 1)");
-        long b2 = raf.read(); if (b2 == -1) throw new IOException("Unexpected EOF while reading long (byte 2)");
-        long b3 = raf.read(); if (b3 == -1) throw new IOException("Unexpected EOF while reading long (byte 3)");
-        long b4 = raf.read(); if (b4 == -1) throw new IOException("Unexpected EOF while reading long (byte 4)");
-        long b5 = raf.read(); if (b5 == -1) throw new IOException("Unexpected EOF while reading long (byte 5)");
-        long b6 = raf.read(); if (b6 == -1) throw new IOException("Unexpected EOF while reading long (byte 6)");
-        long b7 = raf.read(); if (b7 == -1) throw new IOException("Unexpected EOF while reading long (byte 7)");
-        long b8 = raf.read(); if (b8 == -1) throw new IOException("Unexpected EOF while reading long (byte 8)");
+        long b1 = raf.read();
+        if (b1 == -1) throw new IOException("Unexpected EOF while reading long (byte 1)");
+        long b2 = raf.read();
+        if (b2 == -1) throw new IOException("Unexpected EOF while reading long (byte 2)");
+        long b3 = raf.read();
+        if (b3 == -1) throw new IOException("Unexpected EOF while reading long (byte 3)");
+        long b4 = raf.read();
+        if (b4 == -1) throw new IOException("Unexpected EOF while reading long (byte 4)");
+        long b5 = raf.read();
+        if (b5 == -1) throw new IOException("Unexpected EOF while reading long (byte 5)");
+        long b6 = raf.read();
+        if (b6 == -1) throw new IOException("Unexpected EOF while reading long (byte 6)");
+        long b7 = raf.read();
+        if (b7 == -1) throw new IOException("Unexpected EOF while reading long (byte 7)");
+        long b8 = raf.read();
+        if (b8 == -1) throw new IOException("Unexpected EOF while reading long (byte 8)");
 
         return (b1 & 0xFFL) |
                 ((b2 & 0xFFL) << 8) |

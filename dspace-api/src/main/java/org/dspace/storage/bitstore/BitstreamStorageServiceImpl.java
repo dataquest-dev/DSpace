@@ -217,7 +217,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
 
     @Override
     public File retrieveFile(Context context, Bitstream bitstream)
-    throws IOException {
+        throws IOException {
         Integer storeNumber = bitstream.getStoreNumber();
         return this.getStore(storeNumber).getFile(bitstream);
     }
