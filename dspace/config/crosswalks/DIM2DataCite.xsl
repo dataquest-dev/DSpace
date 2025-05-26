@@ -11,9 +11,9 @@
 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:dspace="http://www.dspace.org/xmlns/dspace/dim"
-		xmlns="http://datacite.org/schema/kernel-4"
+                xmlns="http://datacite.org/schema/kernel-4"
                 version="2.0">
-    
+
     <!-- CONFIGURATION -->
     <!-- The parameters prefix, publisher, datamanager and hostinginstitution
          moved to DSpace's configuration. They will be substituted automatically.
@@ -21,7 +21,7 @@
          Please take a look into the DSpace documentation for details on how to
          change those. -->
     <!-- DO NOT CHANGE ANYTHING BELOW THIS LINE EXCEPT YOU REALLY KNOW WHAT YOU ARE DOING! -->
-    
+
     <!-- We need the prefix to determine DOIs that were minted by ourself. -->
     <xsl:param name="prefix">10.5072/dspace-</xsl:param>
     <!-- The content of the following parameter will be used as element publisher. -->
@@ -48,7 +48,7 @@
         -->
         <resource xmlns="http://datacite.org/schema/kernel-4"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		  xsi:schemaLocation="http://datacite.org/schema/kernel-4 https://schema.datacite.org/meta/kernel-4.5/metadata.xsd">
+                  xsi:schemaLocation="http://datacite.org/schema/kernel-4 https://schema.datacite.org/meta/kernel-4.5/metadata.xsd">
 
             <!--
                 MANDATORY PROPERTIES
@@ -157,7 +157,7 @@
                 Occ: 0-n
                 Format: open
                 Attribute: subjectSchema (optional), schemeURI (optional)
-            -->  
+            -->
             <xsl:if test="//dspace:field[@mdschema='dc' and @element='subject']">
                 <subjects>
                     <xsl:apply-templates select="//dspace:field[@mdschema='dc' and @element='subject']" />
@@ -171,7 +171,7 @@
                 Occ: 0-n
                 Format: personal name: family, given
                 Required Attribute: contributorType - controlled list
-            --> 
+            -->
             <contributors>
                 <xsl:element name="contributor">
                     <xsl:attribute name="contributorType">DataManager</xsl:attribute>
@@ -194,7 +194,7 @@
                 Template Call for Dates
                 Occ: 0-n
                 Required Attribute: dataType - controlled list
-            --> 
+            -->
             <xsl:if test="//dspace:field[@mdschema='dc' and @element='date' and 
                         (@qualifier='accessioned' 
                          or @qualifier='available' 
@@ -249,9 +249,9 @@
                 DataCite (12)
                 Add sizes.
             -->
-            <xsl:if test="//dspace:field[@mdschema='dc' and @element='format' and @qualifier='extent']">             
+            <xsl:if test="//dspace:field[@mdschema='dc' and @element='format' and @qualifier='extent']">
                 <xsl:element name="sizes">
-                    <xsl:apply-templates select="//dspace:field[@mdschema='dc' and @element='format' and @qualifier='extent']" />      
+                    <xsl:apply-templates select="//dspace:field[@mdschema='dc' and @element='format' and @qualifier='extent']" />
                 </xsl:element>
             </xsl:if>
 
@@ -260,7 +260,7 @@
             -->
             <xsl:if test="//dspace:field[@mdschema='dc' and @element='format'][not(@qualifier='extent')]">
                 <xsl:element name="formats">
-                    <xsl:apply-templates select="//dspace:field[@mdschema='dc' and @element='format'][not(@qualifier='extent')]" />       
+                    <xsl:apply-templates select="//dspace:field[@mdschema='dc' and @element='format'][not(@qualifier='extent')]" />
                 </xsl:element>
             </xsl:if>
 
@@ -287,7 +287,7 @@
                     <xsl:apply-templates select="//dspace:field[@mdschema='dc' and @element='description' and (@qualifier='abstract' or @qualifier='tableofcontents' or not(@qualifier))]" />
                 </xsl:element>
             </xsl:if>
-            
+
             <!--
                 DataCite (18)
                 GeoLocation
@@ -295,7 +295,7 @@
             -->
             <xsl:if test="//dspace:field[@mdschema='dc' and @element='coverage' and @qualifier='spatial']">
                 <geoLocations>
-                        <xsl:apply-templates select="//dspace:field[@mdschema='dc' and @element='coverage' and @qualifier='spatial']" />
+                    <xsl:apply-templates select="//dspace:field[@mdschema='dc' and @element='coverage' and @qualifier='spatial']" />
                 </geoLocations>
             </xsl:if>
 
@@ -381,7 +381,7 @@
     -->
     <xsl:template match="//dspace:field[@mdschema='dc' and @element='contributor'][not(@qualifier='author')]">
         <xsl:choose>
-            <xsl:when test="@qualifier='editor'"> 
+            <xsl:when test="@qualifier='editor'">
                 <xsl:element name="contributor">
                     <xsl:attribute name="contributorType">Editor</xsl:attribute>
                     <contributorName>
@@ -389,7 +389,7 @@
                     </contributorName>
                 </xsl:element>
             </xsl:when>
-            <xsl:when test="@qualifier='advisor'"> 
+            <xsl:when test="@qualifier='advisor'">
                 <xsl:element name="contributor">
                     <xsl:attribute name="contributorType">RelatedPerson</xsl:attribute>
                     <contributorName>
@@ -397,7 +397,7 @@
                     </contributorName>
                 </xsl:element>
             </xsl:when>
-            <xsl:when test="@qualifier='illustrator'"> 
+            <xsl:when test="@qualifier='illustrator'">
                 <xsl:element name="contributor">
                     <xsl:attribute name="contributorType">Other</xsl:attribute>
                     <contributorName>
@@ -405,7 +405,7 @@
                     </contributorName>
                 </xsl:element>
             </xsl:when>
-            <xsl:when test="@qualifier='other'"> 
+            <xsl:when test="@qualifier='other'">
                 <xsl:element name="contributor">
                     <xsl:attribute name="contributorType">Other</xsl:attribute>
                     <contributorName>
@@ -413,7 +413,7 @@
                     </contributorName>
                 </xsl:element>
             </xsl:when>
-            <xsl:when test="not(@qualifier)"> 
+            <xsl:when test="not(@qualifier)">
                 <xsl:element name="contributor">
                     <xsl:attribute name="contributorType">Other</xsl:attribute>
                     <contributorName>
@@ -448,7 +448,7 @@
                          or @qualifier='issued' 
                          or @qualifier='submitted'
                          or @qualifier='updated')]">
-    	<xsl:if test="@qualifier='accessioned' 
+        <xsl:if test="@qualifier='accessioned'
                         or @qualifier='available' 
                         or @qualifier='copyright' 
                         or @qualifier='created' 
@@ -480,9 +480,9 @@
                 <xsl:if test="@qualifier='updated'">
                     <xsl:attribute name="dateType">Updated</xsl:attribute>
                 </xsl:if>
-	    	<xsl:value-of select="substring(., 1, 10)" />
+                <xsl:value-of select="substring(., 1, 10)" />
             </xsl:element>
-	</xsl:if>
+        </xsl:if>
     </xsl:template>
 
     <!--
@@ -511,6 +511,12 @@
         <xsl:choose>
             <xsl:when test="//dspace:field[@mdschema='dc' and @element='type'][1]">
                 <xsl:variable name="types" select="tokenize(//dspace:field[@mdschema='dc' and @element='type'][1]/text(),';')"/>
+                <xsl:element name="resourceType">
+                    <xsl:attribute name="resourceTypeGeneral">
+                        <xsl:value-of select="$types[1]"/>
+                    </xsl:attribute>
+                    <xsl:value-of select="$types[2]" />
+                </xsl:element>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:element name="resourceType">
@@ -608,7 +614,7 @@
             <xsl:value-of select="." />
         </xsl:element>
     </xsl:template>
-    
+
     <!--
         DataCite (15)
         Version information.
@@ -638,10 +644,10 @@
     <xsl:template match="//dspace:field[@mdschema='dc' and @element='description' and (@qualifier='abstract' or @qualifier='tableofcontents' or not(@qualifier))]">
         <xsl:element name="description">
             <xsl:attribute name="descriptionType">
-           	<xsl:choose>
+                <xsl:choose>
                     <xsl:when test="@qualifier='abstract'">Abstract</xsl:when>
                     <xsl:when test="@qualifier='tableofcontents'">TableOfContents</xsl:when>
-               	    <xsl:otherwise>Other</xsl:otherwise>
+                    <xsl:otherwise>Other</xsl:otherwise>
                 </xsl:choose>
             </xsl:attribute>
             <xsl:value-of select="." />
