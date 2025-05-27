@@ -48,6 +48,7 @@ import org.dspace.content.service.PreviewContentService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
+import org.dspace.storage.bitstore.S3BitStoreService;
 import org.dspace.util.FileInfo;
 import org.dspace.util.FileTreeViewGenerator;
 import org.slf4j.Logger;
@@ -69,7 +70,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
 
     private final String ARCHIVE_TYPE_ZIP = "zip";
     private final String ARCHIVE_TYPE_TAR = "tar";
-
     // This constant is used to limit the length of the preview content stored in the database to prevent
     // the database from being overloaded with large amounts of data.
     private static final int MAX_PREVIEW_COUNT_LENGTH = 2000;
@@ -88,6 +88,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     @Autowired
     BitstreamService bitstreamService;
 
+    
     @Override
     public PreviewContent create(Context context, Bitstream bitstream, String name, String content,
                                  boolean isDirectory, String size, Map<String, PreviewContent> subPreviewContents)
