@@ -172,14 +172,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         } catch (IOException e) {
             log.error("IOException during file processing: ", e);
             throw e;
-        } finally {
-            // Ensure the file is deleted
-            if (file != null && file.exists()) {
-                boolean deleted = file.delete(); // Delete the file to avoid leaks
-                if (!deleted) {
-                    log.warn("Failed to delete temporary file: " + file.getAbsolutePath());
-                }
-            }
         }
         return fileInfos;
     }
@@ -326,51 +318,61 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     /**
-     * Processes a TAR file, extracting its entries and adding their paths to the provided list.
-     * @param filePaths the list to populate with the extracted file paths
-     * @param file the TAR file data
-     * @throws IOException if an I/O error occurs while reading the TAR file
-     */
-    private void processTarFile(List<String> filePaths, File file) throws IOException {
-        try (InputStream fis = new FileInputStream(file);
-             BufferedInputStream bis = new BufferedInputStream(fis);
-             TarArchiveInputStream tarInput = new TarArchiveInputStream(bis)) {
-
-            TarArchiveEntry entry;
-            while ((entry = tarInput.getNextTarEntry()) != null) {
-                if (filePaths.size() >= maxPreviewCount) {
-                    filePaths.add("... (too many files)");
-                    break;
-                }
-
-                if (!entry.isDirectory()) {
-                    String name = entry.getName();
-                    long size = entry.getSize();
-                    addFilePath(filePaths, name, size);
-                }
-
-                // Skip file contents efficiently
-                tarInput.skip(entry.getSize());
-            }
-        }
-    }
-
-    /**
-     * Parses a ZIP file and extracts the names and sizes of its entries.
+     * Parses a ZIP and TAR file and extracts the names and sizes of its entries.
      *
      * @param filePaths the list to populate with entry names
      * @param file      the ZIP file to read
      * @throws IOException if the file is invalid or cannot be read
      */
-    public void processZipFile(List<String> filePaths, File file) throws IOException {
-        try (ZipFile zipFile = new ZipFile(file)) {
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
-                if (!entry.isDirectory()) {
-                    addFilePath(filePaths, entry.getName(), entry.getSize());
+    public void process7zFile(List<String> filePaths, File file) throws IOException {
+        ProcessBuilder processBuilder = new ProcessBuilder("7z", "l", file.getAbsolutePath());
+        processBuilder.redirectErrorStream(true);
+
+        Process process = processBuilder.start();
+        Pattern pattern = Pattern.compile(
+                "^(\\d{4}-\\d{2}-\\d{2})\\s+(\\d{2}:\\d{2}:\\d{2})\\s+\\S+\\s+(\\d+)\\s+\\d+\\s+(.+)$"
+        );
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            boolean inFileList = false;
+
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+
+                if (line.isEmpty()) continue;
+
+                // Detect listing block between dashed lines
+                if (line.matches("^-+")) {
+                    inFileList = !inFileList;
+                    continue;
+                }
+
+                if (inFileList) {
+                    // Skip final summary lines like "7 files"
+                    if (line.matches(".*\\d+ files$")) continue;
+
+                    Matcher matcher = pattern.matcher(line);
+                    if (matcher.matches()) {
+                        try {
+                            long size = Long.parseLong(matcher.group(3));
+                            String fileName = matcher.group(4);
+                            addFilePath(filePaths, fileName, size);
+                        } catch (NumberFormatException ignored) {
+                            // Skip invalid lines
+                        }
+                    }
                 }
             }
+
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new IOException("7z command failed with exit code " + exitCode);
+            }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Restore interrupt flag
+            throw new IOException("7z process interrupted", e);
         }
     }
 
@@ -416,11 +418,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     private String extractFile(File file, String fileType) throws Exception {
         List<String> filePaths = new ArrayList<>();
         // Process the file based on its type
-        if (ARCHIVE_TYPE_TAR.equals(fileType)) {
-            processTarFile(filePaths, file);
-        } else {
-            processZipFile(filePaths, file);
-        }
+        process7zFile(filePaths, file);
         return buildXmlResponse(filePaths);
     }
 
