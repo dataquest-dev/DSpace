@@ -669,4 +669,15 @@ public class S3BitStoreService extends BaseBitStoreService {
         return internalId.startsWith(REGISTERED_FLAG);
     }
 
+    public AmazonS3 getAmazonS3() {
+        if (s3Service == null) {
+            try {
+                init();
+            } catch (IOException e) {
+                log.error("Error initializing S3BitStoreService", e);
+            }
+        }
+        return s3Service;
+    }
+
 }
