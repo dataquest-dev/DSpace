@@ -48,7 +48,6 @@ import org.dspace.content.service.PreviewContentService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
-import org.dspace.storage.bitstore.S3BitStoreService;
 import org.dspace.util.FileInfo;
 import org.dspace.util.FileTreeViewGenerator;
 import org.slf4j.Logger;
