@@ -7,16 +7,14 @@
  */
 package org.dspace.content;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -25,6 +23,7 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -34,7 +33,11 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
@@ -84,26 +87,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     ConfigurationService configurationService;
     @Autowired
     BitstreamService bitstreamService;
-
-    private static class EOCDRecord {
-        long  totalEntries;
-        long  centralDirectoryOffset;
-
-        EOCDRecord(long  totalEntries, long  centralDirectoryOffset) {
-            this.totalEntries = totalEntries;
-            this.centralDirectoryOffset = centralDirectoryOffset;
-        }
-    }
-
-    private static class TarHeader {
-        final String fileName;
-        final long fileSize;
-
-        TarHeader(String fileName, long fileSize) {
-            this.fileName = fileName;
-            this.fileSize = fileSize;
-        }
-    }
 
     @Override
     public PreviewContent create(Context context, Bitstream bitstream, String name, String content,
@@ -348,325 +331,46 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @throws IOException if an I/O error occurs while reading the TAR file
      */
     private void processTarFile(List<String> filePaths, File file) throws IOException {
-        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
-            long fileSize = raf.length();
-            byte[] buffer = new byte[512];  // TAR header size is always 512 bytes
-            long currentPos = 0;
-            while (currentPos < fileSize) {
+        try (InputStream fis = new FileInputStream(file);
+             BufferedInputStream bis = new BufferedInputStream(fis);
+             TarArchiveInputStream tarInput = new TarArchiveInputStream(bis)) {
+
+            TarArchiveEntry entry;
+            while ((entry = tarInput.getNextTarEntry()) != null) {
                 if (filePaths.size() >= maxPreviewCount) {
                     filePaths.add("... (too many files)");
                     break;
                 }
-                // Read the next 512-byte header
-                raf.seek(currentPos);
-                raf.readFully(buffer);
-                // Parse the header to extract file metadata
-                TarHeader header = parseTarHeader(buffer);
-                if (header == null || header.fileName.isEmpty()) {
-                    break;  // End of archive (empty header)
+
+                if (!entry.isDirectory()) {
+                    String name = entry.getName();
+                    long size = entry.getSize();
+                    addFilePath(filePaths, name, size);
                 }
-                // Handle the file metadata
-                long fileContentSize = header.fileSize;
-                String fileName = header.fileName;
-                // Move to the file content position
-                currentPos += 512; // Move past the header
-                // Add the file to the list (only metadata needed)
-                addFilePath(filePaths, fileName, fileContentSize);
-                // Skip payload and align to next header
-                currentPos += fileContentSize;                  // skip payload
-                currentPos = ((currentPos + 511) / 512) * 512;   // align to 512-byte boundary
+
+                // Skip file contents efficiently
+                tarInput.skip(entry.getSize());
             }
         }
     }
 
     /**
-     * Parse the 512-byte TAR header.
-     *
-     * @param headerBytes the header block (512 bytes)
-     * @return a TarHeader object containing file metadata
-     */
-    private TarHeader parseTarHeader(byte[] headerBytes) {
-        // Extract null-terminated file name from first 100 bytes
-        int nameEnd = 0;
-        while (nameEnd < 100 && headerBytes[nameEnd] != 0) {
-            nameEnd++;
-        }
-        String fileName = new String(headerBytes, 0, nameEnd, StandardCharsets.US_ASCII);
-
-        // If the file name is empty, we've reached the end of the archive
-        if (fileName.isEmpty()) {
-            return null;
-        }
-
-        // Extract and sanitize octal file size from bytes 124–135
-        String sizeStr = new String(headerBytes, 124, 12, StandardCharsets.US_ASCII)
-                .replace("\0", "").trim();
-
-        long fileSize;
-        try {
-            fileSize = sizeStr.isEmpty() ? 0L : Long.parseLong(sizeStr, 8);
-        } catch (NumberFormatException nfe) {
-            log.warn("Malformed TAR size '{}', treating as 0", sizeStr, nfe);
-            fileSize = 0L;
-        }
-
-        return new TarHeader(fileName, fileSize);
-    }
-
-    /**
      * Parses a ZIP file and extracts the names and sizes of its entries.
-     * Handles standard ZIP and ZIP64 formats for large files or archives with many entries.
      *
      * @param filePaths the list to populate with entry names
      * @param file      the ZIP file to read
      * @throws IOException if the file is invalid or cannot be read
      */
     public void processZipFile(List<String> filePaths, File file) throws IOException {
-        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
-            EOCDRecord eocd = findEOCD(raf);
-            if (eocd == null) {
-                throw new IOException("End of Central Directory not found. Not a valid ZIP file: " + file.getName());
-            }
-
-            // Seek to the Central Directory offset
-            raf.seek(eocd.centralDirectoryOffset);
-
-            // Loop through all entries in the Central Directory
-            for (long i = 0; i < eocd.totalEntries; i++) {
-                if (filePaths.size() >= maxPreviewCount) {
-                    break;
-                }
-                long currentEntryStart = raf.getFilePointer(); // Track entry position
-
-                int signature = readIntLE(raf);
-                if (signature != 0x02014b50) { // Central directory file header
-                    throw new IOException("Invalid central directory signature at entry " + i +
-                            " (offset: " + currentEntryStart + ")");
-                }
-
-                raf.skipBytes(2); // Version made by
-                raf.skipBytes(2); // Version needed to extract
-                int generalPurposeBitFlag = readShortLE(raf);
-
-                raf.skipBytes(2); // Compression method
-                raf.skipBytes(2); // File modification time
-                raf.skipBytes(2); // File modification date
-                raf.skipBytes(4); // CRC-32
-
-                // Read compressed/uncompressed sizes (can be -1 if ZIP64 is used)
-                int compressedSize32 = readIntLE(raf);
-                int uncompressedSize32 = readIntLE(raf);
-
-                int fileNameLength = readShortLE(raf);
-                int extraFieldLength = readShortLE(raf);
-                int fileCommentLength = readShortLE(raf);
-
-                raf.skipBytes(2); // Disk number start
-                raf.skipBytes(2); // Internal file attributes
-                raf.skipBytes(4); // External file attributes
-
-                int relativeOffset32 = readIntLE(raf); // Relative offset of local header
-
-                // Read file name
-                byte[] nameBytes = new byte[fileNameLength];
-                raf.readFully(nameBytes);
-
-                // Determine character set (bit 11 = UTF-8)
-                Charset charset = (generalPurposeBitFlag & (1 << 11)) != 0
-                        ? StandardCharsets.UTF_8
-                        : Charset.forName("IBM437");
-                String name = new String(nameBytes, charset);
-
-                // Default values for final sizes and offset (use 64-bit to avoid overflow)
-                long finalCompressedSize = compressedSize32 & 0xFFFFFFFFL;
-                long finalUncompressedSize = uncompressedSize32 & 0xFFFFFFFFL;
-                long finalRelativeOffset = relativeOffset32 & 0xFFFFFFFFL;
-
-                // Read extra fields (e.g. ZIP64 extended information)
-                long afterFileNamePos = raf.getFilePointer();
-                byte[] extraFieldBytes = new byte[extraFieldLength];
-                if (extraFieldLength > 0) {
-                    raf.readFully(extraFieldBytes);
-                }
-
-                // ZIP64 is used when sizes or offsets are too large for 32-bit integers
-                if (compressedSize32 == -1 || uncompressedSize32 == -1 || relativeOffset32 == -1) {
-                    int pointer = 0;
-                    while (pointer + 4 <= extraFieldLength) {
-                        int headerId = (extraFieldBytes[pointer] & 0xFF) | ((extraFieldBytes[pointer + 1] & 0xFF) << 8);
-                        int dataSize = (extraFieldBytes[pointer + 2] & 0xFF) |
-                                ((extraFieldBytes[pointer + 3] & 0xFF) << 8);
-
-                        if (pointer + 4 + dataSize > extraFieldLength) {
-                            System.err.println("Warning: Malformed extra field with ID 0x"
-                                    + Integer.toHexString(headerId));
-                            break;
-                        }
-
-                        if (headerId == 0x0001) { // ZIP64 Extended Information
-                            int offset = pointer + 4;
-                            int bytesRead = 0;
-
-                            if (uncompressedSize32 == -1 && bytesRead + 8 <= dataSize) {
-                                finalUncompressedSize = parseLongLE(extraFieldBytes, offset + bytesRead);
-                                bytesRead += 8;
-                            }
-                            if (compressedSize32 == -1 && bytesRead + 8 <= dataSize) {
-                                finalCompressedSize = parseLongLE(extraFieldBytes, offset + bytesRead);
-                                bytesRead += 8;
-                            }
-                            if (relativeOffset32 == -1 && bytesRead + 8 <= dataSize) {
-                                finalRelativeOffset = parseLongLE(extraFieldBytes, offset + bytesRead);
-                                bytesRead += 8;
-                            }
-                            break;
-                        }
-
-                        pointer += (4 + dataSize);
-                    }
-                }
-
-                // Skip comment field
-                raf.seek(afterFileNamePos + extraFieldLength);
-                raf.skipBytes(fileCommentLength);
-
-                // Pass extracted file entry to callback
-                addFilePath(filePaths, name, finalUncompressedSize);
-            }
-        }
-    }
-
-    /**
-     * Reads a 4-byte little-endian integer from a stream.
-     *
-     * @param raf the RandomAccessFile to read from
-     * @return the 32-bit integer value read (interpreted in little-endian order)
-     * @throws IOException if the stream ends unexpectedly before reading 4 bytes
-     */
-    private int readIntLE(RandomAccessFile raf) throws IOException {
-        byte[] bytes = new byte[4];
-        raf.readFully(bytes);  // Zabezpečí načítanie všetkých 4 bajtov alebo hodí EOFException
-
-        return ByteBuffer.wrap(bytes)
-                .order(ByteOrder.LITTLE_ENDIAN)
-                .getInt();
-    }
-
-    /**
-     * Reads a 2-byte little-endian short from a stream.
-     *
-     * @param raf the RandomAccessFile to read from
-     * @return the 16-bit integer value read (interpreted in little-endian order)
-     * @throws IOException if the stream ends unexpectedly before reading 2 bytes
-     */
-    private short readShortLE(RandomAccessFile raf) throws IOException {
-        byte[] buffer = new byte[2];
-        if (raf.read(buffer) != 2) {
-            throw new IOException("Unexpected EOF while reading 2-byte little-endian short");
-        }
-
-        return ByteBuffer.wrap(buffer)
-                .order(ByteOrder.LITTLE_ENDIAN)
-                .getShort();
-    }
-
-    /**
-     * Reads an 8-byte little-endian long from a stream.
-     *
-     * @param raf the RandomAccessFile to read from
-     * @return the 64-bit long value read (interpreted in little-endian order)
-     * @throws IOException if the stream ends unexpectedly before reading 8 bytes
-     */
-    private long readLongLE(RandomAccessFile raf) throws IOException {
-        byte[] buffer = new byte[8];
-        if (raf.read(buffer) != 8) {
-            throw new IOException("Unexpected EOF while reading 8-byte little-endian long");
-        }
-
-        return ByteBuffer.wrap(buffer)
-                .order(ByteOrder.LITTLE_ENDIAN)
-                .getLong();
-    }
-
-    /**
-     * Reads an 8-byte little-endian long from a byte array.
-     *
-     * @param bytes  the byte array containing the long value
-     * @param offset the starting index in the array
-     * @return the 64-bit long value parsed (interpreted in little-endian order)
-     * @throws IndexOutOfBoundsException if there are not enough bytes from offset
-     */
-    private long parseLongLE(byte[] bytes, int offset) {
-        return ByteBuffer.wrap(bytes, offset, 8)
-                .order(ByteOrder.LITTLE_ENDIAN)
-                .getLong();
-    }
-
-    /**
-     * Finds the End Of Central Directory (EOCD) record by scanning backward in the file.
-     * Supports standard and ZIP64 formats.
-     *
-     * @param raf the RandomAccessFile positioned at the start of the ZIP file
-     * @return an EOCDRecord containing the total number of entries and central directory offset, or null if not found
-     * @throws IOException if an I/O error occurs or if the EOCD or ZIP64 EOCD structure is invalid
-     */
-    private EOCDRecord findEOCD(RandomAccessFile raf) throws IOException {
-        long fileLength = raf.length();
-        // Scan up to 64KB + 20 bytes (ZIP64 EOCD Locator) + 56 bytes (ZIP64 EOCD) for safety
-        long scanRange = Math.min(fileLength, 65536L + 20L + 56L);
-        byte[] buffer = new byte[(int) scanRange]; // Cast to int is safe because scanRange is capped
-
-        raf.seek(fileLength - scanRange);
-        raf.readFully(buffer);
-
-        // First, search for the standard EOCD signature (0x06054b50) backwards
-        for (int i = buffer.length - 4; i >= 0; i--) {
-            if ((buffer[i] & 0xFF) == 0x50 &&
-                    (buffer[i + 1] & 0xFF) == 0x4b &&
-                    (buffer[i + 2] & 0xFF) == 0x05 &&
-                    (buffer[i + 3] & 0xFF) == 0x06) {
-
-                if (i + 22 > buffer.length) {
-                    continue; // Avoid out-of-bounds read
-                }
-
-                int totalEntriesOnDisk16 = (buffer[i + 8] & 0xFF) | ((buffer[i + 9] & 0xFF) << 8);
-                int totalEntries16 = (buffer[i + 10] & 0xFF) | ((buffer[i + 11] & 0xFF) << 8);
-                int cdOffset32 = (buffer[i + 16] & 0xFF) |
-                        ((buffer[i + 17] & 0xFF) << 8) |
-                        ((buffer[i + 18] & 0xFF) << 16) |
-                        ((buffer[i + 19] & 0xFF) << 24);
-
-                boolean isZip64 = totalEntries16 == 0xFFFF || cdOffset32 == -1 || totalEntriesOnDisk16 == 0xFFFF;
-
-                if (isZip64) {
-                    int zip64LocatorStart = i - 20;
-                    if (zip64LocatorStart >= 0 &&
-                            (buffer[zip64LocatorStart] & 0xFF) == 0x50 &&
-                            (buffer[zip64LocatorStart + 1] & 0xFF) == 0x4b &&
-                            (buffer[zip64LocatorStart + 2] & 0xFF) == 0x06 &&
-                            (buffer[zip64LocatorStart + 3] & 0xFF) == 0x07) {
-
-                        long zip64EOCDOffset = parseLongLE(buffer, zip64LocatorStart + 8);
-                        raf.seek(zip64EOCDOffset);
-
-                        if (readIntLE(raf) != 0x06064b50) {
-                            throw new IOException("Invalid ZIP64 EOCD signature.");
-                        }
-
-                        raf.skipBytes(8 + 2 + 2 + 4 + 4 + 8); // Skip ahead
-                        long totalEntries64 = readLongLE(raf);
-                        raf.skipBytes(8);
-                        long cdOffset64 = readLongLE(raf);
-
-                        return new EOCDRecord(totalEntries64, cdOffset64);
-                    }
-                } else {
-                    return new EOCDRecord(totalEntries16, cdOffset32);
+        try (ZipFile zipFile = new ZipFile(file)) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (!entry.isDirectory()) {
+                    addFilePath(filePaths, entry.getName(), entry.getSize());
                 }
             }
         }
-        return null; // Standard EOCD signature not found in the scanned range
     }
 
     /**
