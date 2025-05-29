@@ -9,6 +9,7 @@ package org.dspace.app.rest;
 
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
+import static org.dspace.core.Constants.CONTENT_BUNDLE_NAME;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.io.IOException;
@@ -192,7 +193,7 @@ public class BitstreamRestController {
                     // not correctly downloaded and displayed in the UI when using presigned URLs. E.g., the
                     // process output.
                     boolean hasOriginalBundle = bit.getBundles().stream()
-                            .anyMatch(bundle -> "ORIGINAL".equals(bundle.getName()));
+                            .anyMatch(bundle -> CONTENT_BUNDLE_NAME.equals(bundle.getName()));
 
                     if (hasOriginalBundle) {
                         return redirectToS3DownloadUrl(httpHeaders, name, bit.getInternalId());
