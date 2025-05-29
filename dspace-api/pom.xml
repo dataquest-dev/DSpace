@@ -843,10 +843,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itextpdf</artifactId>
         </dependency>
@@ -964,11 +960,6 @@
             <version>2.13.16</version>
             <scope>test</scope>
           </dependency>
-            <dependency>
-                <groupId>com.googlecode.json-simple</groupId>
-                <artifactId>json-simple</artifactId>
-                <version>1.1</version>
-            </dependency>
             <dependency>
                 <groupId>com.itextpdf</groupId>
                 <artifactId>itextpdf</artifactId>
