@@ -57,6 +57,9 @@ import org.dspace.license.service.CreativeCommonsService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
+import org.dspace.storage.bitstore.BitStoreService;
+import org.dspace.storage.bitstore.S3BitStoreService;
+import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.dspace.submit.factory.SubmissionServiceFactory;
 import org.dspace.submit.service.SubmissionConfigService;
 import org.dspace.workflow.WorkflowException;
@@ -102,6 +105,8 @@ public class SubmissionService {
     @Autowired
     private org.dspace.app.rest.utils.Utils utils;
     private SubmissionConfigService submissionConfigService;
+    @Autowired
+    S3BitStoreService s3BitStoreService;
 
     public SubmissionService() throws SubmissionConfigReaderException {
         submissionConfigService = SubmissionServiceFactory.getInstance().getSubmissionConfigService();
@@ -220,6 +225,13 @@ public class SubmissionService {
         data.setSizeBytes(source.getSizeBytes());
         data.setUrl(configurationService.getProperty("dspace.server.url") + "/api/" + BitstreamRest.CATEGORY + "/" +
                         English.plural(BitstreamRest.NAME) + "/" + source.getID() + "/content");
+
+        boolean s3Enabled = configurationService.getBooleanProperty("assetstore.s3.enabled", false);
+        boolean directUploadEnabled = configurationService.getBooleanProperty("s3.upload.direct.enabled", false);
+        if (s3Enabled && directUploadEnabled) {
+            String bitstreamS3Path = s3BitStoreService.getFullKey(source.getInternalId());
+            data.setFullKey(bitstreamS3Path);
+        }
         return data;
     }
 

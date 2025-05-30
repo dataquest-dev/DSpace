@@ -79,7 +79,10 @@ public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl
 
         BitStoreService store = this.getStore(getIncoming());
         //For efficiencies sake, PUT is responsible for setting bitstream size_bytes, checksum, and checksum_algorithm
-        store.put(bitstream, is);
+        boolean s3DirectUploadEnabled = configurationService.getBooleanProperty("s3.upload.direct.enabled");
+        if (!s3DirectUploadEnabled) {
+            store.put(bitstream, is);
+        }
         //bitstream.setSizeBytes(file.length());
         //bitstream.setChecksum(Utils.toHex(dis.getMessageDigest().digest()));
         //bitstream.setChecksumAlgorithm("MD5");

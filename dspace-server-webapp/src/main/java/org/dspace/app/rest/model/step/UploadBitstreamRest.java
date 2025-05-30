@@ -32,6 +32,7 @@ public class UploadBitstreamRest extends UploadStatusResponse {
     private Long sizeBytes;
     private CheckSumRest checkSum;
     private String url;
+    private String fullKey;
 
     public Long getSizeBytes() {
         return sizeBytes;
@@ -71,6 +72,14 @@ public class UploadBitstreamRest extends UploadStatusResponse {
 
     public void setMetadata(Map<String, List<MetadataValueRest>> metadata) {
         this.metadata = metadata;
+    }
+
+    public String getFullKey() {
+        return fullKey;
+    }
+
+    public void setFullKey(String fullKey) {
+        this.fullKey = fullKey;
     }
 
     public List<AccessConditionDTO> getAccessConditions() {

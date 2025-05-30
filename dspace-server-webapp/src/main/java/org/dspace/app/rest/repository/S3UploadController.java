@@ -49,10 +49,10 @@ public class S3UploadController {
     private String bucketName = "testbucket";
 
     @PostMapping("/initiate")
-    public InitiateResponse initiateMultipartUpload(@RequestParam String fileName) {
+    public InitiateResponse initiateMultipartUpload(@RequestParam String fileName, @RequestParam String key) {
         this.amazonS3 = s3BitStoreService.getAmazonS3();
         // Create the multipart upload request
-        String key = "eighty-eight/43/34/91/43349123994797340734389361345819157822"; // Use the file name as the S3 key
+//        String key = "eighty-eight/43/34/91/43349123994797340734389361345819157822"; // Use the file name as the S3 key
         InitiateMultipartUploadRequest req = new InitiateMultipartUploadRequest(bucketName, key);
         // (Optional: set storage class, ACL, metadata here)
         InitiateMultipartUploadResult result = amazonS3.initiateMultipartUpload(req);
@@ -61,22 +61,23 @@ public class S3UploadController {
     }
 
     @GetMapping("/{uploadId}/presign")
-    public URL getPresignedUrl(
+    public PresignedPart getPresignedUrl(
             @PathVariable String uploadId,
             @RequestParam int partNumber,
             @RequestParam String key) {
         // Build a presigned URL for this part
-        key = "eighty-eight/43/34/91/43349123994797340734389361345819157822";
+//        key = "eighty-eight/43/34/91/43349123994797340734389361345819157822";
+        Instant expiresAt = Instant.now().plus(Duration.ofSeconds(7));
         GeneratePresignedUrlRequest presignedReq =
                 new GeneratePresignedUrlRequest(bucketName, key)
                         .withMethod(HttpMethod.PUT)
-                        .withExpiration(Date.from(Instant.now().plus(Duration.ofMinutes(15))));
+                        .withExpiration(Date.from(expiresAt));
         // Required parameters for multipart upload
         presignedReq.addRequestParameter("uploadId", uploadId);
         presignedReq.addRequestParameter("partNumber", Integer.toString(partNumber));
         // (Optional: add CONTENT_MD5 header for data integrity)
         URL url = amazonS3.generatePresignedUrl(presignedReq);
-        return url;
+        return new PresignedPart(partNumber, url, expiresAt);
     }
 
     @GetMapping("/{uploadId}/presign-all")
@@ -85,18 +86,19 @@ public class S3UploadController {
             @RequestParam String key,
             @RequestParam int totalParts) {
 
-        key = "eighty-eight/43/34/91/43349123994797340734389361345819157822"; // Or receive this dynamically
+//        key = "eighty-eight/43/34/91/43349123994797340734389361345819157822"; // Or receive this dynamically
         List<PresignedPart> urls = new ArrayList<>();
 
+        Instant expiresAt = Instant.now().plus(Duration.ofSeconds(7));
         for (int partNumber = 1; partNumber <= totalParts; partNumber++) {
             GeneratePresignedUrlRequest presignedReq = new GeneratePresignedUrlRequest(bucketName, key)
                     .withMethod(HttpMethod.PUT)
-                    .withExpiration(Date.from(Instant.now().plus(Duration.ofMinutes(15))));
+                    .withExpiration(Date.from(expiresAt));
             presignedReq.addRequestParameter("uploadId", uploadId);
             presignedReq.addRequestParameter("partNumber", Integer.toString(partNumber));
 
             URL presignedUrl = amazonS3.generatePresignedUrl(presignedReq);
-            urls.add(new PresignedPart(partNumber, presignedUrl.toString()));
+            urls.add(new PresignedPart(partNumber, presignedUrl, expiresAt));
         }
 
         return urls;
@@ -134,14 +136,14 @@ public class S3UploadController {
         public String eTag;
     }
 
-//    @GetMapping("/list-parts")
-//    public List<PartETag> listUploadedParts(@RequestParam String uploadId, @RequestParam String key) {
-//        ListPartsRequest listPartsRequest = new ListPartsRequest(bucketName, key, uploadId);
-//        PartListing partListing = amazonS3.listParts(listPartsRequest);
-//        return partListing.getParts().stream()
-//                .map(partSummary -> new PartETag(partSummary.getPartNumber(), partSummary.getETag()))
-//                .collect(Collectors.toList());
-//    }
+    @GetMapping("/list-parts")
+    public List<PartETag> listUploadedParts(@RequestParam String uploadId, @RequestParam String key) {
+        ListPartsRequest listPartsRequest = new ListPartsRequest(bucketName, key, uploadId);
+        PartListing partListing = amazonS3.listParts(listPartsRequest);
+        return partListing.getParts().stream()
+                .map(partSummary -> new PartETag(partSummary.getPartNumber(), partSummary.getETag()))
+                .collect(Collectors.toList());
+    }
 
     @PostMapping("/complete")
     public CompleteResponse completeMultipartUpload(@RequestBody CompleteRequest req) {
@@ -164,15 +166,25 @@ public class S3UploadController {
     public static class PresignedPart {
         private int partNumber;
         private String url;
+        private Instant expiresAt;   // new
 
-        public PresignedPart(int partNumber, String url) {
+        public PresignedPart(int partNumber, URL url, Instant expiresAt) {
             this.partNumber = partNumber;
-            this.url = url;
+            this.url        = url.toString();
+            this.expiresAt  = expiresAt;
         }
         // public getters & setters
         public int getPartNumber() { return partNumber; }
         public void setPartNumber(int partNumber) { this.partNumber = partNumber; }
         public String getUrl() { return url; }
         public void setUrl(String url) { this.url = url; }
+
+        public Instant getExpiresAt() {
+            return expiresAt;
+        }
+
+        public void setExpiresAt(Instant expiresAt) {
+            this.expiresAt = expiresAt;
+        }
     }
 }
