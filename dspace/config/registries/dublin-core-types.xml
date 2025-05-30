@@ -282,6 +282,15 @@
     <scope_note>Uniform Resource Identifier</scope_note>
   </dc-type>
 
+  <!-- ZCU-PUB -->
+  <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>orcid</qualifier>
+    <scope_note>ORCID identifier imported from OBD</scope_note>
+  </dc-type>
+  <!-- ZCU-PUB -->
+
   <!-- Used by system: do not remove -->
   <dc-type>
 	<schema>dc</schema>
