@@ -15,6 +15,8 @@ import org.apache.commons.io.FileUtils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.storage.bitstore.DSBitStoreService;
 import org.dspace.utils.DSpace;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * @author LINDAT/CLARIN dev team
@@ -26,24 +28,28 @@ public class InfoCheck extends Check {
         ConfigurationService configurationService
             = new DSpace().getConfigurationService();
         StringBuilder sb = new StringBuilder();
-        sb.append("Generated: ").append(
-            new Date().toString()
-        ).append("\n");
+        JSONObject root = new JSONObject();
 
-        sb.append("From - Till: ").append(
-            new SimpleDateFormat("yyyy-MM-dd").format(ri.from().getTime())
-        ).append(" - ").append(
-            new SimpleDateFormat("yyyy-MM-dd").format(ri.till().getTime())
-        ).append("\n");
+        String generatedStr = new Date().toString();
+        sb.append("Generated: ").append(generatedStr).append("\n");
+        root.put("generated", generatedStr);
 
-        sb.append("Url: ").append(
-            configurationService.getProperty("dspace.ui.url")
-        ).append("\n");
+        String fromTill = "From - Till: " + new SimpleDateFormat("yyyy-MM-dd").format(ri.from().getTime()) +
+            " - " + new SimpleDateFormat("yyyy-MM-dd").format(ri.till().getTime());
+        sb.append(fromTill).append("\n");
+        root.put("fromTill", fromTill);
+
+        String url = "Url: " + configurationService.getProperty("dspace.ui.url");
+        sb.append(url).append("\n");
         sb.append("\n");
+        root.put("url", url);
 
         DSBitStoreService localStore = new DSpace().getServiceManager()
                 .getServicesByType(DSBitStoreService.class)
                 .get(0);
+
+        // Build an array of “directory stats”
+        JSONArray dirStatsArray = new JSONArray();
         for (String[] ss : new String[][] {
             new String[] {
                 localStore.getBaseDir().toString(),
@@ -51,26 +57,39 @@ public class InfoCheck extends Check {
             new String[] {
                 configurationService.getProperty("log.report.dir"),
                 "Log dir size",},}) {
+            JSONObject oneStat = new JSONObject();
+            oneStat.put("label", ss[1]);
+
             if (ss[0] != null) {
                 try {
                     File dir = new File(ss[0]);
                     if (dir.exists()) {
                         long dir_size = FileUtils.sizeOfDirectory(dir);
-                        sb.append(String.format("%-20s: %s\n", ss[1],
-                                                FileUtils.byteCountToDisplaySize(dir_size))
+                        String displaySize = FileUtils.byteCountToDisplaySize(dir_size);
+                        sb.append(String.format("%-20s: %s\n", ss[1], displaySize)
                         );
+                        oneStat.put("path", ss[0]);
+                        oneStat.put("size_bytes", dir_size);
+                        oneStat.put("size_display", displaySize);
                     } else {
-                        sb.append(String.format("Directory [%s] does not exist!\n", ss[0]));
+                        String msg = String.format("Directory %s does not exist!", ss[0]);
+                        oneStat.put("path", ss[0]);
+                        oneStat.put("notExist", msg);
+                        sb.append(msg);
                     }
                 } catch (Exception e) {
                     error(e, "directory - " + ss[0]);
                 }
             } else { // cannot read property for some reason
-                sb.append(String.format("Could not get information for %s!\n", ss[1]));
+                String msg = String.format("Could not get information for %s!\n", ss[1]);
+                sb.append(msg);
+                oneStat.put("warning", msg);
             }
+            dirStatsArray.put(oneStat);
         }
+        root.put("directoryStats", dirStatsArray);
 
+        this.setReportJson(root);
         return sb.toString();
     }
-
 }
