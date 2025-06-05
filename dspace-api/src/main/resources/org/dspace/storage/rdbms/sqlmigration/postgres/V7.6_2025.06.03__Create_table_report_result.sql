@@ -1,0 +1,19 @@
+CREATE TABLE report_result (
+    report_result_id integer NOT NULL,
+    type varchar(256),
+    value TEXT,
+    executor_id UUID REFERENCES EPerson(uuid) ON DELETE SET NULL,
+    args TEXT,
+    last_modified TIMESTAMP
+);
+
+--
+-- Name: license_definition_license_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
+--
+
+CREATE SEQUENCE report_result_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
