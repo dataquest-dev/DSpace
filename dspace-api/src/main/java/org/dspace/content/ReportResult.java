@@ -25,7 +25,7 @@ import javax.persistence.TemporalType;
 import java.util.Date;
 
 /**
- * ReportResult is an entity that stores the results of a report execution.
+ * ReportResult is an entity that stores the results of a Health Report execution.
  * It includes the type of report, the value of the result, the executor,
  * arguments used for the report, and the last modified date.
  *
