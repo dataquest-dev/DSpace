@@ -13,15 +13,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.mail.MessagingException;
 
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.content.ReportResult;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ReportResultService;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
@@ -34,6 +40,8 @@ import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * This class is used to generate a health report of the DSpace instance.
@@ -44,6 +52,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
     private static final Logger log = LogManager.getLogger(HealthReport.class);
 
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    private ReportResultService reportResultService = ContentServiceFactory.getInstance().getReportResultService();
     private EPersonService ePersonService;
 
     /**
@@ -136,12 +145,18 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             return;
         }
 
+        Context context = new Context();
+        context.setCurrentUser(ePersonService.find(context, this.getEpersonIdentifier()));
+
         ReportInfo ri = new ReportInfo(this.forLastNDays);
 
         StringBuilder sbReport = new StringBuilder();
         sbReport.append("\n\nHEALTH REPORT:\n");
 
         int position = -1;
+        JSONObject root = new JSONObject();
+        // Create the array
+        JSONArray checksArray = new JSONArray();
         for (Map.Entry<String, Check> check_entry : Report.checks().entrySet()) {
             ++position;
             if (specificCheck != -1 && specificCheck != position) {
@@ -157,13 +172,32 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             sbReport.append("\n######################\n\n").append(name).append(":\n");
             check.report(ri);
             sbReport.append(check.getReport());
+
+            // JSON:
+            // Check name: {Report}
+            JSONObject report = check.getReportJson();  // assume check is already defined
+
+            JSONObject checkJson = new JSONObject();
+            checkJson.put("name", name);
+            checkJson.put("report", report);
+            // Add items to array
+            checksArray.put(checkJson);
         }
+
+        // Add array to root object under a key "checks"
+        root.put("checks", checksArray);
+
+        // Add health report summary to the ReportResult object
+        ReportResult reportResult = reportResultService.create(context);
+        reportResult.setArgs(printCommandlineOptions());
+        reportResult.setExecutor(context.getCurrentUser());
+        reportResult.setType("healthcheck");
+        reportResult.setValue(root.toString());
+        reportResultService.update(context, reportResult);
+        context.commit();
 
         // save output to file
         if (fileName != null) {
-            Context context = new Context();
-            context.setCurrentUser(ePersonService.find(context, this.getEpersonIdentifier()));
-
             InputStream inputStream = toInputStream(sbReport.toString(), StandardCharsets.UTF_8);
             handler.writeFilestream(context, fileName, inputStream, "export");
 
@@ -199,6 +233,21 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
                 "  -o, --output          Specify a file to save the report\n\n" +
                 "If you want to execute only one check using -c, use check index:\n" + checksNamesToString() + "\n"
         );
+    }
+
+    /**
+     * Print command line options in a readable format.
+     * This method is used to print the options used for the report.
+     */
+    private String printCommandlineOptions() {
+        // Return key-value pairs of options
+        StringBuilder options = new StringBuilder();
+        for (Option option : commandLine.getOptions()) {
+            String key = option.getOpt();
+            String value = commandLine.getOptionValue(key);
+            options.append(String.format("  -%s: %s\n", key, value));
+        }
+        return options.toString();
     }
 
     /**
