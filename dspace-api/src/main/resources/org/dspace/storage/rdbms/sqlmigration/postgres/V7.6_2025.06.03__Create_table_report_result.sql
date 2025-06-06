@@ -4,7 +4,7 @@ CREATE TABLE report_result (
     value TEXT,
     executor_id UUID REFERENCES EPerson(uuid) ON DELETE SET NULL,
     args TEXT,
-    last_modified TIMESTAMP
+    last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 --
