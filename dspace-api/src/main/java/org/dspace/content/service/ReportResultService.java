@@ -10,14 +10,11 @@ package org.dspace.content.service;
 import java.sql.SQLException;
 
 import org.dspace.content.ReportResult;
-import org.dspace.content.ReportResultServiceImpl;
 import org.dspace.core.Context;
 
 /**
  * Service interface for managing ReportResult objects.
  * This interface defines methods for creating, finding, deleting, and updating ReportResult instances.
- * It is intended to be used by the ReportResultServiceImpl class.
- * @see ReportResultServiceImpl
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
