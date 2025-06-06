@@ -66,10 +66,6 @@ public class ReportResult implements ReloadableEntity<Integer> {
     public ReportResult() {
     }
 
-    public Integer getId() {
-        return id;
-    }
-
     public void setId(Integer id) {
         this.id = id;
     }
