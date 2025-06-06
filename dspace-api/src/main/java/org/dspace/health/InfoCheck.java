@@ -30,7 +30,7 @@ public class InfoCheck extends Check {
         StringBuilder sb = new StringBuilder();
         JSONObject root = new JSONObject();
 
-        String generatedStr = new Date().toString();
+        String generatedStr = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         sb.append("Generated: ").append(generatedStr).append("\n");
         root.put("generated", generatedStr);
 
