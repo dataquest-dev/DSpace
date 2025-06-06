@@ -1,9 +1,9 @@
 CREATE TABLE report_result (
-    report_result_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    report_result_id INTEGER NOT NULL DEFAULT NEXTVAL('report_result_id_seq') PRIMARY KEY
     type VARCHAR(256),
     value TEXT,
     executor_id UUID,
     args TEXT,
-    last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,,
+    last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (executor_id) REFERENCES EPerson(uuid) ON DELETE SET NULL
 );
