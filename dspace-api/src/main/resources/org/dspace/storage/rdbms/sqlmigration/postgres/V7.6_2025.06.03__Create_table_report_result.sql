@@ -8,7 +8,7 @@ CREATE TABLE report_result (
 );
 
 --
--- Name: license_definition_license_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
+-- Name: report_result_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
 --
 
 CREATE SEQUENCE report_result_id_seq
