@@ -107,7 +107,8 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 String url = previewContentService.composePreviewURL(context, item, bitstream, contextPath);
                 List<FileInfo> fileInfos = new ArrayList<>();
                 boolean canPreview = previewContentService.canPreview(context, bitstream);
-                if (canPreview) {
+                String mimeType = bitstream.getFormat(context).getMIMEType();
+                if (Objects.equals("text/html", mimeType) || canPreview) {
                     try {
                         List<PreviewContent> prContents = previewContentService.hasPreview(context, bitstream);
                         // Generate new content if we didn't find any
