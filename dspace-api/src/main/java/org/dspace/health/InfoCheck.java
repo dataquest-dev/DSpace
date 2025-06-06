@@ -39,10 +39,10 @@ public class InfoCheck extends Check {
         sb.append(fromTill).append("\n");
         root.put("fromTill", fromTill);
 
-        String url = "Url: " + configurationService.getProperty("dspace.ui.url");
-        sb.append(url).append("\n");
+        String urlValue = "Url: " + configurationService.getProperty("dspace.ui.url");
+        sb.append("Url: ").append(urlValue).append("\n");
         sb.append("\n");
-        root.put("url", url);
+        root.put("url", urlValue);
 
         DSBitStoreService localStore = new DSpace().getServiceManager()
                 .getServicesByType(DSBitStoreService.class)
