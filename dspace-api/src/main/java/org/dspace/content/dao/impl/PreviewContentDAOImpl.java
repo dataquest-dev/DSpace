@@ -40,12 +40,28 @@ public class PreviewContentDAOImpl extends AbstractHibernateDAO<PreviewContent> 
     }
 
     @Override
-    public List<PreviewContent> hasPreview(Context context, Bitstream bitstream) throws SQLException {
+    public boolean hasPreview(Context context, Bitstream bitstream) throws SQLException {
         String sql =
-                "SELECT 1 FROM previewcontent pc\n" +
-                        "WHERE pc.bitstream_id = :bitstream_id\n" +
-                        "LIMIT 1";
+                "SELECT COUNT(*) FROM previewcontent pc " +
+                        "WHERE pc.bitstream_id = :bitstream_id";
         Query query = getHibernateSession(context).createNativeQuery(sql, PreviewContent.class);
+        query.setParameter("bitstream_id", bitstream.getID());
+        query.setHint("org.hibernate.cacheable", Boolean.TRUE);
+        query.setMaxResults(1);
+        long count = ((Number) query.getSingleResult()).longValue();
+        return count > 0;
+    }
+
+    @Override
+    public List<PreviewContent> getPreview(Context context, Bitstream bitstream) throws SQLException {
+        // select only data from the previewcontent table whose ID is not a child in the preview2preview table
+        Query query = getHibernateSession(context).createNativeQuery(
+                "SELECT pc.* FROM previewcontent pc " +
+                        "JOIN bitstream b ON pc.bitstream_id = b.uuid " +
+                        "WHERE b.uuid = :bitstream_id " +
+                        "AND NOT EXISTS (SELECT 1 FROM preview2preview p2p WHERE pc.previewcontent_id = p2p.child_id)",
+                PreviewContent.class
+        );
         query.setParameter("bitstream_id", bitstream.getID());
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
         return findMany(context, query);

@@ -109,9 +109,8 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 boolean canPreview = previewContentService.canPreview(context, bitstream, false);
                 if (canPreview) {
                     try {
-                        List<PreviewContent> prContents = previewContentService.hasPreview(context, bitstream);
                         // Generate new content if we didn't find any
-                        if (prContents.isEmpty()) {
+                        if (!previewContentService.hasPreview(context, bitstream)) {
                             boolean allowComposePreviewContent = configurationService.getBooleanProperty
                                     ("create.file-preview.on-item-page-load", false);
                             if (allowComposePreviewContent) {
@@ -126,6 +125,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                                 }
                             }
                         } else {
+                            List<PreviewContent> prContents = previewContentService.getPreview(context, bitstream);
                             for (PreviewContent pc : prContents) {
                                 fileInfos.add(previewContentService.createFileInfo(pc));
                             }

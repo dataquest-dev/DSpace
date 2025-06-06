@@ -178,7 +178,8 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    public File retrieveFile(Context context, Bitstream bitstream, boolean authorization) throws IOException, SQLException, AuthorizeException;
+    public File retrieveFile(Context context, Bitstream bitstream, boolean authorization)
+            throws IOException, SQLException, AuthorizeException;
 
     /**
      * Determine if this bitstream is registered (available elsewhere on

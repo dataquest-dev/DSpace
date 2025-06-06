@@ -32,7 +32,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
@@ -88,7 +87,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     @Autowired
     BitstreamService bitstreamService;
 
-    
     @Override
     public PreviewContent create(Context context, Bitstream bitstream, String name, String content,
                                  boolean isDirectory, String size, Map<String, PreviewContent> subPreviewContents)
@@ -129,8 +127,13 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     @Override
-    public List<PreviewContent> hasPreview(Context context, Bitstream bitstream) throws SQLException {
+    public boolean hasPreview(Context context, Bitstream bitstream) throws SQLException {
         return previewContentDAO.hasPreview(context, bitstream);
+    }
+
+    @Override
+    public List<PreviewContent> getPreview(Context context, Bitstream bitstream) throws SQLException {
+        return previewContentDAO.getPreview(context, bitstream);
     }
 
     @Override
@@ -139,7 +142,8 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     @Override
-    public boolean canPreview(Context context, Bitstream bitstream, boolean authorization) throws SQLException, AuthorizeException {
+    public boolean canPreview(Context context, Bitstream bitstream, boolean authorization)
+            throws SQLException, AuthorizeException {
         try {
             // Check it is allowed by configuration
             boolean isAllowedByCfg = configurationService.getBooleanProperty("file.preview.enabled", true);

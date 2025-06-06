@@ -83,13 +83,22 @@ public interface PreviewContentService {
     List<PreviewContent> findByBitstream(Context context, UUID bitstream_id) throws SQLException;
 
     /**
+     * Returns true if the bitstream has associated preview content.
+     *
+     * @param context        DSpace context
+     * @param bitstream      The bitstream to get bitstream UUID
+     * @throws SQLException  If a database error occurs
+     */
+    boolean hasPreview(Context context, Bitstream bitstream) throws SQLException;
+
+    /**
      * Find all preview content based on bitstream that are the root directory.
      *
      * @param context        DSpace context
      * @param bitstream      The bitstream to get bitstream UUID
      * @throws SQLException  If a database error occurs
      */
-    List<PreviewContent> hasPreview(Context context, Bitstream bitstream) throws SQLException;
+    List<PreviewContent> getPreview(Context context, Bitstream bitstream) throws SQLException;
 
     /**
      * Find all preview contents from database.
@@ -107,7 +116,8 @@ public interface PreviewContentService {
      * @param authorization true if authorization is required else false
      * @return true if the bitstream could be previewed, false otherwise
      */
-    boolean canPreview(Context context, Bitstream bitstream, boolean authorization) throws SQLException, AuthorizeException;
+    boolean canPreview(Context context, Bitstream bitstream, boolean authorization)
+            throws SQLException, AuthorizeException;
 
     /**
      * Return converted ZIP file content into FileInfo classes.

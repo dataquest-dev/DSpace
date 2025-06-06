@@ -319,7 +319,6 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     @Override
     public File retrieveFile(Context context, Bitstream bitstream, boolean authorization)
             throws IOException, SQLException, AuthorizeException {
-        // Maybe should return AuthorizeException??
         if (authorization) {
             authorizeService.authorizeAction(context, bitstream, Constants.READ);
         }
