@@ -47,8 +47,7 @@ public class PreviewContentDAOImpl extends AbstractHibernateDAO<PreviewContent> 
         Query query = getHibernateSession(context).createNativeQuery(sql);
         query.setParameter("bitstream_id", bitstream.getID());
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
-        long count = (long) query.getSingleResult();
-        return count > 0;
+        return count(query) > 0;
     }
 
     @Override
