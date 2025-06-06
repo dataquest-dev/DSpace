@@ -8,6 +8,7 @@
 package org.dspace.content.service;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.dspace.content.ReportResult;
 import org.dspace.core.Context;
@@ -48,6 +49,8 @@ public interface ReportResultService {
      * @throws SQLException if an error occurs during the search
      */
     ReportResult find(Context context, int id) throws SQLException;
+
+    List<ReportResult> findAll(Context context) throws SQLException;
 
     /**
      * Deletes the specified ReportResult instance in the given context.

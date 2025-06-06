@@ -9,6 +9,7 @@ package org.dspace.content;
 
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.List;
 
 import org.dspace.content.dao.ReportResultDAO;
 import org.dspace.content.service.ReportResultService;
@@ -39,6 +40,11 @@ public class ReportResultServiceImpl implements ReportResultService {
     @Override
     public ReportResult find(Context context, int id) throws SQLException {
         return reportResultDAO.findByID(context, ReportResult.class, id);
+    }
+
+    @Override
+    public List<ReportResult> findAll(Context context) throws SQLException {
+        return reportResultDAO.findAll(context, ReportResult.class);
     }
 
     @Override
