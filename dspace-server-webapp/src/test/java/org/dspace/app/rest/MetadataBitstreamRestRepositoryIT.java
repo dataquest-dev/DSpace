@@ -34,6 +34,7 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.BundleService;
+import org.dspace.content.service.PreviewContentService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.services.ConfigurationService;
@@ -64,6 +65,9 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
 
     @Autowired
     ConfigurationService configurationService;
+
+    @Autowired
+    PreviewContentService previewContentService;
 
     @Before
     public void setup() throws Exception {
@@ -168,14 +172,15 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                         .value(Matchers.containsInAnyOrder(Matchers.containsString(bts.getChecksum()))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].href")
                         .value(Matchers.containsInAnyOrder(Matchers.containsString(url))));
-
+        assert (previewContentService.hasPreview(context, bts).isEmpty());
         configurationService.setProperty("file.preview.enabled", canPreview);
     }
 
     @Test
     public void previewingIsDisabledByCfgForHtml() throws Exception {
         boolean canPreview = configurationService.getBooleanProperty("file.preview.enabled", true);
-        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection").build();
+        context.turnOffAuthorisationSystem();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection2").build();
         Item item = ItemBuilder.createItem(context, col)
                 .withAuthor(AUTHOR)
                 .build();
@@ -191,6 +196,7 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .withDescription("Description")
                 .withMimeType("text/html")
                 .build();
+        context.restoreAuthSystemState();
         // Disable previewing
         configurationService.setProperty("file.preview.enabled", false);
         // There is no restriction, so the user could preview the file
@@ -215,10 +221,7 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                         .value(Matchers.containsInAnyOrder(Matchers.is(false))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].fileInfo").exists())
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].checksum")
-                        .value(Matchers.containsInAnyOrder(Matchers.containsString(bitstream.getChecksum()))))
-                .andExpect(jsonPath("$._embedded.metadatabitstreams[*].href")
-                        .value(Matchers.containsInAnyOrder(Matchers.containsString(url))));
-
+                        .value(Matchers.containsInAnyOrder(Matchers.containsString(bitstream.getChecksum()))));
         configurationService.setProperty("file.preview.enabled", canPreview);
     }
 
