@@ -37,7 +37,6 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
@@ -332,8 +331,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     private void processTarFile(List<String> filePaths, File file) throws IOException {
         try (InputStream fis = new FileInputStream(file);
              BufferedInputStream bis = new BufferedInputStream(fis);
-             InputStream gzipIn = new GzipCompressorInputStream(bis);
-             TarArchiveInputStream tarInput = new TarArchiveInputStream(gzipIn)) {
+             TarArchiveInputStream tarInput = new TarArchiveInputStream(bis)) {
 
             TarArchiveEntry entry;
             while ((entry = tarInput.getNextTarEntry()) != null) {
