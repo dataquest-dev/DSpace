@@ -453,7 +453,6 @@ public class PreviewContentServiceImpl implements PreviewContentService {
                 }
                 content.append(line).append("\n");
             }
-
         } catch (IOException e) {
             log.error("IOException during creating the preview content because: ", e);
             throw e; // Optional: rethrow if you want the exception to propagate
@@ -483,4 +482,3 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         }
     }
 }
-
