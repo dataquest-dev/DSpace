@@ -1,3 +1,5 @@
+CREATE SEQUENCE report_result_id_seq START WITH 1 INCREMENT BY 1;
+
 CREATE TABLE report_result (
     report_result_id INTEGER NOT NULL DEFAULT NEXTVAL('report_result_id_seq') PRIMARY KEY
     type VARCHAR(256),
