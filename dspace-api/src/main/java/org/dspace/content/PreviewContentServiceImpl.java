@@ -37,6 +37,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.utils.IOUtils;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
@@ -331,7 +332,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     private void processTarFile(List<String> filePaths, File file) throws IOException {
         try (InputStream fis = new FileInputStream(file);
              BufferedInputStream bis = new BufferedInputStream(fis);
+             // Use the constructor that accepts LongFileMode
              TarArchiveInputStream tarInput = new TarArchiveInputStream(bis)) {
+
 
             TarArchiveEntry entry;
             while ((entry = tarInput.getNextTarEntry()) != null) {
@@ -344,9 +347,32 @@ public class PreviewContentServiceImpl implements PreviewContentService {
                     long size = entry.getSize();
                     addFilePath(filePaths, name, size);
                 }
-                // Skip file contents efficiently
-                tarInput.skip(entry.getSize());
+                // Fully skip entry content to handle large files correctly
+                skipFully(tarInput, entry.getSize());
             }
+        }
+    }
+
+    /**
+     * Fully skips the specified number of bytes from the input stream,
+     * ensuring that all bytes are skipped even if InputStream.skip() skips less.
+     *
+     * @param in the input stream to skip bytes from
+     * @param bytesToSkip the number of bytes to skip
+     * @throws IOException if an I/O error occurs or the end of stream is reached before skipping all bytes
+     */
+    private void skipFully(InputStream in, long bytesToSkip) throws IOException {
+        long remaining = bytesToSkip;
+        while (remaining > 0) {
+            long skipped = in.skip(remaining);
+            if (skipped <= 0) {
+                // If skip returns 0 or less, try to read a byte to move forward
+                if (in.read() == -1) {
+                    throw new IOException("Unexpected end of stream while skipping");
+                }
+                skipped = 1;
+            }
+            remaining -= skipped;
         }
     }
 
