@@ -104,9 +104,10 @@ public interface PreviewContentService {
      *
      * @param context DSpace context object
      * @param bitstream check if this bitstream could be previewed
+     * @param authorization true if authorization is required else false
      * @return true if the bitstream could be previewed, false otherwise
      */
-    boolean canPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException;
+    boolean canPreview(Context context, Bitstream bitstream, boolean authorization) throws SQLException, AuthorizeException;
 
     /**
      * Return converted ZIP file content into FileInfo classes.

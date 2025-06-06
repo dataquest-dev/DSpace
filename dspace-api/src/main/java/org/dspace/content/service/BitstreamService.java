@@ -172,12 +172,13 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
      *
      * @param context   DSpace context object
      * @param bitstream DSpace bitstream
+     * @param authorization true if authorization is required else false
      * @return a File from which the bitstream can be read.
      * @throws IOException        if IO error
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    public File retrieveFile(Context context, Bitstream bitstream) throws IOException, SQLException, AuthorizeException;
+    public File retrieveFile(Context context, Bitstream bitstream, boolean authorization) throws IOException, SQLException, AuthorizeException;
 
     /**
      * Determine if this bitstream is registered (available elsewhere on

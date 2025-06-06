@@ -106,7 +106,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             for (Bitstream bitstream : bitstreams) {
                 String url = previewContentService.composePreviewURL(context, item, bitstream, contextPath);
                 List<FileInfo> fileInfos = new ArrayList<>();
-                boolean canPreview = previewContentService.canPreview(context, bitstream);
+                boolean canPreview = previewContentService.canPreview(context, bitstream, false);
                 if (canPreview) {
                     try {
                         List<PreviewContent> prContents = previewContentService.hasPreview(context, bitstream);

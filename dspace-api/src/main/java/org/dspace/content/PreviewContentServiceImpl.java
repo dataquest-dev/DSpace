@@ -14,27 +14,27 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -72,6 +72,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     // This constant is used to limit the length of the preview content stored in the database to prevent
     // the database from being overloaded with large amounts of data.
     private static final int MAX_PREVIEW_COUNT_LENGTH = 2000;
+    int estimatedFileCount = 200;
 
     // Configured ZIP file preview limit (default: 1000) - if the ZIP file contains more files, it will be truncated
     @Value("${file.preview.zip.limit.length:1000}")
@@ -138,7 +139,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     @Override
-    public boolean canPreview(Context context, Bitstream bitstream) throws SQLException, AuthorizeException {
+    public boolean canPreview(Context context, Bitstream bitstream, boolean authorization) throws SQLException, AuthorizeException {
         try {
             // Check it is allowed by configuration
             boolean isAllowedByCfg = configurationService.getBooleanProperty("file.preview.enabled", true);
@@ -147,7 +148,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
             }
 
             // Check it is allowed by license
-            authorizeService.authorizeAction(context, bitstream, Constants.READ);
+            if (authorization) {
+                authorizeService.authorizeAction(context, bitstream, Constants.READ);
+            }
             return true;
         } catch (MissingLicenseAgreementException e) {
             return false;
@@ -160,7 +163,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         File file = null;
 
         try {
-            file = bitstreamService.retrieveFile(context, bitstream); // Retrieve the file
+            file = bitstreamService.retrieveFile(context, bitstream, false); // Retrieve the file
 
             if (Objects.nonNull(file)) {
                 fileInfos = processFileToFilePreview(context, bitstream, file);
@@ -219,10 +222,8 @@ public class PreviewContentServiceImpl implements PreviewContentService {
                     "application/zip", ARCHIVE_TYPE_ZIP,
                     "application/x-tar", ARCHIVE_TYPE_TAR
             );
-
-            String mimeType = bitstream.getFormat(context).getMIMEType();
-            if (archiveTypes.containsKey(mimeType)) {
-                data = extractFile(file, archiveTypes.get(mimeType));
+            if (archiveTypes.containsKey(bitstreamMimeType)) {
+                data = extractFile(file, archiveTypes.get(bitstreamMimeType));
                 fileInfos = FileTreeViewGenerator.parse(data);
             }
         }
@@ -305,15 +306,16 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @param size the size of the file or directory
      */
     private void addFilePath(List<String> filePaths, String path, long size) {
-        String fileInfo = "";
         try {
-            Path filePath = Paths.get(path);
-            boolean isDir = Files.isDirectory(filePath);
-            fileInfo = (isDir ? path + "/|" : path + "|") + size;
+            boolean isDir = Files.isDirectory(Paths.get(path));
+            StringBuilder sb = new StringBuilder(path.length() + 16);
+            sb.append(path);
+            sb.append(isDir ? "/|" : "|");
+            sb.append(size);
+            filePaths.add(sb.toString());
         } catch (NullPointerException | InvalidPathException | SecurityException e) {
             log.error(String.format("Failed to add file path. Path: '%s', Size: %d", path, size), e);
         }
-        filePaths.add(fileInfo);
     }
 
     /**
@@ -355,6 +357,10 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         try (ZipFile zipFile = new ZipFile(file)) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             while (entries.hasMoreElements()) {
+                if (filePaths.size() >= maxPreviewCount) {
+                    filePaths.add("... (too many files)");
+                    break;
+                }
                 ZipEntry entry = entries.nextElement();
                 if (!entry.isDirectory()) {
                     addFilePath(filePaths, entry.getName(), entry.getSize());
@@ -369,30 +375,39 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @return an XML string representation of the file paths
      */
     private String buildXmlResponse(List<String> filePaths) {
-        // Is a folder regex
-        String folderRegex = "/|\\d+";
-        Pattern pattern = Pattern.compile(folderRegex);
+        StringWriter stringWriter = new StringWriter();
+        try {
+            XMLOutputFactory factory = XMLOutputFactory.newInstance();
+            XMLStreamWriter writer = factory.createXMLStreamWriter(stringWriter);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("<root>");
-        Iterator<String> iterator = filePaths.iterator();
-        int fileCounter = 0;
-        while (iterator.hasNext() && fileCounter < maxPreviewCount) {
-            String filePath = iterator.next();
-            // Check if the file is a folder
-            Matcher matcher = pattern.matcher(filePath);
-            if (!matcher.matches()) {
-                // It is a file
-                fileCounter++;
+            writer.writeStartDocument("UTF-8", "1.0");
+            writer.writeStartElement("root");
+
+            int count = 0;
+            for (String filePath : filePaths) {
+                if (count >= maxPreviewCount) {
+                    writer.writeStartElement("element");
+                    writer.writeCharacters("...too many files...|0");
+                    writer.writeEndElement();
+                    break;
+                }
+                writer.writeStartElement("element");
+                writer.writeCharacters(filePath);
+                writer.writeEndElement();
+                count++;
             }
-            sb.append("<element>").append(filePath).append("</element>");
+
+            writer.writeEndElement(); // </root>
+            writer.writeEndDocument();
+            writer.flush();
+            writer.close();
+
+        } catch (Exception e) {
+            log.error("Failed to build XML response", e);
+            return "<root><error>Failed to generate preview</error></root>";
         }
 
-        if (fileCounter > maxPreviewCount) {
-            sb.append("<element>...too many files...|0</element>");
-        }
-        sb.append("</root>");
-        return sb.toString();
+        return stringWriter.toString();
     }
 
     /**
@@ -403,7 +418,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @return an XML string representing the extracted file paths
      */
     private String extractFile(File file, String fileType) throws Exception {
-        List<String> filePaths = new ArrayList<>();
+        List<String> filePaths = new ArrayList<>(estimatedFileCount);
         // Process the file based on its type
         if (ARCHIVE_TYPE_TAR.equals(fileType)) {
             processTarFile(filePaths, file);

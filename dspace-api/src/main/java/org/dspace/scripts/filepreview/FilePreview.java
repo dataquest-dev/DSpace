@@ -147,7 +147,7 @@ public class FilePreview extends DSpaceRunnable<FilePreviewConfiguration> {
         for (Bundle bundle : bundles) {
             List<Bitstream> bitstreams = bundle.getBitstreams();
             for (Bitstream bitstream : bitstreams) {
-                boolean canPreview = previewContentService.canPreview(context, bitstream);
+                boolean canPreview = previewContentService.canPreview(context, bitstream, false);
                 if (!canPreview) {
                     return;
                 }
