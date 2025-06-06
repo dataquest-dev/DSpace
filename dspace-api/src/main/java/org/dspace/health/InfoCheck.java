@@ -39,7 +39,7 @@ public class InfoCheck extends Check {
         sb.append(fromTill).append("\n");
         root.put("fromTill", fromTill);
 
-        String urlValue = "Url: " + configurationService.getProperty("dspace.ui.url");
+        String urlValue = configurationService.getProperty("dspace.ui.url");
         sb.append("Url: ").append(urlValue).append("\n");
         sb.append("\n");
         root.put("url", urlValue);
