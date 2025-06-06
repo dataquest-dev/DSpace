@@ -41,12 +41,10 @@ public class PreviewContentDAOImpl extends AbstractHibernateDAO<PreviewContent> 
 
     @Override
     public boolean hasPreview(Context context, Bitstream bitstream) throws SQLException {
-        String sql =
-                "SELECT COUNT(*) FROM previewcontent pc " +
-                        "WHERE pc.bitstream_id = :bitstream_id";
-        Query query = getHibernateSession(context).createNativeQuery(sql);
+        Query query = createQuery(context,
+                "SELECT COUNT(pc) FROM " + PreviewContent.class.getSimpleName() +
+                        " pc WHERE pc.bitstream.id = :bitstream_id");
         query.setParameter("bitstream_id", bitstream.getID());
-        query.setHint("org.hibernate.cacheable", Boolean.TRUE);
         return count(query) > 0;
     }
 
