@@ -38,7 +38,7 @@ public interface PreviewContentDAO extends GenericDAO<PreviewContent> {
      *
      * @param context       DSpace context
      * @param bitstream     The bitstream to get bitstream UUID
-     * @return              List of found preview content
+     * @return              True if preview content exists, false otherwise
      * @throws SQLException If a database error occurs
      */
     boolean hasPreview(Context context, Bitstream bitstream) throws SQLException;

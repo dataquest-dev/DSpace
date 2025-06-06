@@ -87,6 +87,7 @@ public interface PreviewContentService {
      *
      * @param context        DSpace context
      * @param bitstream      The bitstream to get bitstream UUID
+     * @return               True if preview content exists, false otherwise
      * @throws SQLException  If a database error occurs
      */
     boolean hasPreview(Context context, Bitstream bitstream) throws SQLException;
@@ -96,6 +97,7 @@ public interface PreviewContentService {
      *
      * @param context        DSpace context
      * @param bitstream      The bitstream to get bitstream UUID
+     * @return               List of preview contents
      * @throws SQLException  If a database error occurs
      */
     List<PreviewContent> getPreview(Context context, Bitstream bitstream) throws SQLException;

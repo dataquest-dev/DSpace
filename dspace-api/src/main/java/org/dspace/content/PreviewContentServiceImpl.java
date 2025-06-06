@@ -433,10 +433,11 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     }
 
     /**
-     * Read input stream and return content as String
-     * @param file to read
-     * @return content of the inputStream as a String
-     * @throws IOException
+     * Read file content and return as String
+     * @param file the file to read
+     * @param cutResult whether to limit the content length
+     * @return content of the file as a String
+     * @throws IOException if an error occurs reading the file
      */
     private String getFileContent(File file, boolean cutResult) throws IOException {
         StringBuilder content = new StringBuilder();

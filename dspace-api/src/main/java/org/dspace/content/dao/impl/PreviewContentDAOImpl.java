@@ -44,7 +44,7 @@ public class PreviewContentDAOImpl extends AbstractHibernateDAO<PreviewContent> 
         String sql =
                 "SELECT COUNT(*) FROM previewcontent pc " +
                         "WHERE pc.bitstream_id = :bitstream_id";
-        Query query = getHibernateSession(context).createNativeQuery(sql, PreviewContent.class);
+        Query query = getHibernateSession(context).createNativeQuery(sql);
         query.setParameter("bitstream_id", bitstream.getID());
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
         query.setMaxResults(1);

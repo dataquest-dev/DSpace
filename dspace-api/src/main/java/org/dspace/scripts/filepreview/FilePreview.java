@@ -22,7 +22,6 @@ import org.dspace.authenticate.service.AuthenticationService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
-import org.dspace.content.PreviewContent;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.PreviewContentService;
