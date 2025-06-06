@@ -146,80 +146,84 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
         }
 
         Context context = new Context();
-        context.setCurrentUser(ePersonService.find(context, this.getEpersonIdentifier()));
+        try {
+            context.setCurrentUser(ePersonService.find(context, this.getEpersonIdentifier()));
 
-        ReportInfo ri = new ReportInfo(this.forLastNDays);
+            ReportInfo ri = new ReportInfo(this.forLastNDays);
 
-        StringBuilder sbReport = new StringBuilder();
-        sbReport.append("\n\nHEALTH REPORT:\n");
+            StringBuilder sbReport = new StringBuilder();
+            sbReport.append("\n\nHEALTH REPORT:\n");
 
-        int position = -1;
-        JSONObject root = new JSONObject();
-        // Create the array
-        JSONArray checksArray = new JSONArray();
-        for (Map.Entry<String, Check> check_entry : Report.checks().entrySet()) {
-            ++position;
-            if (specificCheck != -1 && specificCheck != position) {
-                continue;
+            int position = -1;
+            JSONObject root = new JSONObject();
+            // Create the array
+            JSONArray checksArray = new JSONArray();
+            for (Map.Entry<String, Check> check_entry : Report.checks().entrySet()) {
+                ++position;
+                if (specificCheck != -1 && specificCheck != position) {
+                    continue;
+                }
+
+                String name = check_entry.getKey();
+                Check check = check_entry.getValue();
+
+                log.info("#{}. Processing [{}] at [{}]", position, name, new SimpleDateFormat(
+                        "yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
+
+                sbReport.append("\n######################\n\n").append(name).append(":\n");
+                check.report(ri);
+                sbReport.append(check.getReport());
+
+                // JSON:
+                // Check name: {Report}
+                JSONObject report = check.getReportJson();  // assume check is already defined
+
+                JSONObject checkJson = new JSONObject();
+                checkJson.put("name", name);
+                checkJson.put("report", report);
+                // Add items to array
+                checksArray.put(checkJson);
             }
 
-            String name = check_entry.getKey();
-            Check check = check_entry.getValue();
+            // Add array to root object under a key "checks"
+            root.put("checks", checksArray);
 
-            log.info("#{}. Processing [{}] at [{}]", position, name, new SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss.SSS").format(new Date()));
+            // Add health report summary to the ReportResult object
+            ReportResult reportResult = reportResultService.create(context);
+            reportResult.setArgs(printCommandlineOptions());
+            reportResult.setExecutor(context.getCurrentUser());
+            reportResult.setType("healthcheck");
+            reportResult.setValue(root.toString());
+            reportResultService.update(context, reportResult);
+            context.commit();
 
-            sbReport.append("\n######################\n\n").append(name).append(":\n");
-            check.report(ri);
-            sbReport.append(check.getReport());
+            // save output to file
+            if (fileName != null) {
+                InputStream inputStream = toInputStream(sbReport.toString(), StandardCharsets.UTF_8);
+                handler.writeFilestream(context, fileName, inputStream, "export");
 
-            // JSON:
-            // Check name: {Report}
-            JSONObject report = check.getReportJson();  // assume check is already defined
+                context.restoreAuthSystemState();
 
-            JSONObject checkJson = new JSONObject();
-            checkJson.put("name", name);
-            checkJson.put("report", report);
-            // Add items to array
-            checksArray.put(checkJson);
-        }
+            }
 
-        // Add array to root object under a key "checks"
-        root.put("checks", checksArray);
+            // send email to email address from argument
+            if (emails != null && emails.length > 0) {
+                try {
+                    Email e = Email.getEmail(I18nUtil.getEmailFilename(Locale.getDefault(), "healthcheck"));
+                    for (String recipient : emails) {
+                        e.addRecipient(recipient);
+                    }
+                    e.addArgument(sbReport.toString());
+                    e.send();
+                } catch (IOException | MessagingException e) {
+                    log.error("Error sending email:", e);
+                }
+            }
 
-        // Add health report summary to the ReportResult object
-        ReportResult reportResult = reportResultService.create(context);
-        reportResult.setArgs(printCommandlineOptions());
-        reportResult.setExecutor(context.getCurrentUser());
-        reportResult.setType("healthcheck");
-        reportResult.setValue(root.toString());
-        reportResultService.update(context, reportResult);
-        context.commit();
-
-        // save output to file
-        if (fileName != null) {
-            InputStream inputStream = toInputStream(sbReport.toString(), StandardCharsets.UTF_8);
-            handler.writeFilestream(context, fileName, inputStream, "export");
-
-            context.restoreAuthSystemState();
+            handler.logInfo(sbReport.toString());
+        } finally {
             context.complete();
         }
-
-        // send email to email address from argument
-        if (emails != null && emails.length > 0) {
-            try {
-                Email e = Email.getEmail(I18nUtil.getEmailFilename(Locale.getDefault(), "healthcheck"));
-                for (String recipient : emails) {
-                    e.addRecipient(recipient);
-                }
-                e.addArgument(sbReport.toString());
-                e.send();
-            } catch (IOException | MessagingException e) {
-                log.error("Error sending email:", e);
-            }
-        }
-
-        handler.logInfo(sbReport.toString());
     }
 
     @Override
