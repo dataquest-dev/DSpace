@@ -4,6 +4,6 @@ CREATE TABLE report_result (
     value TEXT,
     executor_id UUID,
     args TEXT,
-    last_modified TIMESTAMP,
+    last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,,
     FOREIGN KEY (executor_id) REFERENCES EPerson(uuid) ON DELETE SET NULL
 );
