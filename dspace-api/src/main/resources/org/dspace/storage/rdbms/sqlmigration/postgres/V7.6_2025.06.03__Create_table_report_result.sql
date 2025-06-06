@@ -1,5 +1,5 @@
 CREATE TABLE report_result (
-    report_result_id integer NOT NULL,
+    report_result_id integer NOT NULL PRIMARY KEY,,
     type varchar(256),
     value TEXT,
     executor_id UUID REFERENCES EPerson(uuid) ON DELETE SET NULL,
