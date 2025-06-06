@@ -8,6 +8,7 @@
 package org.dspace.content;
 
 import java.sql.SQLException;
+import java.util.Date;
 
 import org.dspace.content.dao.ReportResultDAO;
 import org.dspace.content.service.ReportResultService;
@@ -47,6 +48,8 @@ public class ReportResultServiceImpl implements ReportResultService {
 
     @Override
     public void update(Context context, ReportResult reportResult) throws SQLException {
+        // update the lastModified timestamp
+        reportResult.setLastModified(new Date());
         reportResultDAO.save(context, reportResult);
     }
 }
