@@ -23,13 +23,50 @@ import org.dspace.core.Context;
  */
 public interface ReportResultService {
 
+    /**
+     * Creates a new ReportResult instance in the given context.
+     *
+     * @param context the DSpace context
+     * @return the created ReportResult instance
+     * @throws SQLException if an error occurs during creation
+     */
     ReportResult create(Context context) throws SQLException;
 
+    /**
+     * Creates a new ReportResult instance with the specified reportResult object in the given context.
+     *
+     * @param context the DSpace context
+     * @param reportResult the ReportResult object to create
+     * @return the created ReportResult instance
+     * @throws SQLException if an error occurs during creation
+     */
     ReportResult create(Context context, ReportResult reportResult) throws SQLException;
 
+    /**
+     * Finds a ReportResult instance by its ID in the given context.
+     *
+     * @param context the DSpace context
+     * @param id the ID of the ReportResult to find
+     * @return the found ReportResult instance, or null if not found
+     * @throws SQLException if an error occurs during the search
+     */
     ReportResult find(Context context, int id) throws SQLException;
 
+    /**
+     * Deletes the specified ReportResult instance in the given context.
+     *
+     * @param context the DSpace context
+     * @param reportResult the ReportResult instance to delete
+     * @throws SQLException if an error occurs during deletion
+     */
     void delete(Context context, ReportResult reportResult) throws SQLException;
 
+    /**
+     * Updates the specified ReportResult instance in the given context.
+     *
+     * @param context the DSpace context
+     * @param reportResult the ReportResult instance to update
+     * @throws SQLException if an error occurs during the update
+     */
     void update(Context context, ReportResult reportResult) throws SQLException;
 }
