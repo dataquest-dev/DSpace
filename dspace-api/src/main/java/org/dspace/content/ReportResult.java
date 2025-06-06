@@ -7,9 +7,7 @@
  */
 package org.dspace.content;
 
-import org.dspace.core.ReloadableEntity;
-import org.dspace.eperson.EPerson;
-
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -22,7 +20,9 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.util.Date;
+
+import org.dspace.core.ReloadableEntity;
+import org.dspace.eperson.EPerson;
 
 /**
  * ReportResult is an entity that stores the results of a Health Report execution.
