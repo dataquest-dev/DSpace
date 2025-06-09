@@ -71,7 +71,8 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     // This constant is used to limit the length of the preview content stored in the database to prevent
     // the database from being overloaded with large amounts of data.
     private static final int MAX_PREVIEW_COUNT_LENGTH = 2000;
-    int estimatedFileCount = 200;
+    // Initial capacity for the list of extracted file paths, set to 200 based on typical archive file counts.
+    private int estimatedFileCount = 200;
 
     // Configured ZIP file preview limit (default: 1000) - if the ZIP file contains more files, it will be truncated
     @Value("${file.preview.zip.limit.length:1000}")

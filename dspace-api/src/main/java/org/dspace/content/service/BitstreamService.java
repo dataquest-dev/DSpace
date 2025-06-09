@@ -155,7 +155,7 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
     public void setFormat(Context context, Bitstream bitstream, BitstreamFormat bitstreamFormat) throws SQLException;
 
     /**
-     * Retrieve the contents of the bitstream
+     * Retrieve the content of the bitstream.
      *
      * @param context   DSpace context object
      * @param bitstream DSpace bitstream
@@ -168,7 +168,7 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
         throws IOException, SQLException, AuthorizeException;
 
     /**
-     * Retrieve the contents of the bitstream
+     * Retrieve the content of the bitstream.
      *
      * @param context   DSpace context object
      * @param bitstream DSpace bitstream
