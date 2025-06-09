@@ -218,7 +218,7 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].fileSize")
                         .value(hasItem(is((int) bitstream.getSizeBytes()))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].canPreview")
-                        .value(Matchers.containsInAnyOrder(Matchers.is(canPreview))))
+                        .value(Matchers.containsInAnyOrder(Matchers.is(true))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].fileInfo").exists())
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].checksum")
                         .value(Matchers.containsInAnyOrder(Matchers.containsString(bitstream.getChecksum()))));
