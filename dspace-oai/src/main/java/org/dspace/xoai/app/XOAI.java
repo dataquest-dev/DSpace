@@ -83,6 +83,11 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class XOAI {
     private static Logger log = LogManager.getLogger(XOAI.class);
 
+    @Autowired
+    private XOAICacheService cacheService;
+    @Autowired
+    private XOAIItemCacheService itemCacheService;
+
     // needed because the solr query only returns 10 rows by default
     private final Context context;
     private final boolean verbose;
@@ -104,6 +109,11 @@ public class XOAI {
             .getConfigurationService();
 
     private List<XOAIExtensionItemCompilePlugin> extensionPlugins;
+
+    {
+        AnnotationConfigApplicationContext applicationContext =
+                new AnnotationConfigApplicationContext(BasicConfiguration.class);
+    }
 
     private List<String> getFileFormats(Item item) {
         List<String> formats = new ArrayList<>();
@@ -719,4 +729,33 @@ public class XOAI {
         }
     }
 
+    /**
+     * Delete the item from Solr by the ID of the item
+     */
+    private void deleteItemByQuery(Item item) throws SolrServerException, IOException {
+        SolrClient solrClient = solrServerResolver.getServer();
+        solrClient.deleteByQuery("item.id:" + item.getID().toString());
+        // Solr keeps changes in memory (transaction log) for performance.
+        // Without commit(), those changes aren't written to the actual index files.
+        // Queries won't reflect deletions (or any updates) until a commit or auto-commit happens.
+        solrClient.commit();
+    }
+
+    public void indexItems(java.util.Collection<Item> items) throws Exception {
+        for (Item item : items) {
+            try {
+                deleteItemByQuery(item);
+                solrServerResolver.getServer().add(this.index(item));
+            } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
+                // If an exception occurs while indexing the item or adding it to the Solr server,
+                // the exception is logged, and no further items will be processed.
+                log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
+                throw new RuntimeException("Cannot reindex the item with ID: " + item.getID() + " because: "
+                        + e.getMessage());
+            }
+        }
+        solrServerResolver.getServer().commit();
+        cacheService.deleteAll();
+        itemCacheService.deleteAll();
+    }
 }
