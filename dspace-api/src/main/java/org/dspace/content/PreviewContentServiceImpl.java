@@ -37,7 +37,6 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.utils.IOUtils;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.MissingLicenseAgreementException;
