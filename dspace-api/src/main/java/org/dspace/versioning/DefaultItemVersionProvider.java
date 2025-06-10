@@ -9,8 +9,8 @@ package org.dspace.versioning;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
@@ -131,8 +131,8 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
             // are added to the previous item in the VersionRestRepository.
             manageRelationMetadata(c, itemNew, previousItem);
 
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-            String formattedDate = formatter.format(new Date(System.currentTimeMillis()));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            String formattedDate = LocalDate.now().format(formatter);
             String itemName = itemNew.getName();
             if (itemName == null) {
                 itemName = "Untitled";

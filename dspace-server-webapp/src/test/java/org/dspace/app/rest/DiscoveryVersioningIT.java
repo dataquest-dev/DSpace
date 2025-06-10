@@ -25,8 +25,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.commons.lang3.function.FailableFunction;
@@ -119,8 +119,8 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
 
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        formattedDate = formatter.format(new Date(System.currentTimeMillis()));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        formattedDate = LocalDate.now().format(formatter);
     }
 
     @Override

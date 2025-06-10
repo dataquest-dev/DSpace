@@ -28,9 +28,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -196,8 +196,8 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
             .withCopyToRight(false)
             .build();
 
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        formattedDate = formatter.format(new Date(System.currentTimeMillis()));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        formattedDate = LocalDate.now().format(formatter);
     }
 
     protected Relationship getRelationship(
