@@ -76,4 +76,3 @@ ALTER TABLE preview2preview
 
 ALTER TABLE preview2preview
     ADD CONSTRAINT preview2preview_child_fk FOREIGN KEY (child_id) REFERENCES previewcontent(previewcontent_id) ON DELETE CASCADE;
-    
