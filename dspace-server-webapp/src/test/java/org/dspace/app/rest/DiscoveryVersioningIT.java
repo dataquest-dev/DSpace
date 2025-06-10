@@ -25,6 +25,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.function.FailableFunction;
@@ -80,7 +82,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  * Some discovery configurations should show all versions, while others should only consider the latest versions.
  */
 public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
-
     @Autowired
     private SearchService searchService;
 
@@ -103,6 +104,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
     private RelationshipService relationshipService;
 
     protected Community community;
+    private String formattedDate;
 
     @Override
     @Before
@@ -116,6 +118,10 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             .build();
 
         context.restoreAuthSystemState();
+
+        Date date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        formattedDate = formatter.format(date);
     }
 
     @Override
@@ -1357,7 +1363,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -1944,7 +1950,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 

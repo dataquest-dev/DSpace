@@ -19,6 +19,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.dspace.app.rest.matcher.VersionHistoryMatcher;
@@ -71,6 +73,8 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
     @Autowired
     private WorkspaceItemService workspaceItemService;
 
+    private String formattedDate;
+
     @Before
     public void setup() throws SQLException, AuthorizeException {
         context.turnOffAuthorisationSystem();
@@ -93,6 +97,10 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
                           .withSubject("ExtraEntry")
                           .build();
         context.restoreAuthSystemState();
+
+        Date date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        formattedDate = formatter.format(date);
     }
 
     @Test
@@ -383,7 +391,7 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$",Matchers.is(WorkspaceItemMatcher
                                         .matchItemWithTitleAndDateIssuedAndSubject(witem,
-                                         "Public test item", "2021-04-27", "ExtraEntry"))));
+                                         "Public test item (" + formattedDate + ")", "2021-04-27", "ExtraEntry"))));
     }
 
     @Test
@@ -554,7 +562,7 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
                                .andExpect(status().isOk())
                                .andExpect(jsonPath("$",Matchers.is(WorkspaceItemMatcher
                                           .matchItemWithTitleAndDateIssuedAndSubject(witem,
-                                           "Public test item", "2021-04-27", "ExtraEntry"))));
+                                           "Public test item (" + formattedDate + ")", "2021-04-27", "ExtraEntry"))));
     }
 
     @Test
