@@ -37,7 +37,7 @@ public interface BitStoreService {
     public String generateId();
 
     /**
-     * Retrieve the content of the given bitstream as a stream.
+     * Retrieve the bits for bitstream
      *
      * @param bitstream DSpace Bitstream object
      * @return The stream of bits
@@ -47,7 +47,7 @@ public interface BitStoreService {
     public InputStream get(Bitstream bitstream) throws IOException;
 
     /**
-     * Retrieve the content of the given bitstream as a File.
+     * Retrieve the bits for bitstream
      *
      * @param bitstream DSpace Bitstream object
      * @return The File
