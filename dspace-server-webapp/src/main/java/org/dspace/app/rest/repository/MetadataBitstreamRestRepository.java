@@ -110,7 +110,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 boolean canPreview = previewContentService.canPreview(context, bitstream);
                 String mimeType = bitstream.getFormat(context).getMIMEType();
                 // HTML content could be longer than the limit, so we do not store it in the DB.
-                // It has to be generated even if properties is false.
+                // It has to be generated even if property is false.
                 if (StringUtils.equals(mimeType, TEXT_HTML_MIME_TYPE) || canPreview) {
                     try {
                         List<PreviewContent> prContents = previewContentService.hasPreview(context, bitstream);
