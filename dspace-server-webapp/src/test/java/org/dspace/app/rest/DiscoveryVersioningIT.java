@@ -119,9 +119,8 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
 
-        Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        formattedDate = formatter.format(date);
+        formattedDate = formatter.format(new Date(System.currentTimeMillis()));
     }
 
     @Override
@@ -1532,7 +1531,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -1541,7 +1540,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_2 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -1691,7 +1690,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "project-relationships",
             (r) -> r.param("f.isPublicationOfProject", idPub1_2 + ",equals"),
             List.of(
-                matchSearchResult(pro1_2, "project 1")
+                matchSearchResult(pro1_2, "project 1 (" + formattedDate + ")")
             )
         );
 
@@ -1700,7 +1699,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -1709,7 +1708,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_2 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
     }
@@ -2126,7 +2125,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -2135,7 +2134,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_2 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -2285,7 +2284,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "project-relationships",
             (r) -> r.param("f.isPublicationOfProject", idPub1_2 + ",equals"),
             List.of(
-                matchSearchResult(pro1_2, "project 1")
+                matchSearchResult(pro1_2, "project 1 (" + formattedDate + ")")
             )
         );
 
@@ -2294,7 +2293,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -2303,7 +2302,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_2 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
     }

@@ -131,9 +131,8 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
             // are added to the previous item in the VersionRestRepository.
             manageRelationMetadata(c, itemNew, previousItem);
 
-            Date date = new Date();
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-            String formattedDate = formatter.format(date);
+            String formattedDate = formatter.format(new Date(System.currentTimeMillis()));
             String itemName = itemNew.getName();
             if (itemName == null) {
                 itemName = "Untitled";

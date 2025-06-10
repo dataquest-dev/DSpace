@@ -196,9 +196,8 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
             .withCopyToRight(false)
             .build();
 
-        Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        formattedDate = formatter.format(date);
+        formattedDate = formatter.format(new Date(System.currentTimeMillis()));
     }
 
     protected Relationship getRelationship(

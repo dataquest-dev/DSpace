@@ -347,9 +347,8 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
 
-        Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        String formattedDate = formatter.format(date);
+        String formattedDate = formatter.format(new Date(System.currentTimeMillis()));
         // Set the item's title with the formatted date appended
         String titleWithDate = item.getName() + " (" + formattedDate + ")";
 

@@ -98,9 +98,8 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
                           .build();
         context.restoreAuthSystemState();
 
-        Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        formattedDate = formatter.format(date);
+        formattedDate = formatter.format(new Date(System.currentTimeMillis()));
     }
 
     @Test
