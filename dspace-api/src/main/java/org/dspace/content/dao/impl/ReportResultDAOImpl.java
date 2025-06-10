@@ -41,7 +41,7 @@ public class ReportResultDAOImpl extends AbstractHibernateDAO<ReportResult> impl
                 "AND r.args like :checkType");
 
         query.setParameter("lastModified", lastModified);
-        query.setParameter("checkType", checkType);
+        query.setParameter("checkType", "%" + checkType + "%");
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
 
         return singleResult(query);
