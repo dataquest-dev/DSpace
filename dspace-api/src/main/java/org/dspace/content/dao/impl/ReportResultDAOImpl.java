@@ -10,6 +10,11 @@ package org.dspace.content.dao.impl;
 import org.dspace.content.ReportResult;
 import org.dspace.content.dao.ReportResultDAO;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
+
+import javax.persistence.Query;
+import java.sql.SQLException;
+import java.util.Date;
 
 /**
  * Database Access Object implementation class for the ReportResult object.
@@ -20,4 +25,25 @@ import org.dspace.core.AbstractHibernateDAO;
  */
 public class ReportResultDAOImpl extends AbstractHibernateDAO<ReportResult> implements ReportResultDAO {
 
+    @Override
+    public ReportResult findByLastModified(Context context, Date lastModified) throws SQLException {
+        Query query = createQuery(context, "SELECT r FROM ReportResult r WHERE r.lastModified = :lastModified");
+
+        query.setParameter("lastModified", lastModified);
+        query.setHint("org.hibernate.cacheable", Boolean.TRUE);
+
+        return singleResult(query);
+    }
+
+    @Override
+    public ReportResult findByLastModifiedAndCheckType(Context context, Date lastModified, int checkType) throws SQLException {
+        Query query = createQuery(context, "SELECT r FROM ReportResult r WHERE r.lastModified = :lastModified " +
+                "AND r.args like :checkType");
+
+        query.setParameter("lastModified", lastModified);
+        query.setParameter("checkType", checkType);
+        query.setHint("org.hibernate.cacheable", Boolean.TRUE);
+
+        return singleResult(query);
+    }
 }
