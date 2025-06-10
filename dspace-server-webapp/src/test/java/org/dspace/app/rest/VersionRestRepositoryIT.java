@@ -13,6 +13,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -368,7 +369,7 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
                             hasJsonPath("$.type", is("version"))
                     )))
                     .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.id")));
-            assert (titleWithDate.equals(versioningService.getVersion(context, idRef.get()).getItem().getName()));
+            assertEquals(titleWithDate, versioningService.getVersion(context, idRef.get()).getItem().getName());
         } finally {
             VersionBuilder.delete(idRef.get());
         }

@@ -131,12 +131,15 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
             // are added to the previous item in the VersionRestRepository.
             manageRelationMetadata(c, itemNew, previousItem);
 
-            // Set title to Name (YYYY-MM-DD)
             Date date = new Date();
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             String formattedDate = formatter.format(date);
+            String itemName = itemNew.getName();
+            if (itemName == null) {
+                itemName = "Untitled";
+            }
+            String titleWithDate = itemName + " (" + formattedDate + ")";
             // Set the item's title with the formatted date appended
-            String titleWithDate = itemNew.getName() + " (" + formattedDate + ")";
             itemService.setMetadataSingleValue(c, itemNew, MetadataSchemaEnum.DC.getName(),
                     "title", null, Item.ANY, titleWithDate);
 
