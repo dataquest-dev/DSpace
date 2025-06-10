@@ -1,0 +1,256 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.scripts;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import org.checkerframework.checker.units.qual.A;
+import org.dspace.AbstractIntegrationTestWithDatabase;
+import org.dspace.app.launcher.ScriptLauncher;
+import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
+import org.dspace.content.ReportResult;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ReportResultService;
+import org.dspace.core.Context;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
+
+    private ReportResultService reportResultService;
+
+    private SimpleDateFormat dateFormat;
+
+    @Before
+    public void setup() {
+        reportResultService = ContentServiceFactory.getInstance().getReportResultService();
+        dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    }
+
+    // Helper method to format dates consistently
+    private String formatDate(Date date) {
+        return dateFormat.format(date);
+    }
+
+    @Test
+    public void testHelpInformation() throws Exception {
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-i" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat(infoMessages, hasItem(containsString("This script compares two health reports")));
+        assertThat(handler.getErrorMessages(), empty());
+    }
+
+    @Test
+    public void testShowDates() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[]}");
+        reportResultService.update(context, report1);
+
+        Thread.sleep(10);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[]}");
+        reportResultService.update(context, report2);
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-d" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat(infoMessages, hasItem(containsString("Report Dates Summary:")));
+        assertThat(infoMessages, hasItem(containsString("Report Type: healthcheck")));
+        assertThat(infoMessages, hasItem(containsString(formatDate(report1.getLastModified()))));
+        assertThat(infoMessages, hasItem(containsString(formatDate(report2.getLastModified()))));
+    }
+
+    @Test
+    public void testCompareReports() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
+        reportResultService.update(context, report1);
+
+        Thread.sleep(10);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}}]}");
+        reportResultService.update(context, report2);
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
+                "-t", formatDate(report2.getLastModified()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat(infoMessages, hasItem(containsString("Report Diff between last two reports:")));
+        assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/key: \"value1\" -> \"value2\"")));
+    }
+
+    @Test
+    public void testCompareSpecificCheck() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}},{\"name\":\"Check2\",\"report\":{\"key\":\"other\"}}]}");
+        report1.setArgs("-c: 0");
+        reportResultService.update(context, report1);
+
+        Thread.sleep(10);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}},{\"name\":\"Check2\",\"report\":{\"key\":\"other\"}}]}");
+        report2.setArgs("-c: 0");
+        reportResultService.update(context, report2);
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
+                "-t", formatDate(report2.getLastModified()), "-c", "0" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+         assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/key: \"value1\" -> \"value2\"")));
+        assertThat(infoMessages, not(hasItem(containsString("Check2"))));
+    }
+
+    @Test
+    public void testInvalidCheckIndex() throws Exception {
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", "2023-01-01 00:00:00.000",
+                "-t", "2023-01-02 00:00:00.000", "-c", "999" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, empty()); // Invalid index is silently ignored in current setup
+    }
+
+    @Test
+    public void testInvalidDateFormat() throws Exception {
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", "invalid-date", "-t", "2023-01-02 00:00:00.000" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, hasItem(containsString("Cannot create a Date from the input: invalid-date")));
+    }
+
+    @Test
+    public void testNoReportsForDates() throws Exception {
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", "2022-01-01 00:00:00.000",
+                "-t", "2022-01-02 00:00:00.000" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat(infoMessages, hasItem(containsString("No reports found between")));
+    }
+
+    @Test
+    public void testToBeforeFrom() throws Exception {
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", "2023-01-02 00:00:00.000",
+                "-t", "2023-01-01 00:00:00.000" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, hasItem(containsString("The 'to' date cannot be before the 'from' date")));
+    }
+
+    @Test
+    public void testOnlyFromOrTo() throws Exception {
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        // Only -f
+        String[] args1 = new String[] { "report-diff", "-f", "2023-01-01 00:00:00.000" };
+        ScriptLauncher.handleScript(args1, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+        assertThat(handler.getErrorMessages(), hasItem(containsString("The 'from' date is set, but the 'to' date is not")));
+
+        // Only -t
+        String[] args2 = new String[] { "report-diff", "-t", "2023-01-02 00:00:00.000" };
+        ScriptLauncher.handleScript(args2, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+        assertThat(handler.getErrorMessages(), hasItem(containsString("The 'to' date is set, but the 'from' date is not")));
+    }
+
+    @Test
+    public void testReportWithMissingValue() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue(null); // Missing value
+        reportResultService.update(context, report1);
+
+        Thread.sleep(10);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[]}");
+        reportResultService.update(context, report2);
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
+                "-t", formatDate(report2.getLastModified()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, hasItem(containsString("One of the reports has no value")));
+    }
+
+    @Test
+    public void testNoDifferences() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
+        reportResultService.update(context, report1);
+
+        Thread.sleep(10);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
+        reportResultService.update(context, report2);
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
+                "-t", formatDate(report2.getLastModified()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat(infoMessages, hasItem(containsString("No differences found.")));
+    }
+}
