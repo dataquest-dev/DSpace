@@ -323,6 +323,9 @@ public class S3BitStoreService extends BaseBitStoreService {
 
             return tempFile;
         } catch (AmazonClientException | InterruptedException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             log.error("getFile(" + key + ")", e);
             throw new IOException(e);
         }

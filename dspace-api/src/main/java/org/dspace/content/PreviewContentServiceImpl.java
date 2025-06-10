@@ -383,7 +383,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      * @param file      the ZIP file to read
      * @throws IOException if the file is invalid or cannot be read
      */
-    public void processZipFile(List<String> filePaths, File file) throws IOException {
+    private void processZipFile(List<String> filePaths, File file) throws IOException {
         try (ZipFile zipFile = new ZipFile(file)) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             while (entries.hasMoreElements()) {
@@ -406,8 +406,8 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      */
     private String buildXmlResponse(List<String> filePaths) {
         StringWriter stringWriter = new StringWriter();
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
         try {
-            XMLOutputFactory factory = XMLOutputFactory.newInstance();
             XMLStreamWriter writer = factory.createXMLStreamWriter(stringWriter);
 
             writer.writeStartDocument("UTF-8", "1.0");
