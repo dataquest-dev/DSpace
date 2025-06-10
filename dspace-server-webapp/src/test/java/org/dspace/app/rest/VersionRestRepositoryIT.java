@@ -23,7 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -319,6 +321,54 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
                                             hasJsonPath("$.type", is("version"))
                                             )))
                                  .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+        } finally {
+            VersionBuilder.delete(idRef.get());
+        }
+    }
+
+    @Test
+    public void createFirstVersionItemNewTitleTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection test")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, col)
+                .withTitle("Public test item")
+                .withIssueDate("2021-04-27")
+                .withAuthor("Doe, John")
+                .withSubject("ExtraEntry")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        Date date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        String formattedDate = formatter.format(date);
+        // Set the item's title with the formatted date appended
+        String titleWithDate = item.getName() + " (" + formattedDate + ")";
+
+        AtomicReference<Integer> idRef = new AtomicReference<Integer>();
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        try {
+            getClient(adminToken).perform(post("/api/versioning/versions")
+                            .param("summary", "test summary!")
+                            .contentType(MediaType.parseMediaType(RestMediaTypes.TEXT_URI_LIST_VALUE))
+                            .content("/api/core/items/" + item.getID()))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$", Matchers.allOf(
+                            hasJsonPath("$.version", is(2)),
+                            hasJsonPath("$.summary", is("test summary!")),
+                            hasJsonPath("$.submitterName", is("first (admin) last (admin)")),
+                            hasJsonPath("$.type", is("version"))
+                    )))
+                    .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+            assert (titleWithDate.equals(versioningService.getVersion(context, idRef.get()).getItem().getName()));
         } finally {
             VersionBuilder.delete(idRef.get());
         }

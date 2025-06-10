@@ -9,12 +9,15 @@ package org.dspace.versioning;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.Relationship;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.RelationshipService;
@@ -127,6 +130,15 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
             // Add metadata `dc.relation.replaces` to the new item. The metadata `dc.relation.isreplacedby`
             // are added to the previous item in the VersionRestRepository.
             manageRelationMetadata(c, itemNew, previousItem);
+
+            // Set title to Name (YYYY-MM-DD)
+            Date date = new Date();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            String formattedDate = formatter.format(date);
+            // Set the item's title with the formatted date appended
+            String titleWithDate = itemNew.getName() + " (" + formattedDate + ")";
+            itemService.setMetadataSingleValue(c, itemNew, MetadataSchemaEnum.DC.getName(),
+                    "title", null, Item.ANY, titleWithDate);
 
             itemService.update(c, itemNew);
             return itemNew;
