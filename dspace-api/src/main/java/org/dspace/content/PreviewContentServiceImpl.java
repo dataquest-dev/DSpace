@@ -164,7 +164,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
 
     @Override
     public List<FileInfo> getFilePreviewContent(Context context, Bitstream bitstream) throws Exception {
-        List<FileInfo> fileInfos = null;
+        List<FileInfo> fileInfos = new ArrayList<>();
         File file = null;
 
         try {
@@ -407,8 +407,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     private String buildXmlResponse(List<String> filePaths) {
         StringWriter stringWriter = new StringWriter();
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        XMLStreamWriter writer = null;
         try {
-            XMLStreamWriter writer = factory.createXMLStreamWriter(stringWriter);
+            writer = factory.createXMLStreamWriter(stringWriter);
 
             writer.writeStartDocument("UTF-8", "1.0");
             writer.writeStartElement("root");
@@ -443,7 +444,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     /**
      * Processes  file data based on the specified file type (tar or zip),
      * and returns an XML representation of the file paths.
-     * @param file the InputStream containing the file data
+     * @param file the file data
      * @param fileType    the type of file to extract ("tar" or "zip")
      * @return an XML string representing the extracted file paths
      */
