@@ -270,4 +270,25 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
     public static int getNumberOfChecks() {
         return checks.size();
     }
+
+    /**
+     * Get the name of a specific check by its index.
+     * This is used for the `-c` option.
+     *
+     * @param specificCheck the index of the check
+     * @return the name of the check, or null if the index is invalid
+     */
+    public static String getCheckName(int specificCheck) {
+        if (specificCheck < 0 || specificCheck >= getNumberOfChecks()) {
+            return null;
+        }
+        int pos = 0;
+        for (String name : checks.keySet()) {
+            if (pos == specificCheck) {
+                return name;
+            }
+            pos++;
+        }
+        return null; // should not happen
+    }
 }

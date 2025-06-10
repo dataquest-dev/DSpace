@@ -8,6 +8,7 @@
 package org.dspace.content.service;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 import org.dspace.content.ReportResult;
@@ -51,6 +52,10 @@ public interface ReportResultService {
     ReportResult find(Context context, int id) throws SQLException;
 
     List<ReportResult> findAll(Context context) throws SQLException;
+
+    ReportResult findByLastModified(Context context, Date lastModified) throws SQLException;
+
+    ReportResult findByLastModifiedAndCheckType(Context context, Date lastModified, int checkType) throws SQLException;
 
     /**
      * Deletes the specified ReportResult instance in the given context.

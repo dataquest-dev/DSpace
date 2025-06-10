@@ -8,7 +8,11 @@
 package org.dspace.content.dao;
 
 import org.dspace.content.ReportResult;
+import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
+
+import java.sql.SQLException;
+import java.util.Date;
 
 /**
  * Database Access Object interface class for the ReportResult object.
@@ -17,4 +21,8 @@ import org.dspace.core.GenericDAO;
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public interface ReportResultDAO extends GenericDAO<ReportResult> {
+    ReportResult findByLastModified(Context context, Date lastModified) throws SQLException;
+
+    ReportResult findByLastModifiedAndCheckType(Context context, Date lastModified, int checkType) throws SQLException;
 }
+
