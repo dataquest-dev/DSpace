@@ -7,12 +7,12 @@
  */
 package org.dspace.content.dao;
 
+import java.sql.SQLException;
+import java.util.Date;
+
 import org.dspace.content.ReportResult;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
-
-import java.sql.SQLException;
-import java.util.Date;
 
 /**
  * Database Access Object interface class for the ReportResult object.
