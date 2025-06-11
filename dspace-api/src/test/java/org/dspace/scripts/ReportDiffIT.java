@@ -13,7 +13,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.IsNot.not;
 
-import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
@@ -36,17 +37,17 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
     private ReportResultService reportResultService;
 
-    private SimpleDateFormat dateFormat;
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
     @Before
     public void setup() {
         reportResultService = ContentServiceFactory.getInstance().getReportResultService();
-        dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     }
 
     // Helper method to format dates consistently
     private String formatDate(Date date) {
-        return dateFormat.format(date);
+        return DATE_FORMAT.format(date.toInstant());
     }
 
     @Test
