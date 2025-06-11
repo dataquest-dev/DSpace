@@ -7,14 +7,14 @@
  */
 package org.dspace.content.dao.impl;
 
+import java.sql.SQLException;
+import java.util.Date;
+import javax.persistence.Query;
+
 import org.dspace.content.ReportResult;
 import org.dspace.content.dao.ReportResultDAO;
 import org.dspace.core.AbstractHibernateDAO;
 import org.dspace.core.Context;
-
-import javax.persistence.Query;
-import java.sql.SQLException;
-import java.util.Date;
 
 /**
  * Database Access Object implementation class for the ReportResult object.
@@ -36,7 +36,8 @@ public class ReportResultDAOImpl extends AbstractHibernateDAO<ReportResult> impl
     }
 
     @Override
-    public ReportResult findByLastModifiedAndCheckType(Context context, Date lastModified, int checkType) throws SQLException {
+    public ReportResult findByLastModifiedAndCheckType(Context context, Date lastModified, int checkType)
+            throws SQLException {
         Query query = createQuery(context, "SELECT r FROM ReportResult r WHERE r.lastModified = :lastModified " +
                 "AND r.args like :checkType");
 

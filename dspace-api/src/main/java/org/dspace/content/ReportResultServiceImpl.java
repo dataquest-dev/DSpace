@@ -53,7 +53,8 @@ public class ReportResultServiceImpl implements ReportResultService {
     }
 
     @Override
-    public ReportResult findByLastModifiedAndCheckType(Context context, Date lastModified, int checkType) throws SQLException {
+    public ReportResult findByLastModifiedAndCheckType(Context context, Date lastModified, int checkType)
+            throws SQLException {
         return reportResultDAO.findByLastModifiedAndCheckType(context, lastModified, checkType);
     }
 

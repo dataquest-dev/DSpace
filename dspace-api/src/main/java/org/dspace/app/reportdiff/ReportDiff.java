@@ -7,60 +7,39 @@
  */
 package org.dspace.app.reportdiff;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.MissingNode;
-import com.flipkart.zjsonpatch.JsonDiff;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang3.builder.Diff;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.dspace.app.healthreport.HealthReport;
-import org.dspace.content.ReportResult;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.ReportResultService;
-import org.dspace.core.Context;
-import org.dspace.core.Email;
-import org.dspace.core.I18nUtil;
-import org.dspace.eperson.factory.EPersonServiceFactory;
-import org.dspace.eperson.service.EPersonService;
-import org.dspace.health.Check;
-import org.dspace.health.Report;
-import org.dspace.health.ReportInfo;
-import org.dspace.scripts.DSpaceRunnable;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.utils.DSpace;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import javax.mail.MessagingException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
-import static org.apache.commons.io.IOUtils.toInputStream;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.zjsonpatch.JsonDiff;
+import org.apache.commons.cli.ParseException;
+import org.dspace.app.healthreport.HealthReport;
+import org.dspace.content.ReportResult;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ReportResultService;
+import org.dspace.core.Context;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
+import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.utils.DSpace;
 
+/**
+ * This class implements a DSpace script that compares two health reports
+ * and shows the differences between them.
+ * It allows users to specify a date range
+ *
+ * @author Milan Majchrak (dspace at dataquest.sk)
+ */
 public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
-    private static final Logger log = LogManager.getLogger(ReportDiff.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private ReportResultService reportResultService = ContentServiceFactory.getInstance().getReportResultService();
@@ -91,6 +70,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      */
     private Date to = null;
 
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
 
     @Override
     public ReportDiffScriptConfiguration getScriptConfiguration() {
@@ -109,164 +90,201 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
         // `-c`: Check, perform only specific check by index (0-`getNumberOfChecks()`).
         if (commandLine.hasOption('c')) {
-            String checkOption = commandLine.getOptionValue('c');
-            try {
-                specificCheck = Integer.parseInt(checkOption);
-                if (specificCheck < 0 || specificCheck >= HealthReport.getNumberOfChecks()) {
-                    specificCheck = -1;
-                }
-            } catch (NumberFormatException e) {
-                log.info("Invalid value for check. It has to be a number from the displayed range.");
+            specificCheck = parseCheckOption(commandLine.getOptionValue('c'));
+            if (specificCheck == -1) {
                 return;
             }
         }
 
         // `-d`: Dates, show all dates that the report was generated for a specific check type.
-        if (commandLine.hasOption('d')) {
-            showDates = true;
-            return;
-        }
+        showDates = commandLine.hasOption('d');
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
         // `-f`: From, specify the start date for the report.
-        if (commandLine.hasOption('f')) {
-            String fromOption = commandLine.getOptionValue('f');
-            try {
-                LocalDateTime ldt = LocalDateTime.parse(fromOption, formatter);
-                ZonedDateTime zdt = ldt.atZone(ZoneId.systemDefault());
-                from = Date.from(zdt.toInstant());
-            } catch (Exception e) {
-                log.error("Cannot create a Date from the input: {}", fromOption, e);
-                return;
-            }
-        }
-
-        // `-t`: Till, specify the end date for the report.
-        if (commandLine.hasOption('t')) {
-            String toOption = commandLine.getOptionValue('t');
-            try {
-                LocalDateTime ldt = LocalDateTime.parse(toOption, formatter);
-                ZonedDateTime zdt = ldt.atZone(ZoneId.systemDefault());
-                to = Date.from(zdt.toInstant());
-            } catch (Exception e) {
-                log.error("Cannot create a Date from the input: {}", toOption, e);
-            }
-        }
+        from = parseDateOption(commandLine.getOptionValue('f'));
+        // `-t`: To, specify the end date for the report.
+        to = parseDateOption(commandLine.getOptionValue('t'));
     }
 
     @Override
     public void internalRun() throws Exception {
+        // If the user requested help information, we will display it.
         if (info) {
             printHelp();
             return;
         }
-        Context context = new Context();
 
+        // If the user requested to see all report dates, we will display them.
         if (showDates) {
-            // Show all dates for the specific check type
-
-            try {
-                // Show also report diff type in the format "CheckName - Date"
-                context.setCurrentUser(ePersonService.find(context, this.getEpersonIdentifier()));
-                List<ReportResult> allReports = reportResultService.findAll(context);
-                Map<String, List<DateWithArgs>> reportDatesMap = new HashMap<>();
-
-                for (ReportResult report : allReports) {
-                    String dateStr = report.getLastModified().toString();
-
-                    // Add the date to the list for this report type
-                    reportDatesMap
-                            .computeIfAbsent(report.getType(), k -> new ArrayList<>())
-                            .add(new DateWithArgs(dateStr, report.getArgs()));
-                }
-                // Print the report dates
-                StringBuilder sb = new StringBuilder();
-                sb.append("Report Dates Summary:\n");
-                // Get max 20 dates for each report type
-                reportDatesMap.forEach((reportType, dateWithArgsList) -> {
-                    dateWithArgsList.sort(Comparator.comparing(DateWithArgs::getDate).reversed());
-                    List<DateWithArgs> topDates = dateWithArgsList.size() > 20
-                            ? dateWithArgsList.subList(0, 20)
-                            : dateWithArgsList;
-
-                    sb.append(String.format("Report Type: %s%n", reportType));
-                    sb.append(String.format("%s:%n", reportType));
-                    topDates.forEach(entry -> sb.append(
-                            String.format("  - %s | %s%n", entry.getDate(), entry.getArgs())));
-                });
-                handler.logInfo(sb.toString());
-            } finally {
-                context.complete();
-            }
+            displayReportDates();
             return;
-
         }
 
+        // If the user specified a specific check, we need to ensure that both `from` and `to` dates are set.
+        if (!validateDateRange()) {
+            return;
+        }
+
+        // If the user specified a specific check, we will parse the dates and compare the reports.
+        compareReports();
+    }
+
+
+    /**
+     * Parse the check option and return the index of the check.
+     * If the option is invalid, log an error and return -1.
+     *
+     * @param checkOption the check option value
+     * @return the index of the check or -1 if invalid
+     */
+    private int parseCheckOption(String checkOption) {
+        try {
+            int index = Integer.parseInt(checkOption);
+            if (index < 0 || index >= HealthReport.getNumberOfChecks()) {
+                handler.logError("Invalid value for check. Must be between 0 and " +
+                        (HealthReport.getNumberOfChecks() - 1) + ". Using all checks.");
+                return -1;
+            }
+            return index;
+        } catch (NumberFormatException e) {
+            handler.logError("Invalid value for check. It must be a NUMBER from the displayed range.");
+            return -1;
+        }
+    }
+
+    /**
+     * Parse the date option and return a Date object.
+     * If the option is invalid, log an error and return null.
+     * The date format is expected to be "yyyy-MM-dd HH:mm:ss.SSS".
+     *
+     * @param optionValue the date option value
+     * @return the parsed Date or null if invalid
+     */
+    private Date parseDateOption(String optionValue) {
+        if (optionValue == null) {
+            return null;
+        }
+        try {
+            LocalDateTime ldt = LocalDateTime.parse(optionValue, formatter);
+            return Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+        } catch (Exception e) {
+            handler.logError("Cannot create a Date from the input: " + optionValue);
+            return null;
+        }
+    }
+
+    /**
+     * Validate the date range specified by `from` and `to`.
+     * If the dates are invalid, log an error and return false.
+     * If both dates are set, ensure that `to` is not before `from`.
+     *
+     * @return true if the date range is valid, false otherwise
+     */
+    private boolean validateDateRange() {
         if (to != null && from != null && to.before(from)) {
             handler.logError("The 'to' date cannot be before the 'from' date.");
-            return;
+            return false;
         }
-
-        if (to != null && from == null) {
-            handler.logError("The 'to' date is set, but the 'from' date is not. Please set both dates.");
-            return;
+        if ((to != null && from == null) || (from != null && to == null)) {
+            handler.logError("Both 'from' and 'to' dates must be specified together.");
+            return false;
         }
+        return true;
+    }
 
-        if (from != null && to == null) {
-            handler.logError("The 'from' date is set, but the 'to' date is not. Please set both dates.");
-            return;
-        }
+    /**
+     * Display all report dates for the specified check type.
+     * If no reports are found, log an appropriate message.
+     * Display the last 20 report dates for each type, sorted by date.
+     * In the format "Report Type: <type>\n  - <date> | <args>\n",
+     */
+    private void displayReportDates() {
+        try (Context context = new Context()) {
+            context.setCurrentUser(ePersonService.find(context, getEpersonIdentifier()));
+            List<ReportResult> allReports = reportResultService.findAll(context);
 
-        if (to != null && from != null) {
-            // If both dates are set, we need to filter the reports by these dates
-            handler.logInfo(String.format("Filtering reports from %s to %s", from, to));
-
-            ReportResult toReport = null;
-            ReportResult fromReport = null;
-            if (specificCheck != -1) {
-                // If a specific check is set, we need to filter the reports by this check type
-                fromReport = reportResultService.findByLastModifiedAndCheckType(context, from, specificCheck);
-                toReport = reportResultService.findByLastModifiedAndCheckType(context, to, specificCheck);
-            } else {
-                toReport = reportResultService.findByLastModified(context, to);
-                fromReport = reportResultService.findByLastModified(context, from);
+            Map<String, List<DateWithArgs>> reportDatesMap = new HashMap<>();
+            for (ReportResult report : allReports) {
+                String formattedDate = formatter.format(report.getLastModified()
+                        .toInstant()
+                        .atZone(ZoneId.systemDefault()).toLocalDateTime());
+                reportDatesMap.computeIfAbsent(report.getType(), k -> new ArrayList<>())
+                        .add(new DateWithArgs(formattedDate, report.getArgs()));
             }
 
-            if (toReport == null || fromReport == null) {
-                handler.logInfo(String.format("No reports found between %s and %s", from, to));
+            StringBuilder sb = new StringBuilder("Report Dates Summary:\n");
+            reportDatesMap.forEach((type, dates) -> {
+                sb.append("Report Type: ").append(type).append("\n");
+                dates.stream()
+                        .sorted(Comparator.comparing(DateWithArgs::getDate).reversed())
+                        .limit(20)
+                        .forEach(dwa -> sb
+                                .append("  - ")
+                                .append(dwa.getDate())
+                                .append(" | ")
+                                .append(dwa.getArgs())
+                                .append("\n"));
+            });
+
+            handler.logInfo(sb.toString());
+        } catch (Exception e) {
+            handler.logError("Error fetching report dates: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Compare two reports based on the specified `from` and `to` dates.
+     * If the reports are not found, log an appropriate message.
+     * If the reports are found, generate a comparison report showing the differences.
+     */
+    private void compareReports() {
+        try (Context context = new Context()) {
+            context.setCurrentUser(ePersonService.find(context, getEpersonIdentifier()));
+
+            ReportResult fromReport = specificCheck != -1
+                    ? reportResultService.findByLastModifiedAndCheckType(context, from, specificCheck)
+                    : reportResultService.findByLastModified(context, from);
+
+            ReportResult toReport = specificCheck != -1
+                    ? reportResultService.findByLastModifiedAndCheckType(context, to, specificCheck)
+                    : reportResultService.findByLastModified(context, to);
+
+            if (fromReport == null || toReport == null) {
+                handler.logInfo("No reports found for specified dates.");
                 return;
             }
 
-            try {
-                context.setCurrentUser(ePersonService.find(context, this.getEpersonIdentifier()));
-                // Get the last two report results and compare them
-                // Compare two JSONs
-                // Write the report to the log
-                // The report value is stored in the `value` column as a JSON string.
-                String toReportValue = toReport.getValue();
-                String fromReportValue = fromReport.getValue();
-                if (toReportValue == null || fromReportValue == null) {
-                    handler.logError("One of the reports has no value. Cannot compare reports.");
-                    return;
-                }
-
-                // Create a diff comparing the two JSONs and the result store as String
-                StringBuilder sbReport = new StringBuilder();
-                sbReport.append("\nReport Diff between last two reports:\n");
-                sbReport.append("The Report type: ").append(toReport.getType()).append("\n");
-                sbReport.append("Command line options:\n");
-                sbReport.append("From Report: ").append(fromReport.getLastModified()).append("\n");
-                sbReport.append("To Report: ").append(toReport.getLastModified()).append("\n\n");
-                sbReport.append("Differences:\n\n");
-                // Compare the two JSONs
-                sbReport.append(generateDiff(fromReportValue, toReportValue));
-
-                handler.logInfo(sbReport.toString());
-            } finally {
-                context.complete();
-            }
-
+            handler.logInfo(generateReportComparison(fromReport, toReport));
+        } catch (Exception e) {
+            handler.logError("Error comparing reports: " + e.getMessage());
         }
+    }
+
+    /**
+     * Generate a comparison report between two ReportResult objects.
+     * The report includes the type, last modified dates, and the differences in JSON format.
+     *
+     * @param fromReport the "from" report
+     * @param toReport   the "to" report
+     * @return a string containing the comparison report
+     * @throws IOException if an error occurs while generating the diff
+     */
+    private String generateReportComparison(ReportResult fromReport, ReportResult toReport) throws IOException {
+        String fromJson = fromReport.getValue();
+        String toJson = toReport.getValue();
+
+        if (fromJson == null || toJson == null) {
+            return "One of the reports has no value. Cannot compare.";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("\nReport Diff between two reports:\n")
+                .append("Type: ").append(toReport.getType()).append("\n")
+                .append("From: ").append(fromReport.getLastModified()).append("\n")
+                .append("To: ").append(toReport.getLastModified()).append("\n\n")
+                .append("Differences:\n\n")
+                .append(generateDiff(fromJson, toJson));
+
+        return sb.toString();
     }
 
     @Override
@@ -293,7 +311,6 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         JsonNode oldNode = mapper.readTree(oldJson);
         JsonNode newNode = mapper.readTree(newJson);
 
-        // Compute the RFC6902 patch (an array of operations)
         JsonNode patch = JsonDiff.asJson(oldNode, newNode);
 
         if (!patch.isArray() || patch.size() == 0) {
@@ -301,82 +318,135 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         }
 
         StringBuilder sb = new StringBuilder();
-        Iterator<JsonNode> elements = patch.elements();
 
-        while (elements.hasNext()) {
-            JsonNode op = elements.next();
-            String operation = op.get("op").asText();   // “replace”, “add”, “remove”, etc.
-            String path      = op.get("path").asText(); // e.g. “/checks/0/report/generated”
+        for (JsonNode op : patch) {
+            String operation = op.path("op").asText();
+            String path = op.path("path").asText();
 
             switch (operation) {
-                case "replace": {
-                    JsonNode newValue = op.get("value");
-                    // Lookup the old value from oldNode:
-                    JsonNode oldValue = oldNode.at(path);
-                    sb.append(String.format(
-                            "- REPLACE at %s: %s -> %s%n",
-                            path,
-                            nodeToEscapedString(oldValue),
-                            nodeToEscapedString(newValue)
-                    ));
+                case "replace":
+                    appendReplace(sb, oldNode, op, path);
                     break;
-                }
-                case "add": {
-                    JsonNode addedValue = op.get("value");
-                    sb.append(String.format(
-                            "- ADD     at %s: %s%n",
-                            path,
-                            nodeToEscapedString(addedValue)
-                    ));
+                case "add":
+                    appendAdd(sb, op, path);
                     break;
-                }
-                case "remove": {
-                    JsonNode removedValue = oldNode.at(path);
-                    sb.append(String.format(
-                            "- REMOVE  at %s: %s%n",
-                            path,
-                            nodeToEscapedString(removedValue)
-                    ));
+                case "remove":
+                    appendRemove(sb, oldNode, path);
                     break;
-                }
-                case "move": {
-                    String from = op.get("from").asText();
-                    sb.append(String.format(
-                            "- MOVE    from %s to %s%n",
-                            from,
-                            path
-                    ));
+                case "move":
+                    appendMove(sb, op, path);
                     break;
-                }
-                case "copy": {
-                    String fromCopy = op.get("from").asText();
-                    sb.append(String.format(
-                            "- COPY    from %s to %s%n",
-                            fromCopy,
-                            path
-                    ));
+                case "copy":
+                    appendCopy(sb, op, path);
                     break;
-                }
-                case "test": {
-                    JsonNode testValue = op.get("value");
-                    sb.append(String.format(
-                            "- TEST    at %s: must equal %s%n",
-                            path,
-                            nodeToEscapedString(testValue)
-                    ));
+                case "test":
+                    appendTest(sb, op, path);
                     break;
-                }
-                default: {
-                    sb.append(String.format(
-                            "%-7s at %s (unhandled op)%n",
-                            operation.toUpperCase(),
-                            path
-                    ));
-                }
+                default:
+                    sb.append(String.format("%-7s at %s (unhandled op)%n", operation.toUpperCase(), path));
             }
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Append a replace operation to the StringBuilder.
+     *
+     * @param sb        the StringBuilder to append to
+     * @param oldNode   the old JSON node
+     * @param op        the JSON patch operation node
+     * @param path      the path where the operation occurs
+     */
+    private static void appendReplace(StringBuilder sb, JsonNode oldNode, JsonNode op, String path) {
+        JsonNode newValue = op.path("value");
+        JsonNode oldValue = oldNode.at(path);
+        sb.append(String.format(
+                "- REPLACE at %s: %s -> %s%n",
+                path,
+                nodeToEscapedString(oldValue),
+                nodeToEscapedString(newValue)
+        ));
+    }
+
+    /**
+     * Append an add operation to the StringBuilder.
+     *
+     * @param sb        the StringBuilder to append to
+     * @param op        the JSON patch operation node
+     * @param path      the path where the operation occurs
+     */
+    private static void appendAdd(StringBuilder sb, JsonNode op, String path) {
+        JsonNode addedValue = op.path("value");
+        sb.append(String.format(
+                "- ADD     at %s: %s%n",
+                path,
+                nodeToEscapedString(addedValue)
+        ));
+    }
+
+    /**
+     * Append a remove operation to the StringBuilder.
+     *
+     * @param sb        the StringBuilder to append to
+     * @param oldNode   the old JSON node
+     * @param path      the path where the operation occurs
+     */
+    private static void appendRemove(StringBuilder sb, JsonNode oldNode, String path) {
+        JsonNode removedValue = oldNode.at(path);
+        sb.append(String.format(
+                "- REMOVE  at %s: %s%n",
+                path,
+                nodeToEscapedString(removedValue)
+        ));
+    }
+
+    /**
+     * Append a move operation to the StringBuilder.
+     *
+     * @param sb        the StringBuilder to append to
+     * @param op        the JSON patch operation node
+     * @param path      the path where the operation occurs
+     */
+    private static void appendMove(StringBuilder sb, JsonNode op, String path) {
+        String from = op.path("from").asText();
+        sb.append(String.format(
+                "- MOVE    from %s to %s%n",
+                from,
+                path
+        ));
+    }
+
+    /**
+     * Append a copy operation to the StringBuilder.
+     *
+     * @param sb        the StringBuilder to append to
+     * @param op        the JSON patch operation node
+     * @param path      the path where the operation occurs
+     */
+    private static void appendCopy(StringBuilder sb, JsonNode op, String path) {
+        String from = op.path("from").asText();
+        sb.append(String.format(
+                "- COPY    from %s to %s%n",
+                from,
+                path
+        ));
+    }
+
+    /**
+     * Append a test operation to the StringBuilder.
+     *
+     * @param sb        the StringBuilder to append to
+     * @param op        the JSON patch operation node
+     * @param path      the path where the operation occurs
+     */
+    private static void appendTest(StringBuilder sb, JsonNode op, String path) {
+        JsonNode testValue = op.path("value");
+        sb.append(String.format(
+                "- TEST    at %s: must equal %s%n",
+                path,
+                nodeToEscapedString(testValue)
+        ));
     }
 
     /**
@@ -393,6 +463,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 }
 
+/**
+ * A simple class to hold a date and its associated arguments.
+ * Used for displaying report dates with their arguments.
+ */
 class DateWithArgs {
     private final String date;
     private final String args;
