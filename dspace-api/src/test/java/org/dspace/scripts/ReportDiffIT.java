@@ -7,41 +7,47 @@
  */
 package org.dspace.scripts;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.core.IsNot.not;
 
-import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
-import org.checkerframework.checker.units.qual.A;
 import org.dspace.AbstractIntegrationTestWithDatabase;
+import org.dspace.app.healthreport.HealthReport;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.content.ReportResult;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ReportResultService;
-import org.dspace.core.Context;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Integration tests for the report-diff script.
+ *
+ * @author Milan Majchrak (dspace at dataquest.sk)
+ */
 public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
     private ReportResultService reportResultService;
 
-    private SimpleDateFormat dateFormat;
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
     @Before
     public void setup() {
         reportResultService = ContentServiceFactory.getInstance().getReportResultService();
-        dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     }
 
     // Helper method to format dates consistently
     private String formatDate(Date date) {
-        return dateFormat.format(date);
+        return DATE_FORMAT.format(date.toInstant());
     }
 
     @Test
@@ -108,8 +114,9 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-        assertThat(infoMessages, hasItem(containsString("Report Diff between last two reports:")));
-        assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/key: \"value1\" -> \"value2\"")));
+        assertThat(infoMessages, hasItem(containsString("Report Diff between two reports:")));
+        assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/key: \"value1\" " +
+                "-> \"value2\"")));
     }
 
     @Test
@@ -118,7 +125,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
-        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}},{\"name\":\"Check2\",\"report\":{\"key\":\"other\"}}]}");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}},{\"name\":\"Check2\"" +
+                ",\"report\":{\"key\":\"other\"}}]}");
         report1.setArgs("-c: 0");
         reportResultService.update(context, report1);
 
@@ -126,7 +134,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
-        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}},{\"name\":\"Check2\",\"report\":{\"key\":\"other\"}}]}");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}},{\"name\":\"Check2\"" +
+                ",\"report\":{\"key\":\"other\"}}]}");
         report2.setArgs("-c: 0");
         reportResultService.update(context, report2);
 
@@ -138,7 +147,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-         assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/key: \"value1\" -> \"value2\"")));
+         assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/key: \"value1\" " +
+                 "-> \"value2\"")));
         assertThat(infoMessages, not(hasItem(containsString("Check2"))));
     }
 
@@ -150,7 +160,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, empty()); // Invalid index is silently ignored in current setup
+        assertThat(errorMessages, hasItem("Invalid value for check. Must be between 0 and " +
+                (HealthReport.getNumberOfChecks() - 1) + ". Using all checks."));
     }
 
     @Test
@@ -171,7 +182,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-        assertThat(infoMessages, hasItem(containsString("No reports found between")));
+        assertThat(infoMessages, hasItem(containsString("No reports found for specified dates.")));
     }
 
     @Test
@@ -182,7 +193,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasItem(containsString("The 'to' date cannot be before the 'from' date")));
+        assertThat(errorMessages, hasItem(containsString("The 'to' date cannot be before the 'from' date.")));
     }
 
     @Test
@@ -192,12 +203,14 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         // Only -f
         String[] args1 = new String[] { "report-diff", "-f", "2023-01-01 00:00:00.000" };
         ScriptLauncher.handleScript(args1, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
-        assertThat(handler.getErrorMessages(), hasItem(containsString("The 'from' date is set, but the 'to' date is not")));
+        assertThat(handler.getErrorMessages(), hasItem(containsString("Both 'from' and 'to' dates " +
+                "must be specified together.")));
 
         // Only -t
         String[] args2 = new String[] { "report-diff", "-t", "2023-01-02 00:00:00.000" };
         ScriptLauncher.handleScript(args2, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
-        assertThat(handler.getErrorMessages(), hasItem(containsString("The 'to' date is set, but the 'from' date is not")));
+        assertThat(handler.getErrorMessages(), hasItem(containsString("Both 'from' and 'to' dates " +
+                "must be specified together.")));
     }
 
     @Test
@@ -223,8 +236,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
                 "-t", formatDate(report2.getLastModified()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasItem(containsString("One of the reports has no value")));
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat(infoMessages, hasItem(containsString("One of the reports has no value")));
     }
 
     @Test
