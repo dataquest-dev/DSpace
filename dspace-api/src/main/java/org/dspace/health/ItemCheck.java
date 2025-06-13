@@ -79,6 +79,10 @@ public class ItemCheck extends Check {
             root.put("communities", communitiesArray);
         } catch (SQLException e) {
             error(e);
+        } finally {
+            if (context.isValid()) {
+                context.abort();
+            }
         }
 
         try {
