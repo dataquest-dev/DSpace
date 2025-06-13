@@ -198,9 +198,9 @@ public class ItemCheck extends Check {
             @Override
             public int compare(Map.Entry<Collection, Long> o1, Map.Entry<Collection, Long> o2) {
                 try {
-                    return CollectionDropDown.collectionPath(context, o1.getKey()).compareTo(
-                            CollectionDropDown.collectionPath(context, o2.getKey())
-                    );
+                    String p1 = CollectionDropDown.collectionPath(context, o1.getKey());
+                    String p2 = CollectionDropDown.collectionPath(context, o2.getKey());
+                    return p1.compareTo(p2);
                 } catch (Exception e) {
                     ret.append(e.getMessage());
                 }
