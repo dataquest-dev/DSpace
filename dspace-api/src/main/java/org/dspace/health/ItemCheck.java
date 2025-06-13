@@ -145,48 +145,48 @@ public class ItemCheck extends Check {
     public String getObjectSizesInfo(Context context, JSONObject jo) throws SQLException {
         StringBuilder sb = new StringBuilder();
 
-        String bitstreamsCount = String.valueOf(bitstreamService.countTotal(context));
-        sb.append(String.format("Count %-14s: %s\n", "Bitstream", bitstreamsCount));
+        int bitstreamsCount = bitstreamService.countTotal(context);
+        sb.append(String.format("Count %-14s: %s\n", "Bitstream", String.valueOf(bitstreamsCount)));
         jo.put("bitstreamsCount", bitstreamsCount);
 
-        String bundlesCount = String.valueOf(bundleService.countTotal(context));
-        sb.append(String.format("Count %-14s: %s\n", "Bundle", bundlesCount));
+        int bundlesCount = bundleService.countTotal(context);
+        sb.append(String.format("Count %-14s: %s\n", "Bundle", String.valueOf(bundlesCount)));
         jo.put("bundlesCount", bundlesCount);
 
-        String collectionsCount = String.valueOf(collectionService.countTotal(context));
-        sb.append(String.format("Count %-14s: %s\n", "Collection", collectionsCount));
+        int collectionsCount = collectionService.countTotal(context);
+        sb.append(String.format("Count %-14s: %s\n", "Collection", String.valueOf(collectionsCount)));
         jo.put("collectionsCount", collectionsCount);
 
-        String communitiesCount = String.valueOf(communityService.countTotal(context));
-        sb.append(String.format("Count %-14s: %s\n", "Community", communitiesCount));
+        int communitiesCount = communityService.countTotal(context);
+        sb.append(String.format("Count %-14s: %s\n", "Community", String.valueOf(communitiesCount)));
         jo.put("communitiesCount", communitiesCount);
 
-        String metadataValuesCount = String.valueOf(metadataValueService.countTotal(context));
-        sb.append(String.format("Count %-14s: %s\n", "MetadataValue", metadataValuesCount));
+        int metadataValuesCount = metadataValueService.countTotal(context);
+        sb.append(String.format("Count %-14s: %s\n", "MetadataValue", String.valueOf(metadataValuesCount)));
         jo.put("metadataValuesCount", metadataValuesCount);
 
-        String ePersonsCount = String.valueOf(ePersonService.countTotal(context));
-        sb.append(String.format("Count %-14s: %s\n", "EPerson", ePersonsCount));
+        int ePersonsCount = ePersonService.countTotal(context);
+        sb.append(String.format("Count %-14s: %s\n", "EPerson", String.valueOf(ePersonsCount)));
         jo.put("ePersonsCount", ePersonsCount);
 
-        String itemsCount = String.valueOf(itemService.countTotal(context));
-        sb.append(String.format("Count %-14s: %s\n", "Item", itemsCount));
+        int itemsCount = itemService.countTotal(context);
+        sb.append(String.format("Count %-14s: %s\n", "Item", String.valueOf(itemsCount)));
         jo.put("itemsCount", itemsCount);
 
-        String handlesCount = String.valueOf(handleService.countTotal(context));
-        sb.append(String.format("Count %-14s: %s\n", "Handle", handlesCount));
+        int handlesCount = handleService.countTotal(context);
+        sb.append(String.format("Count %-14s: %s\n", "Handle", String.valueOf(handlesCount)));
         jo.put("handlesCount", handlesCount);
 
-        String groupsCount = String.valueOf(groupService.countTotal(context));
-        sb.append(String.format("Count %-14s: %s\n", "Group", groupsCount));
+        int groupsCount = groupService.countTotal(context);
+        sb.append(String.format("Count %-14s: %s\n", "Group", String.valueOf(groupsCount)));
         jo.put("groupsCount", groupsCount);
 
-        String basicWorkflowItemsCount = String.valueOf(workflowItemService.countAll(context));
-        sb.append(String.format("Count %-14s: %s\n", "BasicWorkflowItem", basicWorkflowItemsCount));
+        int basicWorkflowItemsCount = workflowItemService.countAll(context);
+        sb.append(String.format("Count %-14s: %s\n", "BasicWorkflowItem", String.valueOf(basicWorkflowItemsCount)));
         jo.put("basicWorkflowItemsCount", basicWorkflowItemsCount);
 
-        String workspaceItemsCount = String.valueOf(workspaceItemService.countTotal(context));
-        sb.append(String.format("Count %-14s: %s\n", "WorkspaceItem", workspaceItemsCount));
+        int workspaceItemsCount = workspaceItemService.countTotal(context);
+        sb.append(String.format("Count %-14s: %s\n", "WorkspaceItem", String.valueOf(workspaceItemsCount)));
         jo.put("workspaceItemsCount", workspaceItemsCount);
 
         return sb.toString();
