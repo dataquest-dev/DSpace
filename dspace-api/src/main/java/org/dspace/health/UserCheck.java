@@ -95,8 +95,7 @@ public class UserCheck extends Check {
                 ret += String.format("%-21s: %s\n", key,
                                      String.valueOf(value));
 
-                key = key.toLowerCase().replaceAll("\\s+", "_");
-                key = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, key);
+                key = caseFormat(key);
                 root.put(key, value);
             }
         }
@@ -152,5 +151,11 @@ public class UserCheck extends Check {
             jsonArr.put(oneId);
         }
         return ids.toString();
+    }
+
+    String caseFormat(String str) {
+        str = str.toLowerCase().replaceAll("\\s+", "_");
+        str = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, str);
+        return str;
     }
 }
