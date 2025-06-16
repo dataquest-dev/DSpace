@@ -23,8 +23,8 @@ import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
-import org.json.JSONObject;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * @author LINDAT/CLARIN dev team
