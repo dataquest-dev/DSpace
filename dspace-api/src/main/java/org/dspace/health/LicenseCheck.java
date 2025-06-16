@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.amazonaws.util.CollectionUtils;
-import com.google.common.base.CaseFormat;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
