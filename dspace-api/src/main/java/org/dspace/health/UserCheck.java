@@ -139,17 +139,17 @@ public class UserCheck extends Check {
             error(e);
         }
 
+        this.setReportJson(root);
         return ret;
     }
 
-    private String formatIds(List<? extends DSpaceObject> objects, JSONArray ja) {
-
+    private String formatIds(List<? extends DSpaceObject> objects, JSONArray jsonArr) {
         StringBuilder ids = new StringBuilder();
         for (DSpaceObject o : objects) {
             JSONObject oneId = new JSONObject();
             ids.append(o.getID()).append(", ");
             oneId.put("id", o.getID());
-            ja.put(oneId);
+            jsonArr.put(oneId);
         }
         return ids.toString();
     }
