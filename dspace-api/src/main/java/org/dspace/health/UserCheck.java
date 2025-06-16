@@ -95,7 +95,7 @@ public class UserCheck extends Check {
                 ret += String.format("%-21s: %s\n", key,
                                      String.valueOf(value));
 
-                key = caseFormat(key);
+                key = toCamelCase(key);
                 root.put(key, value);
             }
         }
@@ -150,11 +150,17 @@ public class UserCheck extends Check {
             oneId.put("id", o.getID());
             jsonArr.put(oneId);
         }
+
+        // deleting last delimeter character
+        if (ids.length() > 0){
+            ids.deleteCharAt(ids.length() - 1);
+        }
+
         return ids.toString();
     }
 
-    String caseFormat(String str) {
-        str = str.toLowerCase().replaceAll("\\s+", "_");
+    private String toCamelCase(String str) {
+        str = str.toLowerCase().replace(" ", "_");
         str = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, str);
         return str;
     }
