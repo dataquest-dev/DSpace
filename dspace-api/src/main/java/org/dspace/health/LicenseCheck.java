@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.amazonaws.util.CollectionUtils;
+import com.google.common.base.CaseFormat;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
@@ -28,6 +29,8 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * This check provides information about the number of items categorized by clarin license type (PUB/RES/ACA),
@@ -45,6 +48,7 @@ public class LicenseCheck extends Check {
     protected String run(ReportInfo ri) {
         Context context = new Context();
         StringBuilder sb = new StringBuilder();
+        JSONObject root = new JSONObject();
 
         Iterator<Item> items;
         ItemService itemService = ContentServiceFactory.getInstance().getItemService();
@@ -110,20 +114,48 @@ public class LicenseCheck extends Check {
         }
 
         for (Map.Entry<String, Integer> result : licensesCount.entrySet()) {
-            sb.append(String.format("%-20s: %d\n", result.getKey(), result.getValue()));
+            String key = result.getKey();
+            int value = result.getValue();
+
+            sb.append(String.format("%-20s: %d\n", key, value));
+            key = caseFormat(key);
+            root.put(key, value);
         }
 
         if (!problemItems.isEmpty()) {
-            for (Map.Entry<String, List<UUID>> problemItems : problemItems.entrySet()) {
-                List<UUID> uuids = problemItems.getValue();
-                sb.append(String.format("\n%s: %d\n", problemItems.getKey(), uuids.size()));
+            JSONArray problemItemsArray = new JSONArray();
+            for (Map.Entry<String, List<UUID>> entry: problemItems.entrySet()) {
+                List<UUID> uuids = entry.getValue();
+                JSONObject oneProblemItem = new JSONObject();
+
+                String key = entry.getKey();
+                int size = uuids.size();
+
+                sb.append(String.format("\n%s: %d\n", key, size));
+                key = caseFormat(key);
+                oneProblemItem.put(key, size);
+
+                JSONArray problemIdsArray = new JSONArray();
                 for (UUID uuid : uuids) {
+                    JSONObject oneProblemId = new JSONObject();
                     sb.append(String.format("     %s\n", uuid));
+                    oneProblemId.put("id", uuid.toString());
+                    problemIdsArray.put(oneProblemId);
                 }
+                oneProblemItem.put("problemIds", problemIdsArray);
+                problemItemsArray.put(oneProblemItem);
             }
+            root.put("problemItems", problemItemsArray);
         }
 
         context.close();
+        this.setReportJson(root);
         return sb.toString();
+    }
+
+    String caseFormat(String str) {
+        str = str.toLowerCase().replaceAll("\\s+", "_");
+        str = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, str);
+        return str;
     }
 }
