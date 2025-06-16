@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.CaseFormat;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -22,6 +23,8 @@ import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 /**
  * @author LINDAT/CLARIN dev team
@@ -37,6 +40,7 @@ public class UserCheck extends Check {
     public String run(ReportInfo ri) {
         Context context = new Context();
         String ret = "";
+        JSONObject root = new JSONObject();
         Map<String, Integer> info = new HashMap<String, Integer>();
         try {
             List<EPerson> epersons = ePersonService.findAll(context, EPerson.LASTNAME);
@@ -80,12 +84,20 @@ public class UserCheck extends Check {
 
         ret += String.format(
             "%-20s: %d\n", "Users", info.get("Count"));
+        root.put("users", info.get("Count"));
         ret += String.format(
             "%-20s: %d\n", "Have email", info.get("Have email"));
+        root.put("haveEmail", info.get("Have email"));
         for (Map.Entry<String, Integer> e : info.entrySet()) {
             if (!e.getKey().equals("Count") && !e.getKey().equals("Have email")) {
-                ret += String.format("%-21s: %s\n", e.getKey(),
-                                     String.valueOf(e.getValue()));
+                String key = e.getKey();
+                int value = e.getValue();
+                ret += String.format("%-21s: %s\n", key,
+                                     String.valueOf(value));
+
+                key = key.toLowerCase().replaceAll("\\s+", "_");
+                key = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, key);
+                root.put(key, value);
             }
         }
 
@@ -95,21 +107,31 @@ public class UserCheck extends Check {
             // empty group
             List<Group> emptyGroups = groupService.getEmptyGroups(context);
             ret += String.format("Empty groups: #%d\n    ", emptyGroups.size());
+            JSONArray emptyGroupsArray = new JSONArray();
             for (Group group : emptyGroups) {
+                JSONObject oneEmptyGroup = new JSONObject();
                 ret += String.format("id=%s;name=%s,\n    ", group.getID(), group.getName());
+                oneEmptyGroup.put("id", group.getID());
+                oneEmptyGroup.put("name", group.getName());
+                emptyGroupsArray.put(oneEmptyGroup);
             }
+            root.put("emptyGroups", emptyGroupsArray);
 
             //subscribers
             List<EPerson> subscribers = ePersonService.findEPeopleWithSubscription(context);
+            JSONArray subsIdsArray = new JSONArray();
             ret += String.format(
                 "Subscribers: #%d [%s]\n",
-                subscribers.size(), formatIds(subscribers));
+                subscribers.size(), formatIds(subscribers, subsIdsArray));
+            root.put("subscribers", subsIdsArray);
 
             //subscribed collections
             List<Collection> subscribedCols = collectionService.findCollectionsWithSubscribers(context);
+            JSONArray subsColsArray = new JSONArray();
             ret += String.format(
                 "Subscribed cols.: #%d [%s]\n",
-                subscribedCols.size(), formatIds(subscribedCols));
+                subscribedCols.size(), formatIds(subscribedCols, subsColsArray));
+            root.put("subscribedCollections", subsColsArray);
 
             context.complete();
 
@@ -120,10 +142,14 @@ public class UserCheck extends Check {
         return ret;
     }
 
-    private String formatIds(List<? extends DSpaceObject> objects) {
+    private String formatIds(List<? extends DSpaceObject> objects, JSONArray ja) {
+
         StringBuilder ids = new StringBuilder();
         for (DSpaceObject o : objects) {
+            JSONObject oneId = new JSONObject();
             ids.append(o.getID()).append(", ");
+            oneId.put("id", o.getID());
+            ja.put(oneId);
         }
         return ids.toString();
     }
