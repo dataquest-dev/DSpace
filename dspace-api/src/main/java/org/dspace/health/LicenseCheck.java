@@ -113,29 +113,28 @@ public class LicenseCheck extends Check {
             }
         }
 
+        JSONArray licensesArray = new JSONArray();
         for (Map.Entry<String, Integer> result : licensesCount.entrySet()) {
-            String key = result.getKey();
-            int value = result.getValue();
+            JSONObject oneLicense = new JSONObject();
 
-            sb.append(String.format("%-20s: %d\n", key, value));
-            key = caseFormat(key);
-            root.put(key, value);
+            sb.append(String.format("%-20s: %d\n", result.getKey(), result.getValue()));
+            oneLicense.put("type", result.getKey());
+            oneLicense.put("count", result.getValue());
+
+            licensesArray.put(oneLicense);
         }
+        root.put("licenses", licensesArray);
 
         if (!problemItems.isEmpty()) {
             JSONArray problemItemsArray = new JSONArray();
             for (Map.Entry<String, List<UUID>> entry: problemItems.entrySet()) {
                 List<UUID> uuids = entry.getValue();
                 JSONObject oneProblemItem = new JSONObject();
-
-                String key = entry.getKey();
-                int size = uuids.size();
-
-                sb.append(String.format("\n%s: %d\n", key, size));
-                key = caseFormat(key);
-                oneProblemItem.put(key, size);
-
                 JSONArray problemIdsArray = new JSONArray();
+
+                sb.append(String.format("\n%s: %d\n", entry.getKey(), uuids.size()));
+                oneProblemItem.put("type", entry.getKey());
+                oneProblemItem.put("count", uuids.size());
                 for (UUID uuid : uuids) {
                     JSONObject oneProblemId = new JSONObject();
                     sb.append(String.format("     %s\n", uuid));
@@ -151,11 +150,5 @@ public class LicenseCheck extends Check {
         context.close();
         this.setReportJson(root);
         return sb.toString();
-    }
-
-    String caseFormat(String str) {
-        str = str.toLowerCase().replaceAll("\\s+", "_");
-        str = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, str);
-        return str;
     }
 }
