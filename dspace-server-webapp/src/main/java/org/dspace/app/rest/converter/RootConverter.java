@@ -12,10 +12,9 @@ import static org.dspace.app.util.Util.getSourceVersion;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-
-import org.apache.commons.lang3.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.RootRest;
 import org.dspace.services.ConfigurationService;
 import org.slf4j.Logger;
