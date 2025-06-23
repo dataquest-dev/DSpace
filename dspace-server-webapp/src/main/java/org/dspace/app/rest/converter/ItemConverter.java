@@ -19,14 +19,18 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.MetadataValueList;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexableObject;
+import org.dspace.services.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 /**
  * This is the converter from/to the Item in the DSpace API data model and the
@@ -42,10 +46,25 @@ public class ItemConverter
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private ClarinItemService clarinItemService;
+
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(ItemConverter.class);
 
     @Override
     public ItemRest convert(Item obj, Projection projection) {
+        Context context = null;
+        Request currentRequest = requestService.getCurrentRequest();
+        if (currentRequest != null) {
+            context = ContextUtil.obtainContext(currentRequest.getHttpServletRequest());
+        }
+        try {
+            clarinItemService.updateItemDatesMetadata(context, obj);
+        } catch (SQLException e) {
+            log.error("Error updating item dates metadata", e);
+            throw new RuntimeException(e);
+        }
+
         ItemRest item = super.convert(obj, projection);
         item.setInArchive(obj.isArchived());
         item.setDiscoverable(obj.isDiscoverable());
@@ -76,8 +95,24 @@ public class ItemConverter
         List<MetadataValue> returnList = new LinkedList<>();
         try {
             if (obj.isWithdrawn() && (Objects.isNull(context) ||
-                                      Objects.isNull(context.getCurrentUser()) || !authorizeService.isAdmin(context))) {
-                return new MetadataValueList(new ArrayList<MetadataValue>());
+                                      Objects.isNull(context.getCurrentUser()) || !authorizeService.isAdmin(context)) &&
+                    ObjectUtils.isEmpty(itemService.getMetadataByMetadataString(obj, "local.withdrawn.reason"))) {
+                // if the item is withdrawn and is replaced the item could have a tombstone -
+                // return message for the tombstone
+                List<MetadataValue> isReplacedBy =
+                        itemService.getMetadataByMetadataString(obj, "dc.relation.isreplacedby");
+                if (!ObjectUtils.isEmpty(isReplacedBy)) {
+                    ArrayList<MetadataValue> allowedMetadataValues = new ArrayList<>();
+                    allowedMetadataValues.addAll(isReplacedBy);
+                    // Add authors to the tombstone
+                    allowedMetadataValues.addAll(
+                            itemService.getMetadataByMetadataString(obj, "dc.contributor.author"));
+                    allowedMetadataValues.addAll(
+                            itemService.getMetadataByMetadataString(obj, "dc.contributor.other"));
+                    return new MetadataValueList(allowedMetadataValues);
+                } else {
+                    return new MetadataValueList(new ArrayList<MetadataValue>());
+                }
             }
             if (context != null && (authorizeService.isAdmin(context) || itemService.canEdit(context, obj))) {
                 return new MetadataValueList(fullList);
@@ -87,7 +122,7 @@ public class ItemConverter
                 if (!metadataExposureService
                         .isHidden(context, metadataField.getMetadataSchema().getName(),
                                   metadataField.getElement(),
-                                  metadataField.getQualifier())) {
+                                  metadataField.getQualifier(), obj)) {
                     returnList.add(mv);
                 }
             }

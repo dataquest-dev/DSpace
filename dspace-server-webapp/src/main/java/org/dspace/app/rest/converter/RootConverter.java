@@ -9,10 +9,17 @@ package org.dspace.app.rest.converter;
 
 import static org.dspace.app.util.Util.getSourceVersion;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+import org.apache.commons.lang3.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 
 import org.dspace.app.rest.model.RootRest;
 import org.dspace.services.ConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +28,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RootConverter {
+    private static final Logger log = LoggerFactory.getLogger(RootConverter.class);
 
     @Autowired
     private ConfigurationService configurationService;
@@ -40,6 +48,4 @@ public class RootConverter {
         rootRest.setDspaceVersion("DSpace " + getSourceVersion());
         return rootRest;
     }
-
-
 }

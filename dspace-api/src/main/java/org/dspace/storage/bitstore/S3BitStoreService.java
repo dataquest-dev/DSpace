@@ -28,6 +28,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -103,6 +104,9 @@ public class S3BitStoreService extends BaseBitStoreService {
     private String awsRegionName;
     private boolean useRelativePath;
 
+    private String endpoint;
+    private boolean pathStyleAccessEnabled;
+
     /**
      * The maximum size of individual chunk to download from S3 when a file is accessed. Default 5Mb
      */
@@ -121,13 +125,13 @@ public class S3BitStoreService extends BaseBitStoreService {
     /**
      * S3 service
      */
-    private AmazonS3 s3Service = null;
+    protected AmazonS3 s3Service = null;
 
     /**
      * S3 transfer manager
      * this is reused between put calls to use less resources for multiple uploads
      */
-    private TransferManager tm = null;
+    protected TransferManager tm = null;
 
     private static final ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
@@ -149,6 +153,24 @@ public class S3BitStoreService extends BaseBitStoreService {
                 .build();
     }
 
+    /**
+     * Utility method for generate AmazonS3 builder with specific endpoint
+     *
+     * @param endpointConfiguration configuration of endpoint
+     * @param awsCredentials credentials of the client
+     * @param pathStyleAccessEnabled enable path style access to S3 service
+     * @return builder with the specified parameters
+     */
+    protected static Supplier<AmazonS3> amazonClientBuilderBy(
+            @NotNull AwsClientBuilder.EndpointConfiguration endpointConfiguration,
+            @NotNull AWSCredentials awsCredentials,
+            @NotNull boolean pathStyleAccessEnabled
+    ) {
+        return () -> AmazonS3ClientBuilder.standard()
+                .withPathStyleAccessEnabled( pathStyleAccessEnabled)
+                .withEndpointConfiguration(endpointConfiguration)
+                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
+    }
     public S3BitStoreService() {}
 
     /**
@@ -180,7 +202,16 @@ public class S3BitStoreService extends BaseBitStoreService {
         }
 
         try {
-            if (StringUtils.isNotBlank(getAwsAccessKey()) && StringUtils.isNotBlank(getAwsSecretKey())) {
+            if (StringUtils.isNotBlank(getEndpoint())) {
+                log.info("Creating s3service from different endpoint than amazon: " + getEndpoint());
+                BasicAWSCredentials credentials = new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey());
+                AwsClientBuilder.EndpointConfiguration ec =
+                        new AwsClientBuilder.EndpointConfiguration(getEndpoint(), "");
+                s3Service = FunctionalUtils.getDefaultOrBuild(
+                        this.s3Service,
+                        amazonClientBuilderBy(ec, credentials, getPathStyleAccessEnabled())
+                );
+            } else if (StringUtils.isNotBlank(getAwsAccessKey()) && StringUtils.isNotBlank(getAwsSecretKey())) {
                 log.warn("Use local defined S3 credentials");
                 // region
                 Regions regions = Regions.DEFAULT_REGION;
@@ -265,6 +296,29 @@ public class S3BitStoreService extends BaseBitStoreService {
             key = key.substring(REGISTERED_FLAG.length());
         }
         return new S3LazyInputStream(key, bufferSize, bitstream.getSizeBytes());
+    }
+
+    @Override
+    public File getFile(Bitstream bitstream) throws IOException {
+        String key = getFullKey(bitstream.getInternalId());
+        // Strip -R from bitstream key if it's registered
+        if (isRegisteredBitstream(key)) {
+            key = key.substring(REGISTERED_FLAG.length());
+        }
+        try {
+            File tempFile = File.createTempFile("s3-disk-copy-" + UUID.randomUUID(), "temp");
+            tempFile.deleteOnExit();
+
+            GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, key);
+
+            Download download = tm.download(getObjectRequest, tempFile);
+            download.waitForCompletion();
+
+            return tempFile;
+        } catch (AmazonClientException | InterruptedException e) {
+            log.error("getFile(" + key + ")", e);
+            throw new IOException(e);
+        }
     }
 
     /**
@@ -495,6 +549,22 @@ public class S3BitStoreService extends BaseBitStoreService {
 
     public void setUseRelativePath(boolean useRelativePath) {
         this.useRelativePath = useRelativePath;
+    }
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public boolean getPathStyleAccessEnabled() {
+        return pathStyleAccessEnabled;
+    }
+
+    public void setPathStyleAccessEnabled(boolean pathStyleAccessEnabled) {
+        this.pathStyleAccessEnabled = pathStyleAccessEnabled;
     }
 
     /**

@@ -338,6 +338,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.piwik.java.tracking</groupId>
+            <artifactId>matomo-java-tracker-java11</artifactId>
+            <version>3.4.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
         </dependency>
@@ -859,7 +864,7 @@
             	</exclusion>
             </exclusions>
         </dependency>
-        
+
         <dependency>
             <groupId>io.findify</groupId>
             <artifactId>s3mock_2.13</artifactId>
@@ -876,7 +881,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-    
+        
     </dependencies>
 
     <dependencyManagement>

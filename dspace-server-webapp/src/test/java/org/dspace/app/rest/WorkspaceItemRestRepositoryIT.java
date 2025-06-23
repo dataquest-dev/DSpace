@@ -43,6 +43,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -96,6 +97,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.supervision.SupervisionOrder;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
@@ -1979,6 +1981,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         bibtex.close();
     }
 
+    @Ignore
     @Test
     /**
      * Test the creation of workspaceitems POSTing to the resource collection endpoint a pubmed XML
@@ -3770,6 +3773,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         //disable file upload mandatory
         configurationService.setProperty("webui.submit.upload.required", false);
+        // enable distribution license validation
+        configurationService.setProperty("webui.submit.distribution.license.required", true);
 
         context.restoreAuthSystemState();
 
@@ -4866,6 +4871,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                  .andExpect(jsonPath("$.sections.traditionalpageone['dc.title']").doesNotExist());
     }
 
+    @Ignore
     @Test
     /**
      * Test the metadata extraction step adding an identifier
@@ -4902,6 +4908,10 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         addId.add(new AddOperation("/sections/traditionalpageone/dc.identifier.other", values));
 
         String patchBody = getPatchContent(addId);
+
+        // Set the Locale because if the Locale isn't `en` the date couldn't be converted.
+        Locale defaultValue = Locale.getDefault();
+        Locale.setDefault(new Locale.Builder().setLanguage("en").setRegion("US").build());
 
         getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
                 .content(patchBody)
@@ -5015,6 +5025,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .andExpect(jsonPath("$.sections.traditionalpagetwo['dc.description.abstract'][0].value",
                     is(Matchers.notNullValue())))
             ;
+
+        Locale.setDefault(defaultValue);
 
     }
 

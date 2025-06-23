@@ -16,6 +16,7 @@ import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +42,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.NativeQuery;
 
 /**
  * Utility functions for DSpace.
@@ -52,6 +56,9 @@ public final class Utils {
      * log4j logger
      */
     private static final Logger log = LogManager.getLogger(Utils.class);
+
+    private static final Pattern UUID_PATTERN =
+            Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     private static final Pattern DURATION_PATTERN = Pattern
         .compile("(\\d+)([smhdwy])");
@@ -505,5 +512,70 @@ public final class Utils {
     public static String interpolateConfigsInString(String string) {
         ConfigurationService config = DSpaceServicesFactory.getInstance().getConfigurationService();
         return StringSubstitutor.replace(string, config.getProperties());
+    }
+
+    /**
+     * Replace the last occurrence of a substring within a string.
+     *
+     * @param input The input string
+     * @param toReplace The substring to replace
+     * @param replacement The replacement substring
+     * @return Replaced input string or the original input string if the substring to replace is not found
+     */
+    public static String replaceLast(String input, String toReplace, String replacement) {
+        int lastIndex = input.lastIndexOf(toReplace);
+        if (lastIndex == -1) {
+            return input; // No replacement if not found
+        }
+
+        return input.substring(0, lastIndex) + replacement + input.substring(lastIndex + toReplace.length());
+    }
+
+    /**
+     * Get the current transaction's PID from PostgreSQL
+
+     * @return PID of the current transaction
+     */
+    public static Integer getTransactionPid(SessionFactory sessionFactory) {
+        Integer pid = -1;
+        try {
+            Session session = sessionFactory.getCurrentSession(); // Get the current session
+            String sql = "SELECT pg_backend_pid()"; // SQL query to get the PID
+
+            // Execute the query and get the PID
+            NativeQuery<Integer> query = session.createNativeQuery(sql);
+            pid = query.getSingleResult();  // Get the single result
+
+            log.info("Current transaction PID: " + pid); // Optional logging
+        } catch (Exception e) {
+            log.error("Cannot get PID because: " + e.getMessage());
+        }
+        return pid;
+    }
+
+    /**
+     * Fetch UUID from a URL
+     * This method extracts the UUID from the URL using a regex pattern
+     * @param urlString e.g., http://localhost:8080/server/api/core/bitstreams/UUID/content&bots=1
+     * @return UUID (as string) extracted from the URL
+     */
+    public static String fetchUUIDFromUrl(String urlString) {
+        try {
+            // Parse the URL
+            URI uri = new URI(urlString);
+
+            // Combine path and query to search for UUID
+            String fullPath = uri.getPath() + (uri.getQuery() != null ? "?" + uri.getQuery() : "");
+
+            // Find UUID using regex
+            Matcher matcher = UUID_PATTERN.matcher(fullPath);
+            if (matcher.find()) {
+                return matcher.group();
+            }
+
+            throw new IllegalArgumentException("No UUID found in URL");
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid URL or UUID format: " + e.getMessage(), e);
+        }
     }
 }

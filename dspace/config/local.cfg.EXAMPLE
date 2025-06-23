@@ -137,6 +137,9 @@ db.schema = public
 # Helpdesk E-mail
 #mail.helpdesk = ${mail.admin}
 #mail.helpdesk.name = Help Desk
+# ClARIN update
+# lr.help.mail = some mail
+# ClARIN updat
 
 # Recipient for server errors and alerts (defaults to mail.admin)
 #alert.recipient = ${mail.admin}

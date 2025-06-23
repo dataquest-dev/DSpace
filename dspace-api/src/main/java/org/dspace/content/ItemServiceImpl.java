@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.requestitem.RequestItem;
 import org.dspace.app.requestitem.service.RequestItemService;
+import org.dspace.app.statistics.clarin.ClarinMatomoBitstreamTracker;
 import org.dspace.app.util.AuthorizeUtil;
 import org.dspace.authorize.AuthorizeConfiguration;
 import org.dspace.authorize.AuthorizeException;
@@ -53,6 +54,7 @@ import org.dspace.content.virtual.VirtualMetadataPopulator;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
+import org.dspace.core.ProvenanceService;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
@@ -177,6 +179,13 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     @Autowired
     private VersionHistoryService versionHistoryService;
+
+    @Autowired(required = true)
+    ClarinMatomoBitstreamTracker matomoBitstreamTracker;
+
+    @Autowired(required = true)
+    private ProvenanceService provenanceService;
+
 
     protected ItemServiceImpl() {
         super();
@@ -1188,11 +1197,12 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(),
                                        null, getIdentifiers(context, item)));
         }
+        provenanceService.moveItem(context, item, from);
     }
 
     @Override
-    public boolean hasUploadedFiles(Item item) throws SQLException {
-        List<Bundle> bundles = getBundles(item, "ORIGINAL");
+    public boolean hasUploadedFiles(Item item, String bundleName) throws SQLException {
+        List<Bundle> bundles = getBundles(item, bundleName);
         for (Bundle bundle : bundles) {
             if (CollectionUtils.isNotEmpty(bundle.getBitstreams())) {
                 return true;

@@ -31,6 +31,7 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.VersionBuilder;
+import org.dspace.builder.VersionHistoryBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
@@ -44,7 +45,6 @@ import org.dspace.versioning.service.VersionHistoryService;
 import org.dspace.versioning.service.VersioningService;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.hamcrest.Matchers;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +74,7 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
     @Before
     public void setup() throws SQLException, AuthorizeException {
         context.turnOffAuthorisationSystem();
-        versionHistory = versionHistoryService.create(context);
+        versionHistory = VersionHistoryBuilder.createVersionHistory(context).build();
         //** GIVEN **
         //1. A community-collection structure with one parent community with sub-community and two collections.
         parentCommunity = CommunityBuilder.createCommunity(context)
@@ -92,13 +92,6 @@ public class VersionHistoryRestRepositoryIT extends AbstractControllerIntegratio
                           .withAuthor("Smith, Donald").withAuthor("Doe, John")
                           .withSubject("ExtraEntry")
                           .build();
-        context.restoreAuthSystemState();
-    }
-
-    @After
-    public void cleanup() throws SQLException, AuthorizeException {
-        context.turnOffAuthorisationSystem();
-        versionHistoryService.delete(context, versionHistory);
         context.restoreAuthSystemState();
     }
 

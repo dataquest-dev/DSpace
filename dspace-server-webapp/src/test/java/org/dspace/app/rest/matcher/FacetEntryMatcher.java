@@ -121,6 +121,48 @@ public class FacetEntryMatcher {
     }
 
 
+    public static Matcher<? super Object> clarinLicenseRightsFacet(boolean hasNext) {
+        return allOf(
+                hasJsonPath("$.name", is("rights")),
+                hasJsonPath("$.facetType", is("text")),
+                hasJsonPath("$.facetLimit", any(Integer.class)),
+                hasJsonPath("$._links.self.href", containsString("api/discover/facets/rights")),
+                hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/rights"))
+        );
+    }
+
+    public static Matcher<? super Object> dcTypeFacet(boolean hasNext) {
+        return allOf(
+                hasJsonPath("$.name", is("dctype")),
+                hasJsonPath("$.facetType", is("text")),
+                hasJsonPath("$.facetLimit", any(Integer.class)),
+                hasJsonPath("$._links.self.href", containsString("api/discover/facets/dctype")),
+                hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/dctype"))
+        );
+    }
+
+    public static Matcher<? super Object> clarinItemsLanguageFacet(boolean hasNext) {
+        return allOf(
+                hasJsonPath("$.name", is("language")),
+                hasJsonPath("$.facetType", is("iso_language")),
+                hasJsonPath("$.facetLimit", any(Integer.class)),
+                hasJsonPath("$._links.self.href", containsString("api/discover/facets/language")),
+                hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/language"))
+        );
+    }
+
+    public static Matcher<? super Object> clarinItemsCommunityFacet(boolean hasNext) {
+        return allOf(
+                hasJsonPath("$.name", is("items_owning_community")),
+                hasJsonPath("$.facetType", is("text")),
+                hasJsonPath("$.facetLimit", any(Integer.class)),
+                hasJsonPath("$._links.self.href",
+                        containsString("api/discover/facets/items_owning_community")),
+                hasJsonPath("$._links", matchNextLink(hasNext,
+                        "api/discover/facets/items_owning_community"))
+        );
+    }
+
     /**
      * Check that a facet over the dc.type exists and match the default configuration
      * 
@@ -130,11 +172,11 @@ public class FacetEntryMatcher {
      */
     public static Matcher<? super Object> typeFacet(boolean b) {
         return allOf(
-                hasJsonPath("$.name", is("itemtype")),
+                hasJsonPath("$.name", is("type")),
                 hasJsonPath("$.facetType", is("text")),
                 hasJsonPath("$.facetLimit", any(Integer.class)),
-                hasJsonPath("$._links.self.href", containsString("api/discover/facets/itemtype")),
-                hasJsonPath("$._links", matchNextLink(b, "api/discover/facets/itemtype"))
+                hasJsonPath("$._links.self.href", containsString("api/discover/facets/type")),
+                hasJsonPath("$._links", matchNextLink(b, "api/discover/facets/type"))
             );
     }
 

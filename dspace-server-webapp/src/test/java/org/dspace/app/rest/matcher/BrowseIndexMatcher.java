@@ -101,4 +101,52 @@ public class BrowseIndexMatcher {
                         is(REST_SERVER_URL + String.format("discover/browses/%s", vocabulary)))
         );
     }
+
+    public static Matcher<? super Object> publisherBrowseIndex(final String order) {
+        return allOf(
+                hasJsonPath("$.metadata", contains("dc.publisher")),
+                hasJsonPath("$.metadataBrowse", is(true)),
+                hasJsonPath("$.dataType", equalToIgnoringCase("text")),
+                hasJsonPath("$.order", equalToIgnoringCase(order)),
+                hasJsonPath("$.sortOptions[*].name", containsInAnyOrder("title", "dateissued", "dateaccessioned")),
+                hasJsonPath("$._links.self.href", is(REST_SERVER_URL + "discover/browses/publisher")),
+                hasJsonPath("$._links.items.href", is(REST_SERVER_URL + "discover/browses/publisher/items"))
+        );
+    }
+
+    public static Matcher<? super Object> languageBrowseIndex(final String order) {
+        return allOf(
+                hasJsonPath("$.metadata", contains("local.language.name")),
+                hasJsonPath("$.browseType", equalToIgnoringCase(BROWSE_TYPE_VALUE_LIST)),
+                hasJsonPath("$.dataType", equalToIgnoringCase("text")),
+                hasJsonPath("$.order", equalToIgnoringCase(order)),
+                hasJsonPath("$.sortOptions[*].name", containsInAnyOrder("title", "dateissued", "dateaccessioned")),
+                hasJsonPath("$._links.self.href", is(REST_SERVER_URL + "discover/browses/language")),
+                hasJsonPath("$._links.items.href", is(REST_SERVER_URL + "discover/browses/language/items"))
+        );
+    }
+
+    public static Matcher<? super Object> itemtypeBrowseIndex(final String order) {
+        return allOf(
+                hasJsonPath("$.metadata", contains("dc.type")),
+                hasJsonPath("$.metadataBrowse", is(true)),
+                hasJsonPath("$.dataType", equalToIgnoringCase("text")),
+                hasJsonPath("$.order", equalToIgnoringCase(order)),
+                hasJsonPath("$.sortOptions[*].name", containsInAnyOrder("title", "dateissued", "dateaccessioned")),
+                hasJsonPath("$._links.self.href", is(REST_SERVER_URL + "discover/browses/itemtype")),
+                hasJsonPath("$._links.items.href", is(REST_SERVER_URL + "discover/browses/itemtype/items"))
+        );
+    }
+
+    public static Matcher<? super Object> rightsBrowseIndex(final String order) {
+        return allOf(
+                hasJsonPath("$.metadata", contains("dc.rights.label")),
+                hasJsonPath("$.metadataBrowse", is(true)),
+                hasJsonPath("$.dataType", equalToIgnoringCase("text")),
+                hasJsonPath("$.order", equalToIgnoringCase(order)),
+                hasJsonPath("$.sortOptions[*].name", containsInAnyOrder("title", "dateissued", "dateaccessioned")),
+                hasJsonPath("$._links.self.href", is(REST_SERVER_URL + "discover/browses/rights")),
+                hasJsonPath("$._links.items.href", is(REST_SERVER_URL + "discover/browses/rights/items"))
+        );
+    }
 }

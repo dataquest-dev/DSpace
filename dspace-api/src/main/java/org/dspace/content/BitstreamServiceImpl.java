@@ -7,6 +7,7 @@
  */
 package org.dspace.content;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -26,6 +27,8 @@ import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.clarin.ClarinItemService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
@@ -63,6 +66,10 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     protected BundleService bundleService;
     @Autowired(required = true)
     protected BitstreamStorageService bitstreamStorageService;
+    @Autowired(required = true)
+    protected ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+    @Autowired(required = true)
+    protected ClarinItemService clarinItemService;
 
     protected BitstreamServiceImpl() {
         super();
@@ -260,7 +267,7 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     @Override
     public void delete(Context context, Bitstream bitstream) throws SQLException, AuthorizeException {
 
-        // changed to a check on delete
+        // Changed to a check on delete
         // Check authorisation
         authorizeService.authorizeAction(context, bitstream, Constants.DELETE);
         log.info(LogHelper.getHeader(context, "delete_bitstream",
@@ -273,22 +280,26 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         bitstream.setDeleted(true);
         update(context, bitstream);
 
-        //Remove our bitstream from all our bundles
+        // Remove our bitstream from all our bundles
         final List<Bundle> bundles = bitstream.getBundles();
         for (Bundle bundle : bundles) {
             authorizeService.authorizeAction(context, bundle, Constants.REMOVE);
-            //We also need to remove the bitstream id when it's set as bundle's primary bitstream
+            // We also need to remove the bitstream id when it's set as bundle's primary bitstream
             if (bitstream.equals(bundle.getPrimaryBitstream())) {
                 bundle.unsetPrimaryBitstreamID();
             }
             bundle.removeBitstream(bitstream);
         }
-
-        //Remove all bundles from the bitstream object, clearing the connection in 2 ways
+        // Update Item's metadata about bitstreams
+        clarinItemService.updateItemFilesMetadata(context, bitstream);
+        // Remove all bundles from the bitstream object, clearing the connection in 2 ways
         bundles.clear();
 
         // Remove policies only after the bitstream has been updated (otherwise the current user has not WRITE rights)
         authorizeService.removeAllPolicies(context, bitstream);
+
+        // Detach the license from the bitstream
+        clarinLicenseResourceMappingService.detachLicenses(context, bitstream);
     }
 
     @Override
@@ -303,6 +314,15 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         authorizeService.authorizeAction(context, bitstream, Constants.READ);
 
         return bitstreamStorageService.retrieve(context, bitstream);
+    }
+
+    @Override
+    public File retrieveFile(Context context, Bitstream bitstream, boolean authorization)
+            throws IOException, SQLException, AuthorizeException {
+        if (authorization) {
+            authorizeService.authorizeAction(context, bitstream, Constants.READ);
+        }
+        return bitstreamStorageService.retrieveFile(context, bitstream);
     }
 
     @Override

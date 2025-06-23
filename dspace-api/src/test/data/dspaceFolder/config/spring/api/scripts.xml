@@ -59,7 +59,7 @@
         <property name="description" value="Mocking a script for testing purposes" />
         <property name="dspaceRunnableClass" value="org.dspace.scripts.impl.MockDSpaceRunnableScript"/>
     </bean>
-    
+
     <bean id="orcid-bulk-push" class="org.dspace.orcid.script.OrcidBulkPushScriptConfiguration">
         <property name="description" value="Perform the bulk synchronization of all the BATCH configured ORCID entities placed in the ORCID queue"/>
         <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidBulkPush"/>
@@ -89,6 +89,21 @@
     <bean id="bulk-access-control" class="org.dspace.app.bulkaccesscontrol.BulkAccessControlCliScriptConfiguration" primary="true">
         <property name="description" value="Bulk access control"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkaccesscontrol.BulkAccessControlCli"/>
+    </bean>
+
+    <bean id="file-downloader" class="org.dspace.administer.FileDownloaderConfiguration" primary="true">
+        <property name="description" value="Download a files from the provided URL and add it to item"/>
+        <property name="dspaceRunnableClass" value="org.dspace.administer.FileDownloader"/>
+    </bean>
+
+    <bean id="health-report" class="org.dspace.app.healthreport.HealthReportScriptConfiguration" primary="true">
+        <property name="description" value="Get report about DSpace health"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.healthreport.HealthReport"/>
+    </bean>
+
+    <bean id="file-preview" class="org.dspace.scripts.filepreview.FilePreviewConfiguration" primary="true">
+        <property name="description" value="Generate the file preview"/>
+        <property name="dspaceRunnableClass" value="org.dspace.scripts.filepreview.FilePreview"/>
     </bean>
 
 </beans>

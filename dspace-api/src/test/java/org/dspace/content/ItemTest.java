@@ -1609,7 +1609,7 @@ public class ItemTest extends AbstractDSpaceObjectTest {
      */
     @Test
     public void testHasUploadedFiles() throws Exception {
-        assertFalse("testHasUploadedFiles 0", itemService.hasUploadedFiles(it));
+        assertFalse("testHasUploadedFiles 0", itemService.hasUploadedFiles(it, Constants.CONTENT_BUNDLE_NAME));
     }
 
     /**

@@ -10,6 +10,8 @@ package org.dspace.ctask.general;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -18,9 +20,12 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.curate.Curator;
+import org.dspace.identifier.IdentifierProvider;
+import org.dspace.identifier.IdentifierServiceImpl;
 import org.dspace.identifier.AbstractIdentifierProviderIT;
 import org.dspace.identifier.VersionedHandleIdentifierProvider;
 import org.dspace.identifier.VersionedHandleIdentifierProviderWithCanonicalHandles;
+import org.dspace.kernel.ServiceManager;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Test;

@@ -23,6 +23,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.builder.util.AbstractBuilderCleanupUtil;
 import org.dspace.content.Bitstream;
+import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
@@ -34,10 +35,17 @@ import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
+import org.dspace.content.service.PreviewContentService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
+import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.content.service.clarin.ClarinUserMetadataService;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexingService;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -45,6 +53,9 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.eperson.service.RegistrationDataService;
 import org.dspace.eperson.service.SubscribeService;
+import org.dspace.handle.service.HandleClarinService;
+import org.dspace.license.factory.LicenseServiceFactory;
+import org.dspace.license.service.CreativeCommonsService;
 import org.dspace.orcid.factory.OrcidServiceFactory;
 import org.dspace.orcid.service.OrcidHistoryService;
 import org.dspace.orcid.service.OrcidQueueService;
@@ -114,6 +125,17 @@ public abstract class AbstractBuilder<T, S> {
     static SubscribeService subscribeService;
     static SupervisionOrderService supervisionOrderService;
 
+    static ClarinLicenseService clarinLicenseService;
+    static ClarinLicenseLabelService clarinLicenseLabelService;
+    static ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+    static HandleClarinService handleClarinService;
+    static ClarinUserRegistrationService clarinUserRegistrationService;
+    static ClarinUserMetadataService clarinUserMetadataService;
+    static ClarinLicenseResourceUserAllowanceService clarinLicenseResourceUserAllowanceService;
+    static CreativeCommonsService creativeCommonsService;
+    static PreviewContentService previewContentService;
+
+
 
     protected Context context;
 
@@ -164,17 +186,30 @@ public abstract class AbstractBuilder<T, S> {
         requestItemService = RequestItemServiceFactory.getInstance().getRequestItemService();
         versioningService = DSpaceServicesFactory.getInstance().getServiceManager()
                                  .getServiceByName(VersioningService.class.getName(), VersioningService.class);
+        previewContentService = ContentServiceFactory.getInstance().getPreviewContentService();
 
         // Temporarily disabled
         claimedTaskService = XmlWorkflowServiceFactory.getInstance().getClaimedTaskService();
         inProgressUserService = XmlWorkflowServiceFactory.getInstance().getInProgressUserService();
         poolTaskService = XmlWorkflowServiceFactory.getInstance().getPoolTaskService();
         workflowItemRoleService = XmlWorkflowServiceFactory.getInstance().getWorkflowItemRoleService();
+        clarinLicenseService = ClarinServiceFactory.getInstance().getClarinLicenseService();
+        clarinLicenseLabelService = ClarinServiceFactory.getInstance().getClarinLicenseLabelService();
+        clarinLicenseResourceMappingService = ClarinServiceFactory.getInstance().
+                getClarinLicenseResourceMappingService();
+        handleClarinService = ClarinServiceFactory.getInstance().getClarinHandleService();
+        clarinUserRegistrationService = ClarinServiceFactory.getInstance().getClarinUserRegistration();
+        clarinUserMetadataService = ClarinServiceFactory.getInstance().getClarinUserMetadata();
+        clarinLicenseResourceUserAllowanceService = ClarinServiceFactory.getInstance()
+                .getClarinLicenseResourceUserAllowance();
+        creativeCommonsService = LicenseServiceFactory.getInstance().getCreativeCommonsService();
         orcidHistoryService = OrcidServiceFactory.getInstance().getOrcidHistoryService();
         orcidQueueService = OrcidServiceFactory.getInstance().getOrcidQueueService();
         orcidTokenService = OrcidServiceFactory.getInstance().getOrcidTokenService();
         systemWideAlertService = DSpaceServicesFactory.getInstance().getServiceManager()
                                                       .getServicesByType(SystemWideAlertService.class).get(0);
+        subscribeService = ContentServiceFactory.getInstance().getSubscribeService();
+        supervisionOrderService = SupervisionOrderServiceFactory.getInstance().getSupervisionOrderService();
         try {
             submissionConfigService = SubmissionServiceFactory.getInstance().getSubmissionConfigService();
         } catch (SubmissionConfigReaderException e) {
@@ -214,11 +249,20 @@ public abstract class AbstractBuilder<T, S> {
         processService = null;
         requestItemService = null;
         versioningService = null;
+        clarinLicenseService = null;
+        clarinLicenseLabelService = null;
+        clarinLicenseResourceMappingService = null;
+        handleClarinService = null;
+        clarinUserRegistrationService = null;
+        clarinUserMetadataService = null;
+        clarinLicenseResourceUserAllowanceService = null;
+        creativeCommonsService = null;
         orcidTokenService = null;
         systemWideAlertService = null;
-        submissionConfigService = null;
         subscribeService = null;
         supervisionOrderService = null;
+        submissionConfigService = null;
+        previewContentService = null;
 
     }
 

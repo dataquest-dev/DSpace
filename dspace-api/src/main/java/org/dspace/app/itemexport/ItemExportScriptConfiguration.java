@@ -9,7 +9,9 @@ package org.dspace.app.itemexport;
 
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.scripts.configuration.ScriptConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The {@link ScriptConfiguration} for the {@link ItemExport} script
@@ -17,6 +19,9 @@ import org.dspace.scripts.configuration.ScriptConfiguration;
  * @author Francesco Pio Scognamiglio (francescopio.scognamiglio at 4science.com)
  */
 public class ItemExportScriptConfiguration<T extends ItemExport> extends ScriptConfiguration<T> {
+
+    @Autowired
+    private AuthorizeService authorizeService;
 
     private Class<T> dspaceRunnableClass;
 

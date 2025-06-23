@@ -514,4 +514,12 @@ public class Util {
 
         return ListUtils.removeAll(fromFieldName, toFieldName);
     }
+
+
+    public static String formatNetId(String netId, String organization) {
+        if (StringUtils.isBlank(netId)) {
+            return null;
+        }
+        return netId + "[" + organization + "]";
+    }
 }

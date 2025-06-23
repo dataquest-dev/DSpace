@@ -156,4 +156,84 @@ public class SearchFilterMatcher {
             checkOperators()
         );
     }
+    public static Matcher<? super Object> clarinLicenseRightsFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("rights")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> clarinItemsLanguageFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("language")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("iso_language")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> clarinItemsCommunityFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("items_owning_community")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> clarinItemsTypeFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("type")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> publisherFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("publisher")),
+                hasJsonPath("$.hasFacets", is(false)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+
+        );
+    }
+
+    public static Matcher<? super Object> clarinSubjectFirstValueFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("subjectFirstValue")),
+                hasJsonPath("$.hasFacets", is(false)),
+                hasJsonPath("$.type", is("hierarchical")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> clarinDataProviderFacet() {
+        return allOf(
+                hasJsonPath("$.filter", is("dataProvider")),
+                hasJsonPath("$.hasFacets", is(false)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> dcTypeFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("dctype")),
+                hasJsonPath("$.hasFacets", is(false)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
 }
