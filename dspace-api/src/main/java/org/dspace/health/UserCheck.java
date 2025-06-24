@@ -35,6 +35,8 @@ public class UserCheck extends Check {
     private static final GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
     private static final CollectionService collectionService = ContentServiceFactory.getInstance()
                                                                                     .getCollectionService();
+    private static final String HAVE_EMAIL = "Have email";
+    private static final String COUNT = "Count";
 
     @Override
     public String run(ReportInfo ri) {
@@ -44,9 +46,9 @@ public class UserCheck extends Check {
         Map<String, Integer> info = new HashMap<String, Integer>();
         try {
             List<EPerson> epersons = ePersonService.findAll(context, EPerson.LASTNAME);
-            info.put("Count", epersons.size());
+            info.put(COUNT, epersons.size());
             info.put("Can log in (password)", 0);
-            info.put("Have email", 0);
+            info.put(HAVE_EMAIL, 0);
             info.put("Have 1st name", 0);
             info.put("Have 2nd name", 0);
             info.put("Have lang", 0);
@@ -55,7 +57,7 @@ public class UserCheck extends Check {
 
             for (EPerson e : epersons) {
                 if (e.getEmail() != null && e.getEmail().length() > 0) {
-                    info.put("Have email", info.get("Have email") + 1);
+                    info.put(HAVE_EMAIL, info.get(HAVE_EMAIL) + 1);
                 }
                 if (e.canLogIn()) {
                     info.put("Can log in (password)",
@@ -83,13 +85,13 @@ public class UserCheck extends Check {
         }
 
         ret += String.format(
-            "%-20s: %d\n", "Users", info.get("Count"));
-        root.put("users", info.get("Count"));
+            "%-20s: %d\n", "Users", info.get(COUNT));
+        root.put("users", info.get(COUNT));
         ret += String.format(
-            "%-20s: %d\n", "Have email", info.get("Have email"));
-        root.put("haveEmail", info.get("Have email"));
+            "%-20s: %d\n", HAVE_EMAIL, info.get(HAVE_EMAIL));
+        root.put("haveEmail", info.get(HAVE_EMAIL));
         for (Map.Entry<String, Integer> e : info.entrySet()) {
-            if (!e.getKey().equals("Count") && !e.getKey().equals("Have email")) {
+            if (!e.getKey().equals(COUNT) && !e.getKey().equals(HAVE_EMAIL)) {
                 String key = e.getKey();
                 int value = e.getValue();
                 ret += String.format("%-21s: %s\n", key,
