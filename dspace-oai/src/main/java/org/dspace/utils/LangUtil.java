@@ -9,16 +9,15 @@
 /* Created for LINDAT/CLARIAH-CZ (UFAL) */
 package org.dspace.utils;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.dspace.storage.bitstore.DSBitStoreService;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *  Class is copied from the LINDAT/CLARIAH-CZ (This class is taken from UFAL-clarin.
