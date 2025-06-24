@@ -121,17 +121,17 @@ public class UserCheck extends Check {
             //subscribers
             List<EPerson> subscribers = ePersonService.findEPeopleWithSubscription(context);
             JSONArray subsIdsArray = new JSONArray();
-            ret += String.format(
-                "Subscribers: #%d [%s]\n",
-                subscribers.size(), formatIds(subscribers, subsIdsArray));
+            ret += String.format("Subscribers: #%d [", subscribers.size());
+            formatIds(subscribers, subsIdsArray, ret);
+            ret += "]\n";
             root.put("subscribers", subsIdsArray);
 
             //subscribed collections
             List<Collection> subscribedCols = collectionService.findCollectionsWithSubscribers(context);
             JSONArray subsColsArray = new JSONArray();
-            ret += String.format(
-                "Subscribed cols.: #%d [%s]\n",
-                subscribedCols.size(), formatIds(subscribedCols, subsColsArray));
+            ret += String.format("Subscribed cols.: #%d [", subscribedCols.size());
+            formatIds(subscribedCols, subsColsArray, ret);
+            ret += "]\n";
             root.put("subscribedCollections", subsColsArray);
 
             context.complete();
@@ -144,13 +144,13 @@ public class UserCheck extends Check {
         return ret;
     }
 
-    private String formatIds(List<? extends DSpaceObject> objects, JSONArray jsonArr) {
+    private void formatIds(List<? extends DSpaceObject> objects, JSONArray jsonOut, String strOut) {
         StringBuilder ids = new StringBuilder();
         for (DSpaceObject o : objects) {
             JSONObject oneId = new JSONObject();
             ids.append(o.getID()).append(", ");
             oneId.put("id", o.getID());
-            jsonArr.put(oneId);
+            jsonOut.put(oneId);
         }
 
         // deleting last delimeter character
@@ -158,7 +158,7 @@ public class UserCheck extends Check {
             ids.deleteCharAt(ids.length() - 1);
         }
 
-        return ids.toString();
+        strOut += ids.toString();
     }
 
     private String toCamelCase(String str) {
