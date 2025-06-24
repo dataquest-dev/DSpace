@@ -41,7 +41,7 @@ public class UserCheck extends Check {
     @Override
     public String run(ReportInfo ri) {
         Context context = new Context();
-        String ret = "";
+        StringBuilder sb = new StringBuilder();
         JSONObject root = new JSONObject();
         Map<String, Integer> info = new HashMap<String, Integer>();
         try {
@@ -84,54 +84,53 @@ public class UserCheck extends Check {
             error(e);
         }
 
-        ret += String.format(
-            "%-20s: %d\n", "Users", info.get(COUNT));
+        sb.append(String.format("%-22s: %d\n", "Users", info.get(COUNT)));
         root.put("users", info.get(COUNT));
-        ret += String.format(
-            "%-20s: %d\n", HAVE_EMAIL, info.get(HAVE_EMAIL));
+        sb.append(String.format("%-22s: %d\n", HAVE_EMAIL, info.get(HAVE_EMAIL)));
         root.put("haveEmail", info.get(HAVE_EMAIL));
         for (Map.Entry<String, Integer> e : info.entrySet()) {
             if (!e.getKey().equals(COUNT) && !e.getKey().equals(HAVE_EMAIL)) {
                 String key = e.getKey();
                 int value = e.getValue();
-                ret += String.format("%-21s: %s\n", key,
-                                     String.valueOf(value));
+                sb.append(String.format("%-22s: %s\n", key, value));
 
                 key = toCamelCase(key);
                 root.put(key, value);
             }
         }
 
-        ret += "\n";
+        sb.append("\n");
 
         try {
             // empty group
             List<Group> emptyGroups = groupService.getEmptyGroups(context);
-            ret += String.format("Empty groups: #%d\n    ", emptyGroups.size());
+            sb.append(String.format("Empty groups: #%d\n    ", emptyGroups.size()));
             JSONArray emptyGroupsArray = new JSONArray();
             for (Group group : emptyGroups) {
                 JSONObject oneEmptyGroup = new JSONObject();
-                ret += String.format("id=%s;name=%s,\n    ", group.getID(), group.getName());
+                sb.append(String.format("id=%s;name=%s,\n    ", group.getID(), group.getName()));
                 oneEmptyGroup.put("id", group.getID());
                 oneEmptyGroup.put("name", group.getName());
                 emptyGroupsArray.put(oneEmptyGroup);
             }
             root.put("emptyGroups", emptyGroupsArray);
 
+            sb.append("\n");
+
             //subscribers
             List<EPerson> subscribers = ePersonService.findEPeopleWithSubscription(context);
             JSONArray subsIdsArray = new JSONArray();
-            ret += String.format("Subscribers: #%d [", subscribers.size());
-            formatIds(subscribers, subsIdsArray, ret);
-            ret += "]\n";
+            sb.append(String.format("Subscribers: #%d ", subscribers.size()));
+            formatIds(subscribers, subsIdsArray, sb);
+            sb.append("\n");
             root.put("subscribers", subsIdsArray);
 
             //subscribed collections
             List<Collection> subscribedCols = collectionService.findCollectionsWithSubscribers(context);
             JSONArray subsColsArray = new JSONArray();
-            ret += String.format("Subscribed cols.: #%d [", subscribedCols.size());
-            formatIds(subscribedCols, subsColsArray, ret);
-            ret += "]\n";
+            sb.append(String.format("Subscribed cols.: #%d ", subscribedCols.size()));
+            formatIds(subscribedCols, subsColsArray, sb);
+            sb.append("\n");
             root.put("subscribedCollections", subsColsArray);
 
             context.complete();
@@ -141,24 +140,22 @@ public class UserCheck extends Check {
         }
 
         this.setReportJson(root);
-        return ret;
+        return sb.toString();
     }
 
-    private void formatIds(List<? extends DSpaceObject> objects, JSONArray jsonOut, String strOut) {
-        StringBuilder ids = new StringBuilder();
+    private void formatIds(List<? extends DSpaceObject> objects, JSONArray jsonOut, StringBuilder strOut) {
+        strOut.append("[");
         for (DSpaceObject o : objects) {
-            JSONObject oneId = new JSONObject();
-            ids.append(o.getID()).append(", ");
-            oneId.put("id", o.getID());
-            jsonOut.put(oneId);
+            strOut.append(o.getID()).append(", ");
+            jsonOut.put(o.getID());
         }
 
         // deleting last delimeter character
-        if (ids.length() > 0) {
-            ids.deleteCharAt(ids.length() - 1);
+        if (strOut.length() > 0) {
+            strOut.deleteCharAt(strOut.length() - 2);
         }
 
-        strOut += ids.toString();
+        strOut.append("]");
     }
 
     private String toCamelCase(String str) {
