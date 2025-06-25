@@ -43,23 +43,23 @@ import org.json.JSONObject;
  */
 public class ItemCheck extends Check {
 
-    private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
-    private BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
-    private CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
-    private CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
-    private MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
-    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    private WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
-    private XmlWorkflowItemService workflowItemService =
+    private static final BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+    private static final  BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
+    private static final  CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
+    private static final  CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
+    private static final  MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
+    private static final  ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    private static final  WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
+    private static final  XmlWorkflowItemService workflowItemService =
             XmlWorkflowServiceFactory.getInstance().getXmlWorkflowItemService();
-    private HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
-    private EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-    private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+    private static final  HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
+    private static final  EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+    private static final  GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
 
 
     @Override
     public String run(ReportInfo ri) {
-        String ret = "";
+        StringBuilder sb = new StringBuilder();
         JSONObject root = new JSONObject();
         int tot_cnt = 0;
         Context context = new Context();
@@ -68,8 +68,7 @@ public class ItemCheck extends Check {
             for (Map.Entry<String, Integer> name_count : getCommunities(context)) {
                 String comName = name_count.getKey();
                 int comSize = name_count.getValue();
-                ret += String.format("Community [%s]: %d\n",
-                        comName, comSize);
+                sb.append(String.format("Community [%s]: %d\n", comName, comSize));
                 tot_cnt += name_count.getValue();
                 JSONObject oneCommunity = new JSONObject();
                 oneCommunity.put("name", comName);
@@ -83,32 +82,28 @@ public class ItemCheck extends Check {
 
         try {
             JSONObject colSizesInfo = new JSONObject();
-            ret += "\nCollection sizes:\n";
-            ret += getCollectionSizesInfo(context, colSizesInfo);
+            sb.append("\nCollection sizes:\n");
+            sb.append(getCollectionSizesInfo(context, colSizesInfo));
             root.put("collectionsSizesInfo", colSizesInfo);
         } catch (SQLException e) {
             error(e);
         }
 
-        ret += String.format(
-            "\nPublished items (archived, not withdrawn): %d\n", tot_cnt);
+        sb.append(String.format("\nPublished items (archived, not withdrawn): %d\n", tot_cnt));
         root.put("publishedItems", tot_cnt);
         try {
             int withdrawnItems = itemService.countWithdrawnItems(context);
-            ret += String.format(
-                "Withdrawn items: %d\n", withdrawnItems);
+            sb.append(String.format("Withdrawn items: %d\n", withdrawnItems));
             root.put("withdrawnItems", withdrawnItems);
             int notPublishedItems = itemService.countNotArchivedItems(context);
-            ret += String.format(
-                "Not published items (in workspace or workflow mode): %d\n",
-                notPublishedItems);
+            sb.append(String.format("Not published items (in workspace or workflow mode): %d\n", notPublishedItems));
             root.put("notPublishedItems", notPublishedItems);
 
             JSONArray stagesCountArray = new JSONArray();
             for (Map.Entry<Integer, Long> row : workspaceItemService.getStageReachedCounts(context)) {
-                ret += String.format("\tIn Stage %s: %s\n",
-                                     row.getKey(), //"stage_reached"
-                                     row.getValue() //"cnt"
+                sb.append(String.format("\tIn Stage %s: %s\n",
+                                row.getKey(),   //"stage_reached"
+                                row.getValue()) //"cnt"
                 );
                 JSONObject oneStage = new JSONObject();
                 oneStage.put("stage", row.getKey());
@@ -118,23 +113,21 @@ public class ItemCheck extends Check {
             root.put("stagesCounts", stagesCountArray);
 
             int waitingForApprovalCount = workflowItemService.countAll(context);
-            ret += String.format(
-                "\tWaiting for approval (workflow items): %d\n",
-                waitingForApprovalCount);
+            sb.append(String.format("\tWaiting for approval (workflow items): %d\n", waitingForApprovalCount));
             root.put("waitingForApproval", waitingForApprovalCount);
         } catch (SQLException e) {
             error(e);
         }
 
         try {
-            ret += getObjectSizesInfo(context, root);
+            sb.append(getObjectSizesInfo(context, root));
             context.complete();
         } catch (SQLException e) {
             error(e);
         }
 
         this.setReportJson(root);
-        return ret;
+        return sb.toString();
     }
 
 
@@ -142,47 +135,47 @@ public class ItemCheck extends Check {
         StringBuilder sb = new StringBuilder();
 
         int bitstreamsCount = bitstreamService.countTotal(context);
-        sb.append(String.format("Count %-14s: %s\n", "Bitstream", String.valueOf(bitstreamsCount)));
+        sb.append(String.format("Count %-20s: %s\n", "Bitstream", String.valueOf(bitstreamsCount)));
         jo.put("bitstreamsCount", bitstreamsCount);
 
         int bundlesCount = bundleService.countTotal(context);
-        sb.append(String.format("Count %-14s: %s\n", "Bundle", String.valueOf(bundlesCount)));
+        sb.append(String.format("Count %-20s: %s\n", "Bundle", String.valueOf(bundlesCount)));
         jo.put("bundlesCount", bundlesCount);
 
         int collectionsCount = collectionService.countTotal(context);
-        sb.append(String.format("Count %-14s: %s\n", "Collection", String.valueOf(collectionsCount)));
+        sb.append(String.format("Count %-20s: %s\n", "Collection", String.valueOf(collectionsCount)));
         jo.put("collectionsCount", collectionsCount);
 
         int communitiesCount = communityService.countTotal(context);
-        sb.append(String.format("Count %-14s: %s\n", "Community", String.valueOf(communitiesCount)));
+        sb.append(String.format("Count %-20s: %s\n", "Community", String.valueOf(communitiesCount)));
         jo.put("communitiesCount", communitiesCount);
 
         int metadataValuesCount = metadataValueService.countTotal(context);
-        sb.append(String.format("Count %-14s: %s\n", "MetadataValue", String.valueOf(metadataValuesCount)));
+        sb.append(String.format("Count %-20s: %s\n", "MetadataValue", String.valueOf(metadataValuesCount)));
         jo.put("metadataValuesCount", metadataValuesCount);
 
         int ePersonsCount = ePersonService.countTotal(context);
-        sb.append(String.format("Count %-14s: %s\n", "EPerson", String.valueOf(ePersonsCount)));
+        sb.append(String.format("Count %-20s: %s\n", "EPerson", String.valueOf(ePersonsCount)));
         jo.put("ePersonsCount", ePersonsCount);
 
         int itemsCount = itemService.countTotal(context);
-        sb.append(String.format("Count %-14s: %s\n", "Item", String.valueOf(itemsCount)));
+        sb.append(String.format("Count %-20s: %s\n", "Item", String.valueOf(itemsCount)));
         jo.put("itemsCount", itemsCount);
 
         int handlesCount = handleService.countTotal(context);
-        sb.append(String.format("Count %-14s: %s\n", "Handle", String.valueOf(handlesCount)));
+        sb.append(String.format("Count %-20s: %s\n", "Handle", String.valueOf(handlesCount)));
         jo.put("handlesCount", handlesCount);
 
         int groupsCount = groupService.countTotal(context);
-        sb.append(String.format("Count %-14s: %s\n", "Group", String.valueOf(groupsCount)));
+        sb.append(String.format("Count %-20s: %s\n", "Group", String.valueOf(groupsCount)));
         jo.put("groupsCount", groupsCount);
 
         int basicWorkflowItemsCount = workflowItemService.countAll(context);
-        sb.append(String.format("Count %-14s: %s\n", "BasicWorkflowItem", String.valueOf(basicWorkflowItemsCount)));
+        sb.append(String.format("Count %-20s: %s\n", "BasicWorkflowItem", String.valueOf(basicWorkflowItemsCount)));
         jo.put("basicWorkflowItemsCount", basicWorkflowItemsCount);
 
         int workspaceItemsCount = workspaceItemService.countTotal(context);
-        sb.append(String.format("Count %-14s: %s\n", "WorkspaceItem", String.valueOf(workspaceItemsCount)));
+        sb.append(String.format("Count %-20s: %s\n", "WorkspaceItem", String.valueOf(workspaceItemsCount)));
         jo.put("workspaceItemsCount", workspaceItemsCount);
 
         return sb.toString();
