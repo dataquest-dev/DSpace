@@ -151,7 +151,7 @@ public class UserCheck extends Check {
         }
 
         // deleting last delimeter character
-        if (strOut.length() > 0) {
+        if (!objects.isEmpty() && strOut.length() > 1) {
             strOut.deleteCharAt(strOut.length() - 2);
         }
 
