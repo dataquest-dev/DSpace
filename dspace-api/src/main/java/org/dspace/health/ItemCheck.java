@@ -43,18 +43,28 @@ import org.json.JSONObject;
  */
 public class ItemCheck extends Check {
 
-    private static final BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
-    private static final  BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
-    private static final  CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
-    private static final  CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
-    private static final  MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
-    private static final  ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    private static final  WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
+    private static final BitstreamService bitstreamService =
+            ContentServiceFactory.getInstance().getBitstreamService();
+    private static final  BundleService bundleService =
+            ContentServiceFactory.getInstance().getBundleService();
+    private static final  CollectionService collectionService =
+            ContentServiceFactory.getInstance().getCollectionService();
+    private static final  CommunityService communityService =
+            ContentServiceFactory.getInstance().getCommunityService();
+    private static final  MetadataValueService metadataValueService =
+            ContentServiceFactory.getInstance().getMetadataValueService();
+    private static final  ItemService itemService =
+            ContentServiceFactory.getInstance().getItemService();
+    private static final  WorkspaceItemService workspaceItemService =
+            ContentServiceFactory.getInstance().getWorkspaceItemService();
     private static final  XmlWorkflowItemService workflowItemService =
             XmlWorkflowServiceFactory.getInstance().getXmlWorkflowItemService();
-    private static final  HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
-    private static final  EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-    private static final  GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+    private static final  HandleService handleService =
+            HandleServiceFactory.getInstance().getHandleService();
+    private static final  EPersonService ePersonService =
+            EPersonServiceFactory.getInstance().getEPersonService();
+    private static final  GroupService groupService =
+            EPersonServiceFactory.getInstance().getGroupService();
 
 
     @Override
