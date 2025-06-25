@@ -135,10 +135,8 @@ public class LicenseCheck extends Check {
                 oneProblemItem.put("type", entry.getKey());
                 oneProblemItem.put("count", uuids.size());
                 for (UUID uuid : uuids) {
-                    JSONObject oneProblemId = new JSONObject();
                     sb.append(String.format("     %s\n", uuid));
-                    oneProblemId.put("id", uuid.toString());
-                    problemIdsArray.put(oneProblemId);
+                    problemIdsArray.put(uuid.toString());
                 }
                 oneProblemItem.put("problemIds", problemIdsArray);
                 problemItemsArray.put(oneProblemItem);
