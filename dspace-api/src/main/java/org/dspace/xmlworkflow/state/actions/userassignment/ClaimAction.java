@@ -97,7 +97,8 @@ public class ClaimAction extends UserSelectionAction {
             );
         } catch (MessagingException e) {
             log.error(LogHelper.getHeader(c, "error emailing user(s) for claimed task",
-                    "step: " + getParent().getStep().getId() + " workflowitem: " + wfi.getID()) + ", because of this error " + e.getMessage());
+                    "step: " + getParent().getStep().getId() + " workflowitem: " +
+                            wfi.getID()) + ", because of this error " + e.getMessage());
         }
     }
 
