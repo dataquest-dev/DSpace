@@ -96,9 +96,8 @@ public class ClaimAction extends UserSelectionAction {
                     xmlWorkflowService.getMyDSpaceLink()
             );
         } catch (MessagingException e) {
-            log.info(LogHelper.getHeader(c, "error emailing user(s) for claimed task",
-                    "step: " + getParent().getStep().getId() + " workflowitem: " + wfi.getID()));
-            log.error(e.getMessage());
+            log.error(LogHelper.getHeader(c, "error emailing user(s) for claimed task",
+                    "step: " + getParent().getStep().getId() + " workflowitem: " + wfi.getID()), e.getMessage());
         }
     }
 
