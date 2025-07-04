@@ -176,7 +176,8 @@ public class SubmissionController {
             throw new AccessDeniedException(errorMessage);
         }
 
-        List<ResourcePolicy> resourcePolicies = resourcePolicyService.find(context, wsi.getItem(), ResourcePolicy.TYPE_SUBMISSION);
+        List<ResourcePolicy> resourcePolicies = resourcePolicyService.find(context,
+                wsi.getItem(), ResourcePolicy.TYPE_SUBMISSION);
         // Set submitter
         for (ResourcePolicy resourcePolicy: resourcePolicies) {
             resourcePolicy.setEPerson(currentUser);
