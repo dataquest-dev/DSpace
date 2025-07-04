@@ -160,7 +160,7 @@ public class ClarinLogoImportController {
         collectionService.addLogo(context, collection, newLogo);
         collectionService.update(context, collection);
         bitstreamService.update(context, newLogo);
-        log.error("Logo with id: + " + newLogo.getID() + " was successfully added to collection " +
+        log.info("Logo with id: + " + newLogo.getID() + " was successfully added to collection " +
                 "with id: " + collection.getID());
 
         CollectionRest collectionRest = converter.toRest(collection, utils.obtainProjection());
