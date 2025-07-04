@@ -131,7 +131,6 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         groupService.addMember(context, group, submitter2);
         context.restoreAuthSystemState();
 
-
         AtomicReference<String> shareLink = new AtomicReference<>();
         EPerson currentUser = context.getCurrentUser();
 

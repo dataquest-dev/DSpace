@@ -60,6 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/" + RestAddressableModel.SUBMISSION)
 public class SubmissionController {
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(SubmissionController.class);
+    private static final int RESOURCE_POLICIES = 5 ; // Number of resource policies to create for the submitter
 
     @Autowired
     WorkspaceItemService workspaceItemService;
@@ -179,7 +180,7 @@ public class SubmissionController {
         // Remove resource policy for submitter
         resourcePolicyService.removePolicies(context, wsi.getItem(), ResourcePolicy.TYPE_SUBMISSION);
         // Create new ResourcePolicy for current user
-        for (int action = 0; action < 5; action++) {
+        for (int action = 0; action < RESOURCE_POLICIES; action++) {
             ResourcePolicy policy = resourcePolicyService.create(context, currentUser, null);
             policy.setdSpaceObject(wsi.getItem());
             policy.setRpType(ResourcePolicy.TYPE_SUBMISSION);
