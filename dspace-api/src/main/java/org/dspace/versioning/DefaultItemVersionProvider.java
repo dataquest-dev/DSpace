@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DefaultItemVersionProvider extends AbstractVersionProvider implements ItemVersionProvider {
 
     Logger log = org.apache.logging.log4j.LogManager.getLogger(DefaultItemVersionProvider.class);
+    private static final String UNTITLED = "Untitled"; // Default title for items without a name
 
     @Autowired(required = true)
     protected WorkspaceItemService workspaceItemService;
@@ -135,7 +136,7 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
             String formattedDate = LocalDate.now().format(formatter);
             String itemName = itemNew.getName();
             if (itemName == null) {
-                itemName = "Untitled";
+                itemName = UNTITLED;
             }
             String titleWithDate = itemName + " (" + formattedDate + ")";
             // Set the item's title with the formatted date appended
