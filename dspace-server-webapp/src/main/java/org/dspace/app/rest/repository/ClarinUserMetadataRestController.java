@@ -256,6 +256,9 @@ public class ClarinUserMetadataRestController {
             try {
                 String email = getEmailFromUserMetadata(clarinUserMetadataRestList);
                 List<Item> items = clarinItemService.findByBitstreamUUID(context, bitstreamUUID);
+                if (CollectionUtils.isEmpty(items)) {
+                    throw new NotFoundException("No items found for the given bitstream UUID: " + bitstreamUUID);
+                }
                 this.sendEmailWithDownloadLink(context, bitstream, clarinLicense,
                         email, downloadToken, MailType.BITSTREAM, clarinUserMetadataRestList, items.get(0).getHandle());
             } catch (MessagingException e) {
