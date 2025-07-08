@@ -131,7 +131,6 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         groupService.addMember(context, group, submitter2);
         context.restoreAuthSystemState();
 
-        AtomicReference<String> shareLink = new AtomicReference<>();
         EPerson currentUser = context.getCurrentUser();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -139,8 +138,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                         .param("workspaceitemid", wsi.getID().toString())
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.shareLink", is(notNullValue())))
-                .andDo(result -> shareLink.set(read(result.getResponse().getContentAsString(), "$.shareLink")));
+                .andExpect(jsonPath("$.shareLink", is(notNullValue())));
 
         // Check that the share token was set on the WorkspaceItem and persisted into the database
         WorkspaceItem updatedWsi = workspaceItemService.find(context, wsi.getID());
@@ -167,8 +165,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                         .param("workspaceitemid", wsi.getID().toString())
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.shareLink", is(notNullValue())))
-                .andDo(result -> shareLink.set(read(result.getResponse().getContentAsString(), "$.shareLink")));
+                .andExpect(jsonPath("$.shareLink", is(notNullValue())));
 
         updatedWsi = workspaceItemService.find(context, wsi.getID());
 
