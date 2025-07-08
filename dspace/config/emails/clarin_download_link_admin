@@ -25,7 +25,7 @@ Link of the requested file (does not contain the download token):
 The file is distributed under specific license:
 	${params[2]}
 
-Item handle:
+Item's handle:
     ${params[6]}
 
 Extra information filled by the user:
