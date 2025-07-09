@@ -129,16 +129,16 @@ public class LicenseCheck extends Check {
             for (Map.Entry<String, List<UUID>> entry: problemItems.entrySet()) {
                 List<UUID> uuids = entry.getValue();
                 JSONObject oneProblemItem = new JSONObject();
-                JSONArray problemIdsArray = new JSONArray();
+                JSONArray problemUUIDsArray = new JSONArray();
 
                 sb.append(String.format("\n%s: %d\n", entry.getKey(), uuids.size()));
                 oneProblemItem.put("type", entry.getKey());
                 oneProblemItem.put("count", uuids.size());
                 for (UUID uuid : uuids) {
                     sb.append(String.format("     %s\n", uuid));
-                    problemIdsArray.put(uuid.toString());
+                    problemUUIDsArray.put(uuid.toString());
                 }
-                oneProblemItem.put("problemIds", problemIdsArray);
+                oneProblemItem.put("problemUUIDs", problemUUIDsArray);
                 problemItemsArray.put(oneProblemItem);
             }
             root.put("problemItems", problemItemsArray);
