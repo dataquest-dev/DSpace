@@ -143,6 +143,20 @@ public class UserCheck extends Check {
         return sb.toString();
     }
 
+    /**
+     * Formats a list of DSpace objects' IDs into both a JSON array and a human-readable string representation.
+     * <p>
+     * This method takes a list of DSpace objects and extracts their IDs, adding them to:
+     * <ul>
+     *   <li>A JSON array for programmatic access</li>
+     *   <li>A StringBuilder in the format "[id1, id2, id3]" for logging or display purposes</li>
+     * </ul>
+     *
+     * @param objects The list of DSpace objects whose IDs should be formatted
+     * @param jsonOut The JSON array to which the object IDs will be added
+     * @param strOut The StringBuilder that will be populated with the formatted string representation of IDs
+     *              in the format "[id1, id2, id3]"
+     */
     private void formatIds(List<? extends DSpaceObject> objects, JSONArray jsonOut, StringBuilder strOut) {
         strOut.append("[");
         for (DSpaceObject o : objects) {
