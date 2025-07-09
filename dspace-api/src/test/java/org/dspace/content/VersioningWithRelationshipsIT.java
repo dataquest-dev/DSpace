@@ -2118,7 +2118,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
                 //////////////////
                 // create items //
                 //////////////////
-
+                String person3itemDate = "person 3 (item) (" + formattedDate + ")";
                 // person 1.1
                 Item pe1_1 = ItemBuilder.createItem(context, collection)
                     .withTitle("person 1 (item)")
@@ -2400,7 +2400,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
                 assertEquals(1, mdvs5.get(1).getPlace());
 
                 assertTrue(mdvs5.get(2) instanceof RelationshipMetadataValue);
-                assertEquals("person 3 (item) (" + formattedDate + ")", mdvs5.get(2).getValue());
+                assertEquals(person3itemDate, mdvs5.get(2).getValue());
                 assertEquals(2, mdvs5.get(2).getPlace());
 
                 assertFalse(mdvs5.get(3) instanceof RelationshipMetadataValue);
@@ -2442,7 +2442,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
                 assertEquals(1, mdvs6.get(1).getPlace());
 
                 assertTrue(mdvs6.get(2) instanceof RelationshipMetadataValue);
-                assertEquals("person 3 (item) (" + formattedDate + ")", mdvs6.get(2).getValue());
+                assertEquals(person3itemDate, mdvs6.get(2).getValue());
                 assertEquals(2, mdvs6.get(2).getPlace());
 
                 ////////////////////////////////////////////////
@@ -2515,7 +2515,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
                 assertEquals(1, mdvs8.get(1).getPlace());
 
                 assertTrue(mdvs8.get(2) instanceof RelationshipMetadataValue);
-                assertEquals("person 3 (item) (" + formattedDate + ")", mdvs8.get(2).getValue());
+                assertEquals(person3itemDate, mdvs8.get(2).getValue());
                 assertEquals(2, mdvs8.get(2).getPlace());
 
                 assertFalse(mdvs8.get(3) instanceof RelationshipMetadataValue);
@@ -2620,7 +2620,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
                 assertEquals(1, mdvs10.get(1).getPlace());
 
                 assertTrue(mdvs10.get(2) instanceof RelationshipMetadataValue);
-                assertEquals("person 3 (item) (" + formattedDate + ")", mdvs10.get(2).getValue());
+                assertEquals(person3itemDate, mdvs10.get(2).getValue());
                 assertEquals(2, mdvs10.get(2).getPlace());
 
                 assertFalse(mdvs10.get(3) instanceof RelationshipMetadataValue);
@@ -2663,7 +2663,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
                 assertEquals(1, mdvs11.get(1).getPlace());
 
                 assertTrue(mdvs11.get(2) instanceof RelationshipMetadataValue);
-                assertEquals("person 3 (item) (" + formattedDate + ")", mdvs11.get(2).getValue());
+                assertEquals(person3itemDate, mdvs11.get(2).getValue());
                 assertEquals(2, mdvs11.get(2).getPlace());
 
                 ////////////////////////////////////////
@@ -2829,7 +2829,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
                 assertEquals(1, mdvs15.get(1).getPlace());
 
                 assertTrue(mdvs15.get(2) instanceof RelationshipMetadataValue);
-                assertEquals("person 3 (item) (" + formattedDate + ")", mdvs15.get(2).getValue());
+                assertEquals(person3itemDate, mdvs15.get(2).getValue());
                 assertEquals(2, mdvs15.get(2).getPlace());
 
                 assertFalse(mdvs15.get(3) instanceof RelationshipMetadataValue);
@@ -2872,7 +2872,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
                 assertEquals(1, mdvs16.get(1).getPlace());
 
                 assertTrue(mdvs16.get(2) instanceof RelationshipMetadataValue);
-                assertEquals("person 3 (item) (" + formattedDate + ")", mdvs16.get(2).getValue());
+                assertEquals(person3itemDate, mdvs16.get(2).getValue());
                 assertEquals(2, mdvs16.get(2).getPlace());
 
                 ////////////////////////////////////////
