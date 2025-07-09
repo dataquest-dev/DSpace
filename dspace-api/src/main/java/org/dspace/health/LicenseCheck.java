@@ -28,6 +28,8 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * This check provides information about the number of items categorized by clarin license type (PUB/RES/ACA),
@@ -45,6 +47,7 @@ public class LicenseCheck extends Check {
     protected String run(ReportInfo ri) {
         Context context = new Context();
         StringBuilder sb = new StringBuilder();
+        JSONObject root = new JSONObject();
 
         Iterator<Item> items;
         ItemService itemService = ContentServiceFactory.getInstance().getItemService();
@@ -109,21 +112,40 @@ public class LicenseCheck extends Check {
             }
         }
 
+        JSONArray licensesArray = new JSONArray();
         for (Map.Entry<String, Integer> result : licensesCount.entrySet()) {
+            JSONObject oneLicense = new JSONObject();
+
             sb.append(String.format("%-20s: %d\n", result.getKey(), result.getValue()));
+            oneLicense.put("type", result.getKey());
+            oneLicense.put("count", result.getValue());
+
+            licensesArray.put(oneLicense);
         }
+        root.put("licenses", licensesArray);
 
         if (!problemItems.isEmpty()) {
-            for (Map.Entry<String, List<UUID>> problemItems : problemItems.entrySet()) {
-                List<UUID> uuids = problemItems.getValue();
-                sb.append(String.format("\n%s: %d\n", problemItems.getKey(), uuids.size()));
+            JSONArray problemItemsArray = new JSONArray();
+            for (Map.Entry<String, List<UUID>> entry: problemItems.entrySet()) {
+                List<UUID> uuids = entry.getValue();
+                JSONObject oneProblemItem = new JSONObject();
+                JSONArray problemUUIDsArray = new JSONArray();
+
+                sb.append(String.format("\n%s: %d\n", entry.getKey(), uuids.size()));
+                oneProblemItem.put("type", entry.getKey());
+                oneProblemItem.put("count", uuids.size());
                 for (UUID uuid : uuids) {
                     sb.append(String.format("     %s\n", uuid));
+                    problemUUIDsArray.put(uuid.toString());
                 }
+                oneProblemItem.put("problemUUIDs", problemUUIDsArray);
+                problemItemsArray.put(oneProblemItem);
             }
+            root.put("problemItems", problemItemsArray);
         }
 
         context.close();
+        this.setReportJson(root);
         return sb.toString();
     }
 }
