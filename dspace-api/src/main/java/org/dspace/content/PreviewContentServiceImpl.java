@@ -201,7 +201,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
     @Override
     public FileInfo createFileInfo(PreviewContent pc) {
         Hashtable<String, FileInfo> sub = createSubMap(pc.sub, this::createFileInfo);
-        return new FileInfo(pc.name, pc.content, pc.size, pc.isDirectory, sub);
+        return new FileInfo(pc.name, pc.content, pc.size, pc.isDirectory);
     }
 
     @Override
