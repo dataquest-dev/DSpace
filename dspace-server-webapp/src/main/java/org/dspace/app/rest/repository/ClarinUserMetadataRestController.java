@@ -258,6 +258,10 @@ public class ClarinUserMetadataRestController {
                 List<Item> items = clarinItemService.findByBitstreamUUID(context, bitstreamUUID);
                 if (CollectionUtils.isEmpty(items)) {
                     throw new NotFoundException("No items found for the given bitstream UUID: " + bitstreamUUID);
+                } else if (items.size() > 1) {
+                    // This situation is not expected. A bitstream should be linked to only one item.
+                    log.error("Multiple items ({}) found for bitstream UUID: {}. Expected only one.",
+                            items.size(), bitstreamUUID);
                 }
                 this.sendEmailWithDownloadLink(context, bitstream, clarinLicense,
                         email, downloadToken, MailType.BITSTREAM, clarinUserMetadataRestList, items.get(0).getHandle());
