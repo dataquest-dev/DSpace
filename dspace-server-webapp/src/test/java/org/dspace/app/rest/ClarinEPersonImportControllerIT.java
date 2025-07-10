@@ -75,7 +75,7 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
                             .param("projection", "full")
                             .param("selfRegistered", "true")
                             .param("lastActive", "2018-02-10T13:21:29.733")
-                            .param("password",
+                            .param("passwordHashStr",
                                     "5b62ec4a3492ec34f1e659e93a6c204c8a72b2f53d1a60e83f48bdb2e5718ebf")
                             .param("salt", "7f9d4e63bde7a0d546d8e6f4e32870f3")
                             .param("digestAlgorithm", "SHA-512"))

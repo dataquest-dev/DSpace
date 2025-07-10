@@ -86,7 +86,7 @@ public class ClarinEPersonImportController {
         String selfRegisteredString = request.getParameter("selfRegistered");
         boolean selfRegistered = getBooleanFromString(selfRegisteredString);
         String lastActiveString = request.getParameter("lastActive");
-        String password = request.getParameter("password");
+        String passwordHashStr = request.getParameter("passwordHashStr");
         String algorithm = request.getParameter("digestAlgorithm");
         String salt = request.getParameter("salt");
         Date lastActive;
@@ -101,7 +101,7 @@ public class ClarinEPersonImportController {
         eperson.setSelfRegistered(selfRegistered);
         eperson.setLastActive(lastActive);
         //the password is already hashed in the request
-        PasswordHash passwordHash = new PasswordHash(algorithm, salt, password);
+        PasswordHash passwordHash = new PasswordHash(algorithm, salt, passwordHashStr);
         ePersonService.setPasswordHash(eperson, passwordHash);
         ePersonService.update(context, eperson);
 
