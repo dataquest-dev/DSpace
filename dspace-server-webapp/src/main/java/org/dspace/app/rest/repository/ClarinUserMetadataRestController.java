@@ -361,7 +361,7 @@ public class ClarinUserMetadataRestController {
     private void addAdminEmailArguments(Email mail, MailType mailType, DSpaceObject dso, String downloadLink,
                                         ClarinLicense clarinLicense, Context context,
                                         List<ClarinUserMetadataRest> extraMetadata,
-                                        String handle) {
+                                        String itemHandle) {
         if (mailType == MailType.ALLZIP) {
             mail.addArgument("all files requested");
         } else if (mailType == MailType.BITSTREAM) {
@@ -386,7 +386,7 @@ public class ClarinUserMetadataRestController {
             exdata.append(data.getMetadataKey()).append(": ").append(data.getMetadataValue()).append(", ");
         }
         mail.addArgument(exdata.toString());
-        mail.addArgument(handle);
+        mail.addArgument(itemHandle);
     }
 
     private void sendAdminNotificationEmail(Context context,

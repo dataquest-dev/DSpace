@@ -6,7 +6,7 @@
 ##             {3} user name
 ##             {4} user email
 ##             {5} extra metadata provided
-##             {6} item handle
+##             {6} item PID
 ##
 ## See org.dspace.core.Email for information on the format of this file.
 ##
@@ -25,7 +25,7 @@ Link of the requested file (does not contain the download token):
 The file is distributed under specific license:
 	${params[2]}
 
-Item's handle:
+Item's PID:
     ${params[6]}
 
 Extra information filled by the user:
