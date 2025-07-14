@@ -181,24 +181,26 @@ public class BitstreamRestController {
             // Track the download statistics - only if the downloading has started (the condition is inside the method)
             matomoBitstreamTracker.trackBitstreamDownload(context, request, bit, false);
 
+            boolean s3DirectDownload = configurationService.getBooleanProperty("s3.download.direct.enabled");
+            boolean hasOriginalBundle = false;
+            if (s3DirectDownload) {
+                // Download only files which are stored in the `ORIGINAL` bundle, because some specific files are
+                // not correctly downloaded and displayed in the UI when using presigned URLs. E.g., the
+                // process output.
+                hasOriginalBundle = bit.getBundles().stream()
+                        .anyMatch(bundle -> CONTENT_BUNDLE_NAME.equals(bundle.getName()));
+            }
+
             //We have all the data we need, close the connection to the database so that it doesn't stay open during
             //download/streaming
             context.complete();
 
-            boolean s3DirectDownload = configurationService.getBooleanProperty("s3.download.direct.enabled");
             //Send the data
             if (httpHeadersInitializer.isValid()) {
                 HttpHeaders httpHeaders = httpHeadersInitializer.initialiseHeaders();
-                if (s3DirectDownload) {
-                    // Download only files which are stored in the `ORIGINAL` bundle, because some specific files are
-                    // not correctly downloaded and displayed in the UI when using presigned URLs. E.g., the
-                    // process output.
-                    boolean hasOriginalBundle = bit.getBundles().stream()
-                            .anyMatch(bundle -> CONTENT_BUNDLE_NAME.equals(bundle.getName()));
 
-                    if (hasOriginalBundle) {
-                        return redirectToS3DownloadUrl(httpHeaders, name, bit.getInternalId());
-                    }
+                if (hasOriginalBundle) {
+                    return redirectToS3DownloadUrl(httpHeaders, name, bit.getInternalId());
                 }
 
                 if (RequestMethod.HEAD.name().equals(request.getMethod())) {
