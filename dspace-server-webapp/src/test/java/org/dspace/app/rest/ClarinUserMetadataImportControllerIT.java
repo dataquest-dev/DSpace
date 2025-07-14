@@ -11,7 +11,6 @@ import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATI
 import static org.dspace.content.clarin.ClarinLicense.Confirmation;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
