@@ -7,6 +7,9 @@
  */
 package org.dspace.xmlworkflow;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -14,6 +17,10 @@ import java.sql.SQLException;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Level;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
@@ -24,6 +31,7 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.GroupBuilder;
+import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
@@ -39,6 +47,7 @@ import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
 import org.dspace.xmlworkflow.service.XmlWorkflowService;
 import org.dspace.xmlworkflow.state.Workflow;
 import org.dspace.xmlworkflow.state.actions.processingaction.SelectReviewerAction;
+import org.dspace.xmlworkflow.state.actions.userassignment.ClaimAction;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.junit.After;
 import org.junit.Test;
@@ -195,6 +204,53 @@ public class XmlWorkflowServiceIT extends AbstractIntegrationTestWithDatabase {
         // Reviewers should have access to workflow item
         assertTrue(this.containsRPForUser(task.getWorkflowItem().getItem(), reviewer1, Constants.WRITE));
         assertTrue(this.containsRPForUser(task.getWorkflowItem().getItem(), reviewer2, Constants.WRITE));
+    }
+
+    /**
+     * Test to verify if the email is sent to the editors of the collection (even when they have two and more emails)
+     * when a new item is submitted
+     */
+    @Test
+    public void editorOfCollectionWithMultipleEmails_ShouldBeWithoutError() throws Exception {
+        // Capture logs from the class that logs the MessagingException
+        Logger logger = (Logger) LogManager.getLogger(ClaimAction.class);
+        ListAppender listAppender = new ListAppender("TestAppender");
+        logger.addAppender(listAppender);
+
+        context.turnOffAuthorisationSystem();
+        EPerson submitter = EPersonBuilder.createEPerson(context).withEmail("submitter@example.org").build();
+        EPerson editor =
+                EPersonBuilder.createEPerson(context)
+                        .withEmail("editor1-test@example.org;editor1-test@example.org").build();
+        context.setCurrentUser(submitter);
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection colWithWorkflow = CollectionBuilder.createCollection(context, community)
+                .withName("Collection WITH workflow")
+                .withWorkflowGroup("editor", editor)
+                .build();
+        Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(colWithWorkflow);
+
+        ClaimedTask task = ClaimedTaskBuilder.createClaimedTask(context, colWithWorkflow, editor)
+                .withTitle("Test submission for editor email").build();
+        context.restoreAuthSystemState();
+
+        String firstEmail = editor.getEmail().split(";")[0];
+//        assertNotNull("Workflow should not be null", workflow);
+//        assertNotNull("Submitted item should not be null", item);
+
+
+        boolean errorLogged = listAppender.getLogEvents().stream()
+                .anyMatch(event ->
+                        event.getLevel().isMoreSpecificThan(Level.ERROR) &&
+                                event.getMessage().getFormattedMessage().contains("error emailing user(s) for claimed task")
+                );
+
+        assertFalse(errorLogged);
+        logger.removeAppender(listAppender);
+
+
     }
 
     private boolean containsRPForUser(Item item, EPerson user, int action) throws SQLException {
