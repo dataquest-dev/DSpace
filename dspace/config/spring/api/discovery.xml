@@ -47,6 +47,9 @@
     <!-- Additional indexing plugin enables searching by supervised (true,false) -->
     <bean id="solrServiceSupervisionOrderIndexingPlugin" class="org.dspace.discovery.SolrServiceSupervisionOrderIndexingPlugin"/>
 
+    <!--  A DSpace Discovery plugin that customizes Solr queries to prioritize newer versions of items. -->
+    <bean id="solrBoostLatestVersionSearchPlugin " class="org.dspace.discovery.SolrBoostLatestVersionSearchPlugin "/>
+
     <!--Bean that is used for mapping communities/collections to certain discovery configurations.-->
     <bean id="org.dspace.discovery.configuration.DiscoveryConfigurationService" class="org.dspace.discovery.configuration.DiscoveryConfigurationService">
         <property name="map">
