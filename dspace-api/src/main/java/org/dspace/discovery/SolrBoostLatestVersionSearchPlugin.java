@@ -5,15 +5,19 @@ import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.core.Context;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * A DSpace Discovery plugin that customizes Solr queries to prioritize newer versions of items.
  */
 public class SolrBoostLatestVersionSearchPlugin implements SolrServiceSearchPlugin {
-    private static final Logger log = LogManager.getLogger(SolrBoostLatestVersionSearchPlugin .class);
+    private static final Logger log = LogManager.getLogger(SolrBoostLatestVersionSearchPlugin.class);
 
-    // Boost factors
-    private static final float BOOST = 2.0f;
+    @Value("${solr.boost.replaces:2.0}")
+    private float replacesBoost;
+
+    @Value("${solr.boost.latestVersion:3.0}")
+    private float latestVersionBoost;
 
     @Override
     public void additionalSearchParameters(Context context, DiscoverQuery discoveryQuery, SolrQuery solrQuery)
@@ -23,27 +27,16 @@ public class SolrBoostLatestVersionSearchPlugin implements SolrServiceSearchPlug
             // No query, no boost needed
             return;
         }
-        // Escape original query to avoid Solr syntax issues
-        String escapedQuery = ClientUtils.escapeQueryChars(originalQuery);
+        String baseQuery = "+(" + originalQuery + ")";
+        String titleBoost = "title:(" + originalQuery + ")^" + replacesBoost;
+        String replacesBoostQuery = "dc.relation.replaces:[* TO *]^" + replacesBoost;
+        String latestVersionBoostQuery = "(dc.relation.replaces:[* TO *] AND -dc.relation.isreplacedby:[* TO *])^" + latestVersionBoost;
 
-        // Base query: require original terms
-        String baseQuery = "+(" + escapedQuery + ")";
-
-        // Boost if query terms appear in the title field
-        String titleBoost = "title:(" + escapedQuery + ")^" + BOOST;
-
-        // Boost items that replace others (newer versions)
-        String replacesBoost = "dc.relation.replaces:[* TO *]^" + BOOST;
-
-        // Boost latest versions: replace others but are not replaced themselves
-        String latestVersionBoost = "(dc.relation.replaces:[* TO *] AND -dc.relation.isreplacedby:[* TO *])^" + BOOST;
-
-        // Combine all parts with OR to boost
-        String boostedQuery = String.join(" OR ",
-                baseQuery,
+        // Combine base query (mandatory) with boost queries (optional scoring enhancement)
+        String boostedQuery = baseQuery + " OR " + String.join(" OR ",
                 titleBoost,
-                replacesBoost,
-                latestVersionBoost
+                replacesBoostQuery,
+                latestVersionBoostQuery
         );
 
         log.debug("Setting boosted Solr query: {}", boostedQuery);
