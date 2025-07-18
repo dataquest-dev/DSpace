@@ -8,6 +8,7 @@
 package org.dspace.app.rest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -65,4 +66,52 @@ public class ClarinRefBoxControllerIT extends AbstractControllerIntegrationTest 
         getClient(token).perform(get("/api/core/refbox/services?id=" + itemWithFS.getID()))
                 .andExpect(status().isOk());
     }
+
+    // TODO 1
+    @Test
+    public void testReturnAllRefboxInfoForItemWithFeaturedService() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemWithFS.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").value("Expected value"))
+                .andExpect(jsonPath("$.title").value("Title"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[0].name").value("bibtex"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[0].url").value("url"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[0].extract").value(""))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[0].dataType").value("json"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[1].name").value("cmdi"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[1].url").value("url"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[1].extract").value(""))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[1].dataType").value("json"))
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].name").value("name"))
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].url").value("url"))
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].description").value("Tool for searching and browsing treebanks online"))
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].links.entry[0].key").value("search"))
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].links.entry[0].value").value("value"));
+    }
+
+    // TODO 2
+    @Test
+    public void testReturnAllRefboxInfoForItemWithEmptyFeaturedService() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemWithFS.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").value("Expected value"))
+                .andExpect(jsonPath("$.title").value("Title"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[0].name").value("bibtex"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[0].url").value("url"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[0].extract").value(""))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[0].dataType").value("json"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[1].name").value("cmdi"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[1].url").value("url"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[1].extract").value(""))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[1].dataType").value("json"))
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].name").doesNotExist())
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].url").doesNotExist())
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].description").doesNotExist())
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].links.entry[0].key").doesNotExist())
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].links.entry[0].value").doesNotExist());
+    }
+
+
 }
