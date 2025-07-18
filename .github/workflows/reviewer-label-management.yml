@@ -1,0 +1,28 @@
+name: Reviewer Label Management
+
+on:
+  pull_request_review_requested:
+    types: [requested]
+  pull_request_review:
+    types: [submitted]
+  issues:
+    types: [assigned]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  manage-reviewer-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Apply reviewer labels
+        uses: ./.github/actions/reviewer-label-action
+        with:
+          target-reviewer: 'target-reviewer-username'  # Replace with actual reviewer username
+          assigned-label: 'under-review'
+          completed-label: 'review-completed'
+          github-token: ${{ secrets.GITHUB_TOKEN }}

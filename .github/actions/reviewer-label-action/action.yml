@@ -1,0 +1,87 @@
+name: 'Reviewer Label Management'
+description: 'Apply labels to issues/PRs based on reviewer assignments and review completion'
+inputs:
+  target-reviewer:
+    description: 'The GitHub username of the reviewer to watch for'
+    required: true
+  assigned-label:
+    description: 'Label to apply when the target reviewer is assigned'
+    required: true
+  completed-label:
+    description: 'Label to apply when the target reviewer completes their review'
+    required: true
+  github-token:
+    description: 'GitHub token for API access'
+    required: true
+    default: ${{ github.token }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check event type and handle reviewer assignment
+      if: github.event_name == 'pull_request_review_requested' || (github.event_name == 'issues' && github.event.action == 'assigned')
+      shell: bash
+      run: |
+        echo "Event: ${{ github.event_name }}"
+        echo "Action: ${{ github.event.action }}"
+        echo "Target reviewer: ${{ inputs.target-reviewer }}"
+        echo "Assigned label: ${{ inputs.assigned-label }}"
+        
+        # For pull request review requests
+        if [ "${{ github.event_name }}" == "pull_request_review_requested" ]; then
+          REQUESTED_REVIEWER="${{ github.event.requested_reviewer.login }}"
+          echo "Requested reviewer: $REQUESTED_REVIEWER"
+          
+          if [ "$REQUESTED_REVIEWER" == "${{ inputs.target-reviewer }}" ]; then
+            echo "Target reviewer was requested - applying label: ${{ inputs.assigned-label }}"
+            curl -s -X POST \
+              -H "Authorization: token ${{ inputs.github-token }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels" \
+              -d '{"labels":["${{ inputs.assigned-label }}"]}'
+          fi
+        fi
+        
+        # For issue assignments
+        if [ "${{ github.event_name }}" == "issues" ] && [ "${{ github.event.action }}" == "assigned" ]; then
+          ASSIGNED_USER="${{ github.event.assignee.login }}"
+          echo "Assigned user: $ASSIGNED_USER"
+          
+          if [ "$ASSIGNED_USER" == "${{ inputs.target-reviewer }}" ]; then
+            echo "Target reviewer was assigned - applying label: ${{ inputs.assigned-label }}"
+            curl -s -X POST \
+              -H "Authorization: token ${{ inputs.github-token }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels" \
+              -d '{"labels":["${{ inputs.assigned-label }}"]}'
+          fi
+        fi
+
+    - name: Handle review completion
+      if: github.event_name == 'pull_request_review' && github.event.action == 'submitted'
+      shell: bash
+      run: |
+        echo "Event: ${{ github.event_name }}"
+        echo "Action: ${{ github.event.action }}"
+        echo "Review state: ${{ github.event.review.state }}"
+        echo "Reviewer: ${{ github.event.review.user.login }}"
+        echo "Target reviewer: ${{ inputs.target-reviewer }}"
+        
+        if [ "${{ github.event.review.user.login }}" == "${{ inputs.target-reviewer }}" ]; then
+          echo "Target reviewer submitted a review - managing labels"
+          
+          # Remove the assigned label
+          echo "Removing label: ${{ inputs.assigned-label }}"
+          curl -s -X DELETE \
+            -H "Authorization: token ${{ inputs.github-token }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/${{ inputs.assigned-label }}" || echo "Label may not exist"
+          
+          # Add the completed label
+          echo "Adding label: ${{ inputs.completed-label }}"
+          curl -s -X POST \
+            -H "Authorization: token ${{ inputs.github-token }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels" \
+            -d '{"labels":["${{ inputs.completed-label }}"]}'
+        fi
