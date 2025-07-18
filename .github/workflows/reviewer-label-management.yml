@@ -22,7 +22,7 @@ jobs:
       - name: Apply reviewer labels
         uses: ./.github/actions/reviewer-label-action
         with:
-          target-reviewer: 'target-reviewer-username'  # Replace with actual reviewer username
+          target-reviewer: 'replace-with-reviewer-username'  # TODO: Replace with actual reviewer username
           assigned-label: 'under-review'
           completed-label: 'review-completed'
           github-token: ${{ secrets.GITHUB_TOKEN }}

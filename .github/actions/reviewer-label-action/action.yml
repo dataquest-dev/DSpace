@@ -34,11 +34,20 @@ runs:
           
           if [ "$REQUESTED_REVIEWER" == "${{ inputs.target-reviewer }}" ]; then
             echo "Target reviewer was requested - applying label: ${{ inputs.assigned-label }}"
-            curl -s -X POST \
+            
+            # Use jq to properly format JSON
+            RESPONSE=$(curl -s -X POST \
               -H "Authorization: token ${{ inputs.github-token }}" \
               -H "Accept: application/vnd.github.v3+json" \
               "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels" \
-              -d '{"labels":["${{ inputs.assigned-label }}"]}'
+              -d "{\"labels\":[\"${{ inputs.assigned-label }}\"]}")
+            
+            if [ $? -eq 0 ]; then
+              echo "Label applied successfully"
+            else
+              echo "Error applying label: $RESPONSE"
+              exit 1
+            fi
           fi
         fi
         
@@ -49,11 +58,20 @@ runs:
           
           if [ "$ASSIGNED_USER" == "${{ inputs.target-reviewer }}" ]; then
             echo "Target reviewer was assigned - applying label: ${{ inputs.assigned-label }}"
-            curl -s -X POST \
+            
+            # Use jq to properly format JSON
+            RESPONSE=$(curl -s -X POST \
               -H "Authorization: token ${{ inputs.github-token }}" \
               -H "Accept: application/vnd.github.v3+json" \
               "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels" \
-              -d '{"labels":["${{ inputs.assigned-label }}"]}'
+              -d "{\"labels\":[\"${{ inputs.assigned-label }}\"]}")
+            
+            if [ $? -eq 0 ]; then
+              echo "Label applied successfully"
+            else
+              echo "Error applying label: $RESPONSE"
+              exit 1
+            fi
           fi
         fi
 
@@ -70,18 +88,35 @@ runs:
         if [ "${{ github.event.review.user.login }}" == "${{ inputs.target-reviewer }}" ]; then
           echo "Target reviewer submitted a review - managing labels"
           
+          # URL encode the label name for the DELETE request
+          ENCODED_LABEL=$(printf '%s\n' "${{ inputs.assigned-label }}" | sed 's/ /%20/g')
+          
           # Remove the assigned label
           echo "Removing label: ${{ inputs.assigned-label }}"
-          curl -s -X DELETE \
+          DELETE_RESPONSE=$(curl -s -w "%{http_code}" -X DELETE \
             -H "Authorization: token ${{ inputs.github-token }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/${{ inputs.assigned-label }}" || echo "Label may not exist"
+            "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/$ENCODED_LABEL")
+          
+          DELETE_HTTP_CODE="${DELETE_RESPONSE: -3}"
+          if [ "$DELETE_HTTP_CODE" = "200" ] || [ "$DELETE_HTTP_CODE" = "404" ]; then
+            echo "Label removed successfully (or didn't exist)"
+          else
+            echo "Warning: Could not remove label. HTTP code: $DELETE_HTTP_CODE"
+          fi
           
           # Add the completed label
           echo "Adding label: ${{ inputs.completed-label }}"
-          curl -s -X POST \
+          ADD_RESPONSE=$(curl -s -X POST \
             -H "Authorization: token ${{ inputs.github-token }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels" \
-            -d '{"labels":["${{ inputs.completed-label }}"]}'
+            -d "{\"labels\":[\"${{ inputs.completed-label }}\"]}")
+          
+          if [ $? -eq 0 ]; then
+            echo "Completed label applied successfully"
+          else
+            echo "Error applying completed label: $ADD_RESPONSE"
+            exit 1
+          fi
         fi

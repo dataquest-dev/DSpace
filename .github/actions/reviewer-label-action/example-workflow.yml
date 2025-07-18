@@ -1,0 +1,59 @@
+# Example configuration for reviewer label management
+# Copy this file to .github/workflows/reviewer-label-management.yml and customize as needed
+
+name: Reviewer Label Management
+
+on:
+  pull_request_review_requested:
+    types: [requested]
+  pull_request_review:
+    types: [submitted]
+  issues:
+    types: [assigned]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  # Example: Single reviewer configuration
+  manage-reviewer-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Apply reviewer labels
+        uses: ./.github/actions/reviewer-label-action
+        with:
+          target-reviewer: 'reviewer-username'  # Replace with actual reviewer username
+          assigned-label: 'under-review'
+          completed-label: 'review-completed'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Example: Multiple reviewers configuration
+  manage-multiple-reviewers:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        reviewer-config:
+          - reviewer: 'senior-dev'
+            assigned: 'senior-review-pending'
+            completed: 'senior-review-done'
+          - reviewer: 'security-expert'
+            assigned: 'security-review-pending'
+            completed: 'security-review-done'
+          - reviewer: 'ui-specialist'
+            assigned: 'ui-review-pending'
+            completed: 'ui-review-done'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Apply reviewer labels for ${{ matrix.reviewer-config.reviewer }}
+        uses: ./.github/actions/reviewer-label-action
+        with:
+          target-reviewer: ${{ matrix.reviewer-config.reviewer }}
+          assigned-label: ${{ matrix.reviewer-config.assigned }}
+          completed-label: ${{ matrix.reviewer-config.completed }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
