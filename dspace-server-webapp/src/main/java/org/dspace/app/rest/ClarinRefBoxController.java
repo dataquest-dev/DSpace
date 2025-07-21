@@ -347,17 +347,7 @@ public class ClarinRefBoxController {
         // 1. Authors
         List<String> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY)
                 .stream().map(MetadataValue::getValue).collect(Collectors.toList());
-        String authorText = "";
-        if (authors.isEmpty()) {
-            authorText = itemService.getMetadataFirstValue(item, "dc", "publisher", null, Item.ANY);
-        } else if (authors.size() == 1) {
-            authorText = authors.get(0);
-        } else if (authors.size() <= 5) {
-            authorText = String.join("; ", authors);
-            authorText = authorText.replaceAll(";([^;]*)$", " and$1");
-        } else {
-            authorText = authors.get(0) + "; et al.";
-        }
+        String authorText = formatAuthors(item, authors);
 
         // 2. Year
         String year = "";
@@ -402,6 +392,24 @@ public class ClarinRefBoxController {
         sb.append(", \n  <a href=\"").append(identifier != null ? identifier : "").append("\">")
                 .append(identifier != null ? identifier : "").append("</a>.");
         return sb.toString();
+    }
+
+    /**
+     * Format the authors for the display text.
+     */
+    private String formatAuthors(Item item, List<String> authors) {
+        String authorText = "";
+        if (authors.isEmpty()) {
+            authorText = itemService.getMetadataFirstValue(item, "dc", "publisher", null, Item.ANY);
+        } else if (authors.size() == 1) {
+            authorText = authors.get(0);
+        } else if (authors.size() <= 5) {
+            authorText = String.join("; ", authors);
+            authorText = authorText.replaceAll(";([^;]*)$", " and$1");
+        } else {
+            authorText = authors.get(0) + "; et al.";
+        }
+        return authorText;
     }
 
     private List<ExportFormatDTO> buildExportFormats(Item item) {
