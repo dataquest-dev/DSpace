@@ -7,23 +7,30 @@
  */
 package org.dspace.app.rest;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.app.rest.utils.Utils;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.services.ConfigurationService;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The Integration Test class for the ClarinRefBoxController.
  */
 public class ClarinRefBoxControllerIT extends AbstractControllerIntegrationTest {
+
+    @Autowired
+    ConfigurationService configurationService;
 
     // FS = featuredService
     private Item itemWithFS;
@@ -67,50 +74,184 @@ public class ClarinRefBoxControllerIT extends AbstractControllerIntegrationTest 
                 .andExpect(status().isOk());
     }
 
-    // TODO 1
     @Test
     public void testReturnAllRefboxInfoForItemWithFeaturedService() throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get("/api/core/refbox?handle=" + itemWithFS.getHandle()))
+        String handle = itemWithFS.getHandle();
+        String baseUrl = configurationService.getProperty("dspace.server.url") +
+                "/api/core/refbox/citations?handle=/" + Utils.getCanonicalHandleUrlNoProtocol(itemWithFS);
+        String bibtexUrl = baseUrl + "&type=bibtex";
+        String cmdiUrl = baseUrl + "&type=cmdi";
+
+        getClient(token).perform(get("/api/core/refbox?handle=" + handle))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.displayText").value("Expected value"))
-                .andExpect(jsonPath("$.title").value("Title"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[0].name").value("bibtex"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[0].url").value("url"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[0].extract").value(""))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[0].dataType").value("json"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[1].name").value("cmdi"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[1].url").value("url"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[1].extract").value(""))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[1].dataType").value("json"))
-                .andExpect(jsonPath("$.featuredServices.featuredService[0].name").value("name"))
-                .andExpect(jsonPath("$.featuredServices.featuredService[0].url").value("url"))
-                .andExpect(jsonPath("$.featuredServices.featuredService[0].description").value("Tool for searching and browsing treebanks online"))
-                .andExpect(jsonPath("$.featuredServices.featuredService[0].links.entry[0].key").value("search"))
-                .andExpect(jsonPath("$.featuredServices.featuredService[0].links.entry[0].value").value("value"));
+                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString("Test author")))
+                .andExpect(jsonPath("$.title").value("Public item 1"))
+                // For exportFormats
+                .andExpect(jsonPath("$.exportFormats.exportFormat[*].name", hasItem("bibtex")))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[*].name", hasItem("cmdi")))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[?(@.name=='bibtex')].url").value(hasItem(bibtexUrl)))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[?(@.name=='cmdi')].url").value(hasItem(cmdiUrl)))
+                // For featuredServices
+                .andExpect(jsonPath("$.featuredServices.featuredService[*].name", hasItem("KonText")))
+                .andExpect(jsonPath("$.featuredServices.featuredService[*].name", hasItem("PML-TQ")))
+                .andExpect(jsonPath("$.featuredServices.featuredService[?(@.name=='KonText')].links.entry[*].key"
+                        , hasItem("Slovak")))
+                .andExpect(jsonPath("$.featuredServices.featuredService[?(@.name=='KonText')].links.entry[*].value"
+                        , hasItem("URLSlovak")))
+                .andExpect(jsonPath("$.featuredServices.featuredService[?(@.name=='KonText')].links.entry[*].key"
+                        , hasItem("Czech")))
+                .andExpect(jsonPath("$.featuredServices.featuredService[?(@.name=='KonText')].links.entry[*].value"
+                        , hasItem("URLCzech")))
+                .andExpect(jsonPath("$.featuredServices.featuredService[?(@.name=='PML-TQ')].links.entry[*].key"
+                        , hasItem("Arabic")))
+                .andExpect(jsonPath("$.featuredServices.featuredService[?(@.name=='PML-TQ')].links.entry[*].value"
+                        , hasItem("URLArabic")));
     }
 
-    // TODO 2
     @Test
     public void testReturnAllRefboxInfoForItemWithEmptyFeaturedService() throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get("/api/core/refbox?handle=" + itemWithFS.getHandle()))
+        String handle = item.getHandle();
+        String baseUrl = configurationService.getProperty("dspace.server.url") +
+                "/api/core/refbox/citations?handle=/" + Utils.getCanonicalHandleUrlNoProtocol(item);
+        String bibtexUrl = baseUrl + "&type=bibtex";
+        String cmdiUrl = baseUrl + "&type=cmdi";
+
+        getClient(token).perform(get("/api/core/refbox?handle=" + handle))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.displayText").value("Expected value"))
-                .andExpect(jsonPath("$.title").value("Title"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[0].name").value("bibtex"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[0].url").value("url"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[0].extract").value(""))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[0].dataType").value("json"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[1].name").value("cmdi"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[1].url").value("url"))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[1].extract").value(""))
-                .andExpect(jsonPath("$.exportFormats.exportFormat[1].dataType").value("json"))
-                .andExpect(jsonPath("$.featuredServices.featuredService[0].name").doesNotExist())
-                .andExpect(jsonPath("$.featuredServices.featuredService[0].url").doesNotExist())
-                .andExpect(jsonPath("$.featuredServices.featuredService[0].description").doesNotExist())
-                .andExpect(jsonPath("$.featuredServices.featuredService[0].links.entry[0].key").doesNotExist())
-                .andExpect(jsonPath("$.featuredServices.featuredService[0].links.entry[0].value").doesNotExist());
+                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString("Test author 2")))
+                .andExpect(jsonPath("$.title").value("Public item 2"))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[*].name", hasItem("bibtex")))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[*].name", hasItem("cmdi")))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[?(@.name=='bibtex')].url")
+                        .value(hasItem(bibtexUrl)))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[?(@.name=='cmdi')].url")
+                        .value(hasItem(cmdiUrl)))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[?(@.name=='bibtex')].extract")
+                        .value(hasItem("")))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[?(@.name=='cmdi')].extract")
+                        .value(hasItem("")))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[?(@.name=='bibtex')].dataType")
+                        .value(hasItem("json")))
+                .andExpect(jsonPath("$.exportFormats.exportFormat[?(@.name=='cmdi')].dataType")
+                        .value(hasItem("json")))
+                .andExpect(jsonPath("$.featuredServices.featuredService").isEmpty());
+    }
+
+    @Test
+    public void testRefboxInfoWithNullHandleParam() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    public void testRefboxInfoWithMalformedHandle() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=notAHandle"))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void testRefboxInfoWithOnlyPublisher() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemPublisher = ItemBuilder.createItem(context, collection)
+                .withMetadata("dc", "publisher", null, "Test Publisher")
+                .build();
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemPublisher.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString("Test Publisher")));
+    }
+
+    @Test
+    public void testRefboxInfoWithOnlyYear() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemYear = ItemBuilder.createItem(context, collection)
+                .withIssueDate("2022")
+                .build();
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemYear.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString("2022")));
+    }
+
+    @Test
+    public void testRefboxInfoWithOnlyTitle() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemTitle = ItemBuilder.createItem(context, collection)
+                .withTitle("Title Only")
+                .build();
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemTitle.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString("Title Only")));
+    }
+
+    @Test
+    public void testRefboxInfoWithDOIAndHandle() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemDOI = ItemBuilder.createItem(context, collection)
+                .withTitle("DOI Item")
+                .withDoiIdentifier("10.1234/abcd")
+                .build();
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemDOI.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString("10.1234/abcd")));
+    }
+
+    @Test
+    public void testRefboxInfoWithWhitespaceMetadata() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemWhitespace = ItemBuilder.createItem(context, collection)
+                .withTitle("   ")
+                .withAuthor(" ")
+                .build();
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemWhitespace.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").exists());
+    }
+
+    @Test
+    public void testFeaturedServiceWithDuplicateEntries() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemDupFS = ItemBuilder.createItem(context, collection)
+                .withMetadata("local", "featuredService", "kontext", "Key1|Value1")
+                .withMetadata("local", "featuredService", "kontext", "Key1|Value1")
+                .build();
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemDupFS.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.featuredServices.featuredService[0].links.entry.length()").value(2));
+    }
+
+    @Test
+    public void testFeaturedServiceWithMalformedLink() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemMalformed = ItemBuilder.createItem(context, collection)
+                .withMetadata("local", "featuredService", "kontext", "NoPipeDelimiter")
+                .build();
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemMalformed.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.featuredServices.featuredService").isEmpty());
     }
 
 
