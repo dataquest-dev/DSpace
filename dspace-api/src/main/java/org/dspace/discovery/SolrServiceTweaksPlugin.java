@@ -16,8 +16,11 @@ import org.springframework.beans.factory.annotation.Value;
 /**
  * A DSpace Discovery plugin that customizes Solr queries to prioritize newer versions of items.
  */
-public class SolrBoostLatestVersionSearchPlugin implements SolrServiceSearchPlugin {
-    private static final Logger log = LogManager.getLogger(SolrBoostLatestVersionSearchPlugin.class);
+public class SolrServiceTweaksPlugin implements SolrServiceSearchPlugin {
+    private static final Logger log = LogManager.getLogger(SolrServiceTweaksPlugin.class);
+
+    @Value("${solr.boost.title:2.0}")
+    private float titleBoostValue;
 
     @Value("${solr.boost.replaces:2.0}")
     private float replacesBoostValue;
@@ -28,22 +31,24 @@ public class SolrBoostLatestVersionSearchPlugin implements SolrServiceSearchPlug
     @Override
     public void additionalSearchParameters(Context context, DiscoverQuery discoveryQuery, SolrQuery solrQuery)
             throws SearchServiceException {
-        String fullSolrQuery = solrQuery.getQuery();
-        if (fullSolrQuery == null || fullSolrQuery.trim().isEmpty()) {
+        String query = solrQuery.getQuery();
+        if (query == null || query.trim().isEmpty()) {
             return;
         }
 
-        if (fullSolrQuery.contains("search.resourceid:")) {
+        if (query.contains("search.resourceid:")) {
             log.debug("Exact resourceid search detected, skipping boosts.");
             return;
         }
 
-        String baseQuery = "+(" + fullSolrQuery + ")";
+        String baseQuery = "+(" + query + ")" ;
+        String titleBoost = "title:(" + query + ")^" + titleBoostValue;
         String replacesBoost = "dc.relation.replaces:[* TO *]^" + replacesBoostValue;
         String latestVersionBoost = "(dc.relation.replaces:[* TO *] AND -dc.relation.isreplacedby:[* TO *])^"
                 + latestVersionBoostValue;
 
         String boostedQuery = baseQuery
+                + " OR " + titleBoost
                 + " OR " + replacesBoost
                 + " OR " + latestVersionBoost;
 
