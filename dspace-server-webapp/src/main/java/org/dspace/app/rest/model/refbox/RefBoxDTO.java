@@ -11,6 +11,12 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * DTO for the reference box in DSpace.
+ * This class represents a reference box containing export formats and featured services.
+ * It includes display text, export formats, featured services, and a title.
+ * @author Milan Majchrak (dspace at dataquest.sk)
+ */
 public class RefBoxDTO implements Serializable {
     private String displayText;
     private Map<String, List<ExportFormatDTO>> exportFormats;

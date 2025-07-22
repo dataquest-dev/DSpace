@@ -9,6 +9,12 @@ package org.dspace.app.rest.model.refbox;
 
 import java.io.Serializable;
 
+/**
+ * DTO for links in the featured services of the reference box.
+ * This class represents a link with a key and value, typically used to
+ * represent a service link in the featured services section.
+ * @author Milan Majchrak (dspace at dataquest.sk)
+ */
 public class FeaturedServiceLinkDTO implements Serializable {
     private String key;
     private String value;

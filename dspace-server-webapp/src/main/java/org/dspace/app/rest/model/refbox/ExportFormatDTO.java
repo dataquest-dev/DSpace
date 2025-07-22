@@ -9,6 +9,11 @@ package org.dspace.app.rest.model.refbox;
 
 import java.io.Serializable;
 
+/**
+ * DTO for export formats in the reference box.
+ * This class represents the export format details including its name, URL, data type, and extraction.
+ * @author Milan Majchrak (dspace at dataquest.sk)
+ */
 public class ExportFormatDTO implements Serializable {
     private String name;
     private String url;

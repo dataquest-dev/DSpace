@@ -108,9 +108,6 @@ public class ClarinRefBoxController {
     ItemService itemService;
 
     @Autowired
-    ClarinItemService clarinItemService;
-
-    @Autowired
     private ConverterService converterService;
 
     @Autowired
@@ -409,7 +406,7 @@ public class ClarinRefBoxController {
             authorText = authors.get(0);
         } else if (authors.size() <= 5) {
             authorText = String.join("; ", authors);
-            authorText = authorText.replaceAll(";([^;]*)$", " and$1");
+            authorText = authorText.replaceAll("; ([^;]*)$", " and $1");
         } else {
             authorText = authors.get(0) + "; et al.";
         }

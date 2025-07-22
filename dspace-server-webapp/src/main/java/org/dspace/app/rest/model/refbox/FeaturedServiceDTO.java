@@ -11,6 +11,11 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * DTO for featured services in the reference box.
+ * This class represents the featured service details including its name, URL, description, and links.
+ * @author Milan Majchrak (dspace at dataquest.sk)
+ */
 public class FeaturedServiceDTO implements Serializable {
     private String name;
     private String url;
