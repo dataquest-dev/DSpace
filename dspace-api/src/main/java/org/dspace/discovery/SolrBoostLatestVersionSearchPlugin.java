@@ -10,7 +10,6 @@ package org.dspace.discovery;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -21,34 +20,35 @@ public class SolrBoostLatestVersionSearchPlugin implements SolrServiceSearchPlug
     private static final Logger log = LogManager.getLogger(SolrBoostLatestVersionSearchPlugin.class);
 
     @Value("${solr.boost.replaces:2.0}")
-    private float replacesBoost;
+    private float replacesBoostValue;
 
-    @Value("${solr.boost.latestVersion:3.0}")
-    private float latestVersionBoost;
+    @Value("${solr.boost.latestVersion:2.0}")
+    private float latestVersionBoostValue;
 
     @Override
     public void additionalSearchParameters(Context context, DiscoverQuery discoveryQuery, SolrQuery solrQuery)
             throws SearchServiceException {
-        String originalQuery = solrQuery.getQuery();
-        if (originalQuery == null || originalQuery.trim().isEmpty()) {
-            // No query, no boost needed
+        String fullSolrQuery = solrQuery.getQuery();
+        if (fullSolrQuery == null || fullSolrQuery.trim().isEmpty()) {
             return;
         }
-        String baseQuery = "+(" + originalQuery + ")";
-        String titleBoost = "title:(" + originalQuery + ")^" + replacesBoost;
-        String replacesBoostQuery = "dc.relation.replaces:[* TO *]^" + replacesBoost;
-        String latestVersionBoostQuery = "(dc.relation.replaces:[* TO *] AND -dc.relation.isreplacedby:[* TO *])^" + latestVersionBoost;
 
-        // Combine base query (mandatory) with boost queries (optional scoring enhancement)
-        String boostedQuery = baseQuery + " OR " + String.join(" OR ",
-                titleBoost,
-                replacesBoostQuery,
-                latestVersionBoostQuery
-        );
+        if (fullSolrQuery.contains("search.resourceid:")) {
+            log.debug("Exact resourceid search detected, skipping boosts.");
+            return;
+        }
 
-        log.debug("Setting boosted Solr query: {}", boostedQuery);
+        String baseQuery = "+(" + fullSolrQuery + ")";
+        String replacesBoost = "dc.relation.replaces:[* TO *]^" + replacesBoostValue;
+        String latestVersionBoost = "(dc.relation.replaces:[* TO *] AND -dc.relation.isreplacedby:[* TO *])^"
+                + latestVersionBoostValue;
 
-        // set the updated query back to solrQuery
+        String boostedQuery = baseQuery
+                + " OR " + replacesBoost
+                + " OR " + latestVersionBoost;
+
         solrQuery.setQuery(boostedQuery);
+
+        log.debug("Boosted query: {}", boostedQuery);
     }
 }

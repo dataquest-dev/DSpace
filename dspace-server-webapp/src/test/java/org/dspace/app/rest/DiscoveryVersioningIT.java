@@ -20,7 +20,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -59,6 +61,7 @@ import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.IndexingService;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SolrSearchCore;
@@ -334,6 +337,44 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             matchSearchResult(collection),
             matchSearchResult(i1_2, "item 1.2")
         ));
+    }
+
+    @Test
+    public void test_newerVersionHasHigherPriority() throws Exception {
+        // Setup test collection
+        Collection collection = createCollection();
+
+        context.turnOffAuthorisationSystem();
+
+        Item itemV1 = ItemBuilder.createItem(context, collection)
+                .withTitle("Test Item Version 1")
+                .build();
+
+        Item itemV2 = createNewVersion(itemV1, "Test Item Version 2");
+
+        context.restoreAuthSystemState();
+
+        DiscoverQuery query = new DiscoverQuery();
+        query.setQuery("Test Item");
+
+        DiscoverResult result = searchService.search(context, query);
+        Assert.assertEquals(2, result.getTotalSearchResults());
+
+        List<IndexableObject> results = result.getIndexableObjects();
+
+        assertFalse("Search results should not be empty", results.isEmpty());
+
+        IndexableObject firstResult = results.get(0);
+
+        assertTrue("Expected instance of IndexableItem", firstResult instanceof IndexableItem);
+        Item indexedItemV2 = ((IndexableItem) firstResult).getIndexedObject();
+
+        // Assert that first result is itemV2 (newer version)
+        assertEquals(itemV2.getID(), indexedItemV2.getID());
+
+        boolean itemV1Found = results.stream()
+                .anyMatch(r -> r.getID().equals(itemV1.getID()));
+        assertTrue("Older version should still be present in results", itemV1Found);
     }
 
     @Test
