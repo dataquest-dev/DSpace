@@ -302,16 +302,15 @@ public class ClarinRefBoxController {
     }
 
     /**
-     * Refactored method to fetch bibtex/cmdi citation data from OAI-PMH, using the same logic as getCitationText,
-     * and include it in the exportFormats.extract field.
+     * Get the RefBox information based on the handle.
+     * It returns the display text, export formats and featured services.
      */
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<RefBoxDTO> getRefboxInfo(
-            @RequestParam(name = "handle", required = false) String handle,
-            HttpServletRequest request,
-            HttpServletResponse response) throws SQLException, IOException, ServletException {
+            @RequestParam(name = "handle") String handle,
+            HttpServletRequest request) throws SQLException {
 
-        Context context = ContextUtil.obtainCurrentRequestContext();
+        Context context = ContextUtil.obtainContext(request);
         if (context == null) {
             throw new RuntimeException("Cannot obtain the context from the request.");
         }
@@ -343,16 +342,25 @@ public class ClarinRefBoxController {
         return ResponseEntity.ok(refBoxDTO);
     }
 
+    /**
+     * Build the display text for the RefBox based on the Item Metadata.
+     */
     private String buildDisplayText(Item item) {
         // 1. Authors
         List<String> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY)
                 .stream().map(MetadataValue::getValue).collect(Collectors.toList());
+        // If there are no authors, try to get the publisher metadata
+        if (authors.isEmpty()) {
+            authors = itemService.getMetadata(item, "dc", "publisher", null, Item.ANY)
+                    .stream().map(MetadataValue::getValue).collect(Collectors.toList());;
+        }
         String authorText = formatAuthors(item, authors);
 
         // 2. Year
         String year = "";
         String issued = itemService.getMetadataFirstValue(item, "dc", "date", "issued", Item.ANY);
         if (issued != null && !issued.isEmpty()) {
+            // The issued date is in the format YYYY-MM-DD, we take the year part
             year = issued.split("-")[0];
         }
 
@@ -367,14 +375,9 @@ public class ClarinRefBoxController {
         if (identifier == null) {
             identifier = itemService.getMetadataFirstValue(item, "dc", "identifier", "uri", Item.ANY);
         }
-        if (identifier == null) {
-            identifier = itemService.getMetadataFirstValue(item, "dc", "identifier", "handle", Item.ANY);
-            if (identifier != null && !identifier.startsWith("http")) {
-                identifier = "http://hdl.handle.net/" + identifier;
-            }
-        }
 
         // 6. Format
+        // Using html tags to format the output because this display text will be rendered in the UI
         StringBuilder sb = new StringBuilder();
         if (authorText != null && !authorText.isEmpty()) {
             sb.append(authorText);
@@ -396,12 +399,13 @@ public class ClarinRefBoxController {
 
     /**
      * Format the authors for the display text.
+     * If there is one author, it will return that author.
+     * If there are 2-5 authors, it will join them with "; " and replace the last ";" with " and".
+     * If there are more than 5 authors, it will return the first author and "et al.".
      */
     private String formatAuthors(Item item, List<String> authors) {
         String authorText = "";
-        if (authors.isEmpty()) {
-            authorText = itemService.getMetadataFirstValue(item, "dc", "publisher", null, Item.ANY);
-        } else if (authors.size() == 1) {
+        if (authors.size() == 1) {
             authorText = authors.get(0);
         } else if (authors.size() <= 5) {
             authorText = String.join("; ", authors);
@@ -412,6 +416,10 @@ public class ClarinRefBoxController {
         return authorText;
     }
 
+    /**
+     * Build the export formats for the RefBox based on the Item handle.
+     * It returns a list of ExportFormatDTO objects with the URL to the citation data.
+     */
     private List<ExportFormatDTO> buildExportFormats(Item item) {
         List<ExportFormatDTO> exportFormats = new ArrayList<>();
         String itemHandle = item.getHandle();
@@ -424,10 +432,19 @@ public class ClarinRefBoxController {
 
             exportFormats.add(new ExportFormatDTO("bibtex", bibtexUrl, "json", ""));
             exportFormats.add(new ExportFormatDTO("cmdi", cmdiUrl, "json", ""));
+        } else {
+            log.error("Item with ID {} does not have a handle, export formats cannot be built.", item.getID());
         }
         return exportFormats;
     }
 
+    /**
+     * Build the featured services for the RefBox based on the Item Metadata.
+     * This method retrieves the metadata values for the featured services,
+     * groups them by service name (qualifier),
+     * and constructs a list of FeaturedServiceDTO objects
+     * with the full name, URL, description, and links.
+     */
     private List<FeaturedServiceDTO> buildFeaturedServices(Item item) {
         List<MetadataValue> fsMeta = itemService.getMetadata(item, "local", "featuredService", Item.ANY, Item.ANY);
         Map<String, List<FeaturedServiceLinkDTO>> serviceLinksMap = new HashMap<>();
@@ -443,10 +460,14 @@ public class ClarinRefBoxController {
                 serviceLinksMap
                         .computeIfAbsent(qualifier, k -> new ArrayList<>())
                         .add(new FeaturedServiceLinkDTO(parts[0], parts[1]));
+            } else {
+                log.error("Invalid metadata value format for featured service: {}. " +
+                        "Expected format is '<KEY>|<VALUE>'.", mv.getValue());
             }
         }
 
         List<FeaturedServiceDTO> featuredServiceList = new ArrayList<>();
+        // Iterate over the grouped service links and create FeaturedServiceDTO objects
         for (Map.Entry<String, List<FeaturedServiceLinkDTO>> entry : serviceLinksMap.entrySet()) {
             String name = entry.getKey();
             String fullname = configurationService.getProperty("featured.service." + name + ".fullname");
