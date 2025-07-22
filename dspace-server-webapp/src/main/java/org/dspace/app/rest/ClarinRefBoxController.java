@@ -62,7 +62,6 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.clarin.ClarinFeaturedService;
 import org.dspace.content.clarin.ClarinFeaturedServiceLink;
 import org.dspace.content.service.ItemService;
-import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;

@@ -254,5 +254,72 @@ public class ClarinRefBoxControllerIT extends AbstractControllerIntegrationTest 
                 .andExpect(jsonPath("$.featuredServices.featuredService").isEmpty());
     }
 
+    @Test
+    public void testDisplayTextWithOneAuthor() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemOneAuthor = ItemBuilder.createItem(context, collection)
+                .withAuthor("Single Author")
+                .build();
+        context.restoreAuthSystemState();
 
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemOneAuthor.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString("Single Author")));
+    }
+
+    @Test
+    public void testDisplayTextWithTwoAuthors() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemTwoAuthors = ItemBuilder.createItem(context, collection)
+                .withAuthor("Author One")
+                .withAuthor("Author Two")
+                .build();
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemTwoAuthors.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString(
+                        "Author One and Author Two")));
+    }
+
+    @Test
+    public void testDisplayTextWithFiveAuthors() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemFiveAuthors = ItemBuilder.createItem(context, collection)
+                .withAuthor("A1")
+                .withAuthor("A2")
+                .withAuthor("A3")
+                .withAuthor("A4")
+                .withAuthor("A5")
+                .build();
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemFiveAuthors.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString(
+                        "A1; A2; A3; A4 and A5")));
+    }
+
+    @Test
+    public void testDisplayTextWithMoreThanFiveAuthors() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemManyAuthors = ItemBuilder.createItem(context, collection)
+                .withAuthor("First Author")
+                .withAuthor("Second Author")
+                .withAuthor("Third Author")
+                .withAuthor("Fourth Author")
+                .withAuthor("Fifth Author")
+                .withAuthor("Sixth Author")
+                .build();
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/refbox?handle=" + itemManyAuthors.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString(
+                        "First Author; et al.")));
+    }
 }
