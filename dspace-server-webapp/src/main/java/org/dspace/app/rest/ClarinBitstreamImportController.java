@@ -33,6 +33,7 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinBitstreamService;
+import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,8 @@ public class ClarinBitstreamImportController {
     private Utils utils;
     @Autowired
     private MostRecentChecksumService checksumService;
+    @Autowired
+    protected ClarinItemService clarinItemService;
 
     /**
      * Endpoint for import bitstream, whose file already exists in assetstore under internal_id
@@ -179,7 +182,9 @@ public class ClarinBitstreamImportController {
             }
             log.info("Going to update bitstream with UUID: " + bitstream.getID());
             bitstreamService.update(context, bitstream);
-
+            // Update item file metadata after the bitstream size has changed
+            clarinItemService.updateItemFilesMetadata(context,
+                    (Item) bundleService.getParentObject(context, bundle), bundle);
             // If bitstream is deleted make it deleted
             if (deleted) {
                 bitstreamService.delete(context, bitstream);
