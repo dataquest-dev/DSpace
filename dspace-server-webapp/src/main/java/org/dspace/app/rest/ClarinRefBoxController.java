@@ -348,7 +348,7 @@ public class ClarinRefBoxController {
         // If there are no authors, try to get the publisher metadata
         if (authors.isEmpty()) {
             authors = itemService.getMetadata(item, "dc", "publisher", null, Item.ANY)
-                    .stream().map(MetadataValue::getValue).collect(Collectors.toList());;
+                    .stream().map(MetadataValue::getValue).collect(Collectors.toList());
         }
         String authorText = formatAuthors(item, authors);
 
