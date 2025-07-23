@@ -180,6 +180,7 @@ public class ClarinBitstreamImportController {
                             primaryBundleUUID, e);
                 }
             }
+            
             log.info("Going to update bitstream with UUID: " + bitstream.getID());
             bitstreamService.update(context, bitstream);
             // If bitstream is deleted make it deleted
