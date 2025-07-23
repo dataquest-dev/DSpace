@@ -197,12 +197,4 @@ public class ClarinGroupRestController {
     private boolean canAddGroup(Context context, Group parentGroup, Group childGroup) throws SQLException {
         return !groupService.isParentOf(context, childGroup, parentGroup);
     }
-
-    private Integer getIntegerFromString(String value) {
-        Integer output = null;
-        if (StringUtils.isNotBlank(value)) {
-            output = Integer.parseInt(value);
-        }
-        return output;
-    }
 }
