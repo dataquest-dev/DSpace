@@ -182,7 +182,7 @@ public class ClarinBitstreamImportController {
             }
             log.info("Going to update bitstream with UUID: " + bitstream.getID());
             bitstreamService.update(context, bitstream);
-            
+
             // If bitstream is deleted make it deleted
             if (deleted) {
                 bitstreamService.delete(context, bitstream);
