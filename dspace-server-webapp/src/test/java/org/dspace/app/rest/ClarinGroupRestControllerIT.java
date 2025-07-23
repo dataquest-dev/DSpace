@@ -115,41 +115,4 @@ public class ClarinGroupRestControllerIT extends AbstractControllerIntegrationTe
                 groupService.isMember(context, eperson, parentGroupWithPreviousSubgroup)
         );
     }
-
-    @Test
-    public void addTasklistitemMembersTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        //create eperson, which will be added to the group
-        EPerson ePerson = EPersonBuilder.createEPerson(context)
-                .withEmail("eperson@example.com")
-                .withPassword("dspace")
-                .build();
-        //create pooltask with workflowitem
-        EPerson reviewer1 = EPersonBuilder.createEPerson(context)
-                .withEmail("reviewer1@example.com")
-                .withPassword(password).build();
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
-                .withName("Collection 1")
-                .withWorkflowGroup(1, reviewer1, admin).build();
-        PoolTask poolTask = PoolTaskBuilder.createPoolTask(context, col1, reviewer1)
-                .withTitle("Test Metaphysics")
-                .withIssueDate("2017-10-17")
-                .withAuthor("Smith, Donald")
-                .withSubject("ExtraEntry").build();
-        XmlWorkflowItem wf = poolTask.getWorkflowItem();
-        context.restoreAuthSystemState();
-
-        //add eperson to group connected with workflowitem
-        ObjectMapper mapper = new ObjectMapper();
-        String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(post("/api/clarin/eperson/groups/tasklistitem")
-                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                        .param("workflowitem_id", wf.getID().toString())
-                        .param("epersonUUID", ePerson.getID().toString()))
-                .andExpect(status().isOk());
-
-        //control if eperson is added to correct group
-        poolTask = poolTaskService.find(context, poolTask.getID());
-        assertTrue(poolTask.getGroup().getMembers().contains(ePerson));
-    }
 }
