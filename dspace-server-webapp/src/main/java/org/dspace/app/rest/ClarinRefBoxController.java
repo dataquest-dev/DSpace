@@ -173,8 +173,8 @@ public class ClarinRefBoxController {
 
             // Check if the item has the metadata for this featured service, if it doesn't have - do NOT return the
             // featured service.
-            List<MetadataValue> itemMetadata = itemService.getMetadata(item, "local", "featuredService",
-                    featuredServiceName, Item.ANY, false);
+            List<MetadataValue> itemMetadata = itemService.getMetadata(context, item, "local", "featuredService",
+                    featuredServiceName);
             if (CollectionUtils.isEmpty(itemMetadata)) {
                 continue;
             }
@@ -317,8 +317,8 @@ public class ClarinRefBoxController {
         }
         Item item = (Item) dSpaceObject;
 
-        String title = itemService.getMetadataFirstValue(item, "dc", "title", null, Item.ANY);
-        String displayText = buildDisplayText(item);
+        String title = itemService.getMetadataFirstValue(context, item, "dc", "title", null);
+        String displayText = buildDisplayText(context, item);
 
         // Build exportFormats as a map with "exportFormat" key
         Map<String, List<ExportFormatDTO>> exportFormatsMap = new HashMap<>();
@@ -326,7 +326,7 @@ public class ClarinRefBoxController {
 
         // Build featuredServices as a map with "featuredService" key
         Map<String, List<FeaturedServiceDTO>> featuredServicesMap = new HashMap<>();
-        featuredServicesMap.put("featuredService", buildFeaturedServices(item));
+        featuredServicesMap.put("featuredService", buildFeaturedServices(context, item));
 
         // Pass these maps to RefBoxDTO
         RefBoxDTO refBoxDTO = new RefBoxDTO(
@@ -341,35 +341,35 @@ public class ClarinRefBoxController {
     /**
      * Build the display text for the RefBox based on the Item Metadata.
      */
-    private String buildDisplayText(Item item) {
+    private String buildDisplayText(Context context, Item item) {
         // 1. Authors
-        List<String> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY)
+        List<String> authors = itemService.getMetadata(context, item, "dc", "contributor", "author")
                 .stream().map(MetadataValue::getValue).collect(Collectors.toList());
         // If there are no authors, try to get the publisher metadata
         if (authors.isEmpty()) {
-            authors = itemService.getMetadata(item, "dc", "publisher", null, Item.ANY)
+            authors = itemService.getMetadata(context, item, "dc", "publisher", null)
                     .stream().map(MetadataValue::getValue).collect(Collectors.toList());
         }
-        String authorText = formatAuthors(item, authors);
+        String authorText = formatAuthors(authors);
 
         // 2. Year
         String year = "";
-        String issued = itemService.getMetadataFirstValue(item, "dc", "date", "issued", Item.ANY);
+        String issued = itemService.getMetadataFirstValue(context, item, "dc", "date", "issued");
         if (issued != null && !issued.isEmpty()) {
             // The issued date is in the format YYYY-MM-DD, we take the year part
             year = issued.split("-")[0];
         }
 
         // 3. Title
-        String title = itemService.getMetadataFirstValue(item, "dc", "title", null, Item.ANY);
+        String title = itemService.getMetadataFirstValue(context, item, "dc", "title", null);
 
         // 4. Repository name
         String repository = configurationService.getProperty("dspace.name");
 
         // 5. Identifier URI (prefer DOI)
-        String identifier = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
+        String identifier = itemService.getMetadataFirstValue(context, item, "dc", "identifier", "doi");
         if (identifier == null) {
-            identifier = itemService.getMetadataFirstValue(item, "dc", "identifier", "uri", Item.ANY);
+            identifier = itemService.getMetadataFirstValue(context, item, "dc", "identifier", "uri");
         }
 
         // 6. Format
@@ -399,7 +399,7 @@ public class ClarinRefBoxController {
      * If there are 2-5 authors, it will join them with "; " and replace the last ";" with " and".
      * If there are more than 5 authors, it will return the first author and "et al.".
      */
-    private String formatAuthors(Item item, List<String> authors) {
+    private String formatAuthors(List<String> authors) {
         String authorText = "";
         if (authors.size() == 1) {
             authorText = authors.get(0);
@@ -441,8 +441,8 @@ public class ClarinRefBoxController {
      * and constructs a list of FeaturedServiceDTO objects
      * with the full name, URL, description, and links.
      */
-    private List<FeaturedServiceDTO> buildFeaturedServices(Item item) {
-        List<MetadataValue> fsMeta = itemService.getMetadata(item, "local", "featuredService", Item.ANY, Item.ANY);
+    private List<FeaturedServiceDTO> buildFeaturedServices(Context context, Item item) {
+        List<MetadataValue> fsMeta = itemService.getMetadata(context, item, "local", "featuredService", "*");
         Map<String, List<FeaturedServiceLinkDTO>> serviceLinksMap = new HashMap<>();
 
         // Group links by service name (qualifier)

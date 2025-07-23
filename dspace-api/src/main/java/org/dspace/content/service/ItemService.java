@@ -958,6 +958,16 @@ public interface ItemService
                                            String lang, boolean enableVirtualMetadata);
 
     /**
+     * Get metadata for the item using current locale from the context or default locale.
+     */
+    public List<MetadataValue> getMetadata(Context context, Item item, String schema, String element, String qualifier);
+
+    /**
+     * Get the first value of the metadata field using current locale from the context or default locale.
+     */
+    public String getMetadataFirstValue(Context context, Item item, String schema, String element, String qualifier);
+
+    /**
      * Retrieve the label of the entity type of the given item.
      * @param item the item.
      * @return the label of the entity type, taken from the item metadata, or null if not found.

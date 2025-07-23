@@ -1733,6 +1733,46 @@ prevent the generation of resource policy entry values with null dspace_object a
         return values;
     }
 
+    @Override
+    public List<MetadataValue> getMetadata(Context context, Item item, String schema, String element,
+                                           String qualifier) {
+        String currentLocale = context.getCurrentLocale().toString();
+        List<MetadataValue> values = getMetadata(item, schema, element, qualifier, currentLocale, false);
+        if (CollectionUtils.isNotEmpty(values)) {
+            return values;
+        }
+        String defaultLocale = configurationService.getProperty("default.locale");
+        // If the default locale is set, and it is different from the current locale,
+        // try to get metadata in the default locale
+        if (StringUtils.isNotBlank(defaultLocale) && !defaultLocale.equals(currentLocale)) {
+            values = getMetadata(item, schema, element, qualifier, defaultLocale);
+            if (CollectionUtils.isNotEmpty(values)) {
+                return values;
+            }
+        }
+        return getMetadata(item, schema, element, qualifier, Item.ANY);
+    }
+
+    @Override
+    public String getMetadataFirstValue(Context context, Item item, String schema, String element, String qualifier) {
+        String currentLocale = context.getCurrentLocale().toString();
+        String value = getMetadataFirstValue(item, schema, element, qualifier, currentLocale);
+        if (StringUtils.isNotBlank(value)) {
+            return value;
+        }
+        String defaultLocale = configurationService.getProperty("default.locale");
+        // If the default locale is set, and it is different from the current locale,
+        // try to get metadata in the default locale
+        if (StringUtils.isNotBlank(defaultLocale) && !defaultLocale.equals(currentLocale)) {
+            value = getMetadataFirstValue(item, schema, element, qualifier, defaultLocale);
+            if (StringUtils.isNotBlank(value)) {
+                return value;
+            }
+        }
+        value = getMetadataFirstValue(item, schema, element, qualifier, Item.ANY);
+        return value != null ? value : "";
+    }
+
     /**
      * Supports moving metadata by adding the metadata value or updating the place of the relationship
      */
