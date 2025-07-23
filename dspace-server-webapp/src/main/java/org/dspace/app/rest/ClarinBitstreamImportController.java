@@ -200,15 +200,8 @@ public class ClarinBitstreamImportController {
                 }
                 if (item != null) {
                     // Update item file metadata after the bitstream size has changed
-                    try {
-                        clarinItemService.updateItemFilesMetadata(context,
-                                item, bundle);
-                    } catch (Exception e) {
-                        String message = "Failed to update item file metadata for bundle with UUID: "
-                                + (bundle != null ? bundle.getID() : "null");
-                        log.error(message, e);
-                        throw new RuntimeException(message, e);
-                    }
+                    clarinItemService.updateItemFilesMetadata(context,
+                            item, bundle);
                     itemService.update(context, item);
                 }
                 bundleService.update(context, bundle);
