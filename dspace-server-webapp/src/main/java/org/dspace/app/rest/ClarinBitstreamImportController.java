@@ -182,9 +182,6 @@ public class ClarinBitstreamImportController {
             }
             log.info("Going to update bitstream with UUID: " + bitstream.getID());
             bitstreamService.update(context, bitstream);
-            // Update item file metadata after the bitstream size has changed
-            clarinItemService.updateItemFilesMetadata(context,
-                    (Item) bundleService.getParentObject(context, bundle), bundle);
             // If bitstream is deleted make it deleted
             if (deleted) {
                 bitstreamService.delete(context, bitstream);
@@ -202,6 +199,16 @@ public class ClarinBitstreamImportController {
                     throw new AccessDeniedException("You do not have write rights to update the Bundle's item");
                 }
                 if (item != null) {
+                    // Update item file metadata after the bitstream size has changed
+                    try {
+                        clarinItemService.updateItemFilesMetadata(context,
+                                item, bundle);
+                    } catch (Exception e) {
+                        String message = "Failed to update item file metadata for bundle with UUID: "
+                                + (bundle != null ? bundle.getID() : "null");
+                        log.error(message, e);
+                        throw new RuntimeException(message, e);
+                    }
                     itemService.update(context, item);
                 }
                 bundleService.update(context, bundle);
