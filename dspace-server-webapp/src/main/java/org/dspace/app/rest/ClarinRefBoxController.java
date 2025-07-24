@@ -98,6 +98,13 @@ public class ClarinRefBoxController {
 
     private final static String BIBTEX_TYPE = "bibtex";
 
+    /**
+     * Default language for the RefBox metadata values
+     * This will be changed in the future to support multiple languages, probably fetching the language from the
+     * request, but for now there is a mess in the metadata value languages, so we will use the default.
+     */
+    private final static String DEFAULT_LANGUAGE = "*";
+
     private final Logger log = org.apache.logging.log4j.LogManager.getLogger(ClarinRefBoxController.class);
 
     @Autowired
@@ -173,8 +180,8 @@ public class ClarinRefBoxController {
 
             // Check if the item has the metadata for this featured service, if it doesn't have - do NOT return the
             // featured service.
-            List<MetadataValue> itemMetadata = itemService.getMetadata(context, item, "local", "featuredService",
-                    featuredServiceName);
+            List<MetadataValue> itemMetadata = itemService.getMetadata(item, "local", "featuredService",
+                    featuredServiceName, DEFAULT_LANGUAGE);
             if (CollectionUtils.isEmpty(itemMetadata)) {
                 continue;
             }
@@ -317,7 +324,7 @@ public class ClarinRefBoxController {
         }
         Item item = (Item) dSpaceObject;
 
-        String title = itemService.getMetadataFirstValue(context, item, "dc", "title", null);
+        String title = itemService.getMetadataFirstValue(item, "dc", "title", null, DEFAULT_LANGUAGE);
         String displayText = buildDisplayText(context, item);
 
         // Build exportFormats as a map with "exportFormat" key
@@ -343,33 +350,33 @@ public class ClarinRefBoxController {
      */
     private String buildDisplayText(Context context, Item item) {
         // 1. Authors
-        List<String> authors = itemService.getMetadata(context, item, "dc", "contributor", "author")
+        List<String> authors = itemService.getMetadata(item, "dc", "contributor", "author", DEFAULT_LANGUAGE)
                 .stream().map(MetadataValue::getValue).collect(Collectors.toList());
         // If there are no authors, try to get the publisher metadata
         if (authors.isEmpty()) {
-            authors = itemService.getMetadata(context, item, "dc", "publisher", null)
+            authors = itemService.getMetadata(item, "dc", "publisher", null, DEFAULT_LANGUAGE)
                     .stream().map(MetadataValue::getValue).collect(Collectors.toList());
         }
         String authorText = formatAuthors(authors);
 
         // 2. Year
         String year = "";
-        String issued = itemService.getMetadataFirstValue(context, item, "dc", "date", "issued");
+        String issued = itemService.getMetadataFirstValue(item, "dc", "date", "issued", DEFAULT_LANGUAGE);
         if (issued != null && !issued.isEmpty()) {
             // The issued date is in the format YYYY-MM-DD, we take the year part
             year = issued.split("-")[0];
         }
 
         // 3. Title
-        String title = itemService.getMetadataFirstValue(context, item, "dc", "title", null);
+        String title = itemService.getMetadataFirstValue(item, "dc", "title", null, DEFAULT_LANGUAGE);
 
         // 4. Repository name
         String repository = configurationService.getProperty("dspace.name");
 
         // 5. Identifier URI (prefer DOI)
-        String identifier = itemService.getMetadataFirstValue(context, item, "dc", "identifier", "doi");
+        String identifier = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", DEFAULT_LANGUAGE);
         if (identifier == null) {
-            identifier = itemService.getMetadataFirstValue(context, item, "dc", "identifier", "uri");
+            identifier = itemService.getMetadataFirstValue(item, "dc", "identifier", "uri", DEFAULT_LANGUAGE);
         }
 
         // 6. Format
@@ -442,7 +449,7 @@ public class ClarinRefBoxController {
      * with the full name, URL, description, and links.
      */
     private List<FeaturedServiceDTO> buildFeaturedServices(Context context, Item item) {
-        List<MetadataValue> fsMeta = itemService.getMetadata(context, item, "local", "featuredService", "*");
+        List<MetadataValue> fsMeta = itemService.getMetadata(item, "local", "featuredService", "*", DEFAULT_LANGUAGE);
         Map<String, List<FeaturedServiceLinkDTO>> serviceLinksMap = new HashMap<>();
 
         // Group links by service name (qualifier)
