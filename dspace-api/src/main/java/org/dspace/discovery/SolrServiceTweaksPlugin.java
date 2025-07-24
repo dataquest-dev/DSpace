@@ -7,6 +7,7 @@
  */
 package org.dspace.discovery;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -41,19 +42,23 @@ public class SolrServiceTweaksPlugin implements SolrServiceSearchPlugin {
             return;
         }
 
-        String baseQuery = "+(" + query + ")" ;
-        String titleBoost = "title:(" + query + ")^" + titleBoostValue;
-        String replacesBoost = "dc.relation.replaces:[* TO *]^" + replacesBoostValue;
-        String latestVersionBoost = "(dc.relation.replaces:[* TO *] AND -dc.relation.isreplacedby:[* TO *])^"
-                + latestVersionBoostValue;
+        // Switch to eDisMax because we want to use boosts
+        solrQuery.set("defType", "edismax");
+        solrQuery.set("q", query);
+        solrQuery.set("q.op", "AND");  // Require all terms
 
-        String boostedQuery = baseQuery
-                + " OR " + titleBoost
-                + " OR " + replacesBoost
-                + " OR " + latestVersionBoost;
+        // Append title boost on top of existing qf = "query fields"
+        String qf = solrQuery.get("qf");
+        String titleBoost = "title^" + titleBoostValue;
+        solrQuery.set("qf", StringUtils.isBlank(qf) ? titleBoost : qf + " " + titleBoost);
 
-        solrQuery.setQuery(boostedQuery);
+        // Put two metadata boosts in bq = "boost query"
+        String bq =
+                "dc.relation.replaces:[* TO *]^" + replacesBoostValue +
+                        " (dc.relation.replaces:[* TO *] AND -dc.relation.isreplacedby:[* TO *])^" + latestVersionBoostValue;
+        solrQuery.set("bq", bq);
 
-        log.debug("Boosted query: {}", boostedQuery);
+        log.debug("eDisMax applied → q='{}'; qf='{}'; bq='{}'",
+                solrQuery.get("q"), solrQuery.get("qf"), solrQuery.get("bq"));
     }
 }
