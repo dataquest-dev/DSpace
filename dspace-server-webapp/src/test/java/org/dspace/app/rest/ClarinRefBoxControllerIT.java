@@ -120,7 +120,10 @@ public class ClarinRefBoxControllerIT extends AbstractControllerIntegrationTest 
 
         getClient(token).perform(get("/api/core/refbox?handle=" + handle))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.displayText").value(org.hamcrest.Matchers.containsString("Test author 2")))
+                .andExpect(jsonPath("$.displayText")
+                        .value(org.hamcrest.Matchers.containsString("Test author 2")))
+                .andExpect(jsonPath("$.displayText")
+                        .value(org.hamcrest.Matchers.containsString(item.getHandle())))
                 .andExpect(jsonPath("$.title").value("Public item 2"))
                 .andExpect(jsonPath("$.exportFormats.exportFormat[*].name", hasItem("bibtex")))
                 .andExpect(jsonPath("$.exportFormats.exportFormat[*].name", hasItem("cmdi")))

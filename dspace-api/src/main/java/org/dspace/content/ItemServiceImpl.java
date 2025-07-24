@@ -1769,8 +1769,7 @@ prevent the generation of resource policy entry values with null dspace_object a
                 return value;
             }
         }
-        value = getMetadataFirstValue(item, schema, element, qualifier, Item.ANY);
-        return value != null ? value : "";
+        return getMetadataFirstValue(item, schema, element, qualifier, Item.ANY);
     }
 
     /**
