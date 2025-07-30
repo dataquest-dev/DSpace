@@ -38,6 +38,10 @@ nb-configuration.xml
 # Also ignore it under dspace/config
 /dspace/config/local.cfg
 
+# Ignore VERSION_D.txt file which is used to track the DSpace version and commit hash
+/dspace/config/VERSION_D.txt
+/VERSION_D.txt
+
 ##Mac noise
 .DS_Store
 
@@ -47,3 +51,10 @@ rebel.xml
 
 ## Ignore jenv configuration
 .java-version
+
+
+## local config for build scripts
+/scripts/envs/__basic.bat
+/scripts/envs/__dspace.parent.basic.bat
+/scripts/TEST_*
+/scripts/tests.yaml

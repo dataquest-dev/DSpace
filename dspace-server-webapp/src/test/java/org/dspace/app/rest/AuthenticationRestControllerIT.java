@@ -18,10 +18,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.InputStream;
@@ -53,7 +49,6 @@ import org.dspace.app.rest.matcher.AuthorizationMatcher;
 import org.dspace.app.rest.matcher.EPersonMatcher;
 import org.dspace.app.rest.matcher.GroupMatcher;
 import org.dspace.app.rest.matcher.HalMatcher;
-import org.dspace.app.rest.model.AuthnRest;
 import org.dspace.app.rest.model.EPersonRest;
 import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -72,7 +67,6 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-import org.dspace.orcid.client.OrcidClient;
 import org.dspace.orcid.client.OrcidConfiguration;
 import org.dspace.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.services.ConfigurationService;
@@ -338,152 +332,160 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                         .andExpect(jsonPath("$._embedded").doesNotExist());
     }
 
-    @Test
-    public void testStatusShibAuthenticatedWithCookie() throws Exception {
-        //Enable Shibboleth login only
-        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", SHIB_ONLY);
+    // Note: This test was commented because the Shibboleth Authentication was customized following the Clarin
+    // requirements. This test was copied and updated following the Clarin updates to the
+    // `ClarinAuthenticationRestControllerIT#testStatusShibAuthenticatedWithCookie` method.
+//    @Test
+//    public void testStatusShibAuthenticatedWithCookie() throws Exception {
+//        //Enable Shibboleth login only
+//        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", SHIB_ONLY);
+//
+//        String uiURL = configurationService.getProperty("dspace.ui.url");
+//
+//        // In order to fully simulate a Shibboleth authentication, we'll call
+//        // /api/authn/shibboleth?redirectUrl=[UI-URL] , with valid Shibboleth request attributes.
+//        // In this situation, we are mocking how Shibboleth works from our UI (see also ShibbolethLoginFilter):
+//        // (1) The UI sends the user to Shibboleth to login
+//        // (2) After a successful login, Shibboleth redirects user to /api/authn/shibboleth?redirectUrl=[url]
+//        // (3) That triggers generation of the auth token (JWT), and redirects the user to 'redirectUrl',
+//        // sending along a temporary cookie containing the auth token.
+//        // In below call, we're sending a GET request (as that's what a redirect is), with a Referer of a "fake"
+//        // Shibboleth server to simulate this request coming back from Shibboleth (after a successful login).
+//        // We are then verifying the user will be redirected to the 'redirectUrl' with a single-use auth cookie
+//        // (NOTE: Additional tests of this /api/authn/shibboleth endpoint can be found in ShibbolethLoginFilterIT)
+//        Cookie authCookie = getClient().perform(get("/api/authn/shibboleth")
+//                .header("Referer", "https://myshib.example.com")
+//                .param("redirectUrl", uiURL)
+//                .requestAttr("SHIB-MAIL", eperson.getEmail())
+//                .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
+//                .andExpect(status().is3xxRedirection())
+//                .andExpect(redirectedUrl(uiURL))
+//                // Verify that the CSRF token has NOT been changed. Creating the auth cookie should NOT change our
+//                // CSRF token. The CSRF token should only change when we call /login with the cookie
+//                // (see later in this test)
+//                .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
+//                .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"))
+//                .andExpect(cookie().exists(AUTHORIZATION_COOKIE))
+//                .andReturn().getResponse().getCookie(AUTHORIZATION_COOKIE);
+//
+//        // Verify the temporary cookie now exists & obtain its token for use below
+//        assertNotNull(authCookie);
+//        String token = authCookie.getValue();
+//
+//        // This step is _not required_ to successfully authenticate, but it mocks the behavior of our UI & HAL
+//        // Browser.
+//        // We'll send a "/status" request to the REST API with our auth cookie. This should return that we have a
+//        // *valid* authentication (as auth cookie is valid), however the cookie will remain. To complete the login
+//        // process we MUST call the "/login" endpoint (see the next step in this test).
+//        // (NOTE that this call has an "Origin" matching the UI, to better mock that the request came from there &
+//        // to verify the temporary auth cookie is valid for the UI's origin.)
+//        getClient().perform(get("/api/authn/status").header("Origin", uiURL)
+//                                                              .secure(true)
+//                                                              .cookie(authCookie))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType(contentType))
+//                .andExpect(jsonPath("$.okay", is(true)))
+//                .andExpect(jsonPath("$.authenticated", is(true)))
+//                .andExpect(jsonPath("$.authenticationMethod", is("shibboleth")))
+//                .andExpect(jsonPath("$.type", is("status")))
+//                // Verify that the CSRF token has NOT been changed... status checks won't change the token
+//                // (only login/logout will)
+//                .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
+//                .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"));
+//
+//        getClient(token).perform(
+//                get("/api/authz/authorizations/search/object")
+//                        .param("embed", "feature")
+//                        .param("feature", feature)
+//                        .param("uri", utils.linkToSingleResource(ePersonRest, "self").getHref()))
+//                        .andExpect(status().isOk())
+//                        .andExpect(jsonPath("$.page.totalElements", is(0)))
+//                        .andExpect(jsonPath("$._embedded").doesNotExist());
+//
+//        // To complete the authentication process, we pass our auth cookie to the "/login" endpoint.
+//        // This is where the temporary cookie will be read, verified & destroyed. After this point, the UI will
+//        // only use the 'Authorization' header for all future requests.
+//        // (NOTE that this call has an "Origin" matching the UI, to better mock that the request came from there &
+//        // to verify the temporary auth cookie is valid for the UI's origin.)
+//        String headerToken = getClient().perform(post("/api/authn/login").header("Origin", uiURL)
+//                                                                                   .secure(true)
+//                                                                                   .cookie(authCookie))
+//                .andExpect(status().isOk())
+//                // Verify the Auth cookie has been destroyed
+//                .andExpect(cookie().value(AUTHORIZATION_COOKIE, ""))
+//                // Verify Authorization header is returned
+//                .andExpect(header().exists(AUTHORIZATION_HEADER))
+//                // Verify that the CSRF token has been changed
+//                // (as both cookie and header should be sent back)
+//                .andExpect(cookie().exists("DSPACE-XSRF-COOKIE"))
+//                .andExpect(header().exists("DSPACE-XSRF-TOKEN"))
+//                .andReturn().getResponse()
+//                .getHeader(AUTHORIZATION_HEADER).replace(AUTHORIZATION_TYPE, "");
+//
+//        // Verify that the token in the returned header has the *same claims* as the auth Cookie token
+//        // NOTE: We test claim equality because the token's expiration date may change during this request. If it does
+//        // change, then the tokens will look different even though the claims are the same.
+//        assertTrue("Check tokens " + token + " and " + headerToken + " have same claims",
+//                   tokenClaimsEqual(token, headerToken));
+//
+//        // Now that the auth cookie is cleared, all future requests (from UI)
+//        // should be made via the Authorization header. So, this tests the token is still valid if sent via header.
+//        getClient(headerToken).perform(get("/api/authn/status").header("Origin", uiURL))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType(contentType))
+//                .andExpect(jsonPath("$.okay", is(true)))
+//                .andExpect(jsonPath("$.authenticated", is(true)))
+//                .andExpect(jsonPath("$.authenticationMethod", is("shibboleth")))
+//                .andExpect(jsonPath("$.type", is("status")));
+//
+//        getClient(token).perform(
+//                get("/api/authz/authorizations/search/object")
+//                        .param("embed", "feature")
+//                        .param("feature", feature)
+//                        .param("uri", utils.linkToSingleResource(ePersonRest, "self").getHref()))
+//                        .andExpect(status().isOk())
+//                        .andExpect(jsonPath("$.page.totalElements", is(0)))
+//                        .andExpect(jsonPath("$._embedded").doesNotExist());
+//
+//        //Logout, invalidating the token
+//        getClient(headerToken).perform(post("/api/authn/logout").header("Origin", uiURL))
+//                        .andExpect(status().isNoContent());
+//    }
 
-        String uiURL = configurationService.getProperty("dspace.ui.url");
-
-        // In order to fully simulate a Shibboleth authentication, we'll call
-        // /api/authn/shibboleth?redirectUrl=[UI-URL] , with valid Shibboleth request attributes.
-        // In this situation, we are mocking how Shibboleth works from our UI (see also ShibbolethLoginFilter):
-        // (1) The UI sends the user to Shibboleth to login
-        // (2) After a successful login, Shibboleth redirects user to /api/authn/shibboleth?redirectUrl=[url]
-        // (3) That triggers generation of the auth token (JWT), and redirects the user to 'redirectUrl', sending along
-        //     a temporary cookie containing the auth token.
-        // In below call, we're sending a GET request (as that's what a redirect is), with a Referer of a "fake"
-        // Shibboleth server to simulate this request coming back from Shibboleth (after a successful login).
-        // We are then verifying the user will be redirected to the 'redirectUrl' with a single-use auth cookie
-        // (NOTE: Additional tests of this /api/authn/shibboleth endpoint can be found in ShibbolethLoginFilterIT)
-        Cookie authCookie = getClient().perform(get("/api/authn/shibboleth")
-                .header("Referer", "https://myshib.example.com")
-                .param("redirectUrl", uiURL)
-                .requestAttr("SHIB-MAIL", eperson.getEmail())
-                .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(uiURL))
-                // Verify that the CSRF token has NOT been changed. Creating the auth cookie should NOT change our CSRF
-                // token. The CSRF token should only change when we call /login with the cookie (see later in this test)
-                .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
-                .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"))
-                .andExpect(cookie().exists(AUTHORIZATION_COOKIE))
-                .andReturn().getResponse().getCookie(AUTHORIZATION_COOKIE);
-
-        // Verify the temporary cookie now exists & obtain its token for use below
-        assertNotNull(authCookie);
-        String token = authCookie.getValue();
-
-        // This step is _not required_ to successfully authenticate, but it mocks the behavior of our UI & HAL Browser.
-        // We'll send a "/status" request to the REST API with our auth cookie. This should return that we have a
-        // *valid* authentication (as auth cookie is valid), however the cookie will remain. To complete the login
-        // process we MUST call the "/login" endpoint (see the next step in this test).
-        // (NOTE that this call has an "Origin" matching the UI, to better mock that the request came from there &
-        // to verify the temporary auth cookie is valid for the UI's origin.)
-        getClient().perform(get("/api/authn/status").header("Origin", uiURL)
-                                                              .secure(true)
-                                                              .cookie(authCookie))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.okay", is(true)))
-                .andExpect(jsonPath("$.authenticated", is(true)))
-                .andExpect(jsonPath("$.authenticationMethod", is("shibboleth")))
-                .andExpect(jsonPath("$.type", is("status")))
-                // Verify that the CSRF token has NOT been changed... status checks won't change the token
-                // (only login/logout will)
-                .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
-                .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"));
-
-        getClient(token).perform(
-                get("/api/authz/authorizations/search/object")
-                        .param("embed", "feature")
-                        .param("feature", feature)
-                        .param("uri", utils.linkToSingleResource(ePersonRest, "self").getHref()))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.page.totalElements", is(0)))
-                        .andExpect(jsonPath("$._embedded").doesNotExist());
-
-        // To complete the authentication process, we pass our auth cookie to the "/login" endpoint.
-        // This is where the temporary cookie will be read, verified & destroyed. After this point, the UI will
-        // only use the 'Authorization' header for all future requests.
-        // (NOTE that this call has an "Origin" matching the UI, to better mock that the request came from there &
-        // to verify the temporary auth cookie is valid for the UI's origin.)
-        String headerToken = getClient().perform(post("/api/authn/login").header("Origin", uiURL)
-                                                                                   .secure(true)
-                                                                                   .cookie(authCookie))
-                .andExpect(status().isOk())
-                // Verify the Auth cookie has been destroyed
-                .andExpect(cookie().value(AUTHORIZATION_COOKIE, ""))
-                // Verify Authorization header is returned
-                .andExpect(header().exists(AUTHORIZATION_HEADER))
-                // Verify that the CSRF token has been changed
-                // (as both cookie and header should be sent back)
-                .andExpect(cookie().exists("DSPACE-XSRF-COOKIE"))
-                .andExpect(header().exists("DSPACE-XSRF-TOKEN"))
-                .andReturn().getResponse()
-                .getHeader(AUTHORIZATION_HEADER).replace(AUTHORIZATION_TYPE, "");
-
-        // Verify that the token in the returned header has the *same claims* as the auth Cookie token
-        // NOTE: We test claim equality because the token's expiration date may change during this request. If it does
-        // change, then the tokens will look different even though the claims are the same.
-        assertTrue("Check tokens " + token + " and " + headerToken + " have same claims",
-                   tokenClaimsEqual(token, headerToken));
-
-        // Now that the auth cookie is cleared, all future requests (from UI)
-        // should be made via the Authorization header. So, this tests the token is still valid if sent via header.
-        getClient(headerToken).perform(get("/api/authn/status").header("Origin", uiURL))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$.okay", is(true)))
-                .andExpect(jsonPath("$.authenticated", is(true)))
-                .andExpect(jsonPath("$.authenticationMethod", is("shibboleth")))
-                .andExpect(jsonPath("$.type", is("status")));
-
-        getClient(token).perform(
-                get("/api/authz/authorizations/search/object")
-                        .param("embed", "feature")
-                        .param("feature", feature)
-                        .param("uri", utils.linkToSingleResource(ePersonRest, "self").getHref()))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.page.totalElements", is(0)))
-                        .andExpect(jsonPath("$._embedded").doesNotExist());
-
-        //Logout, invalidating the token
-        getClient(headerToken).perform(post("/api/authn/logout").header("Origin", uiURL))
-                        .andExpect(status().isNoContent());
-    }
-
-    @Test
-    public void testShibbolethEndpointCannotBeUsedWithShibDisabled() throws Exception {
-        // Enable only password login
-        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", PASS_ONLY);
-
-        String uiURL = configurationService.getProperty("dspace.ui.url");
-
-        // Verify /api/authn/shibboleth endpoint does not work
-        // NOTE: this is the same call as in testStatusShibAuthenticatedWithCookie())
-        String token = getClient().perform(get("/api/authn/shibboleth")
-                .header("Referer", "https://myshib.example.com")
-                .param("redirectUrl", uiURL)
-                .requestAttr("SHIB-MAIL", eperson.getEmail())
-                .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
-                .andExpect(status().isUnauthorized())
-                .andReturn().getResponse().getHeader("Authorization");
-
-        getClient(token).perform(get("/api/authn/status"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.authenticated", is(false)))
-                        .andExpect(jsonPath("$.authenticationMethod").doesNotExist());
-
-        getClient(token).perform(
-                get("/api/authz/authorizations/search/object")
-                        .param("embed", "feature")
-                        .param("feature", feature)
-                        .param("uri", utils.linkToSingleResource(ePersonRest, "self").getHref()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.page.totalElements", is(0)))
-                   .andExpect(jsonPath("$._embedded").doesNotExist());
-    }
+    // Note: This test was commented because the Shibboleth Authentication was customized following the Clarin
+    // requirements. This test was copied and updated following the Clarin updates to the
+    // `ClarinAuthenticationRestControllerIT#testShibbolethEndpointCannotBeUsedWithShibDisabled` method.
+//    @Test
+//    public void testShibbolethEndpointCannotBeUsedWithShibDisabled() throws Exception {
+//        // Enable only password login
+//        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", PASS_ONLY);
+//
+//        String uiURL = configurationService.getProperty("dspace.ui.url");
+//
+//        // Verify /api/authn/shibboleth endpoint does not work
+//        // NOTE: this is the same call as in testStatusShibAuthenticatedWithCookie())
+//        String token = getClient().perform(get("/api/authn/shibboleth")
+//                .header("Referer", "https://myshib.example.com")
+//                .param("redirectUrl", uiURL)
+//                .requestAttr("SHIB-MAIL", eperson.getEmail())
+//                .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
+//                .andExpect(status().isUnauthorized())
+//                .andReturn().getResponse().getHeader("Authorization");
+//
+//        getClient(token).perform(get("/api/authn/status"))
+//                        .andExpect(status().isOk())
+//                        .andExpect(jsonPath("$.authenticated", is(false)))
+//                        .andExpect(jsonPath("$.authenticationMethod").doesNotExist());
+//
+//        getClient(token).perform(
+//                get("/api/authz/authorizations/search/object")
+//                        .param("embed", "feature")
+//                        .param("feature", feature)
+//                        .param("uri", utils.linkToSingleResource(ePersonRest, "self").getHref()))
+//                   .andExpect(status().isOk())
+//                   .andExpect(jsonPath("$.page.totalElements", is(0)))
+//                   .andExpect(jsonPath("$._embedded").doesNotExist());
+//    }
 
     // NOTE: This test is similar to testStatusShibAuthenticatedWithCookie(), but proves the same process works
     // for Password Authentication in theory (NOTE: at this time, there's no way to create an auth cookie via the
@@ -1532,92 +1534,95 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .andExpect(status().isNoContent());
     }
 
-    @Test
-    public void testStatusOrcidAuthenticatedWithCookie() throws Exception {
-
-        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", ORCID_ONLY);
-
-        String uiURL = configurationService.getProperty("dspace.ui.url");
-
-        context.turnOffAuthorisationSystem();
-
-        String orcid = "0000-1111-2222-3333";
-        String code = "123456";
-        String orcidAccessToken = "c41e37e5-c2de-4177-91d6-ed9e9d1f31bf";
-
-        EPersonBuilder.createEPerson(context)
-            .withEmail("test@email.it")
-            .withNetId(orcid)
-            .withNameInMetadata("Test", "User")
-            .withCanLogin(true)
-            .build();
-
-        context.restoreAuthSystemState();
-
-        OrcidClient orcidClientMock = mock(OrcidClient.class);
-        when(orcidClientMock.getAccessToken(code)).thenReturn(buildOrcidTokenResponse(orcid, orcidAccessToken));
-
-        OrcidClient originalOrcidClient = orcidAuthentication.getOrcidClient();
-        orcidAuthentication.setOrcidClient(orcidClientMock);
-
-        Cookie authCookie = null;
-
-        try {
-
-            authCookie = getClient().perform(get("/api/" + AuthnRest.CATEGORY + "/orcid")
-                .param("redirectUrl", uiURL)
-                .param("code", code))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(uiURL))
-                .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
-                .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"))
-                .andExpect(cookie().exists(AUTHORIZATION_COOKIE))
-                .andReturn().getResponse().getCookie(AUTHORIZATION_COOKIE);
-
-        } finally {
-            orcidAuthentication.setOrcidClient(originalOrcidClient);
-        }
-
-        assertNotNull(authCookie);
-        String token = authCookie.getValue();
-
-        getClient().perform(get("/api/authn/status").header("Origin", uiURL)
-            .secure(true)
-            .cookie(authCookie))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(contentType))
-            .andExpect(jsonPath("$.okay", is(true)))
-            .andExpect(jsonPath("$.authenticated", is(true)))
-            .andExpect(jsonPath("$.authenticationMethod", is("orcid")))
-            .andExpect(jsonPath("$.type", is("status")))
-            .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
-            .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"));
-
-        String headerToken = getClient().perform(post("/api/authn/login").header("Origin", uiURL)
-            .secure(true)
-            .cookie(authCookie))
-            .andExpect(status().isOk())
-            .andExpect(cookie().value(AUTHORIZATION_COOKIE, ""))
-            .andExpect(header().exists(AUTHORIZATION_HEADER))
-            .andExpect(cookie().exists("DSPACE-XSRF-COOKIE"))
-            .andExpect(header().exists("DSPACE-XSRF-TOKEN"))
-            .andReturn().getResponse()
-            .getHeader(AUTHORIZATION_HEADER).replace(AUTHORIZATION_TYPE, "");
-
-        assertTrue("Check tokens " + token + " and " + headerToken + " have same claims",
-            tokenClaimsEqual(token, headerToken));
-
-        getClient(headerToken).perform(get("/api/authn/status").header("Origin", uiURL))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(contentType))
-            .andExpect(jsonPath("$.okay", is(true)))
-            .andExpect(jsonPath("$.authenticated", is(true)))
-            .andExpect(jsonPath("$.authenticationMethod", is("orcid")))
-            .andExpect(jsonPath("$.type", is("status")));
-
-        getClient(headerToken).perform(post("/api/authn/logout").header("Origin", uiURL))
-            .andExpect(status().isNoContent());
-    }
+    // Note: This test was commented because the Shibboleth Authentication was customized following the Clarin
+    // requirements. This test was copied and updated following the Clarin updates to the
+    // `ClarinAuthenticationRestControllerIT#testStatusShibAuthenticatedWithCookie` method.
+//    @Test
+//    public void testStatusOrcidAuthenticatedWithCookie() throws Exception {
+//
+//        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", ORCID_ONLY);
+//
+//        String uiURL = configurationService.getProperty("dspace.ui.url");
+//
+//        context.turnOffAuthorisationSystem();
+//
+//        String orcid = "0000-1111-2222-3333";
+//        String code = "123456";
+//        String orcidAccessToken = "c41e37e5-c2de-4177-91d6-ed9e9d1f31bf";
+//
+//        EPersonBuilder.createEPerson(context)
+//            .withEmail("test@email.it")
+//            .withNetId(orcid)
+//            .withNameInMetadata("Test", "User")
+//            .withCanLogin(true)
+//            .build();
+//
+//        context.restoreAuthSystemState();
+//
+//        OrcidClient orcidClientMock = mock(OrcidClient.class);
+//        when(orcidClientMock.getAccessToken(code)).thenReturn(buildOrcidTokenResponse(orcid, orcidAccessToken));
+//
+//        OrcidClient originalOrcidClient = orcidAuthentication.getOrcidClient();
+//        orcidAuthentication.setOrcidClient(orcidClientMock);
+//
+//        Cookie authCookie = null;
+//
+//        try {
+//
+//            authCookie = getClient().perform(get("/api/" + AuthnRest.CATEGORY + "/orcid")
+//                .param("redirectUrl", uiURL)
+//                .param("code", code))
+//                .andExpect(status().is3xxRedirection())
+//                .andExpect(redirectedUrl(uiURL))
+//                .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
+//                .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"))
+//                .andExpect(cookie().exists(AUTHORIZATION_COOKIE))
+//                .andReturn().getResponse().getCookie(AUTHORIZATION_COOKIE);
+//
+//        } finally {
+//            orcidAuthentication.setOrcidClient(originalOrcidClient);
+//        }
+//
+//        assertNotNull(authCookie);
+//        String token = authCookie.getValue();
+//
+//        getClient().perform(get("/api/authn/status").header("Origin", uiURL)
+//            .secure(true)
+//            .cookie(authCookie))
+//            .andExpect(status().isOk())
+//            .andExpect(content().contentType(contentType))
+//            .andExpect(jsonPath("$.okay", is(true)))
+//            .andExpect(jsonPath("$.authenticated", is(true)))
+//            .andExpect(jsonPath("$.authenticationMethod", is("orcid")))
+//            .andExpect(jsonPath("$.type", is("status")))
+//            .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
+//            .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"));
+//
+//        String headerToken = getClient().perform(post("/api/authn/login").header("Origin", uiURL)
+//            .secure(true)
+//            .cookie(authCookie))
+//            .andExpect(status().isOk())
+//            .andExpect(cookie().value(AUTHORIZATION_COOKIE, ""))
+//            .andExpect(header().exists(AUTHORIZATION_HEADER))
+//            .andExpect(cookie().exists("DSPACE-XSRF-COOKIE"))
+//            .andExpect(header().exists("DSPACE-XSRF-TOKEN"))
+//            .andReturn().getResponse()
+//            .getHeader(AUTHORIZATION_HEADER).replace(AUTHORIZATION_TYPE, "");
+//
+//        assertTrue("Check tokens " + token + " and " + headerToken + " have same claims",
+//            tokenClaimsEqual(token, headerToken));
+//
+//        getClient(headerToken).perform(get("/api/authn/status").header("Origin", uiURL))
+//            .andExpect(status().isOk())
+//            .andExpect(content().contentType(contentType))
+//            .andExpect(jsonPath("$.okay", is(true)))
+//            .andExpect(jsonPath("$.authenticated", is(true)))
+//            .andExpect(jsonPath("$.authenticationMethod", is("orcid")))
+//            .andExpect(jsonPath("$.type", is("status")));
+//
+//        getClient(headerToken).perform(post("/api/authn/logout").header("Origin", uiURL))
+//            .andExpect(status().isNoContent());
+//    }
 
     @Test
     public void testOrcidLoginURL() throws Exception {

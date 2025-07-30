@@ -10,7 +10,7 @@ ARG JDK_VERSION=11
 ARG DSPACE_VERSION=dspace-7_x
 # The Docker registry to use for DSpace images. Defaults to "docker.io"
 # NOTE: non-DSpace images are hardcoded to use "docker.io" and are not impacted by this build argument
-ARG DOCKER_REGISTRY=docker.io
+ARG DOCKER_REGISTRY=dataquest
 
 # Step 1 - Run Maven Build
 FROM ${DOCKER_REGISTRY}/dspace/dspace-dependencies:${DSPACE_VERSION} AS build
@@ -67,7 +67,8 @@ RUN apt-get update \
 EXPOSE 8080 8009 8000
 # Give java extra memory (2GB)
 ENV JAVA_OPTS=-Xmx2000m
-
+COPY scripts/restart_debug/* /usr/local/tomcat/bin
+COPY scripts/index-scripts/* /dspace/bin
 # Link the DSpace 'server' webapp into Tomcat's webapps directory.
 # This ensures that when we start Tomcat, it runs from /server path (e.g. http://localhost:8080/server/)
 RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
@@ -76,3 +77,6 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 # Please note that server webapp should only run on one path at a time.
 #RUN mv /usr/local/tomcat/webapps/ROOT /usr/local/tomcat/webapps/ROOT.bk && \
 #    ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/ROOT
+
+WORKDIR /usr/local/tomcat/bin
+RUN chmod u+x redebug.sh undebug.sh custom_run.sh

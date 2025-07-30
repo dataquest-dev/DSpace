@@ -20,6 +20,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
 import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.DspaceObjectClarinService;
 import org.dspace.content.service.EntityService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.InProgressSubmissionService;
@@ -28,11 +29,14 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.MetadataValueService;
+import org.dspace.content.service.PreviewContentService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.ProvenanceService;
 import org.dspace.eperson.service.SubscribeService;
+import org.dspace.handle.service.HandleClarinService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 
@@ -75,6 +79,8 @@ public abstract class ContentServiceFactory {
 
     public abstract SubscribeService getSubscribeService();
 
+    public abstract PreviewContentService getPreviewContentService();
+
     /**
      * Return the implementation of the RelationshipTypeService interface
      *
@@ -104,6 +110,27 @@ public abstract class ContentServiceFactory {
     public abstract EntityService getEntityService();
 
     public abstract RelationshipMetadataService getRelationshipMetadataService();
+
+    /**
+     * Return the implementation of the DspaceObjectClarinService interface
+     *
+     * @return the DspaceObjectClarinService
+     */
+    public abstract DspaceObjectClarinService getDspaceObjectClarinService();
+
+    /**
+     * Return the implementation of the HandleClarinService interface
+     *
+     * @return the HandleClarinService
+     */
+    public abstract HandleClarinService getHandleClarinService();
+
+    /**
+     * Return the implementation of the ProvenanceService interface
+     *
+     * @return the ProvenanceService
+     */
+    public abstract ProvenanceService getProvenanceService();
 
     public InProgressSubmissionService getInProgressSubmissionService(InProgressSubmission inProgressSubmission) {
         if (inProgressSubmission instanceof WorkspaceItem) {

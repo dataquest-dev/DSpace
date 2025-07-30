@@ -7,6 +7,8 @@
  */
 package org.dspace.content;
 
+import static org.dspace.content.InstallItemServiceImpl.SET_OWNING_COLLECTION_EVENT_DETAIL;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -122,6 +124,12 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
         }
         item.setSubmitter(context.getCurrentUser());
 
+        // CLARIN
+        // The owning collection is needed for getting owning community and creating configured handle.
+        context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(),
+                SET_OWNING_COLLECTION_EVENT_DETAIL + collection.getID()));
+        // CLARIN
+
         // Now create the policies for the submitter to modify item and contents
         // contents = bitstreams, bundles
         // read permission
@@ -212,6 +220,11 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
     @Override
     public WorkspaceItem findByItem(Context context, Item item) throws SQLException {
         return workspaceItemDAO.findByItem(context, item);
+    }
+
+    @Override
+    public List<WorkspaceItem> findByShareToken(Context context, String shareToken) throws SQLException {
+        return workspaceItemDAO.findByShareToken(context, shareToken);
     }
 
     @Override

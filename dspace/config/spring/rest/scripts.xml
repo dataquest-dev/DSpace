@@ -38,17 +38,17 @@
         <property name="description" value="Manage the OAI-PMH harvesting of external collections"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.harvest.Harvest"/>
     </bean>
-    
+
     <bean id="process-cleaner" class="org.dspace.administer.ProcessCleanerConfiguration" primary="true">
         <property name="description" value="Cleanup all the old processes in the specified state"/>
         <property name="dspaceRunnableClass" value="org.dspace.administer.ProcessCleaner"/>
     </bean>
-    
+
     <bean id="orcid-bulk-push" class="org.dspace.orcid.script.OrcidBulkPushScriptConfiguration" primary="true">
         <property name="description" value="Perform the bulk synchronization of all the BATCH configured ORCID entities placed in the ORCID queue"/>
         <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidBulkPush"/>
     </bean>
-    
+
     <bean name="metadata-export-search" class="org.dspace.app.bulkedit.MetadataExportSearchScriptConfiguration">
         <property name="description" value="export metadata from a discovery search" />
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkedit.MetadataExportSearch" />
@@ -67,6 +67,21 @@
     <bean id="bulk-access-control" class="org.dspace.app.bulkaccesscontrol.BulkAccessControlScriptConfiguration" primary="true">
         <property name="description" value="Bulk access control"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkaccesscontrol.BulkAccessControl"/>
+    </bean>
+
+    <bean id="file-downloader" class="org.dspace.administer.FileDownloaderConfiguration" primary="true">
+        <property name="description" value="Download a files from the provided URL and add it to item"/>
+        <property name="dspaceRunnableClass" value="org.dspace.administer.FileDownloader"/>
+    </bean>
+
+    <bean id="health-report" class="org.dspace.app.healthreport.HealthReportScriptConfiguration" primary="true">
+        <property name="description" value="Get report about DSpace health"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.healthreport.HealthReport"/>
+    </bean>
+
+    <bean id="file-preview" class="org.dspace.scripts.filepreview.FilePreviewConfiguration" primary="true">
+        <property name="description" value="Generate the file preview"/>
+        <property name="dspaceRunnableClass" value="org.dspace.scripts.filepreview.FilePreview"/>
     </bean>
 
 </beans>
