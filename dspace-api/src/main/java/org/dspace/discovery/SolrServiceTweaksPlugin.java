@@ -22,38 +22,24 @@ public class SolrServiceTweaksPlugin implements SolrServiceSearchPlugin {
     @Value("${solr.boost.title:2.0}")
     private float titleBoostValue;
 
-    @Value("${solr.boost.replaces:2.0}")
-    private float replacesBoostValue;
-
-    @Value("${solr.boost.latestVersion:2.0}")
-    private float latestVersionBoostValue;
-
+    /**
+     * Enhances Solr search by boosting matches in the "title" field
+     * to prioritize them in the results. Additionally, results are
+     * sorted by "versionNumber" in descending order to show the most
+     * recent versions first.
+     */
     @Override
-    public void additionalSearchParameters(Context context, DiscoverQuery discoveryQuery, SolrQuery solrQuery)
-            throws SearchServiceException {
-        String query = solrQuery.getQuery();
-        if (query == null || query.trim().isEmpty()) {
-            return;
-        }
+    public void additionalSearchParameters(Context context, DiscoverQuery discoveryQuery, SolrQuery solrQuery) {
+        String userQuery = discoveryQuery.getQuery();
+        String query = String.format(
+                "title:(%s)^%.1f",
+                userQuery,
+                titleBoostValue
+        );
 
-        if (query.contains("search.resourceid:")) {
-            log.debug("Exact resourceid search detected, skipping boosts.");
-            return;
-        }
+        solrQuery.setQuery(query);
+        solrQuery.setSort("versionNumber", SolrQuery.ORDER.desc);
 
-        String baseQuery = "+(" + query + ")" ;
-        String titleBoost = "title:(" + query + ")^" + titleBoostValue;
-        String replacesBoost = "dc.relation.replaces:[* TO *]^" + replacesBoostValue;
-        String latestVersionBoost = "(dc.relation.replaces:[* TO *] AND -dc.relation.isreplacedby:[* TO *])^"
-                + latestVersionBoostValue;
-
-        String boostedQuery = baseQuery
-                + " OR " + titleBoost
-                + " OR " + replacesBoost
-                + " OR " + latestVersionBoost;
-
-        solrQuery.setQuery(boostedQuery);
-
-        log.debug("Boosted query: {}", boostedQuery);
+        log.debug("Modified Solr query: {}", solrQuery);
     }
 }

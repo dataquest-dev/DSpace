@@ -293,6 +293,8 @@
     <!-- used to filter out items that are older versions of another item -->
     <field name="latestVersion" type="boolean" indexed="true" stored="true" default="true" multiValued="false" omitNorms="true"/>
 
+     <field name="versionNumber" type="int" indexed="true" stored="true" default="1" multiValued="false"/>
+
      <!-- The database status of the current item -->
      <field name="database_status" type="string" indexed="true" stored="true" omitNorms="true" docValues="true" />
 

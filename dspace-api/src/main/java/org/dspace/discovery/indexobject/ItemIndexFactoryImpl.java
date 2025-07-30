@@ -154,6 +154,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
         doc.addField("discoverable", item.isDiscoverable());
         doc.addField("lastModified", SolrUtils.getDateFormatter().format(item.getLastModified()));
         doc.addField("latestVersion", isLatestVersion(context, item));
+        doc.addField("versionNumber", getVersionNumber(context, item));
 
         EPerson submitter = item.getSubmitter();
         if (submitter != null) {
@@ -212,6 +213,30 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
         assert latestVersion.getItem().isArchived();
 
         return item.equals(latestVersion.getItem());
+    }
+
+    /**
+     * Retrieves the version number of the given item.
+     * If the item has no version history, returns 1 by default,
+     * treating it as the first and latest version.
+     *
+     * @param context the DSpace context
+     * @param item the item whose version number is to be retrieved
+     * @return the version number of the item, or 1 if no version exists
+     * @throws SQLException if a database error occurs
+     */
+    protected int getVersionNumber(Context context, Item item) throws SQLException {
+        VersionHistory history = versionHistoryService.findByItem(context, item);
+        if (history == null) {
+            // not all items have a version history
+            // if an item does not have a version history, it is by definition the latest version
+            return 1;
+        }
+        Version version = versionHistoryService.getVersion(context, history, item);
+        if (version == null) {
+            return 1;
+        }
+        return version.getVersionNumber();
     }
 
     @Override
