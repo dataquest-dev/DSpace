@@ -148,6 +148,16 @@ public class BitstreamRestController {
         }
 
         try {
+            boolean s3DirectDownload = configurationService.getBooleanProperty("s3.download.direct.enabled");
+            boolean hasOriginalBundle = false;
+            if (s3DirectDownload) {
+                // Download only files which are stored in the `ORIGINAL` bundle, because some specific files are
+                // not correctly downloaded and displayed in the UI when using presigned URLs. E.g., the
+                // process output.
+                hasOriginalBundle = bit.getBundles().stream()
+                        .anyMatch(bundle -> CONTENT_BUNDLE_NAME.equals(bundle.getName()));
+            }
+
             long filesize = bit.getSizeBytes();
             Boolean citationEnabledForBitstream = citationDocumentService.isCitationEnabledForBitstream(bit, context);
 
@@ -180,16 +190,6 @@ public class BitstreamRestController {
 
             // Track the download statistics - only if the downloading has started (the condition is inside the method)
             matomoBitstreamTracker.trackBitstreamDownload(context, request, bit, false);
-
-            boolean s3DirectDownload = configurationService.getBooleanProperty("s3.download.direct.enabled");
-            boolean hasOriginalBundle = false;
-            if (s3DirectDownload) {
-                // Download only files which are stored in the `ORIGINAL` bundle, because some specific files are
-                // not correctly downloaded and displayed in the UI when using presigned URLs. E.g., the
-                // process output.
-                hasOriginalBundle = bit.getBundles().stream()
-                        .anyMatch(bundle -> CONTENT_BUNDLE_NAME.equals(bundle.getName()));
-            }
 
             //We have all the data we need, close the connection to the database so that it doesn't stay open during
             //download/streaming
