@@ -8,6 +8,7 @@
 package org.dspace.app.rest.converter;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -97,8 +98,10 @@ public class ItemConverter
         List<MetadataValue> returnList = new LinkedList<>();
         try {
             if (obj.isWithdrawn() && (Objects.isNull(context) ||
-                                      Objects.isNull(context.getCurrentUser()) || !authorizeService.isAdmin(context, obj)) &&
-                    ObjectUtils.isEmpty(itemService.getMetadataByMetadataString(obj, "local.withdrawn.reason"))) {
+                    Objects.isNull(context.getCurrentUser()) ||
+                    !authorizeService.isAdmin(context, obj)) &&
+                    ObjectUtils.isEmpty(itemService
+                            .getMetadataByMetadataString(obj, "local.withdrawn.reason"))) {
                 // if the item is withdrawn and is replaced the item could have a tombstone -
                 // return message for the tombstone
                 List<MetadataValue> isReplacedBy =
