@@ -146,8 +146,6 @@ public class MetadataBitstreamController {
 
         byte[] zipBytes = baos.toByteArray();
 
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment;filename=\"%s\"", name));
-        response.setContentType("application/zip");
         response.setContentLength(zipBytes.length);
 
         try (OutputStream out = response.getOutputStream()) {

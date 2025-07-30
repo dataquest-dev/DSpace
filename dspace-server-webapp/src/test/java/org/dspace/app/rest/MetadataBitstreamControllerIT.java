@@ -13,7 +13,10 @@ import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
@@ -100,5 +103,10 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
 
         assertNotNull(contentDispositionHeader);
         assertTrue(contentDispositionHeader.startsWith("attachment"));
+        try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(responseBytes))) {
+            ZipEntry entry = zipIn.getNextEntry();
+            assertNotNull("ZIP should contain at least one entry.", entry);
+            assertEquals("Bitstream", entry.getName());
+        }
     }
 }
