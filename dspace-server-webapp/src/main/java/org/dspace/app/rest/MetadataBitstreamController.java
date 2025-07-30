@@ -9,8 +9,10 @@ package org.dspace.app.rest;
 
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
@@ -119,7 +121,8 @@ public class MetadataBitstreamController {
         response.setContentType("application/zip");
         List<Bundle> bundles = item.getBundles("ORIGINAL");
 
-        ZipArchiveOutputStream zip = new ZipArchiveOutputStream(response.getOutputStream());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ZipArchiveOutputStream zip = new ZipArchiveOutputStream(baos);
         zip.setCreateUnicodeExtraFields(ZipArchiveOutputStream.UnicodeExtraFieldPolicy.ALWAYS);
         zip.setLevel(Deflater.NO_COMPRESSION);
         for (Bundle original : bundles) {
@@ -140,7 +143,18 @@ public class MetadataBitstreamController {
             }
         }
         zip.close();
+
+        byte[] zipBytes = baos.toByteArray();
+
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment;filename=\"%s\"", name));
+        response.setContentType("application/zip");
+        response.setContentLength(zipBytes.length);
+
+        try (OutputStream out = response.getOutputStream()) {
+            out.write(zipBytes);
+            out.flush();
+        }
+
         matomoBitstreamTracker.trackBitstreamDownload(context, request, bitstreamForStatistics, true);
-        response.getOutputStream().flush();
     }
 }

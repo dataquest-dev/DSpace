@@ -7,17 +7,13 @@
  */
 package org.dspace.app.rest;
 
+import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.zip.Deflater;
 
 import org.apache.commons.codec.CharEncoding;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -31,7 +27,9 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamService;
 import org.junit.Test;
+import org.purl.sword.base.HttpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.MvcResult;
 
 public class MetadataBitstreamControllerIT extends AbstractControllerIntegrationTest {
     private static final String METADATABITSTREAM_ENDPOINT = "/api/" + ItemRest.CATEGORY + "/" + ItemRest.PLURAL_NAME;
@@ -78,23 +76,27 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
 
     @Test
     public void downloadAllZip() throws Exception {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ZipArchiveOutputStream zip = new ZipArchiveOutputStream(byteArrayOutputStream);
-        zip.setCreateUnicodeExtraFields(ZipArchiveOutputStream.UnicodeExtraFieldPolicy.ALWAYS);
-        zip.setLevel(Deflater.NO_COMPRESSION);
-        ZipArchiveEntry ze = new ZipArchiveEntry(bts.getName());
-        zip.putArchiveEntry(ze);
-        InputStream is = bitstreamService.retrieve(context, bts);
-        org.apache.commons.compress.utils.IOUtils.copy(is, zip);
-        zip.closeArchiveEntry();
-        is.close();
-        zip.close();
-
         String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get(METADATABITSTREAM_ENDPOINT + "/" + publicItem.getID() +
+
+        MvcResult result = getClient(token).perform(get(METADATABITSTREAM_ENDPOINT + "/" + publicItem.getID() +
                         "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, publicItem.getHandle()))
                 .andExpect(status().isOk())
-                .andExpect(content().bytes(byteArrayOutputStream.toByteArray()));
+                .andReturn();
 
+        byte[] responseBytes = result.getResponse().getContentAsByteArray();
+        long actualContentLength = responseBytes.length;
+
+        String contentLengthHeader = result.getResponse().getHeader(HttpHeaders.CONTENT_LENGTH);
+        String contentTypeHeader = result.getResponse().getHeader("Content-Type");
+        String contentDispositionHeader = result.getResponse().getHeader(HttpHeaders.CONTENT_DISPOSITION);
+
+        assertNotNull(contentLengthHeader);
+        assertEquals(String.valueOf(actualContentLength), contentLengthHeader);
+
+        assertNotNull(contentTypeHeader);
+        assertTrue(contentTypeHeader.startsWith("application/zip"));
+
+        assertNotNull(contentDispositionHeader);
+        assertTrue(contentDispositionHeader.startsWith("attachment"));
     }
 }
