@@ -81,9 +81,6 @@ env:
   # (NOTE: No deployment branch specified for sandbox.dspace.org as it uses the default_branch)
   DEPLOY_DEMO_BRANCH: 'dspace-7_x'
   DEPLOY_ARCH: 'linux/amd64'
-  # Registry used during building of Docker images. (All images are later copied to docker.io registry)
-  # We use GitHub's Container Registry to avoid aggressive rate limits at DockerHub.
-  DOCKER_BUILD_REGISTRY: ghcr.io
 
 jobs:
   docker-build:
