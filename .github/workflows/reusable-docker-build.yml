@@ -111,12 +111,16 @@ jobs:
         if: ${{ inputs.run_python_version_script }}
         run: python scripts/sourceversion.py ${{ github.server_url }}/${{ github.repository }}/actions/runs/ ${{ github.run_id }} > ${{ inputs.python_version_script_dest }}
 
+      # https://github.com/docker/setup-buildx-action
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       # https://github.com/docker/setup-qemu-action
       - name: Set up QEMU emulation to build for multiple architectures
         uses: docker/setup-qemu-action@v3
 
       # https://github.com/docker/login-action
-      - name: Login to ${{ env.DOCKER_BUILD_REGISTRY }}
+      - name: Login to DockerHub
         # Only login if not a PR, as PRs only trigger a Docker build and not a push
         if: ${{ ! matrix.isPr }}
         uses: docker/login-action@v3
@@ -124,31 +128,18 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
-      # https://github.com/docker/setup-buildx-action
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       # https://github.com/docker/metadata-action
-      # Extract metadata used for Docker images in all build steps below
-      - name: Extract metadata (tags, labels) from GitHub for Docker image
+      # Get Metadata for docker_build_deps step below
+      - name: Sync metadata (tags, labels) from GitHub to Docker for image
         id: meta_build
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.IMAGE_NAME }}
           tags: ${{ env.IMAGE_TAGS }}
           flavor: ${{ env.TAGS_FLAVOR }}
 
-      #--------------------------------------------------------------------
-      # First, for all branch commits (non-PRs) we build the image & upload
-      # to GitHub Container Registry (GHCR). After uploading the image
-      # to GHCR, we store the image digest in an artifact, so we can
-      # create a merged manifest later (see 'docker-build_manifest' job).
-      #
-      # NOTE: We use GHCR in order to avoid aggressive rate limits at DockerHub.
-      #--------------------------------------------------------------------
       # https://github.com/docker/build-push-action
-      - name: Build and push image to ${{ env.DOCKER_BUILD_REGISTRY }}
-        if: ${{ ! matrix.isPr }}
+      - name: Build and push image
         id: docker_build
         uses: docker/build-push-action@v5
         with:
@@ -156,9 +147,6 @@ jobs:
             ${{ inputs.dockerfile_additional_contexts }}
           context: ${{ inputs.dockerfile_context }}
           file: ${{ inputs.dockerfile_path }}
-          # Tell DSpace's Docker files to use the build registry instead of DockerHub
-          build-args:
-            DOCKER_REGISTRY=${{ env.DOCKER_BUILD_REGISTRY }}
           platforms: ${{ matrix.arch }}
           # For pull requests, we run the Docker build (to ensure no PR changes break the build),
           # but we ONLY do an image push to DockerHub if it's NOT a PR
@@ -166,10 +154,6 @@ jobs:
           # Use tags / labels provided by 'docker/metadata-action' above
           tags: ${{ steps.meta_build.outputs.tags }}
           labels: ${{ steps.meta_build.outputs.labels }}
-          # Use GitHub cache to load cached Docker images and cache the results of this build
-          # This decreases the number of images we need to fetch from DockerHub
-          cache-from: type=gha,scope=${{ inputs.build_id }}
-          cache-to: type=gha,scope=${{ inputs.build_id }},mode=max
 
             # Export the digest of Docker build locally (for non PRs only)
             # - name: Export Docker build digest
