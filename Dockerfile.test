@@ -15,7 +15,7 @@ ARG DSPACE_VERSION=dspace-7_x
 ARG DOCKER_REGISTRY=dataquest
 
 # Step 1 - Run Maven Build
-FROM ${DOCKER_REGISTRY}/dspace/dspace-dependencies:${DSPACE_VERSION} AS build
+FROM ${DOCKER_REGISTRY}/dspace-dependencies:${DSPACE_VERSION} AS build
 ARG TARGET_DIR=dspace-installer
 WORKDIR /app
 # The dspace-installer directory will be written to /install
