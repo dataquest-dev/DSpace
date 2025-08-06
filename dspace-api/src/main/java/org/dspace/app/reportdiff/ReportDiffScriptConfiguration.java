@@ -35,27 +35,21 @@ public class ReportDiffScriptConfiguration<T extends ReportDiff> extends ScriptC
             Options options = new Options();
             options.addOption("i", "info", false,
                     "Show help information.");
-//            options.addOption("e", "email", true,
-//                    "Send report to this email address.");
-//            options.getOption("e").setType(String.class);
+            options.addOption("e", "email", true,
+                    "Send report to this email address.");
+            options.getOption("e").setType(String.class);
             options.addOption("c", "check", true,
                     String.format("Perform only specific check (use index from 0 to %d, " +
                             "otherwise perform default checks).", HealthReport.getNumberOfChecks() - 1));
             options.getOption("c").setType(String.class);
 
             options.addOption("d", "dates", false, "Show all report dates");
-//            options.getOption("d").setType(Boolean.class);
 
             options.addOption("f", "from", true,"Report from specific date [YYYY-MM-DD HH:mm:ss.SSS].");
             options.getOption("f").setType(String.class);
 
             options.addOption("t", "to", true,"Report to specific date [YYYY-MM-DD HH:mm:ss.SSS].");
             options.getOption("t").setType(String.class);
-//            options.addOption("f", "for", true,
-//                    "Report for last N days. Used only in general information for now.");
-//            options.getOption("f").setType(String.class);
-//            options.addOption("o", "output", true,
-//                    "Save report to the file.");
 
             super.options =  options;
         }
