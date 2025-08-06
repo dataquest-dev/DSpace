@@ -21,6 +21,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.mail.MessagingException;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonDiff;
@@ -38,8 +40,6 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.utils.DSpace;
-
-import javax.mail.MessagingException;
 
 /**
  * This class implements a DSpace script that compares two health reports
@@ -65,6 +65,12 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * `-d`: Dates, show all dates that the report was generated for a specific check type.
      */
     private boolean showDates = false;
+
+    /**
+     * `-l`: Limits the number of report entries (dates) displayed when using the --date option.
+     * Default is -1 (no limit).
+     */
+    private long limit = -1;
 
     /**
      * `-c`: Check, perform only specific check by index (0-`getNumberOfChecks()`).
@@ -113,7 +119,16 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         }
 
         // `-d`: Dates, show all dates that the report was generated for a specific check type.
-        showDates = commandLine.hasOption('d');
+        if (commandLine.hasOption('d')) {
+            showDates = commandLine.hasOption('d');
+            try {
+                limit = Long.parseLong(commandLine.getOptionValue("l"));
+            } catch (NumberFormatException e) {
+                handler.logError("Invalid value for -l. Must be a valid number.");
+                return;
+            }
+        }
+
 
         // `-f`: From, specify the start date for the report.
         from = parseDateOption(commandLine.getOptionValue('f'));
@@ -256,9 +271,12 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         try (Context context = new Context()) {
             context.setCurrentUser(ePersonService.find(context, getEpersonIdentifier()));
             List<ReportResult> allReports = reportResultService.findAll(context);
-
+            // Determine how many reports to process, respecting the `limit` if it's within valid range
+            long limitCount = (limit > 0 && limit < allReports.size()) ? limit : allReports.size();
             Map<String, List<DateWithArgs>> reportDatesMap = new HashMap<>();
-            for (ReportResult report : allReports) {
+            for (long i = 0; i < limitCount; i++) {
+                // the newest report is at the end of the list, so we reverse the index
+                ReportResult report = allReports.get(allReports.size() - 1 - (int) i);
                 String formattedDate = FORMATTER.format(report.getLastModified()
                         .toInstant()
                         .atZone(ZoneId.systemDefault()).toLocalDateTime());
@@ -276,7 +294,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                                 .append("  - ")
                                 .append(dwa.getDate())
                                 .append(" | ")
-                                .append(dwa.getArgs().stripLeading())
+                                .append(dwa.getArgs() != null ? dwa.getArgs().strip() : "")
                                 .append("\n"));
             });
 
