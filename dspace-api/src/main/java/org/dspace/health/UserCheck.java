@@ -75,7 +75,7 @@ public class UserCheck extends Check {
                 if (e.getNetid() != null && e.getNetid().length() > 0) {
                     info.put("Have netid", info.get("Have netid") + 1);
                 }
-                if (e.getNetid() != null && e.getNetid().length() > 0) {
+                if (e.getSelfRegistered()) {
                     info.put("Self registered", info.get("Self registered") + 1);
                 }
             }
@@ -164,9 +164,9 @@ public class UserCheck extends Check {
             jsonOut.put(o.getID());
         }
 
-        // deleting last delimeter character
+        //deleting last delimiter (comma and space)
         if (!objects.isEmpty() && strOut.length() > 1) {
-            strOut.deleteCharAt(strOut.length() - 2);
+            strOut.delete(strOut.length() - 2, strOut.length());
         }
 
         strOut.append("]");
