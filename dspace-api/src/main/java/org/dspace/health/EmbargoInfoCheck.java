@@ -7,6 +7,7 @@
  */
 package org.dspace.health;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -41,14 +42,13 @@ public class EmbargoInfoCheck extends Check {
 
     @Override
     public String run(ReportInfo ri) {
-        Context context = new Context();
         StringBuilder sb = new StringBuilder();
 
         ItemService itemService = ContentServiceFactory.getInstance().getItemService();
         CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
         CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
 
-        try {
+        try (Context context = new Context()) {
             Iterator<Item> items = itemService.findAll(context);
             while (items.hasNext()) {
                 Item item = items.next();
@@ -71,8 +71,8 @@ public class EmbargoInfoCheck extends Check {
                 collectEmbargoedObjectInfos(com.getResourcePolicies(), embComs, com.getID(), null);
             }
 
-        } catch (Exception e) {
-            throw new RuntimeException("Error while processing embargo check", e);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error while fetching items, collections or communities ", e);
         }
 
         appendReport(sb, "Items", embItems, false);
@@ -88,7 +88,6 @@ public class EmbargoInfoCheck extends Check {
         sb.append(String.format("Communities: %d\n", embComs.size()));
         sb.append(String.format("Collections: %d\n", embCols.size()));
 
-        context.close();
         return sb.toString();
     }
 
@@ -106,7 +105,9 @@ public class EmbargoInfoCheck extends Check {
 
     private void appendReport(StringBuilder sb, String label, List<EmbargoInfo> list, boolean includeParent) {
         int size = list.size();
-        if (size == 0) { return; }
+        if (size == 0) {
+            return;
+        }
 
         sb.append(String.format("\n%s (%d):\n", label, size));
         if (includeParent) {
