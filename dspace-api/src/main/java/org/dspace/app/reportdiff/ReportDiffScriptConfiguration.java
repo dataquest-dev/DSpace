@@ -46,10 +46,10 @@ public class ReportDiffScriptConfiguration<T extends ReportDiff> extends ScriptC
             options.addOption("d", "dates", false, "Show all report dates");
 //            options.getOption("d").setType(Boolean.class);
 
-            options.addOption("f", "from", true,"Report from specific date.");
+            options.addOption("f", "from", true,"Report from specific date [YYYY-MM-DD HH:mm:ss.SSS].");
             options.getOption("f").setType(String.class);
 
-            options.addOption("t", "to", true,"Report to specific date.");
+            options.addOption("t", "to", true,"Report to specific date [YYYY-MM-DD HH:mm:ss.SSS].");
             options.getOption("t").setType(String.class);
 //            options.addOption("f", "for", true,
 //                    "Report for last N days. Used only in general information for now.");
