@@ -308,4 +308,33 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         List<String> infoMessages = handler.getInfoMessages();
         assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/key: \"value1\" -> \"value2\"")));
     }
+
+    @Test
+    public void testShowDatesLimit() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[]}");
+        report1.setLastModified(new Date(1000));
+        reportResultService.update(context, report1);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[]}");
+        report2.setLastModified(new Date(2000));
+        reportResultService.update(context, report2);
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-d", "-l", "1" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat(infoMessages, hasItem(containsString("Report Dates Summary:")));
+        assertThat(infoMessages, hasItem(containsString("Report Type: healthcheck")));
+        assertThat(infoMessages, not(hasItem(containsString(formatDate(report1.getLastModified())))));
+        assertThat(infoMessages, hasItem(containsString(formatDate(report2.getLastModified()))));
+    }
 }

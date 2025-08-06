@@ -143,7 +143,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             return;
         }
 
-        try (Context context = new Context()){
+        try (Context context = new Context()) {
             context.setCurrentUser(ePersonService.find(context, this.getEpersonIdentifier()));
 
             ReportInfo ri = new ReportInfo(this.forLastNDays);
