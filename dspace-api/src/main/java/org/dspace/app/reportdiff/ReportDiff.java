@@ -114,13 +114,14 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         if (commandLine.hasOption('c')) {
             specificCheck = parseCheckOption(commandLine.getOptionValue('c'));
             if (specificCheck == -1) {
+                // Error already logged in parseCheckOption
                 return;
             }
         }
 
         // `-d`: Dates, show all dates that the report was generated for a specific check type.
         if (commandLine.hasOption('d')) {
-            showDates = commandLine.hasOption('d');
+            showDates = true;
             try {
                 limit = Long.parseLong(commandLine.getOptionValue("l"));
             } catch (NumberFormatException e) {
