@@ -43,7 +43,9 @@ public class ReportDiffScriptConfiguration<T extends ReportDiff> extends ScriptC
                             "otherwise perform default checks).", HealthReport.getNumberOfChecks() - 1));
             options.getOption("c").setType(String.class);
 
-            options.addOption("d", "dates", false, "Show all report dates");
+            options.addOption("d", "dates", false,options.addOption("l", "limit", true, "Limit the number of report entries to this value. " +
+                    "If not specified, all entries are shown.");
+            options.getOption("l").setType(String.class);
 
             options.addOption("f", "from", true,"Report from specific date [YYYY-MM-DD HH:mm:ss.SSS].");
             options.getOption("f").setType(String.class);
