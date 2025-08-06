@@ -8,6 +8,7 @@
 package org.dspace.app.reportdiff;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -17,6 +18,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -118,14 +120,17 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             displayReportDates();
             return;
         }
+        try (Context context = new Context()) {
+            defaultDate(context);
 
-        // If the user specified a specific check, we need to ensure that both `from` and `to` dates are set.
-        if (!validateDateRange()) {
-            return;
+            // If the user specified a specific check, we need to ensure that both `from` and `to` dates are set.
+            if (!validateDateRange()) {
+                return;
+            }
+
+            // If the user specified a specific check, we will parse the dates and compare the reports.
+            compareReports(context);
         }
-
-        // If the user specified a specific check, we will parse the dates and compare the reports.
-        compareReports();
     }
 
 
@@ -184,11 +189,39 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             handler.logError("The 'to' date cannot be before the 'from' date.");
             return false;
         }
-        if ((to != null && from == null) || (from != null && to == null)) {
-            handler.logError("Both 'from' and 'to' dates must be specified together.");
-            return false;
-        }
         return true;
+    }
+
+    /**
+     * Sets default values for the `from` and `to` dates if they are not already specified.
+     *
+     * @param context the application context used for fetching reports and logging
+     */
+    private void defaultDate(Context context) {
+        if (Objects.nonNull(from) && Objects.nonNull(to)) {
+            return;
+        }
+        handler.logInfo("No dates specified, using the last two dates from the database.");
+        try {
+            List<ReportResult> allReports = reportResultService.findAll(context);
+
+            if (allReports == null || allReports.isEmpty()) {
+                handler.logInfo("No reports found in the database.");
+                return;
+            }
+
+            int size = allReports.size();
+
+            if (Objects.isNull(to) && size > 0) {
+                to = allReports.get(size - 1).getLastModified();
+            }
+            if (Objects.isNull(from) && size > 1) {
+                from = allReports.get(size - 2).getLastModified();
+            }
+        } catch (SQLException e) {
+            handler.logError("Database error while fetching reports for default dates: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -221,7 +254,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                                 .append("  - ")
                                 .append(dwa.getDate())
                                 .append(" | ")
-                                .append(dwa.getArgs())
+                                .append(dwa.getArgs().stripLeading())
                                 .append("\n"));
             });
 
@@ -235,9 +268,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * Compare two reports based on the specified `from` and `to` dates.
      * If the reports are not found, log an appropriate message.
      * If the reports are found, generate a comparison report showing the differences.
+     *
+     * @param context the application context
      */
-    private void compareReports() {
-        try (Context context = new Context()) {
+    private void compareReports(Context context) {
+        try {
             context.setCurrentUser(ePersonService.find(context, getEpersonIdentifier()));
 
             ReportResult fromReport = specificCheck != -1
