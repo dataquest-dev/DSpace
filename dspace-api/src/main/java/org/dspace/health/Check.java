@@ -22,12 +22,13 @@ public abstract class Check {
     long took_ = -1L;
     String report_ = null;
     private String errors_ = "";
-    private JSONObject reportJson_ = new JSONObject();
+    private JSONObject reportJson_;
 
     // this method should be overridden
     protected abstract String run(ReportInfo ri);
 
     public void report(ReportInfo ri) {
+        reportJson_ = new JSONObject();
         took_ = System.currentTimeMillis();
         try {
             String run_report = run(ri);

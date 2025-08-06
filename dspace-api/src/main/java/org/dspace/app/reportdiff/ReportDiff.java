@@ -86,7 +86,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      */
     private String[] emails;
 
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
 
     @Override
@@ -188,7 +188,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             return null;
         }
         try {
-            LocalDateTime ldt = LocalDateTime.parse(optionValue, formatter);
+            LocalDateTime ldt = LocalDateTime.parse(optionValue, FORMATTER);
             return Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
         } catch (Exception e) {
             handler.logError("Cannot create a Date from the input: " + optionValue);
@@ -206,6 +206,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     private boolean validateDateRange() {
         if (to != null && from != null && to.before(from)) {
             handler.logError("The 'to' date cannot be before the 'from' date.");
+            return false;
+        } else if (Objects.isNull(from) || Objects.isNull(to)) {
+            handler.logError("Only one report found. Cannot compare without at least two reports.");
             return false;
         }
         return true;
@@ -256,7 +259,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
             Map<String, List<DateWithArgs>> reportDatesMap = new HashMap<>();
             for (ReportResult report : allReports) {
-                String formattedDate = formatter.format(report.getLastModified()
+                String formattedDate = FORMATTER.format(report.getLastModified()
                         .toInstant()
                         .atZone(ZoneId.systemDefault()).toLocalDateTime());
                 reportDatesMap.computeIfAbsent(report.getType(), k -> new ArrayList<>())

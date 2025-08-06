@@ -23,6 +23,7 @@ import javax.persistence.TemporalType;
 
 import org.dspace.core.ReloadableEntity;
 import org.dspace.eperson.EPerson;
+import org.hibernate.annotations.UpdateTimestamp;
 
 /**
  * ReportResult is an entity that stores the results of a Health Report execution.
@@ -54,9 +55,10 @@ public class ReportResult implements ReloadableEntity<Integer> {
     @Column(name = "args")
     private String args;
 
-    @Column(name = "last_modified", columnDefinition = "timestamp with time zone")
+    @Column(name = "last_modified")
+    @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    private Date lastModified = new Date();
+    private Date lastModified;
 
     @Override
     public Integer getID() {

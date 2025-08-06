@@ -12,21 +12,21 @@ import org.dspace.app.healthreport.HealthReport;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 
 /**
- * This class represents a HealthReport that is used in the CLI.
+ * This class represents a ReportDiff script configuration that is used in the CLI.
  * @author Matus Kasak (dspace at dataquest.sk)
  */
 public class ReportDiffScriptConfiguration<T extends ReportDiff> extends ScriptConfiguration<T> {
 
-    private Class<T> dspaceRunnableclass;
+    private Class<T> dspaceRunnableClass;
 
     @Override
     public Class<T> getDspaceRunnableClass() {
-        return dspaceRunnableclass;
+        return dspaceRunnableClass;
     }
 
     @Override
     public void setDspaceRunnableClass(Class<T> dspaceRunnableClass) {
-        this.dspaceRunnableclass = dspaceRunnableClass;
+        this.dspaceRunnableClass = dspaceRunnableClass;
     }
 
     @Override

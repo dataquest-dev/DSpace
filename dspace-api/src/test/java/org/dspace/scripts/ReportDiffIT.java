@@ -68,13 +68,13 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[]}");
+        report1.setLastModified(new Date(1000));
         reportResultService.update(context, report1);
-
-        Thread.sleep(10);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[]}");
+        report2.setLastModified(new Date(2000));
         reportResultService.update(context, report2);
 
         context.restoreAuthSystemState();
@@ -97,13 +97,13 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
+        report1.setLastModified(new Date(1000));
         reportResultService.update(context, report1);
-
-        Thread.sleep(10);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}}]}");
+        report2.setLastModified(new Date(2000));
         reportResultService.update(context, report2);
 
         context.restoreAuthSystemState();
@@ -128,15 +128,15 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}},{\"name\":\"Check2\"" +
                 ",\"report\":{\"key\":\"other\"}}]}");
         report1.setArgs("-c: 0");
+        report1.setLastModified(new Date(1000));
         reportResultService.update(context, report1);
-
-        Thread.sleep(10);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}},{\"name\":\"Check2\"" +
                 ",\"report\":{\"key\":\"other\"}}]}");
         report2.setArgs("-c: 0");
+        report2.setLastModified(new Date(2000));
         reportResultService.update(context, report2);
 
         context.restoreAuthSystemState();
@@ -203,13 +203,13 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
         report1.setValue(null); // Missing value
+        report1.setLastModified(new Date(1000));
         reportResultService.update(context, report1);
-
-        Thread.sleep(10);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[]}");
+        report2.setLastModified(new Date(2000));
         reportResultService.update(context, report2);
 
         context.restoreAuthSystemState();
@@ -230,13 +230,13 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
+        report1.setLastModified(new Date(1000));
         reportResultService.update(context, report1);
-
-        Thread.sleep(10);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
+        report2.setLastModified(new Date(2000));
         reportResultService.update(context, report2);
 
         context.restoreAuthSystemState();
@@ -257,13 +257,14 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
+        report1.setLastModified(new Date(1000));
         reportResultService.update(context, report1);
 
-        Thread.sleep(10);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
+        report2.setLastModified(new Date(2000));
         reportResultService.update(context, report2);
 
         context.restoreAuthSystemState();
@@ -285,16 +286,16 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}},{\"name\":\"Check2\"" +
                 ",\"report\":{\"key\":\"other\"}}]}");
+        report1.setLastModified(new Date(1000));
         report1.setArgs("-c: 0");
         reportResultService.update(context, report1);
-
-        Thread.sleep(10);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}},{\"name\":\"Check2\"" +
                 ",\"report\":{\"key\":\"other\"}}]}");
         report2.setArgs("-c: 0");
+        report2.setLastModified(new Date(2000));
         reportResultService.update(context, report2);
 
         context.restoreAuthSystemState();
