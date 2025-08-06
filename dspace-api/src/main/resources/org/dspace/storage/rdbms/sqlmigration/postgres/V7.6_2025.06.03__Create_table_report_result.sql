@@ -12,7 +12,7 @@ CREATE TABLE report_result (
     value TEXT,
     executor_id UUID REFERENCES EPerson(uuid) ON DELETE SET NULL,
     args TEXT,
-    last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    last_modified TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 --
@@ -25,3 +25,7 @@ CREATE SEQUENCE report_result_id_seq
     NO MAXVALUE
     NO MINVALUE
     CACHE 1;
+
+ALTER TABLE report_result
+  ALTER COLUMN report_result_id
+    SET DEFAULT nextval('report_result_id_seq');

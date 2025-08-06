@@ -143,8 +143,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             return;
         }
 
-        Context context = new Context();
-        try {
+        try (Context context = new Context()){
             context.setCurrentUser(ePersonService.find(context, this.getEpersonIdentifier()));
 
             ReportInfo ri = new ReportInfo(this.forLastNDays);
@@ -219,8 +218,6 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             }
 
             handler.logInfo(sbReport.toString());
-        } finally {
-            context.complete();
         }
     }
 
@@ -247,7 +244,11 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
         for (Option option : commandLine.getOptions()) {
             String key = option.getOpt();
             String value = commandLine.getOptionValue(key);
-            options.append(String.format("  -%s: %s\n", key, value));
+            if (value != null) {
+                options.append(String.format("  -%s: %s\n", key, value));
+            } else {
+                options.append(String.format("  -%s\n", key));
+            }
         }
         return options.toString();
     }

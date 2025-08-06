@@ -51,10 +51,34 @@ public interface ReportResultService {
      */
     ReportResult find(Context context, int id) throws SQLException;
 
+    /**
+     * Find all ReportResult instances.
+     *
+     * @param context the DSpace context
+     * @return list of all ReportResult instances
+     * @throws SQLException if a database error occurs
+     */
     List<ReportResult> findAll(Context context) throws SQLException;
 
+    /**
+     * Find a ReportResult by its last modified date.
+     *
+     * @param context the DSpace context
+     * @param lastModified the exact last modified date to search for
+     * @return the ReportResult with the given date, or null if not found
+     * @throws SQLException if a database error occurs
+     */
     ReportResult findByLastModified(Context context, Date lastModified) throws SQLException;
 
+    /**
+     * Find a ReportResult by last modified date and check type.
+     *
+     * @param context the DSpace context
+     * @param lastModified the exact last modified date to search for
+     * @param checkType the check type index to filter by
+     * @return the matching ReportResult, or null if not found
+     * @throws SQLException if a database error occurs
+     */
     ReportResult findByLastModifiedAndCheckType(Context context, Date lastModified, int checkType) throws SQLException;
 
     /**
