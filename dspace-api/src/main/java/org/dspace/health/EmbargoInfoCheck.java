@@ -106,7 +106,7 @@ public class EmbargoInfoCheck extends Check {
 
     private void appendReport(StringBuilder sb, String label, List<EmbargoInfo> list, boolean includeParent) {
         int size = list.size();
-        if (size == 0) return;
+        if (size == 0) { return; }
 
         sb.append(String.format("\n%s (%d):\n", label, size));
         if (includeParent) {
