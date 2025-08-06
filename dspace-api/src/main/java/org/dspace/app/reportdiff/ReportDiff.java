@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -24,15 +25,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.zjsonpatch.JsonDiff;
 import org.apache.commons.cli.ParseException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.healthreport.HealthReport;
 import org.dspace.content.ReportResult;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ReportResultService;
 import org.dspace.core.Context;
+import org.dspace.core.Email;
+import org.dspace.core.I18nUtil;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.utils.DSpace;
+
+import javax.mail.MessagingException;
 
 /**
  * This class implements a DSpace script that compares two health reports
@@ -42,6 +49,8 @@ import org.dspace.utils.DSpace;
  * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
+    private static final Logger log = LogManager.getLogger(ReportDiff.class);
+
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private ReportResultService reportResultService = ContentServiceFactory.getInstance().getReportResultService();
@@ -71,6 +80,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * `-t`: Till, specify the end date for the report.
      */
     private Date to = null;
+
+    /**
+     * `-e`: Email, send report to specified email address.
+     */
+    private String[] emails;
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -105,6 +119,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         from = parseDateOption(commandLine.getOptionValue('f'));
         // `-t`: To, specify the end date for the report.
         to = parseDateOption(commandLine.getOptionValue('t'));
+
+        if (commandLine.hasOption('e')) {
+            emails = commandLine.getOptionValues('e');
+            handler.logInfo("\nReport sent to this email address: " + String.join(", ", emails));
+        }
     }
 
     @Override
@@ -288,7 +307,23 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 return;
             }
 
-            handler.logInfo(generateReportComparison(fromReport, toReport));
+            String reportDif = generateReportComparison(fromReport, toReport);
+            // send email to email address from argument
+            if (emails != null && emails.length > 0) {
+                try {
+                    Email e = Email.getEmail(I18nUtil.getEmailFilename(Locale.getDefault(), "report_diff"));
+                    for (String recipient : emails) {
+                        e.addRecipient(recipient);
+                    }
+                    e.addArgument(reportDif);
+                    e.send();
+                    handler.logInfo("Report sent to: " + String.join(", ", emails));
+                } catch (IOException | MessagingException e) {
+                    log.error("Error sending email:", e);
+                }
+            }
+
+            handler.logInfo(reportDif);
         } catch (Exception e) {
             handler.logError("Error comparing reports: " + e.getMessage());
         }
@@ -330,6 +365,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         handler.logInfo("If you want to see all available report dates, use the '-d' option.");
         handler.logInfo("If you want to compare a specific check, use the '-c' option with the check index, " +
                 "in this case you must also specify the `from` and `to` dates.");
+        handler.logInfo("If you want to send the report to a specified email address, use '-e'.");
     }
 
 
