@@ -102,6 +102,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.context.junit.jupiter.EnabledIf;
 
 /**
  * Integration test to test the /api/core/bitstreams/[id]/* endpoints
@@ -1561,6 +1562,8 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     }
 
+    @EnabledIf(expression = "#{environment['s3.download.direct.enabled'] == 'true'}",
+            reason = "Requires direct S3 download enabled")
     @Test
     public void testS3DirectDownloadRedirect() throws Exception {
         // Enable S3 direct download for test
