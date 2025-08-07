@@ -242,5 +242,47 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
 
     public ResourcePolicy findOneById(Context context, Integer id) throws SQLException;
 
+    /**
+     * Return a paginated list of all resource policies
+     *
+     * @param context        DSpace context object
+     * @param offset         the position of the first result to return
+     * @param limit          paging limit
+     * @return               list of resource policies
+     * @throws SQLException  if database error
+     */
+    public List<ResourcePolicy> findAll(Context context, int offset, int limit) throws SQLException;
 
+    /**
+     * Count all the resource policies
+     *
+     * @param context        DSpace context object
+     * @return               total resource policies
+     * @throws SQLException  if database error
+     */
+    public int countAll(Context context) throws SQLException;
+
+    /**
+     * Find all resource policies that have a start date or end date set.
+     *
+     * @param context        DSpace context object
+     * @param hasStartDate   true if looking for policies with a start date, false otherwise
+     * @param hasEndDate     true if looking for policies with an end date, false otherwise
+     * @param offset         the position of the first result to return
+     * @param limit          paging limit
+     * @return               list of resource policies matching the criteria
+     * @throws SQLException  if database error
+     */
+    public List<ResourcePolicy> findByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate,
+                                                   int offset, int limit) throws SQLException;
+
+    /**
+     * Count all resource policies that have a start date or end date set.
+     * @param context        DSpace context object
+     * @param hasStartDate   true if looking for policies with a start date, false otherwise
+     * @param hasEndDate     true if looking for policies with an end date, false otherwise
+     * @return               total resource policies matching the criteria
+     * @throws SQLException  if database error
+     */
+    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException;
 }

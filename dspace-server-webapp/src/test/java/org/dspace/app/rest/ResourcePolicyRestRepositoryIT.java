@@ -9,8 +9,7 @@ package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.data.rest.webmvc.RestMediaTypes.TEXT_URI_LIST_VALUE;
 import static org.springframework.http.MediaType.parseMediaType;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -3741,4 +3740,78 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
                              .andExpect(status().isUnprocessableEntity());
     }
 
+
+
+
+    @Test
+    public void findEmbargoByResourceTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Príprava dát
+        Community community = CommunityBuilder.createCommunity(context).withName("Test Community").build();
+        Collection collection = CollectionBuilder.createCollection(context, community).withName("Test Collection").build();
+        Item item = ItemBuilder.createItem(context, collection).withTitle("Item with Embargo").build();
+
+        // Získame skupinu Anonymov
+        Group groupAnonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
+
+        // Dátum začiatku embarga
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.set(Calendar.YEAR, 2019);
+        calendar1.set(Calendar.MONTH, 9);
+        calendar1.set(Calendar.DATE, 31);
+        Date embargoStartDate = calendar1.getTime();
+
+        // Dátum konca embarga
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.set(Calendar.YEAR, 2200);
+        calendar2.set(Calendar.MONTH, 9);
+        calendar2.set(Calendar.DATE, 31);
+        Date embargoEndDate = calendar2.getTime();
+
+        ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withStartDate(embargoStartDate)
+                .build();
+
+        ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withStartDate(embargoStartDate)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(authToken)
+                .perform(get("/api/authz/resourcepolicies/search/embargo"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(4)))
+                .andExpect(jsonPath("$._embedded.resourcepolicies", hasItem(
+                        ResourcePolicyMatcher.matchResourcePolicy(rpWithStartDate)
+                )))
+                .andExpect(jsonPath("$._embedded.resourcepolicies", hasItem(
+                        ResourcePolicyMatcher.matchResourcePolicy(rpWithEndDate)
+                )))
+                .andExpect(jsonPath("$._embedded.resourcepolicies", hasItem(
+                        ResourcePolicyMatcher.matchResourcePolicy(rpWithBothDates)
+                )))
+                .andExpect(jsonPath("$._embedded.resourcepolicies", hasItem(
+                        ResourcePolicyMatcher.matchResourcePolicy(rpWithoutDates)
+                )));
+    }
 }

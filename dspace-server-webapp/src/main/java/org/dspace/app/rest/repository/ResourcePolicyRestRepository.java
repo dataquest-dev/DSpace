@@ -9,10 +9,12 @@ package org.dspace.app.rest.repository;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.DiscoverableEndpointsService;
@@ -33,6 +35,8 @@ import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.indexobject.IndexableDSpaceObject;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.EPersonService;
@@ -219,6 +223,47 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             throw new RuntimeException(e.getMessage(), e);
         }
         return converter.toRestPage(resourcePolisies, pageable, total, utils.obtainProjection());
+    }
+
+    /**
+     * Find resource policies based on the presence of a start or end date.
+     * If no parameters are provided, it returns all resource policies from the database.
+     *
+     * @param hasStartDate if true, returns policies that have a start date set.
+     * @param hasEndDate   if true, returns policies that have an end date set.
+     * @param pageable     contains the pagination information.
+     * @return a Page of ResourcePolicyRest instances matching the criteria.
+     */
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @SearchRestMethod(name = "embargo")
+    public Page<ResourcePolicyRest> findByDatePresence(
+            @Parameter(value = "hasStartDate", required = false) Boolean hasStartDate,
+            @Parameter(value = "hasEndDate", required = false) Boolean hasEndDate,
+            Pageable pageable) {
+
+        List<ResourcePolicy> policies;
+        long total;
+
+        boolean bHasStartDate = hasStartDate != null && hasStartDate;
+        boolean bHasEndDate = hasEndDate != null && hasEndDate;
+
+        try {
+            Context context = obtainContext();
+            if (!bHasStartDate && !bHasEndDate) {
+                policies = resourcePolicyService.findAll(context,
+                        Math.toIntExact(pageable.getOffset()), Math.toIntExact(pageable.getPageSize()));
+                total = resourcePolicyService.countAll(context);
+            } else {
+                policies = resourcePolicyService.findByDatePresence(context, bHasStartDate, bHasEndDate,
+                        Math.toIntExact(pageable.getOffset()), Math.toIntExact(pageable.getPageSize()));
+                total = resourcePolicyService.countByDatePresence(context, bHasStartDate, bHasEndDate);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        return converter.toRestPage(policies, pageable, total, utils.obtainProjection());
     }
 
     @Override

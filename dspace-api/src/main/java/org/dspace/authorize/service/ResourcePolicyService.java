@@ -32,6 +32,26 @@ public interface ResourcePolicyService {
     public ResourcePolicy find(Context context, int id) throws SQLException;
 
     /**
+     * Finds all ResourcePolicies in the database with pagination.
+     *
+     * @param context The relevant DSpace Context.
+     * @param offset  The number of records to skip.
+     * @param limit   The number of records to retrieve.
+     * @return A list of ResourcePolicy objects.
+     * @throws SQLException If a database error occurs.
+     */
+    public List<ResourcePolicy> findAll(Context context, int offset, int limit) throws SQLException;
+
+    /**
+     * Counts the total number of ResourcePolicies in the database.
+     *
+     * @param context The relevant DSpace Context.
+     * @return The total number of policies.
+     * @throws SQLException If a database error occurs.
+     */
+    public int countAll(Context context) throws SQLException;
+
+    /**
      * Persist a model object.
      *
      * @param context
@@ -299,6 +319,31 @@ public interface ResourcePolicyService {
      * @throws SQLException  if database error
      */
     public int countByGroupAndResourceUuid(Context context, Group group, UUID resourceUuid) throws SQLException;
+
+    /**
+     * Finds resource policies based on the presence of a start or end date.
+     *
+     * @param context      The relevant DSpace Context.
+     * @param hasStartDate If true, the query will filter for policies where startDate is not null.
+     * @param hasEndDate   If true, the query will filter for policies where endDate is not null.
+     * @param offset       The number of records to skip (for pagination).
+     * @param limit        The number of records to retrieve (for pagination).
+     * @return A list of matching ResourcePolicy objects.
+     * @throws SQLException If a database error occurs.
+     */
+    public List<ResourcePolicy> findByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate,
+                                                   int offset, int limit) throws SQLException;
+
+    /**
+     * Counts resource policies based on the presence of a start or end date.
+     *
+     * @param context      The relevant DSpace Context.
+     * @param hasStartDate If true, the query will count policies where startDate is not null.
+     * @param hasEndDate   If true, the query will count policies where endDate is not null.
+     * @return The total number of matching policies.
+     * @throws SQLException If a database error occurs.
+     */
+    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException;
 
     /**
      * Check if the resource policy identified with (id) belong to ePerson

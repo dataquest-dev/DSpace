@@ -403,4 +403,56 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
         criteriaQuery.where(criteriaBuilder.equal(resourcePolicyRoot.get(ResourcePolicy_.id), id));
         return singleResult(context, criteriaQuery);
     }
+
+    @Override
+    public List<ResourcePolicy> findAll(Context context, int offset, int limit) throws SQLException {
+        Query query = createQuery(context, "SELECT rp FROM ResourcePolicy rp ORDER BY rp.id");
+        query.setFirstResult(offset);
+        query.setMaxResults(limit);
+        return list(query);
+    }
+
+    @Override
+    public int countAll(Context context) throws SQLException {
+        Query query = createQuery(context, "SELECT count(rp.id) FROM ResourcePolicy rp");
+        return count(query);
+    }
+
+    @Override
+    public List<ResourcePolicy> findByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate,
+                                                   int offset, int limit) throws SQLException {
+        StringBuilder queryBuilder = new StringBuilder("SELECT rp FROM ResourcePolicy rp");
+
+        if (hasStartDate && hasEndDate) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL OR rp.endDate IS NOT NULL");
+        } else if (hasStartDate) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL");
+        } else if (hasEndDate) {
+            queryBuilder.append(" WHERE rp.endDate IS NOT NULL");
+        }
+
+        queryBuilder.append(" ORDER BY rp.id");
+
+        Query query = createQuery(context, queryBuilder.toString());
+        query.setFirstResult(offset);
+        query.setMaxResults(limit);
+
+        return list(query);
+    }
+
+    @Override
+    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException {
+        StringBuilder queryBuilder = new StringBuilder("SELECT count(rp.id) FROM ResourcePolicy rp");
+
+        if (hasStartDate && hasEndDate) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL OR rp.endDate IS NOT NULL");
+        } else if (hasStartDate) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL");
+        } else if (hasEndDate) {
+            queryBuilder.append(" WHERE rp.endDate IS NOT NULL");
+        }
+
+        Query query = createQuery(context, queryBuilder.toString());
+        return count(query);
+    }
 }

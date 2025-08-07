@@ -67,6 +67,16 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         return resourcePolicyDAO.findByID(context, ResourcePolicy.class, id);
     }
 
+    @Override
+    public List<ResourcePolicy> findAll(Context context, int offset, int limit) throws SQLException {
+        return resourcePolicyDAO.findAll(context, offset, limit);
+    }
+
+    @Override
+    public int countAll(Context context) throws SQLException {
+        return resourcePolicyDAO.countAll(context);
+    }
+
     /**
      * Create a new ResourcePolicy
      *
@@ -408,6 +418,17 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
     @Override
     public int countByGroupAndResourceUuid(Context context, Group group, UUID resourceUuid) throws SQLException {
         return resourcePolicyDAO.countByGroupAndResourceUuid(context, group, resourceUuid);
+    }
+
+    @Override
+    public List<ResourcePolicy> findByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate,
+                                                   int offset, int limit) throws SQLException {
+        return resourcePolicyDAO.findByDatePresence(context, hasStartDate, hasEndDate, offset, limit);
+    }
+
+    @Override
+    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException {
+        return resourcePolicyDAO.countByDatePresence(context, hasStartDate, hasEndDate);
     }
 
     @Override
