@@ -149,8 +149,9 @@ public class BitstreamRestController {
 
         try {
             boolean s3DirectDownload = configurationService.getBooleanProperty("s3.download.direct.enabled");
+            boolean s3AssetstoreEnabled = configurationService.getBooleanProperty("assetstore.s3.enabled");
             boolean hasOriginalBundle = false;
-            if (s3DirectDownload) {
+            if (s3DirectDownload && s3AssetstoreEnabled) {
                 // Download only files which are stored in the `ORIGINAL` bundle, because some specific files are
                 // not correctly downloaded and displayed in the UI when using presigned URLs. E.g., the
                 // process output.
