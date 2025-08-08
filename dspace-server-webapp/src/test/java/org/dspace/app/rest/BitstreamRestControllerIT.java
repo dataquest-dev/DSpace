@@ -101,7 +101,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.IfProfileValue;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
@@ -111,7 +110,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
  * @author Tom Desair (tom dot desair at atmire dot com)
  * @author Frederic Van Reet (frederic dot vanreet at atmire dot com)
  */
-@TestPropertySource(locations = "classpath:dspace.cfg")
 public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest {
 
     protected SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
