@@ -100,6 +100,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
@@ -1562,6 +1563,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    @IfProfileValue(name = "s3.download.direct.enabled", value = "true")
     public void testS3DirectDownloadRedirect() throws Exception {
         // Enable S3 direct download for test
         configurationService.setProperty("s3.download.direct.enabled", true);

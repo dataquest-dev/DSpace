@@ -149,8 +149,9 @@ public class BitstreamRestController {
 
         try {
             boolean s3DirectDownload = configurationService.getBooleanProperty("s3.download.direct.enabled");
+            boolean s3AssetstoreEnabled = configurationService.getBooleanProperty("assetstore.s3.enabled");
             boolean hasOriginalBundle = false;
-            if (s3DirectDownload) {
+            if (s3DirectDownload && s3AssetstoreEnabled) {
                 // Download only files which are stored in the `ORIGINAL` bundle, because some specific files are
                 // not correctly downloaded and displayed in the UI when using presigned URLs. E.g., the
                 // process output.
@@ -165,6 +166,9 @@ public class BitstreamRestController {
                 new org.dspace.app.rest.utils.BitstreamResource(name, uuid,
                     currentUser != null ? currentUser.getID() : null,
                     context.getSpecialGroupUuids(), citationEnabledForBitstream);
+
+            // Track the download statistics - only if the downloading has started (the condition is inside the method)
+            matomoBitstreamTracker.trackBitstreamDownload(context, request, bit, false);
 
             HttpHeadersInitializer httpHeadersInitializer = new HttpHeadersInitializer()
                 .withBufferSize(BUFFER_SIZE)
@@ -187,9 +191,6 @@ public class BitstreamRestController {
                     || checkFormatForContentDisposition(format)) {
                 httpHeadersInitializer.withDisposition(HttpHeadersInitializer.CONTENT_DISPOSITION_ATTACHMENT);
             }
-
-            // Track the download statistics - only if the downloading has started (the condition is inside the method)
-            matomoBitstreamTracker.trackBitstreamDownload(context, request, bit, false);
 
             //We have all the data we need, close the connection to the database so that it doesn't stay open during
             //download/streaming
