@@ -148,14 +148,15 @@ public class VersioningConsumer implements Consumer {
     }
 
     protected void unarchiveItem(Context ctx, Item item) {
-        item.setArchived(false);
-        itemsToProcess.add(item);
-        //Fire a new modify event for our previous item
-        //Due to the need to reindex the item in the search
-        //and browse index we need to fire a new event
-        ctx.addEvent(new Event(
-            Event.MODIFY, item.getType(), item.getID(), null, itemService.getIdentifiers(ctx, item)
-        ));
+//        item.setArchived(false);
+//        itemsToProcess.add(item);
+//        //Fire a new modify event for our previous item
+//        //Due to the need to reindex the item in the search
+//        //and browse index we need to fire a new event
+//        ctx.addEvent(new Event(
+//            Event.MODIFY, item.getType(), item.getID(), null, itemService.getIdentifiers(ctx, item)
+//        ));
+        log.info("This method is empty.");
     }
 
     private void handleOrcidSynchronization(Context ctx, Item previousItem, Item latestItem) {
