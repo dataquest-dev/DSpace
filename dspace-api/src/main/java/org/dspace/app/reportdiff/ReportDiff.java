@@ -123,7 +123,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         if (commandLine.hasOption('d')) {
             showDates = true;
             try {
-                limit = Long.parseLong(commandLine.getOptionValue("l"));
+                if (commandLine.hasOption("l")) {
+                    limit = Long.parseLong(commandLine.getOptionValue("l"));
+                }
             } catch (NumberFormatException e) {
                 handler.logError("Invalid value for -l. Must be a valid number.");
                 return;
