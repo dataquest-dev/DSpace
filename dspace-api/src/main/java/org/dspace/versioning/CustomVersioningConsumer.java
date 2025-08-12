@@ -18,7 +18,6 @@ public class CustomVersioningConsumer extends VersioningConsumer {
 
     @Override
     protected void unarchiveItem(Context ctx, Item item) {
-        log.info("This method is empty.");
-
+        log.info("Override method unarchiveItem in CustomVersioningConsumer is empty.");
     }
 }

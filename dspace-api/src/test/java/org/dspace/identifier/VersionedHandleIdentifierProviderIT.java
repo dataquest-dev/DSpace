@@ -24,6 +24,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class VersionedHandleIdentifierProviderIT extends AbstractIdentifierProviderIT  {
@@ -65,21 +66,25 @@ public class VersionedHandleIdentifierProviderIT extends AbstractIdentifierProvi
         context.restoreAuthSystemState();
     }
 
-//    Commented this test out, will be replaced by new way of creating new versions
-//    @Test
-//    public void testDefaultVersionedHandleProvider() throws Exception {
-//        createVersions();
-//
-//        // Confirm the original item only has its original handle
-//        assertEquals(firstHandle, itemV1.getHandle());
-//        assertEquals(1, itemV1.getHandles().size());
-//        // Confirm the second item has the correct version handle
-//        assertEquals(firstHandle + ".2", itemV2.getHandle());
-//        assertEquals(1, itemV2.getHandles().size());
-//        // Confirm the last item has the correct version handle
-//        assertEquals(firstHandle + ".3", itemV3.getHandle());
-//        assertEquals(1, itemV3.getHandles().size());
-//    }
+    /**
+     * Ignored because Clarin DSpace does not use .2, .3 in creating versions
+     * @throws Exception e
+     */
+    @Ignore
+    @Test
+    public void testDefaultVersionedHandleProvider() throws Exception {
+        createVersions();
+
+        // Confirm the original item only has its original handle
+        assertEquals(firstHandle, itemV1.getHandle());
+        assertEquals(1, itemV1.getHandles().size());
+        // Confirm the second item has the correct version handle
+        assertEquals(firstHandle + ".2", itemV2.getHandle());
+        assertEquals(1, itemV2.getHandles().size());
+        // Confirm the last item has the correct version handle
+        assertEquals(firstHandle + ".3", itemV3.getHandle());
+        assertEquals(1, itemV3.getHandles().size());
+    }
 
     @Test
     public void testCollectionHandleMetadata() {
