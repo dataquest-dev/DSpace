@@ -65,6 +65,22 @@ public class VersionedHandleIdentifierProviderIT extends AbstractIdentifierProvi
         context.restoreAuthSystemState();
     }
 
+//    Commented this test out, will be replaced by new way of creating new versions
+//    @Test
+//    public void testDefaultVersionedHandleProvider() throws Exception {
+//        createVersions();
+//
+//        // Confirm the original item only has its original handle
+//        assertEquals(firstHandle, itemV1.getHandle());
+//        assertEquals(1, itemV1.getHandles().size());
+//        // Confirm the second item has the correct version handle
+//        assertEquals(firstHandle + ".2", itemV2.getHandle());
+//        assertEquals(1, itemV2.getHandles().size());
+//        // Confirm the last item has the correct version handle
+//        assertEquals(firstHandle + ".3", itemV3.getHandle());
+//        assertEquals(1, itemV3.getHandles().size());
+//    }
+
     @Test
     public void testCollectionHandleMetadata() {
         context.turnOffAuthorisationSystem();
