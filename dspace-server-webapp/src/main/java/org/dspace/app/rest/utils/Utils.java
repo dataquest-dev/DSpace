@@ -93,9 +93,11 @@ import org.dspace.app.rest.repository.LinkRestRepository;
 import org.dspace.app.rest.repository.ReloadableEntityObjectRepository;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Context;
+import org.dspace.handle.HandlePlugin;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -1004,21 +1006,26 @@ public class Utils {
     */
     public BaseObjectRest getBaseObjectRestFromUri(Context context, String uri) throws SQLException {
         String dspaceUrl = configurationService.getProperty("dspace.server.url");
+        String dspaceSSRUrl = configurationService.getProperty("dspace.server.ssr.url", dspaceUrl);
 
         // Convert strings to URL objects.
         // Do this early to check that inputs are well-formed.
         URL dspaceUrlObject;
+        URL dspaceUrlSSRObject = null;
         URL requestUrlObject;
         try {
             dspaceUrlObject = new URL(dspaceUrl);
             requestUrlObject = new URL(uri);
+            if (StringUtils.isNoneBlank(dspaceSSRUrl)) {
+                dspaceUrlSSRObject = new URL(dspaceSSRUrl);
+            }
         } catch (MalformedURLException ex) {
             throw new IllegalArgumentException(
                     String.format("Configuration '%s' or request '%s' is malformed", dspaceUrl, uri));
         }
 
         // Check whether the URI could be valid.
-        if (!urlIsPrefixOf(dspaceUrl, uri)) {
+        if (!urlIsPrefixOf(dspaceUrl, uri) && !urlIsPrefixOf(dspaceSSRUrl, uri)) {
             throw new IllegalArgumentException("the supplied uri is not ours: " + uri);
         }
 
@@ -1028,10 +1035,15 @@ public class Utils {
         String[] requestPath = StringUtils.split(requestUrlObject.getPath(), '/');
         String[] uriParts = Arrays.copyOfRange(requestPath, dspacePathLength,
                 requestPath.length);
+
+        int dspaceSSRPathLength = StringUtils.split(dspaceUrlSSRObject.getPath(), '/').length;
+        String[] uriSSRParts = Arrays.copyOfRange(requestPath, dspaceSSRPathLength,
+            requestPath.length);
+
         if ("api".equalsIgnoreCase(uriParts[0])) {
             uriParts = Arrays.copyOfRange(uriParts, 1, uriParts.length);
         }
-        if (uriParts.length != 3) {
+        if (uriParts.length != 3 && uriSSRParts.length != 3) {
             throw new IllegalArgumentException("the supplied uri lacks required path elements: " + uri);
         }
 
@@ -1243,5 +1255,19 @@ public class Utils {
     public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
         Map<Object, Boolean> map = new ConcurrentHashMap<>();
         return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    /**
+     * Get the formatted canonical handle URL without the protocol (http:// or https://).
+     * This is used to create a clean URL for the export formats.
+     */
+    public static String getCanonicalHandleUrlNoProtocol(Item item) {
+        String itemHandle = item.getHandle();
+        if (StringUtils.isBlank(itemHandle)) {
+            return "";
+        }
+        String canonicalHandleUrl = HandlePlugin.getCanonicalHandlePrefix() + itemHandle;
+        // Remove protocol (http:// or https://) if present
+        return canonicalHandleUrl.replaceFirst("^https?://", "");
     }
 }
