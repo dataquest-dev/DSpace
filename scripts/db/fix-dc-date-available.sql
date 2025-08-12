@@ -21,8 +21,8 @@ SAVEPOINT sp_normalize_year_month;
 -- 2a & 2b. Normalize year-only and year-month values
 UPDATE public.metadatavalue mv
 SET text_value = CASE
-    WHEN text_value ~ '^\\d{4}$' THEN text_value || '-01-01T00:00:00Z'
-    WHEN text_value ~ '^\\d{4}-\\d{2}$' AND safe_to_date(text_value || '-01', 'YYYY-MM-DD') IS NOT NULL THEN text_value || '-01T00:00:00Z'
+    WHEN text_value ~ '^\d{4}$' THEN text_value || '-01-01T00:00:00Z'
+    WHEN text_value ~ '^\d{4}-\d{2}$' AND safe_to_date(text_value || '-01', 'YYYY-MM-DD') IS NOT NULL THEN text_value || '-01T00:00:00Z'
     ELSE text_value
 END
 WHERE mv.metadata_field_id IN (
@@ -37,8 +37,8 @@ WITH candidates AS (
     SELECT
         mv.metadata_value_id,
         mv.text_value,
-        CASE WHEN text_value ~ '^\\d{4}-\\d{2}-\\d{2}$' THEN text_value ELSE NULL END AS iso_date,
-        CASE WHEN text_value ~ '^\\d{2}-\\d{2}-\\d{4}' THEN text_value ELSE NULL END AS dmy_date
+        CASE WHEN text_value ~ '^\d{4}-\d{2}-\d{2}$' THEN text_value ELSE NULL END AS iso_date,
+        CASE WHEN text_value ~ '^\d{2}-\d{2}-\d{4}' THEN text_value ELSE NULL END AS dmy_date
     FROM public.metadatavalue mv
     WHERE mv.metadata_field_id IN (
         SELECT metadata_field_id FROM public.metadatafieldregistry
@@ -85,7 +85,7 @@ WITH candidates AS (
         SELECT metadata_field_id FROM public.metadatafieldregistry
         WHERE element = 'date' AND qualifier = 'available'
     )
-    AND text_value ~ '^\\d{1,2}\\.\\s*\\d{1,2}\\.\\s*\\d{4}\\s+\\d{2}:\\d{2}:\\d{2}'
+    AND text_value ~ '^\d{1,2}\.\s*\d{1,2}\.\s*\d{4}\s+\d{2}:\d{2}:\d{2}'
 ),
 updates AS (
     SELECT
