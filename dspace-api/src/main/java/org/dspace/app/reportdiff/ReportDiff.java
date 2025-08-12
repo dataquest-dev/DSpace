@@ -53,7 +53,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private ReportResultService reportResultService = ContentServiceFactory.getInstance().getReportResultService();
+    private ReportResultService reportResultService;
     private EPersonService ePersonService;
 
     /**
@@ -104,6 +104,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     @Override
     public void setup() throws ParseException {
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+        reportResultService = ContentServiceFactory.getInstance().getReportResultService();
         // `-i`: Info, show help information.
         if (commandLine.hasOption('i')) {
             info = true;
@@ -226,7 +227,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             handler.logError("The 'to' date cannot be before the 'from' date.");
             return false;
         } else if (Objects.isNull(from) || Objects.isNull(to)) {
-            handler.logError("Only one report found. Cannot compare without at least two reports.");
+            handler.logError("Both 'from' and 'to' dates must be specified when using a specific check.");
             return false;
         }
         return true;
@@ -343,7 +344,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                     e.send();
                     handler.logInfo("Report sent to: " + String.join(", ", emails));
                 } catch (IOException | MessagingException e) {
-                    log.error("Error sending email:", e);
+                    handler.logError("Error sending email: " + e.getMessage());
                 }
             }
 
