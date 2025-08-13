@@ -1,0 +1,470 @@
+<value-pairs value-pairs-name="vp_program_HGF" dc-term="programme">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value/>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná geologie (B0532A330040)</displayed-value>
+    <stored-value>B0532A330040</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná geologie (B0532A330041)</displayed-value>
+    <stored-value>B0532A330041</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná geologie (N0532A330041)</displayed-value>
+    <stored-value>N0532A330041</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná geologie (N0532A330042)</displayed-value>
+    <stored-value>N0532A330042</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná geologie (P0532D330039)</displayed-value>
+    <stored-value>P0532D330039</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná geologie (P0532D330040)</displayed-value>
+    <stored-value>P0532D330040</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná geologie (U5007)</displayed-value>
+    <stored-value>U5007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Bezpilotní systémy (P0716D270001)</displayed-value>
+    <stored-value>P0716D270001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Bezpilotní systémy (P0716D270002)</displayed-value>
+    <stored-value>P0716D270002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Člověk a životní prostředí (U5008)</displayed-value>
+    <stored-value>U5008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Důlní měřictví (B0724A290007)</displayed-value>
+    <stored-value>B0724A290007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Důlní měřictví (N0724A290010)</displayed-value>
+    <stored-value>N0724A290010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Důlní měřictví a geodézie (P0532D330034)</displayed-value>
+    <stored-value>P0532D330034</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomie pro seniory (U5004)</displayed-value>
+    <stored-value>U5004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (P6208)</displayed-value>
+    <stored-value>P6208</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika surovin (B0724A290003)</displayed-value>
+    <stored-value>B0724A290003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika surovin (B0724A290009)</displayed-value>
+    <stored-value>B0724A290009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika surovin (N0724A290011)</displayed-value>
+    <stored-value>N0724A290011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika surovin (N0724A290014)</displayed-value>
+    <stored-value>N0724A290014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Fyzika (B1701)</displayed-value>
+    <stored-value>B1701</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Fyzika (N1701)</displayed-value>
+    <stored-value>N1701</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Fyzika (P1701)</displayed-value>
+    <stored-value>P1701</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geodézie, kartografie a geoinformatika (B1316)</displayed-value>
+    <stored-value>B1316</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geodézie, kartografie a geoinformatika (čtyřleté) (P3657)</displayed-value>
+    <stored-value>P3657</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geodézie, kartografie a geoinformatika (N3654)</displayed-value>
+    <stored-value>N3654</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geodézie a kartografie (3646R)</displayed-value>
+    <stored-value>3646R</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geodézie a kartografie (3646T)</displayed-value>
+    <stored-value>3646T</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geodézie a kartografie (3646V)</displayed-value>
+    <stored-value>3646V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geodézie a kartografie (B3646)</displayed-value>
+    <stored-value>B3646</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geodézie a kartografie (M3646)</displayed-value>
+    <stored-value>M3646</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geodézie a kartografie (N3646)</displayed-value>
+    <stored-value>N3646</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geodézie a kartografie (P3646)</displayed-value>
+    <stored-value>P3646</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geoinformatika (B0532A330034)</displayed-value>
+    <stored-value>B0532A330034</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geoinformatika (B0532A330042)</displayed-value>
+    <stored-value>B0532A330042</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geoinformatika (N0532A330039)</displayed-value>
+    <stored-value>N0532A330039</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geoinformatika (N0532A330044)</displayed-value>
+    <stored-value>N0532A330044</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geoinformatika (P0532D330037)</displayed-value>
+    <stored-value>P0532D330037</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geoinformatika (P0532D330038)</displayed-value>
+    <stored-value>P0532D330038</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geologické inženýrství (2101R)</displayed-value>
+    <stored-value>2101R</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geologické inženýrství (2101T)</displayed-value>
+    <stored-value>2101T</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geologické inženýrství (B2110)</displayed-value>
+    <stored-value>B2110</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geologické inženýrství (čtyřleté) (P2115)</displayed-value>
+    <stored-value>P2115</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geologické inženýrství (M2110)</displayed-value>
+    <stored-value>M2110</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geologické inženýrství (N2110)</displayed-value>
+    <stored-value>N2110</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geologické inženýrství (P2110)</displayed-value>
+    <stored-value>P2110</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geologie a životní prostředí V (U5002)</displayed-value>
+    <stored-value>U5002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geomontánní turismus pro U3V (U5009)</displayed-value>
+    <stored-value>U5009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geovědní a montánní turismus (B1088A330001)</displayed-value>
+    <stored-value>B1088A330001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geovědní a montánní turismus (N0532A330035)</displayed-value>
+    <stored-value>N0532A330035</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>GPS pro seniory (U5006)</displayed-value>
+    <stored-value>U5006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornické a pozemní stavitelství - neakreditované (dřívější) (3607V)</displayed-value>
+    <stored-value>3607V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví (B2111)</displayed-value>
+    <stored-value>B2111</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví (čtyřleté) (P2117)</displayed-value>
+    <stored-value>P2117</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví (M2111)</displayed-value>
+    <stored-value>M2111</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví (N2111)</displayed-value>
+    <stored-value>N2111</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví (P2111)</displayed-value>
+    <stored-value>P2111</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví a geologie (2101V)</displayed-value>
+    <stored-value>2101V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví a geologie (M2101)</displayed-value>
+    <stored-value>M2101</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví a geologie (P2101)</displayed-value>
+    <stored-value>P2101</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví a hornická geomechanika (P0724D290004)</displayed-value>
+    <stored-value>P0724D290004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví a hornická geomechanika (P0724D290005)</displayed-value>
+    <stored-value>P0724D290005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hornictví a společnost (U5003)</displayed-value>
+    <stored-value>U5003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hospodářská politika a správa (B6202)</displayed-value>
+    <stored-value>B6202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační, komunikační a multimediální systémy pro U3V (U5010)</displayed-value>
+    <stored-value>U5010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika pro seniory (U5005)</displayed-value>
+    <stored-value>U5005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Inženýrská ekologie (3904V)</displayed-value>
+    <stored-value>3904V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Inženýrská ekologie (P3904)</displayed-value>
+    <stored-value>P3904</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Inženýrská geodézie (B0532A330033)</displayed-value>
+    <stored-value>B0532A330033</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Inženýrská geodézie (N0532A330037)</displayed-value>
+    <stored-value>N0532A330037</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Nerostné suroviny (2102R)</displayed-value>
+    <stored-value>2102R</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Nerostné suroviny (2102T)</displayed-value>
+    <stored-value>2102T</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Nerostné suroviny (2102V)</displayed-value>
+    <stored-value>2102V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Nerostné suroviny (B2102)</displayed-value>
+    <stored-value>B2102</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Nerostné suroviny (čtyřleté) (P2116)</displayed-value>
+    <stored-value>P2116</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Nerostné suroviny (M2102)</displayed-value>
+    <stored-value>M2102</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Nerostné suroviny (N2102)</displayed-value>
+    <stored-value>N2102</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Nerostné suroviny (P2102)</displayed-value>
+    <stored-value>P2102</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Odpadové hospodářství a úprava surovin (B0712A290001)</displayed-value>
+    <stored-value>B0712A290001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Odpadové hospodářství a úprava surovin (B0712A290002)</displayed-value>
+    <stored-value>B0712A290002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Odpadové hospodářství a úprava surovin (N0788A290001)</displayed-value>
+    <stored-value>N0788A290001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Odpadové hospodářství a úprava surovin (N0788A290002)</displayed-value>
+    <stored-value>N0788A290002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ochrana prostředí (B1604)</displayed-value>
+    <stored-value>B1604</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ochrana životního prostředí v průmyslu (B0724A290008)</displayed-value>
+    <stored-value>B0724A290008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ochrana životního prostředí v průmyslu (N0724A290012)</displayed-value>
+    <stored-value>N0724A290012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ochrana životního prostředí v průmyslu (P0724D290003)</displayed-value>
+    <stored-value>P0724D290003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Petroleum Engineering (B0724A290004)</displayed-value>
+    <stored-value>B0724A290004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Petroleum Engineering (B0724A290005)</displayed-value>
+    <stored-value>B0724A290005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Petroleum Engineering (N0724A290003)</displayed-value>
+    <stored-value>N0724A290003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Petroleum Engineering (N0724A290004)</displayed-value>
+    <stored-value>N0724A290004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Požární ochrana a průmyslová bezpečnost (3908R)</displayed-value>
+    <stored-value>3908R</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Požární ochrana a průmyslová bezpečnost (3908T)</displayed-value>
+    <stored-value>3908T</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Požární ochrana a průmyslová bezpečnost (3908V)</displayed-value>
+    <stored-value>3908V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Požární ochrana a průmyslová bezpečnost (B3908)</displayed-value>
+    <stored-value>B3908</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Požární ochrana a průmyslová bezpečnost (M3908)</displayed-value>
+    <stored-value>M3908</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Požární ochrana a průmyslová bezpečnost (P3908)</displayed-value>
+    <stored-value>P3908</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Preventivní přístupy v ochraně životního prostředí (N0724A290006)</displayed-value>
+    <stored-value>N0724A290006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Procesní inženýrství v oblasti surovin (B0724A290006)</displayed-value>
+    <stored-value>B0724A290006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Procesní inženýrství v oblasti surovin (N0724A290005)</displayed-value>
+    <stored-value>N0724A290005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Revitalizace posthornické krajiny (B0724A290010)</displayed-value>
+    <stored-value>B0724A290010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Řízení průmyslových systémů (P3925)</displayed-value>
+    <stored-value>P3925</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Řízení systémů v oblasti nerostných surovin (P3970)</displayed-value>
+    <stored-value>P3970</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Společnost a geovědy (U5012)</displayed-value>
+    <stored-value>U5012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Společnost a přírodní vědy (U5011)</displayed-value>
+    <stored-value>U5011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Svět geoinformatiky (U5013)</displayed-value>
+    <stored-value>U5013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Technické znovuvyužití  brownfields (N0724A290007)</displayed-value>
+    <stored-value>N0724A290007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Technické znovuvyužití  brownfields (N0724A290008)</displayed-value>
+    <stored-value>N0724A290008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Technologie a hospodaření s vodou (N0724A290009)</displayed-value>
+    <stored-value>N0724A290009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Těžba nerostných surovin (B0724A290001)</displayed-value>
+    <stored-value>B0724A290001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Těžba nerostných surovin (B0724A290002)</displayed-value>
+    <stored-value>B0724A290002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Těžba nerostných surovin (N0724A290001)</displayed-value>
+    <stored-value>N0724A290001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Těžba nerostných surovin (N0724A290002)</displayed-value>
+    <stored-value>N0724A290002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Úpravnictví (P0724D290001)</displayed-value>
+    <stored-value>P0724D290001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Úpravnictví (P0724D290002)</displayed-value>
+    <stored-value>P0724D290002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Voda – strategická surovina (B0719A290001)</displayed-value>
+    <stored-value>B0719A290001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Voda – strategická surovina (N0724A290013)</displayed-value>
+    <stored-value>N0724A290013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Základy geologie (U5001)</displayed-value>
+    <stored-value>U5001</stored-value>
+  </pair>
+</value-pairs>

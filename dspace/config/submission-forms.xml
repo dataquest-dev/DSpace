@@ -2,7 +2,8 @@
 <!DOCTYPE input-forms SYSTEM "submission-forms.dtd">
 
 
-<input-forms>
+<input-forms xmlns:xi="http://www.w3.org/2001/XInclude">
+
 
     <!-- The form-definitions map lays out the detailed definition of all the -->
     <!-- submission forms. Each separate form set has a unique name as an     -->
@@ -20,6 +21,17 @@
     <!-- qualifier name, a repeatable flag, and a text string whose presence  -->
     <!-- serves as a 'this field is required' flag.                           -->
     <form-definitions>
+        <xi:include href="vsb/evyuka_form_HGF.xml"/>
+        <xi:include href="vsb/evyuka_form_EKF.xml"/>
+        <xi:include href="vsb/evyuka_form_FBI.xml"/>
+        <xi:include href="vsb/evyuka_form_USP.xml"/>
+        <xi:include href="vsb/evyuka_form_9270.xml"/>
+        <xi:include href="vsb/evyuka_form_AUD.xml"/>
+        <xi:include href="vsb/evyuka_form_FEI.xml"/>
+        <xi:include href="vsb/evyuka_form_FS.xml"/>
+        <xi:include href="vsb/evyuka_form_FMT.xml"/>
+        <xi:include href="vsb/evyuka_form_FAST.xml"/>
+
         <form name="bitstream-metadata">
             <row>
                 <field>
@@ -9248,6 +9260,47 @@
                 <stored-value>© Vysoká škola báňská - Technická Univerzita Ostrava</stored-value>
             </pair>
         </value-pairs>
+
+        <xi:include href="vsb/vp_branch_9270.xml"/>
+        <xi:include href="vsb/vp_branch_AUD.xml"/>
+        <xi:include href="vsb/vp_branch_EKF.xml"/>
+        <xi:include href="vsb/vp_branch_FAST.xml"/>
+        <xi:include href="vsb/vp_branch_FBI.xml"/>
+        <xi:include href="vsb/vp_branch_FEI.xml"/>
+        <xi:include href="vsb/vp_branch_FMT.xml"/>
+        <xi:include href="vsb/vp_branch_FS.xml"/>
+        <xi:include href="vsb/vp_branch_HGF.xml"/>
+        <xi:include href="vsb/vp_branch_USP.xml"/>
+        <xi:include href="vsb/vp_program_9270.xml"/>
+        <xi:include href="vsb/vp_program_AUD.xml"/>
+        <xi:include href="vsb/vp_program_EKF.xml"/>
+        <xi:include href="vsb/vp_program_FAST.xml"/>
+        <xi:include href="vsb/vp_program_FBI.xml"/>
+        <xi:include href="vsb/vp_program_FEI.xml"/>
+        <xi:include href="vsb/vp_program_FMT.xml"/>
+        <xi:include href="vsb/vp_program_FS.xml"/>
+        <xi:include href="vsb/vp_program_HGF.xml"/>
+        <xi:include href="vsb/vp_program_USP.xml"/>
+        <xi:include href="vsb/vp_subject-version_9270.xml"/>
+        <xi:include href="vsb/vp_subject-version_AUD.xml"/>
+        <xi:include href="vsb/vp_subject-version_EKF.xml"/>
+        <xi:include href="vsb/vp_subject-version_FAST.xml"/>
+        <xi:include href="vsb/vp_subject-version_FBI.xml"/>
+        <xi:include href="vsb/vp_subject-version_FEI.xml"/>
+        <xi:include href="vsb/vp_subject-version_FMT.xml"/>
+        <xi:include href="vsb/vp_subject-version_FS.xml"/>
+        <xi:include href="vsb/vp_subject-version_HGF.xml"/>
+        <xi:include href="vsb/vp_subject-version_USP.xml"/>
+        <xi:include href="vsb/vp_subject_9270.xml"/>
+        <xi:include href="vsb/vp_subject_AUD.xml"/>
+        <xi:include href="vsb/vp_subject_EKF.xml"/>
+        <xi:include href="vsb/vp_subject_FAST.xml"/>
+        <xi:include href="vsb/vp_subject_FBI.xml"/>
+        <xi:include href="vsb/vp_subject_FEI.xml"/>
+        <xi:include href="vsb/vp_subject_FMT.xml"/>
+        <xi:include href="vsb/vp_subject_FS.xml"/>
+        <xi:include href="vsb/vp_subject_HGF.xml"/>
+        <xi:include href="vsb/vp_subject_USP.xml"/>
 
     </form-value-pairs>
 

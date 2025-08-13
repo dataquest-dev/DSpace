@@ -1,0 +1,258 @@
+<?xml version="1.0"?>
+<!DOCTYPE form-definitions SYSTEM "submission-forms.dtd">
+
+<form-definitions>
+    <form name="e-vyuka-AUDpageone">
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>title</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <label>Název dokumentu</label>
+                    <input-type>onebox</input-type>
+                    <hint>Zadejte název dokumentu v jazyce, v němž je napsán. Podnázev oddělte dvojtečkou. Příklad názvu: Matematika: vzorová cvičení</hint>
+                    <required>Vyplňte pole s názvem dokumentu.</required>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>title</dc-element>
+                    <dc-qualifier>alternative</dc-qualifier>
+                    <label>Další název</label>
+                    <input-type>onebox</input-type>
+                    <hint>Zadejte další název, např. překlad názvu.</hint>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>contributor</dc-element>
+                    <dc-qualifier>author</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Autor</label>
+                    <input-type>name</input-type>
+                    <hint>Zadejte příjmení a jméno autora/autorů.</hint>
+                    <required>Vyplňte jméno a příjmení autora</required>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>description</dc-element>
+                    <dc-qualifier>abstract</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Abstrakt</label>
+                    <input-type>textarea</input-type>
+                    <hint>Vložte abstrakt dokumentu.</hint>
+                    <required></required>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>subject</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Klíčová slova</label>
+                    <input-type>onebox</input-type>
+                    <hint>Vložte odpovídající klíčová slova nebo fráze. Každé klíčové slovo nebo frázi do samostatného pole.</hint>
+                    <required></required>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>language</dc-element>
+                    <dc-qualifier>iso</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Jazyk</label>
+                    <input-type value-pairs-name="language_evyuka">dropdown</input-type>
+                    <hint>Vyberte jazyk, ve kterém je dokument napsán.</hint>
+                    <required>Vyberte jazyk.</required>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>date</dc-element>
+                    <dc-qualifier>issued</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Rok vydání</label>
+                    <input-type>onebox</input-type>
+                    <hint>Zadejte rok vydání (vytvoření dokumentu). Uveďte rok ve formátu RRRR.</hint>
+         </field>
+       </row>
+
+    </form>
+
+    <form name="e-vyuka-AUDpagetwo">
+       <row>
+         <field>
+           <dc-schema>evyuka</dc-schema>
+                    <dc-element>subject</dc-element>
+                    <dc-qualifier>version</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Kód verze předmětu</label>
+                    <hint>Vyberte kódy všech verzí předmětu, kterých se dokument týká. Dokument bude dostupný pouze vyjmenovaným verzím předmětů.</hint>
+                    <input-type value-pairs-name="vp_subject-version_AUD">dropdown</input-type>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>evyuka</dc-schema>
+                    <dc-element>subject</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Kód předmětu</label>
+                    <hint>Vyberte kódy všech předmětů, kterých se dokument týká. Dokument bude rovněž společný pro všechny verze těchto předmětů.</hint>
+                    <input-type value-pairs-name="vp_subject_AUD">dropdown</input-type>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>evyuka</dc-schema>
+                    <dc-element>discipline</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Kód studijního oboru</label>
+                    <hint>Vyberte kódy všech studijních oborů, kterých se dokument týká.</hint>
+                    <input-type value-pairs-name="vp_branch_AUD">dropdown</input-type>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>evyuka</dc-schema>
+                    <dc-element>programme</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Kód studijního programu</label>
+                    <input-type value-pairs-name="vp_program_AUD">dropdown</input-type>
+                    <hint>Vyberte kódy všech studijních programů, kterých se dokument týká.</hint>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>rights</dc-element>
+                    <dc-qualifier>access</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Přístupová práva k souboru</label>
+                    <input-type value-pairs-name="document_access_rights">dropdown</input-type>
+                    <hint>Vyberte přístupová práva k souboru s textem dokumentu.</hint>
+                    <required></required>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>description</dc-element>
+                    <dc-qualifier>provenance</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Poznámka pro schvalujícího pracovníka knihovny</label>
+                    <input-type>textarea</input-type>
+                    <hint>Uveďte, pokud potřebujete nastavit něco, na co nemáte dostatečná oprávnění.</hint>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>description</dc-element>
+                    <dc-qualifier>placeofpublication</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Místo vydání</label>
+                    <input-type>onebox</input-type>
+                    <hint>Zadejte místo vydání.</hint>
+         </field>
+       </row>
+
+    </form>
+
+    <form name="e-vyuka-AUDpagethree">
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>publisher</dc-element>
+                    <repeatable>false</repeatable>
+                    <label>Nakladatel</label>
+                    <input-type>onebox</input-type>
+                    <hint>Zadejte nakladatele.</hint>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>relation</dc-element>
+                    <dc-qualifier>ispartofseries</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Název časopisu nebo edice</label>
+                    <input-type>onebox</input-type>
+                    <hint></hint>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-element>identifier</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <!-- An input-type of qualdrop_value MUST be marked as repeatable -->
+                    <repeatable>true</repeatable>
+                    <label>Identifikátory</label>
+                    <input-type value-pairs-name="common_identifiers">qualdrop_value</input-type>
+                    <hint>Vyberte a doplňte identifikátor dokumentu, pokud je dokumentu přidělen.</hint>
+                    <required></required>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>type</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Typ dokumentu</label>
+                    <input-type>onebox</input-type>
+                    <hint>Vyberte typ dokumentu.</hint>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>relation</dc-element>
+                    <dc-qualifier>projectid</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Číslo projektu</label>
+                    <input-type>onebox</input-type>
+                    <hint>Zadejte číslo projektu. Např. CZ.02.2.69/0.0/0.0/16_015/0002338</hint>
+         </field>
+       </row>
+
+       <row>
+         <field>
+           <dc-schema>dc</dc-schema>
+                    <dc-element>relation</dc-element>
+                    <dc-qualifier>projectname</dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Název projektu</label>
+                    <input-type>onebox</input-type>
+                    <hint>Zadejte název projektu. Např. Publish and Flourish: Podpora publikační činnosti doktorandů a školitelů</hint>
+         </field>
+       </row>
+
+    </form>
+
+</form-definitions>

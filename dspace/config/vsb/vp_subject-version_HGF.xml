@@ -1,0 +1,4582 @@
+<value-pairs value-pairs-name="vp_subject-version_HGF" dc-term="programme">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value/>
+  </pair>
+  <pair>
+    <displayed-value>541 - Agroturistika (541-3504/01)</displayed-value>
+    <stored-value>541-3504/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Aplikovaná hydrogeochemie (541-0902/02)</displayed-value>
+    <stored-value>541-0902/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Aplikovaná hydrogeochemie (541-0902/03)</displayed-value>
+    <stored-value>541-0902/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Biostratigrafie (541-0980/02)</displayed-value>
+    <stored-value>541-0980/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Biostratigrafie (541-0980/03)</displayed-value>
+    <stored-value>541-0980/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Databázové aplikace v geologii (541-0003/05)</displayed-value>
+    <stored-value>541-0003/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Databázové aplikace v geologii (541-0003/06)</displayed-value>
+    <stored-value>541-0003/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Dějiny evropských států (541-0306/07)</displayed-value>
+    <stored-value>541-0306/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Dějiny přírodních a montánních věd (541-0307/04)</displayed-value>
+    <stored-value>541-0307/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Dokumentování a vzorkování (541-0017/03)</displayed-value>
+    <stored-value>541-0017/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Dokumentování a vzorkování (541-0017/04)</displayed-value>
+    <stored-value>541-0017/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ekonomika nerostných surovin (541-0111/05)</displayed-value>
+    <stored-value>541-0111/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ekonomika nerostných surovin (541-0111/07)</displayed-value>
+    <stored-value>541-0111/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ekonomika nerostných surovin (541-0111/08)</displayed-value>
+    <stored-value>541-0111/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ekonomika nerostných surovin (541-0925/01)</displayed-value>
+    <stored-value>541-0925/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ekonomika nerostných surovin (541-0925/02)</displayed-value>
+    <stored-value>541-0925/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Environmentální geochemie (541-0148/01)</displayed-value>
+    <stored-value>541-0148/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Exkurze po geoturistických a montánních památkách (541-3502/01)</displayed-value>
+    <stored-value>541-3502/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Exkurze z HG,IG,GF a vrtání (541-0478/05)</displayed-value>
+    <stored-value>541-0478/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Exkurze z HG,IG,GF a vrtání (541-0478/06)</displayed-value>
+    <stored-value>541-0478/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Exkurze z ložiskové geologie (541-0289/05)</displayed-value>
+    <stored-value>541-0289/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Exkurze z ložiskové geologie (541-0289/06)</displayed-value>
+    <stored-value>541-0289/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Exkurze z mineralogie a petrografie (541-0032/03)</displayed-value>
+    <stored-value>541-0032/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Exkurze z mineralogie a petrografie (541-0032/04)</displayed-value>
+    <stored-value>541-0032/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geoekologie (541-0920/02)</displayed-value>
+    <stored-value>541-0920/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geoekologie (541-0920/04)</displayed-value>
+    <stored-value>541-0920/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geoekologie (541-0920/05)</displayed-value>
+    <stored-value>541-0920/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geofyzika (541-0206/08)</displayed-value>
+    <stored-value>541-0206/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geofyzika (541-0206/09)</displayed-value>
+    <stored-value>541-0206/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geofyzikální měření ve vrtech (541-0922/02)</displayed-value>
+    <stored-value>541-0922/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geofyzikální měření ve vrtech (541-0922/03)</displayed-value>
+    <stored-value>541-0922/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geofyzikální průzkum (541-0898/02)</displayed-value>
+    <stored-value>541-0898/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geofyzikální průzkum (541-0898/03)</displayed-value>
+    <stored-value>541-0898/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geofyzikální přístrojová technika (541-0584/04)</displayed-value>
+    <stored-value>541-0584/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geofyzikální přístrojová technika (541-0584/05)</displayed-value>
+    <stored-value>541-0584/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geofyzikální přístrojová technika (541-0584/06)</displayed-value>
+    <stored-value>541-0584/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geofyzikální přístrojová technika (541-0584/07)</displayed-value>
+    <stored-value>541-0584/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geografie turismu (541-0124/02)</displayed-value>
+    <stored-value>541-0124/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geohazardy (541-0120/02)</displayed-value>
+    <stored-value>541-0120/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geohazardy (541-0120/03)</displayed-value>
+    <stored-value>541-0120/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geochemie (541-0001/10)</displayed-value>
+    <stored-value>541-0001/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geochemie (541-0001/11)</displayed-value>
+    <stored-value>541-0001/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geochemie životního prostředí (541-0917/02)</displayed-value>
+    <stored-value>541-0917/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geochemie životního prostředí (541-0917/03)</displayed-value>
+    <stored-value>541-0917/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geochemie životního prostředí (541-0917/05)</displayed-value>
+    <stored-value>541-0917/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologická exkurze (541-0035/04)</displayed-value>
+    <stored-value>541-0035/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologická exkurze (541-0035/05)</displayed-value>
+    <stored-value>541-0035/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologické hazardy v turismu (541-3509/01)</displayed-value>
+    <stored-value>541-3509/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologicko-montánní ložisková exkurze (541-0517/04)</displayed-value>
+    <stored-value>541-0517/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologický seminář 1 (541-0144/03)</displayed-value>
+    <stored-value>541-0144/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologický seminář 2 (541-0145/03)</displayed-value>
+    <stored-value>541-0145/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologie (541-0029/28)</displayed-value>
+    <stored-value>541-0029/28</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologie (541-0029/29)</displayed-value>
+    <stored-value>541-0029/29</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologie (541-0122/03)</displayed-value>
+    <stored-value>541-0122/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologie (541-0122/04)</displayed-value>
+    <stored-value>541-0122/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologie hradů a zámků České republiky (541-3507/01)</displayed-value>
+    <stored-value>541-3507/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geologie ložisek uhlovodíků (541-3000/02)</displayed-value>
+    <stored-value>541-3000/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geomontánní turismus (541-0128/04)</displayed-value>
+    <stored-value>541-0128/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geomorfologie (541-0504/06)</displayed-value>
+    <stored-value>541-0504/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geomorfologie (541-0504/07)</displayed-value>
+    <stored-value>541-0504/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geomorfologie (541-0504/08)</displayed-value>
+    <stored-value>541-0504/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geomorfologie (541-0504/10)</displayed-value>
+    <stored-value>541-0504/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geomorfologie (541-0504/11)</displayed-value>
+    <stored-value>541-0504/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geoparky (541-3505/01)</displayed-value>
+    <stored-value>541-3505/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geostatistika (541-0602/04)</displayed-value>
+    <stored-value>541-0602/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geostatistika (541-0602/05)</displayed-value>
+    <stored-value>541-0602/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geostatistika (541-0934/02)</displayed-value>
+    <stored-value>541-0934/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geostatistika (541-0934/03)</displayed-value>
+    <stored-value>541-0934/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geotermální energie (541-0580/05)</displayed-value>
+    <stored-value>541-0580/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geotermální energie (541-0580/06)</displayed-value>
+    <stored-value>541-0580/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Geoturistická exkurze (541-0125/03)</displayed-value>
+    <stored-value>541-0125/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Havárie vrtných a těžebních zařízení (541-3007/01)</displayed-value>
+    <stored-value>541-3007/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Havárie vrtných a těžebních zařízení (541-3007/02)</displayed-value>
+    <stored-value>541-3007/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Havárie vrtných a těžebních zařízení (541-3007/03)</displayed-value>
+    <stored-value>541-3007/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Historická a regionální geologie (541-0090/04)</displayed-value>
+    <stored-value>541-0090/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Historická geologie (541-0007/03)</displayed-value>
+    <stored-value>541-0007/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Historická geologie (541-0007/05)</displayed-value>
+    <stored-value>541-0007/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Historický a kulturní vývoj českých zemí (541-3514/01)</displayed-value>
+    <stored-value>541-3514/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Historiografie a etnografie regionu (541-0308/03)</displayed-value>
+    <stored-value>541-0308/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hornická geofyzika (541-0208/09)</displayed-value>
+    <stored-value>541-0208/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hornická geofyzika (541-0208/10)</displayed-value>
+    <stored-value>541-0208/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Horninové prostředí České republiky (541-3510/01)</displayed-value>
+    <stored-value>541-3510/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hydrodynamické zkoušky (541-3020/01)</displayed-value>
+    <stored-value>541-3020/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hydrodynamické zkoušky (541-3020/02)</displayed-value>
+    <stored-value>541-3020/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hydrogeochemie a vzorkování vod (541-0473/06)</displayed-value>
+    <stored-value>541-0473/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hydrogeochemie a vzorkování vod (541-0473/07)</displayed-value>
+    <stored-value>541-0473/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hydrogeologie (541-0069/10)</displayed-value>
+    <stored-value>541-0069/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hydrogeologie (541-0069/11)</displayed-value>
+    <stored-value>541-0069/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hydrogeologie a podzemní hydraulika (541-0515/04)</displayed-value>
+    <stored-value>541-0515/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hydrogeologie obecná (541-0937/02)</displayed-value>
+    <stored-value>541-0937/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Hydrogeologie obecná (541-0937/03)</displayed-value>
+    <stored-value>541-0937/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Chráněná krajinná území a památky (541-0589/04)</displayed-value>
+    <stored-value>541-0589/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Informační a rezervační systémy v turismu (541-3515/01)</displayed-value>
+    <stored-value>541-3515/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Inženýrská geologie (541-0121/01)</displayed-value>
+    <stored-value>541-0121/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Inženýrská geologie (541-0121/02)</displayed-value>
+    <stored-value>541-0121/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Inženýrská geologie (541-0942/04)</displayed-value>
+    <stored-value>541-0942/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Inženýrská geologie (541-0942/05)</displayed-value>
+    <stored-value>541-0942/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Jímání podzemních vod (541-4006/01)</displayed-value>
+    <stored-value>541-4006/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Karotáž vrtu a speciální práce ve vrtech (541-0491/04)</displayed-value>
+    <stored-value>541-0491/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Karotáž vrtu a speciální práce ve vrtech (541-0491/05)</displayed-value>
+    <stored-value>541-0491/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Karsologie (541-0182/01)</displayed-value>
+    <stored-value>541-0182/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Konstrukce vrtných a těžebních zařízení (541-3001/02)</displayed-value>
+    <stored-value>541-3001/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Kurz povrchového geologického mapování (541-0062/07)</displayed-value>
+    <stored-value>541-0062/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Kurz povrchového geologického mapování (541-0062/08)</displayed-value>
+    <stored-value>541-0062/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Kvartér (541-1001/01)</displayed-value>
+    <stored-value>541-1001/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Kvartér (541-1001/03)</displayed-value>
+    <stored-value>541-1001/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Kvartér (541-1001/04)</displayed-value>
+    <stored-value>541-1001/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Lázeňství (541-3511/01)</displayed-value>
+    <stored-value>541-3511/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska nerostných surovin (541-0212/05)</displayed-value>
+    <stored-value>541-0212/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska nerostných surovin (541-0212/10)</displayed-value>
+    <stored-value>541-0212/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska nerostných surovin (541-0212/11)</displayed-value>
+    <stored-value>541-0212/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska nerostných surovin a výpočet zásob (541-0054/03)</displayed-value>
+    <stored-value>541-0054/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska nerostných surovin a výpočet zásob (541-0054/04)</displayed-value>
+    <stored-value>541-0054/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska nerud (541-0926/01)</displayed-value>
+    <stored-value>541-0926/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska nerud (541-0926/02)</displayed-value>
+    <stored-value>541-0926/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska rud (541-0932/01)</displayed-value>
+    <stored-value>541-0932/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska rud (541-0932/02)</displayed-value>
+    <stored-value>541-0932/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska rud a nerud (541-0214/05)</displayed-value>
+    <stored-value>541-0214/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska rud a nerud (541-0214/06)</displayed-value>
+    <stored-value>541-0214/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska rud a nerud (541-0214/07)</displayed-value>
+    <stored-value>541-0214/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložiska rud a nerud (541-0214/08)</displayed-value>
+    <stored-value>541-0214/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložisková geologie (541-0935/01)</displayed-value>
+    <stored-value>541-0935/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ložisková geologie (541-0935/02)</displayed-value>
+    <stored-value>541-0935/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mechanika kapalin v ropném inženýrství (541-3010/01)</displayed-value>
+    <stored-value>541-3010/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mechanika kapalin v ropném inženýrství (541-3010/02)</displayed-value>
+    <stored-value>541-3010/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Měření v inženýrské geologii a geotechnice (541-0900/02)</displayed-value>
+    <stored-value>541-0900/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Měření v inženýrské geologii a geotechnice (541-0900/03)</displayed-value>
+    <stored-value>541-0900/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metodologie geologického průzkumu (541-0255/05)</displayed-value>
+    <stored-value>541-0255/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metodologie geologického průzkumu (541-0255/06)</displayed-value>
+    <stored-value>541-0255/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody a metodika inženýrskogeologického průzkumu (541-0957/03)</displayed-value>
+    <stored-value>541-0957/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody a metodika inženýrskogeologického průzkumu (541-0957/04)</displayed-value>
+    <stored-value>541-0957/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody dekontaminace prostředí (541-0566/06)</displayed-value>
+    <stored-value>541-0566/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody dekontaminace prostředí (541-0566/07)</displayed-value>
+    <stored-value>541-0566/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody dekontaminace prostředí (541-0566/08)</displayed-value>
+    <stored-value>541-0566/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody HG a IG průzkumu (541-0476/04)</displayed-value>
+    <stored-value>541-0476/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody HG a IG průzkumu (541-0476/05)</displayed-value>
+    <stored-value>541-0476/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody mineralogické analýzy (541-0948/01)</displayed-value>
+    <stored-value>541-0948/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody mineralogické analýzy (541-0948/02)</displayed-value>
+    <stored-value>541-0948/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody sanace přírodních útvarů (541-0590/04)</displayed-value>
+    <stored-value>541-0590/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody využití geotermální energie (541-0953/02)</displayed-value>
+    <stored-value>541-0953/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Metody využití geotermální energie (541-0953/03)</displayed-value>
+    <stored-value>541-0953/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mezinárodní turismus a jeho nové trendy (541-3506/01)</displayed-value>
+    <stored-value>541-3506/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mikropaleontologie v naftovém průmyslu (541-3003/01)</displayed-value>
+    <stored-value>541-3003/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mikropaleontologie v naftovém průmyslu (541-3003/02)</displayed-value>
+    <stored-value>541-3003/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mikroskopické praktikum (541-0010/05)</displayed-value>
+    <stored-value>541-0010/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mikroskopické praktikum (541-0010/07)</displayed-value>
+    <stored-value>541-0010/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mikroskopické praktikum (541-0010/08)</displayed-value>
+    <stored-value>541-0010/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mineralogie (541-0011/05)</displayed-value>
+    <stored-value>541-0011/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mineralogie (541-0011/06)</displayed-value>
+    <stored-value>541-0011/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mineralogie (541-0011/07)</displayed-value>
+    <stored-value>541-0011/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mineralogie (541-0011/08)</displayed-value>
+    <stored-value>541-0011/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mineralogie (541-0941/01)</displayed-value>
+    <stored-value>541-0941/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mineralogie (541-0941/02)</displayed-value>
+    <stored-value>541-0941/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mineralogie a petrografie (541-0028/20)</displayed-value>
+    <stored-value>541-0028/20</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mineralogie a petrografie (541-0028/23)</displayed-value>
+    <stored-value>541-0028/23</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Mineralogie a petrografie (541-0028/24)</displayed-value>
+    <stored-value>541-0028/24</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Modelování a simulace těžebních procesů (541-3011/01)</displayed-value>
+    <stored-value>541-3011/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Modelování a simulace těžebních procesů (541-3011/02)</displayed-value>
+    <stored-value>541-3011/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Modelování geologických objektů (541-0052/01)</displayed-value>
+    <stored-value>541-0052/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Modelování geologických objektů (541-0052/02)</displayed-value>
+    <stored-value>541-0052/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Modelování geologických objektů (541-0052/03)</displayed-value>
+    <stored-value>541-0052/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Modelování geologických objektů (541-0052/04)</displayed-value>
+    <stored-value>541-0052/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Modelování hydrogeologických procesů (541-0952/02)</displayed-value>
+    <stored-value>541-0952/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Modelování hydrogeologických procesů (541-0952/03)</displayed-value>
+    <stored-value>541-0952/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Moderní geofyzikální technologie (541-0938/01)</displayed-value>
+    <stored-value>541-0938/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Moderní geofyzikální technologie (541-0938/02)</displayed-value>
+    <stored-value>541-0938/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Možnosti prezentace geologie v geoturistice (541-3500/01)</displayed-value>
+    <stored-value>541-3500/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Muzejnictví (541-0096/06)</displayed-value>
+    <stored-value>541-0096/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Nauka o Zemi (541-0057/18)</displayed-value>
+    <stored-value>541-0057/18</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Nauka o Zemi (541-0057/19)</displayed-value>
+    <stored-value>541-0057/19</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Nauka o Zemi (541-0057/21)</displayed-value>
+    <stored-value>541-0057/21</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Nauka o Zemi (541-0057/22)</displayed-value>
+    <stored-value>541-0057/22</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Nauka o Zemi (541-0057/23)</displayed-value>
+    <stored-value>541-0057/23</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Nauka o Zemi (541-0057/24)</displayed-value>
+    <stored-value>541-0057/24</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Nauka o Zemi (541-0057/25)</displayed-value>
+    <stored-value>541-0057/25</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Nekonvenční typy ložisek uhlovodíků (541-3013/01)</displayed-value>
+    <stored-value>541-3013/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Nekonvenční typy ložisek uhlovodíků (541-3013/02)</displayed-value>
+    <stored-value>541-3013/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Netradiční metody využití ložisek (541-0977/02)</displayed-value>
+    <stored-value>541-0977/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Netradiční metody využití ložisek (541-0977/03)</displayed-value>
+    <stored-value>541-0977/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Odborná praxe (541-3508/01)</displayed-value>
+    <stored-value>541-3508/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ochrana a sanace vod a půd (541-4007/01)</displayed-value>
+    <stored-value>541-4007/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Ochrana a sanace vod a půd (541-4007/02)</displayed-value>
+    <stored-value>541-4007/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Paleogeografie (541-0968/03)</displayed-value>
+    <stored-value>541-0968/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Paleogeografie (541-0968/04)</displayed-value>
+    <stored-value>541-0968/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Paleontologie (541-0014/06)</displayed-value>
+    <stored-value>541-0014/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Paleontologie (541-0014/07)</displayed-value>
+    <stored-value>541-0014/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Paleontologie (541-0014/08)</displayed-value>
+    <stored-value>541-0014/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Paleontologie (541-0014/09)</displayed-value>
+    <stored-value>541-0014/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Pažení a cementace vrtů (541-3012/01)</displayed-value>
+    <stored-value>541-3012/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Pažení a cementace vrtů (541-3012/02)</displayed-value>
+    <stored-value>541-3012/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Petrofyzikální parametry ložisek uhlovodíků (541-3004/01)</displayed-value>
+    <stored-value>541-3004/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Petrofyzikální parametry ložisek uhlovodíků (541-3004/02)</displayed-value>
+    <stored-value>541-3004/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Petrografie (541-0015/06)</displayed-value>
+    <stored-value>541-0015/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Petrografie (541-0015/08)</displayed-value>
+    <stored-value>541-0015/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Petrografie (541-0015/09)</displayed-value>
+    <stored-value>541-0015/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Petrologie (541-0905/02)</displayed-value>
+    <stored-value>541-0905/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Petrologie (541-0905/03)</displayed-value>
+    <stored-value>541-0905/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Plánování a projektování v geoturismu (541-3516/01)</displayed-value>
+    <stored-value>541-3516/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Počítačová grafika (541-0540/05)</displayed-value>
+    <stored-value>541-0540/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Počítačová grafika (541-0540/06)</displayed-value>
+    <stored-value>541-0540/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Podzemí České republiky (541-3512/01)</displayed-value>
+    <stored-value>541-3512/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Podzemní opravy sond (541-3014/01)</displayed-value>
+    <stored-value>541-3014/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Podzemní opravy sond (541-3014/02)</displayed-value>
+    <stored-value>541-3014/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Podzemní uskladňování (541-0975/02)</displayed-value>
+    <stored-value>541-0975/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Podzemní uskladňování (541-0975/03)</displayed-value>
+    <stored-value>541-0975/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Pokročilá hydrogeologie (541-4003/01)</displayed-value>
+    <stored-value>541-4003/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Pokročilá hydrogeologie (541-4003/02)</displayed-value>
+    <stored-value>541-4003/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Praktická cvičení z hydrogeologie (541-4004/01)</displayed-value>
+    <stored-value>541-4004/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Praktická hydrogeochemie (541-4005/01)</displayed-value>
+    <stored-value>541-4005/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Praktické cvičení z vrtání (541-0467/05)</displayed-value>
+    <stored-value>541-0467/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Praktické cvičení z vrtání (541-0467/06)</displayed-value>
+    <stored-value>541-0467/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Praktika z cestovního ruchu (541-0138/01)</displayed-value>
+    <stored-value>541-0138/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Projektování hydrogeologického průzkumu (541-0048/02)</displayed-value>
+    <stored-value>541-0048/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Projektování otvírky ložisek uhlovodíků (541-0605/05)</displayed-value>
+    <stored-value>541-0605/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Projektování otvírky ložisek uhlovodíků (541-0605/06)</displayed-value>
+    <stored-value>541-0605/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Regionální geologie (541-0037/07)</displayed-value>
+    <stored-value>541-0037/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Regionální geologie (541-0037/08)</displayed-value>
+    <stored-value>541-0037/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Regionální geologie světa (541-3513/01)</displayed-value>
+    <stored-value>541-3513/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Regionální hydrogeologie (541-4001/01)</displayed-value>
+    <stored-value>541-4001/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Regionální hydrogeologie (541-4001/02)</displayed-value>
+    <stored-value>541-4001/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Regionální inženýrská geologie (541-0026/05)</displayed-value>
+    <stored-value>541-0026/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Regionální inženýrská geologie (541-0026/06)</displayed-value>
+    <stored-value>541-0026/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Remediační technologie (541-0149/01)</displayed-value>
+    <stored-value>541-0149/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Sběr, úprava a transport ropy a zemního plynu (541-3015/01)</displayed-value>
+    <stored-value>541-3015/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Sedimentologie (541-0074/02)</displayed-value>
+    <stored-value>541-0074/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Sedimentologie (541-0074/06)</displayed-value>
+    <stored-value>541-0074/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Sedimentologie (541-0074/07)</displayed-value>
+    <stored-value>541-0074/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Sedimentologie (541-0901/04)</displayed-value>
+    <stored-value>541-0901/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Sedimentologie (541-0901/05)</displayed-value>
+    <stored-value>541-0901/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Seminář k bakalářské práci (541-0702/03)</displayed-value>
+    <stored-value>541-0702/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Seminář k bakalářské práci (541-0702/04)</displayed-value>
+    <stored-value>541-0702/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Seminář k bakalářské práci (541-0702/05)</displayed-value>
+    <stored-value>541-0702/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Seminář k diplomové práci (541-0703/01)</displayed-value>
+    <stored-value>541-0703/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Seminář k diplomové práci (541-0703/03)</displayed-value>
+    <stored-value>541-0703/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Speciální inženýrská geologie (541-0498/05)</displayed-value>
+    <stored-value>541-0498/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Speciální inženýrská geologie (541-0498/06)</displayed-value>
+    <stored-value>541-0498/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Speciální inženýrská geologie (541-0978/04)</displayed-value>
+    <stored-value>541-0978/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Speciální inženýrská geologie (541-0978/05)</displayed-value>
+    <stored-value>541-0978/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Speciální vrtné práce (541-0490/06)</displayed-value>
+    <stored-value>541-0490/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Speciální vrtné práce (541-0490/07)</displayed-value>
+    <stored-value>541-0490/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Statistika (541-0181/01)</displayed-value>
+    <stored-value>541-0181/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Statistika (541-0181/02)</displayed-value>
+    <stored-value>541-0181/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Statistika a informatika (541-0609/02)</displayed-value>
+    <stored-value>541-0609/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Stavební kámen historických památek (541-3503/01)</displayed-value>
+    <stored-value>541-3503/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Stratigrafická a regionální geologie (541-0982/02)</displayed-value>
+    <stored-value>541-0982/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Stratigrafická a regionální geologie (541-0982/03)</displayed-value>
+    <stored-value>541-0982/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Strukturní geologie (541-0034/07)</displayed-value>
+    <stored-value>541-0034/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Strukturní geologie (541-0034/08)</displayed-value>
+    <stored-value>541-0034/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Suroviny a jejich využití (541-0274/08)</displayed-value>
+    <stored-value>541-0274/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Suroviny a jejich využití (541-0274/09)</displayed-value>
+    <stored-value>541-0274/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Světové geovědní a montánní dědictví (541-3501/01)</displayed-value>
+    <stored-value>541-3501/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technická petrografie a základy chemie silikátů (541-0170/03)</displayed-value>
+    <stored-value>541-0170/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technická petrografie a základy chemie silikátů (541-0170/04)</displayed-value>
+    <stored-value>541-0170/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technická petrografie a základy chemie silikátů (541-0967/01)</displayed-value>
+    <stored-value>541-0967/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technická petrografie a základy chemie silikátů (541-0967/02)</displayed-value>
+    <stored-value>541-0967/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technické kulturní památky (541-0055/01)</displayed-value>
+    <stored-value>541-0055/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technické památky (541-0594/04)</displayed-value>
+    <stored-value>541-0594/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technické průzkumné práce (541-0425/07)</displayed-value>
+    <stored-value>541-0425/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technické průzkumné práce (541-0425/08)</displayed-value>
+    <stored-value>541-0425/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technické průzkumné práce (541-0425/09)</displayed-value>
+    <stored-value>541-0425/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technika a technologie vrtání (541-0989/02)</displayed-value>
+    <stored-value>541-0989/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technika a technologie vrtání (541-0989/03)</displayed-value>
+    <stored-value>541-0989/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Technika služeb turismu (541-0126/02)</displayed-value>
+    <stored-value>541-0126/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Tektonika (541-0990/02)</displayed-value>
+    <stored-value>541-0990/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Tektonika (541-0990/03)</displayed-value>
+    <stored-value>541-0990/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Teorie proudění fluid v pórovém prostředí (541-3005/01)</displayed-value>
+    <stored-value>541-3005/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Teorie proudění fluid v pórovém prostředí (541-3005/02)</displayed-value>
+    <stored-value>541-3005/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Teorie turismu (541-0139/01)</displayed-value>
+    <stored-value>541-0139/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Terénní cvičení z Geologie (541-0013/03)</displayed-value>
+    <stored-value>541-0013/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Terénní cvičení z Geologie (541-0013/04)</displayed-value>
+    <stored-value>541-0013/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Těžba kapalin a plynů a technologie vrtných prací (541-0021/03)</displayed-value>
+    <stored-value>541-0021/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Těžba kapalin a plynů a technologie vrtných prací (541-0021/04)</displayed-value>
+    <stored-value>541-0021/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Těžba uhlovodíků (541-3022/02)</displayed-value>
+    <stored-value>541-3022/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - UNESCO památky (541-0137/01)</displayed-value>
+    <stored-value>541-0137/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Úvod do těžby uhlovodíků (541-3006/01)</displayed-value>
+    <stored-value>541-3006/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Úvod do těžby uhlovodíků (541-3006/02)</displayed-value>
+    <stored-value>541-3006/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Úvod do těžby uhlovodíků (541-3006/03)</displayed-value>
+    <stored-value>541-3006/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Úvod do těžby uhlovodíků (541-3006/04)</displayed-value>
+    <stored-value>541-3006/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Úvod do těžby uhlovodíků (541-3006/05)</displayed-value>
+    <stored-value>541-3006/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Úvod do těžby uhlovodíků (541-3006/06)</displayed-value>
+    <stored-value>541-3006/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Užitá geofyzika (541-0005/05)</displayed-value>
+    <stored-value>541-0005/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Užitá geofyzika (541-0005/06)</displayed-value>
+    <stored-value>541-0005/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Vrtné nástroje pro hlubinné vrtání (541-3016/01)</displayed-value>
+    <stored-value>541-3016/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Vrtné nástroje pro hlubinné vrtání (541-3016/02)</displayed-value>
+    <stored-value>541-3016/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Vrtné stroje a mechanismy (541-0585/06)</displayed-value>
+    <stored-value>541-0585/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Vrtné stroje a mechanismy (541-0585/07)</displayed-value>
+    <stored-value>541-0585/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Vrtný průzkum a hlubinné vrtání (541-0489/07)</displayed-value>
+    <stored-value>541-0489/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Vrtný průzkum a hlubinné vrtání (541-0489/08)</displayed-value>
+    <stored-value>541-0489/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Všeobecná a strukturní geologie (541-0994/02)</displayed-value>
+    <stored-value>541-0994/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Všeobecná a strukturní geologie (541-0994/03)</displayed-value>
+    <stored-value>541-0994/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Všeobecná geologie (541-0025/04)</displayed-value>
+    <stored-value>541-0025/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Všeobecná geologie (541-0025/11)</displayed-value>
+    <stored-value>541-0025/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Všeobecná geologie (541-0025/13)</displayed-value>
+    <stored-value>541-0025/13</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Všeobecná geologie (541-0025/14)</displayed-value>
+    <stored-value>541-0025/14</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Všeobecná geologie (541-0025/15)</displayed-value>
+    <stored-value>541-0025/15</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Všeobecná geologie (541-0025/16)</displayed-value>
+    <stored-value>541-0025/16</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Výpočetní technika (541-0592/03)</displayed-value>
+    <stored-value>541-0592/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Well Control (541-3018/01)</displayed-value>
+    <stored-value>541-3018/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Well Control (541-3018/02)</displayed-value>
+    <stored-value>541-3018/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Základy geochemie (541-4000/01)</displayed-value>
+    <stored-value>541-4000/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Zřizování a provoz PZP (541-0234/05)</displayed-value>
+    <stored-value>541-0234/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Zřizování a provoz PZP (541-0234/06)</displayed-value>
+    <stored-value>541-0234/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Zřizování a provoz PZP (541-0234/07)</displayed-value>
+    <stored-value>541-0234/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Zřizování a provoz PZP (541-0234/08)</displayed-value>
+    <stored-value>541-0234/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>541 - Zvyšování výtěžnosti ložisek uhlovodíků (541-3019/02)</displayed-value>
+    <stored-value>541-3019/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Bezpečnostní a právní problematika hornictví (542-0333/03)</displayed-value>
+    <stored-value>542-0333/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Bezpečnostní a právní problematika hornictví (542-0333/04)</displayed-value>
+    <stored-value>542-0333/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Bezpečnostní rizika v hornictví (542-0953/02)</displayed-value>
+    <stored-value>542-0953/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Bezpečnostní rizika v hornictví (542-0953/03)</displayed-value>
+    <stored-value>542-0953/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Bezpečnost práce a požární ochrana (542-0373/20)</displayed-value>
+    <stored-value>542-0373/20</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Bezpečnost práce a požární ochrana (542-0373/21)</displayed-value>
+    <stored-value>542-0373/21</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Dobývání ložisek (542-0202/13)</displayed-value>
+    <stored-value>542-0202/13</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Dobývání ložisek (542-0202/14)</displayed-value>
+    <stored-value>542-0202/14</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Dobývání ložisek (542-0941/03)</displayed-value>
+    <stored-value>542-0941/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Dobývání ložisek (542-0941/04)</displayed-value>
+    <stored-value>542-0941/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Dobývání v obtížných podmínkách dolů a lomů (542-0030/02)</displayed-value>
+    <stored-value>542-0030/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Dobývání v obtížných podmínkách dolů a lomů (542-0030/03)</displayed-value>
+    <stored-value>542-0030/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Doprava na dolech a lomech (542-0052/02)</displayed-value>
+    <stored-value>542-0052/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Doprava na dolech a lomech (542-0052/03)</displayed-value>
+    <stored-value>542-0052/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Dopravní a skladovací zařízení (542-0506/01)</displayed-value>
+    <stored-value>542-0506/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Důsledky útlumu hornické činnosti (542-0048/01)</displayed-value>
+    <stored-value>542-0048/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Důsledky útlumu hornické činnosti (542-0048/02)</displayed-value>
+    <stored-value>542-0048/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Důsledky útlumu hornické činnosti (542-0048/03)</displayed-value>
+    <stored-value>542-0048/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Exkurze (542-0078/04)</displayed-value>
+    <stored-value>542-0078/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Exkurze na dolech a lomech (542-0003/04)</displayed-value>
+    <stored-value>542-0003/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Exkurze na dolech a lomech (542-0003/05)</displayed-value>
+    <stored-value>542-0003/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Fyzikální separační procesy I. (542-0468/03)</displayed-value>
+    <stored-value>542-0468/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Geomechanické modelování (542-0980/04)</displayed-value>
+    <stored-value>542-0980/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Geomechanické modelování (542-0980/05)</displayed-value>
+    <stored-value>542-0980/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Geomechanika (542-0970/02)</displayed-value>
+    <stored-value>542-0970/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Geomechanika (542-0970/03)</displayed-value>
+    <stored-value>542-0970/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hlubinné dobývání ložisek (542-0706/04)</displayed-value>
+    <stored-value>542-0706/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hlubinné dobývání ložisek (542-0706/05)</displayed-value>
+    <stored-value>542-0706/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hornická geomechanika (542-0231/09)</displayed-value>
+    <stored-value>542-0231/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hornická geomechanika (542-0231/10)</displayed-value>
+    <stored-value>542-0231/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hornická rizika a záchranářství (542-0327/09)</displayed-value>
+    <stored-value>542-0327/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hornická rizika a záchranářství (542-0327/10)</displayed-value>
+    <stored-value>542-0327/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hornické památky České republiky (542-0061/01)</displayed-value>
+    <stored-value>542-0061/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hornictví (542-0297/11)</displayed-value>
+    <stored-value>542-0297/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hornictví (542-0297/12)</displayed-value>
+    <stored-value>542-0297/12</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hornictví a ŽP (542-0261/08)</displayed-value>
+    <stored-value>542-0261/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hornictví a ŽP (542-0261/09)</displayed-value>
+    <stored-value>542-0261/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Horní právo a bezpečnostní předpisy (542-0322/07)</displayed-value>
+    <stored-value>542-0322/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Horní právo a bezpečnostní předpisy (542-0322/08)</displayed-value>
+    <stored-value>542-0322/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Horní zákon a bezpečnostní předpisy (542-0956/02)</displayed-value>
+    <stored-value>542-0956/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Horní zákon a bezpečnostní předpisy (542-0956/03)</displayed-value>
+    <stored-value>542-0956/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hrubá a ušlechtilá kamenická výroba (542-0079/08)</displayed-value>
+    <stored-value>542-0079/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hrubá a ušlechtilá kamenická výroba (542-0079/09)</displayed-value>
+    <stored-value>542-0079/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hydrogeologie a odvodňování lomů a dolů (542-0744/06)</displayed-value>
+    <stored-value>542-0744/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Hydrogeologie a odvodňování lomů a dolů (542-0744/07)</displayed-value>
+    <stored-value>542-0744/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Chemické procesy (542-0431/04)</displayed-value>
+    <stored-value>542-0431/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Chemické procesy (542-0520/01)</displayed-value>
+    <stored-value>542-0520/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Chemie (542-0524/01)</displayed-value>
+    <stored-value>542-0524/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Chemie (542-0524/02)</displayed-value>
+    <stored-value>542-0524/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Chemie (542-0525/01)</displayed-value>
+    <stored-value>542-0525/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Chemie (542-0525/02)</displayed-value>
+    <stored-value>542-0525/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Inženýrské inovace v procesním inženýrství (542-0510/01)</displayed-value>
+    <stored-value>542-0510/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Klimatizace dolů (542-0326/05)</displayed-value>
+    <stored-value>542-0326/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Klimatizace dolů (542-0326/06)</displayed-value>
+    <stored-value>542-0326/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Laboratorní cvičení (542-0517/01)</displayed-value>
+    <stored-value>542-0517/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Laboratoř oboru (542-0507/01)</displayed-value>
+    <stored-value>542-0507/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Management rizik (542-0329/05)</displayed-value>
+    <stored-value>542-0329/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Management rizik (542-0329/06)</displayed-value>
+    <stored-value>542-0329/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Mechanické procesy (542-0509/01)</displayed-value>
+    <stored-value>542-0509/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Mechanika a vlastnosti partikulárních hmot (542-0056/01)</displayed-value>
+    <stored-value>542-0056/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Mechanika hornin a zemin (542-0208/15)</displayed-value>
+    <stored-value>542-0208/15</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Mechanika hornin a zemin (542-0208/16)</displayed-value>
+    <stored-value>542-0208/16</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Mechanika hornin a zemin (542-0940/02)</displayed-value>
+    <stored-value>542-0940/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Mechanika hornin a zemin (542-0940/03)</displayed-value>
+    <stored-value>542-0940/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Mechanika sypkých hmot (542-0508/01)</displayed-value>
+    <stored-value>542-0508/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Modelování a simulace lomových situací (542-0303/05)</displayed-value>
+    <stored-value>542-0303/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Modelování a simulace lomových situací (542-0303/06)</displayed-value>
+    <stored-value>542-0303/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Navrhování procesních linek (542-0505/01)</displayed-value>
+    <stored-value>542-0505/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Oborová praxe (542-0016/04)</displayed-value>
+    <stored-value>542-0016/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Oborová praxe (542-0016/06)</displayed-value>
+    <stored-value>542-0016/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Odborná hornická praxe (542-0251/07)</displayed-value>
+    <stored-value>542-0251/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Odborná hornická praxe (542-0251/08)</displayed-value>
+    <stored-value>542-0251/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Odborná hornická praxe (542-0251/09)</displayed-value>
+    <stored-value>542-0251/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Odborná hornická praxe (542-0251/10)</displayed-value>
+    <stored-value>542-0251/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Odpady z hornické činnosti a jejich využití (542-0944/02)</displayed-value>
+    <stored-value>542-0944/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Odpady z hornické činnosti a jejich využití (542-0944/03)</displayed-value>
+    <stored-value>542-0944/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Odpady z těžby a zpracování surovin (542-0281/10)</displayed-value>
+    <stored-value>542-0281/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Odpady z těžby a zpracování surovin (542-0281/11)</displayed-value>
+    <stored-value>542-0281/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Ochrana životního prostředí (542-0017/02)</displayed-value>
+    <stored-value>542-0017/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Počítačové praktikum (542-0290/06)</displayed-value>
+    <stored-value>542-0290/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Počítačové praktikum (542-0290/07)</displayed-value>
+    <stored-value>542-0290/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Pokročilé simulace DEM v procesech (542-0928/01)</displayed-value>
+    <stored-value>542-0928/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Pokročilé simulace DEM v procesech (542-0928/02)</displayed-value>
+    <stored-value>542-0928/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Povrchové dobývání ložisek (542-0050/02)</displayed-value>
+    <stored-value>542-0050/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Povrchové dobývání ložisek (542-0050/03)</displayed-value>
+    <stored-value>542-0050/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Praktické cvičení z mechaniky hornin a zemin (542-0034/01)</displayed-value>
+    <stored-value>542-0034/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Prevence rizik v turismu (542-0055/01)</displayed-value>
+    <stored-value>542-0055/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Procesní inženýrství sypkých hmot (542-0503/01)</displayed-value>
+    <stored-value>542-0503/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Procesní zařízení, vybrané aplikace (542-0907/01)</displayed-value>
+    <stored-value>542-0907/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Procesní zařízení, vybrané aplikace (542-0907/02)</displayed-value>
+    <stored-value>542-0907/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Procesní zařízení (542-0054/02)</displayed-value>
+    <stored-value>542-0054/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Procesní zařízení I (542-0514/01)</displayed-value>
+    <stored-value>542-0514/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Procesní zařízení II (542-0513/01)</displayed-value>
+    <stored-value>542-0513/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Procesní zařízení III (542-0515/01)</displayed-value>
+    <stored-value>542-0515/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Projektování a příprava výroby (542-0046/01)</displayed-value>
+    <stored-value>542-0046/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Projektování a příprava výroby (542-0046/02)</displayed-value>
+    <stored-value>542-0046/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Projektování procesních linek (542-0521/01)</displayed-value>
+    <stored-value>542-0521/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Projektování procesních linek (542-0521/02)</displayed-value>
+    <stored-value>542-0521/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Projektování technologií (542-0434/02)</displayed-value>
+    <stored-value>542-0434/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Přehled hornictví (542-0933/02)</displayed-value>
+    <stored-value>542-0933/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Přehled hornictví (542-0933/03)</displayed-value>
+    <stored-value>542-0933/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Ražení důlních děl a trhací práce (542-0043/03)</displayed-value>
+    <stored-value>542-0043/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Ražení důlních děl a trhací práce (542-0043/04)</displayed-value>
+    <stored-value>542-0043/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Rekultivace území postižených těžbou (542-0916/02)</displayed-value>
+    <stored-value>542-0916/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Rekultivace území postižených těžbou (542-0916/03)</displayed-value>
+    <stored-value>542-0916/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Rozbory provozních situací dolů a lomů (542-0029/02)</displayed-value>
+    <stored-value>542-0029/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Rozbory provozních situací dolů a lomů (542-0029/03)</displayed-value>
+    <stored-value>542-0029/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Řešení větrních sítí (542-0325/03)</displayed-value>
+    <stored-value>542-0325/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Řešení větrních sítí (542-0325/04)</displayed-value>
+    <stored-value>542-0325/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Seminář k bakalářské práci (542-0005/02)</displayed-value>
+    <stored-value>542-0005/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Seminář k bakalářské práci (542-0005/03)</displayed-value>
+    <stored-value>542-0005/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Seminář k diplomové práci (542-0013/03)</displayed-value>
+    <stored-value>542-0013/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Seminář k diplomové práci (542-0013/04)</displayed-value>
+    <stored-value>542-0013/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Simulace procesních systémů (542-0512/01)</displayed-value>
+    <stored-value>542-0512/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Stabilita důlních děl a geomechanické  monitorování (542-0931/01)</displayed-value>
+    <stored-value>542-0931/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Stabilita důlních děl a geomechanické  monitorování (542-0931/02)</displayed-value>
+    <stored-value>542-0931/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Stabilita svahů a skalních stěn (542-0710/07)</displayed-value>
+    <stored-value>542-0710/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Stabilita svahů a skalních stěn (542-0710/08)</displayed-value>
+    <stored-value>542-0710/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Stavba strojů a zařízení (542-0522/01)</displayed-value>
+    <stored-value>542-0522/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Sypké hmoty (542-0502/01)</displayed-value>
+    <stored-value>542-0502/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Systémy otvírky a přípravy ložisek (542-0305/09)</displayed-value>
+    <stored-value>542-0305/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Systémy otvírky a přípravy ložisek (542-0305/10)</displayed-value>
+    <stored-value>542-0305/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technická podpora navrhování procesních zařízení (542-0526/01)</displayed-value>
+    <stored-value>542-0526/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie hlubinného dobývání ložisek (542-0217/06)</displayed-value>
+    <stored-value>542-0217/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie hlubinného dobývání ložisek (542-0217/07)</displayed-value>
+    <stored-value>542-0217/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie hornických procesů (542-0062/01)</displayed-value>
+    <stored-value>542-0062/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie hornických procesů (542-0062/02)</displayed-value>
+    <stored-value>542-0062/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie lomového dobývání ložisek (542-0100/06)</displayed-value>
+    <stored-value>542-0100/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie lomového dobývání ložisek (542-0100/07)</displayed-value>
+    <stored-value>542-0100/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie úpravy rud (542-0441/02)</displayed-value>
+    <stored-value>542-0441/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie úpravy rud (542-0441/03)</displayed-value>
+    <stored-value>542-0441/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie úpravy rud (542-0441/04)</displayed-value>
+    <stored-value>542-0441/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie úpravy uhlí (542-0439/03)</displayed-value>
+    <stored-value>542-0439/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Technologie zpracování surovin (542-0705/03)</displayed-value>
+    <stored-value>542-0705/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Teorie partikulárních hmot (542-0903/01)</displayed-value>
+    <stored-value>542-0903/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Teorie partikulárních hmot (542-0903/02)</displayed-value>
+    <stored-value>542-0903/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Teorie projektování procesních linek (542-0912/01)</displayed-value>
+    <stored-value>542-0912/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Teorie projektování procesních linek (542-0912/02)</displayed-value>
+    <stored-value>542-0912/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Terénní cvičení z dobývání ložisek (542-0047/01)</displayed-value>
+    <stored-value>542-0047/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Terénní cvičení z dobývání ložisek (542-0047/02)</displayed-value>
+    <stored-value>542-0047/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Terénní cvičení z ražení důlních děl (542-0053/01)</displayed-value>
+    <stored-value>542-0053/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Terénní cvičení z ražení důlních děl (542-0053/02)</displayed-value>
+    <stored-value>542-0053/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Terénní cvičení z trhacích prací a BP (542-0009/02)</displayed-value>
+    <stored-value>542-0009/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Terénní cvičení z trhacích prací a BP (542-0009/03)</displayed-value>
+    <stored-value>542-0009/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Těžba a její dopady na ŽP (542-0927/01)</displayed-value>
+    <stored-value>542-0927/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Těžba a její dopady na ŽP (542-0927/02)</displayed-value>
+    <stored-value>542-0927/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Trhací práce (542-0919/03)</displayed-value>
+    <stored-value>542-0919/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Trhací práce (542-0919/04)</displayed-value>
+    <stored-value>542-0919/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Trhací práce pro povrchové dobývání a BP (542-0006/02)</displayed-value>
+    <stored-value>542-0006/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Trhací práce pro povrchové dobývání a BP (542-0006/03)</displayed-value>
+    <stored-value>542-0006/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Údržba a konzervace technických památek (542-0007/03)</displayed-value>
+    <stored-value>542-0007/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úprava a získávání nerostných a druhotných surovin (542-0425/08)</displayed-value>
+    <stored-value>542-0425/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úprava a získávání nerostných a druhotných surovin (542-0425/09)</displayed-value>
+    <stored-value>542-0425/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úprava surovin a odpadů I (542-0059/01)</displayed-value>
+    <stored-value>542-0059/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úprava surovin a odpadů I (542-0059/04)</displayed-value>
+    <stored-value>542-0059/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úprava surovin a odpadů I (542-0059/05)</displayed-value>
+    <stored-value>542-0059/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úprava užitkových surovin (542-0960/04)</displayed-value>
+    <stored-value>542-0960/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úprava užitkových surovin (542-0960/05)</displayed-value>
+    <stored-value>542-0960/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úpravnictví I. (542-0337/05)</displayed-value>
+    <stored-value>542-0337/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úpravnictví I. (542-0337/06)</displayed-value>
+    <stored-value>542-0337/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úpravnictví II. (542-0338/03)</displayed-value>
+    <stored-value>542-0338/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úpravnictví II. (542-0338/04)</displayed-value>
+    <stored-value>542-0338/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Úvod do procesního inženýrství (542-0501/01)</displayed-value>
+    <stored-value>542-0501/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Větrání a bezpečnost v podzemním stavitelství (542-0796/03)</displayed-value>
+    <stored-value>542-0796/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Větrání a bezpečnost v podzemním stavitelství (542-0796/04)</displayed-value>
+    <stored-value>542-0796/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Větrání dolů a podzemních děl (542-0334/02)</displayed-value>
+    <stored-value>542-0334/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Větrání dolů a podzemních děl (542-0334/03)</displayed-value>
+    <stored-value>542-0334/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Větrání dolů a podzemních děl (542-0958/01)</displayed-value>
+    <stored-value>542-0958/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Větrání dolů a podzemních děl (542-0958/03)</displayed-value>
+    <stored-value>542-0958/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Vybrané kapitoly z obecné a anorganické chemie (542-0518/01)</displayed-value>
+    <stored-value>542-0518/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Výpočetní technika v hornické praxi (542-0250/09)</displayed-value>
+    <stored-value>542-0250/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Výpočetní technika v hornické praxi (542-0250/10)</displayed-value>
+    <stored-value>542-0250/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Využití opuštěných dolů (542-0765/01)</displayed-value>
+    <stored-value>542-0765/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Využití opuštěných dolů (542-0765/02)</displayed-value>
+    <stored-value>542-0765/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Vzorkování sypkých hmot a tekutin (542-0511/01)</displayed-value>
+    <stored-value>542-0511/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Zahlazení hornické činnosti a rekultivace (542-0733/08)</displayed-value>
+    <stored-value>542-0733/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Zahlazení hornické činnosti a rekultivace (542-0733/09)</displayed-value>
+    <stored-value>542-0733/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Zajištění a likvidace dolů (542-0946/03)</displayed-value>
+    <stored-value>542-0946/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Zajištění a likvidace dolů (542-0946/04)</displayed-value>
+    <stored-value>542-0946/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Zajištění a likvidace dolů a lomů (542-0051/04)</displayed-value>
+    <stored-value>542-0051/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Zajištění a likvidace dolů a lomů (542-0051/05)</displayed-value>
+    <stored-value>542-0051/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Základy nanotechnologii (542-0519/01)</displayed-value>
+    <stored-value>542-0519/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Základy úpravy nerostných surovin (542-0433/07)</displayed-value>
+    <stored-value>542-0433/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Základy úpravy nerostných surovin (542-0433/08)</displayed-value>
+    <stored-value>542-0433/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>542 - Zařízení úpraven a čistíren vod (542-0523/01)</displayed-value>
+    <stored-value>542-0523/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Analýza přesnosti geodetických měření (544-0176/01)</displayed-value>
+    <stored-value>544-0176/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Analýzy přesnosti v inženýrské geodézii (544-0957/01)</displayed-value>
+    <stored-value>544-0957/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Astronomie (544-0089/03)</displayed-value>
+    <stored-value>544-0089/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Dálkový průzkum Země (544-0158/02)</displayed-value>
+    <stored-value>544-0158/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Dějiny zeměměřictví (544-0023/06)</displayed-value>
+    <stored-value>544-0023/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Důlně-měřická exkurze (544-0180/01)</displayed-value>
+    <stored-value>544-0180/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Důlní mapování a legislativa (544-0903/03)</displayed-value>
+    <stored-value>544-0903/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Důlní měřictví (544-0003/06)</displayed-value>
+    <stored-value>544-0003/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Důlní měřictví (544-0003/07)</displayed-value>
+    <stored-value>544-0003/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Důlní měřictví (544-0003/08)</displayed-value>
+    <stored-value>544-0003/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Důlní měřictví (544-0901/03)</displayed-value>
+    <stored-value>544-0901/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Důlní měřictví (544-0901/04)</displayed-value>
+    <stored-value>544-0901/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Důlní měřictví v podzemním stavitelství (544-0173/01)</displayed-value>
+    <stored-value>544-0173/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Důlní měřictví v podzemním stavitelství (544-0173/02)</displayed-value>
+    <stored-value>544-0173/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Fotogrammetrie (544-0079/07)</displayed-value>
+    <stored-value>544-0079/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Fotogrammetrie (544-0920/01)</displayed-value>
+    <stored-value>544-0920/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Fyzikální geodézie a geofyzika (544-0095/06)</displayed-value>
+    <stored-value>544-0095/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geodetické sítě (544-0081/05)</displayed-value>
+    <stored-value>544-0081/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geodetické souřadnicové systémy (544-0954/04)</displayed-value>
+    <stored-value>544-0954/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geodézie (544-0004/23)</displayed-value>
+    <stored-value>544-0004/23</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geodézie (544-0004/24)</displayed-value>
+    <stored-value>544-0004/24</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geodézie I (544-0072/08)</displayed-value>
+    <stored-value>544-0072/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geodézie II (544-0073/05)</displayed-value>
+    <stored-value>544-0073/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geodézie II (544-0073/06)</displayed-value>
+    <stored-value>544-0073/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geodézie v BIM (544-0169/01)</displayed-value>
+    <stored-value>544-0169/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geofyzika (544-0959/01)</displayed-value>
+    <stored-value>544-0959/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geoprostorový BIM (544-0037/01)</displayed-value>
+    <stored-value>544-0037/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Geoprostorový BIM (544-0037/02)</displayed-value>
+    <stored-value>544-0037/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Historické mapy (544-0181/01)</displayed-value>
+    <stored-value>544-0181/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Inženýrská geodézie (544-0055/06)</displayed-value>
+    <stored-value>544-0055/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Inženýrská geodézie (544-0904/03)</displayed-value>
+    <stored-value>544-0904/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Kartografická exkurze (544-0164/01)</displayed-value>
+    <stored-value>544-0164/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Kartografická tvorba a reprodukce (544-0172/01)</displayed-value>
+    <stored-value>544-0172/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Kartografie (544-0114/07)</displayed-value>
+    <stored-value>544-0114/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Katastrální exkurze (544-0171/01)</displayed-value>
+    <stored-value>544-0171/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Katastr nemovitostí (544-0054/11)</displayed-value>
+    <stored-value>544-0054/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Katastr nemovitostí (544-0054/12)</displayed-value>
+    <stored-value>544-0054/12</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Katastr nemovitostí pro veřejnou a státní správu (544-0178/01)</displayed-value>
+    <stored-value>544-0178/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Kosmická geodézie (544-0115/05)</displayed-value>
+    <stored-value>544-0115/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Legislativa v zeměměřictví (544-0029/05)</displayed-value>
+    <stored-value>544-0029/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Letecká fotogrammetrie a TLS (544-0175/01)</displayed-value>
+    <stored-value>544-0175/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Mapy a katastr nemovitostí (544-0062/08)</displayed-value>
+    <stored-value>544-0062/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Mapy a katastr nemovitostí (544-0062/10)</displayed-value>
+    <stored-value>544-0062/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Mapy a katastr nemovitostí (544-0062/11)</displayed-value>
+    <stored-value>544-0062/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Mapy a katastr nemovitostí (544-0062/12)</displayed-value>
+    <stored-value>544-0062/12</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Mapy a katastr nemovitostí (544-0062/13)</displayed-value>
+    <stored-value>544-0062/13</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Měření pohybů a deformací (544-0093/08)</displayed-value>
+    <stored-value>544-0093/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Měření posunů a přetvoření (544-0958/01)</displayed-value>
+    <stored-value>544-0958/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Měření posunů a přetvoření (544-0958/02)</displayed-value>
+    <stored-value>544-0958/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Měření ve stavebnictví a průmyslu (544-0177/01)</displayed-value>
+    <stored-value>544-0177/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Metrologie v geodézii (544-0125/03)</displayed-value>
+    <stored-value>544-0125/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Modelování a interpretace dat (544-0170/01)</displayed-value>
+    <stored-value>544-0170/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Nauka o katastru nemovitostí (544-0951/03)</displayed-value>
+    <stored-value>544-0951/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Oborová praxe I (544-0163/01)</displayed-value>
+    <stored-value>544-0163/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Oborová praxe II (544-0167/01)</displayed-value>
+    <stored-value>544-0167/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Oborová praxe III (544-0174/01)</displayed-value>
+    <stored-value>544-0174/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Oborový seminář (544-0108/08)</displayed-value>
+    <stored-value>544-0108/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Pozemkové úpravy a pedologie (544-0026/02)</displayed-value>
+    <stored-value>544-0026/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Projektování v BIM (544-0038/01)</displayed-value>
+    <stored-value>544-0038/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Prostorové modelování krajiny (544-0051/01)</displayed-value>
+    <stored-value>544-0051/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Seminář k bakalářské práci (544-0150/06)</displayed-value>
+    <stored-value>544-0150/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Seminář k diplomové práci (544-0035/02)</displayed-value>
+    <stored-value>544-0035/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Speciální geodézie (544-0075/04)</displayed-value>
+    <stored-value>544-0075/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Technické kreslení (544-0030/12)</displayed-value>
+    <stored-value>544-0030/12</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Technické kreslení (544-0030/13)</displayed-value>
+    <stored-value>544-0030/13</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Technické kreslení (544-0030/15)</displayed-value>
+    <stored-value>544-0030/15</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Technické kreslení (544-0030/16)</displayed-value>
+    <stored-value>544-0030/16</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Technické kreslení (544-0030/17)</displayed-value>
+    <stored-value>544-0030/17</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Technické kreslení (544-0030/19)</displayed-value>
+    <stored-value>544-0030/19</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Technologie sběru prostorových dat (544-0166/01)</displayed-value>
+    <stored-value>544-0166/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Technologie TLS a UAV (544-0921/01)</displayed-value>
+    <stored-value>544-0921/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Technologie TLS a UAV (544-0921/02)</displayed-value>
+    <stored-value>544-0921/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Teorie chyb a pravděpodobnost (544-0165/01)</displayed-value>
+    <stored-value>544-0165/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Teorie chyb a vyrovnávací počet v geodézii (544-0905/03)</displayed-value>
+    <stored-value>544-0905/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Terénní cvičení z geodézie (544-0022/07)</displayed-value>
+    <stored-value>544-0022/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Uživatelské programy v geodézii I (544-0014/02)</displayed-value>
+    <stored-value>544-0014/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Uživatelské programy v geodézii II (544-0101/04)</displayed-value>
+    <stored-value>544-0101/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Uživatelské programy v geodézii II (544-0101/05)</displayed-value>
+    <stored-value>544-0101/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Vlivy dobývání na důlní díla a povrch (544-0063/03)</displayed-value>
+    <stored-value>544-0063/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Vlivy poddolování (544-0039/06)</displayed-value>
+    <stored-value>544-0039/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Vlivy poddolování (544-0039/07)</displayed-value>
+    <stored-value>544-0039/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Vlivy poddolování (544-0906/01)</displayed-value>
+    <stored-value>544-0906/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Vyrovnávací počet (544-0012/02)</displayed-value>
+    <stored-value>544-0012/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Vyšší geodézie (544-0013/07)</displayed-value>
+    <stored-value>544-0013/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Vyšší geodézie (544-0013/08)</displayed-value>
+    <stored-value>544-0013/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Výuka v terénu I (544-0041/06)</displayed-value>
+    <stored-value>544-0041/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Výuka v terénu II (544-0042/07)</displayed-value>
+    <stored-value>544-0042/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Výuka v terénu III (544-0043/04)</displayed-value>
+    <stored-value>544-0043/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Výuka v terénu IV (544-0044/05)</displayed-value>
+    <stored-value>544-0044/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Základy 2D kreslení (544-0162/01)</displayed-value>
+    <stored-value>544-0162/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Základy geodézie (544-0001/05)</displayed-value>
+    <stored-value>544-0001/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Základy kartografie (544-0080/03)</displayed-value>
+    <stored-value>544-0080/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Zeměměřická exkurze (544-0179/01)</displayed-value>
+    <stored-value>544-0179/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>544 - Zpracování dat (544-0168/01)</displayed-value>
+    <stored-value>544-0168/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Aplikace prognózování nerostných komodit (545-0187/01)</displayed-value>
+    <stored-value>545-0187/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Aplikace prognózování nerostných komodit (545-0187/02)</displayed-value>
+    <stored-value>545-0187/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Aplikace výpočetní techniky I (545-0162/01)</displayed-value>
+    <stored-value>545-0162/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Aplikace výpočetní techniky I (545-0162/02)</displayed-value>
+    <stored-value>545-0162/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Aplikace výpočetní techniky II (545-0157/01)</displayed-value>
+    <stored-value>545-0157/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Aplikace výpočetní techniky II (545-0157/02)</displayed-value>
+    <stored-value>545-0157/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Aplikovaná statistika v surovinovém průmyslu (545-0154/01)</displayed-value>
+    <stored-value>545-0154/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Aplikovaná statistika v surovinovém průmyslu (545-0154/02)</displayed-value>
+    <stored-value>545-0154/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Automatizace technologických procesů (545-0149/01)</displayed-value>
+    <stored-value>545-0149/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Automatizace technologických procesů (545-0149/02)</displayed-value>
+    <stored-value>545-0149/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Automatizace technologických procesů (545-0149/04)</displayed-value>
+    <stored-value>545-0149/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Bezpečnostní management (545-0053/01)</displayed-value>
+    <stored-value>545-0053/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Brownfield management (545-0160/01)</displayed-value>
+    <stored-value>545-0160/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Ekonomické nástroje pro znovuvyužití brownfields (545-0159/01)</displayed-value>
+    <stored-value>545-0159/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Ekonomika, management a marketing v turismu (545-0136/01)</displayed-value>
+    <stored-value>545-0136/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Ekonomika a management (545-0351/11)</displayed-value>
+    <stored-value>545-0351/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Ekonomika a management (545-0351/12)</displayed-value>
+    <stored-value>545-0351/12</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Ekonomika podniku (545-0339/17)</displayed-value>
+    <stored-value>545-0339/17</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Ekonomika podniku (545-0339/18)</displayed-value>
+    <stored-value>545-0339/18</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Ekonomika využívání surovin (545-0146/01)</displayed-value>
+    <stored-value>545-0146/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Ekonomika využívání surovin (545-0146/02)</displayed-value>
+    <stored-value>545-0146/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Finance a účetnictví (545-0298/03)</displayed-value>
+    <stored-value>545-0298/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Finanční matematika (545-0172/01)</displayed-value>
+    <stored-value>545-0172/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Finanční matematika (545-0172/02)</displayed-value>
+    <stored-value>545-0172/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Informační systémy v péči o krajinu (545-0078/04)</displayed-value>
+    <stored-value>545-0078/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Investování a financování v surovinovém průmyslu (545-0189/01)</displayed-value>
+    <stored-value>545-0189/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Investování a financování v surovinovém průmyslu (545-0189/02)</displayed-value>
+    <stored-value>545-0189/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Management báňského podniku (545-0902/02)</displayed-value>
+    <stored-value>545-0902/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Management báňského podniku (545-0902/03)</displayed-value>
+    <stored-value>545-0902/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Management v hospodářské praxi I (545-0178/01)</displayed-value>
+    <stored-value>545-0178/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Management v hospodářské praxi I (545-0178/02)</displayed-value>
+    <stored-value>545-0178/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Management v hospodářské praxi II (545-0179/01)</displayed-value>
+    <stored-value>545-0179/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Management v hospodářské praxi II (545-0179/02)</displayed-value>
+    <stored-value>545-0179/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Management v surovinovém průmyslu (545-0155/01)</displayed-value>
+    <stored-value>545-0155/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Management v surovinovém průmyslu (545-0155/02)</displayed-value>
+    <stored-value>545-0155/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Manažerské systémy v surovinovém průmyslu (545-0147/01)</displayed-value>
+    <stored-value>545-0147/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Manažerské systémy v surovinovém průmyslu (545-0147/02)</displayed-value>
+    <stored-value>545-0147/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Marketing v surovinovém průmyslu (545-0151/01)</displayed-value>
+    <stored-value>545-0151/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Marketing v surovinovém průmyslu (545-0151/02)</displayed-value>
+    <stored-value>545-0151/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Modelování a simulace (545-0367/04)</displayed-value>
+    <stored-value>545-0367/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Modelování a simulace (545-0367/05)</displayed-value>
+    <stored-value>545-0367/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Modelování průmyslových systémů (545-0152/01)</displayed-value>
+    <stored-value>545-0152/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Modelování průmyslových systémů (545-0152/02)</displayed-value>
+    <stored-value>545-0152/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Modelování v péči o krajinu (545-0603/02)</displayed-value>
+    <stored-value>545-0603/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Moderní průmyslové technologie (545-0181/02)</displayed-value>
+    <stored-value>545-0181/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Obchodování se surovinami (545-0190/01)</displayed-value>
+    <stored-value>545-0190/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Obchodování se surovinami (545-0190/02)</displayed-value>
+    <stored-value>545-0190/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Oceňování ložisek nerostných surovin (545-0188/01)</displayed-value>
+    <stored-value>545-0188/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Oceňování ložisek nerostných surovin (545-0188/02)</displayed-value>
+    <stored-value>545-0188/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Ochrana spotřebitele (545-0173/01)</displayed-value>
+    <stored-value>545-0173/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Organizace a řízení dobývání surovin (545-0403/03)</displayed-value>
+    <stored-value>545-0403/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Osvojování ložisek nerostných surovin (545-0186/01)</displayed-value>
+    <stored-value>545-0186/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Osvojování ložisek nerostných surovin (545-0186/02)</displayed-value>
+    <stored-value>545-0186/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Počítačové praktikum (545-0144/01)</displayed-value>
+    <stored-value>545-0144/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Počítačové praktikum (545-0144/02)</displayed-value>
+    <stored-value>545-0144/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Podnikatelství v surovinovém průmyslu (545-0145/01)</displayed-value>
+    <stored-value>545-0145/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Podnikatelství v surovinovém průmyslu (545-0145/02)</displayed-value>
+    <stored-value>545-0145/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Podnikatelství v surovinovém průmyslu (545-0145/03)</displayed-value>
+    <stored-value>545-0145/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Pokročilé aplikace v MS Excel (545-0176/01)</displayed-value>
+    <stored-value>545-0176/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Pokročilé aplikace v MS Excel (545-0176/02)</displayed-value>
+    <stored-value>545-0176/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Prognózování v surovinovém průmyslu (545-0158/02)</displayed-value>
+    <stored-value>545-0158/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Prognózování v surovinovém průmyslu (545-0158/03)</displayed-value>
+    <stored-value>545-0158/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Projektování ekonomických systémů (545-0184/01)</displayed-value>
+    <stored-value>545-0184/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Projektování ekonomických systémů (545-0184/02)</displayed-value>
+    <stored-value>545-0184/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Reporting (545-0171/01)</displayed-value>
+    <stored-value>545-0171/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Reporting (545-0171/02)</displayed-value>
+    <stored-value>545-0171/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Řízení materiálových toků v surovinovém průmyslu (545-0174/01)</displayed-value>
+    <stored-value>545-0174/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Řízení materiálových toků v surovinovém průmyslu (545-0174/02)</displayed-value>
+    <stored-value>545-0174/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Řízení zdrojů (545-0075/01)</displayed-value>
+    <stored-value>545-0075/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Řízení zdrojů (545-0075/02)</displayed-value>
+    <stored-value>545-0075/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Seminář k Bc práci (545-0204/07)</displayed-value>
+    <stored-value>545-0204/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Seminář k Bc práci (545-0204/08)</displayed-value>
+    <stored-value>545-0204/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Seminář k diplomové práci (545-0222/06)</displayed-value>
+    <stored-value>545-0222/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Seminář k diplomové práci (545-0222/07)</displayed-value>
+    <stored-value>545-0222/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Smart logistika (545-0192/01)</displayed-value>
+    <stored-value>545-0192/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Smart logistika (545-0192/02)</displayed-value>
+    <stored-value>545-0192/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Smart technologie v logistice (545-0191/01)</displayed-value>
+    <stored-value>545-0191/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Surovinový průmysl (545-0185/01)</displayed-value>
+    <stored-value>545-0185/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Surovinový průmysl (545-0185/02)</displayed-value>
+    <stored-value>545-0185/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Suroviny v průmyslu (545-0175/01)</displayed-value>
+    <stored-value>545-0175/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Suroviny v průmyslu (545-0175/02)</displayed-value>
+    <stored-value>545-0175/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Systémy prezentace a distribuce informací (545-0126/07)</displayed-value>
+    <stored-value>545-0126/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Systémy prezentace a distribuce informací (545-0126/08)</displayed-value>
+    <stored-value>545-0126/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Teorie ekonomických systémů (545-0153/01)</displayed-value>
+    <stored-value>545-0153/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Teorie ekonomických systémů (545-0153/02)</displayed-value>
+    <stored-value>545-0153/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Trh nerostných surovin (545-0156/01)</displayed-value>
+    <stored-value>545-0156/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Trh nerostných surovin (545-0156/02)</displayed-value>
+    <stored-value>545-0156/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Úvod do problematiky EU (545-0220/07)</displayed-value>
+    <stored-value>545-0220/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Úvod do studia (545-0163/01)</displayed-value>
+    <stored-value>545-0163/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Úvod do studia (545-0163/02)</displayed-value>
+    <stored-value>545-0163/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Virtuální a rozšířená realita (545-0168/02)</displayed-value>
+    <stored-value>545-0168/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Virtuální a rozšířená realita (545-0168/03)</displayed-value>
+    <stored-value>545-0168/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Virtuální a rozšířená realita (545-0168/04)</displayed-value>
+    <stored-value>545-0168/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Virtuální a rozšířená realita (545-0168/05)</displayed-value>
+    <stored-value>545-0168/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Virtuální a rozšířená realita (545-0168/06)</displayed-value>
+    <stored-value>545-0168/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Vizualizace dat a procesů (545-0137/01)</displayed-value>
+    <stored-value>545-0137/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Vizualizace technologických procesů (545-0380/04)</displayed-value>
+    <stored-value>545-0380/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Výpočetní technika (545-0170/01)</displayed-value>
+    <stored-value>545-0170/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Výpočetní technika (545-0170/02)</displayed-value>
+    <stored-value>545-0170/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Webové a mobilní technologie (545-0161/03)</displayed-value>
+    <stored-value>545-0161/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Webové a mobilní technologie (545-0161/04)</displayed-value>
+    <stored-value>545-0161/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Základy surovinové politiky státu (545-0183/01)</displayed-value>
+    <stored-value>545-0183/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Základy surovinové politiky státu (545-0183/02)</displayed-value>
+    <stored-value>545-0183/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Základy tržní ekonomiky (545-0203/08)</displayed-value>
+    <stored-value>545-0203/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>545 - Základy tržní ekonomiky (545-0203/09)</displayed-value>
+    <stored-value>545-0203/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Adaptační a mitigační opatření (546-0152/01)</displayed-value>
+    <stored-value>546-0152/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Alternativní metody odstraňování a získávání kovů (546-0993/01)</displayed-value>
+    <stored-value>546-0993/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Alternativní metody odstraňování a získávání kovů (546-0993/02)</displayed-value>
+    <stored-value>546-0993/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Aplikovaná dendrologie (546-0172/01)</displayed-value>
+    <stored-value>546-0172/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Aplikovaná ekologie (546-0825/01)</displayed-value>
+    <stored-value>546-0825/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Aplikovaná ekologie (546-0825/03)</displayed-value>
+    <stored-value>546-0825/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Aplikovaná geobotanika (546-0986/01)</displayed-value>
+    <stored-value>546-0986/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Aplikovaná mikrobiologie v industriálním prostředí (546-0955/01)</displayed-value>
+    <stored-value>546-0955/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Architektura pro brownfieldy (546-0126/01)</displayed-value>
+    <stored-value>546-0126/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Balneotechnika a balneologie (546-0812/03)</displayed-value>
+    <stored-value>546-0812/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Biologické metody zpracování nerostných surovin (546-0907/02)</displayed-value>
+    <stored-value>546-0907/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Biologické metody zpracování nerostných surovin (546-0907/03)</displayed-value>
+    <stored-value>546-0907/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Biologické metody zpracování nerostných surovin a odpadů (546-0117/01)</displayed-value>
+    <stored-value>546-0117/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Botanika (546-0304/04)</displayed-value>
+    <stored-value>546-0304/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Brownfieldy a jejich vliv na veřejné zdraví (546-0157/01)</displayed-value>
+    <stored-value>546-0157/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Cirkulární ekonomika (546-0131/01)</displayed-value>
+    <stored-value>546-0131/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Cirkulární ekonomika (546-0131/02)</displayed-value>
+    <stored-value>546-0131/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Čistší produkce (546-0294/05)</displayed-value>
+    <stored-value>546-0294/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Čištění odpadních vod (546-0362/03)</displayed-value>
+    <stored-value>546-0362/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Čištění odpadních vod (546-0902/02)</displayed-value>
+    <stored-value>546-0902/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Čištění odpadních vod (546-0902/03)</displayed-value>
+    <stored-value>546-0902/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Čištění průmyslových odpadních vod (546-0125/01)</displayed-value>
+    <stored-value>546-0125/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Čištění průmyslových vod (546-0987/01)</displayed-value>
+    <stored-value>546-0987/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Destinační management (546-0145/01)</displayed-value>
+    <stored-value>546-0145/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Doprava a životní prostředí (546-0414/03)</displayed-value>
+    <stored-value>546-0414/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Dopravní systémy (546-0761/01)</displayed-value>
+    <stored-value>546-0761/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ekologické aspekty polymerů v ŽP (546-0808/02)</displayed-value>
+    <stored-value>546-0808/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ekonomika a management ve vodohospodářských organizacích (546-0153/01)</displayed-value>
+    <stored-value>546-0153/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ekonomika turistických organizací (546-0146/01)</displayed-value>
+    <stored-value>546-0146/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ekotoxikologie (546-0067/02)</displayed-value>
+    <stored-value>546-0067/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Energetické využití odpadů (546-0982/01)</displayed-value>
+    <stored-value>546-0982/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Energetické využití odpadů (546-0982/02)</displayed-value>
+    <stored-value>546-0982/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Environmentální geomorfologie (546-0517/04)</displayed-value>
+    <stored-value>546-0517/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Environmentální management (546-0401/09)</displayed-value>
+    <stored-value>546-0401/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Environmentální mikrobiologie (546-0110/01)</displayed-value>
+    <stored-value>546-0110/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Environmentální právo (546-0747/01)</displayed-value>
+    <stored-value>546-0747/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Environmentální právo (546-0747/03)</displayed-value>
+    <stored-value>546-0747/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Exkurze (546-0366/03)</displayed-value>
+    <stored-value>546-0366/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Exkurze (546-0366/04)</displayed-value>
+    <stored-value>546-0366/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Exkurze (546-0366/05)</displayed-value>
+    <stored-value>546-0366/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Exkurze z průvodcovské činnosti a krajiny České republiky (546-0143/01)</displayed-value>
+    <stored-value>546-0143/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Exkurze z předmětu Ochrana životního prostředí (546-0513/01)</displayed-value>
+    <stored-value>546-0513/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Flotace nerostných surovin a odpadů (546-0435/03)</displayed-value>
+    <stored-value>546-0435/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Flotace nerostných surovin a odpadů (546-0979/01)</displayed-value>
+    <stored-value>546-0979/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Flotace nerostných surovin a odpadů (546-0979/02)</displayed-value>
+    <stored-value>546-0979/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Fytocenologie (546-0416/02)</displayed-value>
+    <stored-value>546-0416/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Fyzikální chemie (546-0855/01)</displayed-value>
+    <stored-value>546-0855/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Fyzikální separační procesy II. (546-0186/01)</displayed-value>
+    <stored-value>546-0186/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Geobotanika (546-0493/03)</displayed-value>
+    <stored-value>546-0493/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Geomikrobiologie (546-0981/01)</displayed-value>
+    <stored-value>546-0981/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Geomikrobiologie (546-0981/02)</displayed-value>
+    <stored-value>546-0981/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Globální problémy industrializace prostředí (546-0175/01)</displayed-value>
+    <stored-value>546-0175/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Hodnocení environmentálních rizik (546-0415/03)</displayed-value>
+    <stored-value>546-0415/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Hodnocení vlastností odpadů (546-0440/04)</displayed-value>
+    <stored-value>546-0440/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Hodnocení životního cyklu (546-0800/02)</displayed-value>
+    <stored-value>546-0800/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Hospodaření s vodou (546-0479/02)</displayed-value>
+    <stored-value>546-0479/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Hospodaření s vodou v průmyslu (546-0167/01)</displayed-value>
+    <stored-value>546-0167/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Hydrotechnická vybavenost (546-0092/03)</displayed-value>
+    <stored-value>546-0092/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Hydrotoxikologie (546-0686/04)</displayed-value>
+    <stored-value>546-0686/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Chemické metody zpracování nerostných surovin a odpadů (546-0450/03)</displayed-value>
+    <stored-value>546-0450/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Chemické metody zpracování nerostných surovin a odpadů (546-0450/04)</displayed-value>
+    <stored-value>546-0450/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Chemické procesy zpracování surovin (546-0996/01)</displayed-value>
+    <stored-value>546-0996/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Chemické procesy zpracování surovin (546-0996/02)</displayed-value>
+    <stored-value>546-0996/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Informatika a bibliografie (546-0088/04)</displayed-value>
+    <stored-value>546-0088/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Informatika a bibliografie (546-0088/06)</displayed-value>
+    <stored-value>546-0088/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Informatika a bibliografie (546-0088/08)</displayed-value>
+    <stored-value>546-0088/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Informatika v odpadovém hospodářství (546-0357/04)</displayed-value>
+    <stored-value>546-0357/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Informatika v odpadovém hospodářství (546-0357/05)</displayed-value>
+    <stored-value>546-0357/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Instrumentální metody analýzy (546-0354/08)</displayed-value>
+    <stored-value>546-0354/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Instrumentální metody analýzy I (546-0335/05)</displayed-value>
+    <stored-value>546-0335/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Instrumentální metody analýzy I (546-0335/06)</displayed-value>
+    <stored-value>546-0335/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Instrumentální metody analýzy II (546-0396/04)</displayed-value>
+    <stored-value>546-0396/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Instrumentální metody analýzy II (546-0396/05)</displayed-value>
+    <stored-value>546-0396/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Instrumentální metody chemické analýzy (546-0940/04)</displayed-value>
+    <stored-value>546-0940/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Instrumentální metody chemické analýzy (546-0940/05)</displayed-value>
+    <stored-value>546-0940/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Investice a kvalita ve stavebnictví (546-0128/01)</displayed-value>
+    <stored-value>546-0128/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Inženýrská ekologie (546-0495/02)</displayed-value>
+    <stored-value>546-0495/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Inženýrská ekologie (546-0495/03)</displayed-value>
+    <stored-value>546-0495/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Klimatické změny a vodní hospodářství (546-0136/01)</displayed-value>
+    <stored-value>546-0136/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Klimatologie a hydrologie (546-0519/01)</displayed-value>
+    <stored-value>546-0519/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Komunikace ve firemní praxi (546-0139/01)</displayed-value>
+    <stored-value>546-0139/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Komunikace ve firemní praxi (546-0139/02)</displayed-value>
+    <stored-value>546-0139/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Komunikace ve firemní praxi (546-0139/03)</displayed-value>
+    <stored-value>546-0139/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Kontaminanty a jejich chování v životním prostředí (546-0852/01)</displayed-value>
+    <stored-value>546-0852/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Kontaminanty a jejich chování v životním prostředí (546-0852/03)</displayed-value>
+    <stored-value>546-0852/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Koučink v praxi (546-0024/02)</displayed-value>
+    <stored-value>546-0024/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Koučink v praxi (546-0024/03)</displayed-value>
+    <stored-value>546-0024/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Koučink v praxi (546-0024/06)</displayed-value>
+    <stored-value>546-0024/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Koučink v praxi (546-0024/07)</displayed-value>
+    <stored-value>546-0024/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Krajina České republiky (546-0141/01)</displayed-value>
+    <stored-value>546-0141/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Krajinné a územní plánování (546-0026/02)</displayed-value>
+    <stored-value>546-0026/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Laboratorní praktikum (546-0844/02)</displayed-value>
+    <stored-value>546-0844/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Legislativa v ochraně ŽP (546-0964/01)</displayed-value>
+    <stored-value>546-0964/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Marketing (546-0144/01)</displayed-value>
+    <stored-value>546-0144/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Marketing v surovinovém průmyslu (546-0140/01)</displayed-value>
+    <stored-value>546-0140/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Membránové procesy (546-0155/01)</displayed-value>
+    <stored-value>546-0155/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Meteorologie a klimatologie (546-0321/02)</displayed-value>
+    <stored-value>546-0321/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Metody studia ekosystémů (546-0494/03)</displayed-value>
+    <stored-value>546-0494/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Metody zpracování a analýzy dat (546-0182/02)</displayed-value>
+    <stored-value>546-0182/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Mikrobiologické praktikum (546-0116/01)</displayed-value>
+    <stored-value>546-0116/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Mikrobiologie v technologii vody (546-0112/02)</displayed-value>
+    <stored-value>546-0112/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Minerální biotechnologie I (546-0437/05)</displayed-value>
+    <stored-value>546-0437/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Minerální biotechnologie I (546-0437/06)</displayed-value>
+    <stored-value>546-0437/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Minerální biotechnologie II. (546-0438/03)</displayed-value>
+    <stored-value>546-0438/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Minerální biotechnologie II. (546-0438/04)</displayed-value>
+    <stored-value>546-0438/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Modelování vodních stavů v krajině (546-0154/01)</displayed-value>
+    <stored-value>546-0154/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Modelování vodních stavů v krajině (546-0154/02)</displayed-value>
+    <stored-value>546-0154/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Monitorování stavu ŽP (546-0989/01)</displayed-value>
+    <stored-value>546-0989/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Multikriteriální analýzy CANOCO (546-0115/01)</displayed-value>
+    <stored-value>546-0115/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Nanomateriály a životní prostředí (546-0189/01)</displayed-value>
+    <stored-value>546-0189/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Nanomateriály a životní prostředí (546-0189/02)</displayed-value>
+    <stored-value>546-0189/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Nanomateriály a životní prostředí (546-0990/01)</displayed-value>
+    <stored-value>546-0990/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Navrhování vodohospodářské infrastruktury (546-0150/01)</displayed-value>
+    <stored-value>546-0150/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Obecná biologie (546-0515/03)</displayed-value>
+    <stored-value>546-0515/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Obecná ekologie (546-0516/01)</displayed-value>
+    <stored-value>546-0516/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborová exkurze (546-0818/02)</displayed-value>
+    <stored-value>546-0818/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborová exkurze (546-0818/03)</displayed-value>
+    <stored-value>546-0818/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborová praxe (546-0004/11)</displayed-value>
+    <stored-value>546-0004/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborová praxe (546-0004/12)</displayed-value>
+    <stored-value>546-0004/12</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborová praxe (546-0004/13)</displayed-value>
+    <stored-value>546-0004/13</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborová praxe (546-0004/14)</displayed-value>
+    <stored-value>546-0004/14</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborová praxe (546-0004/16)</displayed-value>
+    <stored-value>546-0004/16</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborová praxe (546-0004/17)</displayed-value>
+    <stored-value>546-0004/17</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborová praxe (546-0004/18)</displayed-value>
+    <stored-value>546-0004/18</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborové kolokvium (546-0827/03)</displayed-value>
+    <stored-value>546-0827/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborové terénní cvičení (546-0830/03)</displayed-value>
+    <stored-value>546-0830/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Oborový seminář (546-0451/07)</displayed-value>
+    <stored-value>546-0451/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Odpadové hospodářství (546-0514/04)</displayed-value>
+    <stored-value>546-0514/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Odpadové hospodářství I. (546-0439/03)</displayed-value>
+    <stored-value>546-0439/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Odpadové hospodářství II. (546-0447/03)</displayed-value>
+    <stored-value>546-0447/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Odpady z těžby a zpracování surovin (546-0854/01)</displayed-value>
+    <stored-value>546-0854/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Odpady z těžby a zpracování surovin (546-0854/02)</displayed-value>
+    <stored-value>546-0854/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ochrana a remediace půd (546-0934/01)</displayed-value>
+    <stored-value>546-0934/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ochrana biodiverzity v industriálním prostředí (546-0166/01)</displayed-value>
+    <stored-value>546-0166/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ochrana ovzduší (546-0355/06)</displayed-value>
+    <stored-value>546-0355/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ochrana ovzduší (546-0355/07)</displayed-value>
+    <stored-value>546-0355/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ochrana přírody a památek (546-0316/01)</displayed-value>
+    <stored-value>546-0316/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ochrana přírody a památek (546-0316/02)</displayed-value>
+    <stored-value>546-0316/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ochrana půd v průmyslu (546-0171/01)</displayed-value>
+    <stored-value>546-0171/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ochrana vod (546-0409/06)</displayed-value>
+    <stored-value>546-0409/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Ochrana životního prostředí (546-0305/09)</displayed-value>
+    <stored-value>546-0305/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Památková péče pro brownfieldy (546-0129/01)</displayed-value>
+    <stored-value>546-0129/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Pedologie (546-0308/06)</displayed-value>
+    <stored-value>546-0308/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Pedologie (546-0308/07)</displayed-value>
+    <stored-value>546-0308/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Pedologie (546-0308/08)</displayed-value>
+    <stored-value>546-0308/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Pedologie v turistice (546-0767/01)</displayed-value>
+    <stored-value>546-0767/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Pokročilé funkce CAD pro vodní hospodářství (546-0178/01)</displayed-value>
+    <stored-value>546-0178/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Posuzování vlivů na životní prostředí (546-0842/01)</displayed-value>
+    <stored-value>546-0842/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Posuzování vlivů na životní prostředí (546-0842/02)</displayed-value>
+    <stored-value>546-0842/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Posuzování vlivů na životní prostředí (546-0842/03)</displayed-value>
+    <stored-value>546-0842/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Posuzování vlivů na životní prostředí (546-0842/04)</displayed-value>
+    <stored-value>546-0842/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Posuzování vlivů na ŽP (546-0956/01)</displayed-value>
+    <stored-value>546-0956/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Posuzování vlivů na ŽP (546-0956/02)</displayed-value>
+    <stored-value>546-0956/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Pracovní prostředí (546-0328/03)</displayed-value>
+    <stored-value>546-0328/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Právní předpisy v odpadovém hospodářství (546-0856/01)</displayed-value>
+    <stored-value>546-0856/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Právní předpisy v odpadovém hospodářství (546-0856/02)</displayed-value>
+    <stored-value>546-0856/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Právní úprava odpadového hospodářství (546-0358/02)</displayed-value>
+    <stored-value>546-0358/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Preventivní přístup k ochraně životního prostředí (546-0464/02)</displayed-value>
+    <stored-value>546-0464/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Projektování (546-0123/01)</displayed-value>
+    <stored-value>546-0123/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Projektování technologií (546-0444/05)</displayed-value>
+    <stored-value>546-0444/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Provozní praxe (546-0441/09)</displayed-value>
+    <stored-value>546-0441/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Průmyslová ekologie (546-0906/01)</displayed-value>
+    <stored-value>546-0906/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Průmyslová toxikologie a ekotoxikologie (546-0158/01)</displayed-value>
+    <stored-value>546-0158/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Průmyslové technologie a jejich vliv na životní prostředí (546-0843/02)</displayed-value>
+    <stored-value>546-0843/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Průmyslové technologie a jejich vliv na životní prostředí (546-0843/03)</displayed-value>
+    <stored-value>546-0843/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Průmyslové technologie a jejich vliv na životní prostředí (546-0843/04)</displayed-value>
+    <stored-value>546-0843/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Průvodcovská činnost v geoturistice (546-0142/01)</displayed-value>
+    <stored-value>546-0142/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Recyklace odpadů (546-0448/03)</displayed-value>
+    <stored-value>546-0448/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Recyklace odpadů (546-0448/04)</displayed-value>
+    <stored-value>546-0448/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Regenerace a rekultivace brownfields (546-0837/02)</displayed-value>
+    <stored-value>546-0837/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Regenerace a rekultivace postindustriální krajiny (546-0985/01)</displayed-value>
+    <stored-value>546-0985/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Regenerace industriální krajiny (546-0165/01)</displayed-value>
+    <stored-value>546-0165/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Regenerace industriální krajiny (546-0165/03)</displayed-value>
+    <stored-value>546-0165/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Rekultivace (546-0732/03)</displayed-value>
+    <stored-value>546-0732/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Rekultivace (546-0732/04)</displayed-value>
+    <stored-value>546-0732/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Revitalizace vodních toků (546-0487/03)</displayed-value>
+    <stored-value>546-0487/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Rizika nanomateriálů v průmyslu (546-0176/01)</displayed-value>
+    <stored-value>546-0176/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Řízení projektové komunikace (546-0168/01)</displayed-value>
+    <stored-value>546-0168/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Sanační technologie (546-0809/02)</displayed-value>
+    <stored-value>546-0809/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Sanační technologie (546-0991/01)</displayed-value>
+    <stored-value>546-0991/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Sanační technologie (546-0991/02)</displayed-value>
+    <stored-value>546-0991/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Seminář k bakalářské práci (546-0388/07)</displayed-value>
+    <stored-value>546-0388/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Seminář k bakalářské práci (546-0388/08)</displayed-value>
+    <stored-value>546-0388/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Seminář k bakalářské práci (546-0388/09)</displayed-value>
+    <stored-value>546-0388/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Seminář k bakalářské práci (546-0388/10)</displayed-value>
+    <stored-value>546-0388/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Seminář k diplomové práci (546-0823/02)</displayed-value>
+    <stored-value>546-0823/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Seminář k diplomové práci (546-0823/03)</displayed-value>
+    <stored-value>546-0823/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Seminář k diplomové práci (546-0823/06)</displayed-value>
+    <stored-value>546-0823/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Seminář k diplomové práci (546-0823/07)</displayed-value>
+    <stored-value>546-0823/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Seminář k diplomové práci (546-0823/10)</displayed-value>
+    <stored-value>546-0823/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Seminář k diplomové práci (546-0823/11)</displayed-value>
+    <stored-value>546-0823/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Složky životního prostředí a jejich vlastnosti (546-0181/01)</displayed-value>
+    <stored-value>546-0181/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Soft-skills v praxi (546-0156/01)</displayed-value>
+    <stored-value>546-0156/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Soft-skills v praxi (546-0156/02)</displayed-value>
+    <stored-value>546-0156/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Somatologie pro technické obory (546-0127/01)</displayed-value>
+    <stored-value>546-0127/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Staré ekologické zátěže v ČR (546-0433/02)</displayed-value>
+    <stored-value>546-0433/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Stav a vývoj ŽP v ČR (546-0342/06)</displayed-value>
+    <stored-value>546-0342/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Stav a vývoj ŽP v ČR (546-0342/07)</displayed-value>
+    <stored-value>546-0342/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Stav a vývoj ŽP v ČR (546-0342/08)</displayed-value>
+    <stored-value>546-0342/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Stav a vývoj ŽP v ČR (546-0342/09)</displayed-value>
+    <stored-value>546-0342/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Stavitelství (546-0329/03)</displayed-value>
+    <stored-value>546-0329/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Sterilizace a čisté prostory (546-0174/01)</displayed-value>
+    <stored-value>546-0174/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Systémy environmentálního managementu (546-0016/02)</displayed-value>
+    <stored-value>546-0016/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Systémy environmentálního managementu (546-0016/05)</displayed-value>
+    <stored-value>546-0016/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Systémy environmentálního managementu (546-0016/06)</displayed-value>
+    <stored-value>546-0016/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Systémy environmentálního managementu (546-0016/08)</displayed-value>
+    <stored-value>546-0016/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Systémy environmentálního managementu (546-0016/09)</displayed-value>
+    <stored-value>546-0016/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologická analýza (546-0032/04)</displayed-value>
+    <stored-value>546-0032/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie čištění odpadních vod (546-0151/01)</displayed-value>
+    <stored-value>546-0151/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie ochrany ovzduší (546-0162/01)</displayed-value>
+    <stored-value>546-0162/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie ochrany ovzduší (546-0162/02)</displayed-value>
+    <stored-value>546-0162/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie ochrany půd (546-0163/01)</displayed-value>
+    <stored-value>546-0163/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie ochrany vod (546-0164/01)</displayed-value>
+    <stored-value>546-0164/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie recyklace odpadů (546-0185/01)</displayed-value>
+    <stored-value>546-0185/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie úpravy surovin (546-0183/01)</displayed-value>
+    <stored-value>546-0183/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie úpravy vody (546-0148/01)</displayed-value>
+    <stored-value>546-0148/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie zpracování nerostných surovin (546-0995/01)</displayed-value>
+    <stored-value>546-0995/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie zpracování nerostných surovin (546-0995/02)</displayed-value>
+    <stored-value>546-0995/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie zpracování odpadů (546-0983/01)</displayed-value>
+    <stored-value>546-0983/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Technologie zpracování odpadů (546-0983/02)</displayed-value>
+    <stored-value>546-0983/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Teoretické aspekty fyzikálních metod rozdružování nerostných surovin (546-0998/01)</displayed-value>
+    <stored-value>546-0998/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Teoretické aspekty fyzikálních metod rozdružování nerostných surovin (546-0998/02)</displayed-value>
+    <stored-value>546-0998/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Tepelné zpracování nerostných surovin (546-0187/01)</displayed-value>
+    <stored-value>546-0187/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Terénní cvičení z biologie a ekologie (546-0511/01)</displayed-value>
+    <stored-value>546-0511/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Terénní cvičení z ekologie (546-0324/03)</displayed-value>
+    <stored-value>546-0324/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Terénní cvičení z inženýrské ekologie (546-0161/01)</displayed-value>
+    <stored-value>546-0161/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Terénní cvičení z rekultivací (546-0173/01)</displayed-value>
+    <stored-value>546-0173/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Termické metody odstraňování odpadů (546-0810/02)</displayed-value>
+    <stored-value>546-0810/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Toxikologie a škodliviny v ŽP (546-0356/02)</displayed-value>
+    <stored-value>546-0356/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Toxikologie a škodliviny v ŽP (546-0356/04)</displayed-value>
+    <stored-value>546-0356/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Udržitelná výroba a spotřeba (546-0801/02)</displayed-value>
+    <stored-value>546-0801/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava a čištění vod (546-0483/02)</displayed-value>
+    <stored-value>546-0483/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava a čištění vod (546-0483/04)</displayed-value>
+    <stored-value>546-0483/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava a čištění vod (546-0483/05)</displayed-value>
+    <stored-value>546-0483/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava a získávání nerostných a druhotných surovin (546-0188/01)</displayed-value>
+    <stored-value>546-0188/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava surovin a odpadů II (546-0184/01)</displayed-value>
+    <stored-value>546-0184/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava surovin a odpadů II (546-0184/02)</displayed-value>
+    <stored-value>546-0184/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava surovin a odpadů III (546-0853/01)</displayed-value>
+    <stored-value>546-0853/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava surovin a odpadů III (546-0853/02)</displayed-value>
+    <stored-value>546-0853/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava vody (546-0083/01)</displayed-value>
+    <stored-value>546-0083/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava vody (546-0972/01)</displayed-value>
+    <stored-value>546-0972/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úprava vody (546-0972/02)</displayed-value>
+    <stored-value>546-0972/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úpravnická technologická analýza (546-0999/01)</displayed-value>
+    <stored-value>546-0999/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úpravnická technologická analýza (546-0999/02)</displayed-value>
+    <stored-value>546-0999/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úpravy toků (546-0772/04)</displayed-value>
+    <stored-value>546-0772/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úvod do biologie a ekologie (546-0510/03)</displayed-value>
+    <stored-value>546-0510/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úvod do biologie a ekologie (546-0510/05)</displayed-value>
+    <stored-value>546-0510/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úvod do biologie a ekologie (546-0510/06)</displayed-value>
+    <stored-value>546-0510/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úvod do hydrosféry (546-0132/01)</displayed-value>
+    <stored-value>546-0132/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úvod do minerálních biotechnologií (546-0851/01)</displayed-value>
+    <stored-value>546-0851/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úvod do minerálních biotechnologií (546-0851/02)</displayed-value>
+    <stored-value>546-0851/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úvod do odpadového hospodářství (546-0339/06)</displayed-value>
+    <stored-value>546-0339/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úvod do odpadového hospodářství (546-0339/07)</displayed-value>
+    <stored-value>546-0339/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úvod do vodního hospodářství (546-0307/07)</displayed-value>
+    <stored-value>546-0307/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Úvod do vodního hospodářství (546-0307/08)</displayed-value>
+    <stored-value>546-0307/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Územní a krajinné plánování (546-0130/01)</displayed-value>
+    <stored-value>546-0130/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Územní a krajinné plánování (546-0130/02)</displayed-value>
+    <stored-value>546-0130/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Územní plánování (546-0831/02)</displayed-value>
+    <stored-value>546-0831/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Územní plánování (546-0831/03)</displayed-value>
+    <stored-value>546-0831/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Územní plánování (546-0831/05)</displayed-value>
+    <stored-value>546-0831/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vlastnosti a složení vod (546-0075/01)</displayed-value>
+    <stored-value>546-0075/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vlastnosti a složení vod (546-0075/02)</displayed-value>
+    <stored-value>546-0075/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vlivy průmyslových technologií na ŽP (546-0960/01)</displayed-value>
+    <stored-value>546-0960/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vlivy průmyslových technologií na ŽP (546-0960/02)</displayed-value>
+    <stored-value>546-0960/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vlivy průmyslu na životní prostředí (546-0066/02)</displayed-value>
+    <stored-value>546-0066/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vodárenství (546-0138/01)</displayed-value>
+    <stored-value>546-0138/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Voda v krajině (546-0696/02)</displayed-value>
+    <stored-value>546-0696/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Voda v krajině (546-0696/03)</displayed-value>
+    <stored-value>546-0696/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vodohospodářská praxe (546-0137/01)</displayed-value>
+    <stored-value>546-0137/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vodohospodářská zařízení (546-0484/02)</displayed-value>
+    <stored-value>546-0484/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vodohospodářská zařízení v industriální krajině (546-0992/01)</displayed-value>
+    <stored-value>546-0992/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Výrobní technologie (546-0313/01)</displayed-value>
+    <stored-value>546-0313/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vývoj a výzkum kompozitních materiálů (546-0994/01)</displayed-value>
+    <stored-value>546-0994/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vývoj a výzkum kompozitních materiálů (546-0994/02)</displayed-value>
+    <stored-value>546-0994/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vzorkování a analýza vod (546-0149/01)</displayed-value>
+    <stored-value>546-0149/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vzorkování  pro  environmentální  analýzy (546-0849/03)</displayed-value>
+    <stored-value>546-0849/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Vzorkování  pro  environmentální  analýzy (546-0849/04)</displayed-value>
+    <stored-value>546-0849/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Zakládání a údržba zeleně (546-0829/01)</displayed-value>
+    <stored-value>546-0829/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy CAD pro vodní hospodářství (546-0133/01)</displayed-value>
+    <stored-value>546-0133/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy ekologie a biologie (546-0190/02)</displayed-value>
+    <stored-value>546-0190/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy environmentálního práva (546-0124/03)</displayed-value>
+    <stored-value>546-0124/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy environmentálního práva (546-0124/05)</displayed-value>
+    <stored-value>546-0124/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy environmentálního práva (546-0124/06)</displayed-value>
+    <stored-value>546-0124/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy finančního managementu (546-0160/01)</displayed-value>
+    <stored-value>546-0160/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy fyziologie a patofyziologie pro technické obory (546-0122/01)</displayed-value>
+    <stored-value>546-0122/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy hydrobiologie a mikrobiologie (546-0135/01)</displayed-value>
+    <stored-value>546-0135/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy hydrologie (546-0073/01)</displayed-value>
+    <stored-value>546-0073/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy mikrobiologie (546-0044/02)</displayed-value>
+    <stored-value>546-0044/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy mikrobiologie (546-0044/03)</displayed-value>
+    <stored-value>546-0044/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy stokování (546-0134/01)</displayed-value>
+    <stored-value>546-0134/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy vědecké práce (546-0159/01)</displayed-value>
+    <stored-value>546-0159/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Základy zpracování environmentálních dat (546-0169/01)</displayed-value>
+    <stored-value>546-0169/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Zařízení pro irigaci a odvodnění (546-0177/01)</displayed-value>
+    <stored-value>546-0177/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Zařízení pro retenci vody (546-0147/01)</displayed-value>
+    <stored-value>546-0147/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Zemědělství a lesnictví (546-0343/04)</displayed-value>
+    <stored-value>546-0343/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Zoologie (546-0318/04)</displayed-value>
+    <stored-value>546-0318/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Zpracování a využití důlních vod (546-0988/01)</displayed-value>
+    <stored-value>546-0988/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Zpracování a využití důlních vod (546-0988/02)</displayed-value>
+    <stored-value>546-0988/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Zpracování a využití kalů z úpravy a čištění vod (546-0980/01)</displayed-value>
+    <stored-value>546-0980/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>546 - Zpracování a využití kalů z úpravy a čištění vod (546-0980/02)</displayed-value>
+    <stored-value>546-0980/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - 3D modelování v GIS (548-0138/01)</displayed-value>
+    <stored-value>548-0138/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - 3D modelování v GIS (548-0138/02)</displayed-value>
+    <stored-value>548-0138/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Aplikované geoinformační technologie (548-0930/01)</displayed-value>
+    <stored-value>548-0930/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Aplikované geoinformační technologie (548-0930/02)</displayed-value>
+    <stored-value>548-0930/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Bezpilotní letecké prostředky (548-0951/01)</displayed-value>
+    <stored-value>548-0951/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Bezpilotní letecké prostředky (548-0951/02)</displayed-value>
+    <stored-value>548-0951/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Časoprostorové analýzy (548-0117/04)</displayed-value>
+    <stored-value>548-0117/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Časoprostorové analýzy (548-0117/05)</displayed-value>
+    <stored-value>548-0117/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Časoprostorové analýzy dat (548-0952/01)</displayed-value>
+    <stored-value>548-0952/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Časoprostorové analýzy dat (548-0952/02)</displayed-value>
+    <stored-value>548-0952/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Dálkový průzkum Země (DPZ) (548-0004/08)</displayed-value>
+    <stored-value>548-0004/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Dálkový průzkum Země (DPZ) (548-0004/09)</displayed-value>
+    <stored-value>548-0004/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Dálkový průzkum Země (DPZ) (548-0004/10)</displayed-value>
+    <stored-value>548-0004/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Dálkový průzkum Země (DPZ) (548-0004/11)</displayed-value>
+    <stored-value>548-0004/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Dálkový průzkum Země (DPZ) (548-0004/12)</displayed-value>
+    <stored-value>548-0004/12</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Databázové systémy (548-0007/10)</displayed-value>
+    <stored-value>548-0007/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Digitální kartografie (548-0131/01)</displayed-value>
+    <stored-value>548-0131/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Digitální kartografie (548-0956/01)</displayed-value>
+    <stored-value>548-0956/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Digitální kartografie (548-0956/02)</displayed-value>
+    <stored-value>548-0956/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Digitální modely reliéfu (548-0071/04)</displayed-value>
+    <stored-value>548-0071/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Digitální modely reliéfu (548-0071/05)</displayed-value>
+    <stored-value>548-0071/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Digitální modely reliéfu (548-0071/07)</displayed-value>
+    <stored-value>548-0071/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Digitální modely reliéfu (548-0071/08)</displayed-value>
+    <stored-value>548-0071/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Drony v GIS (548-0132/01)</displayed-value>
+    <stored-value>548-0132/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Drony v GIS (548-0132/02)</displayed-value>
+    <stored-value>548-0132/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Exkurze na pracoviště GIS (548-0014/04)</displayed-value>
+    <stored-value>548-0014/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Exkurze na pracoviště GIS (548-0014/05)</displayed-value>
+    <stored-value>548-0014/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - GeoComputation (548-0083/04)</displayed-value>
+    <stored-value>548-0083/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - GeoComputation (548-0083/05)</displayed-value>
+    <stored-value>548-0083/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - GeoComputation (548-0953/01)</displayed-value>
+    <stored-value>548-0953/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - GeoComputation (548-0953/02)</displayed-value>
+    <stored-value>548-0953/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geografické informační systémy (548-0016/12)</displayed-value>
+    <stored-value>548-0016/12</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geografické informační systémy (548-0016/13)</displayed-value>
+    <stored-value>548-0016/13</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geografické informační systémy v bezpečnostním inženýrství (548-0126/01)</displayed-value>
+    <stored-value>548-0126/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoinformační technologie (548-0058/02)</displayed-value>
+    <stored-value>548-0058/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoinformační technologie (548-0058/04)</displayed-value>
+    <stored-value>548-0058/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoinformační technologie (548-0058/06)</displayed-value>
+    <stored-value>548-0058/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoinformační technologie (548-0058/07)</displayed-value>
+    <stored-value>548-0058/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoinformační technologie (548-0058/11)</displayed-value>
+    <stored-value>548-0058/11</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoinformační technologie a bezpečnost (548-0915/02)</displayed-value>
+    <stored-value>548-0915/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoinformační technologie a bezpečnost (548-0915/04)</displayed-value>
+    <stored-value>548-0915/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoinformační technologie a bezpečnost (548-0915/05)</displayed-value>
+    <stored-value>548-0915/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geostatistika (548-0143/01)</displayed-value>
+    <stored-value>548-0143/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geostatistika (548-0143/02)</displayed-value>
+    <stored-value>548-0143/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geovizualizace (548-0111/03)</displayed-value>
+    <stored-value>548-0111/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geovizualizace (548-0111/04)</displayed-value>
+    <stored-value>548-0111/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geovizualizace (548-0929/01)</displayed-value>
+    <stored-value>548-0929/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoweb 1 (548-0134/01)</displayed-value>
+    <stored-value>548-0134/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoweb 1 (548-0134/02)</displayed-value>
+    <stored-value>548-0134/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoweb 2 (548-0137/01)</displayed-value>
+    <stored-value>548-0137/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Geoweb 3 (548-0147/02)</displayed-value>
+    <stored-value>548-0147/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - GIS metody a dálkový průzkum Země v geoturistice (548-0127/01)</displayed-value>
+    <stored-value>548-0127/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - GIS v regionálních analýzách (548-0064/06)</displayed-value>
+    <stored-value>548-0064/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - GIS v regionálních analýzách (548-0064/08)</displayed-value>
+    <stored-value>548-0064/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Globální navigační a polohové systémy (548-0048/04)</displayed-value>
+    <stored-value>548-0048/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Globální navigační a polohové systémy (548-0048/05)</displayed-value>
+    <stored-value>548-0048/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Globální navigační a polohové systémy (548-0048/06)</displayed-value>
+    <stored-value>548-0048/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Globální navigační a polohové systémy (548-0908/04)</displayed-value>
+    <stored-value>548-0908/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Globální navigační a polohové systémy (548-0908/05)</displayed-value>
+    <stored-value>548-0908/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Informační systémy (548-0005/07)</displayed-value>
+    <stored-value>548-0005/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Informační systémy (548-0005/08)</displayed-value>
+    <stored-value>548-0005/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Interpretace geodat (548-0092/03)</displayed-value>
+    <stored-value>548-0092/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Interpretace geodat (548-0092/04)</displayed-value>
+    <stored-value>548-0092/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Kvantitativní metody v geografii (548-0093/02)</displayed-value>
+    <stored-value>548-0093/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Kvantitativní metody v geografii (548-0093/03)</displayed-value>
+    <stored-value>548-0093/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Legislativní a etické aspekty zpracování geodat (548-0104/01)</displayed-value>
+    <stored-value>548-0104/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Legislativní a etické aspekty zpracování geodat (548-0104/04)</displayed-value>
+    <stored-value>548-0104/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Metodologie výzkumu v geoinformatice (548-0957/01)</displayed-value>
+    <stored-value>548-0957/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Metodologie výzkumu v geoinformatice (548-0957/02)</displayed-value>
+    <stored-value>548-0957/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Mobilní geoinformační technologie (548-0066/05)</displayed-value>
+    <stored-value>548-0066/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Modelování a simulace v geovědách (548-0059/05)</displayed-value>
+    <stored-value>548-0059/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Modelování a simulace v geovědách (548-0059/06)</displayed-value>
+    <stored-value>548-0059/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Modelování reliéfu a procesů v hydrologii (548-0139/01)</displayed-value>
+    <stored-value>548-0139/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Modelování terénu a krajiny (548-0012/05)</displayed-value>
+    <stored-value>548-0012/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Modelování v geovědách (548-0913/04)</displayed-value>
+    <stored-value>548-0913/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Modelování v geovědách (548-0913/05)</displayed-value>
+    <stored-value>548-0913/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Multimediální systémy (548-0042/07)</displayed-value>
+    <stored-value>548-0042/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Multimediální systémy (548-0042/08)</displayed-value>
+    <stored-value>548-0042/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Neurčitost v geoinformatice (548-0115/03)</displayed-value>
+    <stored-value>548-0115/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Neurčitost v geoinformatice (548-0115/04)</displayed-value>
+    <stored-value>548-0115/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Objektově orientované technologie (548-0040/09)</displayed-value>
+    <stored-value>548-0040/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Objektově orientované technologie (548-0040/10)</displayed-value>
+    <stored-value>548-0040/10</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Oborová praxe (548-0144/01)</displayed-value>
+    <stored-value>548-0144/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Oborová praxe (548-0144/02)</displayed-value>
+    <stored-value>548-0144/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Odborná stáž (548-0085/03)</displayed-value>
+    <stored-value>548-0085/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Odborná stáž (548-0085/04)</displayed-value>
+    <stored-value>548-0085/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Plánování aplikací geoinformačních technologií (548-0927/03)</displayed-value>
+    <stored-value>548-0927/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Plánování aplikací geoinformačních technologií (548-0927/04)</displayed-value>
+    <stored-value>548-0927/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Pokročilé metody DPZ (548-0146/01)</displayed-value>
+    <stored-value>548-0146/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Pokročilé metody DPZ (548-0146/02)</displayed-value>
+    <stored-value>548-0146/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Pokročilé metody DPZ (548-0950/01)</displayed-value>
+    <stored-value>548-0950/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Pokročilé metody DPZ (548-0950/02)</displayed-value>
+    <stored-value>548-0950/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Pokročilé metody lokalizace a navigace (548-0150/01)</displayed-value>
+    <stored-value>548-0150/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Pokročilé metody lokalizace a navigace (548-0150/02)</displayed-value>
+    <stored-value>548-0150/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prezentační techniky (548-0076/05)</displayed-value>
+    <stored-value>548-0076/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prezentační techniky (548-0076/06)</displayed-value>
+    <stored-value>548-0076/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Programování v GIS 1 (548-0129/01)</displayed-value>
+    <stored-value>548-0129/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Programování v GIS 1 (548-0129/02)</displayed-value>
+    <stored-value>548-0129/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Programování v GIS 2 (548-0130/01)</displayed-value>
+    <stored-value>548-0130/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Programování v GIS 2 (548-0130/02)</displayed-value>
+    <stored-value>548-0130/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Programování v GIS 3 (548-0133/01)</displayed-value>
+    <stored-value>548-0133/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Programování v GIS 4 (548-0141/01)</displayed-value>
+    <stored-value>548-0141/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Programování v GIS 4 (548-0141/02)</displayed-value>
+    <stored-value>548-0141/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Programování v GIS 5 (548-0151/01)</displayed-value>
+    <stored-value>548-0151/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Programování v GIS 5 (548-0151/02)</displayed-value>
+    <stored-value>548-0151/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Projektování geoinformačních technologií (548-0148/01)</displayed-value>
+    <stored-value>548-0148/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Projektování geoinformačních technologií (548-0148/02)</displayed-value>
+    <stored-value>548-0148/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorová analýza dat (548-0044/08)</displayed-value>
+    <stored-value>548-0044/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorová analýza dat (548-0044/09)</displayed-value>
+    <stored-value>548-0044/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorová statistika (548-0926/03)</displayed-value>
+    <stored-value>548-0926/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorová statistika (548-0926/04)</displayed-value>
+    <stored-value>548-0926/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorové databáze (548-0921/04)</displayed-value>
+    <stored-value>548-0921/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorové databáze (548-0921/05)</displayed-value>
+    <stored-value>548-0921/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorové databázové systémy 1 (548-0128/01)</displayed-value>
+    <stored-value>548-0128/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorové databázové systémy 1 (548-0128/02)</displayed-value>
+    <stored-value>548-0128/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorové databázové systémy 2 (548-0140/01)</displayed-value>
+    <stored-value>548-0140/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorové databázové systémy 2 (548-0140/02)</displayed-value>
+    <stored-value>548-0140/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorové usuzování (548-0118/02)</displayed-value>
+    <stored-value>548-0118/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Prostorové usuzování (548-0118/03)</displayed-value>
+    <stored-value>548-0118/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Seminář k bakalářské práci (548-0136/01)</displayed-value>
+    <stored-value>548-0136/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Seminář k bakalářské práci (548-0136/02)</displayed-value>
+    <stored-value>548-0136/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Seminář k diplomové práci (548-0149/01)</displayed-value>
+    <stored-value>548-0149/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Seminář k diplomové práci (548-0149/02)</displayed-value>
+    <stored-value>548-0149/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Socioekonomická geografie (548-0033/05)</displayed-value>
+    <stored-value>548-0033/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Socioekonomická geografie (548-0033/06)</displayed-value>
+    <stored-value>548-0033/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Systémy GIS v PO (548-0039/05)</displayed-value>
+    <stored-value>548-0039/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Terénní cvičení z GIS a GNSS (548-0050/01)</displayed-value>
+    <stored-value>548-0050/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Terénní cvičení z GIS a GNSS (548-0050/02)</displayed-value>
+    <stored-value>548-0050/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Terénní cvičení z mapování (548-0114/03)</displayed-value>
+    <stored-value>548-0114/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Terénní cvičení z mapování (548-0114/04)</displayed-value>
+    <stored-value>548-0114/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Visual Analytics (548-0142/02)</displayed-value>
+    <stored-value>548-0142/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Vizuální analytika (548-0954/01)</displayed-value>
+    <stored-value>548-0954/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Vizuální analytika (548-0954/02)</displayed-value>
+    <stored-value>548-0954/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Využití cloudových služeb v geoinformatice (548-0145/01)</displayed-value>
+    <stored-value>548-0145/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Využití cloudových služeb v geoinformatice (548-0145/02)</displayed-value>
+    <stored-value>548-0145/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy geografie (548-0060/04)</displayed-value>
+    <stored-value>548-0060/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy geografie (548-0060/06)</displayed-value>
+    <stored-value>548-0060/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy geografie (548-0060/07)</displayed-value>
+    <stored-value>548-0060/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy geoinformatiky (548-0057/04)</displayed-value>
+    <stored-value>548-0057/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy geoinformatiky (548-0057/05)</displayed-value>
+    <stored-value>548-0057/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy geoinformatiky (548-0057/06)</displayed-value>
+    <stored-value>548-0057/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy geoinformatiky (548-0057/07)</displayed-value>
+    <stored-value>548-0057/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy geoinformatiky (548-0057/08)</displayed-value>
+    <stored-value>548-0057/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy geoinformatiky (548-0057/09)</displayed-value>
+    <stored-value>548-0057/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy informatiky (548-0070/07)</displayed-value>
+    <stored-value>548-0070/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy informatiky (548-0070/08)</displayed-value>
+    <stored-value>548-0070/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy systémové analýzy v geovědách (548-0034/05)</displayed-value>
+    <stored-value>548-0034/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy systémové analýzy v geovědách (548-0034/06)</displayed-value>
+    <stored-value>548-0034/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy umělé inteligence v GIS (548-0135/01)</displayed-value>
+    <stored-value>548-0135/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Základy umělé inteligence v GIS (548-0135/02)</displayed-value>
+    <stored-value>548-0135/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Zdroje prostorových dat (548-0019/08)</displayed-value>
+    <stored-value>548-0019/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Zdroje prostorových dat (548-0019/09)</displayed-value>
+    <stored-value>548-0019/09</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Zpracování dat v GIS (548-0009/07)</displayed-value>
+    <stored-value>548-0009/07</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Zpracování dat v GIS (548-0009/08)</displayed-value>
+    <stored-value>548-0009/08</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>548 - Zpracování dat v GIS (548-0009/09)</displayed-value>
+    <stored-value>548-0009/09</stored-value>
+  </pair>
+</value-pairs>

@@ -1,0 +1,246 @@
+<value-pairs value-pairs-name="vp_program_EKF" dc-term="programme">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value/>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná ekonomie (B0311A050004)</displayed-value>
+    <stored-value>B0311A050004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná ekonomie (B0311A050005)</displayed-value>
+    <stored-value>B0311A050005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná ekonomie (N0311A050012)</displayed-value>
+    <stored-value>N0311A050012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná ekonomie (N0311A050013)</displayed-value>
+    <stored-value>N0311A050013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Co na tříletém studiu nebylo (U1002)</displayed-value>
+    <stored-value>U1002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Economic Policy and Administration (N6223)</displayed-value>
+    <stored-value>N6223</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomické teorie (6201V)</displayed-value>
+    <stored-value>6201V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomické teorie (P6201)</displayed-value>
+    <stored-value>P6201</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomické vědy pro U3V (U1003)</displayed-value>
+    <stored-value>U1003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomie (B0311A050021)</displayed-value>
+    <stored-value>B0311A050021</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomie (N0311A050040)</displayed-value>
+    <stored-value>N0311A050040</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomie (P0311D050003)</displayed-value>
+    <stored-value>P0311D050003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomie (P0311D050004)</displayed-value>
+    <stored-value>P0311D050004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (6208R)</displayed-value>
+    <stored-value>6208R</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (6208T)</displayed-value>
+    <stored-value>6208T</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (6208V)</displayed-value>
+    <stored-value>6208V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika  a management (B0413A050012)</displayed-value>
+    <stored-value>B0413A050012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (B6208)</displayed-value>
+    <stored-value>B6208</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (M6208)</displayed-value>
+    <stored-value>M6208</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (N0413A050014)</displayed-value>
+    <stored-value>N0413A050014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (N6208)</displayed-value>
+    <stored-value>N6208</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (P0413D050001)</displayed-value>
+    <stored-value>P0413D050001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (P0413D050002)</displayed-value>
+    <stored-value>P0413D050002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Ekonomika a management (P6208)</displayed-value>
+    <stored-value>P6208</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Finance (B0412A050005)</displayed-value>
+    <stored-value>B0412A050005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Finance (B0412A050006)</displayed-value>
+    <stored-value>B0412A050006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Finance (N0412A050005)</displayed-value>
+    <stored-value>N0412A050005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Finance (P0412D050003)</displayed-value>
+    <stored-value>P0412D050003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Finance (P0412D050004)</displayed-value>
+    <stored-value>P0412D050004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Finance a účetnictví (N0488A050004)</displayed-value>
+    <stored-value>N0488A050004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Finanční a daňové poradenství (B0412P050005)</displayed-value>
+    <stored-value>B0412P050005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hospodářská politika a správa (6202R)</displayed-value>
+    <stored-value>6202R</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hospodářská politika a správa (6202T)</displayed-value>
+    <stored-value>6202T</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hospodářská politika a správa (6202V)</displayed-value>
+    <stored-value>6202V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hospodářská politika a správa (B6202)</displayed-value>
+    <stored-value>B6202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hospodářská politika a správa (M6202)</displayed-value>
+    <stored-value>M6202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hospodářská politika a správa (N6202)</displayed-value>
+    <stored-value>N6202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Hospodářská politika a správa (P6202)</displayed-value>
+    <stored-value>P6202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační a znalostní management (N0688A050001)</displayed-value>
+    <stored-value>N0688A050001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika v ekonomice (B0311A050015)</displayed-value>
+    <stored-value>B0311A050015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Kvantitativní metody a rozhodování v ekonomice (B6234)</displayed-value>
+    <stored-value>B6234</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Kvantitativní metody v ekonomice (B6207)</displayed-value>
+    <stored-value>B6207</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Kvantitativní metody v ekonomice (N6207)</displayed-value>
+    <stored-value>N6207</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Marketing (B0414A050001)</displayed-value>
+    <stored-value>B0414A050001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Marketing a obchod (N0414A050001)</displayed-value>
+    <stored-value>N0414A050001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Marketing a obchod (N0414A050002)</displayed-value>
+    <stored-value>N0414A050002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Podniková ekonomika (B0413A050047)</displayed-value>
+    <stored-value>B0413A050047</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Systémové inženýrství a informatika (6209R)</displayed-value>
+    <stored-value>6209R</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Systémové inženýrství a informatika (6209T)</displayed-value>
+    <stored-value>6209T</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Systémové inženýrství a informatika (6209V)</displayed-value>
+    <stored-value>6209V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Systémové inženýrství a informatika (B6209)</displayed-value>
+    <stored-value>B6209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Systémové inženýrství a informatika (M6209)</displayed-value>
+    <stored-value>M6209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Systémové inženýrství a informatika (N6209)</displayed-value>
+    <stored-value>N6209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Systémové inženýrství a informatika (P0311D050019)</displayed-value>
+    <stored-value>P0311D050019</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Systémové inženýrství a informatika (P0311D050020)</displayed-value>
+    <stored-value>P0311D050020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Systémové inženýrství a informatika (P6209)</displayed-value>
+    <stored-value>P6209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Tříleté studium pro seniory (U1001)</displayed-value>
+    <stored-value>U1001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Účetnictví a daně (B0411A050001)</displayed-value>
+    <stored-value>B0411A050001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Veřejná ekonomika a správa (B0312A050001)</displayed-value>
+    <stored-value>B0312A050001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Veřejná ekonomika a správa (N0312A050001)</displayed-value>
+    <stored-value>N0312A050001</stored-value>
+  </pair>
+</value-pairs>

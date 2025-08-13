@@ -1,0 +1,394 @@
+<value-pairs value-pairs-name="vp_program_FEI" dc-term="programme">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value/>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná elektronika (B0714A060012)</displayed-value>
+    <stored-value>B0714A060012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná elektronika (B0714A060013)</displayed-value>
+    <stored-value>B0714A060013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná elektronika (N0714A060006)</displayed-value>
+    <stored-value>N0714A060006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná elektronika (N0714A060007)</displayed-value>
+    <stored-value>N0714A060007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná fyzika (B0533A110023)</displayed-value>
+    <stored-value>B0533A110023</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná fyzika (N0533A110006)</displayed-value>
+    <stored-value>N0533A110006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná fyzika (P0533D110005)</displayed-value>
+    <stored-value>P0533D110005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná fyzika (P0533D110006)</displayed-value>
+    <stored-value>P0533D110006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Automobilové elektronické systémy (B0713A060007)</displayed-value>
+    <stored-value>B0713A060007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Automobilové elektronické systémy (B0713A060008)</displayed-value>
+    <stored-value>B0713A060008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Automobilové elektronické systémy (B3973)</displayed-value>
+    <stored-value>B3973</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Automobilové elektronické systémy (N0716A060001)</displayed-value>
+    <stored-value>N0716A060001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Automobilové elektronické systémy (N0716A060002)</displayed-value>
+    <stored-value>N0716A060002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Bioinformatika a výpočetní biologie (P0588D140003)</displayed-value>
+    <stored-value>P0588D140003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Bioinformatika a výpočetní biologie (P0588D140004)</displayed-value>
+    <stored-value>P0588D140004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Biomedicínská technika (B0714A060016)</displayed-value>
+    <stored-value>B0714A060016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Biomedicínská technika (B0714A060017)</displayed-value>
+    <stored-value>B0714A060017</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Biomedicínské asistivní technologie (B0714A060018)</displayed-value>
+    <stored-value>B0714A060018</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Biomedicínské asistivní technologie (B0714A060019)</displayed-value>
+    <stored-value>B0714A060019</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Biomedicínské inženýrství (N0988A060001)</displayed-value>
+    <stored-value>N0988A060001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Biomedicínské inženýrství (N0988A060002)</displayed-value>
+    <stored-value>N0988A060002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektroenergetika (B0713A060005)</displayed-value>
+    <stored-value>B0713A060005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektroenergetika (B0713A060006)</displayed-value>
+    <stored-value>B0713A060006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektroenergetika (N0713A060003)</displayed-value>
+    <stored-value>N0713A060003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektroenergetika (N0713A060004)</displayed-value>
+    <stored-value>N0713A060004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektroenergetika (P0713D060003)</displayed-value>
+    <stored-value>P0713D060003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektroenergetika (P0713D060004)</displayed-value>
+    <stored-value>P0713D060004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika, sdělovací a výpočetní technika (2645R)</displayed-value>
+    <stored-value>2645R</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika, sdělovací a výpočetní technika (2645T)</displayed-value>
+    <stored-value>2645T</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika, sdělovací a výpočetní technika (2645V)</displayed-value>
+    <stored-value>2645V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika, sdělovací a výpočetní technika (B2645)</displayed-value>
+    <stored-value>B2645</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika, sdělovací a výpočetní technika (N2645)</displayed-value>
+    <stored-value>N2645</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika, sdělovací a výpočetní technika (P2645)</displayed-value>
+    <stored-value>P2645</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika (B0714A060020)</displayed-value>
+    <stored-value>B0714A060020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika (B2649)</displayed-value>
+    <stored-value>B2649</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika (N2649)</displayed-value>
+    <stored-value>N2649</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika (P0713D060001)</displayed-value>
+    <stored-value>P0713D060001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika (P0713D060002)</displayed-value>
+    <stored-value>P0713D060002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika (P2649)</displayed-value>
+    <stored-value>P2649</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika a informatika (2612R)</displayed-value>
+    <stored-value>2612R</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika a informatika (2612T)</displayed-value>
+    <stored-value>2612T</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika a informatika (2612V)</displayed-value>
+    <stored-value>2612V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika a informatika (B2612)</displayed-value>
+    <stored-value>B2612</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika a informatika (M2612)</displayed-value>
+    <stored-value>M2612</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Elektrotechnika a informatika (P2612)</displayed-value>
+    <stored-value>P2612</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační a komunikační bezpečnost (N0612A140004)</displayed-value>
+    <stored-value>N0612A140004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační a komunikační bezpečnost (N0612A140005)</displayed-value>
+    <stored-value>N0612A140005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační a komunikační technologie (B2647)</displayed-value>
+    <stored-value>B2647</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační a komunikační technologie (N2647)</displayed-value>
+    <stored-value>N2647</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační technologie (2646R)</displayed-value>
+    <stored-value>2646R</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační technologie (2646T)</displayed-value>
+    <stored-value>2646T</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační technologie (2646V)</displayed-value>
+    <stored-value>2646V</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační technologie (B2646)</displayed-value>
+    <stored-value>B2646</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační technologie (N2646)</displayed-value>
+    <stored-value>N2646</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informační technologie (P2646)</displayed-value>
+    <stored-value>P2646</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika, komunikační technologie a aplikovaná matematika (P1807)</displayed-value>
+    <stored-value>P1807</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika (B0613A140010)</displayed-value>
+    <stored-value>B0613A140010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika (B0613A140014)</displayed-value>
+    <stored-value>B0613A140014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika (N0613A140034)</displayed-value>
+    <stored-value>N0613A140034</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika (N0613A140035)</displayed-value>
+    <stored-value>N0613A140035</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika (P0613D140005)</displayed-value>
+    <stored-value>P0613D140005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika (P0613D140006)</displayed-value>
+    <stored-value>P0613D140006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika a výpočetní vědy (P0613D140032)</displayed-value>
+    <stored-value>P0613D140032</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Informatika a výpočetní vědy (P0613D140033)</displayed-value>
+    <stored-value>P0613D140033</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Komunikační a informační technologie (B0714A060023)</displayed-value>
+    <stored-value>B0714A060023</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Komunikační a informační technologie (B0714A060024)</displayed-value>
+    <stored-value>B0714A060024</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Komunikační a informační technologie (N0714A060020)</displayed-value>
+    <stored-value>N0714A060020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Komunikační a informační technologie (N0714A060021)</displayed-value>
+    <stored-value>N0714A060021</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Komunikační technologie (P0714D060001)</displayed-value>
+    <stored-value>P0714D060001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Komunikační technologie (P0714D060002)</displayed-value>
+    <stored-value>P0714D060002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Kybernetika (P0714D150001)</displayed-value>
+    <stored-value>P0714D150001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Kybernetika (P0714D150002)</displayed-value>
+    <stored-value>P0714D150002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Mobilní technologie (B0714A060008)</displayed-value>
+    <stored-value>B0714A060008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Mobilní technologie (B0714A060009)</displayed-value>
+    <stored-value>B0714A060009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Počítačové systémy pro průmysl 21. století (B0714A150003)</displayed-value>
+    <stored-value>B0714A150003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Počítačové systémy pro průmysl 21. století (B0714A150004)</displayed-value>
+    <stored-value>B0714A150004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Počítačové systémy pro průmysl 21. století (B2660)</displayed-value>
+    <stored-value>B2660</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Projektování elektrických systémů a technologií (B0713A060004)</displayed-value>
+    <stored-value>B0713A060004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Projektování elektrických systémů a technologií (N0713A060015)</displayed-value>
+    <stored-value>N0713A060015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Projektování elektrických systémů a technologií (N2661)</displayed-value>
+    <stored-value>N2661</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Projektování elektrických zařízení (B2648)</displayed-value>
+    <stored-value>B2648</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Průmysl 4.0 (N0688A140014)</displayed-value>
+    <stored-value>N0688A140014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Průmysl 4.0 (N0688A140015)</displayed-value>
+    <stored-value>N0688A140015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Řídicí a informační systémy (B0714A150001)</displayed-value>
+    <stored-value>B0714A150001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Řídicí a informační systémy (B0714A150002)</displayed-value>
+    <stored-value>B0714A150002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Řídicí a informační systémy (N0714A150001)</displayed-value>
+    <stored-value>N0714A150001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Řídicí a informační systémy (N0714A150002)</displayed-value>
+    <stored-value>N0714A150002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Telekomunikační technika (B0714A060010)</displayed-value>
+    <stored-value>B0714A060010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Telekomunikační technika (B0714A060011)</displayed-value>
+    <stored-value>B0714A060011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Výpočetní a aplikovaná matematika (B0541A170008)</displayed-value>
+    <stored-value>B0541A170008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Výpočetní a aplikovaná matematika (B0541A170009)</displayed-value>
+    <stored-value>B0541A170009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Výpočetní a aplikovaná matematika (N0541A170007)</displayed-value>
+    <stored-value>N0541A170007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Výpočetní a aplikovaná matematika (N0541A170008)</displayed-value>
+    <stored-value>N0541A170008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Výpočetní a aplikovaná matematika (P0541D170005)</displayed-value>
+    <stored-value>P0541D170005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Výpočetní a aplikovaná matematika (P0541D170006)</displayed-value>
+    <stored-value>P0541D170006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Výpočetní vědy (P0613D140020)</displayed-value>
+    <stored-value>P0613D140020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Výpočetní vědy (P0613D140021)</displayed-value>
+    <stored-value>P0613D140021</stored-value>
+  </pair>
+</value-pairs>

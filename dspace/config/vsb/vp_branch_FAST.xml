@@ -1,0 +1,34 @@
+<value-pairs value-pairs-name="vp_branch_FAST" dc-term="programme">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value/>
+  </pair>
+  <pair>
+    <displayed-value>Dopravní stavby (S01)</displayed-value>
+    <stored-value>S01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Geotechnika a podzemní stavitelství (S02)</displayed-value>
+    <stored-value>S02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Konstrukce staveb (S03)</displayed-value>
+    <stored-value>S03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Městské inženýrství (S04)</displayed-value>
+    <stored-value>S04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Pozemní a průmyslové stavitelství (S05)</displayed-value>
+    <stored-value>S05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Prostředí staveb (S06)</displayed-value>
+    <stored-value>S06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Stavební hmoty a diagnostika staveb (S07)</displayed-value>
+    <stored-value>S07</stored-value>
+  </pair>
+</value-pairs>
