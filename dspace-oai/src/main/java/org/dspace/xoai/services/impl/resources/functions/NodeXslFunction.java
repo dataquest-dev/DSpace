@@ -37,6 +37,11 @@ import org.w3c.dom.Node;
 public abstract class NodeXslFunction implements ExtensionFunction {
 
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(NodeXslFunction.class);
+
+    // Static processor and document builder to ensure configuration compatibility
+    private static final Processor SHARED_PROCESSOR = new Processor(false);
+    private static final DocumentBuilder SHARED_DOCUMENT_BUILDER = SHARED_PROCESSOR.newDocumentBuilder();
+
     protected abstract String getFnName();
 
     protected abstract Node getNode(String param);
@@ -77,11 +82,11 @@ public abstract class NodeXslFunction implements ExtensionFunction {
             try {
                 node = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
             } catch (ParserConfigurationException e) {
-                e.printStackTrace();
+                log.error("Error creating new document in NodeXslFunction", e);
             }
         }
-        DocumentBuilder db = new Processor(false).newDocumentBuilder();
-        var res = db.build(new DOMSource(node));
-        return res;
+
+        // Use the shared document builder instead of creating a new processor each time
+        return SHARED_DOCUMENT_BUILDER.build(new DOMSource(node));
     }
 }
