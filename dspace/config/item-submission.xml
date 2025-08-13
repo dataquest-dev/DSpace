@@ -813,11 +813,6 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="clankypagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
 
         <step-definition id="clankyFBIpageone" mandatory="true">
             <heading>submit.progressbar.describe.stepone</heading>
@@ -829,11 +824,6 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="clankyFBIpagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
 
         <step-definition id="clankyFASTpageone" mandatory="true">
             <heading>submit.progressbar.describe.stepone</heading>
@@ -842,11 +832,6 @@
         </step-definition>
         <step-definition id="clankyFASTpagetwo" mandatory="true">
             <heading>submit.progressbar.describe.steptwo</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
-        <step-definition id="clankyFASTpagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
@@ -1340,7 +1325,6 @@
             <step id="collection"/>
             <step id="clankypageone"/>
             <step id="clankypagetwo"/>
-            <step id="clankypagethree"/>
             <step id="uploadOptional"/>
             <step id="license"/>
         </submission-process>
@@ -1349,7 +1333,6 @@
             <step id="collection"/>
             <step id="clankyFBIpageone"/>
             <step id="clankyFBIpagetwo"/>
-            <step id="clankyFBIpagethree"/>
             <step id="uploadOptional"/>
             <step id="license"/>
         </submission-process>
@@ -1358,7 +1341,6 @@
             <step id="collection"/>
             <step id="clankyFASTpageone"/>
             <step id="clankyFASTpagetwo"/>
-            <step id="clankyFASTpagethree"/>
             <step id="uploadOptional"/>
             <step id="license"/>
         </submission-process>
@@ -1367,7 +1349,6 @@
             <step id="collection"/>
             <step id="clankySTROJpageone"/>
             <step id="clankySTROJpagetwo"/>
-            <step id="clankySTROJpagethree"/>
             <step id="uploadOptional"/>
             <step id="license"/>
         </submission-process>
