@@ -1471,7 +1471,7 @@
         </form>
         <!-- ekonomicka revue konec -->
 
-        <form name="publikacnipagone">
+        <form name="publikacnipageone">
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
