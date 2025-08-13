@@ -18,6 +18,21 @@
         </property>
     </bean>
 
+    <!-- Define a new bean that sets "required=false" for the UploadConfiguration -->
+    <bean id="uploadConfigurationWithoutMandatory" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload" />
+        <property name="metadata" value="bitstream-metadata" />
+        <property name="required" value="false" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess" />
+                <ref bean="lease" />
+                <ref bean="embargoed" />
+                <ref bean="administrator" />
+            </list>
+        </property>
+    </bean>
+
     <bean id="openAccess" class="org.dspace.submit.model.AccessConditionOption">
         <property name="groupName" value="Anonymous"/>
         <property name="name" value="openaccess"/>
@@ -55,6 +70,15 @@
         <property name="map">
             <map>
                 <entry key="upload" value-ref="uploadConfigurationDefault" />
+            </map>
+        </property>
+    </bean>
+
+    <!-- Define an UploadConfigurationService which makes Bitstream uploading optional -->
+    <bean id="uploadConfigurationServiceWithoutMandatory" class="org.dspace.submit.model.UploadConfigurationService">
+        <property name="map">
+            <map>
+                <entry key="uploadOptional" value-ref="uploadConfigurationWithoutMandatory" />
             </map>
         </property>
     </bean>
