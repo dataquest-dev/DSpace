@@ -2,7 +2,7 @@
 
 ## Overview
 
-The VSB (Vysoká škola báňská - Technical University of Ostrava) template system provides maintenance scripts for automatically generating submission forms and controlled vocabularies for different faculties. This system is designed for DSpace 7 and provides tools to maintain faculty-specific submission workflows.
+The VSB (Vysoká škola báňská - Technical University of Ostrava) template system provides maintenance scripts for automatically generating submission forms and controlled vocabularies for different faculties. This system is designed for DSpace 7 and provides Python-based tools to maintain faculty-specific submission workflows.
 
 ## Template Generation Process
 
@@ -10,7 +10,7 @@ The VSB (Vysoká škola báňská - Technical University of Ostrava) template sy
 The system uses a template-based approach to generate faculty-specific submission forms:
 
 - **Base template**: `evyuka_form_template.xml` - Contains the base form structure
-- **Generation scripts**: `evyuka_form_template.sh` / `evyuka_form_template.bat` - Generates faculty-specific forms
+- **Generation script**: `generate-forms.py` - Generates faculty-specific forms from template
 - **Generated forms**: `evyuka_form_[FACULTY].xml` files for each faculty
 
 #### Faculties supported:
@@ -28,79 +28,95 @@ The system uses a template-based approach to generate faculty-specific submissio
 ### 2. Controlled Vocabularies
 The system fetches controlled vocabularies from VSB web services and converts them to DSpace format:
 
-- **Fetch scripts**: `fetch-vocabularies.sh` / `fetch-vocabularies.bat` - Downloads vocabularies from VSB web services
-- **XSLT transformer**: `controlled-vocabulary2value-pairs.xsl` - Converts XML to DSpace format
+- **Fetch script**: `fetch-vocabularies.py` - Downloads vocabularies from VSB web services
+- **XSLT transformer**: `controlled-vocabulary2value-pairs.xsl` - Reference for conversion format
 - **Vocabulary types**: program, branch, subject, subject-version
 
 ## Maintenance Scripts
 
 ### Key Scripts:
 
-#### Template Generation
-- **Windows**: `evyuka_form_template.bat`
-- **Linux/Unix**: `evyuka_form_template.sh`
-
-These scripts generate faculty-specific submission forms from the base template.
-
 #### Vocabulary Updates
-- **Windows**: `fetch-vocabularies.bat`
-- **Linux/Unix**: `fetch-vocabularies.sh`
+- **`fetch-vocabularies.py`** - Downloads and updates controlled vocabularies from VSB web services
 
-These scripts download and update controlled vocabularies from VSB web services.
+**Features:**
+- Concurrent downloads for faster processing
+- Automatic fallback to test URLs
+- Built-in XML validation and conversion
+- Automatic backup creation
+- UTF-8 encoding support for Czech characters
 
-#### XSLT Transformation
-- `controlled-vocabulary2value-pairs.xsl` - Converts downloaded XML vocabularies to DSpace value-pairs format
+#### Template Generation
+- **`generate-forms.py`** - Generates faculty-specific submission forms from the base template
+
+**Features:**
+- Automatic form generation from template
+- Special handling for faculty 9270 (removes discipline/programme fields)
+- XML validation and error checking
+- Automatic backup creation
+- Cross-platform compatibility
 
 ### Script Features:
 
 - **Automatic backups**: Creates timestamped backups before making changes
 - **Error handling**: Validates XML and provides fallback options
-- **Dependency checking**: Verifies required tools are available
+- **Python-based**: No external dependencies, works on Windows, Linux, and macOS
 - **Progress reporting**: Shows detailed status and completion summaries
 - **Recovery mechanisms**: Restores from backups on failure
+- **Concurrent processing**: Fast parallel downloads and conversions
 
 ## Usage Instructions
 
+### Updating Vocabularies
+
+**Basic usage (update all vocabularies):**
+```bash
+python fetch-vocabularies.py
+```
+
+**Advanced options:**
+```bash
+# Update only specific vocabulary types
+python fetch-vocabularies.py --vocab-types program branch
+
+# Update only specific faculties
+python fetch-vocabularies.py --faculties FAST FBI FS
+
+# Skip backup creation
+python fetch-vocabularies.py --no-backup
+
+# Download only (skip conversion)
+python fetch-vocabularies.py --download-only
+```
+
 ### Regenerating Forms
 
-1. **Edit the base template** (if needed):
-   ```bash
-   nano evyuka_form_template.xml
-   ```
+**Generate all forms:**
+```bash
+python generate-forms.py
+```
 
-2. **Run the generation script**:
-   
-   **Windows:**
-   ```cmd
-   evyuka_form_template.bat
-   ```
-   
-   **Linux/Unix:**
-   ```bash
-   ./evyuka_form_template.sh
-   ```
+**Advanced options:**
+```bash
+# Generate forms for specific faculties
+python generate-forms.py --faculties FAST FBI FS
 
-3. **Update vocabularies**:
-   
-   **Windows:**
-   ```cmd
-   fetch-vocabularies.bat
-   ```
-   
-   **Linux/Unix:**
-   ```bash
-   ./fetch-vocabularies.sh
-   ```
+# Skip backup creation
+python generate-forms.py --no-backup
+
+# Validate existing forms only
+python generate-forms.py --validate-only
+```
 
 ### Special Form Handling
 
 For faculty 9270 (special case without discipline/programme):
-- The scripts automatically remove discipline and programme fields
-- Uses xmlstarlet for precise XML editing while preserving encoding
+- The script automatically removes discipline and programme fields using regex
+- Uses Python's built-in XML processing for precise editing while preserving encoding
 
 ### Adding New Faculties
 
-1. Add the faculty code to the generation scripts
+1. Add the faculty code to the Python scripts
 2. Ensure the VSB web service supports the new faculty
 3. Test the generated forms before deployment
 
@@ -110,27 +126,27 @@ For faculty 9270 (special case without discipline/programme):
 vsb/
 ├── README.md                           # This documentation
 ├── evyuka_form_template.xml           # Base template for all forms
-├── evyuka_form_template.sh            # Form generation script (Linux/Unix)
-├── evyuka_form_template.bat           # Form generation script (Windows)
-├── fetch-vocabularies.sh              # Vocabulary fetching script (Linux/Unix)
-├── fetch-vocabularies.bat             # Vocabulary fetching script (Windows)
-├── controlled-vocabulary2value-pairs.xsl # XSLT transformer
+├── generate-forms.py                  # Form generation script (Python)
+├── fetch-vocabularies.py              # Vocabulary fetching script (Python)
+├── controlled-vocabulary2value-pairs.xsl # XSLT transformer (reference)
 ├── evyuka_form_[FACULTY].xml          # Generated faculty forms
 ├── dir_[TYPE]_[FACULTY].xml           # Downloaded vocabulary data
 ├── vp_[TYPE]_[FACULTY].xml            # Processed value-pairs
-└── bak-*/                             # Backup directories
+└── vocab-backup-*/                    # Vocabulary backup directories
+└── bak-*/                             # Form backup directories
 ```
 
 ## Regular Maintenance
 
 ### Updating Vocabularies
-- Run vocabulary fetch scripts periodically to update vocabularies from VSB web services
+- Run `python fetch-vocabularies.py` periodically to update vocabularies from VSB web services
 - Vocabularies are cached locally to reduce web service calls
-- Incremental updates are supported
+- Concurrent processing makes updates fast and efficient
+- Automatic fallback to test URLs if primary services are unavailable
 
 ### Form Updates
 - Modify the base template (`evyuka_form_template.xml`) when changes are needed
-- Regenerate all faculty forms using the generation scripts
+- Run `python generate-forms.py` to regenerate all faculty forms
 - Test in development environment before production deployment
 
 ### Backup Management
@@ -150,41 +166,49 @@ The forms are integrated into DSpace 7 through:
 ### Character Encoding
 - All files use UTF-8 encoding
 - Special handling for Czech diacritics
-- xmlstarlet preserves encoding during transformations
+- Python's built-in XML processing preserves encoding during transformations
 
 ### Web Service Dependencies
 - VSB vocabulary services at `https://www.vsb.cz/edudocs/`
 - Fallback to test services if primary services are unavailable
 - XML validation for all downloaded data
-- Timeout handling for network requests
+- Configurable timeout handling for network requests
 
 ### Performance Considerations
+- Concurrent downloads for faster vocabulary updates
 - Vocabularies cached locally to reduce web service calls
 - Incremental updates supported to minimize processing time
 - Minimal impact on submission performance
-- Backup and validation processes are optimized for speed
+- Optimized backup and validation processes
+
+## Requirements
+
+- **Python 3.6+** - Required for running the maintenance scripts
+- **requests library** - For HTTP downloads (install with `pip install requests`)
+- **Internet access** - For downloading vocabularies from VSB web services
 
 ## Troubleshooting
 
 ### Common Issues
 - **XML validation errors**: Check template syntax and encoding
 - **Network failures**: Scripts will attempt fallback URLs automatically
-- **Missing dependencies**: Install required tools (curl, xsltproc, xmlstarlet)
+- **Missing Python dependencies**: Install required packages with `pip install requests`
 - **Permission errors**: Ensure scripts have proper file permissions
 
 ### Validation Commands
 ```bash
-# Validate XML files
-xmllint --noout --format *.xml
+# Run vocabulary updates with verbose output
+python fetch-vocabularies.py --vocab-types program
 
-# Check script dependencies
-which curl xsltproc xmlstarlet
+# Validate existing forms
+python generate-forms.py --validate-only
 
 # Test vocabulary connectivity
-curl -s "https://www.vsb.cz/edudocs/program-directory?faculty=FAST"
+python -c "import requests; print(requests.get('https://www.vsb.cz/edudocs/program-directory?faculty=FAST', timeout=10).status_code)"
 ```
 
 ### Recovery Procedures
 - Scripts automatically attempt to restore from backups on failure
 - Manual restoration can be done from timestamped backup directories
 - Always test generated forms in development before production deployment
+- Use `--no-backup` flag only when you're certain about the changes
