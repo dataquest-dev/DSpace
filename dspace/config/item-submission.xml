@@ -786,18 +786,26 @@
             <type>submission-form</type>
         </step-definition>
 
-        <step-definition id="diplomkypageone" mandatory="true">
+        <!-- Diplomky-114 submission step definitions -->
+        <step-definition id="diplomky-114pageone" mandatory="true">
             <heading>submit.progressbar.describe.stepone</heading>
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="diplomkypagetwo" mandatory="true">
+        <step-definition id="diplomky-114pagetwo" mandatory="true">
             <heading>submit.progressbar.describe.steptwo</heading>
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="diplomkypagethree" mandatory="true">
+        <step-definition id="diplomky-114pagethree" mandatory="true">
             <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- One page submission step definition -->
+        <step-definition id="onepageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
@@ -846,7 +854,18 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="clankySTROJpagethree" mandatory="true">
+
+        <step-definition id="diplomkypageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomkypagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomkypagethree" mandatory="true">
             <heading>submit.progressbar.describe.stepthree</heading>
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
@@ -1311,11 +1330,28 @@
             <step id="license"/>
         </submission-process>
 
+        <submission-process name="diplomky-114">
+            <step id="collection"/>
+            <step id="diplomky-114pageone"/>
+            <step id="diplomky-114pagetwo"/>
+            <step id="diplomky-114pagethree"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
         <submission-process name="diplomky">
             <step id="collection"/>
             <step id="diplomkypageone"/>
             <step id="diplomkypagetwo"/>
             <step id="diplomkypagethree"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <!-- One page submission process -->
+        <submission-process name="onepage">
+            <step id="collection"/>
+            <step id="onepageone"/>
             <step id="uploadOptional"/>
             <step id="license"/>
         </submission-process>
@@ -1485,6 +1521,7 @@
             <step id="uploadOptional"/>
             <step id="license"/>
         </submission-process>
+
     </submission-definitions>
 
 </item-submission>
