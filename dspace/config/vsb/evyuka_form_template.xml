@@ -2,7 +2,7 @@
 <!DOCTYPE form-definitions SYSTEM "submission-forms.dtd">
 
 <form-definitions>
-    <form name="e-vyuka-templatepageone">
+    <form name="e-vyuka-PARAMpageone">
        <row>
          <field>
            <dc-schema>dc</dc-schema>
@@ -89,10 +89,9 @@
            <hint>Zadejte rok vydání (vytvoření dokumentu). Uveďte rok ve formátu RRRR.</hint>
          </field>
        </row>
-
     </form>
 
-    <form name="e-vyuka-templatepagetwo">
+    <form name="e-vyuka-PARAMpagetwo">
        <row>
          <field>
            <dc-schema>evyuka</dc-schema>
@@ -100,8 +99,8 @@
            <dc-qualifier>version</dc-qualifier>
            <repeatable>true</repeatable>
            <label>Kód verze předmětu</label>
-           <hint>Vyberte kódy všech verzí předmětu, kterých se dokument týká. Dokument bude dostupný pouze vyjmenovaným verzím předmětů.</hint>
            <input-type value-pairs-name="vp_subject-version_PARAM">dropdown</input-type>
+           <hint>Vyberte kódy všech verzí předmětu, kterých se dokument týká. Dokument bude dostupný pouze vyjmenovaným verzím předmětů.</hint>
          </field>
        </row>
 
@@ -112,8 +111,8 @@
            <dc-qualifier></dc-qualifier>
            <repeatable>true</repeatable>
            <label>Kód předmětu</label>
-           <hint>Vyberte kódy všech předmětů, kterých se dokument týká. Dokument bude rovněž společný pro všechny verze těchto předmětů.</hint>
            <input-type value-pairs-name="vp_subject_PARAM">dropdown</input-type>
+           <hint>Vyberte kódy všech předmětů, kterých se dokument týká. Dokument bude rovněž společný pro všechny verze těchto předmětů.</hint>
          </field>
        </row>
 
@@ -124,8 +123,8 @@
            <dc-qualifier></dc-qualifier>
            <repeatable>true</repeatable>
            <label>Kód studijního oboru</label>
-           <hint>Vyberte kódy všech studijních oborů, kterých se dokument týká.</hint>
            <input-type value-pairs-name="vp_branch_PARAM">dropdown</input-type>
+           <hint>Vyberte kódy všech studijních oborů, kterých se dokument týká.</hint>
          </field>
        </row>
 
@@ -177,14 +176,14 @@
            <hint>Zadejte místo vydání.</hint>
          </field>
        </row>
-
     </form>
 
-    <form name="e-vyuka-templatepagethree">
+    <form name="e-vyuka-PARAMpagethree">
        <row>
          <field>
            <dc-schema>dc</dc-schema>
            <dc-element>publisher</dc-element>
+           <dc-qualifier></dc-qualifier>
            <repeatable>false</repeatable>
            <label>Nakladatel</label>
            <input-type>onebox</input-type>
@@ -206,9 +205,9 @@
 
        <row>
          <field>
+           <dc-schema>dc</dc-schema>
            <dc-element>identifier</dc-element>
            <dc-qualifier></dc-qualifier>
-           <!-- An input-type of qualdrop_value MUST be marked as repeatable -->
            <repeatable>true</repeatable>
            <label>Identifikátory</label>
            <input-type value-pairs-name="common_identifiers">qualdrop_value</input-type>
@@ -252,7 +251,6 @@
            <hint>Zadejte název projektu. Např. Publish and Flourish: Podpora publikační činnosti doktorandů a školitelů</hint>
          </field>
        </row>
-
     </form>
 
 </form-definitions>

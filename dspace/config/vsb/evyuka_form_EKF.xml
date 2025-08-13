@@ -99,8 +99,8 @@
            <dc-qualifier>version</dc-qualifier>
            <repeatable>true</repeatable>
            <label>Kód verze předmětu</label>
-           <hint>Vyberte kódy všech verzí předmětu, kterých se dokument týká. Dokument bude dostupný pouze vyjmenovaným verzím předmětů.</hint>
            <input-type value-pairs-name="vp_subject-version_EKF">dropdown</input-type>
+           <hint>Vyberte kódy všech verzí předmětu, kterých se dokument týká. Dokument bude dostupný pouze vyjmenovaným verzím předmětů.</hint>
          </field>
        </row>
 
@@ -111,8 +111,8 @@
            <dc-qualifier></dc-qualifier>
            <repeatable>true</repeatable>
            <label>Kód předmětu</label>
-           <hint>Vyberte kódy všech předmětů, kterých se dokument týká. Dokument bude rovněž společný pro všechny verze těchto předmětů.</hint>
            <input-type value-pairs-name="vp_subject_EKF">dropdown</input-type>
+           <hint>Vyberte kódy všech předmětů, kterých se dokument týká. Dokument bude rovněž společný pro všechny verze těchto předmětů.</hint>
          </field>
        </row>
 
@@ -123,8 +123,8 @@
            <dc-qualifier></dc-qualifier>
            <repeatable>true</repeatable>
            <label>Kód studijního oboru</label>
-           <hint>Vyberte kódy všech studijních oborů, kterých se dokument týká.</hint>
            <input-type value-pairs-name="vp_branch_EKF">dropdown</input-type>
+           <hint>Vyberte kódy všech studijních oborů, kterých se dokument týká.</hint>
          </field>
        </row>
 
@@ -164,9 +164,7 @@
            <hint>Uveďte, pokud potřebujete nastavit něco, na co nemáte dostatečná oprávnění.</hint>
          </field>
        </row>
-    </form>
 
-    <form name="e-vyuka-EKFpagethree">
        <row>
          <field>
            <dc-schema>dc</dc-schema>
@@ -178,11 +176,14 @@
            <hint>Zadejte místo vydání.</hint>
          </field>
        </row>
+    </form>
 
+    <form name="e-vyuka-EKFpagethree">
        <row>
          <field>
            <dc-schema>dc</dc-schema>
            <dc-element>publisher</dc-element>
+           <dc-qualifier></dc-qualifier>
            <repeatable>false</repeatable>
            <label>Nakladatel</label>
            <input-type>onebox</input-type>
@@ -204,9 +205,9 @@
 
        <row>
          <field>
+           <dc-schema>dc</dc-schema>
            <dc-element>identifier</dc-element>
            <dc-qualifier></dc-qualifier>
-           <!-- An input-type of qualdrop_value MUST be marked as repeatable -->
            <repeatable>true</repeatable>
            <label>Identifikátory</label>
            <input-type value-pairs-name="common_identifiers">qualdrop_value</input-type>
@@ -251,4 +252,5 @@
          </field>
        </row>
     </form>
+
 </form-definitions>
