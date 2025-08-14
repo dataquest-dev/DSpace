@@ -13,8 +13,6 @@ import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunctio
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
@@ -25,10 +23,9 @@ import net.sf.saxon.s9api.SequenceType;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmItem;
 import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.s9api.XdmEmptySequence;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.Arrays;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 
 /**
@@ -40,9 +37,10 @@ import org.w3c.dom.Element;
 public abstract class NodeListXslFunction implements ExtensionFunction {
 
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(NodeListXslFunction.class);
-    protected abstract String getFnName();
 
+    protected abstract String getFnName();
     protected abstract List<String> getList(String param);
+
     @Override
     final public QName getName() {
         return new QName(BASE, getFnName());
@@ -63,36 +61,43 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
     @Override
     final public XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
         if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues)) {
-            return new XdmAtomicValue("");
+            log.debug("Null or empty parameters passed to {}, returning empty sequence", getFnName());
+            return XdmEmptySequence.getInstance();
         }
 
         String val;
         try {
             val = xdmValues[0].itemAt(0).getStringValue();
         } catch (Exception e) {
-            // e.g. when no parameter is passed and xdmValues[0] ends with index error
-            log.warn("Empty value in call of function of NodeListXslFunction type");
-            val = "";
+            log.warn("Empty value in call of function {}, returning empty sequence", getFnName());
+            return XdmEmptySequence.getInstance();
         }
 
-        List<String> list = getList(val);
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        javax.xml.parsers.DocumentBuilder db = null;
         try {
-            db = dbf.newDocumentBuilder();
-            Document newDoc = db.newDocument();
-            Element rootElement = newDoc.createElement("root");
-            newDoc.appendChild(rootElement);
+            List<String> list = getList(val);
+            if (list == null || list.isEmpty()) {
+                log.debug("Function {} returned empty list for parameter '{}', returning empty sequence", getFnName(), val);
+                return XdmEmptySequence.getInstance();
+            }
 
             List<XdmItem> items = new LinkedList<>();
             for (String item : list) {
-                items.add(new XdmAtomicValue(item));
+                if (item != null) {
+                    items.add(new XdmAtomicValue(item));
+                }
             }
+
+            if (items.isEmpty()) {
+                return XdmEmptySequence.getInstance();
+            }
+
+            log.debug("Function {} successfully processed parameter '{}' and returned {} items", getFnName(), val, items.size());
             return new XdmValue(items);
 
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            log.error("Error in function {} processing parameter '{}': {}", getFnName(), val, e.getMessage());
+            log.debug("Full stack trace for function {} error:", getFnName(), e);
+            return XdmEmptySequence.getInstance();
         }
-
     }
 }

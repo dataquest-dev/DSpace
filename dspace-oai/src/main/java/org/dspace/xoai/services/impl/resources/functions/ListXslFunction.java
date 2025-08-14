@@ -20,6 +20,7 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.SequenceType;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
+import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.Arrays;
 
 /**
@@ -27,6 +28,8 @@ import org.bouncycastle.util.Arrays;
  * @author Marian Berger (marian.berger at dataquest.sk)
  */
 public abstract class ListXslFunction implements ExtensionFunction {
+
+    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(ListXslFunction.class);
 
     protected abstract String getFnName();
 
@@ -52,13 +55,33 @@ public abstract class ListXslFunction implements ExtensionFunction {
     @Override
     final public XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
         if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues)) {
+            log.debug("Null or empty parameters passed to {}, returning empty string", getFnName());
             return new XdmAtomicValue("");
         }
-        String response = "";
-        for (XdmValue item :
-                xdmValues) {
-            response += getStringResponse(item.itemAt(0).getStringValue());
+
+        try {
+            StringBuilder response = new StringBuilder();
+            for (XdmValue item : xdmValues) {
+                try {
+                    String param = item.itemAt(0).getStringValue();
+                    String result = getStringResponse(param);
+                    if (result != null) {
+                        response.append(result);
+                    }
+                } catch (Exception e) {
+                    log.warn("Error processing parameter in function {}: {}", getFnName(), e.getMessage());
+                }
+            }
+
+            String finalResponse = response.toString();
+            log.debug("Function {} processed {} parameters and returned response of length {}",
+                    getFnName(), xdmValues.length, finalResponse.length());
+            return new XdmAtomicValue(finalResponse);
+
+        } catch (Exception e) {
+            log.error("Error in function {}: {}", getFnName(), e.getMessage());
+            log.debug("Full stack trace for function {} error:", getFnName(), e);
+            return new XdmAtomicValue("");
         }
-        return new XdmAtomicValue(response);
     }
 }
