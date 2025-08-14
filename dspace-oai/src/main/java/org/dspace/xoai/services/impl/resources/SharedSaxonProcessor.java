@@ -22,7 +22,10 @@ import net.sf.saxon.s9api.Processor;
  *
  * @author Michaela Stefancova (dspace at dataquest.sk)
  */
-public class SharedSaxonProcessor {
+public final class SharedSaxonProcessor {
+    private SharedSaxonProcessor() {
+        // utility class
+    }
 
     private static volatile SaxonTransformerFactory saxonTransformerFactory;
     private static volatile Processor sharedProcessor;

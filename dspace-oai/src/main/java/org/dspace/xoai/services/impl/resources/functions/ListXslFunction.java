@@ -63,7 +63,9 @@ public abstract class ListXslFunction implements ExtensionFunction {
         StringBuilder response = new StringBuilder();
 
         for (XdmValue arg : xdmValues) {
-            if (arg == null || arg.size() == 0) continue;
+            if (arg == null || arg.size() == 0) {
+                continue;
+            }
 
             for (int i = 0; i < arg.size(); i++) {
                 try {

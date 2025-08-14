@@ -43,7 +43,7 @@ public abstract class NodeXslFunction implements ExtensionFunction {
 
     @Override
     public final SequenceType getResultType() {
-        return SequenceType.makeSequenceType(ItemType.ANY_NODE, OccurrenceIndicator.ZERO_OR_MORE);
+        return SequenceType.makeSequenceType(ItemType.ANY_NODE, OccurrenceIndicator.ZERO_OR_ONE);
     }
 
     @Override
