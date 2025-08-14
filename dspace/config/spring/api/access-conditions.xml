@@ -70,14 +70,6 @@
         <property name="map">
             <map>
                 <entry key="upload" value-ref="uploadConfigurationDefault" />
-            </map>
-        </property>
-    </bean>
-
-    <!-- Define an UploadConfigurationService which makes Bitstream uploading optional -->
-    <bean id="uploadConfigurationServiceWithoutMandatory" class="org.dspace.submit.model.UploadConfigurationService">
-        <property name="map">
-            <map>
                 <entry key="uploadOptional" value-ref="uploadConfigurationWithoutMandatory" />
             </map>
         </property>
