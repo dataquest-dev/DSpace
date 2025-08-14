@@ -36,13 +36,6 @@ public abstract class NodeXslFunction implements ExtensionFunction {
 
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(NodeXslFunction.class);
 
-<<<<<<< Updated upstream
-    // Static processor and document builder to ensure configuration compatibility
-    private static final Processor SHARED_PROCESSOR = new Processor(false);
-    private static final DocumentBuilder SHARED_DOCUMENT_BUILDER = SHARED_PROCESSOR.newDocumentBuilder();
-
-=======
->>>>>>> Stashed changes
     protected abstract String getFnName();
 
     protected abstract Node getNode(String param);
@@ -80,20 +73,12 @@ public abstract class NodeXslFunction implements ExtensionFunction {
             return XdmEmptySequence.getInstance();
         }
 
-<<<<<<< Updated upstream
-        Node node = getNode(val);
-        if (Objects.isNull(node)) {
-            try {
-                node = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-            } catch (ParserConfigurationException e) {
-                log.error("Error creating new document in NodeXslFunction", e);
-=======
+
         try {
             Node node = getNode(val);
             if (Objects.isNull(node)) {
                 log.debug("Function {} returned null node for parameter '{}', returning empty sequence", getFnName(), val);
                 return XdmEmptySequence.getInstance();
->>>>>>> Stashed changes
             }
 
             // Use the shared document builder to ensure configuration compatibility
@@ -108,11 +93,5 @@ public abstract class NodeXslFunction implements ExtensionFunction {
             // Return empty sequence on any error to prevent XSLT processing failure
             return XdmEmptySequence.getInstance();
         }
-<<<<<<< Updated upstream
-
-        // Use the shared document builder instead of creating a new processor each time
-        return SHARED_DOCUMENT_BUILDER.build(new DOMSource(node));
-=======
->>>>>>> Stashed changes
     }
 }
