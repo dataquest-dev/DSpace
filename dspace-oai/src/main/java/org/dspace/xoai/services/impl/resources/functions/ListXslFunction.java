@@ -53,35 +53,30 @@ public abstract class ListXslFunction implements ExtensionFunction {
     }
 
     @Override
-    final public XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
-        if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues)) {
+    public final XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
+        if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues) || xdmValues.length == 0) {
             log.debug("Null or empty parameters passed to {}, returning empty string", getFnName());
             return new XdmAtomicValue("");
         }
 
-        try {
-            StringBuilder response = new StringBuilder();
-            for (XdmValue item : xdmValues) {
-                try {
-                    String param = item.itemAt(0).getStringValue();
-                    String result = getStringResponse(param);
-                    if (result != null) {
-                        response.append(result);
-                    }
-                } catch (Exception e) {
-                    log.warn("Error processing parameter in function {}: {}", getFnName(), e.getMessage());
+        StringBuilder response = new StringBuilder();
+
+        for (XdmValue item : xdmValues) {
+            if (item == null || item.size() == 0) continue;
+            try {
+                String param = item.itemAt(0).getStringValue();
+                String result = getStringResponse(param);
+                if (result != null) {
+                    response.append(result);
                 }
+            } catch (Exception e) {
+                log.warn("Error processing parameter in function {}: {}", getFnName(), e.getMessage());
             }
-
-            String finalResponse = response.toString();
-            log.debug("Function {} processed {} parameters and returned response of length {}",
-                    getFnName(), xdmValues.length, finalResponse.length());
-            return new XdmAtomicValue(finalResponse);
-
-        } catch (Exception e) {
-            log.error("Error in function {}: {}", getFnName(), e.getMessage());
-            log.debug("Full stack trace for function {} error:", getFnName(), e);
-            return new XdmAtomicValue("");
         }
+
+        String finalResponse = response.toString();
+        log.debug("Function {} processed {} parameters and returned response of length {}",
+                getFnName(), xdmValues.length, finalResponse.length());
+        return new XdmAtomicValue(finalResponse);
     }
 }

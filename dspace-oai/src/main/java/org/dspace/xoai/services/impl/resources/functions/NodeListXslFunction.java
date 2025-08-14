@@ -10,9 +10,9 @@ package org.dspace.xoai.services.impl.resources.functions;
 
 import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunction.BASE;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.ItemType;
@@ -21,12 +21,10 @@ import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.SequenceType;
 import net.sf.saxon.s9api.XdmAtomicValue;
-import net.sf.saxon.s9api.XdmItem;
-import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XdmEmptySequence;
+import net.sf.saxon.s9api.XdmValue;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.util.Arrays;
-
 
 /**
  * Serves as proxy for call from XSL engine.
@@ -42,26 +40,25 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
     protected abstract List<String> getList(String param);
 
     @Override
-    final public QName getName() {
+    public final QName getName() {
         return new QName(BASE, getFnName());
     }
 
     @Override
-    final public SequenceType getResultType() {
+    public final SequenceType getResultType() {
         return SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ZERO_OR_MORE);
     }
 
     @Override
-    final public SequenceType[] getArgumentTypes() {
+    public final SequenceType[] getArgumentTypes() {
         return new SequenceType[]{
-                SequenceType.makeSequenceType(
-                        ItemType.STRING, OccurrenceIndicator.ZERO_OR_MORE)};
+                SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ZERO_OR_MORE)
+        };
     }
 
     @Override
-    final public XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
-        if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues)) {
-            log.debug("Null or empty parameters passed to {}, returning empty sequence", getFnName());
+    public final XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
+        if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues) || xdmValues.length == 0) {
             return XdmEmptySequence.getInstance();
         }
 
@@ -73,33 +70,16 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
             return XdmEmptySequence.getInstance();
         }
 
-        try {
-            List<String> list = getList(val);
-            if (list == null || list.isEmpty()) {
-                log.debug("Function {} returned empty list for parameter '{}', " +
-                        "returning empty sequence", getFnName(), val);
-                return XdmEmptySequence.getInstance();
-            }
-
-            List<XdmItem> items = new LinkedList<>();
-            for (String item : list) {
-                if (item != null) {
-                    items.add(new XdmAtomicValue(item));
-                }
-            }
-
-            if (items.isEmpty()) {
-                return XdmEmptySequence.getInstance();
-            }
-
-            log.debug("Function {} successfully processed parameter '{}' and returned {} items",
-                    getFnName(), val, items.size());
-            return new XdmValue(items);
-
-        } catch (Exception e) {
-            log.error("Error in function {} processing parameter '{}': {}", getFnName(), val, e.getMessage());
-            log.debug("Full stack trace for function {} error:", getFnName(), e);
+        List<String> list = getList(val);
+        if (list == null || list.isEmpty()) {
             return XdmEmptySequence.getInstance();
         }
+
+        // Convert list of strings to XdmValue using streams
+        return new XdmValue(
+                list.stream()
+                        .map(XdmAtomicValue::new)
+                        .collect(Collectors.toList())
+        );
     }
 }

@@ -17,36 +17,46 @@ import net.sf.saxon.s9api.Processor;
  * Utility class to provide a shared Saxon processor instance to avoid
  * configuration incompatibility issues between different Saxon processors.
  *
+ * This class maintains a singleton Processor and TransformerFactory.
+ * Synchronization ensures thread-safety if multiple threads attempt initialization concurrently.
+ * DocumentBuilder instances are created per call because they are not thread-safe.
+ *
  * @author Michaela Stefancova (dspace at dataquest.sk)
  */
 public class SharedSaxonProcessor {
 
     private static SaxonTransformerFactory saxonTransformerFactory;
     private static Processor sharedProcessor;
-    private static DocumentBuilder sharedDocumentBuilder;
 
     /**
-     * Initialize the shared processor with the given transformer factory.
-     * This should be called once during application startup.
+     * Initialize the shared processor with the given TransformerFactory.
+     * Must be called once before accessing any shared processor or builder.
      *
-     * @param transformerFactory the Saxon transformer factory to use
+     * Synchronized to prevent race conditions if multiple threads attempt initialization.
+     *
+     * @param transformerFactory the Saxon TransformerFactory to use
+     * @throws IllegalArgumentException if transformerFactory is null or not a SaxonTransformerFactory
      */
-    public static void initialize(TransformerFactory transformerFactory) {
+    public static synchronized void initialize(TransformerFactory transformerFactory) {
         if (saxonTransformerFactory == null) {
+            if (transformerFactory == null) {
+                throw new IllegalArgumentException("TransformerFactory cannot be null");
+            }
             if (!(transformerFactory instanceof SaxonTransformerFactory)) {
                 throw new IllegalArgumentException("TransformerFactory must be an instance of SaxonTransformerFactory");
             }
             saxonTransformerFactory = (SaxonTransformerFactory) transformerFactory;
             sharedProcessor = saxonTransformerFactory.getProcessor();
-            sharedDocumentBuilder = sharedProcessor.newDocumentBuilder();
         }
     }
 
     /**
-     * Get the shared Saxon processor instance.
-     * @return the shared processor
+     * Get the shared Saxon Processor instance.
+     *
+     * @return the shared Processor
+     * @throws IllegalStateException if initialize() has not been called yet
      */
-    public static  Processor getProcessor() {
+    public static Processor getProcessor() {
         if (sharedProcessor == null) {
             throw new IllegalStateException("SharedSaxonProcessor has not been initialized. Call initialize() first.");
         }
@@ -54,8 +64,12 @@ public class SharedSaxonProcessor {
     }
 
     /**
-     * Get the shared Saxon document builder instance.
-     * @return the shared document builder
+     * Get a new Saxon DocumentBuilder instance.
+     *
+     * Each call returns a new instance because Saxon's DocumentBuilder is not thread-safe.
+     *
+     * @return a new DocumentBuilder
+     * @throws IllegalStateException if initialize() has not been called yet
      */
     public static DocumentBuilder getDocumentBuilder() {
         if (sharedProcessor == null) {
@@ -65,8 +79,10 @@ public class SharedSaxonProcessor {
     }
 
     /**
-     * Get the shared Saxon transformer factory instance.
-     * @return the shared transformer factory
+     * Get the shared Saxon TransformerFactory instance.
+     *
+     * @return the shared SaxonTransformerFactory
+     * @throws IllegalStateException if initialize() has not been called yet
      */
     public static SaxonTransformerFactory getTransformerFactory() {
         if (saxonTransformerFactory == null) {
