@@ -1,8 +1,53 @@
 <?xml version="1.0"?>
-<!DOCTYPE input-forms SYSTEM "submission-forms.dtd">
+<!DOCTYPE input-forms SYSTEM "submission-forms.dtd" [
+        <!ENTITY evyuka_form_FAST SYSTEM "vsb/evyuka_form_FAST.xml">
+        <!ENTITY evyuka_form_FBI SYSTEM "vsb/evyuka_form_FBI.xml">
+        <!ENTITY evyuka_form_FS SYSTEM "vsb/evyuka_form_FS.xml">
+        <!ENTITY evyuka_form_FEI SYSTEM "vsb/evyuka_form_FEI.xml">
+        <!ENTITY evyuka_form_HGF SYSTEM "vsb/evyuka_form_HGF.xml">
+        <!ENTITY evyuka_form_FMT SYSTEM "vsb/evyuka_form_FMT.xml">
+        <!ENTITY evyuka_form_EKF SYSTEM "vsb/evyuka_form_EKF.xml">
+        <!ENTITY evyuka_form_USP SYSTEM "vsb/evyuka_form_USP.xml">
+        <!ENTITY evyuka_form_9270 SYSTEM "vsb/evyuka_form_9270.xml">
 
-
-<input-forms xmlns:xi="http://www.w3.org/2001/XInclude">
+        <!ENTITY vp_program_FAST SYSTEM "vsb/vp_program_FAST.xml">
+        <!ENTITY vp_program_FBI SYSTEM "vsb/vp_program_FBI.xml">
+        <!ENTITY vp_program_FS SYSTEM "vsb/vp_program_FS.xml">
+        <!ENTITY vp_program_FEI SYSTEM "vsb/vp_program_FEI.xml">
+        <!ENTITY vp_program_HGF SYSTEM "vsb/vp_program_HGF.xml">
+        <!ENTITY vp_program_FMT SYSTEM "vsb/vp_program_FMT.xml">
+        <!ENTITY vp_program_EKF SYSTEM "vsb/vp_program_EKF.xml">
+        <!ENTITY vp_program_USP SYSTEM "vsb/vp_program_USP.xml">
+        <!ENTITY vp_program_9270 SYSTEM "vsb/vp_program_9270.xml">
+        <!ENTITY vp_branch_FAST SYSTEM "vsb/vp_branch_FAST.xml">
+        <!ENTITY vp_branch_FBI SYSTEM "vsb/vp_branch_FBI.xml">
+        <!ENTITY vp_branch_FS SYSTEM "vsb/vp_branch_FS.xml">
+        <!ENTITY vp_branch_FEI SYSTEM "vsb/vp_branch_FEI.xml">
+        <!ENTITY vp_branch_HGF SYSTEM "vsb/vp_branch_HGF.xml">
+        <!ENTITY vp_branch_FMT SYSTEM "vsb/vp_branch_FMT.xml">
+        <!ENTITY vp_branch_EKF SYSTEM "vsb/vp_branch_EKF.xml">
+        <!ENTITY vp_branch_USP SYSTEM "vsb/vp_branch_USP.xml">
+        <!ENTITY vp_branch_9270 SYSTEM "vsb/vp_branch_9270.xml">
+        <!ENTITY vp_subject_FAST SYSTEM "vsb/vp_subject_FAST.xml">
+        <!ENTITY vp_subject_FBI SYSTEM "vsb/vp_subject_FBI.xml">
+        <!ENTITY vp_subject_FS SYSTEM "vsb/vp_subject_FS.xml">
+        <!ENTITY vp_subject_FEI SYSTEM "vsb/vp_subject_FEI.xml">
+        <!ENTITY vp_subject_HGF SYSTEM "vsb/vp_subject_HGF.xml">
+        <!ENTITY vp_subject_FMT SYSTEM "vsb/vp_subject_FMT.xml">
+        <!ENTITY vp_subject_EKF SYSTEM "vsb/vp_subject_EKF.xml">
+        <!ENTITY vp_subject_USP SYSTEM "vsb/vp_subject_USP.xml">
+        <!ENTITY vp_subject_9270 SYSTEM "vsb/vp_subject_9270.xml">
+        <!ENTITY vp_subject-version_FAST SYSTEM "vsb/vp_subject-version_FAST.xml">
+        <!ENTITY vp_subject-version_FBI SYSTEM "vsb/vp_subject-version_FBI.xml">
+        <!ENTITY vp_subject-version_FS SYSTEM "vsb/vp_subject-version_FS.xml">
+        <!ENTITY vp_subject-version_FEI SYSTEM "vsb/vp_subject-version_FEI.xml">
+        <!ENTITY vp_subject-version_HGF SYSTEM "vsb/vp_subject-version_HGF.xml">
+        <!ENTITY vp_subject-version_FMT SYSTEM "vsb/vp_subject-version_FMT.xml">
+        <!ENTITY vp_subject-version_EKF SYSTEM "vsb/vp_subject-version_EKF.xml">
+        <!ENTITY vp_subject-version_USP SYSTEM "vsb/vp_subject-version_USP.xml">
+        <!ENTITY vp_subject-version_9270 SYSTEM "vsb/vp_subject-version_9270.xml">
+        ]>
+<input-forms>
 
 
     <!-- The form-definitions map lays out the detailed definition of all the -->
@@ -19,19 +64,18 @@
     <!-- displayed label, a text string prompt which is called a hint, and    -->
     <!-- an input-type. Each field also may hold optional elements: DC        -->
     <!-- qualifier name, a repeatable flag, and a text string whose presence  -->
-    <!-- serves as a 'this field is required' flag.                           -->
+    <!-- serves as a 'this field is required' flag.
+                         -->
     <form-definitions>
-        <xi:include href="vsb/evyuka_form_HGF.xml"/>
-        <xi:include href="vsb/evyuka_form_EKF.xml"/>
-        <xi:include href="vsb/evyuka_form_FBI.xml"/>
-        <xi:include href="vsb/evyuka_form_USP.xml"/>
-        <xi:include href="vsb/evyuka_form_9270.xml"/>
-        <xi:include href="vsb/evyuka_form_AUD.xml"/>
-        <xi:include href="vsb/evyuka_form_FEI.xml"/>
-        <xi:include href="vsb/evyuka_form_FS.xml"/>
-        <xi:include href="vsb/evyuka_form_FMT.xml"/>
-        <xi:include href="vsb/evyuka_form_FAST.xml"/>
-
+        &evyuka_form_FAST;
+        &evyuka_form_FBI;
+        &evyuka_form_FS;
+        &evyuka_form_FEI;
+        &evyuka_form_HGF;
+        &evyuka_form_FMT;
+        &evyuka_form_EKF;
+        &evyuka_form_USP;
+        &evyuka_form_9270;
         <form name="bitstream-metadata">
             <row>
                 <field>
@@ -197,7 +241,7 @@
                     <dc-qualifier>ispartofseries</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Edice</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Zadejte název edice a číslo v edici.</hint>
                     <required/>
                 </field>
@@ -259,7 +303,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
                     <required/>
                 </field>
@@ -707,7 +751,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vyplňte klíčová slova</hint>
                     <required/>
                 </field>
@@ -950,7 +994,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vyplňte klíčová slova</hint>
                     <required/>
                 </field>
@@ -1193,7 +1237,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vyplňte klíčová slova</hint>
                     <required/>
                 </field>
@@ -1439,7 +1483,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vyplňte klíčová slova</hint>
                     <required/>
                 </field>
@@ -1792,7 +1836,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vyplňte klíčová slova</hint>
                     <required/>
                 </field>
@@ -2025,7 +2069,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vyplňte klíčová slova</hint>
                     <required/>
                 </field>
@@ -2404,7 +2448,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vyplňte klíčová slova</hint>
                     <required/>
                 </field>
@@ -2625,7 +2669,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vyplňte klíčová slova</hint>
                     <required/>
                 </field>
@@ -2872,7 +2916,7 @@
                     <dc-qualifier/>
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vyplňte klíčová slova</hint>
                     <required/>
                 </field>
@@ -3107,7 +3151,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
                     <required/>
                 </field>
@@ -3391,7 +3435,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
                     <required/>
                 </field>
@@ -3687,7 +3731,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
                     <required/>
                 </field>
@@ -3983,7 +4027,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
                     <required/>
                 </field>
@@ -4279,7 +4323,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
                     <required/>
                 </field>
@@ -4575,7 +4619,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
                     <required/>
                 </field>
@@ -4871,7 +4915,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
                     <required/>
                 </field>
@@ -5167,7 +5211,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
                     <required/>
                 </field>
@@ -5463,7 +5507,7 @@
                     <!-- An input-type of twobox MUST be marked as repeatable -->
                     <repeatable>true</repeatable>
                     <label>Klíčová slova</label>
-                    <input-type>twobox</input-type>
+                    <input-type>tag</input-type>
                     <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
                     <required/>
                 </field>
@@ -6666,119 +6710,6 @@
                 </field>
             </row>
         </form>
-
-        <!--
-    <form name="e-vyuka">
-      <page number="1">
-
-       <field>
-         <dc-element>title</dc-element>
-         <label>Název dokumentu</label>
-         <input-type>onebox</input-type>
-         <hint>Zadejte název dokumentu.</hint>
-         <required>Vyplňte pole s názvem dokumentu.</required>
-       </field>
-
-       <field>
-         <dc-element>contributor</dc-element>
-         <dc-qualifier>author</dc-qualifier>
-         <repeatable>true</repeatable>
-         <label>Autor</label>
-         <input-type>name</input-type>
-         <hint>Zadejte jméno autora.</hint>
-         <required>Vyplňte jméno a příjmení autora</required>
-       </field>
-
-       <field>
-         <dc-element>description</dc-element>
-         <dc-qualifier>abstract</dc-qualifier>
-         <repeatable>false</repeatable>
-         <label>Abstrakt</label>
-         <input-type>textarea</input-type>
-         <hint>Vložte abstrakt dokumentu.</hint>
-         <required></required>
-       </field>
-
-       <field>
-         <dc-schema>dc</dc-schema>
-         <dc-element>subject</dc-element>
-         <dc-qualifier></dc-qualifier>
-         <repeatable>true</repeatable>
-         <label>Klíčová slova</label>
-         <input-type>twobox</input-type>
-         <hint>Vložte odpovídající klíčová slova nebo fráze.</hint>
-         <required></required>
-       </field>
-
-       <field>
-         <dc-element>language</dc-element>
-         <dc-qualifier>iso</dc-qualifier>
-         <repeatable>false</repeatable>
-         <label>Jazyk</label>
-         <input-type value-pairs-name="language_cz_en">dropdown</input-type>
-         <hint>Vyberte jazyk, ve kterém je dokument napsán.</hint>
-         <required>Vyberte jazyk.</required>
-       </field>
-
-
-       <field>
-         <dc-schema>evyuka</dc-schema>
-         <dc-element>subject</dc-element>
-         <dc-qualifier/>
-         <repeatable>true</repeatable>
-         <label>Kód předmětu</label>
-         <input-type>twobox</input-type>
-         <hint> Vyberte správný kód předmětu</hint>
-         <required>Vyberte předmět.</required>
-         <vocabulary closed="true">evyuka-subjects</vocabulary>
-       </field>
-
-       <field>
-         <dc-schema>evyuka</dc-schema>
-         <dc-element>discipline</dc-element>
-         <dc-qualifier/>
-         <repeatable>true</repeatable>
-         <label>Kód oboru</label>
-         <input-type>onebox</input-type>
-         <hint> Vyberte kód studijního oboru</hint>
-         <required></required>
-         <vocabulary closed="true">evyuka-disciplines</vocabulary>
-       </field>
-
-       <field>
-         <dc-schema>evyuka</dc-schema>
-         <dc-element>programme</dc-element>
-         <dc-qualifier/>
-         <repeatable>true</repeatable>
-         <label>Kód studijního programu</label>
-         <input-type value-pairs-name="evyuka_programme">dropdown</input-type>
-         <hint> Vyberte kód studijního programu</hint>
-         <required></required>
-       </field>
-
-       <field>
-         <dc-element>rights</dc-element>
-         <dc-qualifier>access</dc-qualifier>
-         <repeatable>false</repeatable>
-         <label>Přístupová práva</label>
-         <input-type value-pairs-name="document_access_rights">dropdown</input-type>
-         <hint> </hint>
-         <required></required>
-       </field>
-
-      </page>
-    </form>
--->
-
-<!--        &evyuka_form_FAST;-->
-<!--        &evyuka_form_FBI;-->
-<!--        &evyuka_form_FS;-->
-<!--        &evyuka_form_FEI;-->
-<!--        &evyuka_form_HGF;-->
-<!--        &evyuka_form_FMT;-->
-<!--        &evyuka_form_EKF;-->
-<!--        &evyuka_form_USP;-->
-<!--        &evyuka_form_9270;-->
 
     </form-definitions>
 
@@ -8202,6 +8133,10 @@
             <pair>
                 <displayed-value>article</displayed-value>
                 <stored-value>article</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>article2</displayed-value>
+                <stored-value>article2</stored-value>
             </pair>
         </value-pairs>
 
@@ -10346,47 +10281,42 @@
             </pair>
         </value-pairs>
 
-        <xi:include href="vsb/vp_branch_9270.xml"/>
-        <xi:include href="vsb/vp_branch_AUD.xml"/>
-        <xi:include href="vsb/vp_branch_EKF.xml"/>
-        <xi:include href="vsb/vp_branch_FAST.xml"/>
-        <xi:include href="vsb/vp_branch_FBI.xml"/>
-        <xi:include href="vsb/vp_branch_FEI.xml"/>
-        <xi:include href="vsb/vp_branch_FMT.xml"/>
-        <xi:include href="vsb/vp_branch_FS.xml"/>
-        <xi:include href="vsb/vp_branch_HGF.xml"/>
-        <xi:include href="vsb/vp_branch_USP.xml"/>
-        <xi:include href="vsb/vp_program_9270.xml"/>
-        <xi:include href="vsb/vp_program_AUD.xml"/>
-        <xi:include href="vsb/vp_program_EKF.xml"/>
-        <xi:include href="vsb/vp_program_FAST.xml"/>
-        <xi:include href="vsb/vp_program_FBI.xml"/>
-        <xi:include href="vsb/vp_program_FEI.xml"/>
-        <xi:include href="vsb/vp_program_FMT.xml"/>
-        <xi:include href="vsb/vp_program_FS.xml"/>
-        <xi:include href="vsb/vp_program_HGF.xml"/>
-        <xi:include href="vsb/vp_program_USP.xml"/>
-        <xi:include href="vsb/vp_subject-version_9270.xml"/>
-        <xi:include href="vsb/vp_subject-version_AUD.xml"/>
-        <xi:include href="vsb/vp_subject-version_EKF.xml"/>
-        <xi:include href="vsb/vp_subject-version_FAST.xml"/>
-        <xi:include href="vsb/vp_subject-version_FBI.xml"/>
-        <xi:include href="vsb/vp_subject-version_FEI.xml"/>
-        <xi:include href="vsb/vp_subject-version_FMT.xml"/>
-        <xi:include href="vsb/vp_subject-version_FS.xml"/>
-        <xi:include href="vsb/vp_subject-version_HGF.xml"/>
-        <xi:include href="vsb/vp_subject-version_USP.xml"/>
-        <xi:include href="vsb/vp_subject_9270.xml"/>
-        <xi:include href="vsb/vp_subject_AUD.xml"/>
-        <xi:include href="vsb/vp_subject_EKF.xml"/>
-        <xi:include href="vsb/vp_subject_FAST.xml"/>
-        <xi:include href="vsb/vp_subject_FBI.xml"/>
-        <xi:include href="vsb/vp_subject_FEI.xml"/>
-        <xi:include href="vsb/vp_subject_FMT.xml"/>
-        <xi:include href="vsb/vp_subject_FS.xml"/>
-        <xi:include href="vsb/vp_subject_HGF.xml"/>
-        <xi:include href="vsb/vp_subject_USP.xml"/>
-
+        &vp_program_FAST;
+        &vp_program_FBI;
+        &vp_program_FS;
+        &vp_program_FEI;
+        &vp_program_HGF;
+        &vp_program_FMT;
+        &vp_program_EKF;
+        &vp_program_USP;
+        &vp_program_9270;
+        &vp_branch_FAST;
+        &vp_branch_FBI;
+        &vp_branch_FS;
+        &vp_branch_FEI;
+        &vp_branch_HGF;
+        &vp_branch_FMT;
+        &vp_branch_EKF;
+        &vp_branch_USP;
+        &vp_branch_9270;
+        &vp_subject_FAST;
+        &vp_subject_FBI;
+        &vp_subject_FS;
+        &vp_subject_FEI;
+        &vp_subject_HGF;
+        &vp_subject_FMT;
+        &vp_subject_EKF;
+        &vp_subject_USP;
+        &vp_subject_9270;
+        &vp_subject-version_FAST;
+        &vp_subject-version_FBI;
+        &vp_subject-version_FS;
+        &vp_subject-version_FEI;
+        &vp_subject-version_HGF;
+        &vp_subject-version_FMT;
+        &vp_subject-version_EKF;
+        &vp_subject-version_USP;
+        &vp_subject-version_9270;
     </form-value-pairs>
 
     <!-- Example of the complex input type definition.

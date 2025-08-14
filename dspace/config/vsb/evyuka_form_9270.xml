@@ -1,6 +1,3 @@
-<?xml version="1.0"?>
-<!DOCTYPE form-definitions SYSTEM "submission-forms.dtd">
-
 <form-definitions>
     <form name="e-vyuka-9270pageone">
        <row>
@@ -115,10 +112,6 @@
            <hint>Vyberte kódy všech předmětů, kterých se dokument týká. Dokument bude rovněž společný pro všechny verze těchto předmětů.</hint>
          </field>
        </row>
-
-       
-
-       
 
        <row>
          <field>
