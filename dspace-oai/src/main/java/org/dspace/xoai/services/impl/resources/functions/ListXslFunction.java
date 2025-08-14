@@ -10,6 +10,7 @@ package org.dspace.xoai.services.impl.resources.functions;
 
 import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunction.BASE;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import net.sf.saxon.s9api.ExtensionFunction;
@@ -21,7 +22,6 @@ import net.sf.saxon.s9api.SequenceType;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.util.Arrays;
 
 /**
  * Serves as proxy for call from XSL engine.
@@ -54,23 +54,27 @@ public abstract class ListXslFunction implements ExtensionFunction {
 
     @Override
     public final XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
-        if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues) || xdmValues.length == 0) {
+        if (xdmValues == null || xdmValues.length == 0 ||
+                Arrays.stream(xdmValues).anyMatch(Objects::isNull)) {
             log.debug("Null or empty parameters passed to {}, returning empty string", getFnName());
             return new XdmAtomicValue("");
         }
 
         StringBuilder response = new StringBuilder();
 
-        for (XdmValue item : xdmValues) {
-            if (item == null || item.size() == 0) continue;
-            try {
-                String param = item.itemAt(0).getStringValue();
-                String result = getStringResponse(param);
-                if (result != null) {
-                    response.append(result);
+        for (XdmValue arg : xdmValues) {
+            if (arg == null || arg.size() == 0) continue;
+
+            for (int i = 0; i < arg.size(); i++) {
+                try {
+                    String param = arg.itemAt(i).getStringValue();
+                    String result = getStringResponse(param);
+                    if (result != null) {
+                        response.append(result);
+                    }
+                } catch (Exception e) {
+                    log.warn("Error processing parameter in function {}: {}", getFnName(), e.getMessage());
                 }
-            } catch (Exception e) {
-                log.warn("Error processing parameter in function {}: {}", getFnName(), e.getMessage());
             }
         }
 

@@ -10,7 +10,6 @@ package org.dspace.xoai.services.impl.resources;
 import javax.xml.transform.TransformerFactory;
 
 import net.sf.saxon.jaxp.SaxonTransformerFactory;
-import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
 
 /**
@@ -61,21 +60,6 @@ public class SharedSaxonProcessor {
             throw new IllegalStateException("SharedSaxonProcessor has not been initialized. Call initialize() first.");
         }
         return sharedProcessor;
-    }
-
-    /**
-     * Get a new Saxon DocumentBuilder instance.
-     *
-     * Each call returns a new instance because Saxon's DocumentBuilder is not thread-safe.
-     *
-     * @return a new DocumentBuilder
-     * @throws IllegalStateException if initialize() has not been called yet
-     */
-    public static DocumentBuilder getDocumentBuilder() {
-        if (sharedProcessor == null) {
-            throw new IllegalStateException("SharedSaxonProcessor has not been initialized. Call initialize() first.");
-        }
-        return sharedProcessor.newDocumentBuilder();
     }
 
     /**
