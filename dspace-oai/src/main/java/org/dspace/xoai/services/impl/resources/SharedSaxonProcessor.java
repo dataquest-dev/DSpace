@@ -24,8 +24,8 @@ import net.sf.saxon.s9api.Processor;
  */
 public class SharedSaxonProcessor {
 
-    private static SaxonTransformerFactory saxonTransformerFactory;
-    private static Processor sharedProcessor;
+    private static volatile SaxonTransformerFactory saxonTransformerFactory;
+    private static volatile Processor sharedProcessor;
 
     /**
      * Initialize the shared processor with the given TransformerFactory.
