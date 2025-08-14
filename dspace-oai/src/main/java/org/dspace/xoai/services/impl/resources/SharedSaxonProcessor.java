@@ -7,17 +7,17 @@
  */
 package org.dspace.xoai.services.impl.resources;
 
+import javax.xml.transform.TransformerFactory;
+
 import net.sf.saxon.jaxp.SaxonTransformerFactory;
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
-
-import javax.xml.transform.TransformerFactory;
 
 /**
  * Utility class to provide a shared Saxon processor instance to avoid
  * configuration incompatibility issues between different Saxon processors.
  *
- * @author DSpace Community
+ * @author Michaela Stefancova (dspace at dataquest.sk)
  */
 public class SharedSaxonProcessor {
 
@@ -31,8 +31,11 @@ public class SharedSaxonProcessor {
      *
      * @param transformerFactory the Saxon transformer factory to use
      */
-    public static synchronized void initialize(TransformerFactory transformerFactory) {
+    public static void initialize(TransformerFactory transformerFactory) {
         if (saxonTransformerFactory == null) {
+            if (!(transformerFactory instanceof SaxonTransformerFactory)) {
+                throw new IllegalArgumentException("TransformerFactory must be an instance of SaxonTransformerFactory");
+            }
             saxonTransformerFactory = (SaxonTransformerFactory) transformerFactory;
             sharedProcessor = saxonTransformerFactory.getProcessor();
             sharedDocumentBuilder = sharedProcessor.newDocumentBuilder();
@@ -43,7 +46,7 @@ public class SharedSaxonProcessor {
      * Get the shared Saxon processor instance.
      * @return the shared processor
      */
-    public static Processor getProcessor() {
+    public static  Processor getProcessor() {
         if (sharedProcessor == null) {
             throw new IllegalStateException("SharedSaxonProcessor has not been initialized. Call initialize() first.");
         }
@@ -55,10 +58,10 @@ public class SharedSaxonProcessor {
      * @return the shared document builder
      */
     public static DocumentBuilder getDocumentBuilder() {
-        if (sharedDocumentBuilder == null) {
+        if (sharedProcessor == null) {
             throw new IllegalStateException("SharedSaxonProcessor has not been initialized. Call initialize() first.");
         }
-        return sharedDocumentBuilder;
+        return sharedProcessor.newDocumentBuilder();
     }
 
     /**

@@ -11,6 +11,7 @@ package org.dspace.xoai.services.impl.resources.functions;
 import static org.dspace.xoai.services.impl.resources.functions.StringXSLFunction.BASE;
 
 import java.util.Objects;
+import java.util.Arrays;
 import javax.xml.transform.dom.DOMSource;
 
 import net.sf.saxon.s9api.ExtensionFunction;
@@ -23,7 +24,6 @@ import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XdmEmptySequence;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.util.Arrays;
 import org.dspace.xoai.services.impl.resources.SharedSaxonProcessor;
 import org.w3c.dom.Node;
 
@@ -59,7 +59,7 @@ public abstract class NodeXslFunction implements ExtensionFunction {
 
     @Override
     final public XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
-        if (Objects.isNull(xdmValues) || Arrays.isNullOrContainsNull(xdmValues)) {
+        if (xdmValues == null || xdmValues.length == 0 || Arrays.stream(xdmValues).anyMatch(Objects::isNull)) {
             log.debug("Null or empty parameters passed to {}, returning empty sequence", getFnName());
             return XdmEmptySequence.getInstance();
         }
@@ -83,7 +83,10 @@ public abstract class NodeXslFunction implements ExtensionFunction {
 
             // Use the shared document builder to ensure configuration compatibility
             // and wrap in try-catch to handle any remaining configuration issues
-            XdmNode xdmNode = SharedSaxonProcessor.getDocumentBuilder().build(new DOMSource(node));
+            // Create a fresh DocumentBuilder per call; Saxon's DocumentBuilder is not thread-safe
+             XdmNode xdmNode = SharedSaxonProcessor.getProcessor()
+                .newDocumentBuilder()
+                .build(new DOMSource(node));
             log.debug("Function {} successfully processed parameter '{}' and returned node", getFnName(), val);
             return xdmNode;
 

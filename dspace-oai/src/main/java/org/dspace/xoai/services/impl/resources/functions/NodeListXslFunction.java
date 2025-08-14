@@ -76,7 +76,8 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
         try {
             List<String> list = getList(val);
             if (list == null || list.isEmpty()) {
-                log.debug("Function {} returned empty list for parameter '{}', returning empty sequence", getFnName(), val);
+                log.debug("Function {} returned empty list for parameter '{}', " +
+                        "returning empty sequence", getFnName(), val);
                 return XdmEmptySequence.getInstance();
             }
 
@@ -91,7 +92,8 @@ public abstract class NodeListXslFunction implements ExtensionFunction {
                 return XdmEmptySequence.getInstance();
             }
 
-            log.debug("Function {} successfully processed parameter '{}' and returned {} items", getFnName(), val, items.size());
+            log.debug("Function {} successfully processed parameter '{}' and returned {} items",
+                    getFnName(), val, items.size());
             return new XdmValue(items);
 
         } catch (Exception e) {
