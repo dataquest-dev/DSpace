@@ -54,8 +54,11 @@ public abstract class ListXslFunction implements ExtensionFunction {
 
     @Override
     public final XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
-        if (xdmValues == null || xdmValues.length == 0 ||
-                Arrays.stream(xdmValues).anyMatch(Objects::isNull)) {
+        if (xdmValues == null || xdmValues.length == 0) {
+            log.debug("Null or empty parameters passed to {}, returning empty string", getFnName());
+            return new XdmAtomicValue("");
+        }
+        if (Arrays.stream(xdmValues).anyMatch(Objects::isNull)) {
             log.debug("Null or empty parameters passed to {}, returning empty string", getFnName());
             return new XdmAtomicValue("");
         }

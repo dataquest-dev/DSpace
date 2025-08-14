@@ -13,12 +13,13 @@ import net.sf.saxon.jaxp.SaxonTransformerFactory;
 import net.sf.saxon.s9api.Processor;
 
 /**
- * Utility class to provide a shared Saxon processor instance to avoid
+ * Utility class to provide a shared Saxon Processor and TransformerFactory instance.
+ *
+ * This class maintains a singleton Processor and SaxonTransformerFactory to avoid
  * configuration incompatibility issues between different Saxon processors.
  *
- * This class maintains a singleton Processor and TransformerFactory.
- * Synchronization ensures thread-safety if multiple threads attempt initialization concurrently.
- * DocumentBuilder instances are created per call because they are not thread-safe.
+ * Initialization must be done once by calling {@link #initialize(TransformerFactory)}.
+ * The class is thread-safe: the shared instances are lazily initialized with synchronization.
  *
  * @author Michaela Stefancova (dspace at dataquest.sk)
  */
