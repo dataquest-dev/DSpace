@@ -96,19 +96,32 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
         if (pluginNames == null) {
             try {
                 dcis = new HashMap<Locale, DCInputsReader>();
-                for (Locale locale : locales) {
-                    dcis.put(locale, new DCInputsReader(I18nUtil.getInputFormsFileName(locale)));
+                
+                // Add default locale to locales if not already present
+                Locale defaultLocale = I18nUtil.getDefaultLocale();
+                Set<Locale> localeSet = new HashSet<>(Arrays.asList(locales));
+                if (!localeSet.contains(defaultLocale)) {
+                    localeSet.add(defaultLocale);
+                    locales = localeSet.toArray(new Locale[0]);
                 }
-                for (Locale l : locales) {
-                    Iterator pi = dcis.get(l).getPairsNameIterator();
+                
+                for (Locale locale : locales) {
+                    String inputFormsFileName = I18nUtil.getInputFormsFileName(locale);
+                    if (inputFormsFileName != null) {
+                        dcis.put(locale, new DCInputsReader(inputFormsFileName));
+                    } else {
+                        // Fallback to default submission-forms.xml for this locale
+                        dcis.put(locale, new DCInputsReader());
+                    }
+                }
+                
+                // Collect all unique pair names from all locales
+                for (Locale l : dcis.keySet()) {
+                    DCInputsReader dci = dcis.get(l);
+                    Iterator pi = dci.getPairsNameIterator();
                     while (pi.hasNext()) {
                         names.add((String) pi.next());
                     }
-                }
-                DCInputsReader dcirDefault = new DCInputsReader();
-                Iterator pi = dcirDefault.getPairsNameIterator();
-                while (pi.hasNext()) {
-                    names.add((String) pi.next());
                 }
             } catch (DCInputsReaderException e) {
                 log.error("Failed reading DCInputs initialization: ", e);
@@ -124,10 +137,13 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
             values = new HashMap<String, String[]>();
             labels = new HashMap<String, String[]>();
             String pname = this.getPluginInstanceName();
+            boolean foundAnyPairs = false;
+
             for (Locale l : dcis.keySet()) {
                 DCInputsReader dci = dcis.get(l);
                 List<String> pairs = dci.getPairs(pname);
                 if (pairs != null) {
+                    foundAnyPairs = true;
                     String[] valuesLocale = new String[pairs.size() / 2];
                     String[]labelsLocale = new String[pairs.size() / 2];
                     for (int i = 0; i < pairs.size(); i += 2) {
@@ -137,11 +153,15 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
                     values.put(l.getLanguage(), valuesLocale);
                     labels.put(l.getLanguage(), labelsLocale);
                     log.debug("Found pairs for name=" + pname + ",locale=" + l);
-                } else {
-                    log.error("Failed to find any pairs for name=" + pname, new IllegalStateException());
                 }
             }
 
+            if (!foundAnyPairs) {
+                log.error("Failed to find any pairs for name=" + pname + " in any locale", new IllegalStateException());
+                // Initialize empty arrays to prevent NPE
+                values.put(I18nUtil.getDefaultLocale().getLanguage(), new String[0]);
+                labels.put(I18nUtil.getDefaultLocale().getLanguage(), new String[0]);
+            }
         }
     }
 
