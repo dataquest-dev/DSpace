@@ -96,8 +96,8 @@ def download_vocabulary(vocab_type, faculty, backup_dir):
                     print(f"  Restored from backup: {filename}")
                     return True
 
-                # Create empty placeholder file if download and backup both failed
-                empty_content = ''
+                # Create minimal valid XML placeholder file if download and backup both failed
+                empty_content = '<node id="" label=""><isComposedBy></isComposedBy></node>'
 
                 with open(filename, 'w', encoding='utf-8') as f:
                     f.write(empty_content)
