@@ -17,6 +17,8 @@
         <!ENTITY vp_program_HGF SYSTEM "vsb/vp_program_HGF.xml">
         <!ENTITY vp_program_FMT SYSTEM "vsb/vp_program_FMT.xml">
         <!ENTITY vp_program_EKF SYSTEM "vsb/vp_program_EKF.xml">
+        <!ENTITY vp_program_USP SYSTEM "vsb/vp_program_USP.xml">
+        <!ENTITY vp_program_9270 SYSTEM "vsb/vp_program_9270.xml">
         <!ENTITY vp_branch_FAST SYSTEM "vsb/vp_branch_FAST.xml">
         <!ENTITY vp_branch_FBI SYSTEM "vsb/vp_branch_FBI.xml">
         <!ENTITY vp_branch_FS SYSTEM "vsb/vp_branch_FS.xml">
@@ -24,6 +26,8 @@
         <!ENTITY vp_branch_HGF SYSTEM "vsb/vp_branch_HGF.xml">
         <!ENTITY vp_branch_FMT SYSTEM "vsb/vp_branch_FMT.xml">
         <!ENTITY vp_branch_EKF SYSTEM "vsb/vp_branch_EKF.xml">
+        <!ENTITY vp_branch_USP SYSTEM "vsb/vp_branch_USP.xml">
+        <!ENTITY vp_branch_9270 SYSTEM "vsb/vp_branch_9270.xml">
         <!ENTITY vp_subject_FAST SYSTEM "vsb/vp_subject_FAST.xml">
         <!ENTITY vp_subject_FBI SYSTEM "vsb/vp_subject_FBI.xml">
         <!ENTITY vp_subject_FS SYSTEM "vsb/vp_subject_FS.xml">
@@ -31,6 +35,7 @@
         <!ENTITY vp_subject_HGF SYSTEM "vsb/vp_subject_HGF.xml">
         <!ENTITY vp_subject_FMT SYSTEM "vsb/vp_subject_FMT.xml">
         <!ENTITY vp_subject_EKF SYSTEM "vsb/vp_subject_EKF.xml">
+        <!ENTITY vp_subject_USP SYSTEM "vsb/vp_subject_USP.xml">
         <!ENTITY vp_subject_9270 SYSTEM "vsb/vp_subject_9270.xml">
         <!ENTITY vp_subject-version_FAST SYSTEM "vsb/vp_subject-version_FAST.xml">
         <!ENTITY vp_subject-version_FBI SYSTEM "vsb/vp_subject-version_FBI.xml">
@@ -39,6 +44,7 @@
         <!ENTITY vp_subject-version_HGF SYSTEM "vsb/vp_subject-version_HGF.xml">
         <!ENTITY vp_subject-version_FMT SYSTEM "vsb/vp_subject-version_FMT.xml">
         <!ENTITY vp_subject-version_EKF SYSTEM "vsb/vp_subject-version_EKF.xml">
+        <!ENTITY vp_subject-version_USP SYSTEM "vsb/vp_subject-version_USP.xml">
         <!ENTITY vp_subject-version_9270 SYSTEM "vsb/vp_subject-version_9270.xml">
         ]>
 <input-forms>
@@ -10282,6 +10288,8 @@
         &vp_program_HGF;
         &vp_program_FMT;
         &vp_program_EKF;
+        &vp_program_USP;
+        &vp_program_9270;
         &vp_branch_FAST;
         &vp_branch_FBI;
         &vp_branch_FS;
@@ -10289,6 +10297,8 @@
         &vp_branch_HGF;
         &vp_branch_FMT;
         &vp_branch_EKF;
+        &vp_branch_USP;
+        &vp_branch_9270;
         &vp_subject_FAST;
         &vp_subject_FBI;
         &vp_subject_FS;
@@ -10296,6 +10306,7 @@
         &vp_subject_HGF;
         &vp_subject_FMT;
         &vp_subject_EKF;
+        &vp_subject_USP;
         &vp_subject_9270;
         &vp_subject-version_FAST;
         &vp_subject-version_FBI;
@@ -10304,6 +10315,7 @@
         &vp_subject-version_HGF;
         &vp_subject-version_FMT;
         &vp_subject-version_EKF;
+        &vp_subject-version_USP;
         &vp_subject-version_9270;
     </form-value-pairs>
 
