@@ -180,6 +180,7 @@
          <field>
            <dc-schema>dc</dc-schema>
            <dc-element>publisher</dc-element>
+           <dc-qualifier></dc-qualifier>
            <repeatable>false</repeatable>
            <label>Nakladatel</label>
            <input-type>onebox</input-type>

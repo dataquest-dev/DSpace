@@ -106,6 +106,15 @@ def convert_vocabulary(vocab_type, faculty):
     output_file = f"vp_{vocab_type}_{faculty}.xml"
     value_pairs_name = f"vp_{vocab_type}_{faculty}"
 
+    # Map vocabulary types to correct dc-term values (matching shell script behavior)
+    dc_term_mapping = {
+        'program': 'programme',
+        'branch': 'programme',
+        'subject': 'subject',
+        'subject-version': 'subject'
+    }
+    dc_term = dc_term_mapping.get(vocab_type, 'programme')
+
     if not os.path.exists(input_file):
         print(f"  Warning: Input file {input_file} not found, skipping conversion")
         return False
@@ -117,16 +126,16 @@ def convert_vocabulary(vocab_type, faculty):
         tree = ET.parse(input_file)
         root = tree.getroot()
 
-        # Create the output XML structure with correct indentation (no extra spaces)
+        # Create the output XML structure with exact XSLT formatting
         output_lines = [
-            f'<value-pairs value-pairs-name="{value_pairs_name}" dc-term="programme">',
+            f'<value-pairs value-pairs-name="{value_pairs_name}" dc-term="{dc_term}">',
             '  <pair>',
             '    <displayed-value>Neuvedeno</displayed-value>',
             '    <stored-value></stored-value>',
             '  </pair>'
         ]
 
-        # Process each node
+        # Process each node (search recursively like XSLT does with .//node)
         for node in root.findall('.//node'):
             label = node.get('label', '')
             node_id = node.get('id', '')
@@ -144,7 +153,7 @@ def convert_vocabulary(vocab_type, faculty):
 
         output_lines.append('</value-pairs>')
 
-        # Write output file
+        # Write output file with exact formatting (no XML declaration, proper indentation)
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(output_lines) + '\n')
 
