@@ -6785,32 +6785,6 @@
             </pair>
         </value-pairs>
 
-        <value-pairs value-pairs-name="common_types" dc-term="type">
-            <pair>
-                <displayed-value>N/A</displayed-value>
-                <stored-value/>
-            </pair>
-            <pair>
-                <displayed-value>Corpus</displayed-value>
-                <stored-value>corpus</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Lexical conceptual</displayed-value>
-                <stored-value>lexicalConceptualResource</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Language description</displayed-value>
-                <stored-value>languageDescription</stored-value>
-            </pair>
-            <pair>
-                <displayed-value>Technology / Tool / Service</displayed-value>
-                <stored-value>toolService</stored-value>
-            </pair>
-            <!--<pair> <displayed-value>Evaluation package</displayed-value> <stored-value>evaluationPackage</stored-value>
-              </pair> -->
-
-        </value-pairs>
-
         <!-- default language order: (from dspace 1.2.1)
              "en_US", "en", "es", "de", "fr", "it", "ja", "zh", "other", ""
           -->
