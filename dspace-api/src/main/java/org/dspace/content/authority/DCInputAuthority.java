@@ -96,7 +96,7 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
         if (pluginNames == null) {
             try {
                 dcis = new HashMap<Locale, DCInputsReader>();
-                
+
                 // Add default locale to locales if not already present
                 Locale defaultLocale = I18nUtil.getDefaultLocale();
                 Set<Locale> localeSet = new HashSet<>(Arrays.asList(locales));
@@ -104,7 +104,7 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
                     localeSet.add(defaultLocale);
                     locales = localeSet.toArray(new Locale[0]);
                 }
-                
+
                 for (Locale locale : locales) {
                     String inputFormsFileName = I18nUtil.getInputFormsFileName(locale);
                     if (inputFormsFileName != null) {
@@ -114,7 +114,7 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
                         dcis.put(locale, new DCInputsReader());
                     }
                 }
-                
+
                 // Collect all unique pair names from all locales
                 for (Locale l : dcis.keySet()) {
                     DCInputsReader dci = dcis.get(l);
