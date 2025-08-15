@@ -96,7 +96,13 @@ def download_vocabulary(vocab_type, faculty, backup_dir):
                     print(f"  Restored from backup: {filename}")
                     return True
 
-                return False
+                # Create empty placeholder file if download and backup both failed
+                empty_content = ''
+
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write(empty_content)
+                print(f"  Created empty placeholder: {filename}")
+                return True
 
     return False
 
@@ -106,18 +112,14 @@ def convert_vocabulary(vocab_type, faculty):
     output_file = f"vp_{vocab_type}_{faculty}.xml"
     value_pairs_name = f"vp_{vocab_type}_{faculty}"
 
-    # Map vocabulary types to correct dc-term values (matching shell script behavior)
-    dc_term_mapping = {
-        'program': 'programme',
-        'branch': 'programme',
-        'subject': 'subject',
-        'subject-version': 'subject'
-    }
-    dc_term = dc_term_mapping.get(vocab_type, 'programme')
+    # All vocabulary types should use 'programme' as dc-term
+    dc_term = 'programme'
 
     if not os.path.exists(input_file):
-        print(f"  Warning: Input file {input_file} not found, skipping conversion")
-        return False
+        print(f"  Warning: Input file {input_file} not found, creating default value-pairs file")
+        # Create default vp_ file when input file doesn't exist
+        create_default_vp_file(output_file, value_pairs_name, dc_term)
+        return True
 
     try:
         print("  Converting to value-pairs format...")
@@ -162,7 +164,23 @@ def convert_vocabulary(vocab_type, faculty):
 
     except Exception as e:
         print(f"  ✗ Warning: Conversion failed for {output_file}: {e}")
-        return False
+        print(f"  Creating default value-pairs file instead")
+        # Create default vp_ file when conversion fails
+        create_default_vp_file(output_file, value_pairs_name, dc_term)
+        return True
+
+def create_default_vp_file(output_file, value_pairs_name, dc_term):
+    """Create a default value-pairs file with only the 'Neuvedeno' option"""
+    default_content = f'''<value-pairs value-pairs-name="{value_pairs_name}" dc-term="{dc_term}">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value/>
+  </pair>
+</value-pairs>
+'''
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(default_content)
+    print(f"  ✓ Created default: {output_file}")
 
 def main():
     parser = argparse.ArgumentParser(description='VSB Vocabulary Fetching Script for DSpace 7')
