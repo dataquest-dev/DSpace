@@ -1,0 +1,16 @@
+## Email sent to DSpace users when they successfully export an item or collection.
+##
+## Parameters: {0} is expanded to a special URL
+##             {1} configurable time (hours) an export file will be kept
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')} - Položka, jejíž export jste požadovali, je připravena na stažení")
+Položka, jejíž export z repozitáře jste požadovali, je nyní připravena na stažení.
+
+Komprimovaný soubor si můžete stáhnout kliknutím na nasledovní odkaz:
+${params[0]}
+
+Tento soubor bude dostupný po dobu alepoň ${params[1]} hodin.
+
+Váš tím DSpace

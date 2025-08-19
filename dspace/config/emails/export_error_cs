@@ -1,0 +1,16 @@
+## Email sent to DSpace users when they successfully export an item or collection.
+##
+## Parameters: {0} the export error
+##             {1} the URL to the feedback page
+##
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')} - Export, který jste požadovali nebyl dokončen.")
+Export, který jste požadovali nebyl dokončen z následujícího důvodu:
+ ${params[0]}
+
+Pro další informace kontaktujte svého správce systému:
+ ${params[1]}
+
+Váš tím DSpace

@@ -1,0 +1,22 @@
+## E-mail sent to designated address when a harvest process fails
+##
+## Parameters: {0} Collection id
+##             {1} Date & time
+##             {2} Status flag
+##             {3} Exception message
+##             {4} Exception stack trace
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')}: Chyba sklízení ")
+Chyba kolekce ${params[0]} během sklízení:
+
+Datum:       	${params[1]}
+Stavový příznak: 	${params[2]}
+
+${params[3]}
+
+Výjimka:
+${params[4]}
+
+DSpace
