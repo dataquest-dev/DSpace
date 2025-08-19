@@ -70,7 +70,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setValue("{\"checks\":[]}");
         reportResultService.update(context, report1);
 
-        Thread.sleep(10);
+        Thread.sleep(100);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -100,7 +100,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         reportResultService.update(context, report1);
         report1 = reportResultService.find(context, report1.getID());
 
-        Thread.sleep(10);
+        Thread.sleep(100);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -133,7 +133,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         reportResultService.update(context, report1);
         report1 = reportResultService.find(context, report1.getID());
 
-        Thread.sleep(10);
+        Thread.sleep(100);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -210,7 +210,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         reportResultService.update(context, report1);
         report1 = reportResultService.find(context, report1.getID());
 
-        Thread.sleep(10);
+        Thread.sleep(100);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -239,7 +239,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         reportResultService.update(context, report1);
         report1 = reportResultService.find(context, report1.getID());
 
-        Thread.sleep(10);
+        Thread.sleep(100);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -267,7 +267,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
         reportResultService.update(context, report1);
 
-        Thread.sleep(10);
+        Thread.sleep(100);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -296,7 +296,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setArgs("-c: 0");
         reportResultService.update(context, report1);
 
-        Thread.sleep(10);
+        Thread.sleep(100);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -324,13 +324,15 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[]}");
         reportResultService.update(context, report1);
+        report1 = reportResultService.find(context, report1.getID());
 
-        Thread.sleep(10);
+        Thread.sleep(100);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[]}");
         reportResultService.update(context, report2);
+        report2 = reportResultService.find(context, report2.getID());
 
         context.restoreAuthSystemState();
 

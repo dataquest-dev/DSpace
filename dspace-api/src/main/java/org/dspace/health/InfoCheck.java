@@ -23,6 +23,8 @@ import org.json.JSONObject;
  */
 public class InfoCheck extends Check {
 
+    private static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
     @Override
     public String run(ReportInfo ri) {
         ConfigurationService configurationService
@@ -30,7 +32,7 @@ public class InfoCheck extends Check {
         StringBuilder sb = new StringBuilder();
         JSONObject root = new JSONObject();
 
-        String generatedStr = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        String generatedStr = new SimpleDateFormat(DATETIME_FORMAT).format(new Date());
         sb.append("Generated: ").append(generatedStr).append("\n");
         root.put("generated", generatedStr);
 

@@ -174,7 +174,10 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
                 // JSON:
                 // Check name: {Report}
                 JSONObject report = check.getReportJson();  // assume check is already defined
-
+                if (report == null) {
+                    report = new JSONObject(); // or handle appropriately
+                    log.warn("Check {} returned null JSON report", name);
+                }
                 JSONObject checkJson = new JSONObject();
                 checkJson.put("name", name);
                 checkJson.put("report", report);

@@ -29,6 +29,7 @@ public abstract class Check {
 
     public void report(ReportInfo ri) {
         reportJson_ = new JSONObject();
+        errors_ = "";
         took_ = System.currentTimeMillis();
         try {
             String run_report = run(ri);
