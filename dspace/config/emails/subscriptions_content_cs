@@ -1,0 +1,13 @@
+## E-mail sent to designated address about updates on subscribed items
+##
+## Parameters: {0} Communities updates
+##             {1} Collections updates
+#set($subject = "${config.get('dspace.shortname')} Odběr novinek")
+
+#if( not( "$params[0]" == "" ))
+Jsou dostupné nové záznamy v komunit, jejichž novinky odebíráte: ${params[0]}
+
+#end
+#if( not( "$params[1]" == "" ))
+Jsou dostupné nové záznamy v kolekcích, jejichž novinky odebíráte: ${params[1]}
+#end

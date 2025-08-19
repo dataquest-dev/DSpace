@@ -1,0 +1,24 @@
+## Workflow task email message
+##
+## {0}  Title of submission
+## {1}  Name of collection
+## {2}  submitter's name
+## {3}  Description of task
+## {4}  link to 'my DSpace' page
+##
+#set($subject = "${config.get('dspace.shortname')}: Máte novou úlohu")
+
+Byl zaslán nový záznam:
+
+Název:        ${params[0]}
+Kolekce:   ${params[1]}
+Poslal: ${params[2]}
+
+${params[3]}
+
+Tuto úlohu můžete převzít na stránce „Můj DSpace“:
+:  ${params[4]}
+
+Děkujeme!
+
+DSpace
