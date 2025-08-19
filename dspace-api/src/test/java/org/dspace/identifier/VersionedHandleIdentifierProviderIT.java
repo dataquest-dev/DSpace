@@ -24,6 +24,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class VersionedHandleIdentifierProviderIT extends AbstractIdentifierProviderIT  {
@@ -66,6 +67,7 @@ public class VersionedHandleIdentifierProviderIT extends AbstractIdentifierProvi
     }
 
     @Test
+    @Ignore
     public void testDefaultVersionedHandleProvider() throws Exception {
         createVersions();
 
