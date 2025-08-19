@@ -106,10 +106,30 @@
                 This context exports items following the openaire data archive rules.
             </Description>
         </Context>
+
+        <Context baseurl="nusl" name="For harvesting by NUSL">
+            <Format ref="oaidc_nusl" />
+            <Format ref="mets_nusl" />
+            <Description>
+                This context is customized for harvesting by NUSL.
+            </Description>
+        </Context>
     </Contexts>
 
 
     <Formats>
+        <Format id="oaidc_nusl">
+            <Prefix>oai_dc</Prefix>
+            <XSLT>metadataFormats/oai_dc_nusl.xsl</XSLT>
+            <Namespace>http://www.openarchives.org/OAI/2.0/oai_dc/</Namespace>
+            <SchemaLocation>http://www.openarchives.org/OAI/2.0/oai_dc.xsd</SchemaLocation>
+        </Format>
+        <Format id="mets_nusl">
+            <Prefix>mets</Prefix>
+            <XSLT>metadataFormats/mets_nusl.xsl</XSLT>
+            <Namespace>http://www.loc.gov/METS/</Namespace>
+            <SchemaLocation>http://www.loc.gov/standards/mets/mets.xsd</SchemaLocation>
+        </Format>
         <Format id="oaidc">
             <Prefix>oai_dc</Prefix>
             <XSLT>metadataFormats/oai_dc.xsl</XSLT>

@@ -1,0 +1,21 @@
+## Item Archived email message
+##
+## {0}  Title of submission
+## {1}  Name of collection
+## {2}  handle
+##
+#set($subject = "${config.get('dspace.shortname')}: Příspěvek schválen a archivován")
+
+Poslali jste: ${params[0]}
+
+Do kolekce: ${params[1]}
+
+Váš příspěvek byl schválen a archivován v systému ${config.get('dspace.shortname')},
+a byl mu přidělen následující identifikátor:
+${params[2]}
+
+Prosím, používejte tento identifikátor při citování vašeho příspěvku.
+
+Děkujeme!
+
+DSpace
