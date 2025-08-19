@@ -168,7 +168,6 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterAuthor" />
-                <ref bean="searchFilterSubject" />
                 <!--    <ref bean="searchFilterSubject" /> -->
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterSubject" />
