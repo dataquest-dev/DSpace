@@ -2543,7 +2543,8 @@
             </list>
         </property>
         <property name="type" value="text"/>
-        <property name="sortOrder" value="COUNT"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
 
     <bean id="searchFilterPublisher" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2554,7 +2555,8 @@
             </list>
         </property>
         <property name="facetLimit" value="10"/>
-        <property name="sortOrder" value="COUNT"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
 
     <bean id="searchFilterDescDept" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2565,7 +2567,8 @@
             </list>
         </property>
         <property name="facetLimit" value="25"/>
-        <property name="sortOrder" value="VALUE"/>
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
     </bean>
 
     <bean id="searchFilterDesc" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2576,7 +2579,8 @@
             </list>
         </property>
         <property name="facetLimit" value="25"/>
-        <property name="sortOrder" value="VALUE"/>
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
     </bean>
 
     <bean id="searchFilterThesisDegree" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2588,7 +2592,8 @@
             </list>
         </property>
         <property name="facetLimit" value="25"/>
-        <property name="sortOrder" value="VALUE"/>
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
     </bean>
 
     <bean id="searchFilterRelationIspart" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2599,7 +2604,8 @@
             </list>
         </property>
         <property name="type" value="text"/>
-        <property name="sortOrder" value="COUNT"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
 
     <bean id="searchFilterRightsAccess" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2610,7 +2616,8 @@
             </list>
         </property>
         <property name="facetLimit" value="25"/>
-        <property name="sortOrder" value="COUNT"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
 
     <bean id="searchFilterTypeVersion" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2621,7 +2628,8 @@
             </list>
         </property>
         <property name="facetLimit" value="25"/>
-        <property name="sortOrder" value="VALUE"/>
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
     </bean>
 
     <bean id="searchFilterLanguage" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2632,7 +2640,8 @@
             </list>
         </property>
         <property name="facetLimit" value="25"/>
-        <property name="sortOrder" value="VALUE"/>
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
     </bean>
 
     <bean id="searchFilterID" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2660,7 +2669,8 @@
             </list>
         </property>
         <property name="facetLimit" value="25"/>
-        <property name="sortOrder" value="VALUE"/>
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
     </bean>
 
     <bean id="searchFilterType" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
