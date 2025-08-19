@@ -324,7 +324,6 @@
             <list>
                 <ref bean="searchFilterAuthor" />
                 <!--    <ref bean="searchFilterSubject" />-->
-                <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterSubject" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterType" />
