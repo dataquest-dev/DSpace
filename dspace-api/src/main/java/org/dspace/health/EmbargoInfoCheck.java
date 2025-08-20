@@ -39,6 +39,8 @@ public class EmbargoInfoCheck extends Check {
     private final List<EmbargoInfo> embCols = new ArrayList<>();
 
     private static final int DISPLAY_THRESHOLD = 50;
+    // Separator line width chosen to align with table column layout
+    private static final int TABLE_WIDTH = 113;
 
     @Override
     public String run(ReportInfo ri) {
@@ -48,6 +50,8 @@ public class EmbargoInfoCheck extends Check {
         CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
         CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
 
+        // Traverse all objects (items, bundles, bitstreams, collections, communities)
+        // and collect embargo information from their associated resource policies.
         try (Context context = new Context()) {
             Iterator<Item> items = itemService.findAll(context);
             while (items.hasNext()) {
@@ -116,7 +120,7 @@ public class EmbargoInfoCheck extends Check {
         } else {
             sb.append(String.format("%-40s | %-12s | %-12s\n", label + " UUID", "Start Date", "End Date"));
         }
-        sb.append("-".repeat(113)).append("\n");
+        sb.append("-".repeat(TABLE_WIDTH)).append("\n");
 
         int limit = Math.min(size, DISPLAY_THRESHOLD);
         for (int i = 0; i < limit; ++i) {
@@ -134,6 +138,10 @@ public class EmbargoInfoCheck extends Check {
         }
     }
 
+    /**
+     * Holds embargo-related information for any object
+     * (e.g. item, bundle, bitstream, collection, or community).
+     */
     private static class EmbargoInfo {
         UUID id;
         UUID parentItemId;
