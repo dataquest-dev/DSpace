@@ -69,8 +69,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[]}");
         reportResultService.update(context, report1);
+        // Force commit and flush to ensure timestamp is set
+        context.commit();
 
-        Thread.sleep(100);
+        // Wait longer to ensure different timestamps
+        Thread.sleep(1000);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -99,9 +102,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
         reportResultService.update(context, report1);
         report1 = reportResultService.find(context, report1.getID());
+        // Force commit and flush to ensure timestamp is set
+        context.commit();
 
-        Thread.sleep(100);
-
+        // Wait longer to ensure different timestamps
+        Thread.sleep(1000);
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}}]}");
@@ -133,7 +138,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         reportResultService.update(context, report1);
         report1 = reportResultService.find(context, report1.getID());
 
-        Thread.sleep(100);
+        // Force commit and flush to ensure timestamp is set
+        context.commit();
+
+        // Wait longer to ensure different timestamps
+        Thread.sleep(1000);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -210,7 +219,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         reportResultService.update(context, report1);
         report1 = reportResultService.find(context, report1.getID());
 
-        Thread.sleep(100);
+        // Force commit and flush to ensure timestamp is set
+        context.commit();
+
+        // Wait longer to ensure different timestamps
+        Thread.sleep(1000);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -239,8 +252,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         reportResultService.update(context, report1);
         report1 = reportResultService.find(context, report1.getID());
 
-        Thread.sleep(100);
+        // Force commit and flush to ensure timestamp is set
+        context.commit();
 
+        // Wait longer to ensure different timestamps
+        Thread.sleep(1000);
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
@@ -267,7 +283,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
         reportResultService.update(context, report1);
 
-        Thread.sleep(100);
+        // Force commit and flush to ensure timestamp is set
+        context.commit();
+
+        // Wait longer to ensure different timestamps
+        Thread.sleep(1000);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -296,7 +316,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setArgs("-c: 0");
         reportResultService.update(context, report1);
 
-        Thread.sleep(100);
+        // Force commit and flush to ensure timestamp is set
+        context.commit();
+
+        // Wait longer to ensure different timestamps
+        Thread.sleep(1000);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
@@ -325,8 +349,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setValue("{\"checks\":[]}");
         reportResultService.update(context, report1);
         report1 = reportResultService.find(context, report1.getID());
+        // Force commit and flush to ensure timestamp is set
+        context.commit();
 
-        Thread.sleep(100);
+        // Wait longer to ensure different timestamps
+        Thread.sleep(1000);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
