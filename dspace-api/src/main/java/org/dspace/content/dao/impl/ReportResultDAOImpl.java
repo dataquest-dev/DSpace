@@ -39,10 +39,10 @@ public class ReportResultDAOImpl extends AbstractHibernateDAO<ReportResult> impl
     public ReportResult findByLastModifiedAndCheckType(Context context, Date lastModified, int checkType)
             throws SQLException {
         Query query = createQuery(context, "SELECT r FROM ReportResult r WHERE r.lastModified = :lastModified " +
-                "AND r.args like :checkType");
+                "AND r.args LIKE CONCAT('%', :checkType, '%')");
 
         query.setParameter("lastModified", lastModified);
-        query.setParameter("checkType", "%" + checkType + "%");
+        query.setParameter("checkType", String.valueOf(checkType));
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
 
         return singleResult(query);

@@ -77,7 +77,7 @@ public class InfoCheck extends Check {
                         String msg = String.format("Directory %s does not exist!", ss[0]);
                         oneStat.put("path", ss[0]);
                         oneStat.put("notExist", msg);
-                        sb.append(msg);
+                        sb.append(msg).append("\n");
                     }
                 } catch (Exception e) {
                     error(e, "directory - " + ss[0]);
