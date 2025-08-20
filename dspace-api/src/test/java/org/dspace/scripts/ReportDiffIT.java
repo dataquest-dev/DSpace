@@ -79,8 +79,10 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[]}");
         reportResultService.update(context, report2);
-
+        context.commit();
         context.restoreAuthSystemState();
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "report-diff", "-d" };
@@ -101,7 +103,6 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
         reportResultService.update(context, report1);
-        report1 = reportResultService.find(context, report1.getID());
         // Force commit and flush to ensure timestamp is set
         context.commit();
 
@@ -111,9 +112,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}}]}");
         reportResultService.update(context, report2);
-        report2 = reportResultService.find(context, report2.getID());
-
+        context.commit();
         context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
@@ -136,8 +139,6 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
                 ",\"report\":{\"key\":\"other\"}}]}");
         report1.setArgs("-c: 0");
         reportResultService.update(context, report1);
-        report1 = reportResultService.find(context, report1.getID());
-
         // Force commit and flush to ensure timestamp is set
         context.commit();
 
@@ -150,10 +151,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
                 ",\"report\":{\"key\":\"other\"}}]}");
         report2.setArgs("-c: 0");
         reportResultService.update(context, report2);
-        report2 = reportResultService.find(context, report2.getID());
-
+        context.commit();
         context.restoreAuthSystemState();
 
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
                 "-t", formatDate(report2.getLastModified()), "-c", "0" };
@@ -217,21 +219,18 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setType("healthcheck");
         report1.setValue(null); // Missing value
         reportResultService.update(context, report1);
-        report1 = reportResultService.find(context, report1.getID());
-
         // Force commit and flush to ensure timestamp is set
         context.commit();
 
-        // Wait longer to ensure different timestamps
         Thread.sleep(1000);
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[]}");
         reportResultService.update(context, report2);
-        report2 = reportResultService.find(context, report2.getID());
-
+        context.commit();
         context.restoreAuthSystemState();
+        report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
@@ -250,8 +249,6 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
         reportResultService.update(context, report1);
-        report1 = reportResultService.find(context, report1.getID());
-
         // Force commit and flush to ensure timestamp is set
         context.commit();
 
@@ -261,10 +258,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
         reportResultService.update(context, report2);
-        report2 = reportResultService.find(context, report2.getID());
-
+        context.commit();
         context.restoreAuthSystemState();
 
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
                 "-t", formatDate(report2.getLastModified()) };
@@ -293,7 +291,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
         reportResultService.update(context, report2);
-
+        context.commit();
         context.restoreAuthSystemState();
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
@@ -328,7 +326,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
                 ",\"report\":{\"key\":\"other\"}}]}");
         report2.setArgs("-c: 0");
         reportResultService.update(context, report2);
-
+        context.commit();
         context.restoreAuthSystemState();
 
 
@@ -359,9 +357,10 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[]}");
         reportResultService.update(context, report2);
-        report2 = reportResultService.find(context, report2.getID());
-
+        context.commit();
         context.restoreAuthSystemState();
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         String[] args = new String[] { "report-diff", "-d", "-l", "1" };
