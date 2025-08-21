@@ -17,28 +17,28 @@
         <property name="baseDir" value="${assetstore.dir}"/>
     </bean>
 
-    <bean name="s3Store" class="org.dspace.storage.bitstore.SyncS3BitStoreService" scope="singleton" lazy-init="true">
-        <property name="enabled" value="${assetstore.s3.enabled}"/>
-        <!-- AWS Security credentials, with policies for specified bucket -->
-        <property name="awsAccessKey" value="${assetstore.s3.awsAccessKey}"/>
-        <property name="awsSecretKey" value="${assetstore.s3.awsSecretKey}"/>
-        <property name="useRelativePath" value="${assetstore.s3.useRelativePath}"/>
+<!--    <bean name="s3Store" class="org.dspace.storage.bitstore.S3BitStoreService" scope="singleton" lazy-init="true">-->
+<!--        <property name="enabled" value="${assetstore.s3.enabled}"/>-->
+<!--        &lt;!&ndash; AWS Security credentials, with policies for specified bucket &ndash;&gt;-->
+<!--        <property name="awsAccessKey" value="${assetstore.s3.awsAccessKey}"/>-->
+<!--        <property name="awsSecretKey" value="${assetstore.s3.awsSecretKey}"/>-->
+<!--        <property name="useRelativePath" value="${assetstore.s3.useRelativePath}"/>-->
 
-        <!-- S3 bucket name to store assets in. example: longsight-dspace-auk -->
-        <property name="bucketName" value="${assetstore.s3.bucketName}"/>
+<!--        &lt;!&ndash; S3 bucket name to store assets in. example: longsight-dspace-auk &ndash;&gt;-->
+<!--        <property name="bucketName" value="${assetstore.s3.bucketName}"/>-->
 
-        <!-- AWS S3 Region to use: {us-east-1, us-west-1, eu-west-1, eu-central-1, ap-southeast-1, ... } -->
-        <!-- Optional, sdk default is us-east-1 -->
-        <property name="awsRegionName" value="${assetstore.s3.awsRegionName}"/>
+<!--        &lt;!&ndash; AWS S3 Region to use: {us-east-1, us-west-1, eu-west-1, eu-central-1, ap-southeast-1, ... } &ndash;&gt;-->
+<!--        &lt;!&ndash; Optional, sdk default is us-east-1 &ndash;&gt;-->
+<!--        <property name="awsRegionName" value="${assetstore.s3.awsRegionName}"/>-->
 
-        <!-- Subfolder to organize assets within the bucket, in case this bucket is shared  -->
-        <!-- Optional, default is root level of bucket -->
-        <property name="subfolder" value="${assetstore.s3.subfolder}"/>
+<!--        &lt;!&ndash; Subfolder to organize assets within the bucket, in case this bucket is shared  &ndash;&gt;-->
+<!--        &lt;!&ndash; Optional, default is root level of bucket &ndash;&gt;-->
+<!--        <property name="subfolder" value="${assetstore.s3.subfolder}"/>-->
 
-<!--        Endpoint for other S3 providers than amazon AWS-->
-        <property name="endpoint" value="${assetstore.s3.endpoint}"/>
-        <property name="pathStyleAccessEnabled" value="${assetstore.s3.pathStyleAccessEnabled}"/>
-    </bean>
+<!--&lt;!&ndash;        Endpoint for other S3 providers than amazon AWS&ndash;&gt;-->
+<!--        <property name="endpoint" value="${assetstore.s3.endpoint}"/>-->
+<!--        <property name="pathStyleAccessEnabled" value="${assetstore.s3.pathStyleAccessEnabled}"/>-->
+<!--    </bean>-->
 
 
     <bean name="s3DirectDownload" class="org.dspace.storage.bitstore.S3DirectDownloadServiceImpl"/>
