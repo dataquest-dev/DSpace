@@ -3745,6 +3745,7 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
     @Test
     public void findEmbargoByResourceTest() throws Exception {
+        
         context.turnOffAuthorisationSystem();
 
         // Príprava dát
