@@ -1,0 +1,1638 @@
+<value-pairs value-pairs-name="vp_subject_FAST" dc-term="programme">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value></stored-value>
+  </pair>
+  <pair>
+    <displayed-value>205 - 2D projektování a vizualizace (205-0701)</displayed-value>
+    <stored-value>205-0701</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>205 - Informační model budovy (205-0702)</displayed-value>
+    <stored-value>205-0702</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>205 - Modelování v TZB (205-0703)</displayed-value>
+    <stored-value>205-0703</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>205 - Počítačová grafika (205-0704)</displayed-value>
+    <stored-value>205-0704</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>205 - Technická informatika (205-0301)</displayed-value>
+    <stored-value>205-0301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Automatizace statických posudků (221-0310)</displayed-value>
+    <stored-value>221-0310</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Betonové a zděné konstrukce (221-0203)</displayed-value>
+    <stored-value>221-0203</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Betonové konstrukce (221-0304)</displayed-value>
+    <stored-value>221-0304</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Betonové mosty (221-0305)</displayed-value>
+    <stored-value>221-0305</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Diplomová práce (221-0311)</displayed-value>
+    <stored-value>221-0311</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Dřevěné konstrukce (221-0403)</displayed-value>
+    <stored-value>221-0403</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Dřevěné mosty (221-0309)</displayed-value>
+    <stored-value>221-0309</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Interakce konstrukcí s podložím (221-0406)</displayed-value>
+    <stored-value>221-0406</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Konstrukce vystavené účinkům extrémních zatížení (221-0402)</displayed-value>
+    <stored-value>221-0402</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Kovové a dřevěné konstrukce (221-0303)</displayed-value>
+    <stored-value>221-0303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Kovové a spřažené konstrukce (221-0401)</displayed-value>
+    <stored-value>221-0401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Modelování konstrukcí pomocí BIM (221-0208)</displayed-value>
+    <stored-value>221-0208</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Montované konstrukce (221-0308)</displayed-value>
+    <stored-value>221-0308</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Ocelové a dřevěné konstrukce (221-0205)</displayed-value>
+    <stored-value>221-0205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Ocelové mosty (221-0306)</displayed-value>
+    <stored-value>221-0306</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Odborná exkurze (221-0210)</displayed-value>
+    <stored-value>221-0210</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Požární odolnost konstrukcí (221-0301)</displayed-value>
+    <stored-value>221-0301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Průmyslové a technologické stavby (221-0209)</displayed-value>
+    <stored-value>221-0209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Prvky betonových konstrukcí (221-0202)</displayed-value>
+    <stored-value>221-0202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Prvky ocelových a dřevěných konstrukcí (221-0204)</displayed-value>
+    <stored-value>221-0204</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Předpjatý beton (221-0302)</displayed-value>
+    <stored-value>221-0302</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Vybrané statě z ocelových a dřevěných konstrukcí (221-0307)</displayed-value>
+    <stored-value>221-0307</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Výstavba mostních konstrukcí (221-0206)</displayed-value>
+    <stored-value>221-0206</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Zatížení stavebních konstrukcí (221-0201)</displayed-value>
+    <stored-value>221-0201</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Zděné a smíšené konstrukce (221-0404)</displayed-value>
+    <stored-value>221-0404</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Zděné konstrukce (221-0207)</displayed-value>
+    <stored-value>221-0207</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>221 - Železobetonové a předpjaté konstrukce (221-0405)</displayed-value>
+    <stored-value>221-0405</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Bakalářská práce (222-0422)</displayed-value>
+    <stored-value>222-0422</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Bezpečnost práce realizace a provozu staveb (222-0408)</displayed-value>
+    <stored-value>222-0408</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - BIM a technické vybavení v území Smart Cities (222-0606)</displayed-value>
+    <stored-value>222-0606</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - BIM pro facility management (222-0601)</displayed-value>
+    <stored-value>222-0601</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - BIM projektování (222-0600)</displayed-value>
+    <stored-value>222-0600</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - BIM pro městské inženýrství (222-0419)</displayed-value>
+    <stored-value>222-0419</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Ceny a kalkulace ve výstavbě (222-0603)</displayed-value>
+    <stored-value>222-0603</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Diplomová práce (222-0511)</displayed-value>
+    <stored-value>222-0511</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Diplomový projekt (222-0609)</displayed-value>
+    <stored-value>222-0609</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Ekologická a ekonomická účinnost nástrojů prostorového a územního plánování (222-0984)</displayed-value>
+    <stored-value>222-0984</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Ekonomika ve stavebnictví (222-0404)</displayed-value>
+    <stored-value>222-0404</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Geodézie ve stavebnictví (222-0401)</displayed-value>
+    <stored-value>222-0401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Informační management budov (222-0602)</displayed-value>
+    <stored-value>222-0602</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Informační modely staveb (222-0403)</displayed-value>
+    <stored-value>222-0403</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Informační systémy (222-0611)</displayed-value>
+    <stored-value>222-0611</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Investiční procesy (222-0505)</displayed-value>
+    <stored-value>222-0505</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Inženýrské sítě (222-0500)</displayed-value>
+    <stored-value>222-0500</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Management a analytická kreativita (222-0524)</displayed-value>
+    <stored-value>222-0524</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Management životního cyklu staveb (222-0976)</displayed-value>
+    <stored-value>222-0976</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Obecné technické požadavky na stavby I. (222-0406)</displayed-value>
+    <stored-value>222-0406</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Obecné technické požadavky na stavby II. (222-0410)</displayed-value>
+    <stored-value>222-0410</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Ochrana a obnova historických objektů (222-0981)</displayed-value>
+    <stored-value>222-0981</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Právní prostředí ve stavebnictví (222-0405)</displayed-value>
+    <stored-value>222-0405</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Praxe (222-0608)</displayed-value>
+    <stored-value>222-0608</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Projekt (222-0509)</displayed-value>
+    <stored-value>222-0509</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Projekt 1 (222-0414)</displayed-value>
+    <stored-value>222-0414</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Projektový management ve výstavbě (222-0605)</displayed-value>
+    <stored-value>222-0605</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Prostorové informační systémy (222-0412)</displayed-value>
+    <stored-value>222-0412</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Prostorové vztahy v urbanizovaném území (222-0522)</displayed-value>
+    <stored-value>222-0522</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Rozpočtování a oceňování staveb (222-0420)</displayed-value>
+    <stored-value>222-0420</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Space management (222-0607)</displayed-value>
+    <stored-value>222-0607</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Stavby pro zásobování energiemi (222-0417)</displayed-value>
+    <stored-value>222-0417</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Stavby pro zásobování vodou a odkanalizování (222-0413)</displayed-value>
+    <stored-value>222-0413</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Stavebně ekonomická příprava staveb (222-0507)</displayed-value>
+    <stored-value>222-0507</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Stavební právo (222-0416)</displayed-value>
+    <stored-value>222-0416</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Stavební právo v městském inženýrství (222-0510)</displayed-value>
+    <stored-value>222-0510</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Technická infrastruktura (222-0402)</displayed-value>
+    <stored-value>222-0402</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Technické aspekty regenerace území (222-0521)</displayed-value>
+    <stored-value>222-0521</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Technicko-ekonomické modelování a rozhodovací procesy (222-0974)</displayed-value>
+    <stored-value>222-0974</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Teorie a estetika architektury (222-0982)</displayed-value>
+    <stored-value>222-0982</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Tvorba městských prostorů (222-0418)</displayed-value>
+    <stored-value>222-0418</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Typologie staveb (222-0400)</displayed-value>
+    <stored-value>222-0400</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Udržitelný rozvoj měst (222-0409)</displayed-value>
+    <stored-value>222-0409</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Územní rozvoj (222-0411)</displayed-value>
+    <stored-value>222-0411</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Veřejná infrastruktura I. (222-0501)</displayed-value>
+    <stored-value>222-0501</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Veřejná infrastruktura II. (222-0506)</displayed-value>
+    <stored-value>222-0506</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Voda ve veřejném prostoru sídel (222-0523)</displayed-value>
+    <stored-value>222-0523</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Základy Facility managementu (222-0421)</displayed-value>
+    <stored-value>222-0421</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Základy investičních procesů (222-0415)</displayed-value>
+    <stored-value>222-0415</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Základy městského inženýrství (222-0407)</displayed-value>
+    <stored-value>222-0407</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>222 - Zásady udržitelného rozvoje sídel (222-0502)</displayed-value>
+    <stored-value>222-0502</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Alternativní suroviny a stavební materiály (223-0104)</displayed-value>
+    <stored-value>223-0104</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Analytická a diagnostická měření ve stavebnictví (223-0102)</displayed-value>
+    <stored-value>223-0102</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Bakalářská práce (223-0088)</displayed-value>
+    <stored-value>223-0088</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - BIM pro diagnostiku staveb (223-0092)</displayed-value>
+    <stored-value>223-0092</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Brownfield management (223-0111)</displayed-value>
+    <stored-value>223-0111</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Degradační procesy a trvanlivost stavebních materiálů (223-0082)</displayed-value>
+    <stored-value>223-0082</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Diagnostika staveb (223-0079)</displayed-value>
+    <stored-value>223-0079</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Diplomová práce (223-0108)</displayed-value>
+    <stored-value>223-0108</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Druhotné suroviny (223-0115)</displayed-value>
+    <stored-value>223-0115</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Historické stavební materiály a technologie (223-0087)</displayed-value>
+    <stored-value>223-0087</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Chemie a stavební hmoty (223-0077)</displayed-value>
+    <stored-value>223-0077</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Kurz nedestruktivního zkušebnictví (223-0086)</displayed-value>
+    <stored-value>223-0086</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Laboratorní analýza stavebních látek (223-0090)</displayed-value>
+    <stored-value>223-0090</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Materiálové inženýrství (223-0083)</displayed-value>
+    <stored-value>223-0083</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Materiály ve stavebnictví (223-0114)</displayed-value>
+    <stored-value>223-0114</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Mikrostruktura stavebních látek (223-0081)</displayed-value>
+    <stored-value>223-0081</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Odborná exkurze (223-0107)</displayed-value>
+    <stored-value>223-0107</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Odpady a odpadní suroviny (223-0110)</displayed-value>
+    <stored-value>223-0110</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Polymery (223-0098)</displayed-value>
+    <stored-value>223-0098</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Posuzování vlivu staveb na ŽP (223-0097)</displayed-value>
+    <stored-value>223-0097</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Projekt I (223-0105)</displayed-value>
+    <stored-value>223-0105</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Projekt II (223-0106)</displayed-value>
+    <stored-value>223-0106</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Příprava na implementaci systému jakosti a základy systému environmentálního managementu (223-0089)</displayed-value>
+    <stored-value>223-0089</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Sanace betonových konstrukcí (223-0093)</displayed-value>
+    <stored-value>223-0093</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Sanace staveb (223-0100)</displayed-value>
+    <stored-value>223-0100</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Silikátové materiály a technologie (223-0084)</displayed-value>
+    <stored-value>223-0084</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Speciální stavební materiály (223-0099)</displayed-value>
+    <stored-value>223-0099</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Stavební hmoty (223-0078)</displayed-value>
+    <stored-value>223-0078</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Stavební materiály (223-0118)</displayed-value>
+    <stored-value>223-0118</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Stavební materiály z obnovitelných surovin (223-0101)</displayed-value>
+    <stored-value>223-0101</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Stavební suroviny v praxi (223-0095)</displayed-value>
+    <stored-value>223-0095</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Technologické procesy výroby stavebních hmot (223-0091)</displayed-value>
+    <stored-value>223-0091</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Technologie betonu a maltovin (223-0080)</displayed-value>
+    <stored-value>223-0080</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Technologie sanací (223-0085)</displayed-value>
+    <stored-value>223-0085</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Technologie stavebních dílců (223-0103)</displayed-value>
+    <stored-value>223-0103</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Teorie struktury stavebních látek (223-0096)</displayed-value>
+    <stored-value>223-0096</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Základy zkušebnictví a metrologie (223-0094)</displayed-value>
+    <stored-value>223-0094</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>223 - Zkušebnictví a kvalita ve stavebnictví (223-0109)</displayed-value>
+    <stored-value>223-0109</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Bakalářská práce (224-0219)</displayed-value>
+    <stored-value>224-0219</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - BIM v geotechnice a podzemním stavitelství (224-0263)</displayed-value>
+    <stored-value>224-0263</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Diplomová práce (224-0270)</displayed-value>
+    <stored-value>224-0270</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Diplomový seminář (224-0256)</displayed-value>
+    <stored-value>224-0256</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Environmentální a energetická geotechnika (224-0255)</displayed-value>
+    <stored-value>224-0255</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Environmentální problémy v geotechnice (224-0938)</displayed-value>
+    <stored-value>224-0938</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Experimentální metody studia fyzikálního chování geomateriálů (224-0946)</displayed-value>
+    <stored-value>224-0946</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geodetická měření v podzemním stavitelství (224-0253)</displayed-value>
+    <stored-value>224-0253</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geodynamika (224-0940)</displayed-value>
+    <stored-value>224-0940</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geohydrodynamika (224-0248)</displayed-value>
+    <stored-value>224-0248</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geomateriálové inženýrství (224-0937)</displayed-value>
+    <stored-value>224-0937</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geomechanika (224-0936)</displayed-value>
+    <stored-value>224-0936</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geomonitoring a inverzní analýza (224-0943)</displayed-value>
+    <stored-value>224-0943</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geotechnická laboratoř (224-0268)</displayed-value>
+    <stored-value>224-0268</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geotechnická rizika (224-0941)</displayed-value>
+    <stored-value>224-0941</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geotechnické stavby (224-0226)</displayed-value>
+    <stored-value>224-0226</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geotechnický monitoring (224-0209)</displayed-value>
+    <stored-value>224-0209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Geotechnický monitoring (224-0267)</displayed-value>
+    <stored-value>224-0267</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Hloubení jam a nekonvenční metody výstavby podzemních děl (224-0273)</displayed-value>
+    <stored-value>224-0273</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Mechanika hornin a zemin (224-0060)</displayed-value>
+    <stored-value>224-0060</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Mechanika podzemních konstrukcí (224-0220)</displayed-value>
+    <stored-value>224-0220</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Mechanika zemin a zakládání staveb (224-0218)</displayed-value>
+    <stored-value>224-0218</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Modelování hydraulických a transportních procesů v geosféře (224-0939)</displayed-value>
+    <stored-value>224-0939</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Modelování v geotechnice (224-0272)</displayed-value>
+    <stored-value>224-0272</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Moderní metody geofyzikálního průzkumu (224-0948)</displayed-value>
+    <stored-value>224-0948</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Odborná exkurze (224-0264)</displayed-value>
+    <stored-value>224-0264</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Odborná exkurze (224-0271)</displayed-value>
+    <stored-value>224-0271</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Počítačová podpora navrhování geotechnických konstrukcí (224-0241)</displayed-value>
+    <stored-value>224-0241</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Podzemní a geotechnické stavby (224-0229)</displayed-value>
+    <stored-value>224-0229</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Podzemní stavby (224-0269)</displayed-value>
+    <stored-value>224-0269</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Podzemní stavitelství (224-0231)</displayed-value>
+    <stored-value>224-0231</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Pokročilé metody modelování geotechnických úloh (224-0942)</displayed-value>
+    <stored-value>224-0942</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Pokročilé metody zakládání staveb (224-0944)</displayed-value>
+    <stored-value>224-0944</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Progresivní technologie výstavby geotechnických staveb a konstrukcí (224-0945)</displayed-value>
+    <stored-value>224-0945</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Projekt (224-0262)</displayed-value>
+    <stored-value>224-0262</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Projektování podzemních staveb (224-0254)</displayed-value>
+    <stored-value>224-0254</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Průzkumné metody v geotechnice (224-0275)</displayed-value>
+    <stored-value>224-0275</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Případové studie geotechnických staveb (224-0258)</displayed-value>
+    <stored-value>224-0258</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Ražení a vyztužování podzemních a hornických děl (224-0239)</displayed-value>
+    <stored-value>224-0239</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Seismické inženýrství (224-0947)</displayed-value>
+    <stored-value>224-0947</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Stavební geologie (224-0059)</displayed-value>
+    <stored-value>224-0059</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Technické odstřely a jejich účinky (224-0274)</displayed-value>
+    <stored-value>224-0274</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Trhací práce a rozpojování hornin (224-0261)</displayed-value>
+    <stored-value>224-0261</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Úprava vlastností hornin a zemin (224-0205)</displayed-value>
+    <stored-value>224-0205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Vybrané problémy podzemního stavitelství (224-0949)</displayed-value>
+    <stored-value>224-0949</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Zakládání staveb (224-0061)</displayed-value>
+    <stored-value>224-0061</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Zakládání ve složitých podmínkách (224-0208)</displayed-value>
+    <stored-value>224-0208</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Základy hydrogeologie a inženýrské geologie (224-0260)</displayed-value>
+    <stored-value>224-0260</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>224 - Základy stavební geologie (224-0058)</displayed-value>
+    <stored-value>224-0058</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Bakalářská práce (225-0214)</displayed-value>
+    <stored-value>225-0214</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - BIM ve stavitelství I. (225-0311)</displayed-value>
+    <stored-value>225-0311</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Diplomová práce (225-0310)</displayed-value>
+    <stored-value>225-0310</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Informační systémy pozemních a průmyslových staveb (225-0303)</displayed-value>
+    <stored-value>225-0303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Obvodové pláště budov (225-0203)</displayed-value>
+    <stored-value>225-0203</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Organizace a řízení staveb (225-0309)</displayed-value>
+    <stored-value>225-0309</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Pokročilé stavební technologie (225-0401)</displayed-value>
+    <stored-value>225-0401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Poruchy a rekonstrukce budov (225-0205)</displayed-value>
+    <stored-value>225-0205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Pozemní a průmyslové stavitelství I. (225-0301)</displayed-value>
+    <stored-value>225-0301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Pozemní a průmyslové stavitelství II. (225-0305)</displayed-value>
+    <stored-value>225-0305</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Pozemní stavitelství I. (225-0201)</displayed-value>
+    <stored-value>225-0201</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Pozemní stavitelství II. (225-0202)</displayed-value>
+    <stored-value>225-0202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Projekt I. (225-0212)</displayed-value>
+    <stored-value>225-0212</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Projekt I. (225-0304)</displayed-value>
+    <stored-value>225-0304</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Projekt II. (225-0213)</displayed-value>
+    <stored-value>225-0213</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Projekt II. (225-0308)</displayed-value>
+    <stored-value>225-0308</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Realizace montovaných staveb (225-0209)</displayed-value>
+    <stored-value>225-0209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Realizace staveb I. (225-0206)</displayed-value>
+    <stored-value>225-0206</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Realizace staveb II. (225-0207)</displayed-value>
+    <stored-value>225-0207</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Realizace staveb III. (225-0211)</displayed-value>
+    <stored-value>225-0211</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Rekonstrukce a sanace staveb (225-0302)</displayed-value>
+    <stored-value>225-0302</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Řízení výstavby (225-0210)</displayed-value>
+    <stored-value>225-0210</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Softwarova podpora energetiky budov (225-0306)</displayed-value>
+    <stored-value>225-0306</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Speciální konstrukce a technologie (225-0208)</displayed-value>
+    <stored-value>225-0208</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Technologie staveb (225-0307)</displayed-value>
+    <stored-value>225-0307</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Teorie rozhodování a rizika staveb (225-0216)</displayed-value>
+    <stored-value>225-0216</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Vybrané kapitoly z pozemního stavitelství (225-0402)</displayed-value>
+    <stored-value>225-0402</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Výpočetní technika při přípravě a realizaci staveb (225-0215)</displayed-value>
+    <stored-value>225-0215</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>225 - Zastřešení budov (225-0204)</displayed-value>
+    <stored-value>225-0204</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Architektonická typologie 1 (226-0404)</displayed-value>
+    <stored-value>226-0404</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Architektonická typologie 2 (226-0408)</displayed-value>
+    <stored-value>226-0408</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Architektonická typologie 3 (226-0412)</displayed-value>
+    <stored-value>226-0412</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Architektonické kreslení 1 (226-0402)</displayed-value>
+    <stored-value>226-0402</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Architektonické kreslení 2 (226-0419)</displayed-value>
+    <stored-value>226-0419</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Architektonický prostor, veřejný prostor a urbanistický detail (226-0501)</displayed-value>
+    <stored-value>226-0501</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Architektura nízkoenergetických staveb (226-0426)</displayed-value>
+    <stored-value>226-0426</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér architektury 1 (226-0507)</displayed-value>
+    <stored-value>226-0507</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér architektury 2 (226-0510)</displayed-value>
+    <stored-value>226-0510</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér architektury 3 (226-0515)</displayed-value>
+    <stored-value>226-0515</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér interiéru (226-0506)</displayed-value>
+    <stored-value>226-0506</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér navrhování bytových interiérů (226-0015)</displayed-value>
+    <stored-value>226-0015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér navrhování drobného objektu uměleckého designu (226-0019)</displayed-value>
+    <stored-value>226-0019</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér navrhování společenských interiérů (226-0020)</displayed-value>
+    <stored-value>226-0020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliérová tvorba1 (226-0409)</displayed-value>
+    <stored-value>226-0409</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliérová tvorba 2 (226-0411)</displayed-value>
+    <stored-value>226-0411</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliérová tvorba 3 (226-0416)</displayed-value>
+    <stored-value>226-0416</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliérová tvorba 4 (226-0420)</displayed-value>
+    <stored-value>226-0420</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliérová tvorba 5 (226-0424)</displayed-value>
+    <stored-value>226-0424</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér urbanismu 1 (226-0509)</displayed-value>
+    <stored-value>226-0509</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér urbanismu 2 (226-0514)</displayed-value>
+    <stored-value>226-0514</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér ZAN 1 (226-0403)</displayed-value>
+    <stored-value>226-0403</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ateliér ZAN 2 (226-0406)</displayed-value>
+    <stored-value>226-0406</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Bakalářská práce (226-0035)</displayed-value>
+    <stored-value>226-0035</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Bakalářská práce (226-0429)</displayed-value>
+    <stored-value>226-0429</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Dějiny architektury 1 (226-0407)</displayed-value>
+    <stored-value>226-0407</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Dějiny architektury 2 (226-0410)</displayed-value>
+    <stored-value>226-0410</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Dějiny architektury 3 (226-0413)</displayed-value>
+    <stored-value>226-0413</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Dějiny architektury 4 (226-0417)</displayed-value>
+    <stored-value>226-0417</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Dějiny architektury 5 (226-0422)</displayed-value>
+    <stored-value>226-0422</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Dějiny architektury 6 (226-0425)</displayed-value>
+    <stored-value>226-0425</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Dějiny designu II (226-0007)</displayed-value>
+    <stored-value>226-0007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Dějiny stavitelství a architektury (226-0430)</displayed-value>
+    <stored-value>226-0430</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Dějiny umění (226-0423)</displayed-value>
+    <stored-value>226-0423</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Diplomový projekt (226-0518)</displayed-value>
+    <stored-value>226-0518</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ekonomika pro architekty (226-0517)</displayed-value>
+    <stored-value>226-0517</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Etika a estetika (226-0511)</displayed-value>
+    <stored-value>226-0511</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Kompozice a barvy v interiéru (226-0016)</displayed-value>
+    <stored-value>226-0016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Legislativa pro architekty (226-0516)</displayed-value>
+    <stored-value>226-0516</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Legislativní a ekonomické otázky při navrhování a realizaci interiérů (226-0038)</displayed-value>
+    <stored-value>226-0038</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Materiál v architektuře (226-0512)</displayed-value>
+    <stored-value>226-0512</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Modelování v architektuře a autorské právo (226-0008)</displayed-value>
+    <stored-value>226-0008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Nauka o stavbách, praktická teorie (226-0502)</displayed-value>
+    <stored-value>226-0502</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Navrhování historických interiérů (226-0033)</displayed-value>
+    <stored-value>226-0033</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ochrana a obnova historických objektů (226-0006)</displayed-value>
+    <stored-value>226-0006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Ochrana a obnova historických objektů (226-0503)</displayed-value>
+    <stored-value>226-0503</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Předdiplomový seminář (226-0513)</displayed-value>
+    <stored-value>226-0513</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Rozšířená výuka kresby II (226-0012)</displayed-value>
+    <stored-value>226-0012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Rozšířená výuka kresby III (226-0013)</displayed-value>
+    <stored-value>226-0013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Rozšířená výuka kresby IV (226-0014)</displayed-value>
+    <stored-value>226-0014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Rozšířená výuka modelování 1 (226-0009)</displayed-value>
+    <stored-value>226-0009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Rozšířená výuka modelování 2 (226-0010)</displayed-value>
+    <stored-value>226-0010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Rozšířená výuky kresby I (226-0011)</displayed-value>
+    <stored-value>226-0011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Seminář k bakalářské práci (226-0236)</displayed-value>
+    <stored-value>226-0236</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Seminář k bakalářské práci I (226-0031)</displayed-value>
+    <stored-value>226-0031</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Seminář k bakalářské práci II (226-0036)</displayed-value>
+    <stored-value>226-0036</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Specifické konstrukce a materiály v interiéru I (226-0034)</displayed-value>
+    <stored-value>226-0034</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Specifické konstrukce a materiály v interiéru II (226-0037)</displayed-value>
+    <stored-value>226-0037</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Teorie a estetika (226-0032)</displayed-value>
+    <stored-value>226-0032</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Teorie a estetika architektury (226-0005)</displayed-value>
+    <stored-value>226-0005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Teorie architektury a psychologie (226-0306)</displayed-value>
+    <stored-value>226-0306</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Typologie interiérů (226-0017)</displayed-value>
+    <stored-value>226-0017</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Urbanismus a stavba měst (226-0504)</displayed-value>
+    <stored-value>226-0504</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Urbanismus a územní plánování (226-0421)</displayed-value>
+    <stored-value>226-0421</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Vegetace v zastavěném území (226-0427)</displayed-value>
+    <stored-value>226-0427</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Základy architektonického navrhování (226-0433)</displayed-value>
+    <stored-value>226-0433</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Základy architektonického navrhování 1 (226-0431)</displayed-value>
+    <stored-value>226-0431</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Základy architektonického navrhování 2 (226-0432)</displayed-value>
+    <stored-value>226-0432</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Základy grafiky a digitálních médií (226-0405)</displayed-value>
+    <stored-value>226-0405</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Základy kompozice (226-0401)</displayed-value>
+    <stored-value>226-0401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Základy konstrukcí staveb (226-0018)</displayed-value>
+    <stored-value>226-0018</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Základy modelování (226-0415)</displayed-value>
+    <stored-value>226-0415</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Základy sochařství (226-0418)</displayed-value>
+    <stored-value>226-0418</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Základy urbanismu a územního plánování (226-0414)</displayed-value>
+    <stored-value>226-0414</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>226 - Zeleň a krajina (226-0505)</displayed-value>
+    <stored-value>226-0505</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Aktuální trendy v dopravním stavitelství (227-0461)</displayed-value>
+    <stored-value>227-0461</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Bakalářská práce (227-0414)</displayed-value>
+    <stored-value>227-0414</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Bezpečnost v dopravě (227-0454)</displayed-value>
+    <stored-value>227-0454</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - BIM pro dopravní stavby (227-0415)</displayed-value>
+    <stored-value>227-0415</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Diagnostika, údržba a opravy vozovek (227-0456)</displayed-value>
+    <stored-value>227-0456</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Diplomová práce (227-0459)</displayed-value>
+    <stored-value>227-0459</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Dopravně inženýrské aplikace pro navrhování staveb (227-0491)</displayed-value>
+    <stored-value>227-0491</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Dopravní infrastruktura (227-0039)</displayed-value>
+    <stored-value>227-0039</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Dopravní infrastruktura (227-1001)</displayed-value>
+    <stored-value>227-1001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Dopravní inženýrství (227-0404)</displayed-value>
+    <stored-value>227-0404</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Dopravní modelování (227-0455)</displayed-value>
+    <stored-value>227-0455</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Dopravní stavby (227-0401)</displayed-value>
+    <stored-value>227-0401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Dopravní stavby I (227-0418)</displayed-value>
+    <stored-value>227-0418</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Dopravní stavby II (227-0419)</displayed-value>
+    <stored-value>227-0419</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Dopravní značení a organizace dopravy (227-0412)</displayed-value>
+    <stored-value>227-0412</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Integrované systémy hromadné dopravy (227-0411)</displayed-value>
+    <stored-value>227-0411</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Inteligentní dopravní systémy (227-0451)</displayed-value>
+    <stored-value>227-0451</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Městské komunikace a křižovatky (227-0407)</displayed-value>
+    <stored-value>227-0407</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Navrhování pokročilých dopravních systémů (227-0492)</displayed-value>
+    <stored-value>227-0492</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Odborná exkurze (227-0417)</displayed-value>
+    <stored-value>227-0417</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Plánování dopravy a obslužnosti území (227-0460)</displayed-value>
+    <stored-value>227-0460</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Projekt (227-0458)</displayed-value>
+    <stored-value>227-0458</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Projekt I (227-0410)</displayed-value>
+    <stored-value>227-0410</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Projekt II (227-0413)</displayed-value>
+    <stored-value>227-0413</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Projektování místních komunikací (227-0471)</displayed-value>
+    <stored-value>227-0471</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Projektování silnic a dálnic (227-0453)</displayed-value>
+    <stored-value>227-0453</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Projektování stanic a uzlů (227-0106)</displayed-value>
+    <stored-value>227-0106</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Projektování stanic a uzlů (227-0457)</displayed-value>
+    <stored-value>227-0457</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Realizace dopravních staveb (227-0416)</displayed-value>
+    <stored-value>227-0416</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Silniční stavitelství (227-0405)</displayed-value>
+    <stored-value>227-0405</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Software pro dopravní stavby (227-0406)</displayed-value>
+    <stored-value>227-0406</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Stavební stroje a mechanismy (227-0409)</displayed-value>
+    <stored-value>227-0409</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Využití UAV v dopravním inženýrství (227-0494)</displayed-value>
+    <stored-value>227-0494</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Využití UAV v dopravním stavitelství (227-0493)</displayed-value>
+    <stored-value>227-0493</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Železniční stavby (227-0408)</displayed-value>
+    <stored-value>227-0408</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>227 - Železniční svršek a spodek (227-0452)</displayed-value>
+    <stored-value>227-0452</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Algoritmizace inženýrských výpočtů (228-0234)</displayed-value>
+    <stored-value>228-0234</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Bakalářská práce (228-0240)</displayed-value>
+    <stored-value>228-0240</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - BIM ve stavební mechanice (228-0320)</displayed-value>
+    <stored-value>228-0320</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Diplomová práce (228-0323)</displayed-value>
+    <stored-value>228-0323</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Dynamika a experimentální ověřování stavebních konstrukcí (228-0922)</displayed-value>
+    <stored-value>228-0922</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Inženýrské statické výpočty (228-0233)</displayed-value>
+    <stored-value>228-0233</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Manažerské dovednosti a efektivní komunikace (228-0321)</displayed-value>
+    <stored-value>228-0321</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Mechanika konstrukcí (228-0309)</displayed-value>
+    <stored-value>228-0309</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Mechanika materiálu (228-0310)</displayed-value>
+    <stored-value>228-0310</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Metoda konečných prvků (228-0312)</displayed-value>
+    <stored-value>228-0312</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Numerické modelování metodou MKP (228-0316)</displayed-value>
+    <stored-value>228-0316</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Počítačová podpora statických výpočtů (228-0236)</displayed-value>
+    <stored-value>228-0236</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Pokročilé modelování úloh statiky a dynamiky staveb (228-0315)</displayed-value>
+    <stored-value>228-0315</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Pravděpodobnostní výpočty ve stavitelství (228-0313)</displayed-value>
+    <stored-value>228-0313</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Pružnost a plasticita (228-0232)</displayed-value>
+    <stored-value>228-0232</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Pružnost a plasticita II (228-0235)</displayed-value>
+    <stored-value>228-0235</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Speciální numerické metody (228-0239)</displayed-value>
+    <stored-value>228-0239</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Speciální úlohy stavební mechaniky (228-0920)</displayed-value>
+    <stored-value>228-0920</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Spolehlivost a bezpečnost staveb (228-0923)</displayed-value>
+    <stored-value>228-0923</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Stavební dynamika (228-0311)</displayed-value>
+    <stored-value>228-0311</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Stavební mechanika (228-0231)</displayed-value>
+    <stored-value>228-0231</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Úvod do pružnosti a plasticity (228-0242)</displayed-value>
+    <stored-value>228-0242</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Výpočetní modelování konstrukcí (228-0921)</displayed-value>
+    <stored-value>228-0921</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Výpočetní modely konstrukcí (228-0238)</displayed-value>
+    <stored-value>228-0238</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Výpočetní systémy pro speciální úlohy (228-0314)</displayed-value>
+    <stored-value>228-0314</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Základy metody konečných prvků (228-0237)</displayed-value>
+    <stored-value>228-0237</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Základy stavební mechaniky (228-0230)</displayed-value>
+    <stored-value>228-0230</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>228 - Základy stavební mechaniky pro architekty (228-0241)</displayed-value>
+    <stored-value>228-0241</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Akustika a denní osvětlení (229-0107)</displayed-value>
+    <stored-value>229-0107</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Aplikace udržitelných zdrojů energie v budovách (229-0113)</displayed-value>
+    <stored-value>229-0113</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Bakalářská práce (229-0110)</displayed-value>
+    <stored-value>229-0110</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - BIM pro specializaci TZB (229-0111)</displayed-value>
+    <stored-value>229-0111</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - BIM ve stavitelství II. (229-0301)</displayed-value>
+    <stored-value>229-0301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Diplomová práce (229-0230)</displayed-value>
+    <stored-value>229-0230</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Energetická náročnost budov (229-0108)</displayed-value>
+    <stored-value>229-0108</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Energetická náročnost budov (229-0225)</displayed-value>
+    <stored-value>229-0225</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Energetické systémy budov (229-0231)</displayed-value>
+    <stored-value>229-0231</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Energetické systémy budov I (229-0208)</displayed-value>
+    <stored-value>229-0208</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Energetické systémy budov II (229-0214)</displayed-value>
+    <stored-value>229-0214</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Laboratoře prostředí staveb a TZB (229-0224)</displayed-value>
+    <stored-value>229-0224</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Modelování energetického chování budov (229-0206)</displayed-value>
+    <stored-value>229-0206</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Modelování stavebně fyzikálních jevů v budovách (229-0910)</displayed-value>
+    <stored-value>229-0910</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Projekt 1 (229-0106)</displayed-value>
+    <stored-value>229-0106</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Projekt 2 (229-0109)</displayed-value>
+    <stored-value>229-0109</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Projekt 3 (Seminář k bakalářské práci) (229-0112)</displayed-value>
+    <stored-value>229-0112</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Projekt ke stavební části DP (229-0216)</displayed-value>
+    <stored-value>229-0216</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Prostředí staveb (229-0102)</displayed-value>
+    <stored-value>229-0102</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Stavební tepelná technika I (229-0207)</displayed-value>
+    <stored-value>229-0207</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Stavební tepelná technika II (229-0213)</displayed-value>
+    <stored-value>229-0213</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Technická zařízení budov/A - vytápění (229-0114)</displayed-value>
+    <stored-value>229-0114</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Technická zařízení budov/A - zdravotechnika (229-0116)</displayed-value>
+    <stored-value>229-0116</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Technická zařízení budov (229-0103)</displayed-value>
+    <stored-value>229-0103</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Technická zařízení budov (229-0154)</displayed-value>
+    <stored-value>229-0154</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Technická zařízení budov - vytápění a větrání (229-0105)</displayed-value>
+    <stored-value>229-0105</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Technická zařízení budov - zdravotechnika (229-0104)</displayed-value>
+    <stored-value>229-0104</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Technika prostředí (229-0272)</displayed-value>
+    <stored-value>229-0272</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Teorie vnitřního prostředí budov (229-0212)</displayed-value>
+    <stored-value>229-0212</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Větrání a klimatizace I (229-0209)</displayed-value>
+    <stored-value>229-0209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Větrání a klimatizace II (229-0227)</displayed-value>
+    <stored-value>229-0227</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Vybrané statě ze stavební akustiky a denního osvětlení (229-0210)</displayed-value>
+    <stored-value>229-0210</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Vybrané statě z TZB (229-0226)</displayed-value>
+    <stored-value>229-0226</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>229 - Zkušebnictví, měření a regulace (229-0229)</displayed-value>
+    <stored-value>229-0229</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Aplikovaná statistika (230-0229)</displayed-value>
+    <stored-value>230-0229</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Aplikovaná statistika (230-0322)</displayed-value>
+    <stored-value>230-0322</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Aplikované matematické vědy (230-0305)</displayed-value>
+    <stored-value>230-0305</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Deskriptivní geometrie (230-0241)</displayed-value>
+    <stored-value>230-0241</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Deskriptivní geometrie (230-0242)</displayed-value>
+    <stored-value>230-0242</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Deskriptivní geometrie (230-0441)</displayed-value>
+    <stored-value>230-0441</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Geometrie (230-0541)</displayed-value>
+    <stored-value>230-0541</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Geometrie na počítači (230-0442)</displayed-value>
+    <stored-value>230-0442</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Interpolace a aproximace funkcí (230-0261)</displayed-value>
+    <stored-value>230-0261</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Inženýrská matematika (230-0304)</displayed-value>
+    <stored-value>230-0304</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Lineární algebra (230-0266)</displayed-value>
+    <stored-value>230-0266</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Matematické metody v bezpečnostním inženýrství (230-0262)</displayed-value>
+    <stored-value>230-0262</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Matematické metody v bezpečnostním inženýrství (230-0264)</displayed-value>
+    <stored-value>230-0264</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Matematika I (230-0201)</displayed-value>
+    <stored-value>230-0201</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Matematika I (230-0301)</displayed-value>
+    <stored-value>230-0301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Matematika I (230-0307)</displayed-value>
+    <stored-value>230-0307</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Matematika I (230-0404)</displayed-value>
+    <stored-value>230-0404</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Matematika II (230-0202)</displayed-value>
+    <stored-value>230-0202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Matematika II (230-0306)</displayed-value>
+    <stored-value>230-0306</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Matematika II (230-0308)</displayed-value>
+    <stored-value>230-0308</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Matematika II (230-0405)</displayed-value>
+    <stored-value>230-0405</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Metody analýzy dat (230-0263)</displayed-value>
+    <stored-value>230-0263</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Numerické metody (230-0226)</displayed-value>
+    <stored-value>230-0226</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Numerické metody (230-0265)</displayed-value>
+    <stored-value>230-0265</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Numerické metody (230-0321)</displayed-value>
+    <stored-value>230-0321</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Numerické modely a aplikace (230-0325)</displayed-value>
+    <stored-value>230-0325</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Pravděpodobnost a statistika (230-0205)</displayed-value>
+    <stored-value>230-0205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Repetitorium z Inženýrské matematiky (230-0326)</displayed-value>
+    <stored-value>230-0326</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Repetitorium z matematiky 1 (230-0323)</displayed-value>
+    <stored-value>230-0323</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Statistika (230-0303)</displayed-value>
+    <stored-value>230-0303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Technická geometrie (230-0228)</displayed-value>
+    <stored-value>230-0228</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Vybrané aplikace vyšší matematiky (230-0230)</displayed-value>
+    <stored-value>230-0230</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Vybrané kapitoly z matematiky (230-0403)</displayed-value>
+    <stored-value>230-0403</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Základy matematiky (230-0320)</displayed-value>
+    <stored-value>230-0320</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Základy matematiky (230-0400)</displayed-value>
+    <stored-value>230-0400</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>230 - Základy programování v Matlabu (230-0231)</displayed-value>
+    <stored-value>230-0231</stored-value>
+  </pair>
+</value-pairs>

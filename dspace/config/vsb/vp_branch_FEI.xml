@@ -1,0 +1,14 @@
+<value-pairs value-pairs-name="vp_branch_FEI" dc-term="programme">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value></stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Aplikovaná matematika (S01)</displayed-value>
+    <stored-value>S01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>Výpočetní metody a HPC (S02)</displayed-value>
+    <stored-value>S02</stored-value>
+  </pair>
+</value-pairs>
