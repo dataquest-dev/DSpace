@@ -31,7 +31,7 @@ CREATE TABLE license_definition (
     required_info varchar(256)
 );
 
-ALTER TABLE public.license_definition OWNER TO dspace;
+ALTER TABLE license_definition OWNER TO dspace;
 
 --
 -- Name: license_definition_license_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
@@ -44,7 +44,7 @@ CREATE SEQUENCE license_definition_license_id_seq
     NO MINVALUE
     CACHE 1;
 
-ALTER TABLE public.license_definition_license_id_seq OWNER TO dspace;
+ALTER TABLE license_definition_license_id_seq OWNER TO dspace;
 
 --
 -- Name: license_definition_license_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
@@ -65,7 +65,7 @@ CREATE TABLE license_label (
 );
 
 
-ALTER TABLE public.license_label OWNER TO dspace;
+ALTER TABLE license_label OWNER TO dspace;
 
 --
 -- Name: license_label_extended_mapping; Type: TABLE; Schema: public; Owner: dspace; Tablespace:
@@ -77,7 +77,7 @@ CREATE TABLE license_label_extended_mapping (
     label_id integer
 );
 
-ALTER TABLE public.license_label_extended_mapping OWNER TO dspace;
+ALTER TABLE license_label_extended_mapping OWNER TO dspace;
 
 --
 -- Name: license_label_extended_mapping_mapping_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
@@ -91,7 +91,7 @@ CREATE SEQUENCE license_label_extended_mapping_mapping_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.license_label_extended_mapping_mapping_id_seq OWNER TO dspace;
+ALTER TABLE license_label_extended_mapping_mapping_id_seq OWNER TO dspace;
 
 --
 -- Name: license_label_extended_mapping_mapping_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
@@ -118,7 +118,7 @@ CREATE SEQUENCE license_label_label_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.license_label_label_id_seq OWNER TO dspace;
+ALTER TABLE license_label_label_id_seq OWNER TO dspace;
 
 --
 -- Name: license_label_label_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
@@ -144,7 +144,7 @@ CREATE TABLE license_resource_mapping (
 );
 
 
-ALTER TABLE public.license_resource_mapping OWNER TO dspace;
+ALTER TABLE license_resource_mapping OWNER TO dspace;
 
 --
 -- Name: license_resource_mapping_mapping_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
@@ -158,7 +158,7 @@ CREATE SEQUENCE license_resource_mapping_mapping_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.license_resource_mapping_mapping_id_seq OWNER TO dspace;
+ALTER TABLE license_resource_mapping_mapping_id_seq OWNER TO dspace;
 
 --
 -- Name: license_resource_mapping_mapping_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
@@ -186,7 +186,7 @@ CREATE TABLE license_resource_user_allowance (
     token varchar(256)
 );
 
-ALTER TABLE public.license_resource_user_allowance OWNER TO dspace;
+ALTER TABLE license_resource_user_allowance OWNER TO dspace;
 
 --
 -- Name: license_resource_user_allowance_transaction_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
@@ -199,7 +199,7 @@ CREATE SEQUENCE license_resource_user_allowance_transaction_id_seq
     NO MINVALUE
     CACHE 1;
 
-ALTER TABLE public.license_resource_user_allowance_transaction_id_seq OWNER TO dspace;
+ALTER TABLE license_resource_user_allowance_transaction_id_seq OWNER TO dspace;
 
 --
 -- Name: license_resource_user_allowance_transaction_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
@@ -224,7 +224,7 @@ CREATE TABLE user_registration (
     confirmation boolean DEFAULT true
 );
 
-ALTER TABLE public.user_registration OWNER TO dspace;
+ALTER TABLE user_registration OWNER TO dspace;
 
 CREATE SEQUENCE user_registration_user_registration_id_seq
     START WITH 1
@@ -233,7 +233,7 @@ CREATE SEQUENCE user_registration_user_registration_id_seq
     NO MINVALUE
     CACHE 1;
 
-ALTER TABLE public.user_registration_user_registration_id_seq OWNER TO dspace;
+ALTER TABLE user_registration_user_registration_id_seq OWNER TO dspace;
 
 --
 -- Name: user_registration_user_registration_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
@@ -254,7 +254,7 @@ CREATE TABLE user_metadata (
 );
 
 
-ALTER TABLE public.user_metadata OWNER TO dspace;
+ALTER TABLE user_metadata OWNER TO dspace;
 
 --
 -- Name: user_metadata_user_metadata_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
@@ -268,7 +268,7 @@ CREATE SEQUENCE user_metadata_user_metadata_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.user_metadata_user_metadata_id_seq OWNER TO dspace;
+ALTER TABLE user_metadata_user_metadata_id_seq OWNER TO dspace;
 
 --
 -- Name: user_metadata_user_metadata_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
