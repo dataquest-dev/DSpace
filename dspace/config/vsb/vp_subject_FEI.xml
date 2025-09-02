@@ -1,0 +1,3018 @@
+<value-pairs value-pairs-name="vp_subject_FEI" dc-term="programme">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value></stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Bakalářský seminář I (410-2031)</displayed-value>
+    <stored-value>410-2031</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Bakalářský seminář I (410-2306)</displayed-value>
+    <stored-value>410-2306</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Bakalářský seminář II (410-2032)</displayed-value>
+    <stored-value>410-2032</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Bakalářský seminář II (410-2307)</displayed-value>
+    <stored-value>410-2307</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Bezpečnostní technika strojů (410-2006)</displayed-value>
+    <stored-value>410-2006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Bezpečnost v elektrotechnice I (410-8401)</displayed-value>
+    <stored-value>410-8401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Bezpečnost v elektrotechnice II (410-8402)</displayed-value>
+    <stored-value>410-8402</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Diagnostické metody a modelování v elektroenergetice (410-4122)</displayed-value>
+    <stored-value>410-4122</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Diagnostika elektrických strojů a pohonů (410-6032)</displayed-value>
+    <stored-value>410-6032</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Diagnostika elektrických veličin (410-6031)</displayed-value>
+    <stored-value>410-6031</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Diagnostika na elektrických zařízeních (410-2302)</displayed-value>
+    <stored-value>410-2302</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Diagnostika na elektrických zařízeních (410-6010)</displayed-value>
+    <stored-value>410-6010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Diplomový projekt I (410-4021)</displayed-value>
+    <stored-value>410-4021</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Diplomový projekt I (410-4212)</displayed-value>
+    <stored-value>410-4212</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Diplomový projekt II (410-4022)</displayed-value>
+    <stored-value>410-4022</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Diplomový projekt II (410-4213)</displayed-value>
+    <stored-value>410-4213</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrárny (410-2303)</displayed-value>
+    <stored-value>410-2303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrárny (410-6002)</displayed-value>
+    <stored-value>410-6002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické ochrany (410-4123)</displayed-value>
+    <stored-value>410-4123</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické přístroje I (410-2206)</displayed-value>
+    <stored-value>410-2206</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické přístroje II (410-4119)</displayed-value>
+    <stored-value>410-4119</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické přístroje III (410-4120)</displayed-value>
+    <stored-value>410-4120</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické stanice a vedení (410-6003)</displayed-value>
+    <stored-value>410-6003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické stroje I (410-2207)</displayed-value>
+    <stored-value>410-2207</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické stroje II (410-2318)</displayed-value>
+    <stored-value>410-2318</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické stroje III (410-4121)</displayed-value>
+    <stored-value>410-4121</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické stroje točivé (410-8301)</displayed-value>
+    <stored-value>410-8301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické světlo (410-6014)</displayed-value>
+    <stored-value>410-6014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické světlo a teplo (410-2308)</displayed-value>
+    <stored-value>410-2308</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrické světlo – firemní praxe (410-4217)</displayed-value>
+    <stored-value>410-4217</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektroenergetika distribučních a průmyslových sítí (410-4210)</displayed-value>
+    <stored-value>410-4210</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektroenergetika v dopravě (410-4007)</displayed-value>
+    <stored-value>410-4007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektroenergetika v průmyslu (410-6004)</displayed-value>
+    <stored-value>410-6004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektromagnetická kompatibilita výkonových systémů (410-4019)</displayed-value>
+    <stored-value>410-4019</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrotechnika (410-8022)</displayed-value>
+    <stored-value>410-8022</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrotechnika (410-8321)</displayed-value>
+    <stored-value>410-8321</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrotechnika (410-8521)</displayed-value>
+    <stored-value>410-8521</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Elektrotechnika (410-8602)</displayed-value>
+    <stored-value>410-8602</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Energetická náročnost budov a jejich řízení (410-4034)</displayed-value>
+    <stored-value>410-4034</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Energetické problémy elektrotepelných zařízení (410-4118)</displayed-value>
+    <stored-value>410-4118</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Energetické problémy tepelných zařízení (410-6013)</displayed-value>
+    <stored-value>410-6013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Informační systémy v silnoproudé elektrotechnice (410-2005)</displayed-value>
+    <stored-value>410-2005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Komplexní návrh a testování elektrických zařízení (410-4031)</displayed-value>
+    <stored-value>410-4031</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Modelování silnoproudých systémů (410-2035)</displayed-value>
+    <stored-value>410-2035</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Modelování v elektroenergetice (410-4126)</displayed-value>
+    <stored-value>410-4126</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Modelování v elektroenergetice (410-6015)</displayed-value>
+    <stored-value>410-6015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Numerické metody v konstrukci el. strojů a přístrojů (410-4205)</displayed-value>
+    <stored-value>410-4205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Obchodování s elektřinou (410-2316)</displayed-value>
+    <stored-value>410-2316</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Ochrany a automatiky v rozvodu (410-6005)</displayed-value>
+    <stored-value>410-6005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Ostrovní energetické systémy (410-2320)</displayed-value>
+    <stored-value>410-2320</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Osvětlování v automotive (410-4127)</displayed-value>
+    <stored-value>410-4127</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Počítače pro měření a diagnostiku (410-6009)</displayed-value>
+    <stored-value>410-6009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Počítače pro měření a diagnostiku v elektroenergetice (410-4111)</displayed-value>
+    <stored-value>410-4111</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Poruchy a chránění elektrických sítí (410-2317)</displayed-value>
+    <stored-value>410-2317</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Praxe (410-2027)</displayed-value>
+    <stored-value>410-2027</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Prevence elektrických zařízení (410-2007)</displayed-value>
+    <stored-value>410-2007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Procesy v systému Reliance (410-4016)</displayed-value>
+    <stored-value>410-4016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projekční činnosti a veřejná správa (410-2033)</displayed-value>
+    <stored-value>410-2033</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování elektrických distribučních sítí (410-4114)</displayed-value>
+    <stored-value>410-4114</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování elektrických distribučních sítí (410-6012)</displayed-value>
+    <stored-value>410-6012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování elektrických pohonů (410-4020)</displayed-value>
+    <stored-value>410-4020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování elektrických přístrojů (410-4203)</displayed-value>
+    <stored-value>410-4203</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování elektrických strojů (410-4201)</displayed-value>
+    <stored-value>410-4201</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování elektrických zařízení I (410-2025)</displayed-value>
+    <stored-value>410-2025</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování elektrických zařízení II (410-4030)</displayed-value>
+    <stored-value>410-4030</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování liniových staveb elektro (410-4033)</displayed-value>
+    <stored-value>410-4033</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování osvětlovacích soustav I (410-4124)</displayed-value>
+    <stored-value>410-4124</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování osvětlovacích soustav II (410-4216)</displayed-value>
+    <stored-value>410-4216</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování s podporou CAE (410-2013)</displayed-value>
+    <stored-value>410-2013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Projektování s podporou CAE (410-4010)</displayed-value>
+    <stored-value>410-4010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Provoz a řízení elektrizačních soustav (410-2310)</displayed-value>
+    <stored-value>410-2310</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Provozování osvětlovacích soustav (410-4117)</displayed-value>
+    <stored-value>410-4117</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Předpisy a nařízení v elektrotechnice (410-4003)</displayed-value>
+    <stored-value>410-4003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Přechodné jevy v elektrizačních soustavách (410-4115)</displayed-value>
+    <stored-value>410-4115</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Přenos a rozvod elektrické energie (410-2304)</displayed-value>
+    <stored-value>410-2304</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Řízená praxe ve smluvních organizacích (410-4024)</displayed-value>
+    <stored-value>410-4024</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Řízení a spolehlivost elektrizačních soustav (410-4125)</displayed-value>
+    <stored-value>410-4125</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Řízení elektrizačních soustav (410-6008)</displayed-value>
+    <stored-value>410-6008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Systém ochrany budov před bleskem (410-2036)</displayed-value>
+    <stored-value>410-2036</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Systémová technika budov I (410-2008)</displayed-value>
+    <stored-value>410-2008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Systémová technika budov II (410-4032)</displayed-value>
+    <stored-value>410-4032</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Technická dokumentace (410-2101)</displayed-value>
+    <stored-value>410-2101</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Technická zařízení budov elektrické instalace (410-8223)</displayed-value>
+    <stored-value>410-8223</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Technické vybavení budov (410-2009)</displayed-value>
+    <stored-value>410-2009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Technika vysokého napětí (410-2205)</displayed-value>
+    <stored-value>410-2205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Teoretická elektroenergetika (410-4109)</displayed-value>
+    <stored-value>410-4109</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Teoretická elektroenergetika (410-6001)</displayed-value>
+    <stored-value>410-6001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Úvod do funkční bezpečnosti (410-4017)</displayed-value>
+    <stored-value>410-4017</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Vybrané kapitoly z elektrických strojů a přístrojů (410-2319)</displayed-value>
+    <stored-value>410-2319</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Vybrané kapitoly z teorie elektrických strojů a přístrojů (410-6016)</displayed-value>
+    <stored-value>410-6016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Vybrané principy elektroenergetiky (410-4113)</displayed-value>
+    <stored-value>410-4113</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Výpočtové a numerické metody elektrických strojů a přístrojů (410-6019)</displayed-value>
+    <stored-value>410-6019</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Výroba a použití elektrické energie (410-4215)</displayed-value>
+    <stored-value>410-4215</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Výroba a užití elektrické energie (410-2204)</displayed-value>
+    <stored-value>410-2204</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Využití počítačů v elektroenergetice (410-2301)</displayed-value>
+    <stored-value>410-2301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Zabezpečovací a protipožární systémy (410-4029)</displayed-value>
+    <stored-value>410-4029</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Základní elektrotechnické předpisy (410-2010)</displayed-value>
+    <stored-value>410-2010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>410 - Zařízení elektráren (410-4211)</displayed-value>
+    <stored-value>410-4211</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Analogové elektronické obvody (430-4104)</displayed-value>
+    <stored-value>430-4104</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Analogové elektronické obvody (430-6001)</displayed-value>
+    <stored-value>430-6001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Aplikace řídicích algoritmů v AS (430-4130)</displayed-value>
+    <stored-value>430-4130</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Automobilová elektronika I (430-8731)</displayed-value>
+    <stored-value>430-8731</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Automobilová elektronika II (430-8753)</displayed-value>
+    <stored-value>430-8753</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Automobilové elektronické systémy (430-6011)</displayed-value>
+    <stored-value>430-6011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Bakalářský seminář 1 (430-2321)</displayed-value>
+    <stored-value>430-2321</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Bakalářský seminář 2 (430-2322)</displayed-value>
+    <stored-value>430-2322</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Bakalářský seminář I (430-2301)</displayed-value>
+    <stored-value>430-2301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Bakalářský seminář II (430-2306)</displayed-value>
+    <stored-value>430-2306</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Číslicová a mikroprocesorová technika I (430-2203)</displayed-value>
+    <stored-value>430-2203</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Číslicová a mikroprocesorová technika II (430-4101)</displayed-value>
+    <stored-value>430-4101</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Diagnostika a testování vozidel (430-8754)</displayed-value>
+    <stored-value>430-8754</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Digitální systémy s FPGA (430-4140)</displayed-value>
+    <stored-value>430-4140</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Diplomový projekt AS 1 (430-4220)</displayed-value>
+    <stored-value>430-4220</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Diplomový projekt AS 2 (430-4221)</displayed-value>
+    <stored-value>430-4221</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Diplomový projekt I (430-4202)</displayed-value>
+    <stored-value>430-4202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Diplomový projekt II (430-4208)</displayed-value>
+    <stored-value>430-4208</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektrické pohony (430-2309)</displayed-value>
+    <stored-value>430-2309</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektrické pohony (430-6007)</displayed-value>
+    <stored-value>430-6007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektrické pohony automobilových systémů (430-2324)</displayed-value>
+    <stored-value>430-2324</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektrické regulované pohony (430-8751)</displayed-value>
+    <stored-value>430-8751</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektrické regulované pohony I (430-2307)</displayed-value>
+    <stored-value>430-2307</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektrické regulované pohony II (430-4105)</displayed-value>
+    <stored-value>430-4105</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektrické regulované pohony III (430-4203)</displayed-value>
+    <stored-value>430-4203</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektromagnetismus (430-4005)</displayed-value>
+    <stored-value>430-4005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektronické systémy automobilů (430-8401)</displayed-value>
+    <stored-value>430-8401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektronika (430-2201)</displayed-value>
+    <stored-value>430-2201</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Elektronika a elektronické systémy (430-4209)</displayed-value>
+    <stored-value>430-4209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Funkční principy integrovaných obvodů (430-4150)</displayed-value>
+    <stored-value>430-4150</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Konstrukce elektronických zařízení (430-6003)</displayed-value>
+    <stored-value>430-6003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Konstrukce polovodičových měničů (430-4205)</displayed-value>
+    <stored-value>430-4205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Konstrukce zařízení průmyslové elektroniky (430-4201)</displayed-value>
+    <stored-value>430-4201</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Lineární obvody s elektronickými prvky (430-4006)</displayed-value>
+    <stored-value>430-4006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Měření a testování automobilových systémů (430-2325)</displayed-value>
+    <stored-value>430-2325</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Mikropočítače v automobilových systémech (430-4120)</displayed-value>
+    <stored-value>430-4120</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Mikropočítačové řídicí systémy (430-8743)</displayed-value>
+    <stored-value>430-8743</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Mikropočítačové řídicí systémy elektrických pohonů (430-6008)</displayed-value>
+    <stored-value>430-6008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Mikropočítačové řídicí systémy I (430-2303)</displayed-value>
+    <stored-value>430-2303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Mikropočítačové řídicí systémy II (430-4106)</displayed-value>
+    <stored-value>430-4106</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Modelování a simulace automobilových systémů (430-2323)</displayed-value>
+    <stored-value>430-2323</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Modelování a simulace elektronických systémů (430-2304)</displayed-value>
+    <stored-value>430-2304</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Modelování a simulace elektrotechnických systémů (430-6010)</displayed-value>
+    <stored-value>430-6010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Praktika z elektronických obvodů (430-2020)</displayed-value>
+    <stored-value>430-2020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Principy zařízení komerční elektroniky (430-2308)</displayed-value>
+    <stored-value>430-2308</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Řídicí algoritmy elektrických regulovaných pohonů (430-6002)</displayed-value>
+    <stored-value>430-6002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Řídicí elektronika výkonových měničů (430-4102)</displayed-value>
+    <stored-value>430-4102</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Semestrální projekt AS (430-4121)</displayed-value>
+    <stored-value>430-4121</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Semestrální projekt Ia (430-2221)</displayed-value>
+    <stored-value>430-2221</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Semestrální projekt Ib (430-2222)</displayed-value>
+    <stored-value>430-2222</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Senzorické systémy pro automobily (430-2224)</displayed-value>
+    <stored-value>430-2224</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Servopohony malých výkonů (430-4206)</displayed-value>
+    <stored-value>430-4206</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Signálové procesory (430-4207)</displayed-value>
+    <stored-value>430-4207</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Signálové procesory a jejich aplikace (430-6009)</displayed-value>
+    <stored-value>430-6009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Simulace a testování elektronických systémů (430-4123)</displayed-value>
+    <stored-value>430-4123</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Spínací polovodičová technika (430-8741)</displayed-value>
+    <stored-value>430-8741</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Spínané napájecí zdroje (430-4230)</displayed-value>
+    <stored-value>430-4230</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Šíření elektromagnetických vln a antény (430-4012)</displayed-value>
+    <stored-value>430-4012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Technické prostředky pro řízení elektrických pohonů (430-2205)</displayed-value>
+    <stored-value>430-2205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Teorie elektronických obvodů (430-4001)</displayed-value>
+    <stored-value>430-4001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Teorie obvodů I (430-2016)</displayed-value>
+    <stored-value>430-2016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Teorie obvodů II (430-2017)</displayed-value>
+    <stored-value>430-2017</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Vybrané kapitoly z teoretické elektrotechniky (430-4028)</displayed-value>
+    <stored-value>430-4028</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Výkonová a řídicí elektronika (430-6004)</displayed-value>
+    <stored-value>430-6004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Výkonová elektronika automobilových systémů I (430-2223)</displayed-value>
+    <stored-value>430-2223</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Výkonové polovodičové systémy I (430-2302)</displayed-value>
+    <stored-value>430-2302</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Výkonové polovodičové systémy II (430-4103)</displayed-value>
+    <stored-value>430-4103</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Výkonové spínací prvky (430-2202)</displayed-value>
+    <stored-value>430-2202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>430 - Základy teorie obvodů (430-2037)</displayed-value>
+    <stored-value>430-2037</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Bakalářský projekt I (440-2301)</displayed-value>
+    <stored-value>440-2301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Bakalářský projekt II (440-2308)</displayed-value>
+    <stored-value>440-2308</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Bezdrátové senzorové sítě (440-2319)</displayed-value>
+    <stored-value>440-2319</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Bezpečnost komunikačních technologií (440-6010)</displayed-value>
+    <stored-value>440-6010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Diplomový projekt I (440-4107)</displayed-value>
+    <stored-value>440-4107</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Diplomový projekt II (440-4201)</displayed-value>
+    <stored-value>440-4201</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Diplomový projekt III (440-4209)</displayed-value>
+    <stored-value>440-4209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Integrované struktury pro telekomunikace (440-6012)</displayed-value>
+    <stored-value>440-6012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Internet věcí (440-2318)</displayed-value>
+    <stored-value>440-2318</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - IP Multimediální systémy (440-6009)</displayed-value>
+    <stored-value>440-6009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Kódování (440-4122)</displayed-value>
+    <stored-value>440-4122</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Kvalita služeb (440-2216)</displayed-value>
+    <stored-value>440-2216</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Kvantové komunikace a zpracování informace (440-4205)</displayed-value>
+    <stored-value>440-4205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Kyberkriminalita (440-8402)</displayed-value>
+    <stored-value>440-8402</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Kybernetická bezpečnost (440-4131)</displayed-value>
+    <stored-value>440-4131</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Legislativa a ochrana osobních údajů v komunikacích (440-2323)</displayed-value>
+    <stored-value>440-2323</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Lineární a nelineární vláknové optické systémy (440-6005)</displayed-value>
+    <stored-value>440-6005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Materiály v optoelektronice a senzorice (440-2219)</displayed-value>
+    <stored-value>440-2219</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Měření v optických komunikacích I (440-2327)</displayed-value>
+    <stored-value>440-2327</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Měření v optických komunikacích II (440-4130)</displayed-value>
+    <stored-value>440-4130</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Mobilní komunikační zařízení (440-4121)</displayed-value>
+    <stored-value>440-4121</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Mobilní sítě (440-4126)</displayed-value>
+    <stored-value>440-4126</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Modelování a dimenzování sítí (440-4218)</displayed-value>
+    <stored-value>440-4218</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Multimediální formáty a přenosové systémy (440-2220)</displayed-value>
+    <stored-value>440-2220</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Multimediální komunikace a zabezpečení obsahu (440-4221)</displayed-value>
+    <stored-value>440-4221</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Optické bezvláknové komunikace a systémy (440-6015)</displayed-value>
+    <stored-value>440-6015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Optické bezvláknové systémy (440-4227)</displayed-value>
+    <stored-value>440-4227</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Optické komunikace I (440-4114)</displayed-value>
+    <stored-value>440-4114</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Optické komunikace II (440-4115)</displayed-value>
+    <stored-value>440-4115</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Optické komunikace III (440-4215)</displayed-value>
+    <stored-value>440-4215</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Optické komunikační systémy (440-6006)</displayed-value>
+    <stored-value>440-6006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Optoelektronika (440-2309)</displayed-value>
+    <stored-value>440-2309</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Optoelektronika (440-6004)</displayed-value>
+    <stored-value>440-6004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Optovláknové senzorické systémy (440-6014)</displayed-value>
+    <stored-value>440-6014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Pokročilé síťové technologie (440-4220)</displayed-value>
+    <stored-value>440-4220</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Praktikum komunikačních sítí I (440-2315)</displayed-value>
+    <stored-value>440-2315</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Praktikum komunikačních sítí II (440-4214)</displayed-value>
+    <stored-value>440-4214</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Právo v ICT (440-8401)</displayed-value>
+    <stored-value>440-8401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Protokoly informačních a komunikačních sítí (440-6011)</displayed-value>
+    <stored-value>440-6011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Přenos dat (440-2303)</displayed-value>
+    <stored-value>440-2303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Přenosová média (440-2105)</displayed-value>
+    <stored-value>440-2105</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Přenosové systémy a média (440-2206)</displayed-value>
+    <stored-value>440-2206</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Přístupové sítě (440-2306)</displayed-value>
+    <stored-value>440-2306</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Radarová technika I (440-2324)</displayed-value>
+    <stored-value>440-2324</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Radarová technika II (440-4124)</displayed-value>
+    <stored-value>440-4124</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Radiokomunikační technika (440-4216)</displayed-value>
+    <stored-value>440-4216</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Radiokomunikační technika I (440-2205)</displayed-value>
+    <stored-value>440-2205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Rádiové sítě (440-2307)</displayed-value>
+    <stored-value>440-2307</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Rádiové sítě I (440-2316)</displayed-value>
+    <stored-value>440-2316</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Sítě nových generací (440-6008)</displayed-value>
+    <stored-value>440-6008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Síťová infrastruktura (440-2325)</displayed-value>
+    <stored-value>440-2325</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Síťové technologie I (440-2214)</displayed-value>
+    <stored-value>440-2214</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Síťové technologie II (440-2215)</displayed-value>
+    <stored-value>440-2215</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Softwarové nástroje v komunikačních systémech (440-2210)</displayed-value>
+    <stored-value>440-2210</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Spojovací systémy (440-2317)</displayed-value>
+    <stored-value>440-2317</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - SW nástroje v OK (440-4229)</displayed-value>
+    <stored-value>440-4229</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Telekomunikační sítě a služby (440-6001)</displayed-value>
+    <stored-value>440-6001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Tvorba multimediálního obsahu (440-4120)</displayed-value>
+    <stored-value>440-4120</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Úvod do komunikačních technologií (440-2103)</displayed-value>
+    <stored-value>440-2103</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Úvod do kvantové komunikace a zpracování informace (440-2322)</displayed-value>
+    <stored-value>440-2322</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Virtualizace I (440-2321)</displayed-value>
+    <stored-value>440-2321</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Virtualizace II (440-4219)</displayed-value>
+    <stored-value>440-4219</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Vláknově optické senzory I (440-2329)</displayed-value>
+    <stored-value>440-2329</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Vláknově optické senzory II (440-4125)</displayed-value>
+    <stored-value>440-4125</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Voice over IP I (440-2326)</displayed-value>
+    <stored-value>440-2326</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Voice over IP II (440-4228)</displayed-value>
+    <stored-value>440-4228</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Vybrané partie optických komunikací (440-6007)</displayed-value>
+    <stored-value>440-6007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Vybrané problémy bezpečnosti komunikací (440-4123)</displayed-value>
+    <stored-value>440-4123</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Vybrané problémy síťových technologií (440-6013)</displayed-value>
+    <stored-value>440-6013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Základy bezpečnosti v komunikacích (440-2320)</displayed-value>
+    <stored-value>440-2320</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Základy digitálních systémů (440-2104)</displayed-value>
+    <stored-value>440-2104</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Základy fotoniky (440-2209)</displayed-value>
+    <stored-value>440-2209</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Základy projektování komunikačních systémů a sítí (440-2330)</displayed-value>
+    <stored-value>440-2330</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Zpracování řečového signálu (440-4224)</displayed-value>
+    <stored-value>440-4224</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Zpracování signálů v komunikacích (440-2107)</displayed-value>
+    <stored-value>440-2107</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Zpracování signálů v komunikacích I (440-2213)</displayed-value>
+    <stored-value>440-2213</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>440 - Zpracování signálů v komunikacích II (440-4118)</displayed-value>
+    <stored-value>440-4118</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Analýza regulačních systémů (450-2034)</displayed-value>
+    <stored-value>450-2034</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Anatomie a odborná terminologie (450-2084)</displayed-value>
+    <stored-value>450-2084</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Anatomie člověka a medicínská terminologie (450-4090)</displayed-value>
+    <stored-value>450-4090</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Aplikace mikrokontrolérů v biomedicínském inženýrství (450-4083)</displayed-value>
+    <stored-value>450-4083</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Aplikace moderních senzorů a technologií v automotive (450-4109)</displayed-value>
+    <stored-value>450-4109</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Aplikace moderních technologií v oblasti průmyslové automatizace (450-4103)</displayed-value>
+    <stored-value>450-4103</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Aplikace řídicích systémů s programovatelnými automaty (450-2037)</displayed-value>
+    <stored-value>450-2037</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Aplikovaná umělá inteligence (450-4049)</displayed-value>
+    <stored-value>450-4049</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Bakalářský seminář 1 (450-2020)</displayed-value>
+    <stored-value>450-2020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Bakalářský seminář 2 (450-2021)</displayed-value>
+    <stored-value>450-2021</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Bezpečnost zdravotnických technologií (450-2074)</displayed-value>
+    <stored-value>450-2074</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Biochemie (450-2065)</displayed-value>
+    <stored-value>450-2065</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Biokybernetika (450-4031)</displayed-value>
+    <stored-value>450-4031</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Biomedicínské senzory (450-4095)</displayed-value>
+    <stored-value>450-4095</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Biomechanika člověka (450-4080)</displayed-value>
+    <stored-value>450-4080</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Biotelemetrie (450-2017)</displayed-value>
+    <stored-value>450-2017</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Certifikace zdravotnických prostředků (450-4074)</displayed-value>
+    <stored-value>450-4074</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Conceptual Design and Development of Innovative Products (450-4024)</displayed-value>
+    <stored-value>450-4024</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Diagnostické a testovací systémy (450-4014)</displayed-value>
+    <stored-value>450-4014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Digitální zpracování signálů (450-2094)</displayed-value>
+    <stored-value>450-2094</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Diplomový projekt 1 (450-4005)</displayed-value>
+    <stored-value>450-4005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Diplomový projekt 2 (450-4006)</displayed-value>
+    <stored-value>450-4006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Distribuované systémy řízení (450-4016)</displayed-value>
+    <stored-value>450-4016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Efektivní využití počítačů (450-2052)</displayed-value>
+    <stored-value>450-2052</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Elektrická měření (450-2018)</displayed-value>
+    <stored-value>450-2018</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Elektrická měření (450-8701)</displayed-value>
+    <stored-value>450-8701</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Elektronická měření a přístroje (450-2027)</displayed-value>
+    <stored-value>450-2027</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - EMC v elektronice (450-4027)</displayed-value>
+    <stored-value>450-4027</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - EMC v elektronických měřeních a přístrojích (450-6005)</displayed-value>
+    <stored-value>450-6005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Fuzzy systémy (450-6003)</displayed-value>
+    <stored-value>450-6003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Fyziologie a patofyziologie (450-4099)</displayed-value>
+    <stored-value>450-4099</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Fyziologie a patologická fyziologie (450-2085)</displayed-value>
+    <stored-value>450-2085</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Hygiena a epidemiologie (450-2091)</displayed-value>
+    <stored-value>450-2091</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Infuzní a hemodialyzační technika a technologie (450-4071)</displayed-value>
+    <stored-value>450-4071</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Inteligentní systémy a technologie pro eHealth (450-2056)</displayed-value>
+    <stored-value>450-2056</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Inteligentní systémy a technologie pro energetiku (450-2063)</displayed-value>
+    <stored-value>450-2063</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Inteligentní systémy a technologie pro chytré budovy (450-2057)</displayed-value>
+    <stored-value>450-2057</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Klinické inženýrství (450-4048)</displayed-value>
+    <stored-value>450-4048</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Kybernetické metody v robotice (450-6012)</displayed-value>
+    <stored-value>450-6012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Kybernetika (450-2019)</displayed-value>
+    <stored-value>450-2019</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Legislativa a management zdravotnické techniky (450-2066)</displayed-value>
+    <stored-value>450-2066</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Lékařská přístrojová technika 1 (450-2067)</displayed-value>
+    <stored-value>450-2067</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Lékařská přístrojová technika 2 (450-2068)</displayed-value>
+    <stored-value>450-2068</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Lékařské diagnostické přístroje (450-4008)</displayed-value>
+    <stored-value>450-4008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Lékařské terapeutické přístroje (450-4013)</displayed-value>
+    <stored-value>450-4013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Lékařské zobrazovací systémy I (450-4073)</displayed-value>
+    <stored-value>450-4073</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Lékařské zobrazovací systémy II (450-4086)</displayed-value>
+    <stored-value>450-4086</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Magisterský projekt 1 (450-4060)</displayed-value>
+    <stored-value>450-4060</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Magisterský projekt 2 (450-4061)</displayed-value>
+    <stored-value>450-4061</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Matlab a simulace (450-2002)</displayed-value>
+    <stored-value>450-2002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Měření a regulace (450-4077)</displayed-value>
+    <stored-value>450-4077</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Měření elektrických obvodů (450-4094)</displayed-value>
+    <stored-value>450-4094</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Měření na elektronických přístrojích (450-2105)</displayed-value>
+    <stored-value>450-2105</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Měření v informačních a komunikačních technologiích (450-2040)</displayed-value>
+    <stored-value>450-2040</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Měření v telekomunikační technice (450-4054)</displayed-value>
+    <stored-value>450-4054</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Měřicí systémy (450-4004)</displayed-value>
+    <stored-value>450-4004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Měřící systémy a jejich programování (450-4011)</displayed-value>
+    <stored-value>450-4011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Měřicí techniky v přenosových systémech (450-6014)</displayed-value>
+    <stored-value>450-6014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Metodika návrhu informačních měřicích systémů (450-4015)</displayed-value>
+    <stored-value>450-4015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Metodologie výzkumu (450-4087)</displayed-value>
+    <stored-value>450-4087</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Metody strojového učení pro vestavěné systémy (450-6023)</displayed-value>
+    <stored-value>450-6023</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Metody zpracování zvukového a obrazového signálu v řídicích systémech (450-4101)</displayed-value>
+    <stored-value>450-4101</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Metrologie a kalibrace lékařských elektronických přístrojů (450-4059)</displayed-value>
+    <stored-value>450-4059</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Metrologie a přesná měření (450-4023)</displayed-value>
+    <stored-value>450-4023</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Mikrosnímače a speciální měření (450-4010)</displayed-value>
+    <stored-value>450-4010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Mobilní informační technologie pro řízení (450-4084)</displayed-value>
+    <stored-value>450-4084</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Modelování, identifikace a simulace v technické kybernetice (450-6015)</displayed-value>
+    <stored-value>450-6015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Moderní diagnostické metody v medicíně (450-6016)</displayed-value>
+    <stored-value>450-6016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Moderní metody návrhu software řídicích systémů (450-6006)</displayed-value>
+    <stored-value>450-6006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Moderní teorie řízení (450-6002)</displayed-value>
+    <stored-value>450-6002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Návrh a konstrukce lékařské přístrojové techniky (450-2078)</displayed-value>
+    <stored-value>450-2078</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Návrh FPGA pro vestavné systémy (450-4108)</displayed-value>
+    <stored-value>450-4108</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Navrhování a realizace regulátorů (450-4018)</displayed-value>
+    <stored-value>450-4018</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Nekonvenční metody řízení mechatronických systémů (450-8707)</displayed-value>
+    <stored-value>450-8707</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Nové trendy a metody v lékařské terapeutické přístrojové technice (450-6007)</displayed-value>
+    <stored-value>450-6007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Obecná teorie signálů (450-6001)</displayed-value>
+    <stored-value>450-6001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Odborná praxe pracovník v sociálních službách (450-2102)</displayed-value>
+    <stored-value>450-2102</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Odborná praxe technik asistivních technologií (450-2103)</displayed-value>
+    <stored-value>450-2103</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Operační systémy reálného času (450-4009)</displayed-value>
+    <stored-value>450-4009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Patologie (450-2087)</displayed-value>
+    <stored-value>450-2087</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Patologie člověka (450-4091)</displayed-value>
+    <stored-value>450-4091</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Počítačové systémy pro Smart Factory (450-2059)</displayed-value>
+    <stored-value>450-2059</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Počítačové systémy pro Smart Factory (450-4107)</displayed-value>
+    <stored-value>450-4107</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Pokročilé metody zpracování signálů (450-4100)</displayed-value>
+    <stored-value>450-4100</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Pokročilé metody zpracování signálů (450-6019)</displayed-value>
+    <stored-value>450-6019</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Pokročilé techniky programování mikrokontrolérů (450-4098)</displayed-value>
+    <stored-value>450-4098</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Popularizace vědy a techniky 1 (450-2064)</displayed-value>
+    <stored-value>450-2064</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Popularizace vědy a techniky 2 (450-4069)</displayed-value>
+    <stored-value>450-4069</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Praktická výuka - diagnostické přístroje (450-4043)</displayed-value>
+    <stored-value>450-4043</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Praktická výuka - laboratorní přístroje (450-4045)</displayed-value>
+    <stored-value>450-4045</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Praktická výuka - terapeutické přístroje (450-4044)</displayed-value>
+    <stored-value>450-4044</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Programování průmyslových robotů (450-2106)</displayed-value>
+    <stored-value>450-2106</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Programování v operačních systémech reálného času (450-4097)</displayed-value>
+    <stored-value>450-4097</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Programovatelné automaty a vizualizace řídicích systémů (450-2025)</displayed-value>
+    <stored-value>450-2025</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Projektování měření a regulace (450-2026)</displayed-value>
+    <stored-value>450-2026</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Prostředky asistivních technologií (450-2097)</displayed-value>
+    <stored-value>450-2097</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Prostředky automatizace měřicích a testovacích systémů (450-6010)</displayed-value>
+    <stored-value>450-6010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Prostředky číslicové techniky (450-4072)</displayed-value>
+    <stored-value>450-4072</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Prostředky distribuovaných řídicích systémů (450-6008)</displayed-value>
+    <stored-value>450-6008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Prostředky implementace řídicích a monitorovacích systémů (450-2080)</displayed-value>
+    <stored-value>450-2080</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Prostředky návrhu a prototypů vestavěných systémů (450-6009)</displayed-value>
+    <stored-value>450-6009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Prostředky průmyslové automatizace (450-4102)</displayed-value>
+    <stored-value>450-4102</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Průmyslová robotika I (450-2093)</displayed-value>
+    <stored-value>450-2093</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Průmyslová robotika II (450-4096)</displayed-value>
+    <stored-value>450-4096</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Průmyslové mobilní roboty (450-4105)</displayed-value>
+    <stored-value>450-4105</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - První pomoc, etika a psychologie ve zdravotnictví (450-4092)</displayed-value>
+    <stored-value>450-4092</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - První pomoc a medicína katastrof (450-2088)</displayed-value>
+    <stored-value>450-2088</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Radiodiagnostické a radioterapeutické přístroje (450-2090)</displayed-value>
+    <stored-value>450-2090</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Regulační systémy (450-4001)</displayed-value>
+    <stored-value>450-4001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Rehabilitační technika a kompenzační pomůcky (450-2096)</displayed-value>
+    <stored-value>450-2096</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Řídicí systémy pro zajištění funkční bezpečnosti (450-6011)</displayed-value>
+    <stored-value>450-6011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Řídicí systémy s počítači (450-4003)</displayed-value>
+    <stored-value>450-4003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Řízení provozu budov (450-2047)</displayed-value>
+    <stored-value>450-2047</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Řízení provozu inteligentních budov (450-8201)</displayed-value>
+    <stored-value>450-8201</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Senzorické systémy pro vzdálené monitorování biologických signálů (450-6018)</displayed-value>
+    <stored-value>450-6018</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Senzorické systémy v lékařské přístrojové technice (450-6022)</displayed-value>
+    <stored-value>450-6022</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Senzory a měření (450-2003)</displayed-value>
+    <stored-value>450-2003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Senzory pro bezpečnostní systémy (450-4067)</displayed-value>
+    <stored-value>450-4067</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Senzory v automobilovém průmyslu (450-4106)</displayed-value>
+    <stored-value>450-4106</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Signály a soustavy (450-2009)</displayed-value>
+    <stored-value>450-2009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Snímače a senzory v biomedicíně (450-2013)</displayed-value>
+    <stored-value>450-2013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Softwarově definované rádio (450-6020)</displayed-value>
+    <stored-value>450-6020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Souhrnná zkouška k certifikátu Pracovník v sociálních službách (450-2104)</displayed-value>
+    <stored-value>450-2104</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Souvislá řízená praxe - diagnostické přístroje (450-2043)</displayed-value>
+    <stored-value>450-2043</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Souvislá řízená praxe - laboratorní přístroje (450-2045)</displayed-value>
+    <stored-value>450-2045</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Souvislá řízená praxe - terapeutické přístroje (450-2044)</displayed-value>
+    <stored-value>450-2044</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Speciální mikroelektronické senzory (450-6004)</displayed-value>
+    <stored-value>450-6004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Speciální zdravotnická technika (450-2070)</displayed-value>
+    <stored-value>450-2070</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Speciální zdravotnická technika a diagnostika (450-4070)</displayed-value>
+    <stored-value>450-4070</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Speciální zdravotnická technika a technologie v medicíně (450-6021)</displayed-value>
+    <stored-value>450-6021</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Spolehlivost a konstrukce lékařských přístrojů (450-4042)</displayed-value>
+    <stored-value>450-4042</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Systémy a technologie pro eHealth (450-4088)</displayed-value>
+    <stored-value>450-4088</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Systémy distribuované lékařské diagnostiky a terapie (450-6017)</displayed-value>
+    <stored-value>450-6017</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Systémy pro měření a sběr dat (450-4007)</displayed-value>
+    <stored-value>450-4007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Systémy s umělou inteligencí (450-2029)</displayed-value>
+    <stored-value>450-2029</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Technická audiometrie (450-2107)</displayed-value>
+    <stored-value>450-2107</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Technika elektronických přístrojů (450-2076)</displayed-value>
+    <stored-value>450-2076</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Tvorba technické a odborné dokumentace (450-2083)</displayed-value>
+    <stored-value>450-2083</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Úvod do asistivních technologií (450-2095)</displayed-value>
+    <stored-value>450-2095</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Veřejné zdravotnictví a biotelemetrie (450-4089)</displayed-value>
+    <stored-value>450-4089</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Vestavěné řídicí systémy (450-4012)</displayed-value>
+    <stored-value>450-4012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Vestavěné systémy (450-2092)</displayed-value>
+    <stored-value>450-2092</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Virtuální bioinstrumentace (450-2082)</displayed-value>
+    <stored-value>450-2082</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Virtuální instrumentace I (450-2028)</displayed-value>
+    <stored-value>450-2028</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Virtuální instrumentace II (450-2033)</displayed-value>
+    <stored-value>450-2033</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Virtuální instrumentace v biomedicínském inženýrství (450-4085)</displayed-value>
+    <stored-value>450-4085</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Virtuální návrh kyberfyzikálních systémů (450-4104)</displayed-value>
+    <stored-value>450-4104</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Vyšetřovací metody a přístrojová technika v očním lékařství (450-2089)</displayed-value>
+    <stored-value>450-2089</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Vývoj a realizace řídicích algoritmů (450-8705)</displayed-value>
+    <stored-value>450-8705</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Základy 3D modelování a aditivní výroby (450-4082)</displayed-value>
+    <stored-value>450-4082</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Základy algoritmizace a programování (450-2079)</displayed-value>
+    <stored-value>450-2079</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Základy anatomie a ošetřovatelství (450-2099)</displayed-value>
+    <stored-value>450-2099</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Základy komponentních technologií pro řízení (450-2038)</displayed-value>
+    <stored-value>450-2038</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Základy komunikace, psychologie a etiky v medicíně (450-2086)</displayed-value>
+    <stored-value>450-2086</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Základy konstrukčních technologií v elektronice (450-2032)</displayed-value>
+    <stored-value>450-2032</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Základy práce s klientem v sociálních službách (450-2101)</displayed-value>
+    <stored-value>450-2101</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Základy psychologie a psychopatologie (450-2100)</displayed-value>
+    <stored-value>450-2100</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Základy veřejného zdravotnictví a nemocniční informační systémy (450-2075)</displayed-value>
+    <stored-value>450-2075</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Znalostní systémy řízení (450-4017)</displayed-value>
+    <stored-value>450-4017</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Zobrazovací technika v lékařství (450-2069)</displayed-value>
+    <stored-value>450-2069</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Zpracování biosignálů (450-4075)</displayed-value>
+    <stored-value>450-4075</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>450 - Zpracování signálů v eHealth (450-2098)</displayed-value>
+    <stored-value>450-2098</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Administrace databázových systémů (460-2038)</displayed-value>
+    <stored-value>460-2038</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Algoritmizace geometrických úloh (460-4038)</displayed-value>
+    <stored-value>460-4038</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Algoritmy I (460-2001)</displayed-value>
+    <stored-value>460-2001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Algoritmy II (460-2003)</displayed-value>
+    <stored-value>460-2003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Algoritmy pro bioinformatiku (460-6025)</displayed-value>
+    <stored-value>460-6025</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Algoritmy vykonávání dotazů (460-4069)</displayed-value>
+    <stored-value>460-4069</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Analýza a komprese signálů (460-4103)</displayed-value>
+    <stored-value>460-4103</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Analýza dat (460-6016)</displayed-value>
+    <stored-value>460-6016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Analýza obrazu (460-6013)</displayed-value>
+    <stored-value>460-6013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Analýza obrazu I (460-4080)</displayed-value>
+    <stored-value>460-4080</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Analýza obrazu II (460-4107)</displayed-value>
+    <stored-value>460-4107</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Aplikace vybraných principů ve vývoji systémů (460-4156)</displayed-value>
+    <stored-value>460-4156</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Architektury počítačů a paralelních systémů (460-2034)</displayed-value>
+    <stored-value>460-2034</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Bakalářský projekt I (460-2007)</displayed-value>
+    <stored-value>460-2007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Bakalářský projekt II (460-2008)</displayed-value>
+    <stored-value>460-2008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Bezpečnost počítačových sítí datových center a cloudových služeb (460-4124)</displayed-value>
+    <stored-value>460-4124</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Bezpečnost ve zpracování obrazu (460-4123)</displayed-value>
+    <stored-value>460-4123</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Bioinformatika - algoritmy a analýza dat (460-4143)</displayed-value>
+    <stored-value>460-4143</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Bio-inspirované algoritmy (460-6030)</displayed-value>
+    <stored-value>460-6030</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - BIO inspirované výpočty (460-6017)</displayed-value>
+    <stored-value>460-6017</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Biologicky inspirované algoritmy (460-4086)</displayed-value>
+    <stored-value>460-4086</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Biomarkery a výpočetní proteomika (460-6029)</displayed-value>
+    <stored-value>460-6029</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Biomedicína (460-6027)</displayed-value>
+    <stored-value>460-6027</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Blockchain a digitální měny (460-4153)</displayed-value>
+    <stored-value>460-4153</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Business Intelligence (460-4138)</displayed-value>
+    <stored-value>460-4138</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Centrální dogma molekulární biologie (460-6023)</displayed-value>
+    <stored-value>460-6023</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Číslicové počítače (460-6007)</displayed-value>
+    <stored-value>460-6007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Databázové systémy I (460-2056)</displayed-value>
+    <stored-value>460-2056</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Databázové systémy I (460-4125)</displayed-value>
+    <stored-value>460-4125</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Databázové systémy II (460-2059)</displayed-value>
+    <stored-value>460-2059</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Digitální zpracování obrazu (460-4079)</displayed-value>
+    <stored-value>460-4079</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Digitální zpracování obrazu (460-6001)</displayed-value>
+    <stored-value>460-6001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Diplomový projekt I (460-4095)</displayed-value>
+    <stored-value>460-4095</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Diplomový projekt II (460-4096)</displayed-value>
+    <stored-value>460-4096</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Dokumentografické informační systémy (460-6010)</displayed-value>
+    <stored-value>460-6010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Elektronická komerce (460-2074)</displayed-value>
+    <stored-value>460-2074</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Esport, základní principy a metody (460-2073)</displayed-value>
+    <stored-value>460-2073</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Forenzní analýza (460-4135)</displayed-value>
+    <stored-value>460-4135</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Funkcionální programování (460-2054)</displayed-value>
+    <stored-value>460-2054</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Fyzická implementace databázových systémů (460-4097)</displayed-value>
+    <stored-value>460-4097</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Fyzická implementace databázových systémů (460-6012)</displayed-value>
+    <stored-value>460-6012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Geografické informační systémy (460-4109)</displayed-value>
+    <stored-value>460-4109</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Geometrie pro počítačovou grafiku (460-4023)</displayed-value>
+    <stored-value>460-4023</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Hluboké učení (460-4140)</displayed-value>
+    <stored-value>460-4140</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Implementace v operačních systémech (460-4158)</displayed-value>
+    <stored-value>460-4158</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Interaktivní a automatizované dokazování korektnosti programů (460-4145)</displayed-value>
+    <stored-value>460-4145</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Internetové technologie (460-4094)</displayed-value>
+    <stored-value>460-4094</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - JavaScript (460-2076)</displayed-value>
+    <stored-value>460-2076</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Java technologie (460-2027)</displayed-value>
+    <stored-value>460-2027</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Komprese dat (460-6011)</displayed-value>
+    <stored-value>460-6011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Kryptografie a počítačová bezpečnost (460-4046)</displayed-value>
+    <stored-value>460-4046</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Logické programování (460-4093)</displayed-value>
+    <stored-value>460-4093</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Matematická logika (460-4088)</displayed-value>
+    <stored-value>460-4088</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Matematika pro zpracování znalostí (460-4066)</displayed-value>
+    <stored-value>460-4066</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Metodiky vyhodnocování experimentálních biomedicínských dat (460-6024)</displayed-value>
+    <stored-value>460-6024</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Metody analýzy sítí I (460-4141)</displayed-value>
+    <stored-value>460-4141</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Metody analýzy sítí II (460-4142)</displayed-value>
+    <stored-value>460-4142</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Metody analýzy textových dat (460-4074)</displayed-value>
+    <stored-value>460-4074</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Metody specifikace softwarových systémů (460-6009)</displayed-value>
+    <stored-value>460-6009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Mobilní systémy (460-4111)</displayed-value>
+    <stored-value>460-4111</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Modelování a simulace komplexních systémů (460-6020)</displayed-value>
+    <stored-value>460-6020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Modelování a verifikace (460-4016)</displayed-value>
+    <stored-value>460-4016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Modelování v grafických aplikacích (460-2026)</displayed-value>
+    <stored-value>460-2026</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Multiagentní systémy (460-4114)</displayed-value>
+    <stored-value>460-4114</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Nekonvenční algoritmy a výpočty (460-4087)</displayed-value>
+    <stored-value>460-4087</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Netechnické aspekty IT praxe (460-2053)</displayed-value>
+    <stored-value>460-2053</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Neuronové sítě (460-6006)</displayed-value>
+    <stored-value>460-6006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Objektově orientované programování (460-2055)</displayed-value>
+    <stored-value>460-2055</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Operační systémy (460-2016)</displayed-value>
+    <stored-value>460-2016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Operační výzkum I (460-4121)</displayed-value>
+    <stored-value>460-4121</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Operační výzkum II (460-4108)</displayed-value>
+    <stored-value>460-4108</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Paralelní a distribuované systémy (460-2028)</displayed-value>
+    <stored-value>460-2028</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Paralelní algoritmy (460-6008)</displayed-value>
+    <stored-value>460-6008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Paralelní algoritmy I (460-4117)</displayed-value>
+    <stored-value>460-4117</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Paralelní algoritmy II (460-4118)</displayed-value>
+    <stored-value>460-4118</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Petriho sítě (460-4146)</displayed-value>
+    <stored-value>460-4146</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Petriho sítě (460-6005)</displayed-value>
+    <stored-value>460-6005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Počítačová bezpečnost (460-2040)</displayed-value>
+    <stored-value>460-2040</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Počítačová bezpečnost (460-6021)</displayed-value>
+    <stored-value>460-6021</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Počítačová grafika I (460-4078)</displayed-value>
+    <stored-value>460-4078</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Počítačová grafika II (460-4033)</displayed-value>
+    <stored-value>460-4033</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Počítačová obrana a útok (460-4122)</displayed-value>
+    <stored-value>460-4122</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Počítačové sítě (460-2006)</displayed-value>
+    <stored-value>460-2006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Počítačové systémy (460-4082)</displayed-value>
+    <stored-value>460-4082</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Počítačové viry a bezpečnost počítačových systémů (460-4054)</displayed-value>
+    <stored-value>460-4054</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Pokročilá analýza dat (460-6031)</displayed-value>
+    <stored-value>460-6031</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Pokročilé databázové systémy (460-4137)</displayed-value>
+    <stored-value>460-4137</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Pokročilé počítačové sítě (460-2071)</displayed-value>
+    <stored-value>460-2071</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Praktické funkcionální programování (460-4144)</displayed-value>
+    <stored-value>460-4144</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Programovací jazyky a překladače (460-2018)</displayed-value>
+    <stored-value>460-2018</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Programování v C# I (460-2057)</displayed-value>
+    <stored-value>460-2057</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Programování v C# II (460-2061)</displayed-value>
+    <stored-value>460-2061</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Programování v C++ I (460-2068)</displayed-value>
+    <stored-value>460-2068</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Programování v C++ II (460-2072)</displayed-value>
+    <stored-value>460-2072</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Programování v Java I (460-2058)</displayed-value>
+    <stored-value>460-2058</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Programování v Java II (460-2062)</displayed-value>
+    <stored-value>460-2062</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Programování v Rustu (460-4157)</displayed-value>
+    <stored-value>460-4157</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Sazba technických dokumentů (460-2066)</displayed-value>
+    <stored-value>460-2066</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Semestrální projekt (460-2063)</displayed-value>
+    <stored-value>460-2063</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Semestrální projekt (460-4148)</displayed-value>
+    <stored-value>460-4148</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Seminář z programování (460-2022)</displayed-value>
+    <stored-value>460-2022</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Skriptovací jazyky (460-2060)</displayed-value>
+    <stored-value>460-2060</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Směrované a přepínané sítě (460-4081)</displayed-value>
+    <stored-value>460-4081</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Sociální sítě (460-6018)</displayed-value>
+    <stored-value>460-6018</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Správa operačních systémů (460-2039)</displayed-value>
+    <stored-value>460-2039</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Správa softwarových projektů (460-2075)</displayed-value>
+    <stored-value>460-2075</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Správa unixových systémů (460-4113)</displayed-value>
+    <stored-value>460-4113</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Správa Windows systémů (460-2023)</displayed-value>
+    <stored-value>460-2023</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Strojově orientované jazyky (460-4083)</displayed-value>
+    <stored-value>460-4083</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Strojové učení (460-4139)</displayed-value>
+    <stored-value>460-4139</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Strojové učení (460-6026)</displayed-value>
+    <stored-value>460-6026</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Technologie databázových systémů I (460-2044)</displayed-value>
+    <stored-value>460-2044</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Technologie databázových systémů II (460-2045)</displayed-value>
+    <stored-value>460-2045</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Technologie počítačových sítí (460-4085)</displayed-value>
+    <stored-value>460-4085</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Teoretická informatika (460-4065)</displayed-value>
+    <stored-value>460-4065</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Teorie algoritmů (460-6004)</displayed-value>
+    <stored-value>460-6004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Teorie formálních systémů (460-6002)</displayed-value>
+    <stored-value>460-6002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Teorie her (460-4116)</displayed-value>
+    <stored-value>460-4116</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Teorie jazyků a automatů (460-6003)</displayed-value>
+    <stored-value>460-6003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Transparentní Intensionální Logika (460-6014)</displayed-value>
+    <stored-value>460-6014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Tvorba aplikací mobilních zařízení II (460-4136)</displayed-value>
+    <stored-value>460-4136</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Tvorba aplikací pro mobilní zařízení I (460-2019)</displayed-value>
+    <stored-value>460-2019</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Tvorba aplikací pro mobilní zařízení II (460-2025)</displayed-value>
+    <stored-value>460-2025</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Umělá inteligence ve hrách (460-4152)</displayed-value>
+    <stored-value>460-4152</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Úvod do analýzy sociálních sítí (460-2067)</displayed-value>
+    <stored-value>460-2067</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Úvod do logického myšlení (460-2051)</displayed-value>
+    <stored-value>460-2051</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Úvod do programování (460-2052)</displayed-value>
+    <stored-value>460-2052</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Úvod do programování (460-8702)</displayed-value>
+    <stored-value>460-8702</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Úvod do softwarového inženýrství (460-2009)</displayed-value>
+    <stored-value>460-2009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Úvod do teoretické informatiky (460-2005)</displayed-value>
+    <stored-value>460-2005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Uživatelská rozhraní (460-2017)</displayed-value>
+    <stored-value>460-2017</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Uživatelská rozhraní v automobilech (460-2048)</displayed-value>
+    <stored-value>460-2048</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Vizualizace dat (460-4120)</displayed-value>
+    <stored-value>460-4120</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Vybraná témata v biomedicíně (460-6032)</displayed-value>
+    <stored-value>460-6032</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Vybrané mechanismy SW vývoje (460-4155)</displayed-value>
+    <stored-value>460-4155</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Vybrané partie teoretické informatiky (460-4115)</displayed-value>
+    <stored-value>460-4115</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Vybrané partie ze softwarového inženýrství (460-2069)</displayed-value>
+    <stored-value>460-2069</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Vykonávání a optimalizace dotazů v databázových systémech (460-6015)</displayed-value>
+    <stored-value>460-6015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Výpočetní genomika (460-6028)</displayed-value>
+    <stored-value>460-6028</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Vývoj aplikací v JavaScriptu (460-2077)</displayed-value>
+    <stored-value>460-2077</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Vývoj informačních systémů (460-2037)</displayed-value>
+    <stored-value>460-2037</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Vývoj internetových aplikací (460-2024)</displayed-value>
+    <stored-value>460-2024</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Webové inženýrství (460-6022)</displayed-value>
+    <stored-value>460-6022</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Základní principy SW inženýrství (460-4154)</displayed-value>
+    <stored-value>460-4154</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Základy analýzy obrazu (460-2070)</displayed-value>
+    <stored-value>460-2070</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Základy kryptografie (460-2065)</displayed-value>
+    <stored-value>460-2065</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Základy počítačové grafiky (460-2021)</displayed-value>
+    <stored-value>460-2021</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Základy strojového učení (460-2064)</displayed-value>
+    <stored-value>460-2064</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Základy strojového učení (460-8703)</displayed-value>
+    <stored-value>460-8703</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Základy umělé inteligence (460-2078)</displayed-value>
+    <stored-value>460-2078</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Zpracování multimediálních dat (460-4058)</displayed-value>
+    <stored-value>460-4058</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>460 - Zpracování přirozeného jazyka (460-4092)</displayed-value>
+    <stored-value>460-4092</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Algebra (470-2204)</displayed-value>
+    <stored-value>470-2204</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Algebra v teorii kódování (470-4202)</displayed-value>
+    <stored-value>470-4202</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Aplikovaná funkcionální analýza (470-6101)</displayed-value>
+    <stored-value>470-6101</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Aplikovaná lineární algebra (470-6501)</displayed-value>
+    <stored-value>470-6501</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Bakalářský projekt I (470-2601)</displayed-value>
+    <stored-value>470-2601</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Bakalářský projekt II (470-2602)</displayed-value>
+    <stored-value>470-2602</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Diplomový projekt I (470-4603)</displayed-value>
+    <stored-value>470-4603</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Diplomový projekt pro APM (470-4604)</displayed-value>
+    <stored-value>470-4604</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Diplomový projekt pro HPC (470-4610)</displayed-value>
+    <stored-value>470-4610</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Diskrétní matematika (470-2301)</displayed-value>
+    <stored-value>470-2301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Dynamické systémy (470-4120)</displayed-value>
+    <stored-value>470-4120</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Dynamické systémy a chaos (470-6104)</displayed-value>
+    <stored-value>470-6104</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Elementy vyšší matematiky (470-4123)</displayed-value>
+    <stored-value>470-4123</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Elementy vyšší matematiky II (470-4124)</displayed-value>
+    <stored-value>470-4124</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Funkce komplexní proměnné (470-4110)</displayed-value>
+    <stored-value>470-4110</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Funkce komplexní proměnné (470-8727)</displayed-value>
+    <stored-value>470-8727</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Funkce komplexní proměnné a integrální transformace (470-4109)</displayed-value>
+    <stored-value>470-4109</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Integrální a diskrétní transformace (470-4118)</displayed-value>
+    <stored-value>470-4118</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Iterační metody (470-4504)</displayed-value>
+    <stored-value>470-4504</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Iterační metody (470-6506)</displayed-value>
+    <stored-value>470-6506</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Klasické a kvantové metody molekulových simulací (470-6405)</displayed-value>
+    <stored-value>470-6405</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Kvantová chemie (470-8748)</displayed-value>
+    <stored-value>470-8748</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Lineární algebra (470-2201)</displayed-value>
+    <stored-value>470-2201</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Lineární algebra (470-2205)</displayed-value>
+    <stored-value>470-2205</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematická analýza 1 (470-2110)</displayed-value>
+    <stored-value>470-2110</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematická analýza 2 (470-2111)</displayed-value>
+    <stored-value>470-2111</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematická analýza 3 (470-2115)</displayed-value>
+    <stored-value>470-2115</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematická analýza I (470-8721)</displayed-value>
+    <stored-value>470-8721</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematická analýza II (470-8722)</displayed-value>
+    <stored-value>470-8722</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematická analýza II (470-8723)</displayed-value>
+    <stored-value>470-8723</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematická analýza s Maplem (470-2109)</displayed-value>
+    <stored-value>470-2109</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematická teorie spolehlivosti a analýza rizika (470-6401)</displayed-value>
+    <stored-value>470-6401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematické modelování a MKP (470-6502)</displayed-value>
+    <stored-value>470-6502</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematické modelování a MKP (470-8743)</displayed-value>
+    <stored-value>470-8743</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematický seminář I (470-4606)</displayed-value>
+    <stored-value>470-4606</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematický seminář II (470-4607)</displayed-value>
+    <stored-value>470-4607</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Matematický seminář III (470-4608)</displayed-value>
+    <stored-value>470-4608</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Metody diskrétní matematiky (470-6301)</displayed-value>
+    <stored-value>470-6301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Metody optimalizace (470-4503)</displayed-value>
+    <stored-value>470-4503</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Metody optimalizace (470-6503)</displayed-value>
+    <stored-value>470-6503</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Metody optimalizace (470-8742)</displayed-value>
+    <stored-value>470-8742</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Modelování elektromagnetických polí (470-8741)</displayed-value>
+    <stored-value>470-8741</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Modelování elektromagnetických polí (470-8745)</displayed-value>
+    <stored-value>470-8745</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Modely s neurčitostí (470-2406)</displayed-value>
+    <stored-value>470-2406</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Nelineární funkcionální analýza (470-4115)</displayed-value>
+    <stored-value>470-4115</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Numerická lineární algebra 1 (470-2210)</displayed-value>
+    <stored-value>470-2210</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Numerická lineární algebra 2 (470-2211)</displayed-value>
+    <stored-value>470-2211</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Numerické metody (470-2501)</displayed-value>
+    <stored-value>470-2501</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Numerické metody (470-6504)</displayed-value>
+    <stored-value>470-6504</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Numerické metody II (470-4502)</displayed-value>
+    <stored-value>470-4502</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Numerické metody s Matlabem (470-2502)</displayed-value>
+    <stored-value>470-2502</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Obyčejné diferenciální rovnice (470-2108)</displayed-value>
+    <stored-value>470-2108</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Počítačové modelování (470-8725)</displayed-value>
+    <stored-value>470-8725</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Pokročilá statistika pro bioinformatiku (470-6406)</displayed-value>
+    <stored-value>470-6406</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Pravděpodobnost (470-2405)</displayed-value>
+    <stored-value>470-2405</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Pravděpodobnost a statistika (470-4405)</displayed-value>
+    <stored-value>470-4405</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Rovnice matematické fyziky (470-4112)</displayed-value>
+    <stored-value>470-4112</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Speciální metody analýzy dat (470-8542)</displayed-value>
+    <stored-value>470-8542</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Spolehlivost elektronických zařízení (470-6402)</displayed-value>
+    <stored-value>470-6402</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Statistické metody v inženýrské praxi (470-6403)</displayed-value>
+    <stored-value>470-6403</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Statistika (470-8726)</displayed-value>
+    <stored-value>470-8726</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Statistika I (470-2401)</displayed-value>
+    <stored-value>470-2401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Statistika II (470-4402)</displayed-value>
+    <stored-value>470-4402</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Statistika III (470-4403)</displayed-value>
+    <stored-value>470-4403</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Teorie čísel (470-2302)</displayed-value>
+    <stored-value>470-2302</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Teorie grafů (470-4302)</displayed-value>
+    <stored-value>470-4302</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Teorie grafů I (470-6302)</displayed-value>
+    <stored-value>470-6302</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Teorie kódování (470-4203)</displayed-value>
+    <stored-value>470-4203</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Teorie kódování (470-6303)</displayed-value>
+    <stored-value>470-6303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Úvod do funkcionální analýzy (470-4111)</displayed-value>
+    <stored-value>470-4111</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Úvod do molekulových simulací (470-8749)</displayed-value>
+    <stored-value>470-8749</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Variační metody (470-4114)</displayed-value>
+    <stored-value>470-4114</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Variační metody II (470-4125)</displayed-value>
+    <stored-value>470-4125</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Variační metody pro inženýry (470-6102)</displayed-value>
+    <stored-value>470-6102</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Vědecké výpočty v Pythonu (470-2701)</displayed-value>
+    <stored-value>470-2701</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Vybrané statě z integrálních a diskrét. transformací (470-6103)</displayed-value>
+    <stored-value>470-6103</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Výpočetní elektrotechnika (470-6505)</displayed-value>
+    <stored-value>470-6505</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Výpočetní seminář (470-4609)</displayed-value>
+    <stored-value>470-4609</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Základy kvantové chemie a její aplikace (470-6404)</displayed-value>
+    <stored-value>470-6404</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Základy matematiky (470-2101)</displayed-value>
+    <stored-value>470-2101</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>470 - Základy statistiky (470-2404)</displayed-value>
+    <stored-value>470-2404</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Akustika (480-2034)</displayed-value>
+    <stored-value>480-2034</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Aplikace fotonických struktur (480-6005)</displayed-value>
+    <stored-value>480-6005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Aplikace interferometrie a vláknové optiky (480-4034)</displayed-value>
+    <stored-value>480-4034</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Aplikace rezonance povrchových plazmonů (480-6007)</displayed-value>
+    <stored-value>480-6007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Aplikovaná jaderná fyzika (480-4015)</displayed-value>
+    <stored-value>480-4015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Bakalářská firemní praxe (480-2065)</displayed-value>
+    <stored-value>480-2065</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Bakalářská fyzika (480-8510)</displayed-value>
+    <stored-value>480-8510</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Biofyzika (480-2480)</displayed-value>
+    <stored-value>480-2480</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Detektory ionizujícího záření (480-2050)</displayed-value>
+    <stored-value>480-2050</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Dozimetrie ionizujícího záření (480-4052)</displayed-value>
+    <stored-value>480-4052</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Elektronová struktura nanosystémů (480-8681)</displayed-value>
+    <stored-value>480-8681</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fotonické krystaly (480-8682)</displayed-value>
+    <stored-value>480-8682</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fundamentální principy fyziky I (480-4001)</displayed-value>
+    <stored-value>480-4001</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fundamentální principy fyziky II (480-4002)</displayed-value>
+    <stored-value>480-4002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika (480-8040)</displayed-value>
+    <stored-value>480-8040</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika (480-8210)</displayed-value>
+    <stored-value>480-8210</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika (480-8611)</displayed-value>
+    <stored-value>480-8611</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika (480-8612)</displayed-value>
+    <stored-value>480-8612</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika I (480-0010)</displayed-value>
+    <stored-value>480-0010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika I (480-2410)</displayed-value>
+    <stored-value>480-2410</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika I (480-8011)</displayed-value>
+    <stored-value>480-8011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika I (480-8310)</displayed-value>
+    <stored-value>480-8310</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika I (480-8610)</displayed-value>
+    <stored-value>480-8610</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika II (480-0020)</displayed-value>
+    <stored-value>480-0020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika II (480-2420)</displayed-value>
+    <stored-value>480-2420</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika II (480-8020)</displayed-value>
+    <stored-value>480-8020</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika II (480-8320)</displayed-value>
+    <stored-value>480-8320</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika II (480-8620)</displayed-value>
+    <stored-value>480-8620</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika II – elektřina, magnetismus, elektromagnetické pole (480-2025)</displayed-value>
+    <stored-value>480-2025</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika II – elektřina, magnetismus, elektromagnetické pole (480-2032)</displayed-value>
+    <stored-value>480-2032</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika II – elektřina, magnetismus, elektromagnetické pole (480-8120)</displayed-value>
+    <stored-value>480-8120</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika III - optika (480-2043)</displayed-value>
+    <stored-value>480-2043</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika III - optika (480-8130)</displayed-value>
+    <stored-value>480-8130</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika I – mechanika, molekulová fyzika (480-2014)</displayed-value>
+    <stored-value>480-2014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika I – mechanika, molekulová fyzika (480-8110)</displayed-value>
+    <stored-value>480-8110</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika IV – atomová a jaderná fyzika (480-2044)</displayed-value>
+    <stored-value>480-2044</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika IV – atomová a jaderná fyzika (480-8140)</displayed-value>
+    <stored-value>480-8140</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzikální měření (480-0050)</displayed-value>
+    <stored-value>480-0050</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzikální principy v ICT (480-2470)</displayed-value>
+    <stored-value>480-2470</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzikální principy v logistice (480-8340)</displayed-value>
+    <stored-value>480-8340</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzikální vlastnosti heterogenních materiálů (480-6009)</displayed-value>
+    <stored-value>480-6009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzikální vlastnosti hornin (480-4013)</displayed-value>
+    <stored-value>480-4013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika pevných látek (480-2061)</displayed-value>
+    <stored-value>480-2061</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika pevných látek (480-8672)</displayed-value>
+    <stored-value>480-8672</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika polovodičů (480-4045)</displayed-value>
+    <stored-value>480-4045</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika tekutin (480-2041)</displayed-value>
+    <stored-value>480-2041</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika tekutin (480-8801)</displayed-value>
+    <stored-value>480-8801</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Fyzika tenkých vrstev, rozhraní a povrchů (480-6017)</displayed-value>
+    <stored-value>480-6017</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Interakční procesy kapalinového paprsku (480-6008)</displayed-value>
+    <stored-value>480-6008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Inženýrská fyzika (480-8030)</displayed-value>
+    <stored-value>480-8030</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Inženýrská fyzika (480-8031)</displayed-value>
+    <stored-value>480-8031</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Kvantová fyzika (480-8683)</displayed-value>
+    <stored-value>480-8683</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Kvantová fyzika I (480-2052)</displayed-value>
+    <stored-value>480-2052</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Kvantová fyzika II (480-4051)</displayed-value>
+    <stored-value>480-4051</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Laboratorní cvičení z Fyziky I (480-2031)</displayed-value>
+    <stored-value>480-2031</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Laboratorní cvičení z Fyziky II (480-2042)</displayed-value>
+    <stored-value>480-2042</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Laboratorní cvičení z Fyziky III (480-2053)</displayed-value>
+    <stored-value>480-2053</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Laboratorní cvičení z Fyziky IV (480-2054)</displayed-value>
+    <stored-value>480-2054</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Magisterská firemní praxe (480-4047)</displayed-value>
+    <stored-value>480-4047</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Magnetická měření materiálů (480-6018)</displayed-value>
+    <stored-value>480-6018</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Magnetické diagnostické metody (480-2055)</displayed-value>
+    <stored-value>480-2055</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Magnetické materiály (480-4016)</displayed-value>
+    <stored-value>480-4016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Magnetismus pevných látek (480-6015)</displayed-value>
+    <stored-value>480-6015</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Magnetooptická elipsometrie (480-6019)</displayed-value>
+    <stored-value>480-6019</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Mechanika kontinua (480-6011)</displayed-value>
+    <stored-value>480-6011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Metody analýzy materiálů (480-4027)</displayed-value>
+    <stored-value>480-4027</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Metody vyhodnocování měření fyzikálních veličin (480-8802)</displayed-value>
+    <stored-value>480-8802</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Neutronová fyzika (480-4035)</displayed-value>
+    <stored-value>480-4035</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Optická a magnetická defektoskopie (480-4037)</displayed-value>
+    <stored-value>480-4037</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Optické diagnostické metody (480-6013)</displayed-value>
+    <stored-value>480-6013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Optické senzory (480-4022)</displayed-value>
+    <stored-value>480-4022</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Optoelektronika a integrovaná optika (480-4023)</displayed-value>
+    <stored-value>480-4023</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Počítačové praktikum a uživatelský software (480-2013)</displayed-value>
+    <stored-value>480-2013</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Počítačové zpracování experimentálních dat (480-2024)</displayed-value>
+    <stored-value>480-2024</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Počítačové zpracování experimentálních dat (480-2030)</displayed-value>
+    <stored-value>480-2030</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Povrchové úpravy materiálů a jejich diagnostika (480-4036)</displayed-value>
+    <stored-value>480-4036</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Progresivní technologie porušování materiálů (480-2033)</displayed-value>
+    <stored-value>480-2033</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Předdiplomní firemní praxe (480-4046)</displayed-value>
+    <stored-value>480-4046</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Rentgenové diagnostické metody (480-2045)</displayed-value>
+    <stored-value>480-2045</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Sazba textů v systému LaTeX (480-2000)</displayed-value>
+    <stored-value>480-2000</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Seminář k bakalářské práci (480-2064)</displayed-value>
+    <stored-value>480-2064</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Seminář k diplomové práci (480-4048)</displayed-value>
+    <stored-value>480-4048</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Senzory na bázi magnetických jevů (480-4026)</displayed-value>
+    <stored-value>480-4026</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Simulace a modelování multifyzikálních problémů (480-4011)</displayed-value>
+    <stored-value>480-4011</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Simulace kompenzací pro flexibilní nástroje (480-4028)</displayed-value>
+    <stored-value>480-4028</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Simulace transportu ionizujícího záření (480-6004)</displayed-value>
+    <stored-value>480-6004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Spektrometrie gama záření (480-4053)</displayed-value>
+    <stored-value>480-4053</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Spektrometrie gama záření (480-6002)</displayed-value>
+    <stored-value>480-6002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - SPR senzory (480-4033)</displayed-value>
+    <stored-value>480-4033</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Statistická fyzika (480-8674)</displayed-value>
+    <stored-value>480-8674</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Statistická fyzika pevných látek (480-8806)</displayed-value>
+    <stored-value>480-8806</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Stavebně fyzikální měření (480-8250)</displayed-value>
+    <stored-value>480-8250</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Struktura atomových jader (480-6003)</displayed-value>
+    <stored-value>480-6003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Struktura a vlastnosti kovových a nekovových materiálů (480-2040)</displayed-value>
+    <stored-value>480-2040</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Teorie atomových jader (480-4044)</displayed-value>
+    <stored-value>480-4044</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Teorie elektromagnetického pole (480-4010)</displayed-value>
+    <stored-value>480-4010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Teorie elektromagnetického pole (480-6006)</displayed-value>
+    <stored-value>480-6006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Teorie pevných látek (480-6016)</displayed-value>
+    <stored-value>480-6016</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Termodynamika a statistická  fyzika (480-4019)</displayed-value>
+    <stored-value>480-4019</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Toky kapalin vysokých energií (480-6010)</displayed-value>
+    <stored-value>480-6010</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Ultrazvuková a rentgenová defektoskopie (480-4039)</displayed-value>
+    <stored-value>480-4039</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Ultrazvukové diagnostické metody (480-2046)</displayed-value>
+    <stored-value>480-2046</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Úvod  do  laboratorních  cvičení  z  fyziky (480-2012)</displayed-value>
+    <stored-value>480-2012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Úvod do obchodního a průmyslového práva (480-4043)</displayed-value>
+    <stored-value>480-4043</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Úvod do teorie pevných látek (480-4042)</displayed-value>
+    <stored-value>480-4042</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Úvod do termodynamiky (480-8673)</displayed-value>
+    <stored-value>480-8673</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Úvodní firemní praxe (480-2026)</displayed-value>
+    <stored-value>480-2026</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Vakuová a kryogenní technika (480-4032)</displayed-value>
+    <stored-value>480-4032</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Vláknová optika a interferometrie (480-6012)</displayed-value>
+    <stored-value>480-6012</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Vlnová optika (480-6014)</displayed-value>
+    <stored-value>480-6014</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Vybrané kapitoly z fyziky (480-8530)</displayed-value>
+    <stored-value>480-8530</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Vybrané kapitoly z optické diagnostiky (480-4050)</displayed-value>
+    <stored-value>480-4050</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Základy fyziky (480-2400)</displayed-value>
+    <stored-value>480-2400</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>480 - Základy optické diagnostiky (480-2051)</displayed-value>
+    <stored-value>480-2051</stored-value>
+  </pair>
+</value-pairs>

@@ -1,0 +1,2010 @@
+<value-pairs value-pairs-name="vp_subject-version_FBI" dc-term="programme">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value></stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Bakalářská práce (030-0598/01)</displayed-value>
+    <stored-value>030-0598/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Bakalářská práce (030-0630/01)</displayed-value>
+    <stored-value>030-0630/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Bakalářská práce (030-0704/01)</displayed-value>
+    <stored-value>030-0704/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Bezpečnost práce ve výškách a nad volnou hloubkou (030-0593/02)</displayed-value>
+    <stored-value>030-0593/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Bezpečnost práce ve výškách a nad volnou hloubkou (030-0593/03)</displayed-value>
+    <stored-value>030-0593/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - BIM (030-0612/01)</displayed-value>
+    <stored-value>030-0612/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - CBRN bezpečnost (030-0924/01)</displayed-value>
+    <stored-value>030-0924/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - CBRN bezpečnost (030-0924/02)</displayed-value>
+    <stored-value>030-0924/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - CBRN bezpečnost (030-0924/03)</displayed-value>
+    <stored-value>030-0924/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - CBRN bezpečnost (030-0924/04)</displayed-value>
+    <stored-value>030-0924/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Detekce a identifikace škodlivin (030-0108/01)</displayed-value>
+    <stored-value>030-0108/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Dimenzování stavebních konstrukcí (030-0107/01)</displayed-value>
+    <stored-value>030-0107/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Dokumentace v AutoCADu (030-0558/03)</displayed-value>
+    <stored-value>030-0558/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Dokumentace v AutoCADu (030-0558/04)</displayed-value>
+    <stored-value>030-0558/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Dynamika požáru (030-0102/01)</displayed-value>
+    <stored-value>030-0102/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Dynamika požáru (030-0102/02)</displayed-value>
+    <stored-value>030-0102/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Dynamika požáru (030-0929/01)</displayed-value>
+    <stored-value>030-0929/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Dynamika požáru (030-0929/02)</displayed-value>
+    <stored-value>030-0929/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Dynamika požáru (030-0938/01)</displayed-value>
+    <stored-value>030-0938/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Dynamika požáru (030-0938/02)</displayed-value>
+    <stored-value>030-0938/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Exkurze (030-0874/02)</displayed-value>
+    <stored-value>030-0874/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Exkurze I (030-0889/01)</displayed-value>
+    <stored-value>030-0889/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Exkurze II (030-0892/01)</displayed-value>
+    <stored-value>030-0892/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Exkurze - úvodní (030-0894/01)</displayed-value>
+    <stored-value>030-0894/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Fyziologie (030-0581/03)</displayed-value>
+    <stored-value>030-0581/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Fyziologie (030-0581/04)</displayed-value>
+    <stored-value>030-0581/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Havarijní stavy a řízení vodního hospodářství (030-0068/05)</displayed-value>
+    <stored-value>030-0068/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Havarijní stavy a řízení vodního hospodářství (030-0068/06)</displayed-value>
+    <stored-value>030-0068/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Hygiena práce a ergonomie (030-0353/01)</displayed-value>
+    <stored-value>030-0353/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Inženýrské metody v PO (030-0104/01)</displayed-value>
+    <stored-value>030-0104/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Inženýrské metody v PO (030-0104/02)</displayed-value>
+    <stored-value>030-0104/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Komunikační systémy v PO (030-0542/02)</displayed-value>
+    <stored-value>030-0542/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Komunikační systémy v PO (030-0618/01)</displayed-value>
+    <stored-value>030-0618/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Management v PO (030-0701/01)</displayed-value>
+    <stored-value>030-0701/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Měření a monitoring prostředí (030-0933/01)</displayed-value>
+    <stored-value>030-0933/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Měření a monitoring prostředí (030-0933/02)</displayed-value>
+    <stored-value>030-0933/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Měření a monitoring prostředí (030-0933/03)</displayed-value>
+    <stored-value>030-0933/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Měření a monitoring prostředí (030-0933/04)</displayed-value>
+    <stored-value>030-0933/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Modelování havárií – procesy v atmosféře a reaktivních tocích (030-0118/01)</displayed-value>
+    <stored-value>030-0118/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nástupní odborný výcvik (030-0506/04)</displayed-value>
+    <stored-value>030-0506/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nauka o materiálu (030-0567/03)</displayed-value>
+    <stored-value>030-0567/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nauka o materiálu (030-0567/04)</displayed-value>
+    <stored-value>030-0567/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nauka o materiálu (030-0606/01)</displayed-value>
+    <stored-value>030-0606/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nauka o stavbách (030-0120/01)</displayed-value>
+    <stored-value>030-0120/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nepovinná praxe - Nástupní výcvik (030-0885/01)</displayed-value>
+    <stored-value>030-0885/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nepovinná praxe u HZS (1) (030-0859/01)</displayed-value>
+    <stored-value>030-0859/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nepovinná praxe u HZS (1) (030-0881/01)</displayed-value>
+    <stored-value>030-0881/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nepovinná praxe u HZS (1) (030-0887/01)</displayed-value>
+    <stored-value>030-0887/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nepovinná praxe u HZS (2) (030-0860/01)</displayed-value>
+    <stored-value>030-0860/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nepovinná praxe u HZS (2) (030-0888/01)</displayed-value>
+    <stored-value>030-0888/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nepovinná praxe u HZS (3) (030-0891/01)</displayed-value>
+    <stored-value>030-0891/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nepovinná praxe u HZS - pro oblast IZS a prevence (030-0880/01)</displayed-value>
+    <stored-value>030-0880/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nepovinná praxe u HZS - pro oblast IZS a prevence (030-0886/01)</displayed-value>
+    <stored-value>030-0886/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nepovinná praxe - Vstupní technický výcvik (030-0867/03)</displayed-value>
+    <stored-value>030-0867/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Nouzové přežití (030-0119/01)</displayed-value>
+    <stored-value>030-0119/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Odborná praxe k bakalářské práci (030-0884/01)</displayed-value>
+    <stored-value>030-0884/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Odborná praxe k bakalářské práci (030-0893/01)</displayed-value>
+    <stored-value>030-0893/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Odolnost stavebních konstrukcí (030-0115/01)</displayed-value>
+    <stored-value>030-0115/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Odolnost stavebních konstrukcí (030-0115/02)</displayed-value>
+    <stored-value>030-0115/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Ochrana vodohospodářské infrastruktury (030-0926/01)</displayed-value>
+    <stored-value>030-0926/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Ochrana vodohospodářské infrastruktury (030-0926/02)</displayed-value>
+    <stored-value>030-0926/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Ochrana vodohospodářské infrastruktury (030-0926/03)</displayed-value>
+    <stored-value>030-0926/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Organizace a řízení v PO (030-0587/01)</displayed-value>
+    <stored-value>030-0587/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Organizace a řízení v PO (030-0615/01)</displayed-value>
+    <stored-value>030-0615/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - PBŘ s využitím inženýrských metod (030-0110/01)</displayed-value>
+    <stored-value>030-0110/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požárně bezpečnostní zařízení (030-0594/01)</displayed-value>
+    <stored-value>030-0594/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požárně bezpečnostní zařízení (030-0622/01)</displayed-value>
+    <stored-value>030-0622/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požárně-bezpečnostní zařízení (030-0925/01)</displayed-value>
+    <stored-value>030-0925/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požárně-bezpečnostní zařízení (030-0925/02)</displayed-value>
+    <stored-value>030-0925/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požárně-bezpečnostní zařízení (030-0925/03)</displayed-value>
+    <stored-value>030-0925/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požárně-bezpečnostní zařízení (030-0925/04)</displayed-value>
+    <stored-value>030-0925/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požárně-technické vlastnosti materiálů (030-0932/01)</displayed-value>
+    <stored-value>030-0932/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požárně-technické vlastnosti materiálů (030-0932/02)</displayed-value>
+    <stored-value>030-0932/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požárně-technické vlastnosti materiálů (030-0939/01)</displayed-value>
+    <stored-value>030-0939/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požárně-technické vlastnosti materiálů (030-0939/02)</displayed-value>
+    <stored-value>030-0939/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost (030-0927/01)</displayed-value>
+    <stored-value>030-0927/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost (030-0927/02)</displayed-value>
+    <stored-value>030-0927/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost (030-0927/03)</displayed-value>
+    <stored-value>030-0927/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost (030-0927/04)</displayed-value>
+    <stored-value>030-0927/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost dopravních prostředků (030-0123/01)</displayed-value>
+    <stored-value>030-0123/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb (030-0599/01)</displayed-value>
+    <stored-value>030-0599/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb (030-0599/02)</displayed-value>
+    <stored-value>030-0599/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb (030-0601/01)</displayed-value>
+    <stored-value>030-0601/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb (030-0700/01)</displayed-value>
+    <stored-value>030-0700/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb a technologií (030-0928/01)</displayed-value>
+    <stored-value>030-0928/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb a technologií (030-0928/02)</displayed-value>
+    <stored-value>030-0928/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb a technologií (030-0928/03)</displayed-value>
+    <stored-value>030-0928/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb a technologií (030-0928/04)</displayed-value>
+    <stored-value>030-0928/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb I. (030-0592/01)</displayed-value>
+    <stored-value>030-0592/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb I (030-0617/01)</displayed-value>
+    <stored-value>030-0617/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb II (030-0597/03)</displayed-value>
+    <stored-value>030-0597/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb II (030-0624/01)</displayed-value>
+    <stored-value>030-0624/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární bezpečnost staveb III. (030-0103/01)</displayed-value>
+    <stored-value>030-0103/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární ochrana (030-0350/01)</displayed-value>
+    <stored-value>030-0350/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární ochrana a společnost (030-0352/01)</displayed-value>
+    <stored-value>030-0352/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární taktika I. (030-0509/06)</displayed-value>
+    <stored-value>030-0509/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární taktika I. (030-0614/01)</displayed-value>
+    <stored-value>030-0614/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární taktika II (030-0588/01)</displayed-value>
+    <stored-value>030-0588/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Požární taktika II (030-0626/01)</displayed-value>
+    <stored-value>030-0626/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Praxe - prevence (030-0882/01)</displayed-value>
+    <stored-value>030-0882/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Praxe - prevence 2d (030-0890/01)</displayed-value>
+    <stored-value>030-0890/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Projektování v PO (030-0116/01)</displayed-value>
+    <stored-value>030-0116/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Protipožární a bezpečnostní systémy (030-0631/01)</displayed-value>
+    <stored-value>030-0631/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Případové studie-prevence (030-0111/01)</displayed-value>
+    <stored-value>030-0111/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Případové studie - prevence (030-0625/01)</displayed-value>
+    <stored-value>030-0625/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Případové studie-represe (030-0113/01)</displayed-value>
+    <stored-value>030-0113/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Případové studie - represe (030-0628/01)</displayed-value>
+    <stored-value>030-0628/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Přírodní katastrofy a jejich řešení (030-0583/02)</displayed-value>
+    <stored-value>030-0583/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Přírodní katastrofy a jejich řešení (030-0937/01)</displayed-value>
+    <stored-value>030-0937/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Přírodní katastrofy a jejich řešení (030-0937/02)</displayed-value>
+    <stored-value>030-0937/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Přírodní katastrofy a jejich řešení (030-0937/05)</displayed-value>
+    <stored-value>030-0937/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Přírodní katastrofy a jejich řešení (030-0937/06)</displayed-value>
+    <stored-value>030-0937/06</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Rozvoj a spolehlivost staveb technické infrastruktury (030-0085/03)</displayed-value>
+    <stored-value>030-0085/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Rozvoj a spolehlivost staveb technické infrastruktury (030-0085/04)</displayed-value>
+    <stored-value>030-0085/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Řízení jednotek (030-0526/05)</displayed-value>
+    <stored-value>030-0526/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Řízení jednotek (030-0627/01)</displayed-value>
+    <stored-value>030-0627/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Řízení PO v organizaci (030-0122/01)</displayed-value>
+    <stored-value>030-0122/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Semestrální projekt (030-0595/01)</displayed-value>
+    <stored-value>030-0595/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Semestrální projekt (030-0623/01)</displayed-value>
+    <stored-value>030-0623/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Semestrální projekt (030-0703/01)</displayed-value>
+    <stored-value>030-0703/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Seminář k diplomové práci (030-0109/01)</displayed-value>
+    <stored-value>030-0109/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Seminář k diplomové práci (030-0354/01)</displayed-value>
+    <stored-value>030-0354/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Složky IZS (030-0602/01)</displayed-value>
+    <stored-value>030-0602/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Software pro matematické modelování požáru (030-0105/01)</displayed-value>
+    <stored-value>030-0105/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Software pro matematické modelování požáru (030-0105/02)</displayed-value>
+    <stored-value>030-0105/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Spektroskopické metody v požární ochraně a bezpečnostním inženýrství (030-0934/01)</displayed-value>
+    <stored-value>030-0934/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Spektroskopické metody v požární ochraně a bezpečnostním inženýrství (030-0934/02)</displayed-value>
+    <stored-value>030-0934/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Spektroskopické metody v požární ochraně a bezpečnostním inženýrství (030-0934/03)</displayed-value>
+    <stored-value>030-0934/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Spektroskopické metody v požární ochraně a bezpečnostním inženýrství (030-0934/04)</displayed-value>
+    <stored-value>030-0934/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Spolehlivost bezpečnostních systémů (030-0106/01)</displayed-value>
+    <stored-value>030-0106/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Stavební konstrukce (030-0585/01)</displayed-value>
+    <stored-value>030-0585/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Stavební konstrukce (030-0607/01)</displayed-value>
+    <stored-value>030-0607/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Stavební konstrukce a požární bezpečnost (030-0590/01)</displayed-value>
+    <stored-value>030-0590/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Stavební materiály a konstrukce (030-0603/01)</displayed-value>
+    <stored-value>030-0603/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Systém požární bezpečnosti (030-0610/01)</displayed-value>
+    <stored-value>030-0610/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Systémy technické ochrany (030-0121/01)</displayed-value>
+    <stored-value>030-0121/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Taktické, operační a strategické řízení (030-0112/01)</displayed-value>
+    <stored-value>030-0112/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Taktika při jiných MU (030-0619/01)</displayed-value>
+    <stored-value>030-0619/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Taktika zdolávání mimořádných událostí (030-0930/01)</displayed-value>
+    <stored-value>030-0930/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Taktika zdolávání mimořádných událostí (030-0930/02)</displayed-value>
+    <stored-value>030-0930/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Taktika zdolávání mimořádných událostí (030-0930/03)</displayed-value>
+    <stored-value>030-0930/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Taktika zdolávání mimořádných událostí (030-0930/04)</displayed-value>
+    <stored-value>030-0930/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technická měření v BI (030-0584/01)</displayed-value>
+    <stored-value>030-0584/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technická měření v BI (030-0584/02)</displayed-value>
+    <stored-value>030-0584/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické a právní předpisy I. (030-0586/01)</displayed-value>
+    <stored-value>030-0586/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické a právní předpisy PO I (030-0611/01)</displayed-value>
+    <stored-value>030-0611/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické a právní předpisy PO II. (030-0596/01)</displayed-value>
+    <stored-value>030-0596/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické a právní předpisy PO II (030-0616/01)</displayed-value>
+    <stored-value>030-0616/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické kreslení (030-0582/02)</displayed-value>
+    <stored-value>030-0582/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické prostředky PO I. (030-0514/05)</displayed-value>
+    <stored-value>030-0514/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické prostředky PO I (030-0605/01)</displayed-value>
+    <stored-value>030-0605/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické prostředky PO II (030-0613/01)</displayed-value>
+    <stored-value>030-0613/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické prostředky požární ochrany (030-0936/01)</displayed-value>
+    <stored-value>030-0936/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické prostředky požární ochrany (030-0936/02)</displayed-value>
+    <stored-value>030-0936/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické prostředky požární ochrany (030-0940/01)</displayed-value>
+    <stored-value>030-0940/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické prostředky požární ochrany (030-0940/02)</displayed-value>
+    <stored-value>030-0940/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické systémy záchranných prací (030-0931/01)</displayed-value>
+    <stored-value>030-0931/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Technické systémy záchranných prací (030-0931/02)</displayed-value>
+    <stored-value>030-0931/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Účinky výbuchu na stavby (030-0117/01)</displayed-value>
+    <stored-value>030-0117/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Účinky výbuchu na stavby (030-0117/02)</displayed-value>
+    <stored-value>030-0117/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Úvod do požární ochrany (030-0604/01)</displayed-value>
+    <stored-value>030-0604/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Úvod do studia (030-0600/01)</displayed-value>
+    <stored-value>030-0600/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Úvod do vědeckého modelování (030-0351/01)</displayed-value>
+    <stored-value>030-0351/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Větrání objektů (030-0101/01)</displayed-value>
+    <stored-value>030-0101/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Větrání objektů (030-0942/01)</displayed-value>
+    <stored-value>030-0942/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Větrání objektů (030-0942/02)</displayed-value>
+    <stored-value>030-0942/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Zabezpečovací systémy (030-0591/01)</displayed-value>
+    <stored-value>030-0591/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Zabezpečovací systémy (030-0591/02)</displayed-value>
+    <stored-value>030-0591/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Záchranářské technické prostředky (030-0533/02)</displayed-value>
+    <stored-value>030-0533/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Základy dynamiky požáru (030-0609/01)</displayed-value>
+    <stored-value>030-0609/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Základy dynamiky požáru (030-0609/02)</displayed-value>
+    <stored-value>030-0609/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Základy modelování v PO (030-0935/01)</displayed-value>
+    <stored-value>030-0935/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Základy modelování v PO (030-0935/02)</displayed-value>
+    <stored-value>030-0935/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Základy modelování v PO (030-0935/03)</displayed-value>
+    <stored-value>030-0935/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Základy modelování v PO (030-0935/04)</displayed-value>
+    <stored-value>030-0935/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Základy technických prostředků (030-0505/03)</displayed-value>
+    <stored-value>030-0505/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Zásobování hasivy (030-0565/01)</displayed-value>
+    <stored-value>030-0565/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Zásobování hasivy (030-0565/02)</displayed-value>
+    <stored-value>030-0565/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Zásobování hasivy (030-0608/01)</displayed-value>
+    <stored-value>030-0608/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Zásobování vodou (030-0589/01)</displayed-value>
+    <stored-value>030-0589/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Zásobování vodou (030-0629/01)</displayed-value>
+    <stored-value>030-0629/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Zdolávání mimořádných událostí (030-0114/01)</displayed-value>
+    <stored-value>030-0114/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Zjišťování příčin požárů (030-0523/04)</displayed-value>
+    <stored-value>030-0523/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>030 - Zjišťování příčin požáru (030-0621/01)</displayed-value>
+    <stored-value>030-0621/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Analýza rizik (040-0914/01)</displayed-value>
+    <stored-value>040-0914/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Analýza rizik (040-0914/02)</displayed-value>
+    <stored-value>040-0914/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Analýza rizik (040-0923/01)</displayed-value>
+    <stored-value>040-0923/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Analýza rizik (040-0923/02)</displayed-value>
+    <stored-value>040-0923/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Analýza rizik závažných havárií (040-0090/01)</displayed-value>
+    <stored-value>040-0090/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Analýza rizik závažných havárií (040-0619/01)</displayed-value>
+    <stored-value>040-0619/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Aplikovaná chemie pro HSE (040-0169/01)</displayed-value>
+    <stored-value>040-0169/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bakalářská práce (040-0621/01)</displayed-value>
+    <stored-value>040-0621/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bakalářská práce (040-0621/02)</displayed-value>
+    <stored-value>040-0621/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost a ochrana zdraví při práci (040-0708/01)</displayed-value>
+    <stored-value>040-0708/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost práce ve stavebnictví (040-0607/01)</displayed-value>
+    <stored-value>040-0607/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost technologických procesů (040-0917/01)</displayed-value>
+    <stored-value>040-0917/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost technologických procesů (040-0917/02)</displayed-value>
+    <stored-value>040-0917/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost technologických procesů (040-0917/03)</displayed-value>
+    <stored-value>040-0917/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost technologických procesů (040-0917/04)</displayed-value>
+    <stored-value>040-0917/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost technologií (040-0706/01)</displayed-value>
+    <stored-value>040-0706/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost technologií a systémů (040-0618/01)</displayed-value>
+    <stored-value>040-0618/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost v chemickém průmyslu (040-3001/02)</displayed-value>
+    <stored-value>040-3001/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost výrobků (040-0156/01)</displayed-value>
+    <stored-value>040-0156/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost výrobků (040-0356/01)</displayed-value>
+    <stored-value>040-0356/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost v životním cyklu staveb (040-0107/01)</displayed-value>
+    <stored-value>040-0107/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost v životním cyklu staveb (040-0107/02)</displayed-value>
+    <stored-value>040-0107/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Bezpečnost zařízení a procesů (040-0604/01)</displayed-value>
+    <stored-value>040-0604/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Diplomová práce (040-0167/01)</displayed-value>
+    <stored-value>040-0167/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Environmentální  strategie v pracovním prostředí (040-0702/01)</displayed-value>
+    <stored-value>040-0702/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Ergonomie (040-0155/01)</displayed-value>
+    <stored-value>040-0155/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Ergonomie (040-0715/01)</displayed-value>
+    <stored-value>040-0715/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Funkční a procesní bezpečnost (040-0161/01)</displayed-value>
+    <stored-value>040-0161/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Koordinace BOZP na staveništi (040-0165/01)</displayed-value>
+    <stored-value>040-0165/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Kultura bezpečnosti (040-0159/01)</displayed-value>
+    <stored-value>040-0159/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Kultura bezpečnosti (040-0357/01)</displayed-value>
+    <stored-value>040-0357/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Laboratorní praktikum FBI (040-0624/01)</displayed-value>
+    <stored-value>040-0624/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Lidský faktor v průmyslové bezpečnosti (040-0918/01)</displayed-value>
+    <stored-value>040-0918/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Lidský faktor v průmyslové bezpečnosti (040-0918/02)</displayed-value>
+    <stored-value>040-0918/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Lidský faktor v průmyslové bezpečnosti (040-0924/01)</displayed-value>
+    <stored-value>040-0924/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Lidský faktor v průmyslové bezpečnosti (040-0924/02)</displayed-value>
+    <stored-value>040-0924/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Management chemických látek (040-0355/01)</displayed-value>
+    <stored-value>040-0355/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Management pracovních rizik (040-0616/01)</displayed-value>
+    <stored-value>040-0616/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Manažerské dovednosti řízení BOZP (040-0714/01)</displayed-value>
+    <stored-value>040-0714/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Modelování havárií (040-0166/01)</displayed-value>
+    <stored-value>040-0166/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nauka o nebezpečí (040-0352/01)</displayed-value>
+    <stored-value>040-0352/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nauka o nebezpečí (040-0915/01)</displayed-value>
+    <stored-value>040-0915/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nauka o nebezpečí (040-0915/02)</displayed-value>
+    <stored-value>040-0915/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nauka o nebezpečí (040-0915/03)</displayed-value>
+    <stored-value>040-0915/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nauka o nebezpečí (040-0915/04)</displayed-value>
+    <stored-value>040-0915/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nebezpečné látky (040-0919/01)</displayed-value>
+    <stored-value>040-0919/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nebezpečné látky (040-0919/02)</displayed-value>
+    <stored-value>040-0919/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nebezpečné látky (040-0925/01)</displayed-value>
+    <stored-value>040-0925/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nebezpečné látky (040-0925/02)</displayed-value>
+    <stored-value>040-0925/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nebezpečné látky a materiály (040-0603/01)</displayed-value>
+    <stored-value>040-0603/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nebezpečné látky a materiály (040-0704/01)</displayed-value>
+    <stored-value>040-0704/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Nebezpečné látky a odpady (040-0087/01)</displayed-value>
+    <stored-value>040-0087/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Odborná praxe (040-0622/01)</displayed-value>
+    <stored-value>040-0622/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Odborná praxe (040-0622/02)</displayed-value>
+    <stored-value>040-0622/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Odborná praxe (040-0718/01)</displayed-value>
+    <stored-value>040-0718/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Ochrana životního prostředí a bezpečnost (040-0353/01)</displayed-value>
+    <stored-value>040-0353/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Ochrana životního prostředí v podniku (040-0153/01)</displayed-value>
+    <stored-value>040-0153/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Pojišťovnictví (040-0557/01)</displayed-value>
+    <stored-value>040-0557/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Pojišťovnictví (040-0620/01)</displayed-value>
+    <stored-value>040-0620/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Pracovní lékařství (040-0164/01)</displayed-value>
+    <stored-value>040-0164/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Pracovní lékařství (040-0359/01)</displayed-value>
+    <stored-value>040-0359/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Pracovní prostředí (040-0610/01)</displayed-value>
+    <stored-value>040-0610/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Pracovní prostředí a hygiena (040-0717/01)</displayed-value>
+    <stored-value>040-0717/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Právní a ostatní předpisy BOZP (040-0606/01)</displayed-value>
+    <stored-value>040-0606/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Praxe HSE profesionála (040-0360/01)</displayed-value>
+    <stored-value>040-0360/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Praxe v oboru (040-0613/01)</displayed-value>
+    <stored-value>040-0613/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Prevence závažných havárií (040-0154/01)</displayed-value>
+    <stored-value>040-0154/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Prevence závažných havárií (040-0154/03)</displayed-value>
+    <stored-value>040-0154/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Prevence závažných havárií (040-0709/01)</displayed-value>
+    <stored-value>040-0709/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Prevence závažných havárií (040-0920/01)</displayed-value>
+    <stored-value>040-0920/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Prevence závažných havárií (040-0920/02)</displayed-value>
+    <stored-value>040-0920/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Prevence závažných havárií (040-0920/03)</displayed-value>
+    <stored-value>040-0920/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Prevence závažných havárií (040-0920/04)</displayed-value>
+    <stored-value>040-0920/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Principy a metody analýzy rizik (040-0350/01)</displayed-value>
+    <stored-value>040-0350/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Principy analýzy rizik (040-0171/01)</displayed-value>
+    <stored-value>040-0171/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Principy analýzy rizik (040-0171/02)</displayed-value>
+    <stored-value>040-0171/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Principy a praxe BOZP (040-0152/01)</displayed-value>
+    <stored-value>040-0152/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Principy a praxe BOZP (040-0354/01)</displayed-value>
+    <stored-value>040-0354/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Protivýbuchová ochrana (040-0175/01)</displayed-value>
+    <stored-value>040-0175/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Protivýbuchová prevence (040-0151/01)</displayed-value>
+    <stored-value>040-0151/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Protivýbuchová prevence (040-0921/01)</displayed-value>
+    <stored-value>040-0921/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Protivýbuchová prevence (040-0921/02)</displayed-value>
+    <stored-value>040-0921/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Protivýbuchová prevence (040-0921/03)</displayed-value>
+    <stored-value>040-0921/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Protivýbuchová prevence (040-0921/04)</displayed-value>
+    <stored-value>040-0921/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Protivýbuchová prevence a technologie (040-0711/01)</displayed-value>
+    <stored-value>040-0711/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Průmyslová toxikologie (040-0093/01)</displayed-value>
+    <stored-value>040-0093/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Průmyslová toxikologie (040-0611/01)</displayed-value>
+    <stored-value>040-0611/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Průmyslová toxikologie (040-0710/01)</displayed-value>
+    <stored-value>040-0710/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Případové studie BOZP (040-0615/01)</displayed-value>
+    <stored-value>040-0615/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Psychologie bezpečnosti práce (040-0608/01)</displayed-value>
+    <stored-value>040-0608/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Řízená praxe v oboru (040-0157/01)</displayed-value>
+    <stored-value>040-0157/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Řízená praxe v oboru II (040-0168/01)</displayed-value>
+    <stored-value>040-0168/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Řízení bezpečnosti v podniku (040-0105/01)</displayed-value>
+    <stored-value>040-0105/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Řízení bezpečnosti v podniku (040-0105/02)</displayed-value>
+    <stored-value>040-0105/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Řízení BOZP při přípravě a realizaci staveb (040-0716/01)</displayed-value>
+    <stored-value>040-0716/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Řízení rizik (040-0600/01)</displayed-value>
+    <stored-value>040-0600/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Semestrální projekt (040-0163/01)</displayed-value>
+    <stored-value>040-0163/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Semestrální projekt (040-0614/01)</displayed-value>
+    <stored-value>040-0614/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Stroje, zařízení a technologie (040-0602/01)</displayed-value>
+    <stored-value>040-0602/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Stroje, zařízení a technologie (040-0602/02)</displayed-value>
+    <stored-value>040-0602/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Stroje a zařízení (040-0703/01)</displayed-value>
+    <stored-value>040-0703/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Technická bezpečnost (040-0609/01)</displayed-value>
+    <stored-value>040-0609/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Technologie a jejich rizika (040-0104/01)</displayed-value>
+    <stored-value>040-0104/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Technologie a jejich rizika (040-0623/01)</displayed-value>
+    <stored-value>040-0623/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Testování a certifikace (040-0712/01)</displayed-value>
+    <stored-value>040-0712/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Toxikologie (040-0916/01)</displayed-value>
+    <stored-value>040-0916/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Toxikologie (040-0916/02)</displayed-value>
+    <stored-value>040-0916/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Toxikologie (040-0916/03)</displayed-value>
+    <stored-value>040-0916/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Toxikologie (040-0916/04)</displayed-value>
+    <stored-value>040-0916/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Transport nebezpečných látek a odpadů (040-0158/01)</displayed-value>
+    <stored-value>040-0158/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Transport nebezpečných látek a odpadů (PV A) (040-0106/01)</displayed-value>
+    <stored-value>040-0106/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Týmový projekt (040-0713/01)</displayed-value>
+    <stored-value>040-0713/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Úvod do bezpečnosti (040-0700/01)</displayed-value>
+    <stored-value>040-0700/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Úvod do environmentálního managementu (040-0605/01)</displayed-value>
+    <stored-value>040-0605/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Vliv havárií na životní prostředí (040-0102/01)</displayed-value>
+    <stored-value>040-0102/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Vliv havárií na životní prostředí (040-0612/01)</displayed-value>
+    <stored-value>040-0612/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Vliv prostředí na člověka a BOZP (040-0922/01)</displayed-value>
+    <stored-value>040-0922/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Vliv prostředí na člověka a BOZP (040-0922/02)</displayed-value>
+    <stored-value>040-0922/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Vliv prostředí na člověka a BOZP (040-0926/01)</displayed-value>
+    <stored-value>040-0926/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Vliv prostředí na člověka a BOZP (040-0926/02)</displayed-value>
+    <stored-value>040-0926/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Výrobní technologie a údržba (040-0150/01)</displayed-value>
+    <stored-value>040-0150/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Vyšetřování nehod a havárií (040-0160/01)</displayed-value>
+    <stored-value>040-0160/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Vyšetřování nehod a havárií (040-0358/01)</displayed-value>
+    <stored-value>040-0358/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Vývojové trendy v BI (040-0162/01)</displayed-value>
+    <stored-value>040-0162/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Základy analýzy rizik (040-0707/01)</displayed-value>
+    <stored-value>040-0707/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Základy BOZP (040-0601/01)</displayed-value>
+    <stored-value>040-0601/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Základy protivýbuchové ochrany (040-0617/01)</displayed-value>
+    <stored-value>040-0617/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Základy protivýbuchové ochrany (040-0617/02)</displayed-value>
+    <stored-value>040-0617/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Základy výrobních technologií (040-0351/01)</displayed-value>
+    <stored-value>040-0351/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Zkušebnictví a certifikace (040-0094/01)</displayed-value>
+    <stored-value>040-0094/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>040 - Zkušebnictví a certifikace (040-0625/01)</displayed-value>
+    <stored-value>040-0625/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Analýza rizik (050-0548/01)</displayed-value>
+    <stored-value>050-0548/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bakalářská práce (050-0555/01)</displayed-value>
+    <stored-value>050-0555/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bakalářská práce (050-0555/02)</displayed-value>
+    <stored-value>050-0555/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnost informačních systémů (050-0035/01)</displayed-value>
+    <stored-value>050-0035/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnost informačních systémů (050-0035/02)</displayed-value>
+    <stored-value>050-0035/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnost informačních systémů (050-0702/01)</displayed-value>
+    <stored-value>050-0702/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní informatika (050-0527/01)</displayed-value>
+    <stored-value>050-0527/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní informatika (050-0527/02)</displayed-value>
+    <stored-value>050-0527/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní informatika (050-0527/03)</displayed-value>
+    <stored-value>050-0527/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní plánování (050-0033/01)</displayed-value>
+    <stored-value>050-0033/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní plánování (050-0921/01)</displayed-value>
+    <stored-value>050-0921/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní plánování (050-0921/02)</displayed-value>
+    <stored-value>050-0921/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní plánování (050-0921/03)</displayed-value>
+    <stored-value>050-0921/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní plánování (050-0921/04)</displayed-value>
+    <stored-value>050-0921/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní plánování I (050-0547/01)</displayed-value>
+    <stored-value>050-0547/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní plánování II (050-0552/01)</displayed-value>
+    <stored-value>050-0552/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnostní plánování pro BOM (050-0020/02)</displayed-value>
+    <stored-value>050-0020/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnost území a její management (050-0922/01)</displayed-value>
+    <stored-value>050-0922/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnost území a její management (050-0922/02)</displayed-value>
+    <stored-value>050-0922/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnost území a její management (050-0927/01)</displayed-value>
+    <stored-value>050-0927/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Bezpečnost území a její management (050-0927/02)</displayed-value>
+    <stored-value>050-0927/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Civilní nouzová připravenost (050-0550/01)</displayed-value>
+    <stored-value>050-0550/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ekonomie v bezpečnosti (050-0528/01)</displayed-value>
+    <stored-value>050-0528/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ekonomie v bezpečnosti (050-0528/02)</displayed-value>
+    <stored-value>050-0528/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ekonomika státu v krizových situacích (050-0029/01)</displayed-value>
+    <stored-value>050-0029/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Exkurze na ČHMU Ostrava (050-0456/01)</displayed-value>
+    <stored-value>050-0456/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Exkurze v Chemické laboratoři Frenštát p. R. (050-0455/01)</displayed-value>
+    <stored-value>050-0455/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Exkurze v oboru I. (050-0556/01)</displayed-value>
+    <stored-value>050-0556/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Exkurze v oboru II. (050-0559/01)</displayed-value>
+    <stored-value>050-0559/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Hodnocení rizika území a plánování obnovy (050-0034/01)</displayed-value>
+    <stored-value>050-0034/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Informatika v bezpečnosti (050-0027/01)</displayed-value>
+    <stored-value>050-0027/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Infrastruktury a ochrana obyvatelstva (050-0529/01)</displayed-value>
+    <stored-value>050-0529/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Infrastruktury a ochrana obyvatelstva (050-0529/02)</displayed-value>
+    <stored-value>050-0529/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Integrální bezpečnost systémů (050-0037/01)</displayed-value>
+    <stored-value>050-0037/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Integrovaný záchranný systém (050-0031/01)</displayed-value>
+    <stored-value>050-0031/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Kontrolní činnost v bezpečnosti (050-0530/01)</displayed-value>
+    <stored-value>050-0530/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Kontrolní činnost v bezpečnosti (050-0530/02)</displayed-value>
+    <stored-value>050-0530/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Krizová připravenost zdravotnictví (050-0549/01)</displayed-value>
+    <stored-value>050-0549/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Krizové řízení (050-0926/01)</displayed-value>
+    <stored-value>050-0926/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Krizové řízení (050-0926/02)</displayed-value>
+    <stored-value>050-0926/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Krizové řízení (050-0926/03)</displayed-value>
+    <stored-value>050-0926/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Krizové řízení (050-0926/04)</displayed-value>
+    <stored-value>050-0926/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Krizový management (050-0546/01)</displayed-value>
+    <stored-value>050-0546/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Krizový management (050-0701/01)</displayed-value>
+    <stored-value>050-0701/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Krizový management I. (050-0531/01)</displayed-value>
+    <stored-value>050-0531/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Likvidace havárií a katastrof (050-0544/01)</displayed-value>
+    <stored-value>050-0544/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Likvidace havárií a katastrof (HGF) (050-0558/01)</displayed-value>
+    <stored-value>050-0558/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Logistika krizového managementu (050-0557/01)</displayed-value>
+    <stored-value>050-0557/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Management krizových situací (050-0553/01)</displayed-value>
+    <stored-value>050-0553/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Management v bezpečnosti (050-0533/02)</displayed-value>
+    <stored-value>050-0533/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Metody rizikového inženýrství (050-0026/01)</displayed-value>
+    <stored-value>050-0026/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Modelování následků mimořádných událostí (050-0542/01)</displayed-value>
+    <stored-value>050-0542/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Modelování rozhodovacích procesů (050-0511/04)</displayed-value>
+    <stored-value>050-0511/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana kritické infrastruktury (050-0036/01)</displayed-value>
+    <stored-value>050-0036/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana kritické infrastruktury (050-0036/02)</displayed-value>
+    <stored-value>050-0036/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana obyvatelstva (DSP) (050-0925/01)</displayed-value>
+    <stored-value>050-0925/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana obyvatelstva (DSP) (050-0925/02)</displayed-value>
+    <stored-value>050-0925/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana obyvatelstva (DSP) (050-0925/03)</displayed-value>
+    <stored-value>050-0925/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana obyvatelstva (DSP) (050-0925/04)</displayed-value>
+    <stored-value>050-0925/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana obyvatelstva I (050-0022/02)</displayed-value>
+    <stored-value>050-0022/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana obyvatelstva II. (050-0517/03)</displayed-value>
+    <stored-value>050-0517/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana obyvatelstva II. (050-0517/04)</displayed-value>
+    <stored-value>050-0517/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana obyvatelstva III (050-0032/01)</displayed-value>
+    <stored-value>050-0032/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Ochrana obyvatelstva III (050-0032/02)</displayed-value>
+    <stored-value>050-0032/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Organizace humanitární pomoci (050-0028/01)</displayed-value>
+    <stored-value>050-0028/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Organizace krizového řízení (050-0540/01)</displayed-value>
+    <stored-value>050-0540/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Počítačové sítě a ochrana dat (050-0510/03)</displayed-value>
+    <stored-value>050-0510/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Počítačové sítě a ochrana dat (050-0510/04)</displayed-value>
+    <stored-value>050-0510/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Posuzování rizik (050-0024/01)</displayed-value>
+    <stored-value>050-0024/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Posuzování rizik (050-0024/02)</displayed-value>
+    <stored-value>050-0024/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Posuzování rizik (050-0024/03)</displayed-value>
+    <stored-value>050-0024/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Programovací jazyky (050-0030/01)</displayed-value>
+    <stored-value>050-0030/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Programovací jazyky (050-0030/02)</displayed-value>
+    <stored-value>050-0030/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Protipovodňová ochrana (PV A) (050-0025/01)</displayed-value>
+    <stored-value>050-0025/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Předpisy PO (050-0545/01)</displayed-value>
+    <stored-value>050-0545/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Případové studie - Simulace (050-0150/01)</displayed-value>
+    <stored-value>050-0150/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Případové studie - Simulace (050-0703/01)</displayed-value>
+    <stored-value>050-0703/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Případové studie v ochraně obyvatelstva (050-0023/01)</displayed-value>
+    <stored-value>050-0023/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Řízená praxe v oboru (050-0551/01)</displayed-value>
+    <stored-value>050-0551/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Řízená praxe v oboru - veřejná správa (050-0454/01)</displayed-value>
+    <stored-value>050-0454/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Semestrální projekt (050-0543/01)</displayed-value>
+    <stored-value>050-0543/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Seminář k diplomové práci (050-0038/01)</displayed-value>
+    <stored-value>050-0038/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Systémy managementu bezpečnosti (050-0538/01)</displayed-value>
+    <stored-value>050-0538/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Systémy řízení rizik (050-0350/01)</displayed-value>
+    <stored-value>050-0350/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Umělá inteligence v bezpečnosti (050-0541/01)</displayed-value>
+    <stored-value>050-0541/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>050 - Vybrané kapitoly z požární ochrany (050-0506/02)</displayed-value>
+    <stored-value>050-0506/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Aktuální bezpečnostní hrozby (060-0018/01)</displayed-value>
+    <stored-value>060-0018/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Aplikace posouzení rizik ve fyzické bezpečnosti (060-0034/01)</displayed-value>
+    <stored-value>060-0034/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Aplikovaná fyzika (060-0513/02)</displayed-value>
+    <stored-value>060-0513/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Aplikovaná fyzika (060-0513/03)</displayed-value>
+    <stored-value>060-0513/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Bakalářská práce (060-0528/01)</displayed-value>
+    <stored-value>060-0528/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Bakalářská práce (060-0551/01)</displayed-value>
+    <stored-value>060-0551/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Bezpečnost informací (060-0525/01)</displayed-value>
+    <stored-value>060-0525/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Bezpečnost informací (060-0531/01)</displayed-value>
+    <stored-value>060-0531/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Bezpečnost jaderných zařízení (060-0922/01)</displayed-value>
+    <stored-value>060-0922/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Bezpečnost jaderných zařízení (060-0922/02)</displayed-value>
+    <stored-value>060-0922/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Bezpečnost lidského činitele (060-0037/01)</displayed-value>
+    <stored-value>060-0037/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Bezpečnostní hrozby a prevence (060-0541/01)</displayed-value>
+    <stored-value>060-0541/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Bezpečnostní hrozby státu a mezinárodní vztahy (060-0024/01)</displayed-value>
+    <stored-value>060-0024/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Bezpečnostní pyrotechnika (060-0028/01)</displayed-value>
+    <stored-value>060-0028/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Diplomový seminář (060-0036/01)</displayed-value>
+    <stored-value>060-0036/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Etika bezpečnostních služeb (060-0533/01)</displayed-value>
+    <stored-value>060-0533/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Exkurze na letiště L. Janáčka v Mošnově. (060-0451/05)</displayed-value>
+    <stored-value>060-0451/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Fyzická bezpečnost (060-0553/01)</displayed-value>
+    <stored-value>060-0553/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Fyzická ochrana (060-0928/01)</displayed-value>
+    <stored-value>060-0928/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Fyzická ochrana (060-0928/02)</displayed-value>
+    <stored-value>060-0928/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Fyzická ochrana (060-0928/03)</displayed-value>
+    <stored-value>060-0928/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Fyzická ochrana (060-0928/04)</displayed-value>
+    <stored-value>060-0928/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Fyzikální principy přístrojové techniky (060-0021/01)</displayed-value>
+    <stored-value>060-0021/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Fyzika v bezpečnostních technologiích (060-0517/01)</displayed-value>
+    <stored-value>060-0517/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Fyzika v bezpečnostních technologiích (060-0537/01)</displayed-value>
+    <stored-value>060-0537/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Komerční bezpečnost (060-0038/01)</displayed-value>
+    <stored-value>060-0038/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Komerční bezpečnostní služby (060-0520/01)</displayed-value>
+    <stored-value>060-0520/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Komerční bezpečnostní služby (060-0532/01)</displayed-value>
+    <stored-value>060-0532/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Komunikační systémy (060-0031/01)</displayed-value>
+    <stored-value>060-0031/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Komunikační technologie BOM (060-0546/01)</displayed-value>
+    <stored-value>060-0546/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Kriminalistické systémy a technologie (060-0524/01)</displayed-value>
+    <stored-value>060-0524/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Kriminalistické systémy a technologie (060-0547/01)</displayed-value>
+    <stored-value>060-0547/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Kriminalistika a bezpečnostní technologie (060-0025/01)</displayed-value>
+    <stored-value>060-0025/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Kriminologie (060-0543/01)</displayed-value>
+    <stored-value>060-0543/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Kriminologie pro inženýry (060-0023/01)</displayed-value>
+    <stored-value>060-0023/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Mechanické zábranné systémy (060-0519/01)</displayed-value>
+    <stored-value>060-0519/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Mechanické zábranné systémy (060-0538/01)</displayed-value>
+    <stored-value>060-0538/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Měřící metody a metrologie (060-0030/01)</displayed-value>
+    <stored-value>060-0030/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Měřící metody a metrologie (060-0039/01)</displayed-value>
+    <stored-value>060-0039/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Měřící metody BOM (060-0548/01)</displayed-value>
+    <stored-value>060-0548/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Metodologie fyzické bezpečnosti podniku (060-0026/01)</displayed-value>
+    <stored-value>060-0026/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Metody vědecké práce (060-0924/01)</displayed-value>
+    <stored-value>060-0924/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Metody vědecké práce (060-0924/04)</displayed-value>
+    <stored-value>060-0924/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Metody vědecké práce (060-0924/05)</displayed-value>
+    <stored-value>060-0924/05</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Obrana státu a mezinárodní vztahy (060-0540/01)</displayed-value>
+    <stored-value>060-0540/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Odborná praxe k bakalářské práci (060-0854/01)</displayed-value>
+    <stored-value>060-0854/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Ochrana objektu (060-0502/02)</displayed-value>
+    <stored-value>060-0502/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Ochrana objektu (060-0530/01)</displayed-value>
+    <stored-value>060-0530/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Ochrana před zářením (060-0019/01)</displayed-value>
+    <stored-value>060-0019/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Ochrana před zářením (060-0019/02)</displayed-value>
+    <stored-value>060-0019/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Ochrana před zářením (060-0923/01)</displayed-value>
+    <stored-value>060-0923/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Ochrana před zářením (060-0923/02)</displayed-value>
+    <stored-value>060-0923/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Ochrana před zářením (060-0923/03)</displayed-value>
+    <stored-value>060-0923/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Ochrana před zářením (060-0923/04)</displayed-value>
+    <stored-value>060-0923/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Ochrana před zářením I. (060-0518/01)</displayed-value>
+    <stored-value>060-0518/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Prevence protiprávního jednání (060-0516/01)</displayed-value>
+    <stored-value>060-0516/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Principy fyzikálních měření (060-0350/01)</displayed-value>
+    <stored-value>060-0350/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Projektování fyzické bezpečnosti (060-0027/01)</displayed-value>
+    <stored-value>060-0027/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Psychologické aspekty bezpečnosti (060-0925/01)</displayed-value>
+    <stored-value>060-0925/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Psychologické aspekty bezpečnosti (060-0925/02)</displayed-value>
+    <stored-value>060-0925/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Psychologické aspekty bezpečnosti (060-0925/03)</displayed-value>
+    <stored-value>060-0925/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Psychologické aspekty bezpečnosti (060-0925/04)</displayed-value>
+    <stored-value>060-0925/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Psychologie bezpečnosti a katastrof (060-0507/02)</displayed-value>
+    <stored-value>060-0507/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Psychologie bezpečnosti a katastrof (060-0536/01)</displayed-value>
+    <stored-value>060-0536/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Psychologie bezpečnosti katastrof (060-0020/01)</displayed-value>
+    <stored-value>060-0020/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Řízená oborová praxe (060-0454/01)</displayed-value>
+    <stored-value>060-0454/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Řízená praxe oboru (060-0855/01)</displayed-value>
+    <stored-value>060-0855/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Řízená praxe v oboru (060-0852/02)</displayed-value>
+    <stored-value>060-0852/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Řízení systému fyzické bezpečnosti (060-0515/01)</displayed-value>
+    <stored-value>060-0515/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Řízení systému fyzické bezpečnosti (060-0542/01)</displayed-value>
+    <stored-value>060-0542/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Semestrální projekt (060-0527/01)</displayed-value>
+    <stored-value>060-0527/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Semestrální projekt (060-0549/01)</displayed-value>
+    <stored-value>060-0549/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Systémy fyzické bezpečnosti (060-0351/01)</displayed-value>
+    <stored-value>060-0351/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Systémy podnikové ochrany - NBPP (060-0022/01)</displayed-value>
+    <stored-value>060-0022/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Technická měření (060-0702/01)</displayed-value>
+    <stored-value>060-0702/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Technické prostředky bezpečnostních služeb (060-0523/01)</displayed-value>
+    <stored-value>060-0523/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Technické prostředky bezpečnostních služeb (060-0544/01)</displayed-value>
+    <stored-value>060-0544/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Teorie a technologie ochrany podniku (060-0927/01)</displayed-value>
+    <stored-value>060-0927/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Teorie a technologie ochrany podniku (060-0927/02)</displayed-value>
+    <stored-value>060-0927/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Teorie a technologie ochrany podniku (060-0927/03)</displayed-value>
+    <stored-value>060-0927/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Teorie a technologie ochrany podniku (060-0927/04)</displayed-value>
+    <stored-value>060-0927/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Teorie bezpečnostní techniky (060-0032/01)</displayed-value>
+    <stored-value>060-0032/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Teorie retence a redukce nebezpečí ve fyzické bezpečnosti (060-0035/01)</displayed-value>
+    <stored-value>060-0035/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vliv krizových situací na člověka (060-0926/01)</displayed-value>
+    <stored-value>060-0926/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vliv krizových situací na člověka (060-0926/02)</displayed-value>
+    <stored-value>060-0926/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vliv krizových situací na člověka (060-0926/03)</displayed-value>
+    <stored-value>060-0926/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vliv krizových situací na člověka (060-0926/04)</displayed-value>
+    <stored-value>060-0926/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vnitřní bezpečnost a veřejný pořádek (060-0529/01)</displayed-value>
+    <stored-value>060-0529/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vnitřní bezpečnost státu (060-0501/04)</displayed-value>
+    <stored-value>060-0501/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vybrané kapitoly moderní fyziky (060-0033/01)</displayed-value>
+    <stored-value>060-0033/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vybrané kapitoly z fyziky (060-0921/01)</displayed-value>
+    <stored-value>060-0921/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vybrané kapitoly z fyziky (060-0921/02)</displayed-value>
+    <stored-value>060-0921/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vybrané kapitoly z fyziky (060-0921/03)</displayed-value>
+    <stored-value>060-0921/03</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Vybrané kapitoly z fyziky (060-0921/04)</displayed-value>
+    <stored-value>060-0921/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Výbušniny a účinky výbuchů (060-0505/04)</displayed-value>
+    <stored-value>060-0505/04</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Výbušniny a účinky výbuchů (060-0535/01)</displayed-value>
+    <stored-value>060-0535/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Základy bezpečnostní politiky (060-0539/01)</displayed-value>
+    <stored-value>060-0539/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Základy urgentní medicíny (060-0522/01)</displayed-value>
+    <stored-value>060-0522/01</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Zbraně a střelivo. (060-0512/02)</displayed-value>
+    <stored-value>060-0512/02</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>060 - Zbraně a střelivo (060-0534/01)</displayed-value>
+    <stored-value>060-0534/01</stored-value>
+  </pair>
+</value-pairs>

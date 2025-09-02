@@ -1,0 +1,2930 @@
+<value-pairs value-pairs-name="vp_subject_EKF" dc-term="programme">
+  <pair>
+    <displayed-value>Neuvedeno</displayed-value>
+    <stored-value></stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Anglická konverzace pro ekonomy (114-0588)</displayed-value>
+    <stored-value>114-0588</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Aplikovaná ekonometrie (114-0380)</displayed-value>
+    <stored-value>114-0380</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Aplikovaná hospodářská politika (114-0381)</displayed-value>
+    <stored-value>114-0381</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Aplikovaná hospodářská politika (114-0581)</displayed-value>
+    <stored-value>114-0581</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Aplikovaná makroekonomie (114-0551)</displayed-value>
+    <stored-value>114-0551</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Aplikovaná mikroekonomie (114-0550)</displayed-value>
+    <stored-value>114-0550</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Bakalářská práce (114-0366)</displayed-value>
+    <stored-value>114-0366</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Bakalářská práce (114-0372)</displayed-value>
+    <stored-value>114-0372</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Bakalářská práce (114-0566)</displayed-value>
+    <stored-value>114-0566</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Bakalářský seminář A (114-0362)</displayed-value>
+    <stored-value>114-0362</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Bakalářský seminář A (114-0370)</displayed-value>
+    <stored-value>114-0370</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Bakalářský seminář A (114-0562)</displayed-value>
+    <stored-value>114-0562</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Bakalářský seminář B (114-0365)</displayed-value>
+    <stored-value>114-0365</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Bakalářský seminář B (114-0371)</displayed-value>
+    <stored-value>114-0371</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Bakalářský seminář B (114-0565)</displayed-value>
+    <stored-value>114-0565</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Behaviorální ekonomie (114-0339)</displayed-value>
+    <stored-value>114-0339</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Behaviorální ekonomie (114-0539)</displayed-value>
+    <stored-value>114-0539</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Dějiny ekonomických teorií (114-0312)</displayed-value>
+    <stored-value>114-0312</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Dějiny ekonomických teorií (114-0512)</displayed-value>
+    <stored-value>114-0512</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Dějiny světového hospodářství (114-0308)</displayed-value>
+    <stored-value>114-0308</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Dějiny světového hospodářství (114-0507)</displayed-value>
+    <stored-value>114-0507</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Deskriptivní ekonomie (114-0358)</displayed-value>
+    <stored-value>114-0358</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Deskriptivní ekonomie (114-0558)</displayed-value>
+    <stored-value>114-0558</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Diplomová práce (114-0384)</displayed-value>
+    <stored-value>114-0384</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Diplomová práce (114-0399)</displayed-value>
+    <stored-value>114-0399</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Diplomový seminář A (114-0382)</displayed-value>
+    <stored-value>114-0382</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Diplomový seminář A (114-0397)</displayed-value>
+    <stored-value>114-0397</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Diplomový seminář B (114-0383)</displayed-value>
+    <stored-value>114-0383</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Diplomový seminář B (114-0398)</displayed-value>
+    <stored-value>114-0398</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomická teorie (114-0902)</displayed-value>
+    <stored-value>114-0902</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomický růst a rozvoj (114-0379)</displayed-value>
+    <stored-value>114-0379</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomický růst a rozvoj (114-0479)</displayed-value>
+    <stored-value>114-0479</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomický růst a rozvoj (114-0579)</displayed-value>
+    <stored-value>114-0579</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomický růst a rozvoj (114-0918)</displayed-value>
+    <stored-value>114-0918</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomický růst a rozvoj (114-9518)</displayed-value>
+    <stored-value>114-9518</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomie (114-0900)</displayed-value>
+    <stored-value>114-0900</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomie trhu práce (114-0376)</displayed-value>
+    <stored-value>114-0376</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomie trhu práce (114-0476)</displayed-value>
+    <stored-value>114-0476</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomie trhu práce (114-0576)</displayed-value>
+    <stored-value>114-0576</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomie trhu práce (114-0913)</displayed-value>
+    <stored-value>114-0913</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomie trhu práce (114-9513)</displayed-value>
+    <stored-value>114-9513</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomie veřejné volby (114-0342)</displayed-value>
+    <stored-value>114-0342</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomie veřejné volby (114-0442)</displayed-value>
+    <stored-value>114-0442</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomie v praxi (114-0328)</displayed-value>
+    <stored-value>114-0328</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomika rozvojových zemí (114-0309)</displayed-value>
+    <stored-value>114-0309</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Ekonomika rozvojových zemí (114-0510)</displayed-value>
+    <stored-value>114-0510</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Environmentální ekonomie (114-0392)</displayed-value>
+    <stored-value>114-0392</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Filosofie a metodologie ekonomie (114-0319)</displayed-value>
+    <stored-value>114-0319</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Filosofie a metodologie ekonomie (114-0519)</displayed-value>
+    <stored-value>114-0519</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Finanční stabilita (114-0911)</displayed-value>
+    <stored-value>114-0911</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Fiskální politika a řízení dluhu (114-0912)</displayed-value>
+    <stored-value>114-0912</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Fiskální teorie a politika (114-0344)</displayed-value>
+    <stored-value>114-0344</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Fiskální teorie a politika (114-0444)</displayed-value>
+    <stored-value>114-0444</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Fiskální teorie a politika (114-0544)</displayed-value>
+    <stored-value>114-0544</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Hospodaření s přírodními zdroji v EU (114-0589)</displayed-value>
+    <stored-value>114-0589</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Hospodářská politika (114-0359)</displayed-value>
+    <stored-value>114-0359</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Hospodářská politika (114-0459)</displayed-value>
+    <stored-value>114-0459</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Hospodářská politika (114-0559)</displayed-value>
+    <stored-value>114-0559</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Institucionální ekonomie (114-0326)</displayed-value>
+    <stored-value>114-0326</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Makroekonomie A (114-0301)</displayed-value>
+    <stored-value>114-0301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Makroekonomie A (114-0401)</displayed-value>
+    <stored-value>114-0401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Makroekonomie A (114-0501)</displayed-value>
+    <stored-value>114-0501</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Makroekonomie B (114-0303)</displayed-value>
+    <stored-value>114-0303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Makroekonomie B (114-0403)</displayed-value>
+    <stored-value>114-0403</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Makroekonomie B (114-0503)</displayed-value>
+    <stored-value>114-0503</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Manažerská ekonomie (114-0509)</displayed-value>
+    <stored-value>114-0509</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Měnová politika a vnější vztahy (114-0916)</displayed-value>
+    <stored-value>114-0916</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Měnová politika a vnější vztahy (114-9516)</displayed-value>
+    <stored-value>114-9516</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Mezinárodní finance (114-0322)</displayed-value>
+    <stored-value>114-0322</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Mezinárodní finance (114-0522)</displayed-value>
+    <stored-value>114-0522</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Mezinárodní měnové vztahy (114-0311)</displayed-value>
+    <stored-value>114-0311</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Mezinárodní měnové vztahy (114-0511)</displayed-value>
+    <stored-value>114-0511</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Mikroekonomie A (114-0300)</displayed-value>
+    <stored-value>114-0300</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Mikroekonomie A (114-0400)</displayed-value>
+    <stored-value>114-0400</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Mikroekonomie A (114-0500)</displayed-value>
+    <stored-value>114-0500</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Mikroekonomie B (114-0302)</displayed-value>
+    <stored-value>114-0302</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Mikroekonomie B (114-0402)</displayed-value>
+    <stored-value>114-0402</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Mikroekonomie B (114-0502)</displayed-value>
+    <stored-value>114-0502</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Monetární ekonomie (114-0377)</displayed-value>
+    <stored-value>114-0377</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Monetární ekonomie (114-0577)</displayed-value>
+    <stored-value>114-0577</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Monetární teorie a politika (114-0360)</displayed-value>
+    <stored-value>114-0360</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Monetární teorie a politika (114-0560)</displayed-value>
+    <stored-value>114-0560</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Odborná praxe (114-0367)</displayed-value>
+    <stored-value>114-0367</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Odborná praxe (114-0385)</displayed-value>
+    <stored-value>114-0385</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Odborná praxe (114-0567)</displayed-value>
+    <stored-value>114-0567</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Odborná praxe v zahraničí (114-0368)</displayed-value>
+    <stored-value>114-0368</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Odborná praxe v zahraničí (114-0386)</displayed-value>
+    <stored-value>114-0386</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Odborná praxe v zahraničí (114-0568)</displayed-value>
+    <stored-value>114-0568</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Politika zaměstnanosti (114-0369)</displayed-value>
+    <stored-value>114-0369</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Politika zaměstnanosti (114-0469)</displayed-value>
+    <stored-value>114-0469</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Politika zaměstnanosti (114-0569)</displayed-value>
+    <stored-value>114-0569</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Protimonopolní regulace a ochrana hospodářské soutěže (114-0338)</displayed-value>
+    <stored-value>114-0338</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Protimonopolní regulace a ochrana hospodářské soutěže (114-0438)</displayed-value>
+    <stored-value>114-0438</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Protimonopolní regulace a ochrana hospodářské soutěže (114-0538)</displayed-value>
+    <stored-value>114-0538</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Psaní odborných a diplomových prací (114-0329)</displayed-value>
+    <stored-value>114-0329</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Speciální seminář (114-0378)</displayed-value>
+    <stored-value>114-0378</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Světová ekonomika a politika (114-0330)</displayed-value>
+    <stored-value>114-0330</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Trh nemovitých věcí (114-0333)</displayed-value>
+    <stored-value>114-0333</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Trh práce (114-0363)</displayed-value>
+    <stored-value>114-0363</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Trh práce (114-0463)</displayed-value>
+    <stored-value>114-0463</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Trh práce (114-0563)</displayed-value>
+    <stored-value>114-0563</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>114 - Vývoj ekonomického myšlení (114-0327)</displayed-value>
+    <stored-value>114-0327</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Bakalářská práce (115-0336)</displayed-value>
+    <stored-value>115-0336</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Bakalářská práce (115-0436)</displayed-value>
+    <stored-value>115-0436</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Bakalářský seminář A (115-0334)</displayed-value>
+    <stored-value>115-0334</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Bakalářský seminář A (115-0434)</displayed-value>
+    <stored-value>115-0434</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Bakalářský seminář B (115-0335)</displayed-value>
+    <stored-value>115-0335</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Bakalářský seminář B (115-0435)</displayed-value>
+    <stored-value>115-0435</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Diplomová práce (115-0371)</displayed-value>
+    <stored-value>115-0371</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Diplomová práce (115-0471)</displayed-value>
+    <stored-value>115-0471</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Diplomový seminář A (115-0369)</displayed-value>
+    <stored-value>115-0369</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Diplomový seminář A (115-0469)</displayed-value>
+    <stored-value>115-0469</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Diplomový seminář B (115-0370)</displayed-value>
+    <stored-value>115-0370</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Diplomový seminář B (115-0470)</displayed-value>
+    <stored-value>115-0470</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Ekonomika a management (115-0914)</displayed-value>
+    <stored-value>115-0914</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Ekonomika a management (115-9514)</displayed-value>
+    <stored-value>115-9514</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Etika v marketingu (115-0608)</displayed-value>
+    <stored-value>115-0608</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Krizový management (115-0390)</displayed-value>
+    <stored-value>115-0390</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Krizový  management (115-0490)</displayed-value>
+    <stored-value>115-0490</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Management (115-0386)</displayed-value>
+    <stored-value>115-0386</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Management (115-0486)</displayed-value>
+    <stored-value>115-0486</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Management (115-0586)</displayed-value>
+    <stored-value>115-0586</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Management rodinného podniku (115-0601)</displayed-value>
+    <stored-value>115-0601</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Management rodinného podniku (115-4601)</displayed-value>
+    <stored-value>115-4601</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Management výroby a služeb (115-0389)</displayed-value>
+    <stored-value>115-0389</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Management výroby a služeb (115-0489)</displayed-value>
+    <stored-value>115-0489</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Manažerská ekonomika (115-0393)</displayed-value>
+    <stored-value>115-0393</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Manažerská ekonomika (115-0493)</displayed-value>
+    <stored-value>115-0493</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Manažerská psychologie a sociologie (115-0398)</displayed-value>
+    <stored-value>115-0398</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Manažerská psychologie a sociologie (115-0498)</displayed-value>
+    <stored-value>115-0498</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Manažerské dovednosti (115-0306)</displayed-value>
+    <stored-value>115-0306</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Manažerské dovednosti (115-0406)</displayed-value>
+    <stored-value>115-0406</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Manažerské dovednosti (115-0506)</displayed-value>
+    <stored-value>115-0506</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Metody a techniky v managementu (115-0347)</displayed-value>
+    <stored-value>115-0347</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Metody a techniky v managementu (115-0447)</displayed-value>
+    <stored-value>115-0447</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Metody a techniky v managementu (115-0547)</displayed-value>
+    <stored-value>115-0547</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Odborná praxe (115-0397)</displayed-value>
+    <stored-value>115-0397</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Odborná praxe v zahraničí (115-0395)</displayed-value>
+    <stored-value>115-0395</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Organizační chování (115-0362)</displayed-value>
+    <stored-value>115-0362</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Organizační chování (115-0462)</displayed-value>
+    <stored-value>115-0462</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Organizační chování (115-0562)</displayed-value>
+    <stored-value>115-0562</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Podnikatelská etika (115-0303)</displayed-value>
+    <stored-value>115-0303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Podnikatelská etika (115-0403)</displayed-value>
+    <stored-value>115-0403</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Podnikatelská etika (115-5303)</displayed-value>
+    <stored-value>115-5303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Pokročilé řízení lidských zdrojů (115-0600)</displayed-value>
+    <stored-value>115-0600</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Pokročilé řízení lidských zdrojů (115-4600)</displayed-value>
+    <stored-value>115-4600</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Pokročilé řízení lidských zdrojů (115-5600)</displayed-value>
+    <stored-value>115-5600</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Prevence a řízení krizí v podniku (115-0953)</displayed-value>
+    <stored-value>115-0953</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Prevence a řízení krizí v podniku (115-95953)</displayed-value>
+    <stored-value>115-95953</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Profesní etika a etika sportu (115-3008)</displayed-value>
+    <stored-value>115-3008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Rozvoj kariéry (115-0358)</displayed-value>
+    <stored-value>115-0358</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Rozvoj kariéry (115-0458)</displayed-value>
+    <stored-value>115-0458</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Řízení lidských zdrojů (115-0501)</displayed-value>
+    <stored-value>115-0501</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Řízení lidských zdrojů (115-0602)</displayed-value>
+    <stored-value>115-0602</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Řízení lidských zdrojů (115-0603)</displayed-value>
+    <stored-value>115-0603</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Řízení lidských zdrojů (115-0954)</displayed-value>
+    <stored-value>115-0954</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Řízení lidských zdrojů (115-4602)</displayed-value>
+    <stored-value>115-4602</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Řízení lidských zdrojů (115-5602)</displayed-value>
+    <stored-value>115-5602</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Řízení lidských zdrojů (115-95954)</displayed-value>
+    <stored-value>115-95954</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Řízení pracovního výkonu zaměstnanců (115-0357)</displayed-value>
+    <stored-value>115-0357</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Řízení pracovního výkonu zaměstnanců (115-0457)</displayed-value>
+    <stored-value>115-0457</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Sociologie a filozofie tělesné kultury (115-3002)</displayed-value>
+    <stored-value>115-3002</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Speciální seminář (115-0360)</displayed-value>
+    <stored-value>115-0360</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Speciální seminář (115-0460)</displayed-value>
+    <stored-value>115-0460</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Sportovní management a marketing (115-0399)</displayed-value>
+    <stored-value>115-0399</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Sportovní management a marketing (115-4399)</displayed-value>
+    <stored-value>115-4399</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Strategický a krizový management (115-0605)</displayed-value>
+    <stored-value>115-0605</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Strategický a krizový management (115-4605)</displayed-value>
+    <stored-value>115-4605</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Strategický management (115-0361)</displayed-value>
+    <stored-value>115-0361</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Strategický management (115-0461)</displayed-value>
+    <stored-value>115-0461</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Strategický management (115-0561)</displayed-value>
+    <stored-value>115-0561</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Strategický management (115-0958)</displayed-value>
+    <stored-value>115-0958</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Strategický management (115-95958)</displayed-value>
+    <stored-value>115-95958</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Teorie a praxe managementu (115-0607)</displayed-value>
+    <stored-value>115-0607</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Teorie a praxe managementu (115-4607)</displayed-value>
+    <stored-value>115-4607</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Vyjednávání a společenský protokol (115-0606)</displayed-value>
+    <stored-value>115-0606</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Vyjednávání a společenský protokol (115-4606)</displayed-value>
+    <stored-value>115-4606</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Základy etiky (115-4603)</displayed-value>
+    <stored-value>115-4603</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Základy managementu (115-3700)</displayed-value>
+    <stored-value>115-3700</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>115 - Základy managementu (115-4700)</displayed-value>
+    <stored-value>115-4700</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Bakalářská práce (116-0313)</displayed-value>
+    <stored-value>116-0313</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Bakalářský seminář A (116-0311)</displayed-value>
+    <stored-value>116-0311</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Bakalářský seminář B (116-0312)</displayed-value>
+    <stored-value>116-0312</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Business Marketing (116-0315)</displayed-value>
+    <stored-value>116-0315</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Business Marketing (116-0515)</displayed-value>
+    <stored-value>116-0515</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Demografie (116-0364)</displayed-value>
+    <stored-value>116-0364</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Demografie (116-0464)</displayed-value>
+    <stored-value>116-0464</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Demografie (116-0564)</displayed-value>
+    <stored-value>116-0564</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Digitální marketing (116-0341)</displayed-value>
+    <stored-value>116-0341</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Digitální marketing (116-0541)</displayed-value>
+    <stored-value>116-0541</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Diplomová práce (116-0327)</displayed-value>
+    <stored-value>116-0327</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Diplomová práce (116-0527)</displayed-value>
+    <stored-value>116-0527</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Diplomový seminář A (116-0325)</displayed-value>
+    <stored-value>116-0325</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Diplomový seminář A (116-0525)</displayed-value>
+    <stored-value>116-0525</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Diplomový seminář B (116-0326)</displayed-value>
+    <stored-value>116-0326</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Diplomový seminář B (116-0526)</displayed-value>
+    <stored-value>116-0526</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - E-marketing (116-0319)</displayed-value>
+    <stored-value>116-0319</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Geografie Evropy (116-0362)</displayed-value>
+    <stored-value>116-0362</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Geografie Evropy (116-0562)</displayed-value>
+    <stored-value>116-0562</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Hospodářská geografie (116-0363)</displayed-value>
+    <stored-value>116-0363</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Hospodářská geografie (116-0563)</displayed-value>
+    <stored-value>116-0563</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Komunikace a integrace OZP (116-0337)</displayed-value>
+    <stored-value>116-0337</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Komunikace a integrace OZP (116-0437)</displayed-value>
+    <stored-value>116-0437</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Lokalizace a regionální rozvoj (116-0360)</displayed-value>
+    <stored-value>116-0360</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Lokalizace a regionální rozvoj (116-0460)</displayed-value>
+    <stored-value>116-0460</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Lokalizace a regionální rozvoj (116-0560)</displayed-value>
+    <stored-value>116-0560</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketing (116-0300)</displayed-value>
+    <stored-value>116-0300</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketing (116-0400)</displayed-value>
+    <stored-value>116-0400</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketing (116-0500)</displayed-value>
+    <stored-value>116-0500</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingová komunikace (116-0330)</displayed-value>
+    <stored-value>116-0330</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingová komunikace (116-0530)</displayed-value>
+    <stored-value>116-0530</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingové aplikace (116-0309)</displayed-value>
+    <stored-value>116-0309</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingové řízení (116-0308)</displayed-value>
+    <stored-value>116-0308</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingové řízení (116-0408)</displayed-value>
+    <stored-value>116-0408</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingové řízení (116-0508)</displayed-value>
+    <stored-value>116-0508</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingový projekt (116-0334)</displayed-value>
+    <stored-value>116-0334</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingový projekt (116-0534)</displayed-value>
+    <stored-value>116-0534</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingový výzkum (116-0502)</displayed-value>
+    <stored-value>116-0502</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingový výzkum A (116-0302)</displayed-value>
+    <stored-value>116-0302</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingový výzkum A (116-0402)</displayed-value>
+    <stored-value>116-0402</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingový výzkum B (116-0328)</displayed-value>
+    <stored-value>116-0328</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Marketingový výzkum B (116-0528)</displayed-value>
+    <stored-value>116-0528</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Mediální komunikace (116-0356)</displayed-value>
+    <stored-value>116-0356</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Mezinárodní marketing (116-0317)</displayed-value>
+    <stored-value>116-0317</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Mezinárodní marketing (116-0517)</displayed-value>
+    <stored-value>116-0517</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Obchodní činnosti (116-0301)</displayed-value>
+    <stored-value>116-0301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Obchodní operace se zahraničím (116-0318)</displayed-value>
+    <stored-value>116-0318</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Obchodní operace se zahraničím (116-0518)</displayed-value>
+    <stored-value>116-0518</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Obchodní strategie (116-0335)</displayed-value>
+    <stored-value>116-0335</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Obchodní strategie (116-0535)</displayed-value>
+    <stored-value>116-0535</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Odborná praxe (116-0340)</displayed-value>
+    <stored-value>116-0340</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Odborná praxe (116-0540)</displayed-value>
+    <stored-value>116-0540</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Odborná praxe v zahraničí (116-0336)</displayed-value>
+    <stored-value>116-0336</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Odborná praxe v zahraničí (116-0536)</displayed-value>
+    <stored-value>116-0536</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Praxe v agenturách/médiích (116-0348)</displayed-value>
+    <stored-value>116-0348</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Produktový management (116-0332)</displayed-value>
+    <stored-value>116-0332</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Produktový management (116-0532)</displayed-value>
+    <stored-value>116-0532</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Public Relations (116-0333)</displayed-value>
+    <stored-value>116-0333</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Řízení nákupu (116-0307)</displayed-value>
+    <stored-value>116-0307</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Řízení nákupu (116-0507)</displayed-value>
+    <stored-value>116-0507</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Speciální seminář (116-0321)</displayed-value>
+    <stored-value>116-0321</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Speciální seminář (116-0521)</displayed-value>
+    <stored-value>116-0521</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Spotřebitelské chování (116-0320)</displayed-value>
+    <stored-value>116-0320</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Strategické marketingové řízení (116-0949)</displayed-value>
+    <stored-value>116-0949</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Strategic Marketing Management (116-9549)</displayed-value>
+    <stored-value>116-9549</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>116 - Strategie vstupu na zahraniční trhy (116-0948)</displayed-value>
+    <stored-value>116-0948</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Audit v účetnictví (117-0321)</displayed-value>
+    <stored-value>117-0321</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Audit v účetnictví (117-0451)</displayed-value>
+    <stored-value>117-0451</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Bakalářská práce (117-0317)</displayed-value>
+    <stored-value>117-0317</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Bakalářský seminář A (117-0315)</displayed-value>
+    <stored-value>117-0315</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Bakalářský seminář B (117-0316)</displayed-value>
+    <stored-value>117-0316</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Daně, mzdy a pojistné (117-0045)</displayed-value>
+    <stored-value>117-0045</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Daně, mzdy a pojistné (117-0445)</displayed-value>
+    <stored-value>117-0445</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Daňová evidence (117-0040)</displayed-value>
+    <stored-value>117-0040</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Daňová teorie a politika (117-0367)</displayed-value>
+    <stored-value>117-0367</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Daňová teorie a politika (117-0467)</displayed-value>
+    <stored-value>117-0467</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Diplomová práce (117-0342)</displayed-value>
+    <stored-value>117-0342</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Diplomový seminář A (117-0340)</displayed-value>
+    <stored-value>117-0340</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Diplomový seminář B (117-0341)</displayed-value>
+    <stored-value>117-0341</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Ekonomie daní (117-0929)</displayed-value>
+    <stored-value>117-0929</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Likvidace a insolvenční řízení (117-0364)</displayed-value>
+    <stored-value>117-0364</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Manažerské účetnictví A (117-0347)</displayed-value>
+    <stored-value>117-0347</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Manažerské účetnictví A (117-0403)</displayed-value>
+    <stored-value>117-0403</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Manažerské účetnictví B (117-0350)</displayed-value>
+    <stored-value>117-0350</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Mezinárodní aspekty finančního účetnictví (117-0397)</displayed-value>
+    <stored-value>117-0397</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Mezinárodní standardy účetního výkaznictví (117-0043)</displayed-value>
+    <stored-value>117-0043</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Nepřímé daně A (117-0348)</displayed-value>
+    <stored-value>117-0348</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Nepřímé daně B (117-0335)</displayed-value>
+    <stored-value>117-0335</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Odborná praxe (117-0378)</displayed-value>
+    <stored-value>117-0378</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Odborná praxe (117-0380)</displayed-value>
+    <stored-value>117-0380</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Odborná praxe - účetnictví a daně (117-0318)</displayed-value>
+    <stored-value>117-0318</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Přímé daně A (117-0034)</displayed-value>
+    <stored-value>117-0034</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Přímé daně B (117-0035)</displayed-value>
+    <stored-value>117-0035</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Speciální seminář (117-0332)</displayed-value>
+    <stored-value>117-0332</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví A (117-0324)</displayed-value>
+    <stored-value>117-0324</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví A (117-0524)</displayed-value>
+    <stored-value>117-0524</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví a daně (117-0343)</displayed-value>
+    <stored-value>117-0343</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví a daně (117-0434)</displayed-value>
+    <stored-value>117-0434</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví a daně individuálního podnikatele (117-0036)</displayed-value>
+    <stored-value>117-0036</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví B (117-0325)</displayed-value>
+    <stored-value>117-0325</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví B (117-0525)</displayed-value>
+    <stored-value>117-0525</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví kapitálových společností (117-0346)</displayed-value>
+    <stored-value>117-0346</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví kapitálových společností (vyšší účetnictví) (117-0939)</displayed-value>
+    <stored-value>117-0939</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví nestátních neziskových organizací (117-0037)</displayed-value>
+    <stored-value>117-0037</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví nestátních neziskových organizací (117-0447)</displayed-value>
+    <stored-value>117-0447</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví obchodních společností (117-0310)</displayed-value>
+    <stored-value>117-0310</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Účetnictví vybraných účetních jednotek (117-0042)</displayed-value>
+    <stored-value>117-0042</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Využití ICT v účetnictví (117-0039)</displayed-value>
+    <stored-value>117-0039</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>117 - Základy účetnictví a daní (117-0567)</displayed-value>
+    <stored-value>117-0567</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Bakalářská práce (119-0336)</displayed-value>
+    <stored-value>119-0336</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Bakalářský seminář A (119-0334)</displayed-value>
+    <stored-value>119-0334</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Bakalářský seminář B (119-0335)</displayed-value>
+    <stored-value>119-0335</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Daňové právo a daňový proces (119-0351)</displayed-value>
+    <stored-value>119-0351</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Diplomová práce (119-0342)</displayed-value>
+    <stored-value>119-0342</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Diplomový seminář A (119-0340)</displayed-value>
+    <stored-value>119-0340</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Diplomový seminář B (119-0341)</displayed-value>
+    <stored-value>119-0341</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Ekonomická kriminalita (119-0347)</displayed-value>
+    <stored-value>119-0347</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Ekonomická kriminalita (119-0405)</displayed-value>
+    <stored-value>119-0405</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Finanční a daňové právo (119-0359)</displayed-value>
+    <stored-value>119-0359</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Obchodní a finanční právo (119-9513)</displayed-value>
+    <stored-value>119-9513</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Obchodní právo v praxi (119-0320)</displayed-value>
+    <stored-value>119-0320</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Odborná praxe (119-0354)</displayed-value>
+    <stored-value>119-0354</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Odborná praxe (119-0355)</displayed-value>
+    <stored-value>119-0355</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Odborná praxe v zahraničí (119-0352)</displayed-value>
+    <stored-value>119-0352</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Odborná praxe v zahraničí (119-0353)</displayed-value>
+    <stored-value>119-0353</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Pojistné právo v podnikatelské praxi (119-0326)</displayed-value>
+    <stored-value>119-0326</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Pracovní a sociální právo (119-0361)</displayed-value>
+    <stored-value>119-0361</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Pracovní a sociální právo (119-0409)</displayed-value>
+    <stored-value>119-0409</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Právní předpisy v podnikání (119-0360)</displayed-value>
+    <stored-value>119-0360</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Právní předpisy v podnikání (119-0460)</displayed-value>
+    <stored-value>119-0460</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Právo duševního vlastnictví (119-0324)</displayed-value>
+    <stored-value>119-0324</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Právo EU pro ekonomy (119-0339)</displayed-value>
+    <stored-value>119-0339</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Právo EU pro ekonomy (119-0539)</displayed-value>
+    <stored-value>119-0539</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Právo mezinárodního obchodu (119-0311)</displayed-value>
+    <stored-value>119-0311</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Právo pro ekonomy (119-0318)</displayed-value>
+    <stored-value>119-0318</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Právo pro ekonomy (119-0404)</displayed-value>
+    <stored-value>119-0404</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Právo v podnikání (119-0502)</displayed-value>
+    <stored-value>119-0502</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Právo v reklamní praxi (119-0319)</displayed-value>
+    <stored-value>119-0319</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Profesní kompetence (119-0008)</displayed-value>
+    <stored-value>119-0008</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Speciální seminář (119-0344)</displayed-value>
+    <stored-value>119-0344</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Spolkové právo (119-0338)</displayed-value>
+    <stored-value>119-0338</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Správní právo (119-0308)</displayed-value>
+    <stored-value>119-0308</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Správní právo (119-0408)</displayed-value>
+    <stored-value>119-0408</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Živnostenské právo (119-0350)</displayed-value>
+    <stored-value>119-0350</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>119 - Živnostenské právo (119-0407)</displayed-value>
+    <stored-value>119-0407</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Bakalářská práce (120-0323)</displayed-value>
+    <stored-value>120-0323</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Bakalářská práce (120-0523)</displayed-value>
+    <stored-value>120-0523</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Bakalářský seminář A (120-0321)</displayed-value>
+    <stored-value>120-0321</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Bakalářský seminář A (120-0521)</displayed-value>
+    <stored-value>120-0521</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Bakalářský seminář B (120-0322)</displayed-value>
+    <stored-value>120-0322</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Bakalářský seminář B (120-0522)</displayed-value>
+    <stored-value>120-0522</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Bezpečnostní aspekty světové ekonomiky (120-0367)</displayed-value>
+    <stored-value>120-0367</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Bezpečnostní aspekty světové ekonomiky (120-0467)</displayed-value>
+    <stored-value>120-0467</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Bezpečnostní aspekty světové ekonomiky (120-0567)</displayed-value>
+    <stored-value>120-0567</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Diplomová práce (120-0326)</displayed-value>
+    <stored-value>120-0326</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Diplomový seminář A (120-0324)</displayed-value>
+    <stored-value>120-0324</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Diplomový seminář B (120-0325)</displayed-value>
+    <stored-value>120-0325</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Ekonomie evropské integrace (120-0364)</displayed-value>
+    <stored-value>120-0364</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Ekonomie evropské integrace (120-0541)</displayed-value>
+    <stored-value>120-0541</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Ekonomie mezinárodního obchodu (120-0370)</displayed-value>
+    <stored-value>120-0370</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Ekonomie mezinárodního obchodu (120-0570)</displayed-value>
+    <stored-value>120-0570</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Evropská regionální politika (120-0307)</displayed-value>
+    <stored-value>120-0307</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Evropská regionální politika (120-0407)</displayed-value>
+    <stored-value>120-0407</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Evropská regionální politika (120-0507)</displayed-value>
+    <stored-value>120-0507</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Evropská unie (120-0330)</displayed-value>
+    <stored-value>120-0330</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Evropská unie (120-0430)</displayed-value>
+    <stored-value>120-0430</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Evropská unie (120-0504)</displayed-value>
+    <stored-value>120-0504</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Globální problémy v ekonomických souvislostech (120-0361)</displayed-value>
+    <stored-value>120-0361</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Globální problémy v ekonomických souvislostech (120-0561)</displayed-value>
+    <stored-value>120-0561</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Hospodářská politika EU (120-0305)</displayed-value>
+    <stored-value>120-0305</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Hospodářská politika EU (120-0405)</displayed-value>
+    <stored-value>120-0405</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Integrační procesy ve světové ekonomice (120-0304)</displayed-value>
+    <stored-value>120-0304</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Integrační procesy ve světové ekonomice (120-0594)</displayed-value>
+    <stored-value>120-0594</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Mezinárodní konkurenceschopnost (120-0368)</displayed-value>
+    <stored-value>120-0368</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Mezinárodní konkurenceschopnost (120-0568)</displayed-value>
+    <stored-value>120-0568</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Mezinárodní měnová integrace (120-0369)</displayed-value>
+    <stored-value>120-0369</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Mezinárodní obchod (120-0363)</displayed-value>
+    <stored-value>120-0363</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Mezinárodní obchod (120-0563)</displayed-value>
+    <stored-value>120-0563</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Mezinárodní podnikání (120-0373)</displayed-value>
+    <stored-value>120-0373</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Mezinárodní podnikání (120-0473)</displayed-value>
+    <stored-value>120-0473</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Mezinárodní projektový management (120-0374)</displayed-value>
+    <stored-value>120-0374</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Mezinárodní projektový management (120-0474)</displayed-value>
+    <stored-value>120-0474</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Mezinárodní projektový management (120-0513)</displayed-value>
+    <stored-value>120-0513</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Odborná praxe (120-0356)</displayed-value>
+    <stored-value>120-0356</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Odborná praxe (120-0556)</displayed-value>
+    <stored-value>120-0556</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Odborná praxe v zahraničí (120-0901)</displayed-value>
+    <stored-value>120-0901</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Politika soudržnosti EU (120-0350)</displayed-value>
+    <stored-value>120-0350</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Politika soudržnosti EU (120-0537)</displayed-value>
+    <stored-value>120-0537</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Projektový a dotační management A (120-0366)</displayed-value>
+    <stored-value>120-0366</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Projektový a dotační management A (120-0466)</displayed-value>
+    <stored-value>120-0466</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Projektový a dotační management A (120-0566)</displayed-value>
+    <stored-value>120-0566</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Projektový a dotační management B (120-0371)</displayed-value>
+    <stored-value>120-0371</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Seminář z ekonomie chudoby (120-0059)</displayed-value>
+    <stored-value>120-0059</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Seminář z ekonomie chudoby (120-0459)</displayed-value>
+    <stored-value>120-0459</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Speciální seminář (120-0320)</displayed-value>
+    <stored-value>120-0320</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Teorie integračních procesů (120-0303)</displayed-value>
+    <stored-value>120-0303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Vnější ekonomické vztahy EU (120-0372)</displayed-value>
+    <stored-value>120-0372</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Vnitřní trh a podpora podnikání v EU (120-0365)</displayed-value>
+    <stored-value>120-0365</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>120 - Vnitřní trh a podpora podnikání v EU (120-0565)</displayed-value>
+    <stored-value>120-0565</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Analýza časových řad (151-0350)</displayed-value>
+    <stored-value>151-0350</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Analýza dat pro bakalářské práce (151-0353)</displayed-value>
+    <stored-value>151-0353</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Analýza dat pro diplomové práce (151-0360)</displayed-value>
+    <stored-value>151-0360</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Analýza ekonomických informací (151-0551)</displayed-value>
+    <stored-value>151-0551</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Aplikace logistických metod (151-0321)</displayed-value>
+    <stored-value>151-0321</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Aplikovaná matematika pro ekonomy (151-0006)</displayed-value>
+    <stored-value>151-0006</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Aplikované statistické metody (151-0339)</displayed-value>
+    <stored-value>151-0339</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Finanční matematika (151-0318)</displayed-value>
+    <stored-value>151-0318</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Finanční matematika (151-0518)</displayed-value>
+    <stored-value>151-0518</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Inženýrská matematika pro ekonomy (151-0007)</displayed-value>
+    <stored-value>151-0007</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Inženýrská statistika pro ekonomy (151-0009)</displayed-value>
+    <stored-value>151-0009</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Matematika pro ekonomy (151-0004)</displayed-value>
+    <stored-value>151-0004</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Pokročilé metody statistické analýzy dat (151-0901)</displayed-value>
+    <stored-value>151-0901</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Pokročilé metody statistické analýzy dat (151-9501)</displayed-value>
+    <stored-value>151-9501</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>151 - Statistika pro ekonomy (151-0005)</displayed-value>
+    <stored-value>151-0005</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Bakalářská práce (152-0312)</displayed-value>
+    <stored-value>152-0312</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Bakalářská práce (152-0412)</displayed-value>
+    <stored-value>152-0412</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Bakalářská práce (152-0512)</displayed-value>
+    <stored-value>152-0512</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Bakalářský seminář (152-0513)</displayed-value>
+    <stored-value>152-0513</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Bakalářský seminář A (152-0310)</displayed-value>
+    <stored-value>152-0310</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Bakalářský seminář A (152-0410)</displayed-value>
+    <stored-value>152-0410</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Bakalářský seminář B (152-0311)</displayed-value>
+    <stored-value>152-0311</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Bakalářský seminář B (152-0411)</displayed-value>
+    <stored-value>152-0411</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Diplomová práce (152-0350)</displayed-value>
+    <stored-value>152-0350</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Diplomová práce (152-0450)</displayed-value>
+    <stored-value>152-0450</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Diplomový seminář A (152-0348)</displayed-value>
+    <stored-value>152-0348</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Diplomový seminář A (152-0448)</displayed-value>
+    <stored-value>152-0448</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Diplomový seminář B (152-0349)</displayed-value>
+    <stored-value>152-0349</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Diplomový seminář B (152-0449)</displayed-value>
+    <stored-value>152-0449</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Ekonomická analýza podniku (152-0389)</displayed-value>
+    <stored-value>152-0389</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Ekonomická analýza podniku (152-0489)</displayed-value>
+    <stored-value>152-0489</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Ekonomika a řízení podniku (152-0333)</displayed-value>
+    <stored-value>152-0333</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Ekonomika a řízení podniku (152-0433)</displayed-value>
+    <stored-value>152-0433</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Ekonomika v bezpečnosti (152-0514)</displayed-value>
+    <stored-value>152-0514</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Karierní kompetence (152-0326)</displayed-value>
+    <stored-value>152-0326</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Karierní kompetence (152-0426)</displayed-value>
+    <stored-value>152-0426</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Logistika (152-0388)</displayed-value>
+    <stored-value>152-0388</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Logistika (152-0488)</displayed-value>
+    <stored-value>152-0488</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Management kvality (152-0387)</displayed-value>
+    <stored-value>152-0387</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Management kvality (152-0477)</displayed-value>
+    <stored-value>152-0477</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Manažerská simulační hra (152-0346)</displayed-value>
+    <stored-value>152-0346</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Manažerská simulační hra (152-0446)</displayed-value>
+    <stored-value>152-0446</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Obchodní logistika (152-0379)</displayed-value>
+    <stored-value>152-0379</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Odborná praxe (152-0383)</displayed-value>
+    <stored-value>152-0383</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Odborná praxe v zahraničí (152-0384)</displayed-value>
+    <stored-value>152-0384</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Ochrana spotřebitele (152-0317)</displayed-value>
+    <stored-value>152-0317</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Ochrana spotřebitele (152-0417)</displayed-value>
+    <stored-value>152-0417</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Organizace a řízení procesů (152-0906)</displayed-value>
+    <stored-value>152-0906</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Organizace a řízení procesů (152-9506)</displayed-value>
+    <stored-value>152-9506</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Organizace podniku (152-0334)</displayed-value>
+    <stored-value>152-0334</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Organizace podniku (152-0434)</displayed-value>
+    <stored-value>152-0434</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Podnikání malé a střední firmy (152-0395)</displayed-value>
+    <stored-value>152-0395</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Podnikání malé a střední firmy (152-0495)</displayed-value>
+    <stored-value>152-0495</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Podnikatelské přístupy a metody (152-0328)</displayed-value>
+    <stored-value>152-0328</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Podnikatelské přístupy a metody (152-0428)</displayed-value>
+    <stored-value>152-0428</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Podniková diagnostika (152-0369)</displayed-value>
+    <stored-value>152-0369</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Podniková diagnostika (152-0469)</displayed-value>
+    <stored-value>152-0469</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Podniková diagnostika (152-0542)</displayed-value>
+    <stored-value>152-0542</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Podniková ekonomika (152-0322)</displayed-value>
+    <stored-value>152-0322</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Podniková ekonomika (152-0422)</displayed-value>
+    <stored-value>152-0422</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Podniková ekonomika (152-0507)</displayed-value>
+    <stored-value>152-0507</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Poradenství pro podniky (152-0325)</displayed-value>
+    <stored-value>152-0325</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Poradenství pro podniky (152-0425)</displayed-value>
+    <stored-value>152-0425</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Poradenství v ekonomice a řízení podniku (152-0386)</displayed-value>
+    <stored-value>152-0386</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Poradenství v ekonomice a řízení podniku (152-0486)</displayed-value>
+    <stored-value>152-0486</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Procesní řízení (152-0336)</displayed-value>
+    <stored-value>152-0336</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Procesní řízení (152-0436)</displayed-value>
+    <stored-value>152-0436</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Řízení dodavatelského řetězce (152-0357)</displayed-value>
+    <stored-value>152-0357</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Řízení dodavatelského řetězce (152-0457)</displayed-value>
+    <stored-value>152-0457</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Řízení inovací v podniku (152-0338)</displayed-value>
+    <stored-value>152-0338</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Řízení inovací v podniku (152-0438)</displayed-value>
+    <stored-value>152-0438</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Speciální seminář (152-0345)</displayed-value>
+    <stored-value>152-0345</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Speciální seminář (152-0445)</displayed-value>
+    <stored-value>152-0445</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Specifické aspekty podnikání (152-0323)</displayed-value>
+    <stored-value>152-0323</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Specifické aspekty podnikání (152-0423)</displayed-value>
+    <stored-value>152-0423</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Start-up podnikání (152-0392)</displayed-value>
+    <stored-value>152-0392</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Trendy v podnikání (152-0356)</displayed-value>
+    <stored-value>152-0356</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Trendy v podnikání (152-0456)</displayed-value>
+    <stored-value>152-0456</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Udržitelné podnikání (152-0505)</displayed-value>
+    <stored-value>152-0505</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Udržitelnost a cirkulární ekonomika (152-0327)</displayed-value>
+    <stored-value>152-0327</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>152 - Udržitelnost a cirkulární ekonomika (152-0427)</displayed-value>
+    <stored-value>152-0427</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Bakalářská práce (153-0381)</displayed-value>
+    <stored-value>153-0381</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Bakalářská práce (153-0481)</displayed-value>
+    <stored-value>153-0481</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Bakalářský seminář A (153-0382)</displayed-value>
+    <stored-value>153-0382</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Bakalářský seminář A (153-0482)</displayed-value>
+    <stored-value>153-0482</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Bakalářský seminář B (153-0383)</displayed-value>
+    <stored-value>153-0383</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Bakalářský seminář B (153-0483)</displayed-value>
+    <stored-value>153-0483</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Digitální občan (153-0321)</displayed-value>
+    <stored-value>153-0321</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Digitální občan (153-0421)</displayed-value>
+    <stored-value>153-0421</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Diplomová práce (153-0389)</displayed-value>
+    <stored-value>153-0389</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Diplomová práce (153-0489)</displayed-value>
+    <stored-value>153-0489</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Diplomový seminář A (153-0387)</displayed-value>
+    <stored-value>153-0387</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Diplomový seminář A (153-0487)</displayed-value>
+    <stored-value>153-0487</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Diplomový seminář B (153-0388)</displayed-value>
+    <stored-value>153-0388</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Diplomový seminář B (153-0488)</displayed-value>
+    <stored-value>153-0488</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - eGovernment (153-0379)</displayed-value>
+    <stored-value>153-0379</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - eGovernment (153-0479)</displayed-value>
+    <stored-value>153-0479</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - eGovernment (153-0579)</displayed-value>
+    <stored-value>153-0579</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Ekonomie veřejného sektoru (153-0371)</displayed-value>
+    <stored-value>153-0371</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Ekonomie veřejného  sektoru (153-0471)</displayed-value>
+    <stored-value>153-0471</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Ekonomie veřejného sektoru (153-0571)</displayed-value>
+    <stored-value>153-0571</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Ekonomika odvětví veřejného sektoru (153-0370)</displayed-value>
+    <stored-value>153-0370</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Ekonomika odvětví veřejného sektoru (153-0470)</displayed-value>
+    <stored-value>153-0470</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Ekonomika veřejné správy (153-0393)</displayed-value>
+    <stored-value>153-0393</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Ekonomika veřejné správy (153-0493)</displayed-value>
+    <stored-value>153-0493</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Ekonomika výzkumu a vývoje a ekonomika sportu (153-0341)</displayed-value>
+    <stored-value>153-0341</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Ekonomika výzkumu a vývoje a ekonomika sportu (153-0441)</displayed-value>
+    <stored-value>153-0441</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Evaluace veřejných služeb (153-0395)</displayed-value>
+    <stored-value>153-0395</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Evaluace veřejných služeb (153-0495)</displayed-value>
+    <stored-value>153-0495</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Finanční management územní samosprávy (153-0392)</displayed-value>
+    <stored-value>153-0392</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Finanční management územní samosprávy (153-0492)</displayed-value>
+    <stored-value>153-0492</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Kultura a cestovní ruch v ČR (153-0061)</displayed-value>
+    <stored-value>153-0061</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Kultura a cestovní ruch v ČR (153-0461)</displayed-value>
+    <stored-value>153-0461</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Metodologie kvalitativního a kvantitativního výzkumu (153-0062)</displayed-value>
+    <stored-value>153-0062</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Metodologie kvalitativního a kvantitativního výzkumu (153-0462)</displayed-value>
+    <stored-value>153-0462</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Neziskové organizace (153-0372)</displayed-value>
+    <stored-value>153-0372</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Neziskové organizace (153-0472)</displayed-value>
+    <stored-value>153-0472</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Oceňování majetku (153-0396)</displayed-value>
+    <stored-value>153-0396</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Oceňování majetku (153-0496)</displayed-value>
+    <stored-value>153-0496</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Odborná praxe A (153-0369)</displayed-value>
+    <stored-value>153-0369</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Odborná praxe B (153-0397)</displayed-value>
+    <stored-value>153-0397</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Odborný seminář pro kombinované studium (153-0485)</displayed-value>
+    <stored-value>153-0485</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Politika pro každého (153-0312)</displayed-value>
+    <stored-value>153-0312</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Sociální a zdravotní politika (153-0376)</displayed-value>
+    <stored-value>153-0376</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Sociální a zdravotní politika (153-0476)</displayed-value>
+    <stored-value>153-0476</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Speciální seminář (153-0386)</displayed-value>
+    <stored-value>153-0386</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Speciální seminář (153-0486)</displayed-value>
+    <stored-value>153-0486</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejná správa (153-0373)</displayed-value>
+    <stored-value>153-0373</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejná správa (153-0473)</displayed-value>
+    <stored-value>153-0473</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejná správa v zemích EU (153-0377)</displayed-value>
+    <stored-value>153-0377</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejná správa v zemích EU (153-0477)</displayed-value>
+    <stored-value>153-0477</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejné finance (153-0394)</displayed-value>
+    <stored-value>153-0394</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejné finance (153-0494)</displayed-value>
+    <stored-value>153-0494</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejné finance (153-0594)</displayed-value>
+    <stored-value>153-0594</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejné rozpočty (153-0375)</displayed-value>
+    <stored-value>153-0375</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejné rozpočty (153-0475)</displayed-value>
+    <stored-value>153-0475</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejné rozpočty (153-0575)</displayed-value>
+    <stored-value>153-0575</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejný majetek (153-0378)</displayed-value>
+    <stored-value>153-0378</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejný majetek (153-0478)</displayed-value>
+    <stored-value>153-0478</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejný sektor I. (153-0390)</displayed-value>
+    <stored-value>153-0390</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejný sektor I. (153-0490)</displayed-value>
+    <stored-value>153-0490</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejný sektor II. (153-0391)</displayed-value>
+    <stored-value>153-0391</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Veřejný sektor II. (153-0491)</displayed-value>
+    <stored-value>153-0491</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Vzdělávací a kulturní politika (153-0374)</displayed-value>
+    <stored-value>153-0374</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Vzdělávací a kulturní politika (153-0474)</displayed-value>
+    <stored-value>153-0474</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Webové aplikace veřejné správy (153-0398)</displayed-value>
+    <stored-value>153-0398</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>153 - Webové aplikace veřejné správy (153-0498)</displayed-value>
+    <stored-value>153-0498</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Aplikace a využití reálných opcí ve financích (154-0921)</displayed-value>
+    <stored-value>154-0921</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Aplikace a využití reálných opcí ve financích (154-9521)</displayed-value>
+    <stored-value>154-9521</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Aplikace reálných opcí (154-0309)</displayed-value>
+    <stored-value>154-0309</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Aplikace reálných opcí (154-0509)</displayed-value>
+    <stored-value>154-0509</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Aplikovaná finanční analýza (154-0582)</displayed-value>
+    <stored-value>154-0582</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Aplikované kvantitativní finance v Pythonu (154-0571)</displayed-value>
+    <stored-value>154-0571</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Aplikovaný finanční management firmy (154-0512)</displayed-value>
+    <stored-value>154-0512</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bakalářská práce (154-0317)</displayed-value>
+    <stored-value>154-0317</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bakalářská práce (154-0506)</displayed-value>
+    <stored-value>154-0506</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bakalářská práce (154-0517)</displayed-value>
+    <stored-value>154-0517</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bakalářský seminář (154-0505)</displayed-value>
+    <stored-value>154-0505</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bakalářský seminář A (154-0315)</displayed-value>
+    <stored-value>154-0315</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bakalářský seminář A (154-0515)</displayed-value>
+    <stored-value>154-0515</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bakalářský seminář B (154-0316)</displayed-value>
+    <stored-value>154-0316</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bakalářský seminář B (154-0516)</displayed-value>
+    <stored-value>154-0516</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bankovnictví (154-0568)</displayed-value>
+    <stored-value>154-0568</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bankovnictví a kapitálové trhy (154-0304)</displayed-value>
+    <stored-value>154-0304</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bankovnictví a kapitálové trhy (154-0504)</displayed-value>
+    <stored-value>154-0504</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bankovní modely a analýzy (154-0908)</displayed-value>
+    <stored-value>154-0908</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bankovní modely a analýzy (154-0922)</displayed-value>
+    <stored-value>154-0922</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Bankovní modely a analýzy (154-9522)</displayed-value>
+    <stored-value>154-9522</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Daně (154-0590)</displayed-value>
+    <stored-value>154-0590</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Daně ekonomických subjektů (154-0367)</displayed-value>
+    <stored-value>154-0367</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Daně ekonomických subjektů (154-0567)</displayed-value>
+    <stored-value>154-0567</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Daňová soustava v ČR (154-0308)</displayed-value>
+    <stored-value>154-0308</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Daňová soustava v ČR (154-0408)</displayed-value>
+    <stored-value>154-0408</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Diplomová práce (154-0329)</displayed-value>
+    <stored-value>154-0329</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Diplomová práce (154-0529)</displayed-value>
+    <stored-value>154-0529</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Diplomový seminář A (154-0327)</displayed-value>
+    <stored-value>154-0327</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Diplomový seminář A (154-0527)</displayed-value>
+    <stored-value>154-0527</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Diplomový seminář B (154-0328)</displayed-value>
+    <stored-value>154-0328</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Diplomový seminář B (154-0528)</displayed-value>
+    <stored-value>154-0528</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Etika ve financích (154-0379)</displayed-value>
+    <stored-value>154-0379</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Etika ve financích (154-0569)</displayed-value>
+    <stored-value>154-0569</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Etika v investování (154-0583)</displayed-value>
+    <stored-value>154-0583</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finance (154-0300)</displayed-value>
+    <stored-value>154-0300</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finance (154-0400)</displayed-value>
+    <stored-value>154-0400</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finance (154-0500)</displayed-value>
+    <stored-value>154-0500</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finance (154-0920)</displayed-value>
+    <stored-value>154-0920</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finance (154-9500)</displayed-value>
+    <stored-value>154-9500</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finance (154-9520)</displayed-value>
+    <stored-value>154-9520</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční instituce (154-0577)</displayed-value>
+    <stored-value>154-0577</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční management (154-0513)</displayed-value>
+    <stored-value>154-0513</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční management (154-0923)</displayed-value>
+    <stored-value>154-0923</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční management (154-9523)</displayed-value>
+    <stored-value>154-9523</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční management firmy (154-0581)</displayed-value>
+    <stored-value>154-0581</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční modelování (154-0924)</displayed-value>
+    <stored-value>154-0924</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční modelování (154-9524)</displayed-value>
+    <stored-value>154-9524</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční modely (154-0325)</displayed-value>
+    <stored-value>154-0325</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční modely (154-0525)</displayed-value>
+    <stored-value>154-0525</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční modely (154-9502)</displayed-value>
+    <stored-value>154-9502</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční poradenství (154-0352)</displayed-value>
+    <stored-value>154-0352</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční poradenství (154-0552)</displayed-value>
+    <stored-value>154-0552</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční reporting (154-0580)</displayed-value>
+    <stored-value>154-0580</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční rozhodování za rizika (154-0323)</displayed-value>
+    <stored-value>154-0323</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční rozhodování za rizika (154-0523)</displayed-value>
+    <stored-value>154-0523</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční řízení a rozhodování (154-0301)</displayed-value>
+    <stored-value>154-0301</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční řízení a rozhodování (154-0368)</displayed-value>
+    <stored-value>154-0368</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční řízení a rozhodování (154-0401)</displayed-value>
+    <stored-value>154-0401</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční řízení a rozhodování (154-0901)</displayed-value>
+    <stored-value>154-0901</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční řízení a rozhodování (154-9501)</displayed-value>
+    <stored-value>154-9501</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční řízení firmy A (154-0335)</displayed-value>
+    <stored-value>154-0335</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční řízení firmy B (154-0336)</displayed-value>
+    <stored-value>154-0336</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční trhy (154-0511)</displayed-value>
+    <stored-value>154-0511</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční trhy a jejich aplikace (154-0925)</displayed-value>
+    <stored-value>154-0925</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční trhy a jejich aplikace (154-9509)</displayed-value>
+    <stored-value>154-9509</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční trhy a jejich aplikace (154-9525)</displayed-value>
+    <stored-value>154-9525</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční trhy I. A (154-0332)</displayed-value>
+    <stored-value>154-0332</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční trhy I. B (154-0333)</displayed-value>
+    <stored-value>154-0333</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční trhy II. A (154-0337)</displayed-value>
+    <stored-value>154-0337</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční trhy II. A (154-0537)</displayed-value>
+    <stored-value>154-0537</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční trhy II. B (154-0338)</displayed-value>
+    <stored-value>154-0338</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Finanční trhy II. B (154-0538)</displayed-value>
+    <stored-value>154-0538</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Kapitálové trhy: Akciové investice (154-0574)</displayed-value>
+    <stored-value>154-0574</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Kapitálové trhy: Dluhové cenné papíry (154-0573)</displayed-value>
+    <stored-value>154-0573</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Kvantitativní metody ve financích (154-0501)</displayed-value>
+    <stored-value>154-0501</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Manažerské účetnictví (154-0591)</displayed-value>
+    <stored-value>154-0591</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Mezinárodní finance (154-0926)</displayed-value>
+    <stored-value>154-0926</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Mezinárodní finance (154-9503)</displayed-value>
+    <stored-value>154-9503</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Mezinárodní finance (154-9526)</displayed-value>
+    <stored-value>154-9526</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Náklady, kalkulace a ceny (154-0307)</displayed-value>
+    <stored-value>154-0307</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Náklady, kalkulace a ceny (154-0407)</displayed-value>
+    <stored-value>154-0407</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Náklady, kalkulace a ceny (154-0507)</displayed-value>
+    <stored-value>154-0507</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Numerické a simulační techniky s aplikacemi (154-0929)</displayed-value>
+    <stored-value>154-0929</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Numerické a simulační techniky s aplikacemi (154-9529)</displayed-value>
+    <stored-value>154-9529</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Oceňování a akvizice (154-0322)</displayed-value>
+    <stored-value>154-0322</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Oceňování a akvizice (154-0522)</displayed-value>
+    <stored-value>154-0522</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Oceňování a aplikace metodologie reálných opcí (154-9511)</displayed-value>
+    <stored-value>154-9511</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Oceňování a hedging finančních derivátů (154-0340)</displayed-value>
+    <stored-value>154-0340</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Oceňování a hedging finančních derivátů (154-0540)</displayed-value>
+    <stored-value>154-0540</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Oceňování finančních a reálných aktiv (154-0927)</displayed-value>
+    <stored-value>154-0927</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Oceňování finančních a reálných aktiv (154-9527)</displayed-value>
+    <stored-value>154-9527</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Oceňování pomocí diskontovaných peněžních toků (154-0503)</displayed-value>
+    <stored-value>154-0503</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Odborná praxe (154-0362)</displayed-value>
+    <stored-value>154-0362</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Odborná praxe (154-0508)</displayed-value>
+    <stored-value>154-0508</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Odborná praxe v zahraničí (154-0361)</displayed-value>
+    <stored-value>154-0361</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Odborná praxe v zahraničí (154-0561)</displayed-value>
+    <stored-value>154-0561</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Pojistné modely a jejich využití (154-0928)</displayed-value>
+    <stored-value>154-0928</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Pojistné modely a jejich využití (154-9510)</displayed-value>
+    <stored-value>154-9510</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Pojistné modely a jejich využití (154-9528)</displayed-value>
+    <stored-value>154-9528</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Pojišťovnictví I. (154-0302)</displayed-value>
+    <stored-value>154-0302</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Pojišťovnictví I. (154-0502)</displayed-value>
+    <stored-value>154-0502</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Pojišťovnictví II. (154-0320)</displayed-value>
+    <stored-value>154-0320</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Pojišťovnictví II. (154-0520)</displayed-value>
+    <stored-value>154-0520</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Pokročilé deriváty a alternativní investice (154-0576)</displayed-value>
+    <stored-value>154-0576</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Pokročilý portfolio management (154-0579)</displayed-value>
+    <stored-value>154-0579</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Portfolio a risk management (154-0578)</displayed-value>
+    <stored-value>154-0578</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Praktické aplikace finanční analýzy (154-0369)</displayed-value>
+    <stored-value>154-0369</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Řízení výkonnosti (154-0572)</displayed-value>
+    <stored-value>154-0572</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Seminář k vybraným otázkám z daňové teorie a praxe (154-0365)</displayed-value>
+    <stored-value>154-0365</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Seminář k vybraným otázkám z daňové teorie a praxe (154-0565)</displayed-value>
+    <stored-value>154-0565</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Speciální seminář (154-0324)</displayed-value>
+    <stored-value>154-0324</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Speciální seminář (154-0524)</displayed-value>
+    <stored-value>154-0524</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Trendy a inovace na finančních trzích (154-0566)</displayed-value>
+    <stored-value>154-0566</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Základy derivátů a alternativních investic (154-0575)</displayed-value>
+    <stored-value>154-0575</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Základy finančního poradenství (154-0354)</displayed-value>
+    <stored-value>154-0354</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Základy finančního poradenství (154-0454)</displayed-value>
+    <stored-value>154-0454</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Základy finančních trhů (154-0360)</displayed-value>
+    <stored-value>154-0360</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>154 - Základy finančních trhů (154-0560)</displayed-value>
+    <stored-value>154-0560</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Analýza dat v MS Excelu (155-1327)</displayed-value>
+    <stored-value>155-1327</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Analýza dat v MS Office 365 (155-1336)</displayed-value>
+    <stored-value>155-1336</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Bakalářská práce (155-1334)</displayed-value>
+    <stored-value>155-1334</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Bakalářský seminář A (155-1332)</displayed-value>
+    <stored-value>155-1332</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Bakalářský seminář B (155-1333)</displayed-value>
+    <stored-value>155-1333</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Databáze (155-0306)</displayed-value>
+    <stored-value>155-0306</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Databázové Systémy (155-0911)</displayed-value>
+    <stored-value>155-0911</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Ekonomické aplikace v e-business (155-0381)</displayed-value>
+    <stored-value>155-0381</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Ekonomické aplikace v e-business (155-0469)</displayed-value>
+    <stored-value>155-0469</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Informační podpora pro manažery (155-0357)</displayed-value>
+    <stored-value>155-0357</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Informatika (155-0450)</displayed-value>
+    <stored-value>155-0450</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Informatika (155-0504)</displayed-value>
+    <stored-value>155-0504</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Informatika (155-1350)</displayed-value>
+    <stored-value>155-1350</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Integrační platformy (155-1312)</displayed-value>
+    <stored-value>155-1312</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Integrované softwarové systémy v prostředí heterogenních sítí (ORACLE) (155-0909)</displayed-value>
+    <stored-value>155-0909</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Management podnikové informatiky (155-1326)</displayed-value>
+    <stored-value>155-1326</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Odborná praxe (155-1335)</displayed-value>
+    <stored-value>155-1335</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Operační systémy (155-0399)</displayed-value>
+    <stored-value>155-0399</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Paradigma datových skladů (155-0912)</displayed-value>
+    <stored-value>155-0912</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Paradigma datových skladů (155-9512)</displayed-value>
+    <stored-value>155-9512</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Počítačová bezpečnost (155-1328)</displayed-value>
+    <stored-value>155-1328</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Podnikové informační systémy (155-1329)</displayed-value>
+    <stored-value>155-1329</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Pravděpodobnostní modelování a metody soft computingu (155-0907)</displayed-value>
+    <stored-value>155-0907</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Pravděpodobnostní modelování a metody soft computingu (155-9507)</displayed-value>
+    <stored-value>155-9507</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Procesní řízení (155-1316)</displayed-value>
+    <stored-value>155-1316</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Programování webových aplikací (155-1330)</displayed-value>
+    <stored-value>155-1330</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Projektování informačních systémů (155-1303)</displayed-value>
+    <stored-value>155-1303</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Reklamní grafika (155-1317)</displayed-value>
+    <stored-value>155-1317</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Soft Computing v ekonomice (155-1305)</displayed-value>
+    <stored-value>155-1305</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Softwarové Inženýrství (155-1320)</displayed-value>
+    <stored-value>155-1320</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Strategické informační systémy (155-0992)</displayed-value>
+    <stored-value>155-0992</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Strategické informační systémy (155-9992)</displayed-value>
+    <stored-value>155-9992</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Systémové inženýrství a informatika (155-0908)</displayed-value>
+    <stored-value>155-0908</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Systémy na podporu strategického rozhodování (155-0906)</displayed-value>
+    <stored-value>155-0906</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Systémy na podporu strategického rozhodování (155-9506)</displayed-value>
+    <stored-value>155-9506</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Tvorba internetových stránek (155-0384)</displayed-value>
+    <stored-value>155-0384</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Úvod do Informatiky (155-1323)</displayed-value>
+    <stored-value>155-1323</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Úvod do programování (155-0397)</displayed-value>
+    <stored-value>155-0397</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Vývoj informačních systémů (155-1325)</displayed-value>
+    <stored-value>155-1325</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Webové stránky (155-1324)</displayed-value>
+    <stored-value>155-1324</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Zpracování grafické informace (155-0340)</displayed-value>
+    <stored-value>155-0340</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>155 - Zpracování podnikatelských dat (155-0555)</displayed-value>
+    <stored-value>155-0555</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Akademický výzkum (157-0999)</displayed-value>
+    <stored-value>157-0999</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Analýza obalu dat (157-9582)</displayed-value>
+    <stored-value>157-9582</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Analýza obalu dat (157-9982)</displayed-value>
+    <stored-value>157-9982</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Business Intelligence (157-0377)</displayed-value>
+    <stored-value>157-0377</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Data mining (157-0386)</displayed-value>
+    <stored-value>157-0386</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Diplomová práce (157-0351)</displayed-value>
+    <stored-value>157-0351</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Diplomový seminář A (157-0349)</displayed-value>
+    <stored-value>157-0349</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Diplomový seminář B (157-0350)</displayed-value>
+    <stored-value>157-0350</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Ekonometrie (157-0360)</displayed-value>
+    <stored-value>157-0360</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Ekonometrie (157-0560)</displayed-value>
+    <stored-value>157-0560</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Fuzzy modelování systémů (157-0905)</displayed-value>
+    <stored-value>157-0905</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Kvantitativní metody (157-0374)</displayed-value>
+    <stored-value>157-0374</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Kvantitativní metody (157-0474)</displayed-value>
+    <stored-value>157-0474</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Kvantitativní metody (157-0574)</displayed-value>
+    <stored-value>157-0574</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Kvantitativní metody ekonomické analýzy (157-0991)</displayed-value>
+    <stored-value>157-0991</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Kvantitativní metody ekonomické analýzy (157-9591)</displayed-value>
+    <stored-value>157-9591</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Metody vícekriteriálního rozhodování (157-0375)</displayed-value>
+    <stored-value>157-0375</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Metody vícekriteriálního rozhodování (157-0575)</displayed-value>
+    <stored-value>157-0575</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Odborná praxe (157-0371)</displayed-value>
+    <stored-value>157-0371</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Optimalizace (157-9586)</displayed-value>
+    <stored-value>157-9586</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Optimalizace (157-9986)</displayed-value>
+    <stored-value>157-9986</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Optimalizační metody (157-0372)</displayed-value>
+    <stored-value>157-0372</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Organizace a informace (157-0003)</displayed-value>
+    <stored-value>157-0003</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Organizační projektování (157-0326)</displayed-value>
+    <stored-value>157-0326</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Organizační projektování (157-0526)</displayed-value>
+    <stored-value>157-0526</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Podnikatelské modely (157-0363)</displayed-value>
+    <stored-value>157-0363</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Podnikatelské modely (157-0563)</displayed-value>
+    <stored-value>157-0563</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Projektové řízení (157-0391)</displayed-value>
+    <stored-value>157-0391</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Projektové řízení A (157-0361)</displayed-value>
+    <stored-value>157-0361</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Projektové řízení A (157-0461)</displayed-value>
+    <stored-value>157-0461</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Projektové řízení B (157-0364)</displayed-value>
+    <stored-value>157-0364</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Projektový management (157-0376)</displayed-value>
+    <stored-value>157-0376</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Projektový management (157-0476)</displayed-value>
+    <stored-value>157-0476</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Projektový management (157-0576)</displayed-value>
+    <stored-value>157-0576</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Řízení systémových rizik (157-0380)</displayed-value>
+    <stored-value>157-0380</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Software SAP (157-0390)</displayed-value>
+    <stored-value>157-0390</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Speciální seminář (157-0337)</displayed-value>
+    <stored-value>157-0337</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Stochastické a fuzzy modelování rozhodovacích procesů (157-9583)</displayed-value>
+    <stored-value>157-9583</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Stochastické a fuzzy modelování rozhodovacích procesů (157-9983)</displayed-value>
+    <stored-value>157-9983</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Systémové inženýrství a informatika (157-0998)</displayed-value>
+    <stored-value>157-0998</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Umělá inteligence a expertní systémy (157-0910)</displayed-value>
+    <stored-value>157-0910</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Úvod do ekonometrie (157-0588)</displayed-value>
+    <stored-value>157-0588</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Vytěžování znalostí (157-9581)</displayed-value>
+    <stored-value>157-9581</stored-value>
+  </pair>
+  <pair>
+    <displayed-value>157 - Vytěžování znalostí (157-9981)</displayed-value>
+    <stored-value>157-9981</stored-value>
+  </pair>
+</value-pairs>

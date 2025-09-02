@@ -351,6 +351,11 @@ public class DCInputsReader {
                 if (rows.size() < 1) {
                     throw new DCInputsReaderException("Form " + formName + " has no rows");
                 }
+            } else if (nd.getNodeName().equals("form-definitions")) {
+                // Handle nested form-definitions elements (from XML entity expansion)
+                // Recursively process the nested form-definitions
+                processDefinition(nd);
+                numForms++; // Count this as having found forms to avoid the "No form definition found" error
             }
         }
         if (numForms == 0) {

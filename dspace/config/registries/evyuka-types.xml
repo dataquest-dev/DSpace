@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<dspace-dc-types>
+
+    <dspace-header>
+        <title>Evyuka</title>
+        <contributor.author>Milan</contributor.author>
+        <contributor.editor>$Author$</contributor.editor>
+        <date.created>$Date$</date.created>
+        <description>$Log$</description>
+        <description.version>$Revision$</description.version>
+    </dspace-header>
+
+    <dc-schema>
+        <name>evyuka</name>
+        <namespace>http://e-vyuka.vsb.cz</namespace>
+    </dc-schema>
+
+    <dc-type>
+        <schema>evyuka</schema>
+        <element>discipline</element>
+        <scope_note>Studijní obor</scope_note>
+    </dc-type>
+    <dc-type>
+        <schema>evyuka</schema>
+        <element>discipline</element>
+        <scope_note>Velikost souboru</scope_note>
+    </dc-type>
+    <dc-type>
+        <schema>evyuka</schema>
+        <element>mimetype</element>
+        <scope_note>Typ souboru</scope_note>
+    </dc-type>
+    <dc-type>
+        <schema>evyuka</schema>
+        <element>programme</element>
+        <scope_note>Studijní program</scope_note>
+    </dc-type>
+    <dc-type>
+        <schema>evyuka</schema>
+        <element>subject</element>
+        <qualifier>version</qualifier>
+        <scope_note>Verze studijního předmětu</scope_note>
+    </dc-type>
+    <dc-type>
+        <schema>evyuka</schema>
+        <element>subject</element>
+        <scope_note>Studijní předmět</scope_note>
+    </dc-type>
+
+</dspace-dc-types>

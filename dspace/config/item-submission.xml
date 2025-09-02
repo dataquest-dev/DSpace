@@ -19,8 +19,387 @@
     <submission-map>
         <!-- Default submission process -->
         <name-map collection-handle="default" submission-name="traditional"/>
-        <name-map collection-handle="20.500.12800/3" submission-name="clariahSubmissions"/>
-        <name-map collection-handle="11234/5012" submission-name="teachingSubmissions"/>
+        <name-map collection-handle="10084/2562" submission-name="diplomky-ekf" />
+        <name-map collection-handle="10084/2563" submission-name="diplomky-fbi" />
+        <name-map collection-handle="10084/2564" submission-name="diplomky-fei" />
+        <name-map collection-handle="10084/2565" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="10084/2567" submission-name="diplomky-fast" />
+        <name-map collection-handle="10084/2568" submission-name="diplomky-fs" />
+        <name-map collection-handle="10084/2569" submission-name="diplomky-hgf" />
+        <name-map collection-handle="10084/71389" submission-name="diplomky" />
+
+        <!-- Kolekce Sbornik vedeckych praci VSB-TU Ostrava -->
+        <name-map collection-handle="10084/14242" submission-name="clanky" />
+        <name-map collection-handle="10084/111959" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111960" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111961" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111962" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111963" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111964" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111965" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111966" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111967" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111968" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111969" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/134880" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/145097" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/146406" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/151466" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/155795" submission-name="clankyFBI" />
+        <name-map collection-handle="10084/111944" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111945" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111946" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111947" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111948" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111949" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111950" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111951" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111952" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111953" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111954" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111955" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111956" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/112034" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/122540" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/134878" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/145073" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/146429" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/152426" submission-name="clankyFAST" />
+        <name-map collection-handle="10084/111970" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111971" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111972" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111973" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111974" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111975" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111976" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111977" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111978" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111978" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111979" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111980" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/111981" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/123526" submission-name="clankySTROJ" />
+        <name-map collection-handle="10084/134877" submission-name="clankySTROJ" />
+
+        <!-- Kolekce Publikacni cinnost vedeckych pracovniku  -->
+        <name-map collection-handle="10084/56138" submission-name="publikacni" />
+
+        <!-- Europe Direct / E. Dok. Středisko -->
+        <name-map collection-handle="10084/135187" submission-name="europe-direct" />
+
+        <!-- OpenAIRE -->
+        <name-map collection-handle="10084/89004" submission-name="OpenAIRE" />
+
+        <!-- Ekonomicka Revue -->
+        <name-map collection-handle="10084/90366" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/94921" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/95736" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/96077" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/96377" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/96378" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/96379" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/96380" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/101660" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/111321" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/123545" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/133453" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/134882" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/148821" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/148822" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/148825" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/151421" submission-name="ekonomicka_revue" />
+        <name-map collection-handle="10084/152516" submission-name="ekonomicka_revue" />
+
+        <!-- AEEE -->
+        <name-map collection-handle="10084/83534" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83548" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83549" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83550" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83545" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83546" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83547" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83543" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83544" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83541" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83542" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83538" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83539" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83540" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83536" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83537" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83551" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83552" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83553" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83554" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83555" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/84480" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/88978" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/89781" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/89782" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/89783" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/90367" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/94973" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/95737" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/95758" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/96079" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/96320" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/96413" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/96414" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/96415" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/96416" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/101664" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/101665" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/101666" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/101667" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/101668" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/101669" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/111326" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/111904" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/117083" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/123530" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/134884" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/143045" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/151418" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/152515" submission-name="publikacni_AEEE" />
+
+        <!-- GeoScience Engineering -->
+        <name-map collection-handle="10084/83579" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83580" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83575" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83576" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83577" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83578" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83571" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83572" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83573" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83574" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83567" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83568" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83569" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/83570" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/84521" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/89093" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/89671" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/89766" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/96076" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/96417" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/101670" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/111317" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124701" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124702" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124703" submission-name="publikacni_AEEE" />
+
+        <!-- Spektrum -->
+        <name-map collection-handle="10084/124711" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124712" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124713" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124714" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124715" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124716" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124717" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124718" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124719" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124720" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124721" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124722" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124723" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/124724" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/134886" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/145072" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/145995" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/146405" submission-name="publikacni_AEEE" />
+        <name-map collection-handle="10084/151420" submission-name="publikacni_AEEE" />
+
+        <!-- Novy GeoScience Engineering -->
+        <name-map collection-handle="10084/90375" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/94922" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/95738" submission-name="GeoscienceEngineering" />
+        <!--   <name-map collection-handle="10084/96076" submission-name="GeoscienceEngineering" />
+           <name-map collection-handle="10084/96417" submission-name="GeoscienceEngineering" />-->
+        <name-map collection-handle="10084/96418" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/96419" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/96420" submission-name="GeoscienceEngineering" />
+        <!--  <name-map collection-handle="10084/101670" submission-name="GeoscienceEngineering" />-->
+        <name-map collection-handle="10084/101671" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/101672" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/101673" submission-name="GeoscienceEngineering" />
+        <!--  <name-map collection-handle="10084/111317" submission-name="GeoscienceEngineering" />-->
+        <name-map collection-handle="10084/111318" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/111319" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/111320" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/134876" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/143046" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/146404" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/151419" submission-name="GeoscienceEngineering" />
+        <name-map collection-handle="10084/154872" submission-name="GeoscienceEngineering" />
+
+
+        <name-map collection-handle="default" submission-name="traditional" />
+
+        <!-- Kolekce testovaci verze dspace - ekonomicka fakulta -->
+        <name-map collection-handle="123456789/131" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/78" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/80" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/309" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/166" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/179" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/183" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/184" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/185" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/186" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/187" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/188" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/189" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/190" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/191" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/192" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/193" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/194" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/195" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/196" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/197" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/198" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/199" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/200" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/201" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/202" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/203" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/204" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/205" submission-name="diplomky-ekf" />
+        <name-map collection-handle="123456789/206" submission-name="diplomky-ekf" />
+
+        <!-- Kolekce testovaci verze dspace - fakulta bezpecnostniho inzenyrstvi-->
+        <name-map collection-handle="123456789/272" submission-name="diplomky-fbi" />
+        <name-map collection-handle="123456789/102" submission-name="diplomky-fbi" />
+        <name-map collection-handle="123456789/105" submission-name="diplomky-fbi" />
+        <name-map collection-handle="123456789/103" submission-name="diplomky-fbi" />
+        <name-map collection-handle="123456789/104" submission-name="diplomky-fbi" />
+
+        <!-- Kolekce testovaci verze dspace - fakulta elektrotechniky a informatiky-->
+        <name-map collection-handle="123456789/209" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/210" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/211" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/212" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/213" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/214" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/215" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/217" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/218" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/219" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/220" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/221" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/222" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/223" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/224" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/225" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/226" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/227" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/228" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/229" submission-name="diplomky-fei" />
+        <name-map collection-handle="123456789/230" submission-name="diplomky-fei" />
+
+        <!-- Kolekce testovaci verze dspace - fmmi -->
+        <name-map collection-handle="123456789/231" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/232" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/233" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/234" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/235" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/236" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/237" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/238" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/239" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/240" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/241" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/242" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/243" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/244" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/245" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/246" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/247" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/248" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/249" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/250" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/251" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/252" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/253" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/254" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/255" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/256" submission-name="diplomky-fmmi" />
+        <name-map collection-handle="123456789/257" submission-name="diplomky-fmmi" />
+
+        <!-- Kolekce testovaci verze dspace - fast -->
+        <name-map collection-handle="123456789/258" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/275" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/276" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/277" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/278" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/279" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/280" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/281" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/282" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/283" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/284" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/285" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/286" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/287" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/288" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/289" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/290" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/291" submission-name="diplomky-fast" />
+        <name-map collection-handle="123456789/292" submission-name="diplomky-fast" />
+
+        <!-- Kolekce testovaci verze dspace - fs -->
+        <name-map collection-handle="123456789/273" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/107" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/108" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/109" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/110" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/111" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/112" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/113" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/114" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/115" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/116" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/117" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/118" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/119" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/120" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/121" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/122" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/123" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/124" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/126" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/127" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/128" submission-name="diplomky-fs" />
+        <name-map collection-handle="123456789/129" submission-name="diplomky-fs" />
+
+        <!-- Kolekce testovaci verze dspace - hgf -->
+        <name-map collection-handle="123456789/274" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/207" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/259" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/260" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/261" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/262" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/263" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/264" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/265" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/266" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/267" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/268" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/269" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/270" submission-name="diplomky-hgf" />
+        <name-map collection-handle="123456789/271" submission-name="diplomky-hgf" />
+
+        <!-- Kolekce portalu e-vyuka -->
+        <name-map collection-handle="10084/139351" submission-name="e-vyuka-9270" /> <!-- Vyukove materialy All-University Departments -->
+        <name-map collection-handle="10084/138949" submission-name="e-vyuka-EKF" /> <!-- Vyukove materialy EKF -->
+        <name-map collection-handle="10084/138950" submission-name="e-vyuka-FBI" /> <!-- Vyukove materialy FBI -->
+        <name-map collection-handle="10084/138951" submission-name="e-vyuka-FEI" /> <!-- Vyukove materialy FEI -->
+        <name-map collection-handle="10084/138952" submission-name="e-vyuka-FMT" /> <!-- Vyukove materialy FMT -->
+        <name-map collection-handle="10084/138953" submission-name="e-vyuka-FAST" /> <!-- Vyukove materialy FAST -->
+        <name-map collection-handle="10084/138954" submission-name="e-vyuka-FS" /> <!-- Vyukove materialy FS -->
+        <name-map collection-handle="10084/138955" submission-name="e-vyuka-HGF" /> <!-- Vyukove materialy HGF -->
+
         <!-- Sample Entities Collection configuration based on the demo Entities dataset available at:
              https://github.com/DSpace-Labs/AIP-Files/releases/tag/demo-entities-data
              This sets up the following Entity-based Collections in that dataset:
@@ -284,6 +663,440 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
+
+        <!-- Create an uploadOptional step which will use the
+             new "uploadConfigurationServiceWithoutMandatory"
+             that you defined in your access-conditions.xml -->
+        <step-definition id="uploadOptional">
+            <heading>submit.progressbar.upload</heading>
+            <processing-class>org.dspace.app.rest.submit.step.UploadStep</processing-class>
+            <type>upload</type>
+        </step-definition>
+
+        <!-- Diploma submission step definitions -->
+        <step-definition id="diplomky-ekfpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-ekfpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-ekfpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="diplomky-fbipageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-fbipagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-fbipagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="diplomky-feipageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-feipagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-feipagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="diplomky-fmmipageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-fmmipagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-fmmipagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="diplomky-fastpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-fastpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-fastpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="diplomky-fspageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-fspagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-fspagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="diplomky-hgfpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-hgfpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-hgfpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- Diplomky-114 submission step definitions -->
+        <step-definition id="diplomky-114pageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-114pagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomky-114pagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- One page submission step definition -->
+        <step-definition id="onepageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- Article submission step definitions -->
+        <step-definition id="clankypageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="clankypagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="clankyFBIpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="clankyFBIpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="clankyFASTpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="clankyFASTpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="clankySTROJpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="clankySTROJpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="diplomkypageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomkypagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="diplomkypagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- Publication submission step definitions -->
+        <step-definition id="publikacnipageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="publikacnipagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- Europe Direct submission step definitions -->
+        <step-definition id="europe-directpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="europe-directpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="europe-directpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- OpenAIRE submission step definitions -->
+        <step-definition id="OpenAIREpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="OpenAIREpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="OpenAIREpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- Economic Review submission step definitions -->
+        <step-definition id="ekonomicka_revuepageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="ekonomicka_revuepagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="ekonomicka_revuepagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- AEEE publication submission step definitions -->
+        <step-definition id="publikacni_AEEEpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="publikacni_AEEEpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="publikacni_AEEEpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- Geoscience Engineering submission step definitions -->
+        <step-definition id="GeoscienceEngineeringpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="GeoscienceEngineeringpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="GeoscienceEngineeringpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <!-- E-vyuka submission step definitions -->
+        <step-definition id="e-vyuka-9270pageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-9270pagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-9270pagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="e-vyuka-EKFpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-EKFpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-EKFpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="e-vyuka-FBIpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-FBIpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-FBIpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="e-vyuka-FEIpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-FEIpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-FEIpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="e-vyuka-FMTpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-FMTpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-FMTpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="e-vyuka-FASTpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-FASTpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-FASTpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="e-vyuka-FSpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-FSpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-FSpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
+        <step-definition id="e-vyuka-HGFpageone" mandatory="true">
+            <heading>submit.progressbar.describe.stepone</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-HGFpagetwo" mandatory="true">
+            <heading>submit.progressbar.describe.steptwo</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+        <step-definition id="e-vyuka-HGFpagethree" mandatory="true">
+            <heading>submit.progressbar.describe.stepthree</heading>
+            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+            <type>submission-form</type>
+        </step-definition>
+
     </step-definitions>
 
     <!-- The submission-definitions map lays out the detailed definition of -->
@@ -331,8 +1144,8 @@
 
             <!--Step will be to Sign off on the required DSpace License agreement -->
             <step id="license"/>
-            <step id="clarin-license"/>
-            <step id="specialFields"/>
+<!--            <step id="clarin-license"/>-->
+<!--            <step id="specialFields"/>-->
         </submission-process>
 
         <!--
@@ -448,40 +1261,248 @@
             <step id="openAIREOrganizationForm"/>
         </submission-process>
 
-        <submission-process name="clariah">
+        <!-- Diploma submission processes -->
+        <submission-process name="diplomky-ekf">
             <step id="collection"/>
-            <step id="clarin-notice"/>
-            <step id="traditionalpageone"/>
-            <step id="traditionalpagetwo"/>
-            <step id="upload"/>
+            <step id="diplomky-ekfpageone"/>
+            <step id="diplomky-ekfpagetwo"/>
+            <step id="diplomky-ekfpagethree"/>
+            <step id="uploadOptional"/>
             <step id="license"/>
-            <step id="clarin-license"/>
-            <step id="specialFields"/>
         </submission-process>
 
-        <submission-process name="clariahSubmissions">
+        <submission-process name="diplomky-fbi">
             <step id="collection"/>
-            <step id="clarin-notice"/>
-            <step id="clariahSubmissionsPageOne"/>
-            <step id="clariahSubmissionsPageTwo"/>
-            <step id="clariahSubmissionsPageThree"/>
-            <step id="upload"/>
+            <step id="diplomky-fbipageone"/>
+            <step id="diplomky-fbipagetwo"/>
+            <step id="diplomky-fbipagethree"/>
+            <step id="uploadOptional"/>
             <step id="license"/>
-            <step id="clarin-license"/>
-            <step id="specialFields"/>
         </submission-process>
 
-        <submission-process name="teachingSubmissions">
+        <submission-process name="diplomky-fei">
             <step id="collection"/>
-            <step id="clarin-notice"/>
-            <step id="teachingSubmissionsPageOne"/>
-            <step id="teachingSubmissionsPageTwo"/>
-            <step id="teachingSubmissionsPageThree"/>
-            <step id="upload"/>
+            <step id="diplomky-feipageone"/>
+            <step id="diplomky-feipagetwo"/>
+            <step id="diplomky-feipagethree"/>
+            <step id="uploadOptional"/>
             <step id="license"/>
-            <step id="clarin-license"/>
-            <step id="specialFields"/>
         </submission-process>
+
+        <submission-process name="diplomky-fmmi">
+            <step id="collection"/>
+            <step id="diplomky-fmmipageone"/>
+            <step id="diplomky-fmmipagetwo"/>
+            <step id="diplomky-fmmipagethree"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="diplomky-fast">
+            <step id="collection"/>
+            <step id="diplomky-fastpageone"/>
+            <step id="diplomky-fastpagetwo"/>
+            <step id="diplomky-fastpagethree"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="diplomky-fs">
+            <step id="collection"/>
+            <step id="diplomky-fspageone"/>
+            <step id="diplomky-fspagetwo"/>
+            <step id="diplomky-fspagethree"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="diplomky-hgf">
+            <step id="collection"/>
+            <step id="diplomky-hgfpageone"/>
+            <step id="diplomky-hgfpagetwo"/>
+            <step id="diplomky-hgfpagethree"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="diplomky-114">
+            <step id="collection"/>
+            <step id="diplomky-114pageone"/>
+            <step id="diplomky-114pagetwo"/>
+            <step id="diplomky-114pagethree"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="diplomky">
+            <step id="collection"/>
+            <step id="diplomkypageone"/>
+            <step id="diplomkypagetwo"/>
+            <step id="diplomkypagethree"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <!-- One page submission process -->
+        <submission-process name="onepage">
+            <step id="collection"/>
+            <step id="onepageone"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <!-- Article submission processes -->
+        <submission-process name="clanky">
+            <step id="collection"/>
+            <step id="clankypageone"/>
+            <step id="clankypagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="clankyFBI">
+            <step id="collection"/>
+            <step id="clankyFBIpageone"/>
+            <step id="clankyFBIpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="clankyFAST">
+            <step id="collection"/>
+            <step id="clankyFASTpageone"/>
+            <step id="clankyFASTpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="clankySTROJ">
+            <step id="collection"/>
+            <step id="clankySTROJpageone"/>
+            <step id="clankySTROJpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <!-- Publication submission processes -->
+        <submission-process name="publikacni">
+            <step id="collection"/>
+            <step id="publikacnipageone"/>
+            <step id="publikacnipagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <!-- Europe Direct submission process -->
+        <submission-process name="europe-direct">
+            <step id="collection"/>
+            <step id="europe-directpageone"/>
+            <step id="europe-directpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <!-- OpenAIRE submission process -->
+        <submission-process name="OpenAIRE">
+            <step id="collection"/>
+            <step id="OpenAIREpageone"/>
+            <step id="OpenAIREpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <!-- Economic Review submission process -->
+        <submission-process name="ekonomicka_revue">
+            <step id="collection"/>
+            <step id="ekonomicka_revuepageone"/>
+            <step id="ekonomicka_revuepagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <!-- AEEE publication submission process -->
+        <submission-process name="publikacni_AEEE">
+            <step id="collection"/>
+            <step id="publikacni_AEEEpageone"/>
+            <step id="publikacni_AEEEpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <!-- Geoscience Engineering submission process -->
+        <submission-process name="GeoscienceEngineering">
+            <step id="collection"/>
+            <step id="GeoscienceEngineeringpageone"/>
+            <step id="GeoscienceEngineeringpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <!-- E-vyuka submission processes -->
+        <submission-process name="e-vyuka-9270">
+            <step id="collection"/>
+            <step id="e-vyuka-9270pageone"/>
+            <step id="e-vyuka-9270pagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="e-vyuka-EKF">
+            <step id="collection"/>
+            <step id="e-vyuka-EKFpageone"/>
+            <step id="e-vyuka-EKFpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="e-vyuka-FBI">
+            <step id="collection"/>
+            <step id="e-vyuka-FBIpageone"/>
+            <step id="e-vyuka-FBIpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="e-vyuka-FEI">
+            <step id="collection"/>
+            <step id="e-vyuka-FEIpageone"/>
+            <step id="e-vyuka-FEIpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="e-vyuka-FMT">
+            <step id="collection"/>
+            <step id="e-vyuka-FMTpageone"/>
+            <step id="e-vyuka-FMTpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="e-vyuka-FAST">
+            <step id="collection"/>
+            <step id="e-vyuka-FASTpageone"/>
+            <step id="e-vyuka-FASTpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="e-vyuka-FS">
+            <step id="collection"/>
+            <step id="e-vyuka-FSpageone"/>
+            <step id="e-vyuka-FSpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
+        <submission-process name="e-vyuka-HGF">
+            <step id="collection"/>
+            <step id="e-vyuka-HGFpageone"/>
+            <step id="e-vyuka-HGFpagetwo"/>
+            <step id="uploadOptional"/>
+            <step id="license"/>
+        </submission-process>
+
     </submission-definitions>
 
 </item-submission>
