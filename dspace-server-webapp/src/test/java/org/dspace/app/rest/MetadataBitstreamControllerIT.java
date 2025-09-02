@@ -7,48 +7,28 @@
  */
 package org.dspace.app.rest;
 
+import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.zip.Deflater;
 
 import org.apache.commons.codec.CharEncoding;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.IOUtils;
-import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
-import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
-import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.content.service.BitstreamService;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.MvcResult;
 
 public class MetadataBitstreamControllerIT extends AbstractControllerIntegrationTest {
-    private static final String METADATABITSTREAM_ENDPOINT = "/api/" + ItemRest.CATEGORY + "/" + ItemRest.PLURAL_NAME;
-    private static final String ALL_ZIP_PATH = "allzip";
-    private static final String HANDLE_PARAM = "handleId";
     private static final String AUTHOR = "Test author name";
-    private Collection col;
 
     private Item publicItem;
-    private Bitstream bts;
-
-    @Autowired
-    AuthorizeService authorizeService;
-
-    @Autowired
-    BitstreamService bitstreamService;
-
 
     @Override
     public void setUp() throws Exception {
@@ -58,7 +38,8 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
                 .withName("Parent Community")
                 .build();
 
-        col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection").build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection").build();
 
         publicItem = ItemBuilder.createItem(context, col)
                 .withAuthor(AUTHOR)
@@ -66,8 +47,7 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
 
         String bitstreamContent = "ThisIsSomeDummyText";
         try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
-            bts = BitstreamBuilder.
-                    createBitstream(context, publicItem, is)
+            BitstreamBuilder.createBitstream(context, publicItem, is)
                     .withName("Bitstream")
                     .withDescription("Description")
                     .withMimeType("application/zip")
@@ -76,25 +56,112 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
         context.restoreAuthSystemState();
     }
 
+    /**
+     * Test downloading multiple bitstreams separately by name using the new endpoint.
+     * This test verifies that each bitstream can be downloaded individually without
+     * creating a ZIP archive, allowing multiple files to be downloaded as separate files.
+     */
     @Test
-    public void downloadAllZip() throws Exception {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ZipArchiveOutputStream zip = new ZipArchiveOutputStream(byteArrayOutputStream);
-        zip.setCreateUnicodeExtraFields(ZipArchiveOutputStream.UnicodeExtraFieldPolicy.ALWAYS);
-        zip.setLevel(Deflater.NO_COMPRESSION);
-        ZipArchiveEntry ze = new ZipArchiveEntry(bts.getName());
-        zip.putArchiveEntry(ze);
-        InputStream is = bitstreamService.retrieve(context, bts);
-        org.apache.commons.compress.utils.IOUtils.copy(is, zip);
-        zip.closeArchiveEntry();
-        is.close();
-        zip.close();
-
+    public void downloadMultipleBitstreamsSeparatelyTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        
+        // Create additional bitstreams for testing multiple downloads
+        String content = "Document content for testing individual downloads";
+        String name = "document1.txt";
+        String mimeType = "text/plain";
+        try (InputStream is = IOUtils.toInputStream(content, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, publicItem, is)
+                    .withName(name)
+                    .withDescription("First test document")
+                    .withMimeType(mimeType)
+                    .build();
+        }
+        
+        context.restoreAuthSystemState();
+        
+        // Generate auth token for admin user
         String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get(METADATABITSTREAM_ENDPOINT + "/" + publicItem.getID() +
-                        "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, publicItem.getHandle()))
-                .andExpect(status().isOk())
-                .andExpect(content().bytes(byteArrayOutputStream.toByteArray()));
 
+        // Download bitstream by name using the new endpoint
+        MvcResult mvcResult = getClient(token)
+                .perform(get("/api/core/bitstreams/handle/" + publicItem.getHandle() + "/" + name))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        // Verify the downloaded content matches the expected content
+        String downloadedContent = mvcResult.getResponse().getContentAsString();
+        assertEquals("Downloaded content should match expected content for " + name,
+                content, downloadedContent);
+        // Verify correct content type
+        String contentType = mvcResult.getResponse().getContentType();
+        assertEquals("Content type should match expected MIME type for " + name,
+                mimeType, contentType);
+        // Verify Content-Disposition header for proper file download
+        String contentDisposition = mvcResult.getResponse().getHeader("Content-Disposition");
+        assertNotNull("Content-Disposition header should be present for " + name,
+                contentDisposition);
+        assertTrue("Content-Disposition should be attachment for " + name,
+                contentDisposition.startsWith("attachment"));
+        assertTrue("Filename should be in Content-Disposition header for " + name,
+                contentDisposition.contains("filename=\"" + name + "\""));
+        
+        // Test error cases
+        // Test downloading non-existent bitstream should return 422
+        getClient(token)
+                .perform(get("/api/core/bitstreams/handle/" + publicItem.getHandle() + "/nonexistent.txt"))
+                .andExpect(status().isUnprocessableEntity());
+        
+        // Test with invalid handle should return 422
+        getClient(token)
+                .perform(get("/api/core/bitstreams/handle/invalid-handle/document1.txt"))
+                .andExpect(status().isUnprocessableEntity());
+        
+        // Test unauthorized access (without token) should return 401
+        getClient()
+                .perform(get("/api/core/bitstreams/handle/" + publicItem.getHandle() + "/document1.txt"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * Test downloading bitstream with special characters in filename.
+     * This ensures the endpoint handles filenames with spaces, special characters correctly.
+     */
+    @Test
+    public void downloadBitstreamWithSpecialCharactersTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        
+        String specialContent = "Content of file with special characters in name";
+        String specialFileName = "test file with spaces & special chars (2024).pdf";
+        
+        try (InputStream is = IOUtils.toInputStream(specialContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, publicItem, is)
+                    .withName(specialFileName)
+                    .withDescription("File with special characters in name")
+                    .withMimeType("application/pdf")
+                    .build();
+        }
+        
+        context.restoreAuthSystemState();
+        
+        String token = getAuthToken(admin.getEmail(), password);
+        
+        // Test downloading bitstream with special characters in name
+        MvcResult mvcResult = getClient(token)
+                .perform(get("/api/core/bitstreams/handle/" + publicItem.getHandle() + "/" + specialFileName))
+                .andExpect(status().isOk())
+                .andReturn();
+        
+        // Verify content
+        String downloadedContent = mvcResult.getResponse().getContentAsString();
+        assertEquals("Downloaded content should match for file with special characters", 
+                    specialContent, downloadedContent);
+        
+        // Verify headers
+        String contentDisposition = mvcResult.getResponse().getHeader("Content-Disposition");
+        assertNotNull("Content-Disposition header should be present", contentDisposition);
+        assertTrue("Content-Disposition should contain the special filename",
+                  contentDisposition.contains("filename=\"" + specialFileName + "\""));
+        
+        String responseContentType = mvcResult.getResponse().getContentType();
+        assertEquals("Content type should be PDF", "application/pdf", responseContentType);
     }
 }
