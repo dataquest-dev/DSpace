@@ -140,7 +140,7 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
         context.turnOffAuthorisationSystem();
 
         String specialContent = "Content of file with special characters in name";
-        String specialFileName = "test-file-with-spaces.pdf";
+        String specialFileName = "test file with spaces & special chars (2024).pdf";
 
         try (InputStream is = IOUtils.toInputStream(specialContent, CharEncoding.UTF_8)) {
             BitstreamBuilder.createBitstream(context, publicItem, is)

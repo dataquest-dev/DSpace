@@ -26,12 +26,12 @@ import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -77,6 +77,7 @@ public class MetadataBitstreamController {
      * @throws UnprocessableEntityException if the handle does not resolve to a valid Item
      *                                     or if the bitstream with the specified name is not found
      */
+    @PreAuthorize("hasPermission(#handleId, 'ITEM', 'READ')")
     @GetMapping("/handle/{prefix}/{suffix}/{name:.+}")
     public void downloadBitstreamByName(
             @PathVariable String prefix,
@@ -101,11 +102,6 @@ public class MetadataBitstreamController {
 
             Item item = (Item) dso;
 
-            // Check READ permission on the actual Item object
-            if (!authorizeService.authorizeActionBoolean(context, item, Constants.READ)) {
-                throw new AuthorizeException("User does not have permission to read Item: " + item.getHandle());
-            }
-
             Bitstream targetBitstream = findBitstreamByName(item, name);
 
             if (Objects.isNull(targetBitstream)) {
@@ -118,8 +114,8 @@ public class MetadataBitstreamController {
                     .map(fmt -> fmt.getMIMEType())
                     .orElse("application/octet-stream");
 
-            // Set content type without charset to match test expectations
-            response.setHeader(HttpHeaders.CONTENT_TYPE, mime);
+            // Set content type (tests use startsWith to tolerate charset if appended)
+            response.setContentType(mime);
 
             org.springframework.http.ContentDisposition cd =
                     org.springframework.http.ContentDisposition.attachment()
