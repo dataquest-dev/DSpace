@@ -190,9 +190,9 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     public void addMetadata(Context context, DSpaceObject dso, MetadataField metadataField, String metadataValue) {
         try {
             if (Constants.ITEM == dso.getType()) {
-                String mtdKey = messageProvider.getMetadataField(metadataField);
+                String metadataKey = messageProvider.getMetadataField(metadataField);
                 String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
-                        (Item) dso, messageProvider.getMetadata(mtdKey, metadataValue), "added");
+                        (Item) dso, messageProvider.getMetadata(metadataKey, metadataValue), "added");
                 addProvenanceMetadata(context, (Item) dso, msg);
             }
 
@@ -200,10 +200,10 @@ public class ProvenanceServiceImpl implements ProvenanceService {
                 Bitstream bitstream = (Bitstream) dso;
                 Item item = findItemByBitstream(context, bitstream);
                 if (Objects.nonNull(item)) {
-                    String mtdKey = messageProvider.getMetadataField(metadataField);
+                    String metadataKey = messageProvider.getMetadataField(metadataField);
                     String msg = messageProvider.getMessage(context,
                             ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
-                            messageProvider.getMetadata(mtdKey, metadataValue),
+                            messageProvider.getMetadata(metadataKey, metadataValue),
                             "added by", messageProvider.getMessage(bitstream));
                     addProvenanceMetadata(context, item, msg);
                 }
