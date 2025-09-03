@@ -201,7 +201,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
                 Item item = findItemByBitstream(context, bitstream);
                 if (Objects.nonNull(item)) {
                     String msg = messageProvider.getMessage(context,
-                            ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(),
+                            ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
                             messageProvider.getMetadata(
                                     messageProvider.getMetadataField(metadataField), metadataValue), "added by",
                             messageProvider.getMessage(bitstream));
