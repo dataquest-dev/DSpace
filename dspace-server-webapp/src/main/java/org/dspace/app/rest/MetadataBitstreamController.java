@@ -49,8 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/" + ItemRest.CATEGORY + "/" + BitstreamRest.PLURAL_NAME)
 public class MetadataBitstreamController {
 
-    private static final Logger log = org.apache.logging.log4j.LogManager
-            .getLogger(MetadataBitstreamController.class);
+    private static Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataBitstreamController.class);
 
     @Autowired
     private BitstreamService bitstreamService;
