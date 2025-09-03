@@ -325,6 +325,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
     private String extractAccessConditions(List<AccessCondition> accessConditions) {
         return accessConditions.stream()
+                .map(ac -> ac.getName() +
+                    (ac.getStartDate() != null ? " [from: " + ac.getStartDate().toString() + "]" : "") +
                     (ac.getEndDate() != null ? " [till: " + ac.getEndDate().toString() + "]" : ""))
                 .collect(Collectors.joining(";"));
     }
