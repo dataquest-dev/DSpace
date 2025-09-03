@@ -227,7 +227,7 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
 
     /**
      * Find resource policies based on the presence of a start or end date.
-     * If no parameters are provided, it returns all resource policies from the database.
+     * If no parameters are provided, it returns all resource policies that have ANY embargo date set (start OR end).
      *
      * @param hasStartDate if true, returns policies that have a start date set.
      * @param hasEndDate   if true, returns policies that have an end date set.
@@ -249,14 +249,27 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
 
         try {
             Context context = obtainContext();
-            if (!bHasStartDate && !bHasEndDate) {
-                policies = resourcePolicyService.findAll(context,
+            
+            if (hasStartDate != null && hasStartDate == false && hasEndDate != null && hasEndDate == false) {
+                // Special case: both parameters explicitly false - find policies WITHOUT any embargo dates
+                policies = resourcePolicyService.findByDatePresence(context, false, false, false,
                         Math.toIntExact(pageable.getOffset()), Math.toIntExact(pageable.getPageSize()));
-                total = resourcePolicyService.countAll(context);
+                total = resourcePolicyService.countByDatePresence(context, false, false, false);
+            } else if (!bHasStartDate && !bHasEndDate) {
+                // If no parameters provided, find all policies that have ANY embargo date (start OR end)
+                policies = resourcePolicyService.findByDatePresence(context, true, true, false,
+                        Math.toIntExact(pageable.getOffset()), Math.toIntExact(pageable.getPageSize()));
+                total = resourcePolicyService.countByDatePresence(context, true, true, false);
+            } else if (bHasStartDate && bHasEndDate) {
+                // Both parameters true - find policies that have BOTH dates (AND logic)
+                policies = resourcePolicyService.findByDatePresence(context, true, true, true,
+                        Math.toIntExact(pageable.getOffset()), Math.toIntExact(pageable.getPageSize()));
+                total = resourcePolicyService.countByDatePresence(context, true, true, true);
             } else {
-                policies = resourcePolicyService.findByDatePresence(context, bHasStartDate, bHasEndDate,
+                // Only one parameter is true - use OR logic (doesn't matter since only one is true)
+                policies = resourcePolicyService.findByDatePresence(context, bHasStartDate, bHasEndDate, false,
                         Math.toIntExact(pageable.getOffset()), Math.toIntExact(pageable.getPageSize()));
-                total = resourcePolicyService.countByDatePresence(context, bHasStartDate, bHasEndDate);
+                total = resourcePolicyService.countByDatePresence(context, bHasStartDate, bHasEndDate, false);
             }
 
         } catch (SQLException e) {

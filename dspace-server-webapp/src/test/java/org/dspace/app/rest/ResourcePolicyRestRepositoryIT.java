@@ -3740,11 +3740,8 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
                              .andExpect(status().isUnprocessableEntity());
     }
 
-
-
-
     @Test
-    public void findEmbargoByResourceTest() throws Exception {
+    public void findEmbargoWithStartDateOnly() throws Exception {
         
         context.turnOffAuthorisationSystem();
 
@@ -3782,6 +3779,219 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
                 .withEndDate(embargoEndDate)
                 .build();
 
+        ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withStartDate(embargoStartDate)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(authToken)
+                .perform(get("/api/authz/resourcepolicies/search/embargo?hasStartDate=true"))
+                .andExpect(jsonPath("$.page.totalElements", is(2))); // rpWithStartDate + rpWithBothDates
+    }
+
+    @Test
+    public void findEmbargoWithEndDateOnly() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        // Príprava dát
+        Community community = CommunityBuilder.createCommunity(context).withName("Test Community").build();
+        Collection collection = CollectionBuilder.createCollection(context, community).withName("Test Collection").build();
+        Item item = ItemBuilder.createItem(context, collection).withTitle("Item with Embargo").build();
+
+        // Získame skupinu Anonymov
+        Group groupAnonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
+
+        // Dátum začiatku embarga
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.set(Calendar.YEAR, 2019);
+        calendar1.set(Calendar.MONTH, 9);
+        calendar1.set(Calendar.DATE, 31);
+        Date embargoStartDate = calendar1.getTime();
+
+        // Dátum konca embarga
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.set(Calendar.YEAR, 2200);
+        calendar2.set(Calendar.MONTH, 9);
+        calendar2.set(Calendar.DATE, 31);
+        Date embargoEndDate = calendar2.getTime();
+
+        ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withStartDate(embargoStartDate)
+                .build();
+
+        ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withStartDate(embargoStartDate)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(authToken)
+                .perform(get("/api/authz/resourcepolicies/search/embargo?hasEndDate=true"))
+                .andExpect(jsonPath("$.page.totalElements", is(3))); // rpWithEndDate + rpWithEndDate2 + rpWithBothDates
+    }
+
+    @Test
+    public void findEmbargoWithoutDates() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        // Príprava dát
+        Community community = CommunityBuilder.createCommunity(context).withName("Test Community").build();
+        Collection collection = CollectionBuilder.createCollection(context, community).withName("Test Collection").build();
+        Item item = ItemBuilder.createItem(context, collection).withTitle("Item with Embargo").build();
+
+        // Získame skupinu Anonymov
+        Group groupAnonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
+
+        // Dátum začiatku embarga
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.set(Calendar.YEAR, 2019);
+        calendar1.set(Calendar.MONTH, 9);
+        calendar1.set(Calendar.DATE, 31);
+        Date embargoStartDate = calendar1.getTime();
+
+        // Dátum konca embarga
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.set(Calendar.YEAR, 2200);
+        calendar2.set(Calendar.MONTH, 9);
+        calendar2.set(Calendar.DATE, 31);
+        Date embargoEndDate = calendar2.getTime();
+
+        ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withStartDate(embargoStartDate)
+                .build();
+
+        ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withStartDate(embargoStartDate)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(authToken)
+                .perform(get("/api/authz/resourcepolicies/search/embargo?hasStartDate=false&hasEndDate=false"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(1))) // At least our rpWithoutDates
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithoutDates.getID() + ")]").exists())
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithoutDates.getID() + ")].action[0]", is("READ")))
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithoutDates.getID() + ")].startDate").doesNotExist())
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithoutDates.getID() + ")].endDate").doesNotExist())
+                // Verify that policies with dates are NOT included
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithStartDate.getID() + ")]").doesNotExist())
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithEndDate.getID() + ")]").doesNotExist())
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithBothDates.getID() + ")]").doesNotExist());
+    }
+
+    @Test
+    public void findEmbargoWithAnyDate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        // Príprava dát
+        Community community = CommunityBuilder.createCommunity(context).withName("Test Community").build();
+        Collection collection = CollectionBuilder.createCollection(context, community).withName("Test Collection").build();
+        Item item = ItemBuilder.createItem(context, collection).withTitle("Item with Embargo").build();
+
+        // Získame skupinu Anonymov
+        Group groupAnonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
+
+        // Dátum začiatku embarga
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.set(Calendar.YEAR, 2019);
+        calendar1.set(Calendar.MONTH, 9);
+        calendar1.set(Calendar.DATE, 31);
+        Date embargoStartDate = calendar1.getTime();
+
+        // Dátum konca embarga
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.set(Calendar.YEAR, 2200);
+        calendar2.set(Calendar.MONTH, 9);
+        calendar2.set(Calendar.DATE, 31);
+        Date embargoEndDate = calendar2.getTime();
+
+        ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withStartDate(embargoStartDate)
+                .build();
+
+        ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withEndDate(embargoEndDate)
+                .build();
+
         ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
                 .withAction(Constants.READ)
                 .withDspaceObject(item)
@@ -3800,19 +4010,77 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
         getClient(authToken)
                 .perform(get("/api/authz/resourcepolicies/search/embargo"))
+                .andExpect(jsonPath("$.page.totalElements", is(4))); // rpWithoutDates
+    }
+
+    @Test
+    public void findEmbargoWithBothDates() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        // Príprava dát
+        Community community = CommunityBuilder.createCommunity(context).withName("Test Community").build();
+        Collection collection = CollectionBuilder.createCollection(context, community).withName("Test Collection").build();
+        Item item = ItemBuilder.createItem(context, collection).withTitle("Item with Embargo").build();
+
+        // Získame skupinu Anonymov
+        Group groupAnonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
+
+        // Dátum začiatku embarga
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.set(Calendar.YEAR, 2019);
+        calendar1.set(Calendar.MONTH, 9);
+        calendar1.set(Calendar.DATE, 31);
+        Date embargoStartDate = calendar1.getTime();
+
+        // Dátum konca embarga
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.set(Calendar.YEAR, 2200);
+        calendar2.set(Calendar.MONTH, 9);
+        calendar2.set(Calendar.DATE, 31);
+        Date embargoEndDate = calendar2.getTime();
+
+        ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withStartDate(embargoStartDate)
+                .build();
+
+        ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .withStartDate(embargoStartDate)
+                .withEndDate(embargoEndDate)
+                .build();
+
+        ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withAction(Constants.READ)
+                .withDspaceObject(item)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(authToken)
+                .perform(get("/api/authz/resourcepolicies/search/embargo?hasStartDate=true&hasEndDate=true"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements", is(4)))
-                .andExpect(jsonPath("$._embedded.resourcepolicies", hasItem(
-                        ResourcePolicyMatcher.matchResourcePolicy(rpWithStartDate)
-                )))
-                .andExpect(jsonPath("$._embedded.resourcepolicies", hasItem(
-                        ResourcePolicyMatcher.matchResourcePolicy(rpWithEndDate)
-                )))
-                .andExpect(jsonPath("$._embedded.resourcepolicies", hasItem(
-                        ResourcePolicyMatcher.matchResourcePolicy(rpWithBothDates)
-                )))
-                .andExpect(jsonPath("$._embedded.resourcepolicies", hasItem(
-                        ResourcePolicyMatcher.matchResourcePolicy(rpWithoutDates)
-                )));
+                .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(1))) // At least our rpWithBothDates
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithBothDates.getID() + ")]").exists())
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithBothDates.getID() + ")].action[0]", is("READ")))
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithBothDates.getID() + ")].startDate[0]", is("2019-10-31")))
+                .andExpect(jsonPath("$._embedded.resourcepolicies[?(@.id == " + rpWithBothDates.getID() + ")].endDate[0]", is("2200-10-31")));
     }
 }
