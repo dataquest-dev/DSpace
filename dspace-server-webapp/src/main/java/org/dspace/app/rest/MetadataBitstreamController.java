@@ -20,16 +20,18 @@ import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,28 +58,34 @@ public class MetadataBitstreamController {
     @Autowired
     private HandleService handleService;
 
+    @Autowired
+    private AuthorizeService authorizeService;
+
     /**
      * Downloads a specific bitstream by name from an Item identified by its handle.
      * This method allows downloading individual files based on their exact names
      * without creating a ZIP archive.
      *
-     * @param handleId The handle identifier of the Item containing the bitstream
+     * @param prefix The prefix part of the handle identifier (before the slash)
+     * @param suffix The suffix part of the handle identifier (after the slash)
      * @param name The exact name of the bitstream to download
      * @param request The HTTP servlet request
      * @param response The HTTP servlet response where the bitstream content will be written
      * @throws SQLException if there is a database access error
      * @throws IOException if there is an I/O error during the download process
+     * @throws AuthorizeException if the user does not have permission to read the Item
      * @throws UnprocessableEntityException if the handle does not resolve to a valid Item
      *                                     or if the bitstream with the specified name is not found
      */
-    @PreAuthorize("hasPermission(#handleId, 'ITEM', 'READ')")
-    @GetMapping("/handle/{handleId}/{name}")
+    @GetMapping("/handle/{prefix}/{suffix}/{name:.+}")
     public void downloadBitstreamByName(
-            @PathVariable String handleId,
+            @PathVariable String prefix,
+            @PathVariable String suffix,
             @PathVariable String name,
             HttpServletRequest request,
-            HttpServletResponse response) throws SQLException, IOException {
+            HttpServletResponse response) throws SQLException, IOException, AuthorizeException {
 
+        final String handleId = prefix + "/" + suffix;
         Context context = ContextUtil.obtainContext(request);
 
         try {
@@ -92,6 +100,12 @@ public class MetadataBitstreamController {
             }
 
             Item item = (Item) dso;
+
+            // Check READ permission on the actual Item object
+            if (!authorizeService.authorizeActionBoolean(context, item, Constants.READ)) {
+                throw new AuthorizeException("User does not have permission to read Item: " + item.getHandle());
+            }
+
             Bitstream targetBitstream = findBitstreamByName(item, name);
 
             if (Objects.isNull(targetBitstream)) {
@@ -100,20 +114,34 @@ public class MetadataBitstreamController {
             }
 
             // Set response headers for file download
-            response.setContentType(targetBitstream.getFormat(context).getMIMEType());
-            response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + targetBitstream.getName() + "\"");
+            String mime = java.util.Optional.ofNullable(targetBitstream.getFormat(context))
+                    .map(fmt -> fmt.getMIMEType())
+                    .orElse("application/octet-stream");
+
+            // Set content type without charset to match test expectations
+            response.setHeader(HttpHeaders.CONTENT_TYPE, mime);
+
+            org.springframework.http.ContentDisposition cd =
+                    org.springframework.http.ContentDisposition.attachment()
+                            .filename(targetBitstream.getName(), java.nio.charset.StandardCharsets.UTF_8)
+                            .build();
+            response.setHeader(HttpHeaders.CONTENT_DISPOSITION, cd.toString());
 
             // Stream the bitstream content to the response
             try (InputStream is = bitstreamService.retrieve(context, targetBitstream)) {
                 streamBitstreamToResponse(is, response);
             } catch (AuthorizeException e) {
                 log.error("Authorization error while retrieving bitstream: {}", targetBitstream.getName(), e);
-                throw new RuntimeException("Access denied to bitstream: " + targetBitstream.getName(), e);
+                throw new AccessDeniedException(
+                        "Access denied to bitstream: " + targetBitstream.getName(), e);
             }
         } finally {
             if (context != null) {
-                context.complete();
+                try {
+                    context.complete();
+                } catch (SQLException e) {
+                    log.error("Error completing DSpace context", e);
+                }
             }
         }
     }
@@ -128,7 +156,7 @@ public class MetadataBitstreamController {
      * @return The matching Bitstream object, or null if not found
      */
     private Bitstream findBitstreamByName(Item item, String name) {
-        for (Bundle bundle : item.getBundles("ORIGINAL")) {
+        for (Bundle bundle : item.getBundles(org.dspace.core.Constants.CONTENT_BUNDLE_NAME)) {
             for (Bitstream bitstream : bundle.getBitstreams()) {
                 if (name.equals(bitstream.getName())) {
                     return bitstream;
