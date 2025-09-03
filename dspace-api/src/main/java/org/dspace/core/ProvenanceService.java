@@ -116,8 +116,9 @@ public interface ProvenanceService {
      * @param context DSpace context object
      * @param dso DSpace object to which the metadata is added
      * @param metadataField metadata field that is added
+     * @param metadataValue metadata value that is added
      */
-    void addMetadata(Context context, DSpaceObject dso, MetadataField metadataField);
+    void addMetadata(Context context, DSpaceObject dso, MetadataField metadataField, String metadataValue);
 
     /**
      * Add a provenance message to the item when metadata is removed
