@@ -260,14 +260,15 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    public void replaceMetadata(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal) {
+    public void replaceMetadata(Context context, DSpaceObject dso, MetadataField metadataField, String oldMtdVal,
+                                String newMtdVal) {
         if (dso.getType() != Constants.ITEM) {
             return;
         }
         try {
             String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
-                    (Item) dso,messageProvider.getMetadata(messageProvider.getMetadataField(metadataField),
-                            oldMtdVal), "updated");
+                    (Item) dso, messageProvider.getMetadataReplacement(
+                            messageProvider.getMetadataField(metadataField), oldMtdVal, newMtdVal), "updated");
             addProvenanceMetadata(context, (Item) dso, msg);
         } catch (SQLException | AuthorizeException e) {
             log.error("Unable to add new provenance metadata when replacing metadata in a dso.", e);

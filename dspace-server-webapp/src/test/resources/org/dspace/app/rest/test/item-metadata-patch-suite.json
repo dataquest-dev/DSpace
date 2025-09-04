@@ -125,7 +125,9 @@
           {"value":"Item metadata (dc.title: 最後のタイトル) was added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
             "language":"en","authority":null,"confidence":-1,"place":1},
           {"value":"Item metadata (dc.title: title 0) was added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
-            "language":"en","authority":null,"confidence":-1,"place":2}
+            "language":"en","authority":null,"confidence":-1,"place":2},
+          {"value":"Item metadata (dc.title [最後のタイトル → title A]) was updated by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
+            "language":"en","authority":null,"confidence":-1,"place":3}
         ],
         "dc.title": [
           { "value": "title 0", "language": null, "authority": null, "confidence": -1 ,"place": 0 },
