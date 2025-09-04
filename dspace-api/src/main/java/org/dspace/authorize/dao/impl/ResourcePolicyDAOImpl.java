@@ -419,22 +419,19 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public List<ResourcePolicy> findByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate,
-                                                   boolean useAndLogic, int offset, int limit) throws SQLException {
+    public List<ResourcePolicy> findByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate,
+                                                   int offset, int limit) throws SQLException {
         StringBuilder queryBuilder = new StringBuilder("SELECT rp FROM ResourcePolicy rp");
 
-        if (hasStartDate && hasEndDate) {
-            if (useAndLogic) {
-                queryBuilder.append(" WHERE rp.startDate IS NOT NULL AND rp.endDate IS NOT NULL");
-            } else {
-                queryBuilder.append(" WHERE rp.startDate IS NOT NULL OR rp.endDate IS NOT NULL");
-            }
+        if (hasStartDate == null && hasEndDate == null) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL OR rp.endDate IS NOT NULL");
+        } else if (hasStartDate && hasEndDate) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL AND rp.endDate IS NOT NULL");
         } else if (hasStartDate) {
             queryBuilder.append(" WHERE rp.startDate IS NOT NULL");
         } else if (hasEndDate) {
             queryBuilder.append(" WHERE rp.endDate IS NOT NULL");
         } else {
-            // Both false - find policies WITHOUT any dates
             queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NULL");
         }
 
@@ -448,23 +445,15 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate,
-                                   boolean useAndLogic) throws SQLException {
+    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException {
         StringBuilder queryBuilder = new StringBuilder("SELECT count(rp.id) FROM ResourcePolicy rp");
 
         if (hasStartDate && hasEndDate) {
-            if (useAndLogic) {
-                queryBuilder.append(" WHERE rp.startDate IS NOT NULL AND rp.endDate IS NOT NULL");
-            } else {
-                queryBuilder.append(" WHERE rp.startDate IS NOT NULL OR rp.endDate IS NOT NULL");
-            }
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL OR rp.endDate IS NOT NULL");
         } else if (hasStartDate) {
             queryBuilder.append(" WHERE rp.startDate IS NOT NULL");
         } else if (hasEndDate) {
             queryBuilder.append(" WHERE rp.endDate IS NOT NULL");
-        } else {
-            // Both false - count policies WITHOUT any dates
-            queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NULL");
         }
 
         Query query = createQuery(context, queryBuilder.toString());

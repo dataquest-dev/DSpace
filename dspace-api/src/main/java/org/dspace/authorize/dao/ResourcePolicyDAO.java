@@ -268,24 +268,21 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
      * @param context        DSpace context object
      * @param hasStartDate   true if looking for policies with a start date, false otherwise
      * @param hasEndDate     true if looking for policies with an end date, false otherwise
-     * @param useAndLogic    true for AND logic (both conditions must be met), false for OR logic (either condition). Only used when both hasStartDate and hasEndDate are true.
      * @param offset         the position of the first result to return
      * @param limit          paging limit
      * @return               list of resource policies matching the criteria
      * @throws SQLException  if database error
      */
-    public List<ResourcePolicy> findByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate,
-                                                   boolean useAndLogic, int offset, int limit) throws SQLException;
+    public List<ResourcePolicy> findByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate,
+                                                   int offset, int limit) throws SQLException;
 
     /**
      * Count all resource policies that have a start date or end date set.
      * @param context        DSpace context object
      * @param hasStartDate   true if looking for policies with a start date, false otherwise
      * @param hasEndDate     true if looking for policies with an end date, false otherwise
-     * @param useAndLogic    true for AND logic (both conditions must be met), false for OR logic (either condition). Only used when both hasStartDate and hasEndDate are true.
      * @return               total resource policies matching the criteria
      * @throws SQLException  if database error
      */
-    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate,
-                                   boolean useAndLogic) throws SQLException;
+    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException;
 }
