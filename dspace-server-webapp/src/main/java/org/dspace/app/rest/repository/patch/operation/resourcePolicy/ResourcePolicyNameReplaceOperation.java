@@ -12,6 +12,7 @@ import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.repository.patch.operation.PatchOperation;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,18 +35,8 @@ public class ResourcePolicyNameReplaceOperation<R> extends PatchOperation<R> {
     @Autowired
     ResourcePolicyUtils resourcePolicyUtils;
 
-    @Override
-    public R perform(Context context, R resource, Operation operation) {
-        checkOperationValue(operation.getValue());
-        if (this.supports(resource, operation)) {
-            ResourcePolicy resourcePolicy = (ResourcePolicy) resource;
-            resourcePolicyUtils.checkResourcePolicyForExistingNameValue(resourcePolicy, operation);
-            this.replace(resourcePolicy, operation);
-            return resource;
-        } else {
-            throw new DSpaceBadRequestException(this.getClass() + " does not support this operation");
-        }
-    }
+    @Autowired
+    private ProvenanceService provenanceService;
 
     /**
      * Performs the actual replace name of resourcePolicy operation
@@ -55,6 +46,24 @@ public class ResourcePolicyNameReplaceOperation<R> extends PatchOperation<R> {
     private void replace(ResourcePolicy resourcePolicy, Operation operation) {
         String newName = (String) operation.getValue();
         resourcePolicy.setRpName(newName);
+    }
+
+    @Override
+    public R perform(Context context, R resource, Operation operation) {
+        checkOperationValue(operation.getValue());
+        if (this.supports(resource, operation)) {
+            ResourcePolicy resourcePolicy = (ResourcePolicy) resource;
+            resourcePolicyUtils.checkResourcePolicyForExistingNameValue(resourcePolicy, operation);
+            this.replace(resourcePolicy, operation);
+            
+            // Add provenance tracking
+            provenanceService.updateResourcePolicy(context, resourcePolicy.getdSpaceObject(), 
+                    resourcePolicy, "updated");
+            
+            return resource;
+        } else {
+            throw new DSpaceBadRequestException(this.getClass() + " does not support this operation");
+        }
     }
 
     @Override

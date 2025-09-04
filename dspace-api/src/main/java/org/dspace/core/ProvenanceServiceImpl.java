@@ -33,6 +33,7 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.core.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -360,5 +361,45 @@ public class ProvenanceServiceImpl implements ProvenanceService {
             }
         }
         return currentLicense;
+    }
+
+    public void updateResourcePolicy(Context context, DSpaceObject dso, ResourcePolicy resourcePolicy, String action) {
+        try {
+            if (dso.getType() == Constants.ITEM) {
+                Item item = (Item) dso;
+                String policyInfo = formatResourcePolicyInfo(resourcePolicy);
+                String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.RESOURCE_POLICY_UPDATED.getTemplate(),
+                        item, policyInfo, action);
+                addProvenanceMetadata(context, item, msg);
+            } else if (dso.getType() == Constants.BITSTREAM) {
+                Bitstream bitstream = (Bitstream) dso;
+                Item item = findItemByBitstream(context, bitstream);
+                if (Objects.nonNull(item)) {
+                    String policyInfo = formatResourcePolicyInfo(resourcePolicy);
+                    String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.RESOURCE_POLICY_UPDATED.getTemplate(),
+                            item, policyInfo, action);
+                    addProvenanceMetadata(context, item, msg);
+                }
+            }
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when updating resource policy.", e);
+        }
+    }
+
+    private String formatResourcePolicyInfo(ResourcePolicy resourcePolicy) {
+        StringBuilder info = new StringBuilder();
+        if (resourcePolicy.getRpName() != null) {
+            info.append("name: ").append(resourcePolicy.getRpName());
+        }
+        int action = resourcePolicy.getAction();
+        if (action >= 0 && action < Constants.actionText.length) {
+            if (info.length() > 0) info.append(", ");
+            info.append("action: ").append(Constants.actionText[action]);
+        }
+        if (resourcePolicy.getRpType() != null) {
+            if (info.length() > 0) info.append(", ");
+            info.append("type: ").append(resourcePolicy.getRpType());
+        }
+        return info.length() > 0 ? info.toString() : "resource policy";
     }
 }

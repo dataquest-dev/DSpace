@@ -34,6 +34,8 @@ import org.dspace.app.rest.model.patch.RemoveOperation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.BundleBuilder;
 import org.dspace.builder.ClarinLicenseBuilder;
@@ -72,6 +74,8 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
     private ClarinLicenseLabelService clarinLicenseLabelService;
     @Autowired
     private ClarinLicenseService clarinLicenseService;
+    @Autowired
+    private AuthorizeService authorizeService;
 
     private Collection  collection;
     private Item item;
@@ -371,6 +375,41 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         deleteCollection(col.getID());
     }
 
+    @Test
+    public void updateResourcePolicyTest() throws Exception {
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        
+        // Create a resource policy for the item
+        context.turnOffAuthorisationSystem();
+        ResourcePolicy resourcePolicy = authorizeService.createResourcePolicy(context, item, null, null, 
+                Constants.READ, ResourcePolicy.TYPE_CUSTOM);
+        resourcePolicy.setRpName("TestPolicy");
+        resourcePolicy.setRpDescription("Test policy description");
+        authorizeService.update(context, resourcePolicy);
+        context.commit();
+        context.restoreAuthSystemState();
+        
+        // Update the resource policy name via PATCH
+        List<Operation> ops = new ArrayList<>();
+        ReplaceOperation replaceOperation = new ReplaceOperation("/name", "UpdatedTestPolicy");
+        ops.add(replaceOperation);
+        String patchBody = getPatchContent(ops);
+        
+        getClient(adminToken).perform(patch("/api/authz/resourcepolicies/" + resourcePolicy.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        
+        // Check that the provenance message was added
+        objectCheck(itemService.find(context, item.getID()), 
+                ProvenanceExpectedMessages.UPDATE_RESOURCE_POLICY.getTemplate());
+        
+        // Clean up
+        context.turnOffAuthorisationSystem();
+        authorizeService.delete(context, resourcePolicy);
+        context.commit();
+        context.restoreAuthSystemState();
+    }
 
     private String provenanceMetadataModified(String metadata) {
         // Regex to match the date pattern

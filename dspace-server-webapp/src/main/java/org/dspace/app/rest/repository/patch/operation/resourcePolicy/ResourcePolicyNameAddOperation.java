@@ -12,6 +12,7 @@ import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.repository.patch.operation.PatchOperation;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +34,9 @@ public class ResourcePolicyNameAddOperation<R> extends PatchOperation<R> {
     @Autowired
     ResourcePolicyUtils resourcePolicyUtils;
 
+    @Autowired
+    private ProvenanceService provenanceService;
+
     @Override
     public R perform(Context context, R resource, Operation operation) {
         checkOperationValue(operation.getValue());
@@ -40,6 +44,11 @@ public class ResourcePolicyNameAddOperation<R> extends PatchOperation<R> {
             ResourcePolicy resourcePolicy = (ResourcePolicy) resource;
             this.checkModelForNotExistingValue(resourcePolicy);
             this.add(resourcePolicy, operation);
+            
+            // Add provenance tracking
+            provenanceService.updateResourcePolicy(context, resourcePolicy.getdSpaceObject(), 
+                    resourcePolicy, "added");
+            
             return resource;
         } else {
             throw new DSpaceBadRequestException(this.getClass() + " does not support this operation");

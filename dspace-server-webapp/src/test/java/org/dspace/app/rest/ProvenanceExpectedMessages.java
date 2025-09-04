@@ -34,7 +34,8 @@ public enum ProvenanceExpectedMessages {
             " of bitstreams: 0"),
     REMOVE_LICENSE("License (Test) was removed by first (admin) last (admin) (admin@email.com) on " +
             "\nNo. of bitstreams: 1\n"),
-    MOVED_ITEM_COL("Item was moved from collection ");
+    MOVED_ITEM_COL("Item was moved from collection "),
+    UPDATE_RESOURCE_POLICY("Resource policy (name: TestPolicy) was updated by first (admin) last (admin) (admin@email.com) on");
 
     private final String template;
 
