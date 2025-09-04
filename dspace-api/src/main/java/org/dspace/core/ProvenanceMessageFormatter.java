@@ -91,9 +91,12 @@ public class ProvenanceMessageFormatter {
     }
 
     public String getMetadataReplacement(String metadataKey, String oldValue, String newValue) {
-        if (oldValue == null) oldValue = "[empty]";
-        if (newValue == null) newValue = "[empty]";
-        
+        if (oldValue == null) {
+            oldValue = "[empty]";
+        }
+        if (newValue == null) {
+            newValue = "[empty]";
+        }
         return String.format("%s [%s → %s]", metadataKey, oldValue, newValue);
     }
 
