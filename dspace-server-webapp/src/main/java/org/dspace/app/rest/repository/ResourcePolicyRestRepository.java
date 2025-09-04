@@ -226,13 +226,25 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
     }
 
     /**
-     * Find resource policies based on the presence of a start or end date.
-     * If no parameters are provided, it returns all resource policies from the database.
+     * Find resource policies based on embargo date presence criteria.
+     * 
+     * <p><b>Supported Parameter Combinations:</b></p>
+     * <ul>
+     * <li><b>No parameters:</b> Returns all policies with any embargo dates (OR logic)</li>
+     * <li><b>hasStartDate=true:</b> Returns policies with start dates only</li>
+     * <li><b>hasEndDate=true:</b> Returns policies with end dates only</li>
+     * <li><b>Both true:</b> Returns policies with both start AND end dates</li>
+     * <li><b>Both false:</b> Returns policies without any embargo dates</li>
+     * </ul>
+     * 
+     * <p><b>Access Control:</b> Requires ADMIN authority</p>
+     * <p><b>REST Endpoint:</b> {@code GET /api/authz/resourcepolicies/search/embargo}</p>
      *
-     * @param hasStartDate if true, returns policies that have a start date set.
-     * @param hasEndDate   if true, returns policies that have an end date set.
-     * @param pageable     contains the pagination information.
-     * @return a Page of ResourcePolicyRest instances matching the criteria.
+     * @param hasStartDate Optional filter for start date presence (true/false/null)
+     * @param hasEndDate   Optional filter for end date presence (true/false/null)
+     * @param pageable     Pagination and sorting information
+     * @return Page of ResourcePolicyRest instances matching the criteria
+     * @throws RuntimeException if database error occurs (wrapped SQLException)
      */
     @PreAuthorize("hasAuthority('ADMIN')")
     @SearchRestMethod(name = "embargo")
@@ -241,33 +253,50 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             @Parameter(value = "hasEndDate", required = false) Boolean hasEndDate,
             Pageable pageable) {
 
-        List<ResourcePolicy> policies;
-        long total;
-
-        boolean bHasStartDate = hasStartDate != null && hasStartDate;
-        boolean bHasEndDate = hasEndDate != null && hasEndDate;
-
         try {
             Context context = obtainContext();
 
-            // Ak žiadne parametre nie sú zadané, vráť policies s akýmikoľvek dátumami (embargo endpoint)
+            List<ResourcePolicy> policies;
+            long total;
+
             if (hasStartDate == null && hasEndDate == null) {
-                // Default: vráť policies ktoré majú aspoň jeden dátum nastavený
                 policies = resourcePolicyService.findByDatePresence(context, null, null,
-                        Math.toIntExact(pageable.getOffset()), Math.toIntExact(pageable.getPageSize()));
-                total = resourcePolicyService.countByDatePresence(context, true, true);
+                        Math.toIntExact(pageable.getOffset()), 
+                        Math.toIntExact(pageable.getPageSize()));
+                
+                total = getTotalEmbargoedPolicies(context);
             } else {
-                // Konkrétne filtre podľa parametrov
-                policies = resourcePolicyService.findByDatePresence(context, bHasStartDate, bHasEndDate,
-                        Math.toIntExact(pageable.getOffset()), Math.toIntExact(pageable.getPageSize()));
+                boolean bHasStartDate = Boolean.TRUE.equals(hasStartDate);
+                boolean bHasEndDate = Boolean.TRUE.equals(hasEndDate);
+                
+                policies = resourcePolicyService.findByDatePresence(context, hasStartDate, hasEndDate,
+                        Math.toIntExact(pageable.getOffset()), 
+                        Math.toIntExact(pageable.getPageSize()));
+                
                 total = resourcePolicyService.countByDatePresence(context, bHasStartDate, bHasEndDate);
             }
 
+            return converter.toRestPage(policies, pageable, total, utils.obtainProjection());
+            
         } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage(), e);
+            throw new RuntimeException("Database error while searching embargo policies: " + e.getMessage(), e);
         }
+    }
 
-        return converter.toRestPage(policies, pageable, total, utils.obtainProjection());
+    /**
+     * Helper method to count all policies with any embargo dates (OR logic).
+     * This is used for the default embargo endpoint behavior when no parameters are provided.
+     * 
+     * @param context DSpace context
+     * @return count of policies with either start date OR end date
+     * @throws SQLException if database error occurs
+     */
+    private long getTotalEmbargoedPolicies(Context context) throws SQLException {
+        int withStartDate = resourcePolicyService.countByDatePresence(context, true, false);
+        int withEndDate = resourcePolicyService.countByDatePresence(context, false, true);  
+        int withBothDates = resourcePolicyService.countByDatePresence(context, true, true);
+        
+        return withStartDate + withEndDate + withBothDates;
     }
 
     @Override

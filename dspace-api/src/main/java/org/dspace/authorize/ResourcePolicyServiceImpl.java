@@ -421,7 +421,8 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
     }
 
     @Override
-    public List<ResourcePolicy> findByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate, int offset, int limit) throws SQLException {
+    public List<ResourcePolicy> findByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate, 
+                                                   int offset, int limit) throws SQLException {
         return resourcePolicyDAO.findByDatePresence(context, hasStartDate, hasEndDate, offset, limit);
     }
 

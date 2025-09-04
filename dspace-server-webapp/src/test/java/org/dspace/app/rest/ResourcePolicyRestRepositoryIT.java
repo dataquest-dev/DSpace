@@ -3740,33 +3740,71 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
                              .andExpect(status().isUnprocessableEntity());
     }
 
-    @Test
-    public void findEmbargoWithStartDateOnly() throws Exception {
-        
-        context.turnOffAuthorisationSystem();
+    /**
+     * Test data container for embargo policy tests
+     */
+    private static class EmbargoTestData {
+        public final Community community;
+        public final Collection collection;
+        public final Item item;
+        public final Date embargoStartDate;
+        public final Date embargoEndDate;
+        public final ResourcePolicy rpWithStartDate;
+        public final ResourcePolicy rpWithEndDate;
+        public final ResourcePolicy rpWithEndDate2;
+        public final ResourcePolicy rpWithBothDates;
+        public final ResourcePolicy rpWithoutDates;
 
-        // Príprava dát
-        Community community = CommunityBuilder.createCommunity(context).withName("Test Community").build();
-        Collection collection = CollectionBuilder.createCollection(context, community).withName("Test Collection").build();
-        Item item = ItemBuilder.createItem(context, collection).withTitle("Item with Embargo").build();
+        public EmbargoTestData(Community community, Collection collection, Item item,
+                               Date embargoStartDate, Date embargoEndDate,
+                               ResourcePolicy rpWithStartDate, ResourcePolicy rpWithEndDate,
+                               ResourcePolicy rpWithEndDate2, ResourcePolicy rpWithBothDates,
+                               ResourcePolicy rpWithoutDates) {
+            this.community = community;
+            this.collection = collection;
+            this.item = item;
+            this.embargoStartDate = embargoStartDate;
+            this.embargoEndDate = embargoEndDate;
+            this.rpWithStartDate = rpWithStartDate;
+            this.rpWithEndDate = rpWithEndDate;
+            this.rpWithEndDate2 = rpWithEndDate2;
+            this.rpWithBothDates = rpWithBothDates;
+            this.rpWithoutDates = rpWithoutDates;
+        }
+    }
 
-        // Získame skupinu Anonymov
-        Group groupAnonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
+    /**
+     * Creates test data for embargo policy tests including:
+     * - Community, Collection, and Item
+     * - ResourcePolicies with different date combinations
+     * - Predefined start and end dates for consistency
+     *
+     * @return EmbargoTestData containing all test entities
+     * @throws Exception if test data creation fails
+     */
+    private EmbargoTestData createEmbargoTestData() throws Exception {
+        // Create test hierarchy
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("Test Community").build();
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                .withName("Test Collection").build();
+        Item item = ItemBuilder.createItem(context, collection)
+                .withTitle("Item with Embargo").build();
 
-        // Dátum začiatku embarga
+        // Create consistent embargo dates
         Calendar calendar1 = Calendar.getInstance();
         calendar1.set(Calendar.YEAR, 2019);
         calendar1.set(Calendar.MONTH, 9);
         calendar1.set(Calendar.DATE, 31);
         Date embargoStartDate = calendar1.getTime();
 
-        // Dátum konca embarga
         Calendar calendar2 = Calendar.getInstance();
         calendar2.set(Calendar.YEAR, 2200);
         calendar2.set(Calendar.MONTH, 9);
         calendar2.set(Calendar.DATE, 31);
         Date embargoEndDate = calendar2.getTime();
 
+        // Create ResourcePolicies with different date combinations
         ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
                 .withAction(Constants.READ)
                 .withDspaceObject(item)
@@ -3796,6 +3834,16 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
                 .withAction(Constants.READ)
                 .withDspaceObject(item)
                 .build();
+
+        return new EmbargoTestData(community, collection, item, embargoStartDate, embargoEndDate,
+                rpWithStartDate, rpWithEndDate, rpWithEndDate2, rpWithBothDates, rpWithoutDates);
+    }
+    
+    @Test
+    public void findEmbargoWithStartDateOnly() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        EmbargoTestData testData = createEmbargoTestData();
 
         context.restoreAuthSystemState();
 
@@ -3808,60 +3856,9 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
     @Test
     public void findEmbargoWithEndDateOnly() throws Exception {
-
         context.turnOffAuthorisationSystem();
 
-        // Príprava dát
-        Community community = CommunityBuilder.createCommunity(context).withName("Test Community").build();
-        Collection collection = CollectionBuilder.createCollection(context, community).withName("Test Collection").build();
-        Item item = ItemBuilder.createItem(context, collection).withTitle("Item with Embargo").build();
-
-        // Získame skupinu Anonymov
-        Group groupAnonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
-
-        // Dátum začiatku embarga
-        Calendar calendar1 = Calendar.getInstance();
-        calendar1.set(Calendar.YEAR, 2019);
-        calendar1.set(Calendar.MONTH, 9);
-        calendar1.set(Calendar.DATE, 31);
-        Date embargoStartDate = calendar1.getTime();
-
-        // Dátum konca embarga
-        Calendar calendar2 = Calendar.getInstance();
-        calendar2.set(Calendar.YEAR, 2200);
-        calendar2.set(Calendar.MONTH, 9);
-        calendar2.set(Calendar.DATE, 31);
-        Date embargoEndDate = calendar2.getTime();
-
-        ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withStartDate(embargoStartDate)
-                .build();
-
-        ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withStartDate(embargoStartDate)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .build();
+        EmbargoTestData testData = createEmbargoTestData();
 
         context.restoreAuthSystemState();
 
@@ -3874,60 +3871,9 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
     @Test
     public void findEmbargoWithoutDates() throws Exception {
-
         context.turnOffAuthorisationSystem();
 
-        // Príprava dát
-        Community community = CommunityBuilder.createCommunity(context).withName("Test Community").build();
-        Collection collection = CollectionBuilder.createCollection(context, community).withName("Test Collection").build();
-        Item item = ItemBuilder.createItem(context, collection).withTitle("Item with Embargo").build();
-
-        // Získame skupinu Anonymov
-        Group groupAnonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
-
-        // Dátum začiatku embarga
-        Calendar calendar1 = Calendar.getInstance();
-        calendar1.set(Calendar.YEAR, 2019);
-        calendar1.set(Calendar.MONTH, 9);
-        calendar1.set(Calendar.DATE, 31);
-        Date embargoStartDate = calendar1.getTime();
-
-        // Dátum konca embarga
-        Calendar calendar2 = Calendar.getInstance();
-        calendar2.set(Calendar.YEAR, 2200);
-        calendar2.set(Calendar.MONTH, 9);
-        calendar2.set(Calendar.DATE, 31);
-        Date embargoEndDate = calendar2.getTime();
-
-        ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withStartDate(embargoStartDate)
-                .build();
-
-        ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withStartDate(embargoStartDate)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .build();
+        EmbargoTestData testData = createEmbargoTestData();
 
         context.restoreAuthSystemState();
 
@@ -3940,63 +3886,9 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
     @Test
     public void findEmbargoWithAnyDate() throws Exception {
-
         context.turnOffAuthorisationSystem();
 
-        // Príprava dát
-        Community community = CommunityBuilder.createCommunity(context).withName("Test Community").build();
-        Collection collection = CollectionBuilder.createCollection(context, community).withName("Test Collection").build();
-        Item item = ItemBuilder.createItem(context, collection).withTitle("Item with Embargo").build();
-
-        // DEBUG: Počet policies po vytvorení item
-//        int createdPolicies = resourcePolicyService.countAll(context);
-
-        // Získame skupinu Anonymov
-        Group groupAnonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
-
-        // Dátum začiatku embarga
-        Calendar calendar1 = Calendar.getInstance();
-        calendar1.set(Calendar.YEAR, 2019);
-        calendar1.set(Calendar.MONTH, 9);
-        calendar1.set(Calendar.DATE, 31);
-        Date embargoStartDate = calendar1.getTime();
-
-        // Dátum konca embarga
-        Calendar calendar2 = Calendar.getInstance();
-        calendar2.set(Calendar.YEAR, 2200);
-        calendar2.set(Calendar.MONTH, 9);
-        calendar2.set(Calendar.DATE, 31);
-        Date embargoEndDate = calendar2.getTime();
-
-        ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withStartDate(embargoStartDate)
-                .build();
-
-        ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withStartDate(embargoStartDate)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .build();
+        EmbargoTestData testData = createEmbargoTestData();
 
         context.restoreAuthSystemState();
 
@@ -4009,60 +3901,9 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
     @Test
     public void findEmbargoWithBothDates() throws Exception {
-
         context.turnOffAuthorisationSystem();
 
-        // Príprava dát
-        Community community = CommunityBuilder.createCommunity(context).withName("Test Community").build();
-        Collection collection = CollectionBuilder.createCollection(context, community).withName("Test Collection").build();
-        Item item = ItemBuilder.createItem(context, collection).withTitle("Item with Embargo").build();
-
-        // Získame skupinu Anonymov
-        Group groupAnonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
-
-        // Dátum začiatku embarga
-        Calendar calendar1 = Calendar.getInstance();
-        calendar1.set(Calendar.YEAR, 2019);
-        calendar1.set(Calendar.MONTH, 9);
-        calendar1.set(Calendar.DATE, 31);
-        Date embargoStartDate = calendar1.getTime();
-
-        // Dátum konca embarga
-        Calendar calendar2 = Calendar.getInstance();
-        calendar2.set(Calendar.YEAR, 2200);
-        calendar2.set(Calendar.MONTH, 9);
-        calendar2.set(Calendar.DATE, 31);
-        Date embargoEndDate = calendar2.getTime();
-
-        ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withStartDate(embargoStartDate)
-                .build();
-
-        ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withStartDate(embargoStartDate)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .build();
+        EmbargoTestData testData = createEmbargoTestData();
 
         context.restoreAuthSystemState();
 

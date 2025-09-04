@@ -418,6 +418,24 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
         return count(query);
     }
 
+    /**
+     * Find resource policies based on the presence of start and end dates.
+     * <p>
+     * This method supports various combinations of date presence filtering:
+     * - Both null: finds policies with either start OR end date (OR logic)
+     * - Both true: finds policies with both start AND end dates (AND logic) 
+     * - hasStartDate=true, hasEndDate=null: finds policies with start date only
+     * - hasStartDate=null, hasEndDate=true: finds policies with end date only
+     * - Both false: finds policies without any dates (neither start nor end)
+     *
+     * @param context      DSpace context
+     * @param hasStartDate null for any, true for presence required, false for absence required
+     * @param hasEndDate   null for any, true for presence required, false for absence required
+     * @param offset       pagination offset
+     * @param limit        pagination limit
+     * @return             list of matching ResourcePolicies
+     * @throws SQLException if database error occurs
+     */
     @Override
     public List<ResourcePolicy> findByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate,
                                                    int offset, int limit) throws SQLException {
@@ -425,14 +443,17 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
 
         if (hasStartDate == null && hasEndDate == null) {
             queryBuilder.append(" WHERE rp.startDate IS NOT NULL OR rp.endDate IS NOT NULL");
-        } else if (hasStartDate && hasEndDate) {
+        } else if (Boolean.TRUE.equals(hasStartDate) && Boolean.TRUE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.startDate IS NOT NULL AND rp.endDate IS NOT NULL");
-        } else if (hasStartDate) {
+        } else if (Boolean.TRUE.equals(hasStartDate) && hasEndDate == null) {
             queryBuilder.append(" WHERE rp.startDate IS NOT NULL");
-        } else if (hasEndDate) {
+        } else if (hasStartDate == null && Boolean.TRUE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.endDate IS NOT NULL");
-        } else {
+        } else if (Boolean.FALSE.equals(hasStartDate) && Boolean.FALSE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NULL");
+        } else {
+            throw new IllegalArgumentException("Invalid combination of date presence parameters: " +
+                    "hasStartDate=" + hasStartDate + ", hasEndDate=" + hasEndDate);
         }
 
         queryBuilder.append(" ORDER BY rp.id");
@@ -444,16 +465,29 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
         return list(query);
     }
 
+    /**
+     * Count resource policies based on the presence of start and end dates.
+     * <p>
+     * This method uses the same logic as findByDatePresence but only counts results.
+     *
+     * @param context      DSpace context
+     * @param hasStartDate true for start date presence required, false for absence required
+     * @param hasEndDate   true for end date presence required, false for absence required
+     * @return             count of matching ResourcePolicies
+     * @throws SQLException if database error occurs
+     */
     @Override
     public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException {
         StringBuilder queryBuilder = new StringBuilder("SELECT count(rp.id) FROM ResourcePolicy rp");
 
         if (hasStartDate && hasEndDate) {
-            queryBuilder.append(" WHERE rp.startDate IS NOT NULL OR rp.endDate IS NOT NULL");
-        } else if (hasStartDate) {
-            queryBuilder.append(" WHERE rp.startDate IS NOT NULL");
-        } else if (hasEndDate) {
-            queryBuilder.append(" WHERE rp.endDate IS NOT NULL");
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL AND rp.endDate IS NOT NULL");
+        } else if (hasStartDate && !hasEndDate) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL AND rp.endDate IS NULL");
+        } else if (!hasStartDate && hasEndDate) {
+            queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NOT NULL");
+        } else {
+            queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NULL");
         }
 
         Query query = createQuery(context, queryBuilder.toString());

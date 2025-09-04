@@ -263,26 +263,45 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
     public int countAll(Context context) throws SQLException;
 
     /**
-     * Find all resource policies that have a start date or end date set.
+     * Find resource policies based on embargo date presence criteria.
+     * <p>
+     * This method enables flexible querying of ResourcePolicies based on the presence
+     * or absence of start and end dates. It supports various filtering combinations:
+     * 
+     * <ul>
+     * <li><b>Default (both null):</b> Returns policies with any dates (startDate OR endDate)</li>
+     * <li><b>Both true:</b> Returns policies with both startDate AND endDate</li>
+     * <li><b>hasStartDate=true, hasEndDate=null:</b> Returns policies with startDate only</li>
+     * <li><b>hasStartDate=null, hasEndDate=true:</b> Returns policies with endDate only</li>
+     * <li><b>Both false:</b> Returns policies without any dates (permanent policies)</li>
+     * </ul>
+     * 
+     * This method is primarily used by the embargo REST endpoint to filter policies
+     * based on embargo status and date configurations.
      *
      * @param context        DSpace context object
-     * @param hasStartDate   true if looking for policies with a start date, false otherwise
-     * @param hasEndDate     true if looking for policies with an end date, false otherwise
-     * @param offset         the position of the first result to return
-     * @param limit          paging limit
+     * @param hasStartDate   null=any, true=required, false=must be absent
+     * @param hasEndDate     null=any, true=required, false=must be absent
+     * @param offset         the position of the first result to return (pagination)
+     * @param limit          maximum number of results to return (pagination)
      * @return               list of resource policies matching the criteria
-     * @throws SQLException  if database error
+     * @throws SQLException  if database error occurs
      */
     public List<ResourcePolicy> findByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate,
                                                    int offset, int limit) throws SQLException;
 
     /**
-     * Count all resource policies that have a start date or end date set.
+     * Count resource policies based on embargo date presence criteria.
+     * 
+     * This method provides the total count for the same filtering logic as 
+     * {@link #findByDatePresence(Context, Boolean, Boolean, int, int)} but without
+     * pagination parameters. Used for calculating total pages in REST API responses.
+     *
      * @param context        DSpace context object
-     * @param hasStartDate   true if looking for policies with a start date, false otherwise
-     * @param hasEndDate     true if looking for policies with an end date, false otherwise
-     * @return               total resource policies matching the criteria
-     * @throws SQLException  if database error
+     * @param hasStartDate   true=required, false=must be absent
+     * @param hasEndDate     true=required, false=must be absent
+     * @return               total count of resource policies matching the criteria
+     * @throws SQLException  if database error occurs
      */
     public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException;
 }

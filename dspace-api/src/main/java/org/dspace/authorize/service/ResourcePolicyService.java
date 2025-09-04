@@ -321,11 +321,24 @@ public interface ResourcePolicyService {
     public int countByGroupAndResourceUuid(Context context, Group group, UUID resourceUuid) throws SQLException;
 
     /**
-     * Finds resource policies based on the presence of a start or end date.
+     * Find resource policies based on embargo date presence criteria.
+     * <p>
+     * This service method delegates to the DAO layer to find ResourcePolicies
+     * based on the presence or absence of embargo dates. It supports flexible
+     * filtering for various embargo management scenarios.
+     * 
+     * <p><b>Common Use Cases:</b></p>
+     * <ul>
+     * <li>Find all embargoed items (any date present)</li>
+     * <li>Find items with time-limited embargoes (both dates present)</li> 
+     * <li>Find items with start-only embargoes (publication date restrictions)</li>
+     * <li>Find items with end-only embargoes (expiration date restrictions)</li>
+     * <li>Find permanent policies (no embargo dates)</li>
+     * </ul>
      *
      * @param context      The relevant DSpace Context.
-     * @param hasStartDate If true, the query will filter for policies where startDate is not null.
-     * @param hasEndDate   If true, the query will filter for policies where endDate is not null.
+     * @param hasStartDate null=any, true=required, false=must be absent
+     * @param hasEndDate   null=any, true=required, false=must be absent  
      * @param offset       The number of records to skip (for pagination).
      * @param limit        The number of records to retrieve (for pagination).
      * @return A list of matching ResourcePolicy objects.
@@ -335,11 +348,14 @@ public interface ResourcePolicyService {
                                                    int offset, int limit) throws SQLException;
 
     /**
-     * Counts resource policies based on the presence of a start or end date.
+     * Count resource policies based on embargo date presence criteria.
+     * <p>
+     * This method provides the count equivalent of findByDatePresence() for
+     * pagination support in REST API responses.
      *
      * @param context      The relevant DSpace Context.
-     * @param hasStartDate If true, the query will count policies where startDate is not null.
-     * @param hasEndDate   If true, the query will count policies where endDate is not null.
+     * @param hasStartDate true=required, false=must be absent
+     * @param hasEndDate   true=required, false=must be absent
      * @return The total number of matching policies.
      * @throws SQLException If a database error occurs.
      */
