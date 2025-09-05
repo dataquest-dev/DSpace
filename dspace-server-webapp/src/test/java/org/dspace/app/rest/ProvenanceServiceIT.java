@@ -389,7 +389,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         List<AccessCondition> acList = new ArrayList<>();
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         cal.set(2030, Calendar.JANUARY, 1, 0, 0, 0);
-        cal.set(java.util.Calendar.MILLISECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         AccessCondition embargo = new AccessCondition("embargo", "test", cal.getTime(), null);
         acList.add(embargo);
         bitstreamNode.setAccessConditions(acList);
@@ -397,7 +397,12 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
 
         provenanceService.setBitstreamPolicies(context, bitstream, item, bulk);
 
-        objectCheck(itemService.find(context, item.getID()), "Access condition (embargo [from:");
+        // Build full expected message
+        String expected = "Access condition (embargo [from: " + cal.getTime() + "]) was added to bitstream ("
+                + bitstream.getID() + ") by first (admin) last (admin) ("
+                + admin.getEmail() + ") on \nNo. of bitstreams: 1\n";
+
+        objectCheck(itemService.find(context, item.getID()), expected);
 
         deleteBitstream(bitstream);
     }
