@@ -265,6 +265,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         if (dso.getType() != Constants.ITEM) {
             return;
         }
+
         try {
             String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
                     (Item) dso, messageProvider.getMetadataReplacement(
@@ -277,7 +278,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
     }
 
     public void replaceMetadataSingle(Context context, DSpaceObject dso, MetadataField metadataField,
-                                      String oldMtdVal) {
+                                      String oldMtdVal, String newMtdVal) {
         if (dso.getType() != Constants.BITSTREAM) {
             return;
         }
@@ -288,8 +289,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
             if (Objects.nonNull(item)) {
                 String msg = messageProvider.getMessage(context,
                         ProvenanceMessageTemplates.ITEM_REPLACE_SINGLE_METADATA.getTemplate(), item,
-                        messageProvider.getMessage(bitstream),
-                        messageProvider.getMetadata(messageProvider.getMetadataField(metadataField), oldMtdVal));
+                        messageProvider.getMessage(bitstream), messageProvider.getMetadataReplacement(
+                                messageProvider.getMetadataField(metadataField), oldMtdVal, newMtdVal));
                 addProvenanceMetadata(context, item, msg);;
             }
         } catch (SQLException | AuthorizeException e) {

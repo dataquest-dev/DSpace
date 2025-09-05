@@ -19,7 +19,7 @@ public enum ProvenanceExpectedMessages {
             "\nNo. of bitstreams: 0\nItem was in collections:\n"),
     MAPPED_COL("was mapped to collection"),
     ADD_ITEM_MTD("Item metadata (dc.title: Test) was added by first (admin) last (admin) (admin@email.com) on"),
-    REPLACE_ITEM_MTD("Item metadata (dc.title: Public item 1) was updated by first (admin) last (admin) " +
+    REPLACE_ITEM_MTD("Item metadata (dc.title [Public item 1 -> Test]) was updated by first (admin) last (admin) " +
             "(admin@email.com) on \nNo. of bitstreams: 0"),
     REMOVE_ITEM_MTD("Item metadata (dc.title: Public item 1) was deleted by first (admin) last (admin) " +
             "(admin@email.com) on \nNo. of bitstreams: 0"),

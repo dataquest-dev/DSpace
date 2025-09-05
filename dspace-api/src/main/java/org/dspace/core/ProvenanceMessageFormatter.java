@@ -97,7 +97,7 @@ public class ProvenanceMessageFormatter {
         if (newValue == null) {
             newValue = "[empty]";
         }
-        return String.format("%s [%s → %s]", metadataKey, oldValue, newValue);
+        return String.format("%s [%s -> %s]", metadataKey, oldValue, newValue);
     }
 
     public String getMetadataField(MetadataField metadataField) {

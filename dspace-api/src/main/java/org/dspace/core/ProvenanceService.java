@@ -160,7 +160,7 @@ public interface ProvenanceService {
      * @param oldMtdVal old metadata value
      */
     void replaceMetadataSingle(Context context, DSpaceObject dso, MetadataField metadataField,
-                               String oldMtdVal);
+                               String oldMtdVal, String newMtdVal);
 
     /**
      * Add a provenance message to the item when metadata is updated
