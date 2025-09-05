@@ -24,7 +24,7 @@ public enum ProvenanceExpectedMessages {
     REMOVE_ITEM_MTD("Item metadata (dc.title: Public item 1) was deleted by first (admin) last (admin) " +
             "(admin@email.com) on \nNo. of bitstreams: 0"),
     REMOVE_BITSTREAM_MTD("Item metadata (dc.description: test) was added by bitstream"),
-    REPLACE_BITSTREAM_MTD("metadata (dc.title: test) was updated by first (admin) last (admin) " +
+    REPLACE_BITSTREAM_MTD("metadata (dc.title [test -> test 1]) was updated by first (admin) last (admin) " +
             "(admin@email.com) on \nNo. of bitstreams: 1\n"),
     REMOVE_BITSTREAM("was deleted bitstream"),
     ADD_BITSTREAM("Item was added bitstream to bundle"),
