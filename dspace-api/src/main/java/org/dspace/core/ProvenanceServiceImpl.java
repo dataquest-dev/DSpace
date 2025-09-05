@@ -289,8 +289,8 @@ public class ProvenanceServiceImpl implements ProvenanceService {
             if (Objects.nonNull(item)) {
                 String msg = messageProvider.getMessage(context,
                         ProvenanceMessageTemplates.ITEM_REPLACE_SINGLE_METADATA.getTemplate(), item,
-                        messageProvider.getMessage(bitstream), messageProvider.getMetadataReplacement(
-                                messageProvider.getMetadataField(metadataField), oldMtdVal, newMtdVal));
+                        messageProvider.getMessage(bitstream),
+                        messageProvider.getMetadata(messageProvider.getMetadataField(metadataField), oldMtdVal));
                 addProvenanceMetadata(context, item, msg);;
             }
         } catch (SQLException | AuthorizeException e) {
