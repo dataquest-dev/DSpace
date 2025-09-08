@@ -293,7 +293,7 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
     /**
      * Count resource policies based on embargo date presence criteria.
      * 
-     * This method provides the total count for the same filtering logic as 
+     * This method provides the total count for the same filtering logic as
      * {@link #findByDatePresence(Context, Boolean, Boolean, int, int)} but without
      * pagination parameters. Used for calculating total pages in REST API responses.
      *

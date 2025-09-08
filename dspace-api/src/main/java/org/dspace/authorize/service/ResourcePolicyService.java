@@ -330,7 +330,7 @@ public interface ResourcePolicyService {
      * <p><b>Common Use Cases:</b></p>
      * <ul>
      * <li>Find all embargoed items (any date present)</li>
-     * <li>Find items with time-limited embargoes (both dates present)</li> 
+     * <li>Find items with time-limited embargoes (both dates present)</li>
      * <li>Find items with start-only embargoes (publication date restrictions)</li>
      * <li>Find items with end-only embargoes (expiration date restrictions)</li>
      * <li>Find permanent policies (no embargo dates)</li>
@@ -338,7 +338,7 @@ public interface ResourcePolicyService {
      *
      * @param context      The relevant DSpace Context.
      * @param hasStartDate null=any, true=required, false=must be absent
-     * @param hasEndDate   null=any, true=required, false=must be absent  
+     * @param hasEndDate   null=any, true=required, false=must be absent
      * @param offset       The number of records to skip (for pagination).
      * @param limit        The number of records to retrieve (for pagination).
      * @return A list of matching ResourcePolicy objects.

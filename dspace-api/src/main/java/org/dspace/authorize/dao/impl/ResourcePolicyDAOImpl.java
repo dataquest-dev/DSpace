@@ -423,7 +423,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
      * <p>
      * This method supports various combinations of date presence filtering:
      * - Both null: finds policies with either start OR end date (OR logic)
-     * - Both true: finds policies with both start AND end dates (AND logic) 
+     * - Both true: finds policies with both start AND end dates (AND logic)
      * - hasStartDate=true, hasEndDate=null: finds policies with start date only
      * - hasStartDate=null, hasEndDate=true: finds policies with end date only
      * - Both false: finds policies without any dates (neither start nor end)
