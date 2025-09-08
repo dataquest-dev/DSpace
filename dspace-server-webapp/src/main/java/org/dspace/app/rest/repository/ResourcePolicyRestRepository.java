@@ -9,12 +9,10 @@ package org.dspace.app.rest.repository;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.DiscoverableEndpointsService;
@@ -35,8 +33,6 @@ import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.discovery.DiscoverQuery;
-import org.dspace.discovery.indexobject.IndexableDSpaceObject;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.EPersonService;
@@ -261,20 +257,16 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
 
             if (hasStartDate == null && hasEndDate == null) {
                 policies = resourcePolicyService.findByDatePresence(context, null, null,
-                        Math.toIntExact(pageable.getOffset()), 
+                        Math.toIntExact(pageable.getOffset()),
                         Math.toIntExact(pageable.getPageSize()));
-                
                 total = resourcePolicyService.countByDatePresence(context, null, null);
             } else {
                 policies = resourcePolicyService.findByDatePresence(context, hasStartDate, hasEndDate,
-                        Math.toIntExact(pageable.getOffset()), 
+                        Math.toIntExact(pageable.getOffset()),
                         Math.toIntExact(pageable.getPageSize()));
-                
                 total = resourcePolicyService.countByDatePresence(context, hasStartDate, hasEndDate);
             }
-
             return converter.toRestPage(policies, pageable, total, utils.obtainProjection());
-            
         } catch (SQLException e) {
             throw new RuntimeException("Database error while searching embargo policies: " + e.getMessage(), e);
         }

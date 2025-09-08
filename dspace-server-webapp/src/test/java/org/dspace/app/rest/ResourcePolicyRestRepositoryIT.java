@@ -9,7 +9,9 @@ package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.data.rest.webmvc.RestMediaTypes.TEXT_URI_LIST_VALUE;
 import static org.springframework.http.MediaType.parseMediaType;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -3838,7 +3840,7 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
         return new EmbargoTestData(community, collection, item, embargoStartDate, embargoEndDate,
                 rpWithStartDate, rpWithEndDate, rpWithEndDate2, rpWithBothDates, rpWithoutDates);
     }
-    
+
     @Test
     public void findEmbargoWithStartDateOnly() throws Exception {
         context.turnOffAuthorisationSystem();
