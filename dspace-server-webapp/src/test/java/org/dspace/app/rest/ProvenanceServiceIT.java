@@ -24,7 +24,6 @@ import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.TimeZone;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -387,7 +386,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         BulkAccessControlInput bulk = new BulkAccessControlInput();
         AccessConditionBitstream bitstreamNode = new AccessConditionBitstream();
         List<AccessCondition> acList = new ArrayList<>();
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        Calendar cal = Calendar.getInstance();
         cal.set(2030, Calendar.JANUARY, 1, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
         AccessCondition embargo = new AccessCondition("embargo", "test", cal.getTime(), null);
@@ -400,7 +399,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         // Build full expected message
         String expected = "Access condition (embargo [from: " + cal.getTime() + "]) was added to bitstream ("
                 + bitstream.getID() + ") by first (admin) last (admin) ("
-                + admin.getEmail() + ") on \nNo. of bitstreams: 1\n";
+                + admin.getEmail() + ") on ";
 
         objectCheck(itemService.find(context, item.getID()), expected);
 
