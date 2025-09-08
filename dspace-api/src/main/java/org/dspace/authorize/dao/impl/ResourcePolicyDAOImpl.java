@@ -449,6 +449,10 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
             queryBuilder.append(" WHERE rp.startDate IS NOT NULL");
         } else if (hasStartDate == null && Boolean.TRUE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.endDate IS NOT NULL");
+        } else if (Boolean.TRUE.equals(hasStartDate) && Boolean.FALSE.equals(hasEndDate)) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL AND rp.endDate IS NULL");
+        } else if (Boolean.FALSE.equals(hasStartDate) && Boolean.TRUE.equals(hasEndDate)) {
+            queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NOT NULL");
         } else if (Boolean.FALSE.equals(hasStartDate) && Boolean.FALSE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NULL");
         } else {
@@ -488,6 +492,10 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
             queryBuilder.append(" WHERE rp.startDate IS NOT NULL");
         } else if (hasStartDate == null && Boolean.TRUE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.endDate IS NOT NULL");
+        } else if (Boolean.TRUE.equals(hasStartDate) && Boolean.FALSE.equals(hasEndDate)) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL AND rp.endDate IS NULL");
+        } else if (Boolean.FALSE.equals(hasStartDate) && Boolean.TRUE.equals(hasEndDate)) {
+            queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NOT NULL");
         } else if (Boolean.FALSE.equals(hasStartDate) && Boolean.FALSE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NULL");
         } else {

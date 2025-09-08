@@ -3785,6 +3785,8 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
      * @throws Exception if test data creation fails
      */
     private EmbargoTestData createEmbargoTestData() throws Exception {
+
+
         // Create test hierarchy
         Community community = CommunityBuilder.createCommunity(context)
                 .withName("Test Community").build();
@@ -3842,8 +3844,11 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
     }
 
     @Test
-    public void findEmbargoWithStartDateOnly() throws Exception {
+    public void findEmbargoWithStartDate() throws Exception {
         context.turnOffAuthorisationSystem();
+
+        // Baseline count
+        int baselineCount = this.resourcePolicyService.countByDatePresence(context, true, null);
 
         EmbargoTestData testData = createEmbargoTestData();
 
@@ -3853,12 +3858,15 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
         getClient(authToken)
                 .perform(get("/api/authz/resourcepolicies/search/embargo?hasStartDate=true"))
-                .andExpect(jsonPath("$.page.totalElements", is(2))); // rpWithStartDate + rpWithBothDates
+                .andExpect(jsonPath("$.page.totalElements", is(baselineCount + 2))); // rpWithStartDate + rpWithBothDates
     }
 
     @Test
-    public void findEmbargoWithEndDateOnly() throws Exception {
+    public void findEmbargoWithEndDate() throws Exception {
         context.turnOffAuthorisationSystem();
+
+        // Baseline count
+        int baselineCount = this.resourcePolicyService.countByDatePresence(context, null, true);
 
         EmbargoTestData testData = createEmbargoTestData();
 
@@ -3868,12 +3876,15 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
         getClient(authToken)
                 .perform(get("/api/authz/resourcepolicies/search/embargo?hasEndDate=true"))
-                .andExpect(jsonPath("$.page.totalElements", is(3))); // rpWithEndDate + rpWithEndDate2 + rpWithBothDates
+                .andExpect(jsonPath("$.page.totalElements", is(baselineCount + 3))); // rpWithEndDate + rpWithEndDate2 + rpWithBothDates
     }
 
     @Test
     public void findEmbargoWithoutDates() throws Exception {
         context.turnOffAuthorisationSystem();
+
+        // Baseline count
+        int baselineCount = this.resourcePolicyService.countByDatePresence(context, false, false);
 
         EmbargoTestData testData = createEmbargoTestData();
 
@@ -3883,12 +3894,15 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
         getClient(authToken)
                 .perform(get("/api/authz/resourcepolicies/search/embargo?hasStartDate=false&hasEndDate=false"))
-                .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(1))); // At least our rpWithoutDates
+                .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(baselineCount + 1))); // rpWithoutDates
     }
 
     @Test
     public void findEmbargoWithAnyDate() throws Exception {
         context.turnOffAuthorisationSystem();
+
+        // Baseline count
+        int baselineCount = this.resourcePolicyService.countByDatePresence(context, null, null);
 
         EmbargoTestData testData = createEmbargoTestData();
 
@@ -3898,12 +3912,15 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
         getClient(authToken)
                 .perform(get("/api/authz/resourcepolicies/search/embargo"))
-                .andExpect(jsonPath("$.page.totalElements", is(4)));
+                .andExpect(jsonPath("$.page.totalElements", is(baselineCount + 4))); // All our rps except rpWithoutDates
     }
 
     @Test
     public void findEmbargoWithBothDates() throws Exception {
         context.turnOffAuthorisationSystem();
+
+        // Baseline count
+        int baselineCount = this.resourcePolicyService.countByDatePresence(context, true, true);
 
         EmbargoTestData testData = createEmbargoTestData();
 
@@ -3913,6 +3930,6 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
         getClient(authToken)
                 .perform(get("/api/authz/resourcepolicies/search/embargo?hasStartDate=true&hasEndDate=true"))
-                .andExpect(jsonPath("$.page.totalElements", is(1)));
+                .andExpect(jsonPath("$.page.totalElements", is(baselineCount + 1))); // rpWithBothDates
     }
 }
