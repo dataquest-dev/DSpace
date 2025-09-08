@@ -226,11 +226,13 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
      * 
      * <p><b>Supported Parameter Combinations:</b></p>
      * <ul>
-     * <li><b>No parameters:</b> Returns all policies with any embargo dates (OR logic)</li>
-     * <li><b>hasStartDate=true:</b> Returns policies with start dates only</li>
-     * <li><b>hasEndDate=true:</b> Returns policies with end dates only</li>
-     * <li><b>Both true:</b> Returns policies with both start AND end dates</li>
+     * <li><b>Both true:</b> Returns policies with both startDate AND endDate present</li>
      * <li><b>Both false:</b> Returns policies without any embargo dates</li>
+     * <li><b>hasStartDate=true:</b> Returns policies with startDate present</li>
+     * <li><b>hasEndDate=true:</b> Returns policies with endDate present</li>
+     * <li><b>hasStartDate=true, hasEndDate=false:</b> Returns policies with startDate only</li>
+     * <li><b>hasStartDate=false, hasEndDate=true:</b> Returns policies with endDate only</li>
+     * <li><b>No parameters:</b> Returns all policies with any embargo dates (OR logic)</li>
      * </ul>
      * 
      * <p><b>Access Control:</b> Requires ADMIN authority</p>
@@ -253,19 +255,12 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             Context context = obtainContext();
 
             List<ResourcePolicy> policies;
-            long total;
+            int total;
 
-            if (hasStartDate == null && hasEndDate == null) {
-                policies = resourcePolicyService.findByDatePresence(context, null, null,
+            policies = resourcePolicyService.findByDatePresence(context, hasStartDate, hasEndDate,
                         Math.toIntExact(pageable.getOffset()),
                         Math.toIntExact(pageable.getPageSize()));
-                total = resourcePolicyService.countByDatePresence(context, null, null);
-            } else {
-                policies = resourcePolicyService.findByDatePresence(context, hasStartDate, hasEndDate,
-                        Math.toIntExact(pageable.getOffset()),
-                        Math.toIntExact(pageable.getPageSize()));
-                total = resourcePolicyService.countByDatePresence(context, hasStartDate, hasEndDate);
-            }
+            total = resourcePolicyService.countByDatePresence(context, hasStartDate, hasEndDate);
             return converter.toRestPage(policies, pageable, total, utils.obtainProjection());
         } catch (SQLException e) {
             throw new RuntimeException("Database error while searching embargo policies: " + e.getMessage(), e);

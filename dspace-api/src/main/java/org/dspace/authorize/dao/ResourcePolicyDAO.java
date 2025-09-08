@@ -271,9 +271,11 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
      * <ul>
      * <li><b>Default (both null):</b> Returns policies with any dates (startDate OR endDate)</li>
      * <li><b>Both true:</b> Returns policies with both startDate AND endDate</li>
-     * <li><b>hasStartDate=true, hasEndDate=null:</b> Returns policies with startDate only</li>
-     * <li><b>hasStartDate=null, hasEndDate=true:</b> Returns policies with endDate only</li>
      * <li><b>Both false:</b> Returns policies without any dates (permanent policies)</li>
+     * <li><b>hasStartDate=true, hasEndDate=null:</b> Returns policies with startDate present</li>
+     * <li><b>hasStartDate=null, hasEndDate=true:</b> Returns policies with endDate present</li>
+     * <li><b>hasStartDate=true, hasEndDate=false:</b> Returns policies with startDate only</li>
+     * <li><b>hasStartDate=false, hasEndDate=true:</b> Returns policies with endDate only</li>
      * </ul>
      * 
      * This method is primarily used by the embargo REST endpoint to filter policies
@@ -298,8 +300,8 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
      * pagination parameters. Used for calculating total pages in REST API responses.
      *
      * @param context        DSpace context object
-     * @param hasStartDate   true=required, false=must be absent
-     * @param hasEndDate     true=required, false=must be absent
+     * @param hasStartDate   null=any, true=required, false=must be absent
+     * @param hasEndDate     null=any, true=required, false=must be absent
      * @return               total count of resource policies matching the criteria
      * @throws SQLException  if database error occurs
      */

@@ -354,8 +354,8 @@ public interface ResourcePolicyService {
      * pagination support in REST API responses.
      *
      * @param context      The relevant DSpace Context.
-     * @param hasStartDate true=required, false=must be absent
-     * @param hasEndDate   true=required, false=must be absent
+     * @param hasStartDate null=any, true=required, false=must be absent
+     * @param hasEndDate   null=any, true=required, false=must be absent
      * @return The total number of matching policies.
      * @throws SQLException If a database error occurs.
      */
