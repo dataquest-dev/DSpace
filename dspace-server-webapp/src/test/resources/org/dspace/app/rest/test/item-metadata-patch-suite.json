@@ -41,9 +41,9 @@
       ],
       "expect": {
         "dc.description.provenance":[
-          {"value":"Item metadata (dc.title: title 1) was added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
+          {"value":"Item metadata (dc.title: title 1) was added by first (admin) last (admin) (admin@email.com) on ",
             "language":"en","authority":null,"confidence":-1,"place":0},
-          {"value":"Item metadata (dc.title: 最後のタイトル) was added by first (admin) last (admin) (admin@email.com) on \nNo. of bitstreams: 0",
+          {"value":"Item metadata (dc.title: 最後のタイトル) was added by first (admin) last (admin) (admin@email.com) on ",
             "language":"en","authority":null,"confidence":-1,"place":1}
         ],
         "dc.title": [

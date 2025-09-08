@@ -191,7 +191,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         try {
             if (Constants.ITEM == dso.getType()) {
                 String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
-                        (Item) dso, messageProvider.getMetadata(
+                        messageProvider.getMetadata(
                                 messageProvider.getMetadataField(metadataField), metadataValue), "added");
                 addProvenanceMetadata(context, (Item) dso, msg);
             }
@@ -268,7 +268,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
         try {
             String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
-                     messageProvider.getMetadataReplacement(
+                    (Item) dso, messageProvider.getMetadataReplacement(
                             messageProvider.getMetadataField(metadataField), oldMtdVal, newMtdVal), "updated");
             addProvenanceMetadata(context, (Item) dso, msg);
         } catch (SQLException | AuthorizeException e) {
