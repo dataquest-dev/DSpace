@@ -168,6 +168,11 @@ public class EPersonRestAuthenticationProvider implements AuthenticationProvider
      */
     private Authentication createAuthentication(final Context context) {
         EPerson ePerson = context.getCurrentUser();
+        if (ePerson != null) {
+            log.info("User EMAIL" + ePerson.getEmail());
+        } else {
+            log.info("No user found in context");
+        }
 
         if (ePerson != null && StringUtils.isNotBlank(ePerson.getEmail())) {
             //Pass the eperson ID to the request service
