@@ -734,7 +734,7 @@ public class LDAPAuthentication implements AuthenticationMethod {
      */
     private void assignGroups(String dn, ArrayList<String> group, Context context) {
         if (StringUtils.isNotBlank(dn)) {
-            System.out.println("dn:" + dn);
+            log.info(LogHelper.getHeader(context, "assignGroups", "dn=" + dn));
             int groupmapIndex = 1;
             String groupMap = configurationService.getProperty("authentication-ldap.login.groupmap." + groupmapIndex);
             boolean cmp;
@@ -743,7 +743,20 @@ public class LDAPAuthentication implements AuthenticationMethod {
             // groupmap contains the mapping of LDAP groups to DSpace groups
             // outer loop with the DSpace groups
             while (groupMap != null) {
+                log.info(LogHelper.getHeader(context, "assignGroups", 
+                    "processing groupmap " + groupmapIndex + ": " + groupMap));
+                
                 String t[] = groupMap.split(":");
+                log.info(LogHelper.getHeader(context, "assignGroups", 
+                    "split result - array length: " + t.length + ", elements: " + java.util.Arrays.toString(t)));
+                
+                if (t.length < 2) {
+                    log.error(LogHelper.getHeader(context, "assignGroups", 
+                        "malformed groupmap entry at index " + groupmapIndex + ": " + groupMap + " - missing ':' separator"));
+                    groupMap = configurationService.getProperty("authentication-ldap.login.groupmap." + ++groupmapIndex);
+                    continue;
+                }
+                
                 String ldapSearchString = t[0];
                 String dspaceGroupName = t[1];
 
