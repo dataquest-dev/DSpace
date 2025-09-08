@@ -455,9 +455,6 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
             queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NOT NULL");
         } else if (Boolean.FALSE.equals(hasStartDate) && Boolean.FALSE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NULL");
-        } else {
-            throw new IllegalArgumentException("Invalid combination of date presence parameters: " +
-                    "hasStartDate=" + hasStartDate + ", hasEndDate=" + hasEndDate);
         }
 
         queryBuilder.append(" ORDER BY rp.id");
@@ -498,9 +495,6 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
             queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NOT NULL");
         } else if (Boolean.FALSE.equals(hasStartDate) && Boolean.FALSE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NULL");
-        } else {
-            throw new IllegalArgumentException("Invalid combination of date presence parameters: " +
-                    "hasStartDate=" + hasStartDate + ", hasEndDate=" + hasEndDate);
         }
 
         Query query = createQuery(context, queryBuilder.toString());
