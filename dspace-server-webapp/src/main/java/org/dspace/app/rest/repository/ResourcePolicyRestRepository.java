@@ -264,16 +264,13 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
                         Math.toIntExact(pageable.getOffset()), 
                         Math.toIntExact(pageable.getPageSize()));
                 
-                total = getTotalEmbargoedPolicies(context);
+                total = resourcePolicyService.countByDatePresence(context, null, null);
             } else {
-                boolean bHasStartDate = Boolean.TRUE.equals(hasStartDate);
-                boolean bHasEndDate = Boolean.TRUE.equals(hasEndDate);
-                
                 policies = resourcePolicyService.findByDatePresence(context, hasStartDate, hasEndDate,
                         Math.toIntExact(pageable.getOffset()), 
                         Math.toIntExact(pageable.getPageSize()));
                 
-                total = resourcePolicyService.countByDatePresence(context, bHasStartDate, bHasEndDate);
+                total = resourcePolicyService.countByDatePresence(context, hasStartDate, hasEndDate);
             }
 
             return converter.toRestPage(policies, pageable, total, utils.obtainProjection());
@@ -281,22 +278,6 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
         } catch (SQLException e) {
             throw new RuntimeException("Database error while searching embargo policies: " + e.getMessage(), e);
         }
-    }
-
-    /**
-     * Helper method to count all policies with any embargo dates (OR logic).
-     * This is used for the default embargo endpoint behavior when no parameters are provided.
-     * 
-     * @param context DSpace context
-     * @return count of policies with either start date OR end date
-     * @throws SQLException if database error occurs
-     */
-    private long getTotalEmbargoedPolicies(Context context) throws SQLException {
-        int withStartDate = resourcePolicyService.countByDatePresence(context, true, false);
-        int withEndDate = resourcePolicyService.countByDatePresence(context, false, true);  
-        int withBothDates = resourcePolicyService.countByDatePresence(context, true, true);
-        
-        return withStartDate + withEndDate + withBothDates;
     }
 
     @Override

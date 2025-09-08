@@ -359,7 +359,7 @@ public interface ResourcePolicyService {
      * @return The total number of matching policies.
      * @throws SQLException If a database error occurs.
      */
-    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException;
+    public int countByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException;
 
     /**
      * Check if the resource policy identified with (id) belong to ePerson

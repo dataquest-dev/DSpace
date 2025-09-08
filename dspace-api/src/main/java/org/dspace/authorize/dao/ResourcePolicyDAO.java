@@ -303,5 +303,5 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
      * @return               total count of resource policies matching the criteria
      * @throws SQLException  if database error occurs
      */
-    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException;
+    public int countByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException;
 }

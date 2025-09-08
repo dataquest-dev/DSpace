@@ -477,17 +477,22 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
      * @throws SQLException if database error occurs
      */
     @Override
-    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException {
+    public int countByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException {
         StringBuilder queryBuilder = new StringBuilder("SELECT count(rp.id) FROM ResourcePolicy rp");
 
-        if (hasStartDate && hasEndDate) {
+        if (hasStartDate == null && hasEndDate == null) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL OR rp.endDate IS NOT NULL");
+        } else if (Boolean.TRUE.equals(hasStartDate) && Boolean.TRUE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.startDate IS NOT NULL AND rp.endDate IS NOT NULL");
-        } else if (hasStartDate && !hasEndDate) {
-            queryBuilder.append(" WHERE rp.startDate IS NOT NULL AND rp.endDate IS NULL");
-        } else if (!hasStartDate && hasEndDate) {
-            queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NOT NULL");
-        } else {
+        } else if (Boolean.TRUE.equals(hasStartDate) && hasEndDate == null) {
+            queryBuilder.append(" WHERE rp.startDate IS NOT NULL");
+        } else if (hasStartDate == null && Boolean.TRUE.equals(hasEndDate)) {
+            queryBuilder.append(" WHERE rp.endDate IS NOT NULL");
+        } else if (Boolean.FALSE.equals(hasStartDate) && Boolean.FALSE.equals(hasEndDate)) {
             queryBuilder.append(" WHERE rp.startDate IS NULL AND rp.endDate IS NULL");
+        } else {
+            throw new IllegalArgumentException("Invalid combination of date presence parameters: " +
+                    "hasStartDate=" + hasStartDate + ", hasEndDate=" + hasEndDate);
         }
 
         Query query = createQuery(context, queryBuilder.toString());

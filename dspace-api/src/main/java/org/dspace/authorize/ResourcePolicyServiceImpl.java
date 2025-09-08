@@ -427,7 +427,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
     }
 
     @Override
-    public int countByDatePresence(Context context, boolean hasStartDate, boolean hasEndDate) throws SQLException {
+    public int countByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException {
         return resourcePolicyDAO.countByDatePresence(context, hasStartDate, hasEndDate);
     }
 
