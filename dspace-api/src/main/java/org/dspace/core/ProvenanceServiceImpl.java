@@ -231,7 +231,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
             Item item = findItemByBitstream(context, bitstream);
             if (Objects.nonNull(item)) {
                 String msg = messageProvider.getMessage(context,
-                        ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(), item,
+                        ProvenanceMessageTemplates.BITSTREAM_METADATA.getTemplate(),
                         messageProvider.getMetadata(messageProvider.getMetadataField(oldMtdKey), oldMtdValue),
                         "deleted from", messageProvider.getMessage(bitstream));
                 addProvenanceMetadata(context, item, msg);
@@ -252,7 +252,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         String oldMtdValue = metadataValues.get(indexInt).getValue();
         try {
             String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
-                    (Item) dso, messageProvider.getMetadata(oldMtdKey, oldMtdValue), "deleted");
+                    messageProvider.getMetadata(oldMtdKey, oldMtdValue), "deleted");
             addProvenanceMetadata(context, (Item) dso, msg);
         } catch (SQLException | AuthorizeException e) {
             log.error("Unable to add new provenance metadata when removing metadata at a specific index " +
@@ -268,7 +268,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
         try {
             String msg = messageProvider.getMessage(context, ProvenanceMessageTemplates.ITEM_METADATA.getTemplate(),
-                    (Item) dso, messageProvider.getMetadataReplacement(
+                    messageProvider.getMetadataReplacement(
                             messageProvider.getMetadataField(metadataField), oldMtdVal, newMtdVal), "updated");
             addProvenanceMetadata(context, (Item) dso, msg);
         } catch (SQLException | AuthorizeException e) {
@@ -288,7 +288,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
             Item item = findItemByBitstream(context, bitstream);
             if (Objects.nonNull(item)) {
                 String msg = messageProvider.getMessage(context,
-                        ProvenanceMessageTemplates.ITEM_REPLACE_SINGLE_METADATA.getTemplate(), item,
+                        ProvenanceMessageTemplates.ITEM_REPLACE_SINGLE_METADATA.getTemplate(),
                         messageProvider.getMessage(bitstream),
                         messageProvider.getMetadata(messageProvider.getMetadataField(metadataField), oldMtdVal));
                 addProvenanceMetadata(context, item, msg);
