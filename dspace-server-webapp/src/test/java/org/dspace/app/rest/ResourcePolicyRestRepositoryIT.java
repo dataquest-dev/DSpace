@@ -3743,116 +3743,79 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
     }
 
     /**
-     * Test data container for embargo policy tests
-     */
-    private static class EmbargoTestData {
-        public final Community community;
-        public final Collection collection;
-        public final Item item;
-        public final Date embargoStartDate;
-        public final Date embargoEndDate;
-        public final ResourcePolicy rpWithStartDate;
-        public final ResourcePolicy rpWithEndDate;
-        public final ResourcePolicy rpWithEndDate2;
-        public final ResourcePolicy rpWithBothDates;
-        public final ResourcePolicy rpWithoutDates;
-
-        public EmbargoTestData(Community community, Collection collection, Item item,
-                               Date embargoStartDate, Date embargoEndDate,
-                               ResourcePolicy rpWithStartDate, ResourcePolicy rpWithEndDate,
-                               ResourcePolicy rpWithEndDate2, ResourcePolicy rpWithBothDates,
-                               ResourcePolicy rpWithoutDates) {
-            this.community = community;
-            this.collection = collection;
-            this.item = item;
-            this.embargoStartDate = embargoStartDate;
-            this.embargoEndDate = embargoEndDate;
-            this.rpWithStartDate = rpWithStartDate;
-            this.rpWithEndDate = rpWithEndDate;
-            this.rpWithEndDate2 = rpWithEndDate2;
-            this.rpWithBothDates = rpWithBothDates;
-            this.rpWithoutDates = rpWithoutDates;
-        }
-    }
-
-    /**
-     * Creates test data for embargo policy tests including:
+     * Setups test data for embargo policy tests including:
      * - Community, Collection, and Item
      * - ResourcePolicies with different date combinations
      * - Predefined start and end dates for consistency
      *
-     * @return EmbargoTestData containing all test entities
      * @throws Exception if test data creation fails
      */
-    private EmbargoTestData createEmbargoTestData() throws Exception {
+    private void setupEmbargoTestData() throws Exception {
+        context.turnOffAuthorisationSystem();
 
+        try {
+            // Create test hierarchy
+            Community community = CommunityBuilder.createCommunity(context)
+                    .withName("Test Community").build();
+            Collection collection = CollectionBuilder.createCollection(context, community)
+                    .withName("Test Collection").build();
+            Item item = ItemBuilder.createItem(context, collection)
+                    .withTitle("Item with Embargo").build();
 
-        // Create test hierarchy
-        Community community = CommunityBuilder.createCommunity(context)
-                .withName("Test Community").build();
-        Collection collection = CollectionBuilder.createCollection(context, community)
-                .withName("Test Collection").build();
-        Item item = ItemBuilder.createItem(context, collection)
-                .withTitle("Item with Embargo").build();
+            // Create consistent embargo dates
+            Calendar calendar1 = Calendar.getInstance();
+            calendar1.set(Calendar.YEAR, 2019);
+            calendar1.set(Calendar.MONTH, 9);
+            calendar1.set(Calendar.DATE, 31);
+            Date embargoStartDate = calendar1.getTime();
 
-        // Create consistent embargo dates
-        Calendar calendar1 = Calendar.getInstance();
-        calendar1.set(Calendar.YEAR, 2019);
-        calendar1.set(Calendar.MONTH, 9);
-        calendar1.set(Calendar.DATE, 31);
-        Date embargoStartDate = calendar1.getTime();
+            Calendar calendar2 = Calendar.getInstance();
+            calendar2.set(Calendar.YEAR, 2200);
+            calendar2.set(Calendar.MONTH, 9);
+            calendar2.set(Calendar.DATE, 31);
+            Date embargoEndDate = calendar2.getTime();
 
-        Calendar calendar2 = Calendar.getInstance();
-        calendar2.set(Calendar.YEAR, 2200);
-        calendar2.set(Calendar.MONTH, 9);
-        calendar2.set(Calendar.DATE, 31);
-        Date embargoEndDate = calendar2.getTime();
+            // Create ResourcePolicies with different date combinations
+            ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                    .withAction(Constants.READ)
+                    .withDspaceObject(item)
+                    .withStartDate(embargoStartDate)
+                    .build();
 
-        // Create ResourcePolicies with different date combinations
-        ResourcePolicy rpWithStartDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withStartDate(embargoStartDate)
-                .build();
+            ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                    .withAction(Constants.READ)
+                    .withDspaceObject(item)
+                    .withEndDate(embargoEndDate)
+                    .build();
 
-        ResourcePolicy rpWithEndDate = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withEndDate(embargoEndDate)
-                .build();
+            ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                    .withAction(Constants.READ)
+                    .withDspaceObject(item)
+                    .withEndDate(embargoEndDate)
+                    .build();
 
-        ResourcePolicy rpWithEndDate2 = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withEndDate(embargoEndDate)
-                .build();
+            ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                    .withAction(Constants.READ)
+                    .withDspaceObject(item)
+                    .withStartDate(embargoStartDate)
+                    .withEndDate(embargoEndDate)
+                    .build();
 
-        ResourcePolicy rpWithBothDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .withStartDate(embargoStartDate)
-                .withEndDate(embargoEndDate)
-                .build();
-
-        ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
-                .withAction(Constants.READ)
-                .withDspaceObject(item)
-                .build();
-
-        return new EmbargoTestData(community, collection, item, embargoStartDate, embargoEndDate,
-                rpWithStartDate, rpWithEndDate, rpWithEndDate2, rpWithBothDates, rpWithoutDates);
+            ResourcePolicy rpWithoutDates = ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                    .withAction(Constants.READ)
+                    .withDspaceObject(item)
+                    .build();
+        } finally {
+            context.restoreAuthSystemState();
+        }
     }
 
     @Test
     public void findEmbargoWithStartDate() throws Exception {
-        context.turnOffAuthorisationSystem();
-
         // Baseline count
         int baselineCount = this.resourcePolicyService.countByDatePresence(context, true, null);
 
-        EmbargoTestData testData = createEmbargoTestData();
-
-        context.restoreAuthSystemState();
+        setupEmbargoTestData();
 
         String authToken = getAuthToken(admin.getEmail(), password);
 
@@ -3864,14 +3827,10 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
     @Test
     public void findEmbargoWithEndDate() throws Exception {
-        context.turnOffAuthorisationSystem();
-
         // Baseline count
         int baselineCount = this.resourcePolicyService.countByDatePresence(context, null, true);
 
-        EmbargoTestData testData = createEmbargoTestData();
-
-        context.restoreAuthSystemState();
+        setupEmbargoTestData();
 
         String authToken = getAuthToken(admin.getEmail(), password);
 
@@ -3883,14 +3842,10 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
     @Test
     public void findEmbargoWithoutDates() throws Exception {
-        context.turnOffAuthorisationSystem();
-
         // Baseline count
         int baselineCount = this.resourcePolicyService.countByDatePresence(context, false, false);
 
-        EmbargoTestData testData = createEmbargoTestData();
-
-        context.restoreAuthSystemState();
+        setupEmbargoTestData();
 
         String authToken = getAuthToken(admin.getEmail(), password);
 
@@ -3902,14 +3857,10 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
     @Test
     public void findEmbargoWithAnyDate() throws Exception {
-        context.turnOffAuthorisationSystem();
-
         // Baseline count
         int baselineCount = this.resourcePolicyService.countByDatePresence(context, null, null);
 
-        EmbargoTestData testData = createEmbargoTestData();
-
-        context.restoreAuthSystemState();
+        setupEmbargoTestData();
 
         String authToken = getAuthToken(admin.getEmail(), password);
 
@@ -3921,14 +3872,10 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
     @Test
     public void findEmbargoWithBothDates() throws Exception {
-        context.turnOffAuthorisationSystem();
-
         // Baseline count
         int baselineCount = this.resourcePolicyService.countByDatePresence(context, true, true);
 
-        EmbargoTestData testData = createEmbargoTestData();
-
-        context.restoreAuthSystemState();
+        setupEmbargoTestData();
 
         String authToken = getAuthToken(admin.getEmail(), password);
 
