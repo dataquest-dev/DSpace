@@ -9,6 +9,7 @@ package org.dspace.core;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.dspace.authorize.AuthorizeException;
@@ -91,13 +92,9 @@ public class ProvenanceMessageFormatter {
     }
 
     public String getMetadataReplacement(String metadataKey, String oldValue, String newValue) {
-        if (oldValue == null) {
-            oldValue = "[empty]";
-        }
-        if (newValue == null) {
-            newValue = "[empty]";
-        }
-        return String.format("%s [%s -> %s]", metadataKey, oldValue, newValue);
+        return String.format("%s [%s -> %s]", metadataKey,
+                Objects.toString(oldValue, "empty"),
+                Objects.toString(newValue, "empty"));
     }
 
     public String getMetadataField(MetadataField metadataField) {
