@@ -41,10 +41,11 @@ public class ClarinWorkspaceItemServiceImpl implements ClarinWorkspaceItemServic
     @Override
     public WorkspaceItem create(Context context, Collection collection, boolean multipleTitles, boolean publishedBefore,
                                 boolean multipleFiles, Integer stageReached, Integer pageReached,
-                                boolean template) throws AuthorizeException, SQLException {
+                                boolean template, boolean isNewVersion) throws AuthorizeException, SQLException {
 
         //create empty workspace item with item
-        WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, false);
+        // Since we are importing, we don't want to create a new handle for the item -> isNewVersion = true
+        WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, false, isNewVersion);
         //set workspace item values based on input values
         workspaceItem.setPublishedBefore(publishedBefore);
         workspaceItem.setMultipleFiles(multipleFiles);
