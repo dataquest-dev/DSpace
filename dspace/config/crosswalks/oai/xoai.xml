@@ -107,6 +107,16 @@
             </Description>
         </Context>
 
+        <Context baseurl="openaire_collection" name="OpenAire Context">
+            <Filter ref="openaireCollectionFilter"/>
+            <Set ref="openaireCollectionSet"/>
+            <Format ref="oaidc"/>
+            <Format ref="mets"/>
+            <Description>
+                This context exports items from the OpenAire collection (handle: 10084/56138).
+            </Description>
+        </Context>
+
         <Context baseurl="nusl" name="For harvesting by NUSL">
             <Format ref="oaidc_nusl" />
             <Format ref="mets_nusl" />
@@ -277,6 +287,25 @@
         <Filter id="openaireFilter">
             <Definition>
                 <Custom ref="openaireRelationCondition"/>
+            </Definition>
+        </Filter>
+        <Filter id="openaireCollectionFilter">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <Or>
+                            <LeftCondition>
+                                <Custom ref="itemAccessCondition"/>
+                            </LeftCondition>
+                            <RightCondition>
+                                <Custom ref="itemWithdrawnCondition"/>
+                            </RightCondition>
+                        </Or>
+                    </LeftCondition>
+                    <RightCondition>
+                        <Custom ref="openaireCollectionCondition"/>
+                    </RightCondition>
+                </And>
             </Definition>
         </Filter>
         <Filter id="ExcludeItemsInComOrCol">
@@ -611,6 +640,13 @@
             </Configuration>
         </CustomCondition>
 
+        <CustomCondition id="openaireCollectionCondition">
+            <Class>org.dspace.xoai.filter.ColComFilter</Class>
+            <Configuration>
+                <string name="handle">10084/56138</string>
+            </Configuration>
+        </CustomCondition>
+
         <CustomCondition id="hasFilesCondition">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
@@ -702,6 +738,10 @@
         <Set id="openaireDataSet">
             <Spec>openaire_data</Spec>
             <Name>OpenAIRE_data</Name>
+        </Set>
+        <Set id="openaireCollectionSet">
+            <Spec>openaire_collection</Spec>
+            <Name>OpenAire Collection</Name>
         </Set>
     </Sets>
 </Configuration>
