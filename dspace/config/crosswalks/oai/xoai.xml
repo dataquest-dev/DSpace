@@ -291,21 +291,11 @@
         </Filter>
         <Filter id="openaireCollectionFilter">
             <Definition>
-                <And>
-                    <LeftCondition>
-                        <Or>
-                            <LeftCondition>
-                                <Custom ref="itemAccessCondition"/>
-                            </LeftCondition>
-                            <RightCondition>
-                                <Custom ref="itemWithdrawnCondition"/>
-                            </RightCondition>
-                        </Or>
-                    </LeftCondition>
-                    <RightCondition>
-                        <Custom ref="openaireCollectionCondition"/>
-                    </RightCondition>
-                </And>
+                <Not>
+                    <Condition>
+                        <Custom ref="excludeNonOpenaireCollection"/>
+                    </Condition>
+                </Not>
             </Definition>
         </Filter>
         <Filter id="ExcludeItemsInComOrCol">
@@ -697,6 +687,14 @@
             <Class>org.dspace.xoai.filter.ColComFilter</Class>
             <Configuration>
                 <string name="handle">11234/5011</string>
+            </Configuration>
+        </CustomCondition>
+
+        <!-- This condition excludes items NOT in the OpenAIRE collection (handle: 10084/56138) -->
+        <CustomCondition id="excludeNonOpenaireCollection">
+            <Class>org.dspace.xoai.filter.ColComFilter</Class>
+            <Configuration>
+                <string name="handle">10084/56138</string>
             </Configuration>
         </CustomCondition>
 
