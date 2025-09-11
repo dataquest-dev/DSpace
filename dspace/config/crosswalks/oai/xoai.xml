@@ -96,17 +96,6 @@
             </Description>
         </Context>
 
-        <Context baseurl="openaire_data" name="OpenAIRE data Context">
-            <!-- <Transformer ref="openaireDataTransformer"/> -->
-            <Filter ref="openaireFilter"/>
-            <Set ref="openaireDataSet"/>
-            <Format ref="oaidc"/>
-            <Format ref="oai_datacite"/>
-            <Description>
-                This context exports items following the openaire data archive rules.
-            </Description>
-        </Context>
-
         <Context baseurl="openaire_collection" name="OpenAire Context">
             <Filter ref="openaireCollectionFilter"/>
             <Set ref="openaireCollectionSet"/>
@@ -732,10 +721,6 @@
             <Spec>openaire</Spec>
             <Name>OpenAIRE</Name>
             <!-- Just an alias -->
-        </Set>
-        <Set id="openaireDataSet">
-            <Spec>openaire_data</Spec>
-            <Name>OpenAIRE_data</Name>
         </Set>
         <Set id="openaireCollectionSet">
             <Spec>openaire_collection</Spec>
