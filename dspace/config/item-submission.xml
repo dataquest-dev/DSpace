@@ -1140,7 +1140,7 @@
             <!-- <step id="extractionstep"/> -->
 
             <!-- Uncomment this step to allow the user to select a Creative Commons License -->
-            <!-- <step id="cclicense"/> -->
+            <step id="cclicense"/>
 
             <!--Step will be to Sign off on the required DSpace License agreement -->
             <step id="license"/>
@@ -1160,6 +1160,7 @@
             <step id="publicationStep"/>
             <step id="traditionalpagetwo"/>
             <step id="upload"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1171,6 +1172,7 @@
             <step id="collection"/>
             <step id="personStep"/>
             <step id="upload"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1182,6 +1184,7 @@
             <step id="collection"/>
             <step id="projectStep"/>
             <step id="upload"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1193,6 +1196,7 @@
             <step id="collection"/>
             <step id="orgUnitStep"/>
             <step id="upload"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1204,6 +1208,7 @@
             <step id="collection"/>
             <step id="journalStep"/>
             <step id="upload"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1215,6 +1220,7 @@
             <step id="collection"/>
             <step id="journalVolumeStep"/>
             <step id="upload"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1226,6 +1232,7 @@
             <step id="collection"/>
             <step id="journalIssueStep"/>
             <step id="upload"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1242,6 +1249,7 @@
             <step id="upload"/>
 
             <!--Step will be to Sign off on the License -->
+            <step id="cclicense"/>
             <step id="license"/>
 
             <!-- Step allows the user to select a Creative Commons License -->
@@ -1268,6 +1276,7 @@
             <step id="diplomky-ekfpagetwo"/>
             <step id="diplomky-ekfpagethree"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1277,6 +1286,7 @@
             <step id="diplomky-fbipagetwo"/>
             <step id="diplomky-fbipagethree"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1286,6 +1296,7 @@
             <step id="diplomky-feipagetwo"/>
             <step id="diplomky-feipagethree"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1295,6 +1306,7 @@
             <step id="diplomky-fmmipagetwo"/>
             <step id="diplomky-fmmipagethree"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1304,6 +1316,7 @@
             <step id="diplomky-fastpagetwo"/>
             <step id="diplomky-fastpagethree"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1313,6 +1326,7 @@
             <step id="diplomky-fspagetwo"/>
             <step id="diplomky-fspagethree"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1322,6 +1336,7 @@
             <step id="diplomky-hgfpagetwo"/>
             <step id="diplomky-hgfpagethree"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1331,6 +1346,7 @@
             <step id="diplomky-114pagetwo"/>
             <step id="diplomky-114pagethree"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1340,6 +1356,7 @@
             <step id="diplomkypagetwo"/>
             <step id="diplomkypagethree"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1348,6 +1365,7 @@
             <step id="collection"/>
             <step id="onepageone"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1357,6 +1375,7 @@
             <step id="clankypageone"/>
             <step id="clankypagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1365,6 +1384,7 @@
             <step id="clankyFBIpageone"/>
             <step id="clankyFBIpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1373,6 +1393,7 @@
             <step id="clankyFASTpageone"/>
             <step id="clankyFASTpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1381,6 +1402,7 @@
             <step id="clankySTROJpageone"/>
             <step id="clankySTROJpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1390,6 +1412,7 @@
             <step id="publikacnipageone"/>
             <step id="publikacnipagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1399,6 +1422,7 @@
             <step id="europe-directpageone"/>
             <step id="europe-directpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1408,6 +1432,7 @@
             <step id="OpenAIREpageone"/>
             <step id="OpenAIREpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1417,6 +1442,7 @@
             <step id="ekonomicka_revuepageone"/>
             <step id="ekonomicka_revuepagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1426,6 +1452,7 @@
             <step id="publikacni_AEEEpageone"/>
             <step id="publikacni_AEEEpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1435,6 +1462,7 @@
             <step id="GeoscienceEngineeringpageone"/>
             <step id="GeoscienceEngineeringpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1444,6 +1472,7 @@
             <step id="e-vyuka-9270pageone"/>
             <step id="e-vyuka-9270pagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1452,6 +1481,7 @@
             <step id="e-vyuka-EKFpageone"/>
             <step id="e-vyuka-EKFpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1460,6 +1490,7 @@
             <step id="e-vyuka-FBIpageone"/>
             <step id="e-vyuka-FBIpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1468,6 +1499,7 @@
             <step id="e-vyuka-FEIpageone"/>
             <step id="e-vyuka-FEIpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1476,6 +1508,7 @@
             <step id="e-vyuka-FMTpageone"/>
             <step id="e-vyuka-FMTpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1484,6 +1517,7 @@
             <step id="e-vyuka-FASTpageone"/>
             <step id="e-vyuka-FASTpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1492,6 +1526,7 @@
             <step id="e-vyuka-FSpageone"/>
             <step id="e-vyuka-FSpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
@@ -1500,6 +1535,7 @@
             <step id="e-vyuka-HGFpageone"/>
             <step id="e-vyuka-HGFpagetwo"/>
             <step id="uploadOptional"/>
+            <step id="cclicense"/>
             <step id="license"/>
         </submission-process>
 
