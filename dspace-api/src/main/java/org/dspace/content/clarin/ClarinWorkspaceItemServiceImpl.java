@@ -44,8 +44,9 @@ public class ClarinWorkspaceItemServiceImpl implements ClarinWorkspaceItemServic
                                 boolean template, boolean isNewVersion) throws AuthorizeException, SQLException {
 
         //create empty workspace item with item
-        // The isNewVersion parameter controls whether a new handle is created for the item;
-        // its value is determined by the caller.
+        // The isNewVersion parameter controls handle creation:
+        //   - If isNewVersion is true, no new handle is created (existing handles are preserved).
+        //   - If isNewVersion is false, a new handle is generated for the item.
         WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, false, isNewVersion);
         //set workspace item values based on input values
         workspaceItem.setPublishedBefore(publishedBefore);
