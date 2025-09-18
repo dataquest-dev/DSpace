@@ -154,7 +154,7 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
         ClarinUserRegistrationRest userRegistrationRest = new ClarinUserRegistrationRest();
         userRegistrationRest.setConfirmation(true);
-        userRegistrationRest.setEmail("dspace.admin.dev@dataquest.sk");
+        userRegistrationRest.setEmail("test@test.edu");
         userRegistrationRest.setePersonID(ePerson.getID());
         userRegistrationRest.setOrganization("Test");
 
@@ -175,7 +175,7 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
             ClarinUserRegistration clarinUserRegistration = clarinUserRegistrationService.find(context, idRef.get());
             context.setCurrentUser(currentUser);
             assertTrue(clarinUserRegistration.isConfirmation());
-            assertEquals(clarinUserRegistration.getEmail(), "dspace.admin.dev@dataquest.sk");
+            assertEquals(clarinUserRegistration.getEmail(), "test@test.edu");
             assertEquals(clarinUserRegistration.getPersonID(), ePerson.getID());
             assertEquals(clarinUserRegistration.getOrganization(), "Test");
         } finally {

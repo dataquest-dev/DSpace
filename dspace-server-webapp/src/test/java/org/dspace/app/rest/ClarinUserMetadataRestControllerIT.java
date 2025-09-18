@@ -201,7 +201,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
 
         ClarinUserMetadataRest clarinUserMetadata4 = new ClarinUserMetadataRest();
         clarinUserMetadata4.setMetadataKey("EXTRA_EMAIL");
-        clarinUserMetadata4.setMetadataValue("dspace.admin.dev@dataquest.sk");
+        clarinUserMetadata4.setMetadataValue("test@test.edu");
 
         List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
         clarinUserMetadataRestList.add(clarinUserMetadata1);
@@ -291,7 +291,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
 
         ClarinUserMetadataRest clarinUserMetadata4 = new ClarinUserMetadataRest();
         clarinUserMetadata4.setMetadataKey("EXTRA_EMAIL");
-        clarinUserMetadata4.setMetadataValue("dspace.admin.dev@dataquest.sk");
+        clarinUserMetadata4.setMetadataValue("test@test.edu");
 
         List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
         clarinUserMetadataRestList.add(clarinUserMetadata1);
@@ -398,7 +398,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
 
         ClarinUserMetadataRest clarinUserMetadata4 = new ClarinUserMetadataRest();
         clarinUserMetadata4.setMetadataKey("EXTRA_EMAIL");
-        clarinUserMetadata4.setMetadataValue("dspace.admin.dev@dataquest.sk");
+        clarinUserMetadata4.setMetadataValue("test@test.edu");
 
         List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
         clarinUserMetadataRestList.add(clarinUserMetadata1);
