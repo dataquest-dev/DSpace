@@ -44,7 +44,8 @@ public class ClarinWorkspaceItemServiceImpl implements ClarinWorkspaceItemServic
                                 boolean template, boolean isNewVersion) throws AuthorizeException, SQLException {
 
         //create empty workspace item with item
-        // Since we are importing, we don't want to create a new handle for the item -> isNewVersion = true
+        // The isNewVersion parameter controls whether a new handle is created for the item;
+        // its value is determined by the caller.
         WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, false, isNewVersion);
         //set workspace item values based on input values
         workspaceItem.setPublishedBefore(publishedBefore);
