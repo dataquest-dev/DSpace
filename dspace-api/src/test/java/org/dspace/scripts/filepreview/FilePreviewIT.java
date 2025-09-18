@@ -59,7 +59,7 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
 
         context.turnOffAuthorisationSystem();
         eperson = EPersonBuilder.createEPerson(context)
-                .withEmail("test@test.edu").withPassword(PASSWORD).build();
+                .withEmail("dspace.admin.dev@dataquest.sk").withPassword(PASSWORD).build();
         Community community = CommunityBuilder.createCommunity(context).withName("Com").build();
         Collection collection = CollectionBuilder.createCollection(context, community).withName("Col").build();
         WorkspaceItem wItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)

@@ -123,7 +123,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
     public void generateShareTokenAndSetOwnerTo3rdPersonTest() throws Exception {
         context.turnOffAuthorisationSystem();
         EPerson submitter2 = EPersonBuilder.createEPerson(context)
-                .withEmail("user@test.edu")
+                .withEmail("dspace.user.dev@dataquest.sk")
                 .withPassword(password)
                 .build();
         Group group = GroupBuilder.createCollectionSubmitterGroup(context, wsi.getCollection())
