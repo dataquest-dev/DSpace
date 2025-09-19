@@ -211,4 +211,44 @@ public class FacetEntryMatcher {
             hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/entityType"))
         );
     }
+
+    public static Matcher<? super Object> publisherFacet(boolean hasNext) {
+        return allOf(
+            hasJsonPath("$.name", is("publisher")),
+            hasJsonPath("$.facetType", is("text")),
+            hasJsonPath("$.facetLimit", any(Integer.class)),
+            hasJsonPath("$._links.self.href", containsString("api/discover/facets/publisher")),
+            hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/publisher"))
+        );
+    }
+
+    public static Matcher<? super Object> relationIspartFacet(boolean hasNext) {
+        return allOf(
+            hasJsonPath("$.name", is("relationIspart")),
+            hasJsonPath("$.facetType", is("text")),
+            hasJsonPath("$.facetLimit", any(Integer.class)),
+            hasJsonPath("$._links.self.href", containsString("api/discover/facets/relationIspart")),
+            hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/relationIspart"))
+        );
+    }
+
+    public static Matcher<? super Object> relationIspartofseriesFacet(boolean hasNext) {
+        return allOf(
+            hasJsonPath("$.name", is("relationIspartofseries")),
+            hasJsonPath("$.facetType", is("text")),
+            hasJsonPath("$.facetLimit", any(Integer.class)),
+            hasJsonPath("$._links.self.href", containsString("api/discover/facets/relationIspartofseries")),
+            hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/relationIspartofseries"))
+        );
+    }
+
+    public static Matcher<? super Object> rightsAccessFacet(boolean hasNext) {
+        return allOf(
+            hasJsonPath("$.name", is("rightsAccess")),
+            hasJsonPath("$.facetType", is("text")),
+            hasJsonPath("$.facetLimit", any(Integer.class)),
+            hasJsonPath("$._links.self.href", containsString("api/discover/facets/rightsAccess")),
+            hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/rightsAccess"))
+        );
+    }
 }

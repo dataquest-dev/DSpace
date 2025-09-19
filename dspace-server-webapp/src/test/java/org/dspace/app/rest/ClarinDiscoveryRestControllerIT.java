@@ -114,16 +114,15 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 .andExpect(jsonPath("$.type", is("discover")))
                 //There needs to be a self link to this endpoint
                 .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets")))
-                //We have 4 facets in the default configuration, they need to all be present in the embedded section
+                //We have 7 facets in the default configuration, they need to all be present in the embedded section
                 .andExpect(jsonPath("$._embedded.facets", containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)))
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)))
                 );
     }
 
@@ -987,24 +986,17 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                         SearchFilterMatcher.titleFilter(),
                         SearchFilterMatcher.authorFilter(),
                         SearchFilterMatcher.subjectFilter(),
-//                       SearchFilterMatcher.dateIssuedFilter(),
-                        SearchFilterMatcher.publisherFilter(),
-                        SearchFilterMatcher.hasContentInOriginalBundleFilter(),
-                        SearchFilterMatcher.hasFileNameInOriginalBundleFilter(),
-                        SearchFilterMatcher.hasFileDescriptionInOriginalBundleFilter(),
-                        SearchFilterMatcher.entityTypeFilter(),
-                        SearchFilterMatcher.isAuthorOfPublicationRelation(),
-                        SearchFilterMatcher.isProjectOfPublicationRelation(),
-                        SearchFilterMatcher.isOrgUnitOfPublicationRelation(),
-                        SearchFilterMatcher.isPublicationOfJournalIssueRelation(),
-                        SearchFilterMatcher.isJournalOfPublicationRelation(),
-                        SearchFilterMatcher.clarinLicenseRightsFilter(),
-                        SearchFilterMatcher.clarinItemsLanguageFilter(),
-                        SearchFilterMatcher.clarinItemsCommunityFilter(),
+                        SearchFilterMatcher.dateIssuedFilter(),
                         SearchFilterMatcher.clarinItemsTypeFilter(),
-                        SearchFilterMatcher.clarinSubjectFirstValueFilter(),
-                        SearchFilterMatcher.clarinDataProviderFacet(),
-                        SearchFilterMatcher.dcTypeFilter()
+                        SearchFilterMatcher.publisherFilter(),
+                        SearchFilterMatcher.descriptionDepartmentFilter(),
+                        SearchFilterMatcher.descriptionFilter(),
+                        SearchFilterMatcher.thesisDegreeFilter(),
+                        SearchFilterMatcher.relationIspartofseriesFilter(),
+                        SearchFilterMatcher.rightsAccessFilter(),
+                        SearchFilterMatcher.typeVersionFilter(),
+                        SearchFilterMatcher.clarinItemsLanguageFilter(),
+                        SearchFilterMatcher.idFilter()
                 )))
                 //These sortOptions need to be present as it's the default in the configuration
                 .andExpect(jsonPath("$.sortOptions", contains(
@@ -1142,13 +1134,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -1284,13 +1275,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // facet
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(true),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -1377,13 +1367,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // facet
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(true),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -1455,18 +1444,27 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 //We need to display the appliedFilters object that contains the query that we've ran
                 .andExpect(jsonPath("$.appliedFilters", contains(
                         AppliedFilterMatcher.appliedFilterEntry("title", "contains", "test", "test")
+                ))).andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
+                        FacetEntryMatcher.authorFacet(false),
+                        FacetEntryMatcher.subjectFacet(false),
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false),
+                        FacetEntryMatcher.dateIssuedFacet(false)
                 )))
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false),
+                        FacetEntryMatcher.dateIssuedFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -1571,13 +1569,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -1654,13 +1651,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
@@ -1692,13 +1688,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
@@ -1731,13 +1726,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
@@ -1774,13 +1768,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
@@ -1864,13 +1857,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //We want to get the sort that's been used as well in the response
                 .andExpect(jsonPath("$.sort", is(
@@ -2080,12 +2072,11 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(true),
                         FacetEntryMatcher.subjectFacet(true),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2172,13 +2163,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2265,13 +2255,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2354,11 +2343,11 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2434,13 +2423,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2522,13 +2510,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2705,13 +2692,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2852,13 +2838,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2931,13 +2916,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3008,13 +2992,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3086,13 +3069,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3174,13 +3156,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 )))
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacetWithMinMax(true, "Doe, Jane", "Testing, Works"),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(true),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3246,13 +3227,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 .andExpect(jsonPath("$.type", is("discover")))
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacetWithMinMax(true, "Doe, Jane", "Testing, Works"),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(true),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/facets")))
@@ -3323,13 +3303,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3401,13 +3380,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3479,13 +3457,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3558,13 +3535,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3635,13 +3611,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3713,13 +3688,12 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                         FacetEntryMatcher.authorFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                        FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                        FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.typeFacet(false)
+                        FacetEntryMatcher.dateIssuedFacet(false),
+                        FacetEntryMatcher.publisherFacet(false),
+                        FacetEntryMatcher.typeFacet(false),
+                        FacetEntryMatcher.relationIspartofseriesFacet(false),
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -4164,12 +4138,11 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                     .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
                             FacetEntryMatcher.authorFacet(false),
                             FacetEntryMatcher.subjectFacet(false),
-                            FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                            FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                            FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                            FacetEntryMatcher.entityTypeFacet(false),
-                            FacetEntryMatcher.typeFacet(false)
+                            FacetEntryMatcher.dateIssuedFacet(false),
+                            FacetEntryMatcher.publisherFacet(false),
+                            FacetEntryMatcher.typeFacet(false),
+                            FacetEntryMatcher.relationIspartofseriesFacet(false),
+                            FacetEntryMatcher.rightsAccessFacet(false)
                     )))
                     //There always needs to be a self link
                     .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -6001,6 +5974,8 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(2)));
     }
 
+    // Ignored because subjects first value is not used for this customer
+    @Ignore
     @Test
     public void doNotShowFacetValuesWithSplitterInHomePage() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -6059,3 +6034,5 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(2)));
     }
 }
+
+

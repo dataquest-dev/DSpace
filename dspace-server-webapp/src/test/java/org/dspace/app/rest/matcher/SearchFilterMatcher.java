@@ -169,7 +169,7 @@ public class SearchFilterMatcher {
     public static Matcher<? super Object> clarinItemsLanguageFilter() {
         return allOf(
                 hasJsonPath("$.filter", is("language")),
-                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.hasFacets", is(false)),
                 hasJsonPath("$.type", is("iso_language")),
                 hasJsonPath("$.openByDefault", is(false)),
                 checkOperators()
@@ -199,7 +199,7 @@ public class SearchFilterMatcher {
     public static Matcher<? super Object> publisherFilter() {
         return allOf(
                 hasJsonPath("$.filter", is("publisher")),
-                hasJsonPath("$.hasFacets", is(false)),
+                hasJsonPath("$.hasFacets", is(true)),
                 hasJsonPath("$.type", is("text")),
                 hasJsonPath("$.openByDefault", is(false)),
                 checkOperators()
@@ -230,6 +230,76 @@ public class SearchFilterMatcher {
     public static Matcher<? super Object> dcTypeFilter() {
         return allOf(
                 hasJsonPath("$.filter", is("dctype")),
+                hasJsonPath("$.hasFacets", is(false)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> descriptionDepartmentFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("descriptionDepartment")),
+                hasJsonPath("$.hasFacets", is(false)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> descriptionFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("description")),
+                hasJsonPath("$.hasFacets", is(false)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> thesisDegreeFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("thesisDegree")),
+                hasJsonPath("$.hasFacets", is(false)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> relationIspartofseriesFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("relationIspartofseries")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> rightsAccessFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("rightsAccess")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> typeVersionFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("typeVersion")),
+                hasJsonPath("$.hasFacets", is(false)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> idFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("ID")),
                 hasJsonPath("$.hasFacets", is(false)),
                 hasJsonPath("$.type", is("text")),
                 hasJsonPath("$.openByDefault", is(false)),
