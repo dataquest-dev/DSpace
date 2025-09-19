@@ -13,7 +13,7 @@
 #set($subject = "${config.get('dspace.shortname')}: Nová žádost o stažení souboru (kopie)")
 #set($phone = ${config.get('mail.message.helpdesk.telephone')})
 
-Toto je informace pro administrátory a další nastavené osoby o nové žádosti o stažení.
+Toto je informace pro administrátory a další oprávněné osoby o nové žádosti o stažení.
 
 Údaje o uživateli:
 	Jméno: ${params[3]}
@@ -22,7 +22,7 @@ Toto je informace pro administrátory a další nastavené osoby o nové žádos
 Odkaz na požadovaný soubor (neobsahuje stahovací token):
 	${params[1]}
   
-Soubor je šířen na základě konkrétní licence:
+Soubor je šířen na základě této licence:
 	${params[2]}
 
 PID záznamu:
