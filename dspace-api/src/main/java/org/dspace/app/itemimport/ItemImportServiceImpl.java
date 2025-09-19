@@ -79,6 +79,7 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
@@ -808,6 +809,8 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         // non-standard permissions
         List<String> options = processContentsFile(c, myitem, itemPathDir, "contents");
 
+        // Check for embargo metadata and set up embargo terms if needed
+        processEmbargoMetadata(c, myitem);
         if (useWorkflow) {
             // don't process handle file
             // start up a workflow
@@ -2536,6 +2539,149 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
             log.error(message, e);
         } else {
             log.error(message);
+        }
+    }
+
+    /**
+     * Process embargo metadata and set up ResourcePolicy-based embargo.
+     * This method checks for embargo metadata fields and directly creates ResourcePolicy
+     * with embargo start date for Anonymous group READ access.
+     * 
+     * Handles two scenarios:
+     * 1. dc.rights.access="embargoedAccess" + dc.date.embargoend (standard embargo)
+     * 2. Only dc.date.embargoend present (special case with warning logs)
+     */
+    protected void processEmbargoMetadata(Context c, Item item) throws SQLException, AuthorizeException {
+        try {
+            // Get embargo end date from dc.date.embargoend
+            List<MetadataValue> embargoEndDates = itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY);
+
+            if (embargoEndDates.isEmpty()) {
+                // No embargo date found, check if there's embargoedAccess without date
+                List<MetadataValue> accessRights = itemService.getMetadata(item, "dc", "rights", "access", Item.ANY);
+                for (MetadataValue accessRight : accessRights) {
+                    if ("embargoedAccess".equals(accessRight.getValue())) {
+                        logError("WARNING: Item has dc.rights.access=embargoedAccess but no dc.date.embargoend. " +
+                                "Cannot set embargo without end date.");
+                        break;
+                    }
+                }
+                return; // No embargo to process
+            }
+
+            String embargoEndDateStr = embargoEndDates.get(0).getValue();
+            if (StringUtils.isBlank(embargoEndDateStr)) {
+                logError("WARNING: dc.date.embargoend is empty. Cannot set embargo.");
+                return;
+            }
+
+            // Parse and validate embargo date
+            DCDate embargoEndDate;
+            Date endDate;
+            try {
+                embargoEndDate = new DCDate(embargoEndDateStr);
+                endDate = embargoEndDate.toDate();
+
+                if (endDate == null) {
+                    logError("ERROR: Invalid embargo end date format: " + embargoEndDateStr);
+                    return;
+                }
+
+                if (endDate.before(new Date())) {
+                    logInfo("WARNING: Embargo end date is in the past: " + embargoEndDateStr +
+                            ". Embargo will not be applied.");
+                    return;
+                }
+            } catch (Exception e) {
+                logError("ERROR: Failed to parse embargo end date: " + embargoEndDateStr +
+                        ". Error: " + e.getMessage());
+                return;
+            }
+
+            // Check embargo scenario
+            List<MetadataValue> accessRights = itemService.getMetadata(item, "dc", "rights", "access", Item.ANY);
+            boolean hasEmbargoedAccess = false;
+
+            for (MetadataValue accessRight : accessRights) {
+                if ("embargoedAccess".equals(accessRight.getValue())) {
+                    hasEmbargoedAccess = true;
+                    break;
+                }
+            }
+
+            try {
+                if (hasEmbargoedAccess) {
+                    // Scenario 1: Standard embargo (embargoedAccess + embargoend)
+                    logInfo("Embargo: Setting standard embargo on item until " + embargoEndDateStr);
+                    applyEmbargoToItemBitstreams(c, item, endDate, "Standard Embargo");
+                } else {
+                    // Scenario 2: Only embargo end date present (special case)
+                    logInfo("Embargo: SPECIAL CASE - Found dc.date.embargoend without " +
+                            "dc.rights.access=embargoedAccess");
+                    logInfo("Embargo: Applying embargo based on end date only until " + embargoEndDateStr);
+                    applyEmbargoToItemBitstreams(c, item, endDate,
+                            "Special Case Embargo - No access rights metadata");
+                }
+            } catch (Exception e) {
+                logError("ERROR: Failed to apply embargo to bitstreams", e);
+            }
+
+        } catch (Exception e) {
+            logError("ERROR: Failed to process embargo metadata", e);
+        }
+    }
+
+    /**
+     * Apply embargo ResourcePolicy to all bitstreams in the item.
+     * Sets READ permission for Anonymous group with the embargo end date as start date.
+     */
+    protected void applyEmbargoToItemBitstreams(Context c, Item item, Date embargoEndDate, String policyReason)
+            throws SQLException, AuthorizeException {
+
+        try {
+            // Get Anonymous group
+            Group anonymousGroup = groupService.findByName(c, Group.ANONYMOUS);
+            if (anonymousGroup == null) {
+                logError("ERROR: Cannot find Anonymous group for embargo policy");
+                return;
+            }
+
+            int bitstreamsProcessed = 0;
+
+            // Only process ORIGINAL bundles to avoid affecting system bundles
+            List<Bundle> originalBundles = item.getBundles("ORIGINAL");
+            if (originalBundles.isEmpty()) {
+                logInfo("Embargo: No ORIGINAL bundles found, no embargo applied");
+                return;
+            }
+
+            for (Bundle bundle : originalBundles) {
+                for (Bitstream bitstream : bundle.getBitstreams()) {
+                    try {
+                        // Create ResourcePolicy for READ access with start date = embargo end date
+                        ResourcePolicy policy = resourcePolicyService.create(c, null, anonymousGroup);
+                        policy.setdSpaceObject(bitstream);
+                        policy.setAction(Constants.READ);
+                        policy.setStartDate(embargoEndDate);
+                        policy.setRpName(policyReason);
+
+                        // Add policy to bitstream's existing policies
+                        bitstream.getResourcePolicies().add(policy);
+                        resourcePolicyService.update(c, policy);
+                        bitstreamsProcessed++;
+
+                    } catch (Exception e) {
+                        logError("ERROR: Failed to apply embargo policy to bitstream " + bitstream.getName(), e);
+                    }
+                }
+            }
+
+            logInfo("Embargo: Applied embargo policy to " + bitstreamsProcessed +
+                    " bitstreams until " + embargoEndDate.toString());
+
+        } catch (Exception e) {
+            logError("ERROR: Failed to apply embargo to item bitstreams", e);
+            throw e; // Re-throw to maintain method signature contract
         }
     }
 
