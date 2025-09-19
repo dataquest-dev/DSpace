@@ -1,0 +1,37 @@
+## E-mail with a download link
+##
+## Parameters: {0} is expanded to filename
+##             {1} to a download URL
+##             {2} to license url
+##             {3} helpdesk email
+##             {4} helpdesk phone number
+##             {5} DSpace name short
+##             {6} DSpace name
+##             {7} DSpace UI url
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')}: Pokyny ke stažení")
+#set($phone = ${config.get('mail.message.helpdesk.telephone')})
+Pro stažení požadovaného souboru klikněte prosím na následující odkaz:
+ ${params[1]}
+  
+Nezapomeňte, že soubor je šířen na základě konkrétní licence:
+ ${params[2]}
+
+Pokud máte potíže se stažením souboru nebo jste o stažení nežádali, kontaktujte prosím
+${params[3]}
+#if( $phone )
+nebo nám zavolejte na ${phone}.
+#end
+
+
+Tým ${params[5]}
+
+_____________________________________
+${params[6]},
+WWW: ${params[7]}
+Email: ${params[3]}
+#if( $phone )
+Tel.: ${phone}
+#end
