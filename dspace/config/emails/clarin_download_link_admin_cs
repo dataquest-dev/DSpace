@@ -1,0 +1,42 @@
+## E-mail to admin about a download request
+##
+## Parameters: {0} is expanded to filename
+##             {1} to a download URL
+##             {2} to license url
+##             {3} user name
+##             {4} user email
+##             {5} extra metadata provided
+##             {6} item PID
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')}: Nová žádost o stažení souboru (kopie)")
+#set($phone = ${config.get('mail.message.helpdesk.telephone')})
+
+Toto je informace pro administrátory a další oprávněné osoby o nové žádosti o stažení.
+
+Údaje o uživateli:
+	Jméno: ${params[3]}
+	E-mail: ${params[4]}
+	
+Odkaz na požadovaný soubor (neobsahuje stahovací token):
+	${params[1]}
+  
+Soubor je šířen na základě této licence:
+	${params[2]}
+
+PID záznamu:
+    ${params[6]}
+
+Dodatečné informace vyplněné uživatelem:
+	${params[5]}
+
+Tým ${config.get('dspace.shortname')}
+
+_____________________________________
+${config.get('dspace.shortname')},
+WWW: ${config.get('dspace.ui.url')}
+Email: ${config.get('lr.help.mail')}
+#if( $phone )
+Tel.: ${phone}
+#end

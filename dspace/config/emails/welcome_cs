@@ -1,0 +1,12 @@
+## E-mail sent to a DSpace user after a new account is registered.
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "Vítejte, nový registrovaný uživateli ${config.get('dspace.shortname')}!")
+Děkujeme za registraci účtu. Váš nový účet můžete ihned využít k odběru upozornění na nový obsah v kolekcích dle vašeho výběru.
+
+Vašemu účtu mohou být také přidělena oprávnění pro vkládání nového obsahu nebo pro úpravy a/nebo schvalování příspěvků.
+
+Pokud potřebujete pomoc se svým účtem, napište prosím na ${config.get("mail.helpdesk")}.
+
+Tým ${config.get('dspace.shortname')}
