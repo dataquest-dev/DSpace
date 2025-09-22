@@ -316,8 +316,11 @@ public class SolrOAIReindexer {
             SolrInputDocument solrInput = index(item);
             server.add(solrInput);
             server.commit();
-            cacheService.deleteAll();
-            itemCacheService.deleteAll();
+
+            // Try to clear caches safely, but don't fail if it doesn't work
+            safeClearCaches(item);
+
+            log.info("Successfully reindexed item ID: " + item.getID());
         } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
             // Do not throw RuntimeException in tests
             if (this.isTest()) {
@@ -330,11 +333,44 @@ public class SolrOAIReindexer {
         }
     }
 
+    /**
+     * Attempts to clear OAI caches safely. If cache clearing fails due to concurrent access,
+     * it logs a warning but doesn't throw an exception to avoid breaking the workflow.
+     *
+     * @param item The item that was reindexed
+     */
+    private void safeClearCaches(Item item) {
+        try {
+            // Try to clear item-specific cache first (less likely to cause conflicts)
+            if (itemCacheService != null) {
+                itemCacheService.delete(item);
+                log.debug("Cleared item-specific cache for item ID: " + item.getID());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to clear item-specific cache for item ID: " + item.getID() +
+                     " (will refresh naturally): " + e.getMessage());
+        }
+
+        try {
+            // Try to clear general OAI request cache (more likely to cause conflicts)
+            if (cacheService != null && cacheService.isActive()) {
+                cacheService.deleteAll();
+                log.debug("Cleared OAI request cache after reindexing item ID: " + item.getID());
+            }
+        } catch (Exception e) {
+            // This is expected to sometimes fail with "Device or resource busy"
+            log.info("Could not clear OAI request cache for item ID: " + item.getID() +
+                     " (harvesters will get fresh data on cache miss): " + e.getMessage());
+        }
+    }
+
     public void deleteItem(Item item) {
         try {
             deleteItemByQuery(item);
-            cacheService.deleteAll();
-            itemCacheService.deleteAll();
+            // Try to clear caches safely, but don't fail if it doesn't work
+            safeClearCaches(item);
+
+            log.info("Successfully deleted item from Solr index: " + item.getID());
         } catch (SolrServerException | IOException e) {
             // Do not throw RuntimeException in tests
             if (this.isTest()) {
