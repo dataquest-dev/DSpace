@@ -1,0 +1,32 @@
+## E-mail sent to confirm authenticity of the user's e-mail.
+##
+## Parameters: {0} confirmation e-mail
+##             {1} helpdesk email
+##             {2} helpdesk phone number
+##             {3} DSpace name short
+##             {4} DSpace name
+##             {5} DSpace UI url
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')}: Registrace účtu")
+#set($phone = ${config.get('mail.message.helpdesk.telephone')})
+Pro dokončení registrace účtu do repozitáře ${params[3]} na adrese ${params[5]} klikněte prosím na následující odkaz:
+
+  ${params[0]}
+
+Pokud potřebujete pomoc se svým účtem, napište prosím na ${params[1]}
+#if( $phone )
+nebo nám zavolejte na ${phone}.
+#end
+
+
+Tým ${params[3]}
+
+_____________________________________
+${params[4]},
+WWW: ${params[5]}
+Email: ${params[1]}
+#if( $phone )
+Tel.: ${phone}
+#end

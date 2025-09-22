@@ -1,0 +1,20 @@
+## E-mail sent when someone approving an item request, requests that the Item
+## or Bitstream be made public.
+##
+## Parameters: {0} the Handle of the requested bitstream, or "all"
+##             {1} the Handle of the item
+##             {2} the unique token which identifies the item request
+##             {3} the name of the approver
+##             {4} the approver's email address
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')}: Žádost o otevřený přístup")
+
+Uživatel ${params[3]} s adresou ${params[4]},
+požádal o zpřístupnění následujícího dokumentu/souboru v režimu Open Access:
+
+Handle záznamu: ${params[1]}
+ID souboru: ${params[0]}
+Token: ${params[2]}
+
+Tým ${config.get('dspace.shortname')}

@@ -1,0 +1,26 @@
+## Sent to the person requesting a copy of a restricted document when the
+## request is denied.
+##
+## Parameters:
+##  {0} name of the requestor
+##  {1} Handle URL of the requested Item
+##  {2} title of the requested Item
+##  {3} name of the grantor
+##  {4} email address of the grantor (unused)
+##  {5} custom message sent by the grantor.
+#set($subject = "${config.get('dspace.shortname')}: Žádost o kopii omezeně přístupného dokumentu byla zamítnuta")
+Vážený/á ${params[0]},
+
+Vaše žádost o kopii souboru/souborů z níže uvedeného záznamu byla zamítnuta uživatelem ${params[3]}.
+
+    ${params[2]}
+    ${params[1]} 
+#if( $params[5] )
+
+Níže je uvedena dodatečná zpráva od ${params[3]}:
+
+${params[5]}
+#end
+
+S pozdravem,
+Tým ${config.get('dspace.shortname')}
