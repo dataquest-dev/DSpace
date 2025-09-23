@@ -135,7 +135,7 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
                     throws SearchServiceException {
 
         long startTime = System.currentTimeMillis();
-        log.info("getFacetObjects - Start processing facet '{}' with query '{}' and {} search filters", 
+        log.info("getFacetObjects - Start processing facet '{}' with query '{}' and {} search filters",
                  facetName, query, searchFilters != null ? searchFilters.size() : 0);
 
         Context context = obtainContext();
@@ -161,7 +161,7 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
         log.info("getFacetObjects - Starting Solr search for facet '{}' with built query", facetName);
         DiscoverResult searchResult = searchService.search(context, scopeObject, discoverQuery);
         long searchTime = System.currentTimeMillis() - searchStart;
-        log.info("getFacetObjects - Solr search completed in {} ms for facet '{}', found {} results", 
+        log.info("getFacetObjects - Solr search completed in {} ms for facet '{}', found {} results",
                  searchTime, facetName, searchResult.getTotalSearchResults());
 
         long conversionStart = System.currentTimeMillis();
@@ -172,7 +172,8 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
         log.debug("getFacetObjects - Result conversion took {} ms", conversionTime);
 
         long totalTime = System.currentTimeMillis() - startTime;
-        log.info("getFacetObjects - Total processing time: {} ms (scope: {}ms, config: {}ms, query: {}ms, search: {}ms, conversion: {}ms)", 
+        log.info("getFacetObjects - Total processing time: {} ms " +
+                 "(scope: {}ms, config: {}ms, query: {}ms, search: {}ms, conversion: {}ms)",
                  totalTime, scopeResolveTime, configTime, queryBuildTime, searchTime, conversionTime);
 
         return facetResultsRest;
