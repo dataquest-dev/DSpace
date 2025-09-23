@@ -134,19 +134,47 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
             String dsoScope, final String configuration, List<SearchFilter> searchFilters, Pageable page)
                     throws SearchServiceException {
 
+        long startTime = System.currentTimeMillis();
+        log.info("getFacetObjects - Start processing facet '{}' with query '{}' and {} search filters", 
+                 facetName, query, searchFilters != null ? searchFilters.size() : 0);
+
         Context context = obtainContext();
 
+        long scopeResolveStart = System.currentTimeMillis();
         IndexableObject scopeObject = scopeResolver.resolveScope(context, dsoScope);
+        long scopeResolveTime = System.currentTimeMillis() - scopeResolveStart;
+        log.debug("getFacetObjects - Scope resolution took {} ms", scopeResolveTime);
+
+        long configStart = System.currentTimeMillis();
         DiscoveryConfiguration discoveryConfiguration = searchConfigurationService
             .getDiscoveryConfigurationByNameOrIndexableObject(context, configuration, scopeObject);
+        long configTime = System.currentTimeMillis() - configStart;
+        log.debug("getFacetObjects - Configuration loading took {} ms", configTime);
 
+        long queryBuildStart = System.currentTimeMillis();
         DiscoverQuery discoverQuery = queryBuilder.buildFacetQuery(context, scopeObject, discoveryConfiguration, prefix,
                 query, searchFilters, dsoTypes, page, facetName);
-        DiscoverResult searchResult = searchService.search(context, scopeObject, discoverQuery);
+        long queryBuildTime = System.currentTimeMillis() - queryBuildStart;
+        log.debug("getFacetObjects - Query building took {} ms", queryBuildTime);
 
+        long searchStart = System.currentTimeMillis();
+        log.info("getFacetObjects - Starting Solr search for facet '{}' with built query", facetName);
+        DiscoverResult searchResult = searchService.search(context, scopeObject, discoverQuery);
+        long searchTime = System.currentTimeMillis() - searchStart;
+        log.info("getFacetObjects - Solr search completed in {} ms for facet '{}', found {} results", 
+                 searchTime, facetName, searchResult.getTotalSearchResults());
+
+        long conversionStart = System.currentTimeMillis();
         FacetResultsRest facetResultsRest = discoverFacetResultsConverter.convert(context, facetName, prefix, query,
                 dsoTypes, dsoScope, searchFilters, searchResult, discoveryConfiguration, page,
                 utils.obtainProjection());
+        long conversionTime = System.currentTimeMillis() - conversionStart;
+        log.debug("getFacetObjects - Result conversion took {} ms", conversionTime);
+
+        long totalTime = System.currentTimeMillis() - startTime;
+        log.info("getFacetObjects - Total processing time: {} ms (scope: {}ms, config: {}ms, query: {}ms, search: {}ms, conversion: {}ms)", 
+                 totalTime, scopeResolveTime, configTime, queryBuildTime, searchTime, conversionTime);
+
         return facetResultsRest;
     }
 
