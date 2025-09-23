@@ -80,7 +80,7 @@ public class ClarinAutoRegistrationController {
         if (Objects.isNull(clarinVerificationToken)) {
             // The verification token doesn't exist.
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot load the clarin verification " +
-                "token class by net id: " + netid);
+                    "token class by net id: " + netid);
             return null;
         }
 
