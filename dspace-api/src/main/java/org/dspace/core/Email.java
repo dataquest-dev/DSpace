@@ -565,8 +565,6 @@ public class Email {
         if (charset != null) {
             email.setCharset(charset);
         }
-        // Log template loading
-        LOG.debug("Email template loaded: '{}'", emailFile);
         return email;
     }
 
@@ -613,8 +611,6 @@ public class Email {
             }
             message.send();
         } catch (MessagingException | IOException ex) {
-            LOG.error("Error sending test email to '{}', subject '{}', via server '{}'",
-                     maskEmail(to), subject, server, ex);
             System.err.println("\nError sending email:");
             System.err.format(" - Error: %s%n", ex);
             System.err.println("\nPlease see the DSpace documentation for assistance.\n");
