@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
@@ -327,6 +328,73 @@ public class Email {
     }
 
     /**
+     * Mask email addresses for privacy compliance in logging.
+     * Keeps the first character and domain for debugging while protecting PII.
+     * 
+     * @param email the email address to mask
+     * @return masked email address (e.g., "j****@example.com")
+     */
+    private String maskEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return "invalid-email";
+        }
+        
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 0 || atIndex == email.length() - 1) {
+            // Invalid email format, mask completely
+            return "***@***.***";
+        }
+        
+        String localPart = email.substring(0, atIndex);
+        String domain = email.substring(atIndex + 1);
+        
+        // Mask local part: keep first character + asterisks
+        String maskedLocal;
+        if (localPart.length() == 1) {
+            maskedLocal = "*";
+        } else if (localPart.length() <= 3) {
+            maskedLocal = localPart.charAt(0) + "*".repeat(localPart.length() - 1);
+        } else {
+            maskedLocal = localPart.charAt(0) + "***";
+        }
+        
+        return maskedLocal + "@" + domain;
+    }
+
+    /**
+     * Static helper method to mask email addresses for use in static contexts.
+     * 
+     * @param email the email address to mask
+     * @return masked email address (e.g., "j***@example.com")
+     */
+    private static String maskEmailStatic(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return "invalid-email";
+        }
+        
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 0 || atIndex == email.length() - 1) {
+            // Invalid email format, mask completely
+            return "***@***.***";
+        }
+        
+        String localPart = email.substring(0, atIndex);
+        String domain = email.substring(atIndex + 1);
+        
+        // Mask local part: keep first character + asterisks
+        String maskedLocal;
+        if (localPart.length() == 1) {
+            maskedLocal = "*";
+        } else if (localPart.length() <= 3) {
+            maskedLocal = localPart.charAt(0) + "*".repeat(localPart.length() - 1);
+        } else {
+            maskedLocal = localPart.charAt(0) + "***";
+        }
+        
+        return maskedLocal + "@" + domain;
+    }
+
+    /**
      * Sends the email.  If the template defines a Velocity context property
      * named among the values of DSpace configuration property
      * {@code mail.message.headers} then that name and its value will be added
@@ -460,7 +528,9 @@ public class Email {
 
         // Log email sending information
         String templateName = contentName != null ? contentName : "unknown";
-        String recipientsList = String.join(", ", recipients);
+        String recipientsList = recipients.stream()
+                .map(this::maskEmail)
+                .collect(Collectors.joining(", "));
         LOG.info("Sending email - Template: '{}', Recipients: [{}], Subject: '{}'", 
                 templateName, recipientsList, subject);
 
@@ -582,7 +652,8 @@ public class Email {
             }
             message.send();
         } catch (MessagingException | IOException ex) {
-            LOG.error("Error sending test email", ex);
+            LOG.error("Error sending test email to '{}', subject '{}', via server '{}'", 
+                     maskEmailStatic(to), subject, server, ex);
             System.err.println("\nError sending email:");
             System.err.format(" - Error: %s%n", ex);
             System.err.println("\nPlease see the DSpace documentation for assistance.\n");

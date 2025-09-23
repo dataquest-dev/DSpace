@@ -79,6 +79,7 @@ public class ClarinAutoRegistrationController {
         ClarinVerificationToken clarinVerificationToken = clarinVerificationTokenService.findByNetID(context, netid);
         if (Objects.isNull(clarinVerificationToken)) {
             // The verification token doesn't exist.
+            log.warn("Cannot load CLARIN verification token for NetID: '{}'", netid);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot load the clarin verification " +
                     "token class by net id: " + netid);
             return null;
@@ -112,13 +113,13 @@ public class ClarinAutoRegistrationController {
             bean.addArgument(uiUrl);
             bean.addRecipient(email);
             
-            // Log the email sending attempt with template and recipient info
-            log.info("Sending CLARIN autoregistration email - Template: '{}', Recipient: '{}', NetID: '{}'", 
+            // Log the email sending attempt with template and recipient info (DEBUG level for PII)
+            log.debug("Sending CLARIN autoregistration email - Template: '{}', Recipient: '{}', NetID: '{}'", 
                     emailTemplate, email, netid);
             
             bean.send();
             
-            log.info("CLARIN autoregistration email sent successfully - Recipient: '{}', NetID: '{}'", 
+            log.debug("CLARIN autoregistration email sent successfully - Recipient: '{}', NetID: '{}'", 
                     email, netid);
         } catch (Exception e) {
             log.error("Cannot send the CLARIN autoregistration email - Template: 'clarin_autoregistration', Recipient: '{}', NetID: '{}', Error: {}", 
