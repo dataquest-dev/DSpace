@@ -368,30 +368,8 @@ public class Email {
      * @return masked email address (e.g., "j***@example.com")
      */
     private static String maskEmailStatic(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            return "invalid-email";
-        }
-        
-        int atIndex = email.indexOf('@');
-        if (atIndex <= 0 || atIndex == email.length() - 1) {
-            // Invalid email format, mask completely
-            return "***@***.***";
-        }
-        
-        String localPart = email.substring(0, atIndex);
-        String domain = email.substring(atIndex + 1);
-        
-        // Mask local part: keep first character + asterisks
-        String maskedLocal;
-        if (localPart.length() == 1) {
-            maskedLocal = "*";
-        } else if (localPart.length() <= 3) {
-            maskedLocal = localPart.charAt(0) + "*".repeat(localPart.length() - 1);
-        } else {
-            maskedLocal = localPart.charAt(0) + "***";
-        }
-        
-        return maskedLocal + "@" + domain;
+        // Delegate to the instance method to avoid code duplication
+        return new Email().maskEmail(email);
     }
 
     /**
