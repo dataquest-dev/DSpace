@@ -1451,8 +1451,7 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                         FacetEntryMatcher.publisherFacet(false),
                         FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.relationIspartofseriesFacet(false),
-                        FacetEntryMatcher.rightsAccessFacet(false),
-                        FacetEntryMatcher.dateIssuedFacet(false)
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
@@ -1463,8 +1462,7 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                         FacetEntryMatcher.publisherFacet(false),
                         FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.relationIspartofseriesFacet(false),
-                        FacetEntryMatcher.rightsAccessFacet(false),
-                        FacetEntryMatcher.dateIssuedFacet(false)
+                        FacetEntryMatcher.rightsAccessFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
