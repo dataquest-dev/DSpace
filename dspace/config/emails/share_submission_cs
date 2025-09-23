@@ -1,0 +1,26 @@
+## E-mail with a download link
+##
+## Parameters: {0} is expanded to submission link
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')}: Odkaz pro sdílení příspěvku")
+#set($phone = ${config.get('mail.message.helpdesk.telephone')})
+Chcete-li předat svůj rozpracovaný příspěvek jinému uživateli, pošlete mu následující odkaz:
+ ${params[0]}
+
+Pokud narazíte na problém, kontaktujte prosím ${config.get('lr.help.mail')}
+#if( $phone )
+nebo nám zavolejte na ${phone}.
+#end
+
+
+Tým ${config.get('dspace.shortname')}
+
+_____________________________________
+${config.get('dspace.shortname')},
+WWW: ${config.get('dspace.ui.url')}
+Email: ${config.get('lr.help.mail')}
+#if( $phone )
+Tel.: ${phone}
+#end

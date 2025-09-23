@@ -1,0 +1,20 @@
+## E-mail sent to designated address when a metadata update, registration
+## or reservation of a DOI fails.
+##
+## Parameters: {0} action (updating metadata of, registering or reserving)
+##             {1} Date & Time
+##             {2} resource type text
+##             {3} resource id
+##             {4} DOI
+##             {5} reason
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')}: Chyba při ${params[0]} DOI ${params[3]}")
+
+Datum:    ${params[1]}
+
+Operace "${params[0]}" pro DOI ${params[4]} u zdroje typu ${params[2]} s ID ${params[3]} selhala:
+${params[5]}
+
+Tým ${config.get('dspace.shortname')}
