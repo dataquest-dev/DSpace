@@ -79,9 +79,8 @@ public class ClarinAutoRegistrationController {
         ClarinVerificationToken clarinVerificationToken = clarinVerificationTokenService.findByNetID(context, netid);
         if (Objects.isNull(clarinVerificationToken)) {
             // The verification token doesn't exist.
-            log.warn("Cannot load CLARIN verification token for NetID: '{}'", netid);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot load the clarin verification " +
-                    "token class by net id: " + netid);
+                "token class by net id: " + netid);
             return null;
         }
 
@@ -103,8 +102,7 @@ public class ClarinAutoRegistrationController {
         String autoregistrationURL = uiUrl + "/login/autoregistration?verification-token=" + verificationToken;
         try {
             Locale locale = context.getCurrentLocale();
-            String emailTemplate = I18nUtil.getEmailFilename(locale, "clarin_autoregistration");
-            Email bean = Email.getEmail(emailTemplate);
+            Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale, "clarin_autoregistration"));
             bean.addArgument(autoregistrationURL);
             bean.addArgument(helpDeskEmail);
             bean.addArgument(helpDeskPhoneNum);
@@ -112,18 +110,9 @@ public class ClarinAutoRegistrationController {
             bean.addArgument(dspaceName);
             bean.addArgument(uiUrl);
             bean.addRecipient(email);
-            
-            // Log the email sending attempt with template and recipient info (DEBUG level for PII)
-            log.debug("Sending CLARIN autoregistration email - Template: '{}', Recipient: '{}', NetID: '{}'", 
-                    emailTemplate, email, netid);
-            
             bean.send();
-            
-            log.debug("CLARIN autoregistration email sent successfully - Recipient: '{}', NetID: '{}'", 
-                    email, netid);
         } catch (Exception e) {
-            log.debug("Cannot send the CLARIN autoregistration email - Template: 'clarin_autoregistration', Recipient: '{}', NetID: '{}', Error: {}", 
-                     email, netid, e.getMessage());
+            log.error("Cannot send the email because: " + e.getMessage());
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot send the email");
             return null;
         }
