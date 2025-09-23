@@ -123,7 +123,7 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
         try {
             eperson = ePersonService.findByEmail(context, registrationRest.getEmail());
         } catch (SQLException e) {
-            log.error("Something went wrong retrieving EPerson for email: " + 
+            log.error("Something went wrong retrieving EPerson for email: " +
                 org.dspace.core.Utils.maskEmail(registrationRest.getEmail()), e);
         }
         if (eperson != null && accountType.equalsIgnoreCase(TYPE_FORGOT)) {
