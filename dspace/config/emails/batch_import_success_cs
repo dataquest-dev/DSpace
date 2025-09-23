@@ -1,0 +1,15 @@
+## Email sent to DSpace users when they successfully batch import items.
+##
+## Parameters: {0} the filepath to the mapfile created by the batch import
+##
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = 'DSpace - Hromadný import byl úspěšně dokončen')
+Hromadný import položek, který jste spustili z rozhraní DSpace, byl úspěšně dokončen.
+
+Mapovací soubor (mapfile) pro tento import naleznete na následující cestě: ${params[0]}
+
+
+Tým DSpace
+
