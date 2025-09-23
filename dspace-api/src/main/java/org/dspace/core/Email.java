@@ -548,11 +548,6 @@ public class Email {
      *              message is sent.
      */
     public static void main(String[] args) {
-        // Test logging to verify it goes to dspace.log
-        LOG.info("Email.main() called - Testing DSpace logging system");
-        LOG.debug("Debug message from Email.main()");
-        LOG.warn("Warning message from Email.main()");
-        
         ConfigurationService config
                 = DSpaceServicesFactory.getInstance().getConfigurationService();
         String to = config.getProperty("mail.admin");
@@ -561,7 +556,6 @@ public class Email {
         String url = config.getProperty("dspace.ui.url");
         Email message;
         try {
-            LOG.info("Preparing to send test email to: {}", to);
             
             if (args.length <= 0) {
                 message = new Email();
@@ -596,7 +590,6 @@ public class Email {
             System.err.println("\n");
             System.exit(1);
         }
-        LOG.info("Test email sent successfully!");
         System.out.println("\nEmail sent successfully!\n");
     }
 
