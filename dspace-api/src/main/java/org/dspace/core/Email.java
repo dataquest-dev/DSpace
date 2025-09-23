@@ -338,16 +338,13 @@ public class Email {
         if (email == null || email.trim().isEmpty()) {
             return "invalid-email";
         }
-        
         int atIndex = email.indexOf('@');
         if (atIndex <= 0 || atIndex == email.length() - 1) {
             // Invalid email format, mask completely
             return "***@***.***";
         }
-        
         String localPart = email.substring(0, atIndex);
         String domain = email.substring(atIndex + 1);
-        
         // Mask local part: keep first character + asterisks
         String maskedLocal;
         if (localPart.length() == 1) {
@@ -357,7 +354,6 @@ public class Email {
         } else {
             maskedLocal = localPart.charAt(0) + "***";
         }
-        
         return maskedLocal + "@" + domain;
     }
 
@@ -509,7 +505,7 @@ public class Email {
         String recipientsList = recipients.stream()
                 .map(this::maskEmail)
                 .collect(Collectors.joining(", "));
-        LOG.info("Sending email - Template: '{}', Recipients: [{}], Subject: '{}'", 
+        LOG.info("Sending email - Template: '{}', Recipients: [{}], Subject: '{}'",
                 templateName, recipientsList, subject);
 
         if (disabled) {
@@ -534,7 +530,7 @@ public class Email {
             LOG.info(text.toString());
         } else {
             Transport.send(message);
-            LOG.info("Email successfully sent - Template: '{}', Recipients: [{}]", 
+            LOG.info("Email successfully sent - Template: '{}', Recipients: [{}]",
                     templateName, recipientsList);
         }
     }
@@ -580,10 +576,8 @@ public class Email {
         if (charset != null) {
             email.setCharset(charset);
         }
-        
         // Log template loading
         LOG.debug("Email template loaded: '{}'", emailFile);
-        
         return email;
     }
 
@@ -630,7 +624,7 @@ public class Email {
             }
             message.send();
         } catch (MessagingException | IOException ex) {
-            LOG.error("Error sending test email to '{}', subject '{}', via server '{}'", 
+            LOG.error("Error sending test email to '{}', subject '{}', via server '{}'",
                      maskEmailStatic(to), subject, server, ex);
             System.err.println("\nError sending email:");
             System.err.format(" - Error: %s%n", ex);
