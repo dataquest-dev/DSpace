@@ -122,7 +122,7 @@ public class ClarinAutoRegistrationController {
             log.debug("CLARIN autoregistration email sent successfully - Recipient: '{}', NetID: '{}'", 
                     email, netid);
         } catch (Exception e) {
-            log.error("Cannot send the CLARIN autoregistration email - Template: 'clarin_autoregistration', Recipient: '{}', NetID: '{}', Error: {}", 
+            log.debug("Cannot send the CLARIN autoregistration email - Template: 'clarin_autoregistration', Recipient: '{}', NetID: '{}', Error: {}", 
                      email, netid, e.getMessage());
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot send the email");
             return null;

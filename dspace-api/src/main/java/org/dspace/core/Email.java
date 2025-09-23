@@ -334,7 +334,7 @@ public class Email {
      * @param email the email address to mask
      * @return masked email address (e.g., "j****@example.com")
      */
-    private String maskEmail(String email) {
+    private static String maskEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return "invalid-email";
         }
@@ -355,17 +355,6 @@ public class Email {
             maskedLocal = localPart.charAt(0) + "***";
         }
         return maskedLocal + "@" + domain;
-    }
-
-    /**
-     * Static helper method to mask email addresses for use in static contexts.
-     * 
-     * @param email the email address to mask
-     * @return masked email address (e.g., "j***@example.com")
-     */
-    private static String maskEmailStatic(String email) {
-        // Delegate to the instance method to avoid code duplication
-        return new Email().maskEmail(email);
     }
 
     /**
@@ -503,7 +492,7 @@ public class Email {
         // Log email sending information
         String templateName = contentName != null ? contentName : "unknown";
         String recipientsList = recipients.stream()
-                .map(this::maskEmail)
+                .map(Email::maskEmail)
                 .collect(Collectors.joining(", "));
         LOG.info("Sending email - Template: '{}', Recipients: [{}], Subject: '{}'",
                 templateName, recipientsList, subject);
@@ -625,7 +614,7 @@ public class Email {
             message.send();
         } catch (MessagingException | IOException ex) {
             LOG.error("Error sending test email to '{}', subject '{}', via server '{}'",
-                     maskEmailStatic(to), subject, server, ex);
+                     maskEmail(to), subject, server, ex);
             System.err.println("\nError sending email:");
             System.err.format(" - Error: %s%n", ex);
             System.err.println("\nPlease see the DSpace documentation for assistance.\n");
