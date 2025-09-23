@@ -556,7 +556,6 @@ public class Email {
         String url = config.getProperty("dspace.ui.url");
         Email message;
         try {
-            
             if (args.length <= 0) {
                 message = new Email();
                 message.setContent("testing", "This is a test email sent from DSpace: " + url);
