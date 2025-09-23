@@ -328,36 +328,6 @@ public class Email {
     }
 
     /**
-     * Mask email addresses for privacy compliance in logging.
-     * Keeps the first character and domain for debugging while protecting PII.
-     * 
-     * @param email the email address to mask
-     * @return masked email address (e.g., "j****@example.com")
-     */
-    private static String maskEmail(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            return "invalid-email";
-        }
-        int atIndex = email.indexOf('@');
-        if (atIndex <= 0 || atIndex == email.length() - 1) {
-            // Invalid email format, mask completely
-            return "***@***.***";
-        }
-        String localPart = email.substring(0, atIndex);
-        String domain = email.substring(atIndex + 1);
-        // Mask local part: keep first character + asterisks
-        String maskedLocal;
-        if (localPart.length() == 1) {
-            maskedLocal = "*";
-        } else if (localPart.length() <= 3) {
-            maskedLocal = localPart.charAt(0) + "*".repeat(localPart.length() - 1);
-        } else {
-            maskedLocal = localPart.charAt(0) + "***";
-        }
-        return maskedLocal + "@" + domain;
-    }
-
-    /**
      * Sends the email.  If the template defines a Velocity context property
      * named among the values of DSpace configuration property
      * {@code mail.message.headers} then that name and its value will be added
@@ -492,7 +462,7 @@ public class Email {
         // Log email sending information
         String templateName = contentName != null ? contentName : "unknown";
         String recipientsList = recipients.stream()
-                .map(Email::maskEmail)
+                .map(Utils::maskEmail)
                 .collect(Collectors.joining(", "));
         LOG.info("Sending email - Template: '{}', Recipients: [{}], Subject: '{}'",
                 templateName, recipientsList, subject);
@@ -597,7 +567,7 @@ public class Email {
             message.setSubject(subject);
             message.addRecipient(to);
             System.out.println("\nAbout to send test email:");
-            System.out.println(" - To: " + to);
+            System.out.println(" - To: " + Utils.maskEmail(to));
             System.out.println(" - Subject: " + subject);
             System.out.println(" - Server: " + server);
             boolean disabled = config.getBooleanProperty("mail.server.disabled", false);
