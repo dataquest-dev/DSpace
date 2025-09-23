@@ -102,7 +102,8 @@ public class ClarinAutoRegistrationController {
         String autoregistrationURL = uiUrl + "/login/autoregistration?verification-token=" + verificationToken;
         try {
             Locale locale = context.getCurrentLocale();
-            Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale, "clarin_autoregistration"));
+            String emailTemplate = I18nUtil.getEmailFilename(locale, "clarin_autoregistration");
+            Email bean = Email.getEmail(emailTemplate);
             bean.addArgument(autoregistrationURL);
             bean.addArgument(helpDeskEmail);
             bean.addArgument(helpDeskPhoneNum);
@@ -110,9 +111,18 @@ public class ClarinAutoRegistrationController {
             bean.addArgument(dspaceName);
             bean.addArgument(uiUrl);
             bean.addRecipient(email);
+            
+            // Log the email sending attempt with template and recipient info
+            log.info("Sending CLARIN autoregistration email - Template: '{}', Recipient: '{}', NetID: '{}'", 
+                    emailTemplate, email, netid);
+            
             bean.send();
+            
+            log.info("CLARIN autoregistration email sent successfully - Recipient: '{}', NetID: '{}'", 
+                    email, netid);
         } catch (Exception e) {
-            log.error("Cannot send the email because: " + e.getMessage());
+            log.error("Cannot send the CLARIN autoregistration email - Template: 'clarin_autoregistration', Recipient: '{}', NetID: '{}', Error: {}", 
+                     email, netid, e.getMessage());
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot send the email");
             return null;
         }

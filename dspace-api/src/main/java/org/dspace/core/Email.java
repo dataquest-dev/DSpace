@@ -458,6 +458,12 @@ public class Email {
             message.setReplyTo(replyToAddr);
         }
 
+        // Log email sending information
+        String templateName = contentName != null ? contentName : "unknown";
+        String recipientsList = String.join(", ", recipients);
+        LOG.info("Sending email - Template: '{}', Recipients: [{}], Subject: '{}'", 
+                templateName, recipientsList, subject);
+
         if (disabled) {
             StringBuilder text = new StringBuilder(
                 "Message not sent due to mail.server.disabled:\n");
@@ -480,6 +486,8 @@ public class Email {
             LOG.info(text.toString());
         } else {
             Transport.send(message);
+            LOG.info("Email successfully sent - Template: '{}', Recipients: [{}]", 
+                    templateName, recipientsList);
         }
     }
 
@@ -524,6 +532,10 @@ public class Email {
         if (charset != null) {
             email.setCharset(charset);
         }
+        
+        // Log template loading
+        LOG.debug("Email template loaded: '{}'", emailFile);
+        
         return email;
     }
 
@@ -536,6 +548,11 @@ public class Email {
      *              message is sent.
      */
     public static void main(String[] args) {
+        // Test logging to verify it goes to dspace.log
+        LOG.info("Email.main() called - Testing DSpace logging system");
+        LOG.debug("Debug message from Email.main()");
+        LOG.warn("Warning message from Email.main()");
+        
         ConfigurationService config
                 = DSpaceServicesFactory.getInstance().getConfigurationService();
         String to = config.getProperty("mail.admin");
@@ -544,6 +561,8 @@ public class Email {
         String url = config.getProperty("dspace.ui.url");
         Email message;
         try {
+            LOG.info("Preparing to send test email to: {}", to);
+            
             if (args.length <= 0) {
                 message = new Email();
                 message.setContent("testing", "This is a test email sent from DSpace: " + url);
@@ -570,12 +589,14 @@ public class Email {
             }
             message.send();
         } catch (MessagingException | IOException ex) {
+            LOG.error("Error sending test email", ex);
             System.err.println("\nError sending email:");
             System.err.format(" - Error: %s%n", ex);
             System.err.println("\nPlease see the DSpace documentation for assistance.\n");
             System.err.println("\n");
             System.exit(1);
         }
+        LOG.info("Test email sent successfully!");
         System.out.println("\nEmail sent successfully!\n");
     }
 
