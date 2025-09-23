@@ -781,7 +781,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         throws SearchServiceException {
         long startTime = System.currentTimeMillis();
         log.info("SolrServiceImpl.search - Starting search with query: '{}'", discoveryQuery.getQuery());
-        
+
         try {
             if (solrSearchCore.getSolr() == null) {
                 log.warn("SolrServiceImpl.search - Solr core is null, returning empty result");
@@ -789,11 +789,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             }
 
             DiscoverResult result = retrieveResult(context, discoveryQuery);
-            
+
             long totalTime = System.currentTimeMillis() - startTime;
-            log.info("SolrServiceImpl.search - Search completed in {} ms, found {} total results", 
+            log.info("SolrServiceImpl.search - Search completed in {} ms, found {} total results",
                      totalTime, result.getTotalSearchResults());
-            
+
             return result;
 
         } catch (Exception e) {
@@ -872,8 +872,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     protected SolrQuery resolveToSolrQuery(Context context, DiscoverQuery discoveryQuery)
         throws SearchServiceException {
         long methodStart = System.currentTimeMillis();
-        log.debug("SolrServiceImpl.resolveToSolrQuery - Starting query resolution for: '{}'", discoveryQuery.getQuery());
-        
+        log.debug("SolrServiceImpl.resolveToSolrQuery - Starting query resolution for: '{}'",
+                  discoveryQuery.getQuery());
+
         SolrQuery solrQuery = new SolrQuery();
 
         String query = "*:*";
@@ -1009,9 +1010,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         }
 
         long methodTime = System.currentTimeMillis() - methodStart;
-        log.debug("SolrServiceImpl.resolveToSolrQuery - Query resolution completed in {} ms, final query: '{}'", 
+        log.debug("SolrServiceImpl.resolveToSolrQuery - Query resolution completed in {} ms, final query: '{}'",
                  methodTime, solrQuery.getQuery());
-        
+
         return solrQuery;
     }
 
@@ -1019,57 +1020,57 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         throws SQLException, SolrServerException, IOException, SearchServiceException {
         long methodStartTime = System.currentTimeMillis();
         log.info("SolrServiceImpl.retrieveResult - Starting result retrieval for query: '{}'", query.getQuery());
-        
+
         // we use valid and executeLimit to decide if the solr query need to be re-run if we found some stale objects
         boolean valid = false;
         int executionCount = 0;
         DiscoverResult result = null;
-        
+
         long solrQueryBuildStart = System.currentTimeMillis();
         SolrQuery solrQuery = resolveToSolrQuery(context, query);
         long solrQueryBuildTime = System.currentTimeMillis() - solrQueryBuildStart;
         log.debug("SolrServiceImpl.retrieveResult - SolrQuery build took {} ms", solrQueryBuildTime);
-        
+
         // how many re-run of the query are allowed other than the first run
         int maxAttempts = configurationService.getIntProperty("discovery.removestale.attempts", 3);
-        
+
         do {
             long attemptStart = System.currentTimeMillis();
             executionCount++;
             log.debug("SolrServiceImpl.retrieveResult - Starting attempt {} of {}", executionCount, maxAttempts + 1);
-            
+
             result = new DiscoverResult();
             // if we found stale objects we can decide to skip execution of the remaining code to improve performance
             boolean skipLoadingResponse = false;
             // use zombieDocs to collect stale found objects
             List<String> zombieDocs = new ArrayList<>();
-            
+
             long solrExecutionStart = System.currentTimeMillis();
             QueryResponse solrQueryResponse = solrSearchCore.getSolr().query(solrQuery,
                           solrSearchCore.REQUEST_METHOD);
             long solrExecutionTime = System.currentTimeMillis() - solrExecutionStart;
-            log.info("SolrServiceImpl.retrieveResult - Solr query execution took {} ms (attempt {}), QTime: {} ms", 
-                     solrExecutionTime, executionCount, 
+            log.info("SolrServiceImpl.retrieveResult - Solr query execution took {} ms (attempt {}), QTime: {} ms",
+                     solrExecutionTime, executionCount,
                      solrQueryResponse != null ? solrQueryResponse.getQTime() : "null");
-            
+
             if (solrQueryResponse != null) {
                 long resultProcessingStart = System.currentTimeMillis();
-                
+
                 result.setSearchTime(solrQueryResponse.getQTime());
                 result.setStart(query.getStart());
                 result.setMaxResults(query.getMaxResults());
                 result.setTotalSearchResults(solrQueryResponse.getResults().getNumFound());
-                log.debug("SolrServiceImpl.retrieveResult - Processing {} documents from Solr response", 
+                log.debug("SolrServiceImpl.retrieveResult - Processing {} documents from Solr response",
                          solrQueryResponse.getResults().size());
 
                 List<String> searchFields = query.getSearchFields();
                 int processedDocs = 0;
                 int staleDocsFound = 0;
-                
+
                 for (SolrDocument doc : solrQueryResponse.getResults()) {
                     long docProcessingStart = System.currentTimeMillis();
                     processedDocs++;
-                    
+
                     IndexableObject indexableObject = findIndexableObject(context, doc);
 
                     if (indexableObject != null) {
@@ -1122,17 +1123,17 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                         }
                     }
                 }
-                
+
                 long resultProcessingTime = System.currentTimeMillis() - resultProcessingStart;
-                log.debug("SolrServiceImpl.retrieveResult - Document processing took {} ms, processed {} docs, found {} stale docs", 
-                         resultProcessingTime, processedDocs, staleDocsFound);
-                
+                log.debug("SolrServiceImpl.retrieveResult - Document processing took {} ms, processed {} docs, "
+                         + "found {} stale docs", resultProcessingTime, processedDocs, staleDocsFound);
+
                 //Resolve our facet field values
                 long facetFieldsStart = System.currentTimeMillis();
                 resolveFacetFields(context, query, result, skipLoadingResponse, solrQueryResponse);
                 long facetFieldsTime = System.currentTimeMillis() - facetFieldsStart;
                 log.debug("SolrServiceImpl.retrieveResult - Facet fields resolution took {} ms", facetFieldsTime);
-                
+
                 //Resolve our json facet field values used for metadata browsing
                 long jsonFacetStart = System.currentTimeMillis();
                 resolveJsonFacetFields(context, result, solrQueryResponse);
@@ -1150,15 +1151,15 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 solrSearchCore.getSolr().deleteById(zombieDocs);
                 solrSearchCore.getSolr().commit();
                 long staleCleanupTime = System.currentTimeMillis() - staleCleanupStart;
-                log.info("SolrServiceImpl.retrieveResult - Stale cleanup took {} ms for {} docs", 
+                log.info("SolrServiceImpl.retrieveResult - Stale cleanup took {} ms for {} docs",
                          staleCleanupTime, zombieDocs.size());
             } else {
                 valid = true;
             }
-            
+
             long attemptTime = System.currentTimeMillis() - attemptStart;
             log.debug("SolrServiceImpl.retrieveResult - Attempt {} completed in {} ms", executionCount, attemptTime);
-            
+
         } while (!valid && executionCount <= maxAttempts);
 
         if (!valid && executionCount == maxAttempts) {
@@ -1168,11 +1169,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             log.fatal(message);
             throw new RuntimeException(message);
         }
-        
+
         long methodTotalTime = System.currentTimeMillis() - methodStartTime;
-        log.info("SolrServiceImpl.retrieveResult - Total method execution took {} ms over {} attempts", 
+        log.info("SolrServiceImpl.retrieveResult - Total method execution took {} ms over {} attempts",
                  methodTotalTime, executionCount);
-        
+
         return result;
     }
 
@@ -1310,7 +1311,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         long startTime = System.currentTimeMillis();
         String type = (String) doc.getFirstValue(SearchUtils.RESOURCE_TYPE_FIELD);
         String id = (String) doc.getFirstValue(SearchUtils.RESOURCE_ID_FIELD);
-        
+
         final IndexFactory indexableObjectService = indexObjectServiceFactory.
                 getIndexFactoryByType(type);
         Optional<IndexableObject> indexableObject = indexableObjectService.findIndexableObject(context, id);
@@ -1318,13 +1319,13 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         if (!indexableObject.isPresent()) {
             log.warn("Not able to retrieve object RESOURCE_ID:" + id + " - RESOURCE_TYPE_ID:" + type);
         }
-        
+
         long findTime = System.currentTimeMillis() - startTime;
         if (findTime > 10) { // Only log if it takes more than 10ms
-            log.debug("SolrServiceImpl.findIndexableObject - Finding object took {} ms for type: {}, id: {}", 
+            log.debug("SolrServiceImpl.findIndexableObject - Finding object took {} ms for type: {}, id: {}",
                      findTime, type, id);
         }
-        
+
         return indexableObject.orElse(null);
     }
 
