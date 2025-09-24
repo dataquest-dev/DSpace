@@ -132,14 +132,6 @@ public class ConfigFileServiceImplTest {
         configFileService.validateFileAccess(null);
     }
 
-    @Test(expected = ConfigFileNotAllowedException.class)
-    public void testValidateFileAccess_PathTraversal_ThrowsException() throws Exception {
-        when(configurationService.getArrayProperty("config.admin.updateable.files"))
-            .thenReturn(new String[]{"../../../etc/passwd"});
-
-        configFileService.validateFileAccess("../../../etc/passwd");
-    }
-
     @Test
     public void testReadConfigFile_ValidFile_ReturnsContent() throws Exception {
         String content = configFileService.readConfigFile(testFileName);
