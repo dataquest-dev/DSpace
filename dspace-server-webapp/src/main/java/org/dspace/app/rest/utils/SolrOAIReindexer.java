@@ -433,7 +433,7 @@ public class SolrOAIReindexer {
             }
         } catch (Exception e) {
             // This is expected to sometimes fail with "Device or resource busy"
-            log.info("Could not clear OAI request cache for item ID: " + item.getID() +
+            log.warn("Could not clear OAI request cache for item ID: " + item.getID() +
                      " (harvesters will get fresh data on cache miss): " + e.getMessage());
         }
     }
