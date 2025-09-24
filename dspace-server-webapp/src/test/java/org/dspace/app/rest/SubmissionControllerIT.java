@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -275,6 +276,8 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                 .filter(policy -> ResourcePolicy.TYPE_SUBMISSION.equals(policy.getRpType()))
                 .collect(Collectors.toList());
 
+        assertNotNull("Updated item policies should not be null", updatedItemPolicies);
+        assertNotNull("Item submission policies should not be null", itemSubmissionPolicies);
         assertThat(itemSubmissionPolicies, hasSize(greaterThan(0)));
         assertThat(itemSubmissionPolicies.get(0).getEPerson(), equalTo(admin));
 
@@ -400,6 +403,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                     .filter(policy -> policy.getEPerson().equals(admin))
                     .collect(Collectors.toList());
 
+            assertNotNull("DSpace object should not be null", dso);
             assertThat("Object " + dso.getName() + " should have submission policies for admin",
                     submissionPolicies, hasSize(greaterThan(0)));
         }
@@ -413,6 +417,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                     .filter(policy -> policy.getEPerson().equals(eperson))
                     .collect(Collectors.toList());
 
+            assertNotNull("DSpace object should not be null", dso);
             assertThat("Object " + dso.getName() + " should not have submission policies for original submitter",
                     originalSubmitterPolicies, hasSize(0));
         }
