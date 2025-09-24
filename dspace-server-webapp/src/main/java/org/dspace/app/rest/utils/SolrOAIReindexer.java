@@ -481,8 +481,9 @@ public class SolrOAIReindexer {
                 } else {
                     log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
                             " because: " + e.getMessage() + ". Fallback deletion via event also failed.");
-                    throw new RuntimeException("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
-                            " because: " + e.getMessage() + ". Fallback deletion via event also failed.");
+                    throw new RuntimeException("Cannot reindex the Solr after deleting the item with ID: " +
+                            item.getID() + " because: " + e.getMessage() +
+                            ". Fallback deletion via event also failed.");
                 }
             }
         }
