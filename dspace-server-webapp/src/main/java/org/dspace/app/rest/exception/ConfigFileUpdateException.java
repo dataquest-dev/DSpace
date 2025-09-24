@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Exception thrown when updating a configuration file fails
  *
- * @author Your Name (your.email@example.com)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "Configuration file update failed")
 public class ConfigFileUpdateException extends RuntimeException {

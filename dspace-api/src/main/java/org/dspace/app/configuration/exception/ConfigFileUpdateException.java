@@ -10,7 +10,7 @@ package org.dspace.app.configuration.exception;
 /**
  * Exception thrown when a configuration file update operation fails
  *
- * @author DSpace Configuration Team
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public class ConfigFileUpdateException extends Exception {
 

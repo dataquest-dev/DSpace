@@ -15,7 +15,7 @@ import org.dspace.app.rest.ConfigFileRestController;
 /**
  * The Configuration File REST Resource
  *
- * @author Your Name (your.email@example.com)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public class ConfigFileRest extends BaseObjectRest<String> {
     public static final String NAME = "configfile";

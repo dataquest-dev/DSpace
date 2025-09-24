@@ -15,7 +15,7 @@ import org.dspace.app.rest.utils.Utils;
  * Configuration File Rest HAL Resource. The HAL Resource wraps the REST Resource
  * adding support for the links and embedded resources
  *
- * @author Your Name (your.email@example.com)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @RelNameDSpaceResource(ConfigFileRest.NAME)
 public class ConfigFileResource extends DSpaceResource<ConfigFileRest> {

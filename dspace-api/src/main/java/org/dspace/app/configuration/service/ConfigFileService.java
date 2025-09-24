@@ -22,7 +22,7 @@ import org.dspace.app.configuration.exception.ConfigFileUpdateException;
  * This service provides secure access to configuration files with proper
  * validation and backup functionality.
  *
- * @author DSpace Configuration Team
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public interface ConfigFileService {
 

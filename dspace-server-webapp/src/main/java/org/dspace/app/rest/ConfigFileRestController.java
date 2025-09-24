@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * Only administrators can access these endpoints
  *
- * @author Your Name (your.email@example.com)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @RestController
 @RequestMapping("/api/admin/configfiles")

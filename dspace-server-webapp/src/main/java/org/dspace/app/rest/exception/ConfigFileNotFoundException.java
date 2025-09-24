@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Exception thrown when a configuration file is not found
  *
- * @author Your Name (your.email@example.com)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Configuration file not found")
 public class ConfigFileNotFoundException extends RuntimeException {

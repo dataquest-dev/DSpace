@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 /**
  * Converter for ConfigFileRest to ConfigFileResource
  * 
- * @author Your Name (your.email@example.com)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @Component
 public class ConfigFileConverter implements DSpaceConverter<ConfigFileRest, ConfigFileResource> {

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Exception thrown when a configuration file is not allowed for API access
  *
- * @author Your Name (your.email@example.com)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @ResponseStatus(value = HttpStatus.FORBIDDEN, reason = "Configuration file access not allowed")
 public class ConfigFileNotAllowedException extends RuntimeException {

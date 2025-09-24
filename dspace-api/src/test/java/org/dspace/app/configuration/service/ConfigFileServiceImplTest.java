@@ -41,7 +41,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * These tests verify the core functionality of the configuration file service
  * including file validation, content operations, backup creation, and security measures.
  *
- * @author DSpace Configuration Team
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ConfigFileServiceImplTest {

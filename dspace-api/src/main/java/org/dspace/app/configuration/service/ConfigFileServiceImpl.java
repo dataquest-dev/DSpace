@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
  * - Path traversal attack prevention
  * - Proper error handling and logging
  *
- * @author DSpace Configuration Team
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 @Service
 public class ConfigFileServiceImpl implements ConfigFileService {

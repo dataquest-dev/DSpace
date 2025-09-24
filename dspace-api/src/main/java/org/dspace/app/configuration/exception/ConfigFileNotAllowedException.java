@@ -10,7 +10,7 @@ package org.dspace.app.configuration.exception;
 /**
  * Exception thrown when access to a configuration file is not allowed
  *
- * @author DSpace Configuration Team
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public class ConfigFileNotAllowedException extends Exception {
 
