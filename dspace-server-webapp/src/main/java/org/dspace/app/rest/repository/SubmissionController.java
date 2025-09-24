@@ -27,6 +27,8 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.WorkspaceItemService;
@@ -185,8 +187,8 @@ public class SubmissionController {
         }
 
         // Update resource policies on all bundles of the item
-        List<org.dspace.content.Bundle> bundles = wsi.getItem().getBundles();
-        for (org.dspace.content.Bundle bundle : bundles) {
+        List<Bundle> bundles = wsi.getItem().getBundles();
+        for (Bundle bundle : bundles) {
             List<ResourcePolicy> bundlePolicies = resourcePolicyService.find(context,
                     bundle, ResourcePolicy.TYPE_SUBMISSION);
             for (ResourcePolicy bundlePolicy : bundlePolicies) {
@@ -195,8 +197,8 @@ public class SubmissionController {
             }
 
             // Update resource policies on all bitstreams of each bundle
-            List<org.dspace.content.Bitstream> bitstreams = bundle.getBitstreams();
-            for (org.dspace.content.Bitstream bitstream : bitstreams) {
+            List<Bitstream> bitstreams = bundle.getBitstreams();
+            for (Bitstream bitstream : bitstreams) {
                 List<ResourcePolicy> bitstreamPolicies = resourcePolicyService.find(context,
                         bitstream, ResourcePolicy.TYPE_SUBMISSION);
                 for (ResourcePolicy bitstreamPolicy : bitstreamPolicies) {

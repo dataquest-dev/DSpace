@@ -274,7 +274,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         List<ResourcePolicy> itemSubmissionPolicies = updatedItemPolicies.stream()
                 .filter(policy -> ResourcePolicy.TYPE_SUBMISSION.equals(policy.getRpType()))
                 .collect(Collectors.toList());
-        
+
         assertThat(itemSubmissionPolicies, hasSize(greaterThan(0)));
         assertThat(itemSubmissionPolicies.get(0).getEPerson(), equalTo(admin));
 
@@ -283,7 +283,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         List<ResourcePolicy> bundleSubmissionPolicies = updatedBundlePolicies.stream()
                 .filter(policy -> ResourcePolicy.TYPE_SUBMISSION.equals(policy.getRpType()))
                 .collect(Collectors.toList());
-        
+
         assertThat(bundleSubmissionPolicies, hasSize(greaterThan(0)));
         assertThat(bundleSubmissionPolicies.get(0).getEPerson(), equalTo(admin));
 
@@ -292,26 +292,26 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         List<ResourcePolicy> bitstreamSubmissionPolicies = updatedBitstreamPolicies.stream()
                 .filter(policy -> ResourcePolicy.TYPE_SUBMISSION.equals(policy.getRpType()))
                 .collect(Collectors.toList());
-        
+
         assertThat(bitstreamSubmissionPolicies, hasSize(greaterThan(0)));
         assertThat(bitstreamSubmissionPolicies.get(0).getEPerson(), equalTo(admin));
 
         // Additional verification: Check that the new owner has specific permissions
         context.setCurrentUser(admin);
 
-        assertTrue("Admin should have READ access to item", 
+        assertTrue("Admin should have READ access to item",
                    authorizeService.authorizeActionBoolean(context, item, Constants.READ));
 
-        assertTrue("Admin should have WRITE access to bundle", 
+        assertTrue("Admin should have WRITE access to bundle",
                    authorizeService.authorizeActionBoolean(context, bundle, Constants.WRITE));
 
-        assertTrue("Admin should have ADD access to bundle", 
+        assertTrue("Admin should have ADD access to bundle",
                    authorizeService.authorizeActionBoolean(context, bundle, Constants.ADD));
 
-        assertTrue("Admin should have READ access to bitstream", 
+        assertTrue("Admin should have READ access to bitstream",
                    authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ));
 
-        assertTrue("Admin should have WRITE access to bitstream", 
+        assertTrue("Admin should have WRITE access to bitstream",
                    authorizeService.authorizeActionBoolean(context, bitstream, Constants.WRITE));
 
         context.restoreAuthSystemState();
@@ -337,7 +337,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         Bundle bundle1 = BundleBuilder.createBundle(context, item)
                 .withName("ORIGINAL")
                 .build();
-        
+
         Bundle bundle2 = BundleBuilder.createBundle(context, item)
                 .withName("THUMBNAIL")
                 .build();
@@ -367,7 +367,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                     .withAction(Constants.READ)
                     .withPolicyType(ResourcePolicy.TYPE_SUBMISSION)
                     .build();
-            
+
             ResourcePolicyBuilder.createResourcePolicy(context, eperson, null)
                     .withDspaceObject(dso)
                     .withAction(Constants.WRITE)
@@ -399,7 +399,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                     .filter(policy -> policy.getEPerson() != null)
                     .filter(policy -> policy.getEPerson().equals(admin))
                     .collect(Collectors.toList());
-            
+
             assertThat("Object " + dso.getName() + " should have submission policies for admin",
                     submissionPolicies, hasSize(greaterThan(0)));
         }
@@ -412,7 +412,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                     .filter(policy -> policy.getEPerson() != null)
                     .filter(policy -> policy.getEPerson().equals(eperson))
                     .collect(Collectors.toList());
-            
+
             assertThat("Object " + dso.getName() + " should not have submission policies for original submitter",
                     originalSubmitterPolicies, hasSize(0));
         }
