@@ -227,7 +227,6 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                 .withName("ORIGINAL")
                 .build();
 
-        String bitstreamContent = "Test bitstream content";
         Bitstream bitstream = BitstreamBuilder.createBitstream(context, bundle,
                 InputStream.nullInputStream())
                 .withName("test.txt")
