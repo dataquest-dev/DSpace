@@ -48,6 +48,7 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.event.Event;
 import org.dspace.util.SolrUtils;
 import org.dspace.utils.DSpace;
 import org.dspace.xoai.app.BasicConfiguration;
@@ -309,6 +310,23 @@ public class SolrOAIReindexer {
 //            we cannot put such item into solr
             return;
         }
+        
+        // Check for test property to force event-based fallback
+        if ("true".equals(System.getProperty("dspace.test.force.event.fallback", "false"))) {
+            log.info("Test property detected - forcing event-based reindexing for item ID: " + item.getID());
+            boolean fallbackSuccessful = triggerReindexingViaEvent(item);
+            if (fallbackSuccessful) {
+                log.info("Event-based reindexing triggered successfully for item ID: " + item.getID());
+                safeClearCaches(item);
+            } else {
+                log.error("Event-based reindexing failed for item ID: " + item.getID());
+                if (!this.isTest()) {
+                    throw new RuntimeException("Event-based reindexing failed for item ID: " + item.getID());
+                }
+            }
+            return;
+        }
+        
         try {
             // Before reindexing delete item
             deleteItemByQuery(item);
@@ -322,14 +340,70 @@ public class SolrOAIReindexer {
 
             log.info("Successfully reindexed item ID: " + item.getID());
         } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
-            // Do not throw RuntimeException in tests
-            if (this.isTest()) {
-                log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
+            log.warn("Direct reindexing failed for item ID: " + item.getID() + " because: " + e.getMessage() + 
+                     ". Attempting fallback reindexing via event.");
+            
+            boolean fallbackSuccessful = triggerReindexingViaEvent(item);
+            
+            if (fallbackSuccessful) {
+                log.info("Fallback reindexing event triggered successfully for item ID: " + item.getID());
+                // Still try to clear caches even after fallback
+                safeClearCaches(item);
             } else {
-                log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage());
-                throw new RuntimeException("Cannot reindex the item with ID: " + item.getID() + " because: "
-                        + e.getMessage());
+                // Fallback also failed
+                // Do not throw RuntimeException in tests
+                if (this.isTest()) {
+                    log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage() + 
+                             ". Fallback reindexing via event also failed.");
+                } else {
+                    log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage() + 
+                             ". Fallback reindexing via event also failed.");
+                    throw new RuntimeException("Cannot reindex the item with ID: " + item.getID() + " because: "
+                            + e.getMessage() + ". Fallback reindexing via event also failed.");
+                }
             }
+        }
+    }
+
+    /**
+     * Triggers reindexing through the event system as a fallback mechanism.
+     * This will fire a MODIFY event which should be picked up by consumers that handle
+     * indexing operations.
+     *
+     * @param item The item to trigger reindexing for
+     * @return true if the event was successfully fired, false otherwise
+     */
+    private boolean triggerReindexingViaEvent(Item item) {
+        try (Context eventContext = new Context()) {
+            eventContext.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null));
+            eventContext.complete();
+            log.info("Triggered fallback reindexing event for item ID: " + item.getID());
+            return true;
+        } catch (Exception e) {
+            log.warn("Failed to trigger fallback reindexing event for item ID: " + item.getID() + 
+                     " - " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Triggers deletion through the event system as a fallback mechanism.
+     * This will fire a DELETE event which should be picked up by consumers that handle
+     * indexing operations.
+     *
+     * @param item The item to trigger deletion for
+     * @return true if the event was successfully fired, false otherwise
+     */
+    private boolean triggerDeletionViaEvent(Item item) {
+        try (Context eventContext = new Context()) {
+            eventContext.addEvent(new Event(Event.DELETE, Constants.ITEM, item.getID(), null));
+            eventContext.complete();
+            log.info("Triggered fallback deletion event for item ID: " + item.getID());
+            return true;
+        } catch (Exception e) {
+            log.warn("Failed to trigger fallback deletion event for item ID: " + item.getID() + 
+                     " - " + e.getMessage());
+            return false;
         }
     }
 
@@ -365,6 +439,22 @@ public class SolrOAIReindexer {
     }
 
     public void deleteItem(Item item) {
+        // Check for test property to force event-based fallback
+        if ("true".equals(System.getProperty("dspace.test.force.event.fallback", "false"))) {
+            log.info("Test property detected - forcing event-based deletion for item ID: " + item.getID());
+            boolean fallbackSuccessful = triggerDeletionViaEvent(item);
+            if (fallbackSuccessful) {
+                log.info("Event-based deletion triggered successfully for item ID: " + item.getID());
+                safeClearCaches(item);
+            } else {
+                log.error("Event-based deletion failed for item ID: " + item.getID());
+                if (!this.isTest()) {
+                    throw new RuntimeException("Event-based deletion failed for item ID: " + item.getID());
+                }
+            }
+            return;
+        }
+        
         try {
             deleteItemByQuery(item);
             // Try to clear caches safely, but don't fail if it doesn't work
@@ -372,17 +462,29 @@ public class SolrOAIReindexer {
 
             log.info("Successfully deleted item from Solr index: " + item.getID());
         } catch (SolrServerException | IOException e) {
-            // Do not throw RuntimeException in tests
-            if (this.isTest()) {
-                log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
-                        " because: " + e.getMessage());
+            // Before logging error and throwing exception, attempt fallback deletion via event
+            log.warn("Direct deletion from Solr failed for item ID: " + item.getID() + " because: " + e.getMessage() + 
+                     ". Attempting fallback deletion via event.");
+            
+            boolean fallbackSuccessful = triggerDeletionViaEvent(item);
+            
+            if (fallbackSuccessful) {
+                log.info("Fallback deletion event triggered successfully for item ID: " + item.getID());
+                // Still try to clear caches even after fallback
+                safeClearCaches(item);
             } else {
-                log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
-                        " because: " + e.getMessage());
-                throw new RuntimeException("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
-                        " because: " + e.getMessage());
+                // Fallback also failed
+                // Do not throw RuntimeException in tests
+                if (this.isTest()) {
+                    log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
+                            " because: " + e.getMessage() + ". Fallback deletion via event also failed.");
+                } else {
+                    log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
+                            " because: " + e.getMessage() + ". Fallback deletion via event also failed.");
+                    throw new RuntimeException("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
+                            " because: " + e.getMessage() + ". Fallback deletion via event also failed.");
+                }
             }
-
         }
     }
 
