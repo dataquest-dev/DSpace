@@ -113,7 +113,7 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
     public void testEventFallbackMethods() throws Exception {
         // Set system property to force event-based fallback
         System.setProperty("dspace.test.force.event.fallback", "true");
-        
+
         try {
             context.turnOffAuthorisationSystem();
 
@@ -125,23 +125,25 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
             context.restoreAuthSystemState();
 
             // Test reindexing - should now use event-based approach due to system property
+            // Reindexing
             boolean reindexCompleted = false;
             try {
                 solrOAIReindexer.reindexItem(testItem);
                 reindexCompleted = true;
             } catch (Exception e) {
-                e.printStackTrace();
+                // Should not happen with safe cache clearing
             }
-            assertTrue("Event-based reindexing should complete successfully", reindexCompleted);
+            assertTrue("Reindexing should complete successfully", reindexCompleted);
 
-            // Test deletion - should now use event-based approach due to system property
+            // Deletion
             boolean deleteCompleted = false;
             try {
                 solrOAIReindexer.deleteItem(testItem);
                 deleteCompleted = true;
             } catch (Exception e) {
-                e.printStackTrace();
+                // Should not happen with safe cache clearing
             }
+
             assertTrue("Event-based deletion should complete successfully", deleteCompleted);
 
             // Verify the test item is still valid
