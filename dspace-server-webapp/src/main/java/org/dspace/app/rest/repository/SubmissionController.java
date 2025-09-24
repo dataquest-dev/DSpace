@@ -178,10 +178,32 @@ public class SubmissionController {
 
         List<ResourcePolicy> resourcePolicies = resourcePolicyService.find(context,
                 wsi.getItem(), ResourcePolicy.TYPE_SUBMISSION);
-        // Set submitter
+        // Set submitter on item policies
         for (ResourcePolicy resourcePolicy: resourcePolicies) {
             resourcePolicy.setEPerson(currentUser);
             resourcePolicyService.update(context, resourcePolicy);
+        }
+
+        // Update resource policies on all bundles of the item
+        List<org.dspace.content.Bundle> bundles = wsi.getItem().getBundles();
+        for (org.dspace.content.Bundle bundle : bundles) {
+            List<ResourcePolicy> bundlePolicies = resourcePolicyService.find(context,
+                    bundle, ResourcePolicy.TYPE_SUBMISSION);
+            for (ResourcePolicy bundlePolicy : bundlePolicies) {
+                bundlePolicy.setEPerson(currentUser);
+                resourcePolicyService.update(context, bundlePolicy);
+            }
+
+            // Update resource policies on all bitstreams of each bundle
+            List<org.dspace.content.Bitstream> bitstreams = bundle.getBitstreams();
+            for (org.dspace.content.Bitstream bitstream : bitstreams) {
+                List<ResourcePolicy> bitstreamPolicies = resourcePolicyService.find(context,
+                        bitstream, ResourcePolicy.TYPE_SUBMISSION);
+                for (ResourcePolicy bitstreamPolicy : bitstreamPolicies) {
+                    bitstreamPolicy.setEPerson(currentUser);
+                    resourcePolicyService.update(context, bitstreamPolicy);
+                }
+            }
         }
 
         wsi.getItem().setSubmitter(currentUser);
