@@ -502,15 +502,13 @@ public class DiscoveryScopeBasedRestControllerIT extends AbstractControllerInteg
                    .andExpect(jsonPath("$.type", is("discover")))
                    .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets")))
                    .andExpect(jsonPath("$._embedded.facets", containsInAnyOrder(
-                                      FacetEntryMatcher.authorFacet(false),
-                                      FacetEntryMatcher.subjectFacet(false),
-//                                      FacetEntryMatcher.dateIssuedFacet(false),
-                                      FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                                      FacetEntryMatcher.entityTypeFacet(false),
-                                      FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                                      FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                                      FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                                      FacetEntryMatcher.typeFacet(false)
+                           FacetEntryMatcher.authorFacet(false),
+                           FacetEntryMatcher.subjectFacet(false),
+                           FacetEntryMatcher.dateIssuedFacet(false),
+                           FacetEntryMatcher.typeFacet(false),
+                           FacetEntryMatcher.relationIspartofseriesFacet(false),
+                           FacetEntryMatcher.publisherFacet(false),
+                           FacetEntryMatcher.rightsAccessFacet(false)
                            ))
                    );
     }
@@ -618,15 +616,13 @@ public class DiscoveryScopeBasedRestControllerIT extends AbstractControllerInteg
                    .andExpect(jsonPath("$.type", is("discover")))
                    .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets")))
                    .andExpect(jsonPath("$._embedded.facets", containsInAnyOrder(
-                                      FacetEntryMatcher.authorFacet(false),
-                                      FacetEntryMatcher.subjectFacet(false),
-//                                      FacetEntryMatcher.dateIssuedFacet(false),
-                                      FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                                      FacetEntryMatcher.entityTypeFacet(false),
-                                      FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                                      FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                                      FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                                      FacetEntryMatcher.typeFacet(false)
+                           FacetEntryMatcher.authorFacet(false),
+                           FacetEntryMatcher.subjectFacet(false),
+                           FacetEntryMatcher.dateIssuedFacet(false),
+                           FacetEntryMatcher.typeFacet(false),
+                           FacetEntryMatcher.relationIspartofseriesFacet(false),
+                           FacetEntryMatcher.publisherFacet(false),
+                           FacetEntryMatcher.rightsAccessFacet(false)
                               ))
                    );
     }
@@ -672,15 +668,13 @@ public class DiscoveryScopeBasedRestControllerIT extends AbstractControllerInteg
                    .andExpect(jsonPath("$.type", is("discover")))
                    .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets")))
                    .andExpect(jsonPath("$._embedded.facets", containsInAnyOrder(
-                                      FacetEntryMatcher.authorFacet(false),
-                                      FacetEntryMatcher.subjectFacet(false),
-//                                      FacetEntryMatcher.dateIssuedFacet(false),
-                                      FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                                      FacetEntryMatcher.entityTypeFacet(false),
-                                      FacetEntryMatcher.clarinLicenseRightsFacet(false),
-                                      FacetEntryMatcher.clarinItemsCommunityFacet(false),
-                                      FacetEntryMatcher.clarinItemsLanguageFacet(false),
-                                      FacetEntryMatcher.typeFacet(false)
+                           FacetEntryMatcher.authorFacet(false),
+                           FacetEntryMatcher.subjectFacet(false),
+                           FacetEntryMatcher.dateIssuedFacet(false),
+                           FacetEntryMatcher.typeFacet(false),
+                           FacetEntryMatcher.relationIspartofseriesFacet(false),
+                           FacetEntryMatcher.publisherFacet(false),
+                           FacetEntryMatcher.rightsAccessFacet(false)
                            ))
                    );
     }
