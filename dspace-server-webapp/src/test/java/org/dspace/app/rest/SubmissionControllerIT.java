@@ -287,6 +287,8 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                 .filter(policy -> ResourcePolicy.TYPE_SUBMISSION.equals(policy.getRpType()))
                 .collect(Collectors.toList());
 
+        assertNotNull("Updated bundle policies should not be null", updatedItemPolicies);
+        assertNotNull("Bundle submission policies should not be null", itemSubmissionPolicies);
         assertThat(bundleSubmissionPolicies, hasSize(greaterThan(0)));
         assertThat(bundleSubmissionPolicies.get(0).getEPerson(), equalTo(admin));
 
@@ -296,6 +298,8 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                 .filter(policy -> ResourcePolicy.TYPE_SUBMISSION.equals(policy.getRpType()))
                 .collect(Collectors.toList());
 
+        assertNotNull("Updated bitstream policies should not be null", updatedItemPolicies);
+        assertNotNull("Bitstream submission policies should not be null", itemSubmissionPolicies);
         assertThat(bitstreamSubmissionPolicies, hasSize(greaterThan(0)));
         assertThat(bitstreamSubmissionPolicies.get(0).getEPerson(), equalTo(admin));
 
