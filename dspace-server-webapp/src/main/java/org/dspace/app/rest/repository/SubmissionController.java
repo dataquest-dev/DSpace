@@ -30,6 +30,7 @@ import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
@@ -186,25 +187,12 @@ public class SubmissionController {
             resourcePolicyService.update(context, resourcePolicy);
         }
 
-        // Update resource policies on all bundles of the item
+        // Update resource policies on all bundles and their bitstreams of the item
         List<Bundle> bundles = wsi.getItem().getBundles();
         for (Bundle bundle : bundles) {
-            List<ResourcePolicy> bundlePolicies = resourcePolicyService.find(context,
-                    bundle, ResourcePolicy.TYPE_SUBMISSION);
-            for (ResourcePolicy bundlePolicy : bundlePolicies) {
-                bundlePolicy.setEPerson(currentUser);
-                resourcePolicyService.update(context, bundlePolicy);
-            }
-
-            // Update resource policies on all bitstreams of each bundle
-            List<Bitstream> bitstreams = bundle.getBitstreams();
-            for (Bitstream bitstream : bitstreams) {
-                List<ResourcePolicy> bitstreamPolicies = resourcePolicyService.find(context,
-                        bitstream, ResourcePolicy.TYPE_SUBMISSION);
-                for (ResourcePolicy bitstreamPolicy : bitstreamPolicies) {
-                    bitstreamPolicy.setEPerson(currentUser);
-                    resourcePolicyService.update(context, bitstreamPolicy);
-                }
+            updateSubmissionPolicies(context, bundle, currentUser);
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                updateSubmissionPolicies(context, bitstream, currentUser);
             }
         }
 
@@ -215,6 +203,19 @@ public class SubmissionController {
         // Without commit the changes are not persisted into the database
         context.commit();
         return wsiRest;
+    }
+
+    /**
+     * Updates TYPE_SUBMISSION policies for the given DSpaceObject.
+     */
+    private void updateSubmissionPolicies(Context context, DSpaceObject dso, EPerson user)
+            throws SQLException, AuthorizeException {
+        List<ResourcePolicy> policies =
+                resourcePolicyService.find(context, dso, ResourcePolicy.TYPE_SUBMISSION);
+        for (ResourcePolicy policy : policies) {
+            policy.setEPerson(user);
+            resourcePolicyService.update(context, policy);
+        }
     }
 
     private static String generateShareToken() {
