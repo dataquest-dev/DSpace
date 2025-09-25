@@ -440,24 +440,6 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
         return "";
     }
 
-    /**
-     * Find resource policies based on the presence of start and end dates.
-     * <p>
-     * This method supports various combinations of date presence filtering:
-     * - Both null: finds policies with either start OR end date (OR logic)
-     * - Both true: finds policies with both start AND end dates (AND logic)
-     * - hasStartDate=true, hasEndDate=null: finds policies with start date only
-     * - hasStartDate=null, hasEndDate=true: finds policies with end date only
-     * - Both false: finds policies without any dates (neither start nor end)
-     *
-     * @param context      DSpace context
-     * @param hasStartDate null for any, true for presence required, false for absence required
-     * @param hasEndDate   null for any, true for presence required, false for absence required
-     * @param offset       pagination offset
-     * @param limit        pagination limit
-     * @return             list of matching ResourcePolicies
-     * @throws SQLException if database error occurs
-     */
     @Override
     public List<ResourcePolicy> findByDate(Context context, Boolean hasStartDate, Boolean hasEndDate,
                                                    int offset, int limit) throws SQLException {
@@ -472,17 +454,6 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
         return list(query);
     }
 
-    /**
-     * Count resource policies based on the presence of start and end dates.
-     * <p>
-     * This method uses the same logic as findByDate but only counts results.
-     *
-     * @param context      DSpace context
-     * @param hasStartDate true for start date presence required, false for absence required
-     * @param hasEndDate   true for end date presence required, false for absence required
-     * @return             count of matching ResourcePolicies
-     * @throws SQLException if database error occurs
-     */
     @Override
     public int countByDate(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException {
         StringBuilder queryBuilder = new StringBuilder("SELECT count(rp.id) FROM ResourcePolicy rp");

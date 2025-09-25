@@ -222,27 +222,12 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
     }
 
     /**
-     * Find resource policies based on embargo date presence criteria.
-     * 
-     * <p><b>Supported Parameter Combinations:</b></p>
-     * <ul>
-     * <li><b>Both true:</b> Returns policies with both startDate AND endDate present</li>
-     * <li><b>Both false:</b> Returns policies without any embargo dates</li>
-     * <li><b>hasStartDate=true:</b> Returns policies with startDate present</li>
-     * <li><b>hasEndDate=true:</b> Returns policies with endDate present</li>
-     * <li><b>hasStartDate=true, hasEndDate=false:</b> Returns policies with startDate only</li>
-     * <li><b>hasStartDate=false, hasEndDate=true:</b> Returns policies with endDate only</li>
-     * <li><b>No parameters:</b> Returns all policies with any embargo dates (OR logic)</li>
-     * </ul>
-     * 
-     * <p><b>Access Control:</b> Requires ADMIN authority</p>
-     * <p><b>REST Endpoint:</b> {@code GET /api/authz/resourcepolicies/search/embargo}</p>
+     * Find the resource policies matching embargo date presence criteria
      *
-     * @param hasStartDate Optional filter for start date presence (true/false/null)
-     * @param hasEndDate   Optional filter for end date presence (true/false/null)
-     * @param pageable     Pagination and sorting information
-     * @return Page of ResourcePolicyRest instances matching the criteria
-     * @throws RuntimeException if database error occurs (wrapped SQLException)
+     * @param hasStartDate optional, filter for start date presence
+     * @param hasEndDate   optional, filter for end date presence  
+     * @param pageable     contains the pagination information
+     * @return a Page of ResourcePolicyRest instances matching the embargo criteria
      */
     @PreAuthorize("hasAuthority('ADMIN')")
     @SearchRestMethod(name = "embargo")
