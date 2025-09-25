@@ -253,7 +253,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                 .build();
 
         // Generate a share token for this workspace item
-        String shareToken = UUID.randomUUID().toString().replace("-", "").substring(0, 32);
+        String shareToken = generateShareToken();
         workspaceItem.setShareToken(shareToken);
         workspaceItemService.update(context, workspaceItem);
 
@@ -382,7 +382,7 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         }
 
         // Generate share token
-        String shareToken = UUID.randomUUID().toString().replace("-", "").substring(0, 32);
+        String shareToken = generateShareToken();
         workspaceItem.setShareToken(shareToken);
         workspaceItemService.update(context, workspaceItem);
 
@@ -426,5 +426,10 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         }
 
         context.restoreAuthSystemState();
+    }
+
+    private static String generateShareToken() {
+        // UUID generates a 36-char string with hyphens, so we can strip them to get a 32-char string
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 32);
     }
 }

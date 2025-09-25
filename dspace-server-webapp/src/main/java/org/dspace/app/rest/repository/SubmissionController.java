@@ -31,6 +31,7 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
@@ -170,9 +171,10 @@ public class SubmissionController {
 
         Collection collection = wsi.getCollection();
         Group submittersGroup = collection.getSubmitters();
+        Item item = wsi.getItem();
         boolean isSubmitterGroupMember = submittersGroup != null &&
                 groupService.isMember(context, currentUser, submittersGroup);
-        boolean canRead = authorizeService.authorizeActionBoolean(context, wsi.getItem(), Constants.READ);
+        boolean canRead = authorizeService.authorizeActionBoolean(context, item, Constants.READ);
         if (!canRead && !isSubmitterGroupMember) {
             String errorMessage = "The current user does not have rights to view or claim the WorkspaceItem";
             log.error(errorMessage);
@@ -180,7 +182,7 @@ public class SubmissionController {
         }
 
         List<ResourcePolicy> resourcePolicies = resourcePolicyService.find(context,
-                wsi.getItem(), ResourcePolicy.TYPE_SUBMISSION);
+                item, ResourcePolicy.TYPE_SUBMISSION);
         // Set submitter on item policies
         for (ResourcePolicy resourcePolicy: resourcePolicies) {
             resourcePolicy.setEPerson(currentUser);
@@ -188,7 +190,7 @@ public class SubmissionController {
         }
 
         // Update resource policies on all bundles and their bitstreams of the item
-        List<Bundle> bundles = wsi.getItem().getBundles();
+        List<Bundle> bundles = item.getBundles();
         for (Bundle bundle : bundles) {
             updateSubmissionPolicies(context, bundle, currentUser);
             for (Bitstream bitstream : bundle.getBitstreams()) {
@@ -196,7 +198,7 @@ public class SubmissionController {
             }
         }
 
-        wsi.getItem().setSubmitter(currentUser);
+        item.setSubmitter(currentUser);
         workspaceItemService.update(context, wsi);
         WorkspaceItemRest wsiRest = converter.toRest(wsi, utils.obtainProjection());
 
