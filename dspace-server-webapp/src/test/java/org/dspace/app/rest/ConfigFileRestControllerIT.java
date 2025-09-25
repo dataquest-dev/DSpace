@@ -14,8 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,19 +29,17 @@ import org.springframework.http.MediaType;
 public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTest {
 
     @Autowired
-    private ConfigurationService configurationService;
+    private GroupService groupService;
 
-    private String originalConfigValue;
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Before
     public void setup() throws Exception {
         configurationService.setProperty("config.admin.updateable.files",
-                "dspace.cfg,local.cfg,item-submission.xml,submission-forms.xml");
-
-        // Save original configuration value
-        originalConfigValue = configurationService.getProperty("config.admin.updateable.files");
-
+                "dspace.cfg,local.cfg,item-submission.xml,submission-forms.xml,test-dspace.cfg");
     }
+
 
     /**
      * Test that configuration files endpoint requires authentication
@@ -108,6 +106,19 @@ public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTes
     }
 
     /**
+     * Test PUT endpoint
+     */
+    @Test
+    public void testConfigFileUpdate() throws Exception {
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(put("/api/admin/configfiles/test-dspace.cfg/content")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("# Test content"))
+                .andExpect(status().isOk());
+    }
+
+    /**
      * Test GET endpoint returns proper file content
      */
     @Test
@@ -120,11 +131,20 @@ public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTes
                 .andExpect(status().isOk());
     }
 
-    @After
-    public void tearDown() throws Exception {
-        // Restore original configuration value to ensure test isolation
-        if (originalConfigValue != null) {
-            configurationService.setProperty("config.admin.updateable.files", originalConfigValue);
-        }
+    /**
+     * Test file update with PUT request
+     */
+    @Test
+    public void testConfigFileUpdate_ValidRequest() throws Exception {
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        String testContent = "# Test configuration\ntest.property = test.value\n";
+
+        // Test updating a configuration file
+        getClient(adminToken).perform(put("/api/admin/configfiles/test-dspace.cfg/content")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content(testContent))
+                .andExpect(status().isOk());
     }
 }
