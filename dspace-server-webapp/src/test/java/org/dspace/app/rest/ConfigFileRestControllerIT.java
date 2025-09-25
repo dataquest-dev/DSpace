@@ -37,7 +37,7 @@ public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTes
     @Before
     public void setup() throws Exception {
         configurationService.setProperty("config.admin.updateable.files",
-                "dspace.cfg,local.cfg,item-submission.xml,submission-forms.xml");
+                "dspace.cfg,local.cfg,item-submission.xml,submission-forms.xml,test-dspace.cfg");
     }
 
 
@@ -112,7 +112,7 @@ public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTes
     public void testConfigFileUpdate() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        getClient(adminToken).perform(put("/api/admin/configfiles/dspace.cfg/content")
+        getClient(adminToken).perform(put("/api/admin/configfiles/test-dspace.cfg/content")
                 .contentType(MediaType.TEXT_PLAIN)
                 .content("# Test content"))
                 .andExpect(status().isOk());
@@ -142,7 +142,7 @@ public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTes
         String testContent = "# Test configuration\ntest.property = test.value\n";
 
         // Test updating a configuration file
-        getClient(adminToken).perform(put("/api/admin/configfiles/dspace.cfg/content")
+        getClient(adminToken).perform(put("/api/admin/configfiles/test-dspace.cfg/content")
                 .contentType(MediaType.TEXT_PLAIN)
                 .content(testContent))
                 .andExpect(status().isOk());
