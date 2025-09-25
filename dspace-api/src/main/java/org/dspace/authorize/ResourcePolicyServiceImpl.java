@@ -421,14 +421,14 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
     }
 
     @Override
-    public List<ResourcePolicy> findByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate,
+    public List<ResourcePolicy> findByDate(Context context, Boolean hasStartDate, Boolean hasEndDate,
                                                    int offset, int limit) throws SQLException {
-        return resourcePolicyDAO.findByDatePresence(context, hasStartDate, hasEndDate, offset, limit);
+        return resourcePolicyDAO.findByDate(context, hasStartDate, hasEndDate, offset, limit);
     }
 
     @Override
-    public int countByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException {
-        return resourcePolicyDAO.countByDatePresence(context, hasStartDate, hasEndDate);
+    public int countByDate(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException {
+        return resourcePolicyDAO.countByDate(context, hasStartDate, hasEndDate);
     }
 
     @Override

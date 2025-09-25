@@ -3813,7 +3813,7 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
     @Test
     public void findEmbargoWithStartDate() throws Exception {
         // Baseline count
-        int baselineCount = this.resourcePolicyService.countByDatePresence(context, true, null);
+        int baselineCount = this.resourcePolicyService.countByDate(context, true, null);
 
         setupEmbargoTestData();
 
@@ -3828,7 +3828,7 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
     @Test
     public void findEmbargoWithEndDate() throws Exception {
         // Baseline count
-        int baselineCount = this.resourcePolicyService.countByDatePresence(context, null, true);
+        int baselineCount = this.resourcePolicyService.countByDate(context, null, true);
 
         setupEmbargoTestData();
 
@@ -3843,7 +3843,7 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
     @Test
     public void findEmbargoWithoutDates() throws Exception {
         // Baseline count
-        int baselineCount = this.resourcePolicyService.countByDatePresence(context, false, false);
+        int baselineCount = this.resourcePolicyService.countByDate(context, false, false);
 
         setupEmbargoTestData();
 
@@ -3858,7 +3858,7 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
     @Test
     public void findEmbargoWithAnyDate() throws Exception {
         // Baseline count
-        int baselineCount = this.resourcePolicyService.countByDatePresence(context, null, null);
+        int baselineCount = this.resourcePolicyService.countByDate(context, null, null);
 
         setupEmbargoTestData();
 
@@ -3873,7 +3873,7 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
     @Test
     public void findEmbargoWithBothDates() throws Exception {
         // Baseline count
-        int baselineCount = this.resourcePolicyService.countByDatePresence(context, true, true);
+        int baselineCount = this.resourcePolicyService.countByDate(context, true, true);
 
         setupEmbargoTestData();
 

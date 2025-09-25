@@ -246,7 +246,7 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
      */
     @PreAuthorize("hasAuthority('ADMIN')")
     @SearchRestMethod(name = "embargo")
-    public Page<ResourcePolicyRest> findByDatePresence(
+    public Page<ResourcePolicyRest> findByDate(
             @Parameter(value = "hasStartDate", required = false) Boolean hasStartDate,
             @Parameter(value = "hasEndDate", required = false) Boolean hasEndDate,
             Pageable pageable) {
@@ -257,10 +257,10 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             List<ResourcePolicy> policies;
             int total;
 
-            policies = resourcePolicyService.findByDatePresence(context, hasStartDate, hasEndDate,
+            policies = resourcePolicyService.findByDate(context, hasStartDate, hasEndDate,
                         Math.toIntExact(pageable.getOffset()),
                         Math.toIntExact(pageable.getPageSize()));
-            total = resourcePolicyService.countByDatePresence(context, hasStartDate, hasEndDate);
+            total = resourcePolicyService.countByDate(context, hasStartDate, hasEndDate);
             return converter.toRestPage(policies, pageable, total, utils.obtainProjection());
         } catch (SQLException e) {
             throw new RuntimeException("Database error while searching embargo policies: " + e.getMessage(), e);

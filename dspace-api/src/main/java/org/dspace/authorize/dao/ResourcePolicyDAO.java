@@ -289,14 +289,14 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
      * @return               list of resource policies matching the criteria
      * @throws SQLException  if database error occurs
      */
-    public List<ResourcePolicy> findByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate,
+    public List<ResourcePolicy> findByDate(Context context, Boolean hasStartDate, Boolean hasEndDate,
                                                    int offset, int limit) throws SQLException;
 
     /**
      * Count resource policies based on embargo date presence criteria.
      * 
      * This method provides the total count for the same filtering logic as
-     * {@link #findByDatePresence(Context, Boolean, Boolean, int, int)} but without
+     * {@link #findByDate(Context, Boolean, Boolean, int, int)} but without
      * pagination parameters. Used for calculating total pages in REST API responses.
      *
      * @param context        DSpace context object
@@ -305,5 +305,5 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
      * @return               total count of resource policies matching the criteria
      * @throws SQLException  if database error occurs
      */
-    public int countByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException;
+    public int countByDate(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException;
 }

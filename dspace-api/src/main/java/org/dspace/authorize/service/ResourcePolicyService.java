@@ -344,13 +344,13 @@ public interface ResourcePolicyService {
      * @return A list of matching ResourcePolicy objects.
      * @throws SQLException If a database error occurs.
      */
-    public List<ResourcePolicy> findByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate,
+    public List<ResourcePolicy> findByDate(Context context, Boolean hasStartDate, Boolean hasEndDate,
                                                    int offset, int limit) throws SQLException;
 
     /**
      * Count resource policies based on embargo date presence criteria.
      * <p>
-     * This method provides the count equivalent of findByDatePresence() for
+     * This method provides the count equivalent of findByDate() for
      * pagination support in REST API responses.
      *
      * @param context      The relevant DSpace Context.
@@ -359,7 +359,7 @@ public interface ResourcePolicyService {
      * @return The total number of matching policies.
      * @throws SQLException If a database error occurs.
      */
-    public int countByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException;
+    public int countByDate(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException;
 
     /**
      * Check if the resource policy identified with (id) belong to ePerson

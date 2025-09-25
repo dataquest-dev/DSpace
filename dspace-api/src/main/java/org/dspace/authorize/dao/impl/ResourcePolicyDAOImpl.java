@@ -459,7 +459,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
      * @throws SQLException if database error occurs
      */
     @Override
-    public List<ResourcePolicy> findByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate,
+    public List<ResourcePolicy> findByDate(Context context, Boolean hasStartDate, Boolean hasEndDate,
                                                    int offset, int limit) throws SQLException {
         StringBuilder queryBuilder = new StringBuilder("SELECT rp FROM ResourcePolicy rp");
         queryBuilder.append(buildDatePresenceWhere(hasStartDate, hasEndDate));
@@ -475,7 +475,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     /**
      * Count resource policies based on the presence of start and end dates.
      * <p>
-     * This method uses the same logic as findByDatePresence but only counts results.
+     * This method uses the same logic as findByDate but only counts results.
      *
      * @param context      DSpace context
      * @param hasStartDate true for start date presence required, false for absence required
@@ -484,7 +484,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
      * @throws SQLException if database error occurs
      */
     @Override
-    public int countByDatePresence(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException {
+    public int countByDate(Context context, Boolean hasStartDate, Boolean hasEndDate) throws SQLException {
         StringBuilder queryBuilder = new StringBuilder("SELECT count(rp.id) FROM ResourcePolicy rp");
         queryBuilder.append(buildDatePresenceWhere(hasStartDate, hasEndDate));
         Query query = createQuery(context, queryBuilder.toString());
