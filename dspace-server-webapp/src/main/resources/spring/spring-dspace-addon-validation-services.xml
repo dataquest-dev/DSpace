@@ -42,4 +42,19 @@
         <property name="name" value="license"/>
     </bean>
 
+    <bean name="evyukaCodesValidation" class="org.dspace.app.rest.submit.step.validation.EvyukaCodesValidation" scope="prototype">
+        <property name="name" value="submission-form"/>
+        <property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
+    </bean>
+
+    <bean name="evyukaSubjectCodesValidation" class="org.dspace.app.rest.submit.step.validation.EvyukaSubjectCodesValidation" scope="prototype">
+        <property name="name" value="submission-form"/>
+        <property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
+    </bean>
+
+    <bean name="evyukaDisciplineProgrammeCodesValidation" class="org.dspace.app.rest.submit.step.validation.EvyukaDisciplineProgrammeCodesValidation" scope="prototype">
+        <property name="name" value="submission-form"/>
+        <property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
+    </bean>
+
 </beans>
