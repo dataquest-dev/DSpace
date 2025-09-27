@@ -25,19 +25,32 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 
 /**
- * Master validator for E-výuka codes with intelligent form detection.
- * Validates that at least one evyuka code is filled based on available fields:
+ * Master validator for E-výuka codes with intelligent form detection and multi-level error generation.
+ * 
+ * This validator automatically detects the form type based on available evyuka fields and validates
+ * that at least one required code is filled. Supports validation for:
  * - evyuka.subject.version (Kód verze předmětu)
  * - evyuka.subject (Kód předmětu)  
  * - evyuka.discipline (Kód studijního oboru)
  * - evyuka.programme (Kód studijního programu)
  * 
- * Provides context-aware error messages based on form configuration:
- * - Full forms (4 codes): Master error message
- * - Subject-only forms (2 codes): Subject-specific message
- * - Discipline-only forms (2 codes): Discipline-specific message
+ * Form Type Detection:
+ * - FULL_FORM: All 4 codes available - requires at least one from any group
+ * - SUBJECT_ONLY: Only subject codes (2) - requires at least one subject field
+ * - DISCIPLINE_ONLY: Only discipline codes (2) - requires at least one discipline field
+ * - NO_EVYUKA_FIELDS: No evyuka fields - validation skipped
+ * 
+ * Error Generation Strategy:
+ * - L4 Level: Individual field errors for each empty field (4 types max)
+ * - L2 Level: Master step errors - double generation per form type (6 types total)
+ *   * Primary L2: Context-aware message based on form type
+ *   * Additional L2: Form-specific HTML description
+ * 
+ * No L3 HTML group errors are generated (removed per requirements).
+ * 
+ * Used by collections: 10084/139351 (subject-only), 10084/138949-138955 (full forms)
  *
- * @author VSB-TUO DSpace Team
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public class EvyukaCodesValidation extends AbstractValidation {
 

@@ -25,14 +25,28 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 
 /**
- * Validates that at least one of the evyuka subject codes is filled in:
+ * Validates E-výuka subject codes using validation group-based field detection.
+ * 
+ * This validator handles subject code validation for evyuka forms by detecting fields 
+ * with the "evyuka-subject-codes" validation group and ensuring at least one contains a value:
  * - evyuka.subject.version (Kód verze předmětu)
  * - evyuka.subject (Kód předmětu)
  * 
- * This validation ensures that for evyuka forms, at least one subject code must be provided
- * to properly categorize and link the document in the E-výuka portal subject pages.
+ * Validation Strategy:
+ * - Searches for fields with validation-group="evyuka-subject-codes"
+ * - Requires at least one subject field to have a non-empty value
+ * - Generates both step-level and field-level error messages
+ * 
+ * Error Generation:
+ * - Step-level error: General message for the entire submission step
+ * - Field-level errors: Specific messages for each empty subject field
+ * 
+ * Note: This is a legacy validator. The current implementation uses the master
+ * EvyukaCodesValidation class with intelligent form type detection.
+ * 
+ * Used by E-výuka collections that have subject code fields configured with validation groups.
  *
- * @author VSB-TUO DSpace Team
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public class EvyukaSubjectCodesValidation extends AbstractValidation {
 

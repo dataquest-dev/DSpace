@@ -25,14 +25,28 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 
 /**
- * Validates that at least one of the evyuka discipline/programme codes is filled in:
+ * Validates E-výuka discipline and programme codes using validation group-based field detection.
+ * 
+ * This validator handles discipline/programme code validation for evyuka forms by detecting fields
+ * with the "evyuka-discipline-programme-codes" validation group and ensuring at least one contains a value:
  * - evyuka.discipline (Kód studijního oboru)
  * - evyuka.programme (Kód studijního programu)
  * 
- * This validation ensures that for evyuka forms, at least one discipline or programme code must be provided
- * to properly categorize and link the document in the E-výuka portal discipline/programme pages.
+ * Validation Strategy:
+ * - Searches for fields with validation-group="evyuka-discipline-programme-codes"
+ * - Requires at least one discipline/programme field to have a non-empty value
+ * - Generates both step-level and field-level error messages
+ * 
+ * Error Generation:
+ * - Step-level error: General message for the entire submission step
+ * - Field-level errors: Specific messages for each empty discipline/programme field
+ * 
+ * Note: This is a legacy validator. The current implementation uses the master
+ * EvyukaCodesValidation class with intelligent form type detection and multi-level error generation.
+ * 
+ * Used by E-výuka collections that have discipline/programme code fields configured with validation groups.
  *
- * @author VSB-TUO DSpace Team
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public class EvyukaDisciplineProgrammeCodesValidation extends AbstractValidation {
 
