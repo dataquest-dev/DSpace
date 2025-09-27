@@ -36,32 +36,34 @@ stats = {
     'successful_conversions': 0
 }
 
-def create_backup_dir():
+def create_backup_dir(base_dir="."):
     """Create timestamped backup directory"""
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-    backup_dir = f"vocab-backup-{timestamp}"
-    Path(backup_dir).mkdir(exist_ok=True)
+    backup_dir = Path(base_dir) / f"vocab-backup-{timestamp}"
+    backup_dir.mkdir(exist_ok=True)
     return backup_dir
 
-def backup_existing_files(backup_dir):
+def backup_existing_files(backup_dir, work_dir="."):
     """Backup existing vocabulary files"""
     print(f"Creating backup of existing vocabularies in {backup_dir}...")
 
+    work_path = Path(work_dir)
     for vocab_type in VOCAB_TYPES:
         for faculty in FACULTIES:
-            dir_file = f"dir_{vocab_type}_{faculty}.xml"
-            vp_file = f"vp_{vocab_type}_{faculty}.xml"
+            dir_file = work_path / f"dir_{vocab_type}_{faculty}.xml"
+            vp_file = work_path / f"vp_{vocab_type}_{faculty}.xml"
 
-            if os.path.exists(dir_file):
+            if dir_file.exists():
                 shutil.copy2(dir_file, backup_dir)
-            if os.path.exists(vp_file):
+            if vp_file.exists():
                 shutil.copy2(vp_file, backup_dir)
 
-def download_vocabulary(vocab_type, faculty, backup_dir):
+def download_vocabulary(vocab_type, faculty, backup_dir, work_dir="."):
     """Download vocabulary from VSB web service"""
     print(f"Fetching {vocab_type} vocabulary for {faculty}...")
 
-    filename = f"dir_{vocab_type}_{faculty}.xml"
+    work_path = Path(work_dir)
+    filename = work_path / f"dir_{vocab_type}_{faculty}.xml"
     urls = [
         f"{VSB_BASE_URL}/{vocab_type}-directory?faculty={faculty}",
         f"{VSB_TEST_URL}/{vocab_type}-directory?faculty={faculty}"
@@ -80,20 +82,20 @@ def download_vocabulary(vocab_type, faculty, backup_dir):
                 with open(filename, 'w', encoding='utf-8') as f:
                     f.write(response.text)
 
-                print(f"  ✓ Success: Downloaded {filename}" + (" (fallback)" if i == 1 else ""))
+                print(f"  ✓ Success: Downloaded {filename.name}" + (" (fallback)" if i == 1 else ""))
                 return True
 
         except requests.RequestException as e:
             if i == 0:
                 continue  # Try fallback URL
             else:
-                print(f"  ✗ Failed: Could not download {filename}")
+                print(f"  ✗ Failed: Could not download {filename.name}")
 
                 # Try to restore from backup
-                backup_file = os.path.join(backup_dir, filename)
-                if os.path.exists(backup_file):
+                backup_file = backup_dir / filename.name
+                if backup_file.exists():
                     shutil.copy2(backup_file, filename)
-                    print(f"  Restored from backup: {filename}")
+                    print(f"  Restored from backup: {filename.name}")
                     return True
 
                 # Create minimal valid XML placeholder file if download and backup both failed
@@ -101,22 +103,23 @@ def download_vocabulary(vocab_type, faculty, backup_dir):
 
                 with open(filename, 'w', encoding='utf-8') as f:
                     f.write(empty_content)
-                print(f"  Created empty placeholder: {filename}")
+                print(f"  Created empty placeholder: {filename.name}")
                 return True
 
     return False
 
-def convert_vocabulary(vocab_type, faculty):
+def convert_vocabulary(vocab_type, faculty, work_dir="."):
     """Convert downloaded XML to DSpace value-pairs format"""
-    input_file = f"dir_{vocab_type}_{faculty}.xml"
-    output_file = f"vp_{vocab_type}_{faculty}.xml"
+    work_path = Path(work_dir)
+    input_file = work_path / f"dir_{vocab_type}_{faculty}.xml"
+    output_file = work_path / f"vp_{vocab_type}_{faculty}.xml"
     value_pairs_name = f"vp_{vocab_type}_{faculty}"
 
     # All vocabulary types should use 'programme' as dc-term
     dc_term = 'programme'
 
-    if not os.path.exists(input_file):
-        print(f"  Warning: Input file {input_file} not found, creating default value-pairs file")
+    if not input_file.exists():
+        print(f"  Warning: Input file {input_file.name} not found, creating default value-pairs file")
         # Create default vp_ file when input file doesn't exist
         create_default_vp_file(output_file, value_pairs_name, dc_term)
         return True
@@ -159,11 +162,11 @@ def convert_vocabulary(vocab_type, faculty):
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(output_lines) + '\n')
 
-        print(f"  ✓ Success: Generated {output_file}")
+        print(f"  ✓ Success: Generated {output_file.name}")
         return True
 
     except Exception as e:
-        print(f"  ✗ Warning: Conversion failed for {output_file}: {e}")
+        print(f"  ✗ Warning: Conversion failed for {output_file.name}: {e}")
         print(f"  Creating default value-pairs file instead")
         # Create default vp_ file when conversion fails
         create_default_vp_file(output_file, value_pairs_name, dc_term)
@@ -180,10 +183,19 @@ def create_default_vp_file(output_file, value_pairs_name, dc_term):
 '''
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(default_content)
-    print(f"  ✓ Created default: {output_file}")
+    print(f"  ✓ Created default: {output_file.name if hasattr(output_file, 'name') else output_file}")
 
 def main():
-    parser = argparse.ArgumentParser(description='VSB Vocabulary Fetching Script for DSpace 7')
+    parser = argparse.ArgumentParser(description='VSB Vocabulary Fetching Script for DSpace 7',
+                                   epilog="""
+Examples:
+  %(prog)s                                 # Use current directory
+  %(prog)s /path/to/vsb                    # Use specific directory
+  %(prog)s /path/to/vsb --faculties FBI FS  # Only specific faculties
+  %(prog)s --download-only                 # Only download, skip conversion
+""")
+    parser.add_argument('work_dir', nargs='?', default='.',
+                       help='Directory containing VSB configuration files (default: current directory)')
     parser.add_argument('--vocab-types', nargs='*', choices=VOCAB_TYPES, default=VOCAB_TYPES,
                         help='Vocabulary types to fetch (default: all)')
     parser.add_argument('--faculties', nargs='*', choices=FACULTIES, default=FACULTIES,
@@ -199,17 +211,26 @@ def main():
     print("=" * 43)
     print()
 
+    # Validate working directory
+    work_path = Path(args.work_dir)
+    if not work_path.exists():
+        print(f"Error: Working directory does not exist: {args.work_dir}")
+        sys.exit(1)
+    
+    print(f"Working directory: {work_path.absolute()}")
+    
     # Check if we're in the right directory
-    if not os.path.exists('controlled-vocabulary2value-pairs.xsl'):
-        print("Warning: controlled-vocabulary2value-pairs.xsl not found in current directory")
-        print("Make sure you're running this script from the VSB config directory")
+    xsl_file = work_path / 'controlled-vocabulary2value-pairs.xsl'
+    if not xsl_file.exists():
+        print("Warning: controlled-vocabulary2value-pairs.xsl not found in working directory")
+        print("Make sure the working directory contains VSB configuration files")
         print()
 
     # Create backup directory
     backup_dir = None
     if not args.no_backup:
-        backup_dir = create_backup_dir()
-        backup_existing_files(backup_dir)
+        backup_dir = create_backup_dir(args.work_dir)
+        backup_existing_files(backup_dir, args.work_dir)
 
     print("Downloading vocabularies from VSB web services...")
     print()
@@ -228,7 +249,7 @@ def main():
                 total_downloads += 1
 
                 # Submit download task
-                futures.append(executor.submit(download_vocabulary, vocab_type, faculty, backup_dir or "."))
+                futures.append(executor.submit(download_vocabulary, vocab_type, faculty, backup_dir or work_path, args.work_dir))
 
         # Wait for all downloads to complete
         for future in as_completed(futures):
@@ -243,7 +264,7 @@ def main():
                     total_conversions += 1
 
                     # Submit conversion task
-                    futures.append(executor.submit(convert_vocabulary, vocab_type, faculty))
+                    futures.append(executor.submit(convert_vocabulary, vocab_type, faculty, args.work_dir))
 
             # Wait for all conversions to complete
             for future in as_completed(futures):

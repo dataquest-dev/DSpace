@@ -80,43 +80,61 @@ The system fetches controlled vocabularies from VSB web services and converts th
 
 ### Updating Vocabularies
 
-**Basic usage (update all vocabularies):**
+**Basic usage (update all vocabularies in current directory):**
 ```bash
 python fetch-vocabularies.py
+```
+
+**Specify working directory:**
+```bash
+# Update vocabularies in specific directory
+python fetch-vocabularies.py /path/to/vsb
+
+# Update vocabularies using current directory (equivalent to basic usage)
+python fetch-vocabularies.py .
 ```
 
 **Advanced options:**
 ```bash
 # Update only specific vocabulary types
-python fetch-vocabularies.py --vocab-types program branch
+python fetch-vocabularies.py /path/to/vsb --vocab-types program branch
 
 # Update only specific faculties
-python fetch-vocabularies.py --faculties FAST FBI FS
+python fetch-vocabularies.py /path/to/vsb --faculties FAST FBI FS
 
 # Skip backup creation
-python fetch-vocabularies.py --no-backup
+python fetch-vocabularies.py /path/to/vsb --no-backup
 
 # Download only (skip conversion)
-python fetch-vocabularies.py --download-only
+python fetch-vocabularies.py /path/to/vsb --download-only
 ```
 
 ### Regenerating Forms
 
-**Generate all forms:**
+**Generate all forms (in current directory):**
 ```bash
 python generate-forms.py
+```
+
+**Specify working directory:**
+```bash
+# Generate forms in specific directory
+python generate-forms.py /path/to/vsb
+
+# Generate forms using current directory (equivalent to basic usage)
+python generate-forms.py .
 ```
 
 **Advanced options:**
 ```bash
 # Generate forms for specific faculties
-python generate-forms.py --faculties FAST FBI FS
+python generate-forms.py /path/to/vsb --faculties FAST FBI FS
 
 # Skip backup creation
-python generate-forms.py --no-backup
+python generate-forms.py /path/to/vsb --no-backup
 
 # Validate existing forms only
-python generate-forms.py --validate-only
+python generate-forms.py /path/to/vsb --validate-only
 ```
 
 ### Updating Form Validation Groups

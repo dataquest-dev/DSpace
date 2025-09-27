@@ -16,20 +16,21 @@ import re
 # Faculty codes
 FACULTIES = ["FAST", "FBI", "FS", "FEI", "HGF", "FMT", "EKF", "USP", "9270", "AUD"]
 
-def create_backup_dir():
+def create_backup_dir(base_dir="."):
     """Create timestamped backup directory"""
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-    backup_dir = f"bak-{timestamp}"
-    Path(backup_dir).mkdir(exist_ok=True)
+    backup_dir = Path(base_dir) / f"bak-{timestamp}"
+    backup_dir.mkdir(exist_ok=True)
     return backup_dir
 
-def backup_existing_files(backup_dir):
+def backup_existing_files(backup_dir, work_dir="."):
     """Backup existing form files"""
     print(f"Creating backup in {backup_dir}...")
 
+    work_path = Path(work_dir)
     for faculty in FACULTIES:
-        form_file = f"evyuka_form_{faculty}.xml"
-        if os.path.exists(form_file):
+        form_file = work_path / f"evyuka_form_{faculty}.xml"
+        if form_file.exists():
             shutil.copy2(form_file, backup_dir)
 
 def validate_xml(filename):
@@ -41,12 +42,13 @@ def validate_xml(filename):
         print(f"XML validation error in {filename}: {e}")
         return False
 
-def generate_form(faculty, backup_dir):
+def generate_form(faculty, backup_dir, work_dir="."):
     """Generate faculty-specific form from template"""
-    template_file = "evyuka_form_template.xml"
-    output_file = f"evyuka_form_{faculty}.xml"
+    work_path = Path(work_dir)
+    template_file = work_path / "evyuka_form_template.xml"
+    output_file = work_path / f"evyuka_form_{faculty}.xml"
 
-    print(f"Generating {output_file}...")
+    print(f"Generating {output_file.name}...")
 
     try:
         # Read template file
@@ -82,28 +84,37 @@ def generate_form(faculty, backup_dir):
 
         # Validate generated file
         if validate_xml(output_file):
-            print(f"  ✓ Successfully generated {output_file}")
+            print(f"  ✓ Successfully generated {output_file.name}")
             return True
         else:
-            print(f"  ✗ Error: Generated file {output_file} contains invalid XML!")
+            print(f"  ✗ Error: Generated file {output_file.name} contains invalid XML!")
             # Restore from backup if available
-            backup_file = os.path.join(backup_dir, output_file)
-            if os.path.exists(backup_file):
+            backup_file = backup_dir / output_file.name
+            if backup_file.exists():
                 shutil.copy2(backup_file, output_file)
                 print(f"  Restored previous version from backup")
             return False
 
     except Exception as e:
-        print(f"  ✗ Error generating {output_file}: {e}")
+        print(f"  ✗ Error generating {output_file.name}: {e}")
         # Restore from backup if available
-        backup_file = os.path.join(backup_dir, output_file)
-        if os.path.exists(backup_file):
+        backup_file = backup_dir / output_file.name
+        if backup_file.exists():
             shutil.copy2(backup_file, output_file)
             print(f"  Restored previous version from backup")
         return False
 
 def main():
-    parser = argparse.ArgumentParser(description='VSB Form Template Generation Script for DSpace 7')
+    parser = argparse.ArgumentParser(description='VSB Form Template Generation Script for DSpace 7',
+                                   epilog="""
+Examples:
+  %(prog)s                                 # Use current directory
+  %(prog)s /path/to/vsb                    # Use specific directory
+  %(prog)s /path/to/vsb --faculties FBI FS  # Only specific faculties
+  %(prog)s --validate-only                 # Only validate, don't generate
+""")
+    parser.add_argument('work_dir', nargs='?', default='.',
+                       help='Directory containing VSB form template (default: current directory)')
     parser.add_argument('--faculties', nargs='*', choices=FACULTIES, default=FACULTIES,
                         help='Faculties to generate forms for (default: all)')
     parser.add_argument('--no-backup', action='store_true',
@@ -117,12 +128,21 @@ def main():
     print("=" * 42)
     print()
 
+    # Validate working directory
+    work_path = Path(args.work_dir)
+    if not work_path.exists():
+        print(f"Error: Working directory does not exist: {args.work_dir}")
+        sys.exit(1)
+    
+    print(f"Working directory: {work_path.absolute()}")
+    print()
+
     # Validate template file
-    template_file = "evyuka_form_template.xml"
+    template_file = work_path / "evyuka_form_template.xml"
     print("Validating template file...")
 
-    if not os.path.exists(template_file):
-        print(f"Error: Template file {template_file} not found!")
+    if not template_file.exists():
+        print(f"Error: Template file {template_file.name} not found in working directory!")
         sys.exit(1)
 
     if not validate_xml(template_file):
@@ -134,15 +154,15 @@ def main():
         print("Validating existing forms...")
         valid_count = 0
         for faculty in args.faculties:
-            form_file = f"evyuka_form_{faculty}.xml"
-            if os.path.exists(form_file):
+            form_file = work_path / f"evyuka_form_{faculty}.xml"
+            if form_file.exists():
                 if validate_xml(form_file):
-                    print(f"  ✓ {form_file} is valid")
+                    print(f"  ✓ {form_file.name} is valid")
                     valid_count += 1
                 else:
-                    print(f"  ✗ {form_file} is invalid")
+                    print(f"  ✗ {form_file.name} is invalid")
             else:
-                print(f"  - {form_file} does not exist")
+                print(f"  - {form_file.name} does not exist")
 
         print(f"\nValidation complete: {valid_count}/{len(args.faculties)} forms are valid")
         return
@@ -150,8 +170,8 @@ def main():
     # Create backup directory
     backup_dir = None
     if not args.no_backup:
-        backup_dir = create_backup_dir()
-        backup_existing_files(backup_dir)
+        backup_dir = create_backup_dir(args.work_dir)
+        backup_existing_files(backup_dir, args.work_dir)
 
     print("Generating faculty-specific forms...")
     print()
@@ -161,7 +181,7 @@ def main():
     failed = 0
 
     for faculty in args.faculties:
-        if generate_form(faculty, backup_dir or "."):
+        if generate_form(faculty, backup_dir or work_path, args.work_dir):
             successful += 1
         else:
             failed += 1
