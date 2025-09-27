@@ -46,8 +46,6 @@ import org.dspace.content.service.ItemService;
  *   * Primary L2: Context-aware message based on form type
  *   * Additional L2: Form-specific HTML description
  * 
- * No L3 HTML group errors are generated (removed per requirements).
- * 
  * Used by collections: 10084/139351 (subject-only), 10084/138949-138955 (full forms)
  *
  * @author Milan Majchrak (dspace at dataquest.sk)
@@ -113,8 +111,6 @@ public class EvyukaCodesValidation extends AbstractValidation {
             
             // Add individual field error messages
             addIndividualFieldErrors(errors, fieldAvailability, config, obj);
-            
-            // L3 HTML group errors removed per requirements
             
             // Add master validation errors at the beginning of the step (context-aware)
             String masterErrorCode = getErrorMessageCode(formType, hasSubjectCodes, hasDisciplineCodes);
