@@ -42,4 +42,10 @@
         <property name="name" value="license"/>
     </bean>
 
+    <!-- E-výuka Master Validator - Handles all evyuka code validation with intelligent form detection -->
+    <bean name="evyukaCodesValidation" class="org.dspace.app.rest.submit.step.validation.EvyukaCodesValidation" scope="prototype">
+        <property name="name" value="submission-form"/>
+        <property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
+    </bean>
+
 </beans>

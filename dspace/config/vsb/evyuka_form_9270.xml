@@ -98,6 +98,7 @@
            <label>Kód verze předmětu</label>
            <input-type value-pairs-name="vp_subject-version_9270">dropdown</input-type>
            <hint>Vyberte kódy všech verzí předmětu, kterých se dokument týká. Dokument bude dostupný pouze vyjmenovaným verzím předmětů.</hint>
+                    <validation-group>evyuka-subject-codes</validation-group>
          </field>
        </row>
 
@@ -110,6 +111,7 @@
            <label>Kód předmětu</label>
            <input-type value-pairs-name="vp_subject_9270">dropdown</input-type>
            <hint>Vyberte kódy všech předmětů, kterých se dokument týká. Dokument bude rovněž společný pro všechny verze těchto předmětů.</hint>
+                    <validation-group>evyuka-subject-codes</validation-group>
          </field>
        </row>
 

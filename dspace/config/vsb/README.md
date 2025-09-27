@@ -56,6 +56,17 @@ The system fetches controlled vocabularies from VSB web services and converts th
 - Automatic backup creation
 - Cross-platform compatibility
 
+#### Form Validation Updates
+- **`update_forms.py`** - Updates E-výuka forms with correct validation groups
+
+**Features:**
+- Adds missing validation-group elements to evyuka forms
+- Conservative text-based processing (preserves original XML formatting)
+- Intelligent field detection and validation group assignment
+- Timestamped backup creation with `update-forms-backup-` prefix
+- Support for both master and legacy validation systems
+- CLI interface with validation-only mode
+
 ### Script Features:
 
 - **Automatic backups**: Creates timestamped backups before making changes
@@ -108,6 +119,29 @@ python generate-forms.py --no-backup
 python generate-forms.py --validate-only
 ```
 
+### Updating Form Validation Groups
+
+**Update all evyuka forms with validation groups:**
+```bash
+python update_forms.py .
+```
+
+**Advanced options:**
+```bash
+# Validate forms without making changes
+python update_forms.py . --validate
+
+# Update forms without creating backups
+python update_forms.py . --no-backup
+
+# Verbose output with detailed logging
+python update_forms.py . --verbose
+```
+
+**Validation Groups Applied:**
+- `evyuka-subject-codes` - Applied to evyuka.subject.version and evyuka.subject fields
+- `evyuka-discipline-programme-codes` - Applied to evyuka.discipline and evyuka.programme fields
+
 ### Special Form Handling
 
 For faculty 9270 (special case without discipline/programme):
@@ -128,12 +162,14 @@ vsb/
 ├── evyuka_form_template.xml           # Base template for all forms
 ├── generate-forms.py                  # Form generation script (Python)
 ├── fetch-vocabularies.py              # Vocabulary fetching script (Python)
+├── update_forms.py                    # Form validation group updater (Python)
 ├── controlled-vocabulary2value-pairs.xsl # XSLT transformer (reference)
 ├── evyuka_form_[FACULTY].xml          # Generated faculty forms
 ├── dir_[TYPE]_[FACULTY].xml           # Downloaded vocabulary data
 ├── vp_[TYPE]_[FACULTY].xml            # Processed value-pairs
-└── vocab-backup-*/                    # Vocabulary backup directories
-└── bak-*/                             # Form backup directories
+├── vocab-backup-*/                    # Vocabulary backup directories
+├── bak-*/                             # Form backup directories
+└── update-forms-backup-*/             # Form validation update backups
 ```
 
 ## Regular Maintenance
@@ -148,6 +184,12 @@ vsb/
 - Modify the base template (`evyuka_form_template.xml`) when changes are needed
 - Run `python generate-forms.py` to regenerate all faculty forms
 - Test in development environment before production deployment
+
+### Form Validation Group Updates
+- Run `python update_forms.py .` to ensure all evyuka forms have correct validation groups
+- Use `python update_forms.py . --validate` to check validation groups without making changes
+- Script preserves original XML formatting while only modifying validation-group elements
+- Automatic backup creation with `update-forms-backup-` timestamped directories
 
 ### Backup Management
 - Scripts automatically create timestamped backups before changes
@@ -202,6 +244,12 @@ python fetch-vocabularies.py --vocab-types program
 
 # Validate forms after generation
 python generate-forms.py --validate-only
+
+# Check evyuka form validation groups
+python update_forms.py . --validate --verbose
+
+# Update validation groups with detailed logging
+python update_forms.py . --verbose
 ```
 
 ## Manual File Maintenance

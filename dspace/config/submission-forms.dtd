@@ -9,7 +9,8 @@
  <!ELEMENT row (field|relation-field)+ >
  <!ATTLIST form name NMTOKEN #REQUIRED>
 
- <!ELEMENT field (dc-schema, dc-element, dc-qualifier?, language?, repeatable?, label, style?, type-bind?, input-type, default-value?, hint, required?, regex?, vocabulary?, visibility?, readonly?, acl?) >
+ <!ELEMENT field (dc-schema, dc-element, dc-qualifier?, language?, repeatable?, label, style?, type-bind?, input-type, default-value?, hint, required?, regex?, vocabulary?, visibility?, readonly?, acl?, validation-group?) >
+ <!ELEMENT validation-group (#PCDATA)>
  <!ELEMENT definition (input*) >
  <!ATTLIST definition
         name CDATA #REQUIRED

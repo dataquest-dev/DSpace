@@ -175,6 +175,11 @@ public class DCInput {
     private String typeBindField = null;
 
     /**
+     * validation group for group validation (e.g., "evyuka-codes")
+     */
+    private String validationGroup = null;
+
+    /**
      * the dropdown input type could have defined a default value
      */
     private String defaultValue = "";
@@ -266,6 +271,8 @@ public class DCInput {
         this.insertToTypeBind(typeBindDef);
         typeBindField = fieldMap.get(DCInputsReader.TYPE_BIND_FIELD_ATTRIBUTE);
         this.insertToTypeBind(typeBindField);
+
+        validationGroup = fieldMap.get("validation-group");
 
 
         style = fieldMap.get("style");
@@ -752,6 +759,14 @@ public class DCInput {
 
     public void setTypeBindField(String typeBindField) {
         this.typeBindField = typeBindField;
+    }
+
+    public String getValidationGroup() {
+        return validationGroup;
+    }
+
+    public void setValidationGroup(String validationGroup) {
+        this.validationGroup = validationGroup;
     }
 
     /**
