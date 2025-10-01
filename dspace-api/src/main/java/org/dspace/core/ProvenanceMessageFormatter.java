@@ -87,6 +87,16 @@ public class ProvenanceMessageFormatter {
                 .collect(Collectors.joining(";"));
     }
 
+    public String getMessage(ResourcePolicy resourcePolicy) {
+        return String.format("[Action: %s, %s%s%s%s%s]",
+                Constants.actionText[resourcePolicy.getAction()],
+                resourcePolicy.getEPerson() != null ? "EPerson: " + resourcePolicy.getEPerson().getEmail() : "",
+                resourcePolicy.getGroup() != null ? "Group: " + resourcePolicy.getGroup().getName() : "",
+                resourcePolicy.getStartDate() != null ? ", Start: " + resourcePolicy.getStartDate().toString() : "",
+                resourcePolicy.getEndDate() != null ? ", End: " + resourcePolicy.getEndDate().toString() : "",
+                resourcePolicy.getRpDescription() != null ? ", Description: " + resourcePolicy.getRpDescription() : "");
+    }
+
     public String getMetadata(String oldMtdKey, String oldMtdValue) {
         return oldMtdKey + ": " + oldMtdValue;
     }

@@ -350,6 +350,119 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         return items.get(0);
     }
 
+    @Override
+    public void createResourcePolicy(Context context, ResourcePolicy resourcePolicy) {
+        if (resourcePolicy.getdSpaceObject() == null) {
+            return;
+        }
+        
+        DSpaceObject dso = resourcePolicy.getdSpaceObject();
+        String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
+        String dsoType = getDSpaceObjectType(dso.getType());
+        
+        try {
+            if (dso.getType() == Constants.ITEM) {
+                Item item = (Item) dso;
+                String msg = messageProvider.getMessage(context,
+                        ProvenanceMessageTemplates.RESOURCE_POLICY_CREATED.getTemplate(),
+                        resourcePolicyStr, dsoType, item.getID());
+                addProvenanceMetadata(context, item, msg);
+            } else if (dso.getType() == Constants.BITSTREAM) {
+                Bitstream bitstream = (Bitstream) dso;
+                Item item = findItemByBitstream(context, bitstream);
+                if (Objects.nonNull(item)) {
+                    String msg = messageProvider.getMessage(context,
+                            ProvenanceMessageTemplates.RESOURCE_POLICY_CREATED.getTemplate(),
+                            resourcePolicyStr, dsoType, bitstream.getID());
+                    addProvenanceMetadata(context, item, msg);
+                }
+            }
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when creating resource policy.", e);
+        }
+    }
+
+    @Override
+    public void updateResourcePolicy(Context context, ResourcePolicy resourcePolicy) {
+        if (resourcePolicy.getdSpaceObject() == null) {
+            return;
+        }
+        
+        DSpaceObject dso = resourcePolicy.getdSpaceObject();
+        String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
+        String dsoType = getDSpaceObjectType(dso.getType());
+        
+        try {
+            if (dso.getType() == Constants.ITEM) {
+                Item item = (Item) dso;
+                String msg = messageProvider.getMessage(context,
+                        ProvenanceMessageTemplates.RESOURCE_POLICY_UPDATED.getTemplate(),
+                        resourcePolicyStr, dsoType, item.getID());
+                addProvenanceMetadata(context, item, msg);
+            } else if (dso.getType() == Constants.BITSTREAM) {
+                Bitstream bitstream = (Bitstream) dso;
+                Item item = findItemByBitstream(context, bitstream);
+                if (Objects.nonNull(item)) {
+                    String msg = messageProvider.getMessage(context,
+                            ProvenanceMessageTemplates.RESOURCE_POLICY_UPDATED.getTemplate(),
+                            resourcePolicyStr, dsoType, bitstream.getID());
+                    addProvenanceMetadata(context, item, msg);
+                }
+            }
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when updating resource policy.", e);
+        }
+    }
+
+    @Override
+    public void deleteResourcePolicy(Context context, ResourcePolicy resourcePolicy) {
+        if (resourcePolicy.getdSpaceObject() == null) {
+            return;
+        }
+        
+        DSpaceObject dso = resourcePolicy.getdSpaceObject();
+        String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
+        String dsoType = getDSpaceObjectType(dso.getType());
+        
+        try {
+            if (dso.getType() == Constants.ITEM) {
+                Item item = (Item) dso;
+                String msg = messageProvider.getMessage(context,
+                        ProvenanceMessageTemplates.RESOURCE_POLICY_DELETED.getTemplate(),
+                        resourcePolicyStr, dsoType, item.getID());
+                addProvenanceMetadata(context, item, msg);
+            } else if (dso.getType() == Constants.BITSTREAM) {
+                Bitstream bitstream = (Bitstream) dso;
+                Item item = findItemByBitstream(context, bitstream);
+                if (Objects.nonNull(item)) {
+                    String msg = messageProvider.getMessage(context,
+                            ProvenanceMessageTemplates.RESOURCE_POLICY_DELETED.getTemplate(),
+                            resourcePolicyStr, dsoType, bitstream.getID());
+                    addProvenanceMetadata(context, item, msg);
+                }
+            }
+        } catch (SQLException | AuthorizeException e) {
+            log.error("Unable to add new provenance metadata when deleting resource policy.", e);
+        }
+    }
+
+    private String getDSpaceObjectType(int type) {
+        switch (type) {
+            case Constants.ITEM:
+                return "item";
+            case Constants.BITSTREAM:
+                return "bitstream";
+            case Constants.COLLECTION:
+                return "collection";
+            case Constants.COMMUNITY:
+                return "community";
+            case Constants.BUNDLE:
+                return "bundle";
+            default:
+                return "object";
+        }
+    }
+
     private String findLicenseInBundles(Item item, String bundleName, String currentLicense, Context context)
             throws SQLException {
         List<Bundle> bundles = item.getBundles(bundleName);
