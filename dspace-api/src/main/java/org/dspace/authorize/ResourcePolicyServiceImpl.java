@@ -25,7 +25,6 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.ProvenanceService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
@@ -55,9 +54,6 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
 
     @Autowired
     private AuthorizeService authorizeService;
-
-    @Autowired
-    ProvenanceService provenanceService;
 
     @Autowired
     ResourcePolicyService resourcePolicyService;
@@ -98,12 +94,6 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         policyToBeCreated.setEPerson(ePerson);
         policyToBeCreated.setGroup(group);
         ResourcePolicy resourcePolicy = resourcePolicyDAO.create(context, policyToBeCreated);
-        
-        // Add provenance when resource policy is attached to a DSpace object
-        if (resourcePolicy.getdSpaceObject() != null) {
-            provenanceService.createResourcePolicy(context, resourcePolicy);
-        }
-        
         return resourcePolicy;
     }
 
@@ -163,12 +153,6 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
     @Override
     public void delete(Context context, ResourcePolicy resourcePolicy) throws SQLException, AuthorizeException {
         // FIXME: authorizations
-        
-        // Add provenance before deletion
-        if (resourcePolicy.getdSpaceObject() != null) {
-            provenanceService.deleteResourcePolicy(context, resourcePolicy);
-        }
-        
         // Remove ourself
         resourcePolicyDAO.delete(context, resourcePolicy);
 
@@ -271,8 +255,6 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         c.turnOffAuthorisationSystem();
         contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
         c.restoreAuthSystemState();
-
-        provenanceService.removeReadPolicies(c, o, resPolicies);
     }
 
     @Override
@@ -350,8 +332,6 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
             for (ResourcePolicy resourcePolicy : resourcePolicies) {
                 if (resourcePolicy.getdSpaceObject() != null) {
                     relatedDSpaceObjects.add(resourcePolicy.getdSpaceObject());
-                    // Add provenance for policy update
-                    provenanceService.updateResourcePolicy(context, resourcePolicy);
                 }
 
                 // FIXME: Check authorisation
