@@ -59,10 +59,16 @@ ENV DSPACE_INSTALL=/dspace
 # Copy the /dspace directory from 'ant_build' container to /dspace in this container
 COPY --from=ant_build /dspace $DSPACE_INSTALL
 # Need host command for "[dspace]/bin/make-handle-config"
+# Install LDAP utilities and configure LDAP TLS
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends host \
+    && apt-get install -y --no-install-recommends host ldap-utils \
     && apt-get purge -y --auto-remove \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /etc/ldap \
+    && echo "TLS_CACERT /etc/ssl/certs/ca-certificates.crt" >> /etc/ldap/ldap.conf
+# Set LDAP TLS environment variable
+ENV LDAPTLS_CACERT=/etc/ssl/certs/ca-certificates.crt
 # Expose Tomcat port (8080) and AJP port (8009) and Handle Server HTTP port (8000)
 EXPOSE 8080 8009 8000
 # Give java extra memory (2GB)
