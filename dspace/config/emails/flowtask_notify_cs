@@ -1,0 +1,23 @@
+## Workflow curation task notification email message
+##
+## {0}  Title of submission
+## {1}  Name of collection
+## {2}  Submitter's name
+## {3}  Name of task operating
+## {4}  Task result
+## {5}  Workflow action taken
+##
+#set($subject = "${config.get('dspace.shortname')}: Správa o úlohách kurátora")
+
+Název:         ${params[0]}
+Kolekce:    ${params[1]}
+Zaslal:  ${params[2]}
+
+Úloha kurátora ${params[3]} byla vykonána
+s tímto výsledkem:
+
+${params[4]}
+
+Operace vykonána při zaslání: ${params[5]}
+
+DSpace

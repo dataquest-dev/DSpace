@@ -1,0 +1,22 @@
+## Rejection email message
+##
+## {0}  Title of submission
+## {1}  Name of collection
+## {2}  Name of the rejector
+## {3}  Reason for the rejection
+## {4}  Link to 'My DSpace' page
+##
+#set($subject = "${config.get('dspace.shortname')}: Příspěvek odmítnut")
+
+Poslali jste: ${params[0]}
+
+Do kolekce: ${params[1]}
+
+${params[2]} zamítnul váš příspěvek z následujícího důvodu:
+
+${params[3]}
+
+Váš příspěvek nebyl smazán. Dostanete se k němu z vaší stránky
+„Můj DSpace“: ${params[4]}
+
+DSpace

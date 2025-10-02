@@ -1,0 +1,26 @@
+## E-mail sent to designated address when an internal server error occurs
+##
+## Parameters: {0} DSpace server URL
+##             {1} Date & time
+##             {2} Session ID
+##             {3} URL + HTTP parameters, if any
+##             {4} Exception stack trace
+##             {5} User details
+##             {6} IP address
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')}: Vnitřní chyba serveru")
+Vyskytla vnitřní chyba serveru: ${params[0]}:
+
+Datum:       ${params[1]}
+ID relace: ${params[2]}
+Uživatel:       ${params[5]}
+IP adresa: ${params[6]}
+
+${params[3]}
+
+Výjimka:
+${params[4]}
+
+DSpace

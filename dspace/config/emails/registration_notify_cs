@@ -1,0 +1,19 @@
+## Registration notification email
+##
+## Parameters: {0} The name of the DSpace instance
+##             {1} The URL of the DSpace instance
+##             {2} Name:
+##             {3} Email:
+##             {4} Registration Date:
+##
+## See org.dspace.core.Email for information on the format of this file.
+##
+#set($subject = "${config.get('dspace.shortname')}: Oznámení o registraci")
+
+Do ${params[0]} se zaregistroval nový uživatel na ${params[1]}:
+
+Jméno:                   ${params[2]}
+Email:                  ${params[3]}
+Datum:                   ${params[4]}
+
+DSpace
