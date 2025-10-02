@@ -25,6 +25,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.ProvenanceService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
@@ -54,6 +55,9 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
 
     @Autowired
     private AuthorizeService authorizeService;
+
+    @Autowired
+    ProvenanceService provenanceService;
 
     @Autowired
     ResourcePolicyService resourcePolicyService;
@@ -255,6 +259,8 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         c.turnOffAuthorisationSystem();
         contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
         c.restoreAuthSystemState();
+
+        provenanceService.removeReadPolicies(c, o, resPolicies);
     }
 
     @Override
