@@ -225,7 +225,7 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
      * Find the resource policies matching embargo date presence criteria
      *
      * @param hasStartDate optional, filter for start date presence
-     * @param hasEndDate   optional, filter for end date presence  
+     * @param hasEndDate   optional, filter for end date presence
      * @param pageable     contains the pagination information
      * @return a Page of ResourcePolicyRest instances matching the embargo criteria
      */
