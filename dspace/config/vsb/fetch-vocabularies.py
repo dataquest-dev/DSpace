@@ -9,11 +9,20 @@ import sys
 import xml.etree.ElementTree as ET
 import requests
 import argparse
+import logging
 from datetime import datetime
 import shutil
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 # Configuration
 VSB_BASE_URL = "https://www.vsb.cz/edudocs"
@@ -45,7 +54,7 @@ def create_backup_dir(base_dir="."):
 
 def backup_existing_files(backup_dir, work_dir="."):
     """Backup existing vocabulary files"""
-    print(f"Creating backup of existing vocabularies in {backup_dir}...")
+    logger.info(f"Creating backup of existing vocabularies in {backup_dir}...")
 
     work_path = Path(work_dir)
     for vocab_type in VOCAB_TYPES:
@@ -60,7 +69,7 @@ def backup_existing_files(backup_dir, work_dir="."):
 
 def download_vocabulary(vocab_type, faculty, backup_dir, work_dir="."):
     """Download vocabulary from VSB web service"""
-    print(f"Fetching {vocab_type} vocabulary for {faculty}...")
+    logger.info(f"Fetching {vocab_type} vocabulary for {faculty}...")
 
     work_path = Path(work_dir)
     filename = work_path / f"dir_{vocab_type}_{faculty}.xml"
@@ -72,7 +81,7 @@ def download_vocabulary(vocab_type, faculty, backup_dir, work_dir="."):
     for i, url in enumerate(urls):
         try:
             if i == 1:
-                print("  Primary URL failed, trying fallback...")
+                logger.warning("  Primary URL failed, trying fallback...")
 
             response = requests.get(url, timeout=TIMEOUT)
             response.raise_for_status()
@@ -82,20 +91,20 @@ def download_vocabulary(vocab_type, faculty, backup_dir, work_dir="."):
                 with open(filename, 'w', encoding='utf-8') as f:
                     f.write(response.text)
 
-                print(f"  ✓ Success: Downloaded {filename.name}" + (" (fallback)" if i == 1 else ""))
+                logger.info(f"  ✓ Success: Downloaded {filename.name}" + (" (fallback)" if i == 1 else ""))
                 return True
 
         except requests.RequestException as e:
             if i == 0:
                 continue  # Try fallback URL
             else:
-                print(f"  ✗ Failed: Could not download {filename.name}")
+                logger.error(f"  ✗ Failed: Could not download {filename.name}")
 
                 # Try to restore from backup
                 backup_file = backup_dir / filename.name
                 if backup_file.exists():
                     shutil.copy2(backup_file, filename)
-                    print(f"  Restored from backup: {filename.name}")
+                    logger.info(f"  Restored from backup: {filename.name}")
                     return True
 
                 # Create minimal valid XML placeholder file if download and backup both failed
@@ -103,7 +112,7 @@ def download_vocabulary(vocab_type, faculty, backup_dir, work_dir="."):
 
                 with open(filename, 'w', encoding='utf-8') as f:
                     f.write(empty_content)
-                print(f"  Created empty placeholder: {filename.name}")
+                logger.info(f"  Created empty placeholder: {filename.name}")
                 return True
 
     return False
@@ -119,13 +128,13 @@ def convert_vocabulary(vocab_type, faculty, work_dir="."):
     dc_term = 'programme'
 
     if not input_file.exists():
-        print(f"  Warning: Input file {input_file.name} not found, creating default value-pairs file")
+        logger.warning(f"  Warning: Input file {input_file.name} not found, creating default value-pairs file")
         # Create default vp_ file when input file doesn't exist
         create_default_vp_file(output_file, value_pairs_name, dc_term)
         return True
 
     try:
-        print("  Converting to value-pairs format...")
+        logger.info("  Converting to value-pairs format...")
 
         # Parse the XML file
         tree = ET.parse(input_file)
@@ -162,12 +171,12 @@ def convert_vocabulary(vocab_type, faculty, work_dir="."):
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(output_lines) + '\n')
 
-        print(f"  ✓ Success: Generated {output_file.name}")
+        logger.info(f"  ✓ Success: Generated {output_file.name}")
         return True
 
     except Exception as e:
-        print(f"  ✗ Warning: Conversion failed for {output_file.name}: {e}")
-        print(f"  Creating default value-pairs file instead")
+        logger.warning(f"  ✗ Warning: Conversion failed for {output_file.name}: {e}")
+        logger.info(f"  Creating default value-pairs file instead")
         # Create default vp_ file when conversion fails
         create_default_vp_file(output_file, value_pairs_name, dc_term)
         return True
@@ -183,7 +192,7 @@ def create_default_vp_file(output_file, value_pairs_name, dc_term):
 '''
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(default_content)
-    print(f"  ✓ Created default: {output_file.name if hasattr(output_file, 'name') else output_file}")
+    logger.info(f"  ✓ Created default: {output_file.name if hasattr(output_file, 'name') else output_file}")
 
 def main():
     parser = argparse.ArgumentParser(description='VSB Vocabulary Fetching Script for DSpace 7',
@@ -207,24 +216,22 @@ Examples:
 
     args = parser.parse_args()
 
-    print("VSB Vocabulary Fetching Script for DSpace 7")
-    print("=" * 43)
-    print()
+    logger.info("VSB Vocabulary Fetching Script for DSpace 7")
+    logger.info("=" * 43)
 
     # Validate working directory
     work_path = Path(args.work_dir)
     if not work_path.exists():
-        print(f"Error: Working directory does not exist: {args.work_dir}")
+        logger.error(f"Error: Working directory does not exist: {args.work_dir}")
         sys.exit(1)
     
-    print(f"Working directory: {work_path.absolute()}")
+    logger.info(f"Working directory: {work_path.absolute()}")
     
     # Check if we're in the right directory
     xsl_file = work_path / 'controlled-vocabulary2value-pairs.xsl'
     if not xsl_file.exists():
-        print("Warning: controlled-vocabulary2value-pairs.xsl not found in working directory")
-        print("Make sure the working directory contains VSB configuration files")
-        print()
+        logger.warning("Warning: controlled-vocabulary2value-pairs.xsl not found in working directory")
+        logger.warning("Make sure the working directory contains VSB configuration files")
 
     # Create backup directory
     backup_dir = None
@@ -232,8 +239,7 @@ Examples:
         backup_dir = create_backup_dir(args.work_dir)
         backup_existing_files(backup_dir, args.work_dir)
 
-    print("Downloading vocabularies from VSB web services...")
-    print()
+    logger.info("Downloading vocabularies from VSB web services...")
 
     # Initialize counters
     total_downloads = 0
@@ -272,29 +278,29 @@ Examples:
                     successful_conversions += 1
 
     # Show summary
-    print("Summary:")
-    print("=" * 8)
-    print(f"Total vocabulary downloads attempted: {total_downloads}")
-    print(f"Successful downloads: {successful_downloads}")
-    print(f"Failed downloads: {total_downloads - successful_downloads}")
+    logger.info("Summary:")
+    logger.info("=" * 8)
+    logger.info(f"Total vocabulary downloads attempted: {total_downloads}")
+    logger.info(f"Successful downloads: {successful_downloads}")
+    logger.info(f"Failed downloads: {total_downloads - successful_downloads}")
 
     if not args.download_only:
-        print(f"Successful conversions: {successful_conversions}")
-        print(f"Failed conversions: {total_conversions - successful_conversions}")
+        logger.info(f"Successful conversions: {successful_conversions}")
+        logger.info(f"Failed conversions: {total_conversions - successful_conversions}")
 
     if backup_dir:
-        print(f"\nBackup created in: {backup_dir}")
+        logger.info(f"Backup created in: {backup_dir}")
 
     if total_downloads - successful_downloads > 0:
-        print("\nWarning: Some vocabularies could not be updated.")
-        print("Check the backup directory and restore manually if needed.")
+        logger.warning("Warning: Some vocabularies could not be updated.")
+        logger.warning("Check the backup directory and restore manually if needed.")
     else:
-        print("\nAll vocabularies updated successfully!")
+        logger.info("All vocabularies updated successfully!")
 
-    print("\nNext steps:")
-    print("1. Regenerate forms with the template generation script if needed")
-    print("2. Restart DSpace to load the new vocabularies")
-    print("3. Test vocabulary functionality in the submission interface")
+    logger.info("Next steps:")
+    logger.info("1. Regenerate forms with the template generation script if needed")
+    logger.info("2. Restart DSpace to load the new vocabularies")
+    logger.info("3. Test vocabulary functionality in the submission interface")
 
 if __name__ == "__main__":
     main()

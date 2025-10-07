@@ -93,9 +93,11 @@ class EvyukaFormUpdater:
         qualifier = qualifier_elem.text or ""
         
         if schema == 'evyuka':
-            field_name = f"{schema}.{element}"
+            parts = [schema, element]
             if qualifier:
-                field_name += f".{qualifier}"
+                parts.append(qualifier)
+            
+            field_name = ".".join(parts)
             
             if field_name in self.VALIDATION_GROUPS:
                 return True, field_name
