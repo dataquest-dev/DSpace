@@ -4,7 +4,11 @@ VSB Configuration Utilities for DSpace 7
 Shared configuration loading functions for VSB scripts
 """
 
+import logging
 from pathlib import Path
+
+# Configure logger for this module
+logger = logging.getLogger(__name__)
 
 
 def load_vsb_config():
@@ -40,4 +44,4 @@ except (FileNotFoundError, ValueError) as e:
     # Allow module to be imported even if config is not available
     # Scripts can handle this gracefully if needed
     VSB_BASE_URL, VSB_TEST_URL = None, None
-    print(f"Warning: Could not load VSB configuration: {e}")
+    logger.warning(f"Could not load VSB configuration: {e}")
