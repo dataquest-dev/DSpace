@@ -14,7 +14,6 @@ import shutil
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
-import configparser
 from vsb_config import VSB_BASE_URL, VSB_TEST_URL
 
 # Configuration

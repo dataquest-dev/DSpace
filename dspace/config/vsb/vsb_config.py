@@ -28,12 +28,17 @@ def load_vsb_config():
     with cfg.open(encoding="utf-8") as f:
         for line in f:
             if line.strip().startswith("vsb.base.url"):
-                vsb_base = line.split("=", 1)[1].strip()
+                vsb_base = line.split("=", 1)[1].split("#", 1)[0].strip()
+                vsb_base = line.split("=", 1)[1].split("#", 1)[0].strip()
+                if not vsb_base:
+                    raise ValueError("vsb.base.url is empty in dspace.cfg")
             elif line.strip().startswith("vsb.test.url"):
-                vsb_test = line.split("=", 1)[1].strip()
+                vsb_test = line.split("=", 1)[1].split("#", 1)[0].strip()
+                if not vsb_test:
+                    raise ValueError("vsb.test.url is empty in dspace.cfg")
 
-    if not (vsb_base and vsb_test):
-        raise ValueError("Missing vsb.base.url or vsb.test.url in dspace.cfg")
+    if not vsb_base or not vsb_test:
+        raise ValueError("Missing or empty vsb.base.url or vsb.test.url in dspace.cfg")
     return vsb_base, vsb_test
 
 
