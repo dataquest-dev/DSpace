@@ -22,6 +22,7 @@ from pathlib import Path
 import argparse
 import logging
 from datetime import datetime
+from vsb_config import VSB_BASE_URL, VSB_TEST_URL
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
