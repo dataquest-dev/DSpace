@@ -14,10 +14,38 @@ import shutil
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
+import configparser
 
 # Configuration
-VSB_BASE_URL = "https://www.vsb.cz/edudocs"
-VSB_TEST_URL = "https://www-test.vsb.cz/edudocs"
+
+def load_vsb_config():
+    """Return vsb.base.url and vsb.test.url from config/dspace.cfg."""
+    # --- Locate the config file ---
+    current = Path(__file__).resolve().parent
+    while current != current.parent:
+        cfg = current / "config" / "dspace.cfg"
+        if cfg.exists():
+            break
+        current = current.parent
+    else:
+        raise FileNotFoundError("Could not find config/dspace.cfg")
+
+    # --- Read the two URLs ---
+    vsb_base, vsb_test = None, None
+    with cfg.open(encoding="utf-8") as f:
+        for line in f:
+            if line.strip().startswith("vsb.base.url"):
+                vsb_base = line.split("=", 1)[1].strip()
+            elif line.strip().startswith("vsb.test.url"):
+                vsb_test = line.split("=", 1)[1].strip()
+
+    if not (vsb_base and vsb_test):
+        raise ValueError("Missing vsb.base.url or vsb.test.url in dspace.cfg")
+    else:
+        print(f"Found VSB URLs: {vsb_base}, {vsb_test}")
+    return vsb_base, vsb_test
+
+VSB_BASE_URL, VSB_TEST_URL = load_vsb_config()
 TIMEOUT = 10  # Reduced timeout
 MAX_WORKERS = 8  # Concurrent downloads
 
@@ -210,7 +238,6 @@ Examples:
     print("VSB Vocabulary Fetching Script for DSpace 7")
     print("=" * 43)
     print()
-
     # Validate working directory
     work_path = Path(args.work_dir)
     if not work_path.exists():
@@ -240,7 +267,7 @@ Examples:
     successful_downloads = 0
     total_conversions = 0
     successful_conversions = 0
-
+    return
     # Process vocabularies
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = []
