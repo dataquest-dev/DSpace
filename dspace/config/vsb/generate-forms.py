@@ -12,7 +12,7 @@ from datetime import datetime
 import shutil
 from pathlib import Path
 import re
-from vsb_config import VSB_BASE_URL, VSB_TEST_URL
+from .vsb_config import VSB_BASE_URL, VSB_TEST_URL
 
 # Faculty codes
 FACULTIES = ["FAST", "FBI", "FS", "FEI", "HGF", "FMT", "EKF", "USP", "9270", "AUD"]
