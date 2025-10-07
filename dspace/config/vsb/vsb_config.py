@@ -29,7 +29,6 @@ def load_vsb_config():
         for line in f:
             if line.strip().startswith("vsb.base.url"):
                 vsb_base = line.split("=", 1)[1].split("#", 1)[0].strip()
-                vsb_base = line.split("=", 1)[1].split("#", 1)[0].strip()
                 if not vsb_base:
                     raise ValueError("vsb.base.url is empty in dspace.cfg")
             elif line.strip().startswith("vsb.test.url"):

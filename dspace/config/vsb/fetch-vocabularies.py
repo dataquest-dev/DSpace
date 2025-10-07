@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 from vsb_config import VSB_BASE_URL, VSB_TEST_URL
 
-# Configuration
+# Local constants
 TIMEOUT = 10  # Reduced timeout
 MAX_WORKERS = 8  # Concurrent downloads
 
