@@ -4,7 +4,6 @@ VSB Form Template Generation Script for DSpace 7
 Generates faculty-specific submission forms from a base template
 """
 
-import os
 import sys
 import xml.etree.ElementTree as ET
 import argparse
@@ -25,12 +24,14 @@ logger = logging.getLogger(__name__)
 # Faculty codes
 FACULTIES = ["FAST", "FBI", "FS", "FEI", "HGF", "FMT", "EKF", "USP", "9270", "AUD"]
 
+
 def create_backup_dir(base_dir="."):
     """Create timestamped backup directory"""
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
     backup_dir = Path(base_dir) / f"bak-{timestamp}"
     backup_dir.mkdir(exist_ok=True)
     return backup_dir
+
 
 def backup_existing_files(backup_dir, work_dir="."):
     """Backup existing form files"""
@@ -42,6 +43,7 @@ def backup_existing_files(backup_dir, work_dir="."):
         if form_file.exists():
             shutil.copy2(form_file, backup_dir)
 
+
 def validate_xml(filename):
     """Validate XML file"""
     try:
@@ -50,6 +52,7 @@ def validate_xml(filename):
     except ET.ParseError as e:
         logger.error(f"XML validation error in {filename}: {e}")
         return False
+
 
 def restore_from_backup(output_file, backup_dir):
     """Restores a file from the backup directory if it exists."""
@@ -60,6 +63,7 @@ def restore_from_backup(output_file, backup_dir):
     if backup_file.exists():
         shutil.copy2(backup_file, output_file)
         logger.info(f"  Restored previous version from backup: {output_file.name}")
+
 
 def generate_form(faculty, backup_dir, work_dir="."):
     """Generate faculty-specific form from template"""
@@ -106,7 +110,8 @@ def generate_form(faculty, backup_dir, work_dir="."):
             logger.info(f"  ✓ Successfully generated {output_file.name}")
             return True
         else:
-            logger.error(f"  ✗ Error: Generated file {output_file.name} contains invalid XML!")
+            logger.error(
+                f"  ✗ Error: Generated file {output_file.name} contains invalid XML!")
             restore_from_backup(output_file, backup_dir)  # Call helper function
             return False
 
@@ -115,9 +120,10 @@ def generate_form(faculty, backup_dir, work_dir="."):
         restore_from_backup(output_file, backup_dir)  # Call helper function
         return False
 
+
 def main():
     parser = argparse.ArgumentParser(description='VSB Form Template Generation Script for DSpace 7',
-                                   epilog="""
+                                     epilog="""
 Examples:
   %(prog)s                                 # Use current directory
   %(prog)s /path/to/vsb                    # Use specific directory
@@ -125,7 +131,7 @@ Examples:
   %(prog)s --validate-only                 # Only validate, don't generate
 """)
     parser.add_argument('work_dir', nargs='?', default='.',
-                       help='Directory containing VSB form template (default: current directory)')
+                        help='Directory containing VSB form template (default: current directory)')
     parser.add_argument('--faculties', nargs='*', choices=FACULTIES, default=FACULTIES,
                         help='Faculties to generate forms for (default: all)')
     parser.add_argument('--no-backup', action='store_true',
@@ -143,7 +149,7 @@ Examples:
     if not work_path.exists():
         logger.error(f"Error: Working directory does not exist: {args.work_dir}")
         sys.exit(1)
-    
+
     logger.info(f"Working directory: {work_path.absolute()}")
 
     # Validate template file
@@ -151,11 +157,12 @@ Examples:
     logger.info("Validating template file...")
 
     if not template_file.exists():
-        logger.error(f"Error: Template file {template_file.name} not found in working directory!")
+        logger.error(
+            f"Error: Template file {template_file.name} not found in working directory!")
         sys.exit(1)
 
     if not validate_xml(template_file):
-        logger.error(f"Error: Template file contains invalid XML!")
+        logger.error("Error: Template file contains invalid XML!")
         sys.exit(1)
 
     # If validate-only mode, just check existing forms
@@ -173,7 +180,8 @@ Examples:
             else:
                 logger.warning(f"  - {form_file.name} does not exist")
 
-        logger.info(f"Validation complete: {valid_count}/{len(args.faculties)} forms are valid")
+        logger.info(
+            f"Validation complete: {valid_count}/{len(args.faculties)} forms are valid")
         return
 
     # Create backup directory
@@ -205,12 +213,14 @@ Examples:
     if failed == 0:
         logger.info("✓ All forms generated successfully!")
     else:
-        logger.warning(f"⚠ {failed} forms failed to generate. Check error messages above.")
+        logger.warning(
+            f"⚠ {failed} forms failed to generate. Check error messages above.")
 
     logger.info("Next steps:")
     logger.info("1. Run fetch-vocabularies.py to update controlled vocabularies")
     logger.info("2. Restart DSpace to load the new forms")
     logger.info("3. Test form functionality in the submission interface")
+
 
 if __name__ == "__main__":
     main()
