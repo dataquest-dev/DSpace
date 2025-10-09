@@ -14,7 +14,35 @@ import shutil
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
-from vsb_config import VSB_BASE_URL, VSB_TEST_URL
+
+def load_env_file(env_file_path):
+    """Load environment variables from a .env file"""
+    if not os.path.exists(env_file_path):
+        return {}
+    
+    env_vars = {}
+    with open(env_file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            # Skip empty lines and comments
+            if not line or line.startswith('#'):
+                continue
+            
+            # Parse key=value pairs
+            if '=' in line:
+                key, value = line.split('=', 1)
+                env_vars[key.strip()] = value.strip()
+    
+    return env_vars
+
+# Load VSB configuration from vsb.env file
+script_dir = Path(__file__).parent
+env_file = script_dir / 'vsb.env'
+env_vars = load_env_file(env_file)
+
+# Set VSB URLs from environment
+VSB_BASE_URL = env_vars.get('vsb.base.url')
+VSB_TEST_URL = env_vars.get('vsb.test.url')
 
 # Local constants
 TIMEOUT = 10  # Reduced timeout
