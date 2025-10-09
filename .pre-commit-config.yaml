@@ -1,5 +1,4 @@
 repos:
-  # Existing local hook for Java files (keep it if you still need it)
   - repo: local
     hooks:
       - id: mvn-checkstyle
