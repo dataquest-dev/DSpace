@@ -103,7 +103,6 @@ class EvyukaFormUpdater:
                 return True, field_name
                 
         return False, None
-    
 
     
     def process_form(self, form_path: Path, create_backup=True):
@@ -276,7 +275,6 @@ class EvyukaFormUpdater:
             logger.info("All forms have correct validation groups!")
             return True
 
-
 def main():
     """Main function with command line interface."""
     parser = argparse.ArgumentParser(
@@ -326,7 +324,6 @@ Examples:
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         exit(1)
-
 
 if __name__ == '__main__':
     main()
