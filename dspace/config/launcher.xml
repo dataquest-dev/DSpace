@@ -352,4 +352,11 @@
             <class>org.dspace.matomo.MatomoPDFExporter</class>
         </step>
     </command>
+    <command>
+        <name>clarin-token</name>
+        <description>Clarin Token Administrator</description>
+        <step>
+            <class>org.dspace.administer.ClarinTokenAdministrator</class>
+        </step>
+    </command>
 </commands>
