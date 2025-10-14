@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Optional;
 import java.util.UUID;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -658,8 +659,17 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
             EPerson ep = item.getSubmitter();
             // send the notification to the submitter unless the submitter eperson has been deleted
             if (null != ep) {
-                // Get the Locale
-                Email email = Email.getEmail(I18nUtil.getEmailFilename(context.getCurrentLocale(), "submit_archive"));
+                // Get the Locale - prioritize context locale over EPerson locale
+                Locale contextLocale = context.getCurrentLocale();
+                Locale epersonLocale = I18nUtil.getEPersonLocale(ep);
+                Locale curLocale = Optional.ofNullable(contextLocale)
+                        .orElseGet(() -> epersonLocale);
+                
+                // Log locale selection for debugging/testing
+                log.info("notifyOfArchive locale selection - Context: {}, EPerson: {}, Selected: {}", 
+                        contextLocale, epersonLocale, curLocale);
+                        
+                Email email = Email.getEmail(I18nUtil.getEmailFilename(curLocale, "submit_archive"));
 
                 // Get the item handle to email to user
                 String handle = handleService.findHandle(context, item);
