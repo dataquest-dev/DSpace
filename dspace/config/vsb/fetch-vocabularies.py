@@ -16,35 +16,33 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 
 
-def load_env_file(env_file_path):
+def load_env_file(env_source):
     """Load environment variables from a .env file"""
-    if not os.path.exists(env_file_path):
-        return {}
-
     env_vars = {}
-    with open(env_file_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            # Skip empty lines and comments
-            if not line or line.startswith('#'):
-                continue
+   if not os.path.exists(env_source):
+       return {}
+        
+    with open(env_source, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Parse the content
+    for line in content.splitlines():
+        line = line.strip()
+        # Skip empty lines and comments
+        if not line or line.startswith('#'):
+            continue
 
-            # Parse key=value pairs
-            if '=' in line:
-                key, value = line.split('=', 1)
-                env_vars[key.strip()] = value.strip()
+        # Parse key=value pairs
+        if '=' in line:
+            key, value = line.split('=', 1)
+            env_vars[key.strip()] = value.strip()
 
     return env_vars
 
 
-# Load VSB configuration from vsb.env file
-script_dir = Path(__file__).parent
-env_file = script_dir / 'vsb.env'
-env_vars = load_env_file(env_file)
-
-# Set VSB URLs from environment
-VSB_BASE_URL = env_vars.get('vsb.base.url')
-VSB_TEST_URL = env_vars.get('vsb.test.url')
+# Global variables to be set after loading configuration
+VSB_BASE_URL = None
+VSB_TEST_URL = None
 
 # Local constants
 TIMEOUT = 10  # Reduced timeout
@@ -257,6 +255,34 @@ Examples:
         sys.exit(1)
 
     print(f"Working directory: {work_path.absolute()}")
+    
+    # Check if vsb.env file exists in the working directory and load configuration
+    vsb_env_file = work_path / 'vsb.env'
+    if not vsb_env_file.exists():
+        print(f"Error: vsb.env file not found in working directory: {work_path}")
+        print("Cannot run script because the required vsb.env configuration file is missing.")
+        print("Please ensure vsb.env exists in the specified directory with the required VSB URLs.")
+        sys.exit(1)
+    
+    # Load VSB configuration from the local vsb.env file
+    print(f"Loading configuration from: {vsb_env_file}")
+    env_vars = load_env_file(str(vsb_env_file))
+    
+    # Set VSB URLs from environment
+    global VSB_BASE_URL, VSB_TEST_URL
+    VSB_BASE_URL = env_vars.get('vsb.base.url')
+    VSB_TEST_URL = env_vars.get('vsb.test.url')
+    
+    # Validate that we have the required URLs
+    if not VSB_BASE_URL or not VSB_TEST_URL:
+        print("Error: VSB URLs not found in configuration!")
+        print("Please check the vsb.env file and ensure it contains:")
+        print("  vsb.base.url=<your_base_url>")
+        print("  vsb.test.url=<your_test_url>")
+        sys.exit(1)
+    
+    print(f"Loaded configuration: Base URL = {VSB_BASE_URL}, Test URL = {VSB_TEST_URL}")
+    print()
 
     # Check if we're in the right directory
     xsl_file = work_path / 'controlled-vocabulary2value-pairs.xsl'
