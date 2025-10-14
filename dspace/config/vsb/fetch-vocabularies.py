@@ -40,9 +40,7 @@ def load_env_file(env_source):
     return env_vars
 
 
-# Global variables to be set after loading configuration
-VSB_BASE_URL = None
-VSB_TEST_URL = None
+# Global variables removed - now using local config dictionary
 
 # Local constants
 TIMEOUT = 10  # Reduced timeout
@@ -88,15 +86,15 @@ def backup_existing_files(backup_dir, work_dir="."):
                 shutil.copy2(vp_file, backup_dir)
 
 
-def download_vocabulary(vocab_type, faculty, backup_dir, work_dir="."):
+def download_vocabulary(vocab_type, faculty, config, backup_dir, work_dir="."):
     """Download vocabulary from VSB web service"""
     print(f"Fetching {vocab_type} vocabulary for {faculty}...")
 
     work_path = Path(work_dir)
     filename = work_path / f"dir_{vocab_type}_{faculty}.xml"
     urls = [
-        f"{VSB_BASE_URL}/{vocab_type}-directory?faculty={faculty}",
-        f"{VSB_TEST_URL}/{vocab_type}-directory?faculty={faculty}"
+        f"{config['base_url']}/{vocab_type}-directory?faculty={faculty}",
+        f"{config['test_url']}/{vocab_type}-directory?faculty={faculty}"
     ]
 
     for i, url in enumerate(urls):
@@ -269,19 +267,20 @@ Examples:
     env_vars = load_env_file(str(vsb_env_file))
     
     # Set VSB URLs from environment
-    global VSB_BASE_URL, VSB_TEST_URL
-    VSB_BASE_URL = env_vars.get('vsb.base.url')
-    VSB_TEST_URL = env_vars.get('vsb.test.url')
-    
+    config = {
+        "base_url": env_vars.get('vsb.base.url'),
+        "test_url": env_vars.get('vsb.test.url')
+    }
     # Validate that we have the required URLs
-    if not VSB_BASE_URL or not VSB_TEST_URL:
+    if (not config["base_url"] or not config["base_url"].strip() or
+        not config["test_url"] or not config["test_url"].strip()):
         print("Error: VSB URLs not found in configuration!")
         print("Please check the vsb.env file and ensure it contains:")
         print("  vsb.base.url=<your_base_url>")
         print("  vsb.test.url=<your_test_url>")
         sys.exit(1)
     
-    print(f"Loaded configuration: Base URL = {VSB_BASE_URL}, Test URL = {VSB_TEST_URL}")
+    print(f"Loaded configuration: Base URL = {config['base_url']}, Test URL = {config['test_url']}")
     print()
 
     # Check if we're in the right directory
@@ -314,7 +313,7 @@ Examples:
 
                 # Submit download task
                 futures.append(executor.submit(download_vocabulary, vocab_type,
-                               faculty, backup_dir or work_path, args.work_dir))
+                               faculty, config, backup_dir or work_path, args.work_dir))
 
         # Wait for all downloads to complete
         for future in as_completed(futures):
