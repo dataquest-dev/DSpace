@@ -659,8 +659,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
             // send the notification to the submitter unless the submitter eperson has been deleted
             if (null != ep) {
                 // Get the Locale
-                Locale supportedLocale = I18nUtil.getEPersonLocale(ep);
-                Email email = Email.getEmail(I18nUtil.getEmailFilename(supportedLocale, "submit_archive"));
+                Email email = Email.getEmail(I18nUtil.getEmailFilename(context.getCurrentLocale(), "submit_archive"));
 
                 // Get the item handle to email to user
                 String handle = handleService.findHandle(context, item);
