@@ -19,8 +19,8 @@ from threading import Lock
 def load_env_file(env_source):
     """Load environment variables from a .env file"""
     env_vars = {}
-   if not os.path.exists(env_source):
-       return {}
+    if not os.path.exists(env_source):
+        return {}
         
     with open(env_source, 'r', encoding='utf-8') as f:
         content = f.read()
