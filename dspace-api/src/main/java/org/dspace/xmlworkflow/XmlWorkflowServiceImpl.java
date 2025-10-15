@@ -664,11 +664,8 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
                 Locale epersonLocale = I18nUtil.getEPersonLocale(ep);
                 Locale curLocale = Optional.ofNullable(contextLocale)
                         .orElseGet(() -> epersonLocale);
-                
-                // Log locale selection for debugging/testing
-                log.info("notifyOfArchive locale selection - Context: {}, EPerson: {}, Selected: {}", 
+                log.debug("notifyOfArchive locale selection - Context: {}, EPerson: {}, Selected: {}",
                         contextLocale, epersonLocale, curLocale);
-                        
                 Email email = Email.getEmail(I18nUtil.getEmailFilename(curLocale, "submit_archive"));
 
                 // Get the item handle to email to user
