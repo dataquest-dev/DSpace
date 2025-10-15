@@ -352,12 +352,14 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
     @Override
     public void createResourcePolicy(Context context, ResourcePolicy resourcePolicy) {
-        if (Objects.isNull(resourcePolicy.getdSpaceObject())) return;
+        if (Objects.isNull(resourcePolicy.getdSpaceObject())) {
+            return;
+        }
 
         DSpaceObject dso = resourcePolicy.getdSpaceObject();
         String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
         String dsoType = getDSpaceObjectType(dso.getType());
-        
+
         try {
             if (dso.getType() != Constants.ITEM) {
                 log.warn("Provenance message for resource policy creation is supported only for items." +
@@ -375,17 +377,18 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
     @Override
     public void updateResourcePolicy(Context context, ResourcePolicy resourcePolicy) {
-        if (Objects.isNull(resourcePolicy.getdSpaceObject())) return;
-        
+        if (Objects.isNull(resourcePolicy.getdSpaceObject())) {
+            return;
+        }
+
         DSpaceObject dso = resourcePolicy.getdSpaceObject();
         String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
         String dsoType = getDSpaceObjectType(dso.getType());
-        
+
         try {
             if (dso.getType() != Constants.ITEM) {
                 log.warn("Provenance message for resource policy update is supported only for items. " +
                         "Current DSpace object type: " + dsoType);
-
             }
             Item item = (Item) dso;
             String msg = messageProvider.getMessage(context,
@@ -399,12 +402,14 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
     @Override
     public void deleteResourcePolicy(Context context, ResourcePolicy resourcePolicy) {
-        if (Objects.isNull(resourcePolicy.getdSpaceObject())) return;
-        
+        if (Objects.isNull(resourcePolicy.getdSpaceObject())) {
+            return;
+        }
+
         DSpaceObject dso = resourcePolicy.getdSpaceObject();
         String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
         String dsoType = getDSpaceObjectType(dso.getType());
-        
+
         try {
             if (dso.getType() != Constants.ITEM) {
                 log.warn("Provenance message for resource policy deletion is supported only for items. " +
