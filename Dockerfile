@@ -83,4 +83,5 @@ RUN chmod u+x redebug.sh undebug.sh custom_run.sh
 
 RUN groupadd -g 999 dspace && useradd -u 999 -g 999 -r -s /bin/bash dspace \
     && chown -R dspace:dspace /dspace /usr/local/tomcat
-USER 999
+
+USER dspace
