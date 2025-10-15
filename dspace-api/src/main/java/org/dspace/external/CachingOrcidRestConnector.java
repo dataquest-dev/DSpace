@@ -154,6 +154,7 @@ public class CachingOrcidRestConnector {
                     .build();
 
             try {
+                log.info("Going to send an ORCID request to get Access Token");
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (isSuccess(response)) {
                     JSONObject responseObject = new JSONObject(response.body());
@@ -187,6 +188,7 @@ public class CachingOrcidRestConnector {
                 .build();
 
         try {
+            log.info("Going to send an ORCID request to: " + fullPath);
             HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
             if (isSuccess(response)) {
                 return response.body();
