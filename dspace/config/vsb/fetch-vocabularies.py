@@ -39,10 +39,6 @@ def load_env_file(env_source):
 
     return env_vars
 
-
-# Global variables removed - now using local config dictionary
-
-# Local constants
 TIMEOUT = 10  # Reduced timeout
 MAX_WORKERS = 8  # Concurrent downloads
 
