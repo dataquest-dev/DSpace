@@ -352,7 +352,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
     @Override
     public void createResourcePolicy(Context context, ResourcePolicy resourcePolicy) {
-        if (emptyDspaceObject(resourcePolicy)) return;
+        if (Objects.isNull(resourcePolicy.getdSpaceObject())) return;
 
         DSpaceObject dso = resourcePolicy.getdSpaceObject();
         String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
@@ -373,16 +373,9 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         }
     }
 
-    private static boolean emptyDspaceObject(ResourcePolicy resourcePolicy) {
-        if (resourcePolicy.getdSpaceObject() == null) {
-            return true;
-        }
-        return false;
-    }
-
     @Override
     public void updateResourcePolicy(Context context, ResourcePolicy resourcePolicy) {
-        if (emptyDspaceObject(resourcePolicy)) return;
+        if (Objects.isNull(resourcePolicy.getdSpaceObject())) return;
         
         DSpaceObject dso = resourcePolicy.getdSpaceObject();
         String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
@@ -406,7 +399,7 @@ public class ProvenanceServiceImpl implements ProvenanceService {
 
     @Override
     public void deleteResourcePolicy(Context context, ResourcePolicy resourcePolicy) {
-        if (emptyDspaceObject(resourcePolicy)) return;
+        if (Objects.isNull(resourcePolicy.getdSpaceObject())) return;
         
         DSpaceObject dso = resourcePolicy.getdSpaceObject();
         String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
