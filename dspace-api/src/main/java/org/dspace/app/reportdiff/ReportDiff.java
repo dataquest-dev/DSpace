@@ -38,11 +38,11 @@ import org.dspace.content.service.ReportResultService;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 
 /**
@@ -119,15 +119,14 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                     .getContextClassLoader().getResourceAsStream(REPORT_DIFF_FIELDS);
             if (configStream != null) {
                 JsonNode config = mapper.readTree(configStream);
-                
+
                 // Load field mappings
                 fieldMappings = new LinkedHashMap<>();
                 JsonNode mappingsNode = config.get(FIELD_MAPPINGS_KEY);
                 if (mappingsNode != null) {
-                    mappingsNode.fieldNames().forEachRemaining(fieldName -> 
+                    mappingsNode.fieldNames().forEachRemaining(fieldName ->
                         fieldMappings.put(fieldName, mappingsNode.get(fieldName).asText()));
                 }
-                
                 // Load field order
                 fieldOrder = new ArrayList<>();
                 JsonNode orderNode = config.get(FIELD_ORDER_KEY);
@@ -423,40 +422,40 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         }
 
         StringBuilder sb = new StringBuilder();
-        
+
         // Header
         ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         String dspaceName = configurationService.getProperty("dspace.name", "DSpace");
         sb.append(dspaceName + ": Repository Health Report Diff\n\n");
-        
+
         // Executive Summary
         sb.append("Section 1: Executive Summary\n");
         sb.append("\n");
-        
+
         // Report metadata
         sb.append("Report Type: ").append(toReport.getType()).append("\n");
         sb.append("From: ").append(fromReport.getLastModified()).append("\n");
         sb.append("To: ").append(toReport.getLastModified()).append("\n");
-        
+
         // Calculate time period
         String timePeriod = calculateTimePeriod(fromReport.getLastModified(), toReport.getLastModified());
         sb.append("Report Period: ").append(timePeriod).append("\n\n");
-        
+
         // Enhanced Key Changes Table
-        String keyChangesTable = generateEnhancedKeyChangesTable(fromJson, toJson, 
+        String keyChangesTable = generateEnhancedKeyChangesTable(fromJson, toJson,
                 fromReport.getLastModified(), toReport.getLastModified());
         sb.append(keyChangesTable);
-        
+
         // Change Types Summary
         String changeTypesSummary = generateChangeTypesSummary(fromJson, toJson);
         sb.append("\n").append(changeTypesSummary).append("\n\n");
-        
+
         // Detailed Change Log
         sb.append("Section 2: Detailed Change Log\n\n");
         sb.append("Changes Summary\n");
         String detailedSummary = generateDetailedSummary(fromJson, toJson);
         sb.append(detailedSummary).append("\n");
-        
+
         sb.append(generateDiff(fromJson, toJson));
 
         return sb.toString();
@@ -471,7 +470,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      */
     private String calculateTimePeriod(Date fromDate, Date toDate) {
         long diffMillis = toDate.getTime() - fromDate.getTime();
-        
+
         // Calculate time units
         long days = diffMillis / (24 * 60 * 60 * 1000);
         long hours = (diffMillis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000);
@@ -526,7 +525,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         if (node == null || node.isMissingNode() || node.isNull()) {
             return "null";
         }
-        
+
         if (node.isTextual()) {
             String text = node.asText();
             if (text.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
@@ -534,7 +533,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             }
             return text.replaceAll("\"", "");
         }
-        
+
         return node.asText();
     }
 
@@ -552,13 +551,13 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             long diff = newNum - oldNum;
             return diff >= 0 ? "+" + diff : String.valueOf(diff);
         }
-        
+
         // For sizes, try to extract numeric values
         if (oldValue.isTextual() && newValue.isTextual()) {
             String oldText = oldValue.asText();
             String newText = newValue.asText();
-            
-            if (oldText.matches(".*\\d+\\s*(KB|MB|GB).*") && newText.matches(".*\\d+\\s*(KB|MB|GB).*")) {
+
+            if (oldText.matches(".*\\d+\\s*(bytes?|KB|MB|GB).*") && newText.matches(".*\\d+\\s*(bytes?|KB|MB|GB).*")) {
                 long oldBytes = convertToBytes(oldText);
                 long newBytes = convertToBytes(newText);
                 if (oldBytes >= 0 && newBytes >= 0) {
@@ -567,7 +566,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 }
             }
         }
-        
+
         return "Changed";
     }
 
@@ -584,9 +583,17 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 double value = Double.parseDouble(parts[0]);
                 String unit = parts[1].toUpperCase();
                 switch (unit) {
-                    case "KB": return (long) (value * 1024);
-                    case "MB": return (long) (value * 1024 * 1024);
-                    case "GB": return (long) (value * 1024 * 1024 * 1024);
+                    case "BYTE":
+                    case "BYTES":
+                        return (long) value;
+                    case "KB":
+                        return (long) (value * 1024);
+                    case "MB":
+                        return (long) (value * 1024 * 1024);
+                    case "GB":
+                        return (long) (value * 1024 * 1024 * 1024);
+                    default:
+                        break;
                 }
             }
         } catch (NumberFormatException e) {
@@ -602,9 +609,15 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @return formatted string
      */
     private String formatBytes(long bytes) {
-        if (bytes < 1024) return bytes + " B";
-        if (bytes < 1024 * 1024) return (bytes / 1024) + " KB";
-        if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)) + " MB";
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        if (bytes < 1024 * 1024) {
+            return (bytes / 1024) + " KB";
+        }
+        if (bytes < 1024 * 1024 * 1024) {
+            return (bytes / (1024 * 1024)) + " MB";
+        }
         return (bytes / (1024 * 1024 * 1024)) + " GB";
     }
 
@@ -618,54 +631,57 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @return formatted table string
      * @throws IOException if JSON parsing fails
      */
-    private String generateEnhancedKeyChangesTable(String oldJson, String newJson, 
+    private String generateEnhancedKeyChangesTable(String oldJson, String newJson,
                                                    Date fromDate, Date toDate) throws IOException {
         loadFieldConfiguration();
-        
+
         JsonNode oldNode = mapper.readTree(oldJson);
         JsonNode newNode = mapper.readTree(newJson);
-        
+
         // Collect changes for configured fields only
         List<TableRow> changes = new ArrayList<>();
-        
+
         for (String fieldPath : fieldOrder) {
             JsonNode oldValue = getValueFromPath(oldNode, fieldPath);
             JsonNode newValue = getValueFromPath(newNode, fieldPath);
-            
+
             if (!Objects.equals(getDisplayValue(oldValue), getDisplayValue(newValue))) {
                 String displayName = fieldMappings.getOrDefault(fieldPath, fieldPath);
                 String oldDisplay = getDisplayValue(oldValue);
                 String newDisplay = getDisplayValue(newValue);
                 String difference = calculateDifference(oldValue, newValue);
-                
+
                 changes.add(new TableRow(displayName, oldDisplay, newDisplay, difference));
             }
         }
-        
+
         if (changes.isEmpty()) {
             return "Key Changes Between Reports\n\n" +
                    "No significant changes detected between reports.\n\n";
         }
-        
+
         // Format dates for column headers
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String fromDateStr = dateFormat.format(fromDate);
         String toDateStr = dateFormat.format(toDate);
-        
+
         // Calculate dynamic column widths including header content
-        int fieldWidth = Math.max("Field".length(), changes.stream().mapToInt(r -> r.field.length()).max().orElse(25));
-        int oldWidth = Math.max(fromDateStr.length(), changes.stream().mapToInt(r -> r.oldValue.length()).max().orElse(15));
-        int newWidth = Math.max(toDateStr.length(), changes.stream().mapToInt(r -> r.newValue.length()).max().orElse(15));
-        int diffWidth = Math.max("Difference".length(), changes.stream().mapToInt(r -> r.difference.length()).max().orElse(12));
-        
+        int fieldWidth = Math.max("Field".length(),
+                changes.stream().mapToInt(r -> r.field.length()).max().orElse(25));
+        int oldWidth = Math.max(fromDateStr.length(),
+                changes.stream().mapToInt(r -> r.oldValue.length()).max().orElse(15));
+        int newWidth = Math.max(toDateStr.length(),
+                changes.stream().mapToInt(r -> r.newValue.length()).max().orElse(15));
+        int diffWidth = Math.max("Difference".length(),
+                changes.stream().mapToInt(r -> r.difference.length()).max().orElse(12));
+
         StringBuilder table = new StringBuilder();
-        
+
         // Title and separator (calculate exact width needed for table)
         int totalWidth = fieldWidth + oldWidth + newWidth + diffWidth + 13; // 13 = spaces and pipes
         table.append("Key Changes Between Reports\n");
         String separator = "=".repeat(totalWidth);
-        table.append(separator).append("\n\n");
-        
+
         // Header with separator
         table.append(separator).append("\n");
         table.append("| ").append(padRight("Field", fieldWidth))
@@ -674,7 +690,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
              .append(" | ").append(padRight("Difference", diffWidth))
              .append(" |\n");
         table.append(separator).append("\n");
-        
+
         // Data rows
         for (TableRow row : changes) {
             table.append("| ").append(padRight(row.field, fieldWidth))
@@ -683,12 +699,12 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                  .append(" | ").append(padRight(row.difference, diffWidth))
                  .append(" |\n");
         }
-        
+
         table.append(separator).append("\n\n");
-        
+
         return table.toString();
     }
-    
+
     /**
      * Get value from JSON node using path notation (JSON Pointer style).
      */
@@ -698,33 +714,34 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             if (path.startsWith("/")) {
                 return node.at(path);
             }
-            
+
             // Fallback for simple dot notation paths
             return getValueFromSimplePath(node, path);
         } catch (Exception e) {
             return null;
         }
     }
-    
+
     /**
      * Get value from simple dot-notation path.
      */
     private JsonNode getValueFromSimplePath(JsonNode node, String path) {
-        if (path.isEmpty()) return node;
-        
+        if (path.isEmpty()) {
+            return node;
+        }
         String[] parts = path.split("\\.");
         JsonNode current = node;
-        
+
         for (String part : parts) {
             if (current == null || !current.has(part)) {
                 return null;
             }
             current = current.get(part);
         }
-        
+
         return current;
     }
-    
+
     /**
      * Simple data class for table rows.
      */
@@ -733,7 +750,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         final String oldValue;
         final String newValue;
         final String difference;
-        
+
         TableRow(String field, String oldValue, String newValue, String difference) {
             this.field = field;
             this.oldValue = oldValue;
@@ -754,16 +771,16 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         JsonNode oldNode = mapper.readTree(oldJson);
         JsonNode newNode = mapper.readTree(newJson);
         JsonNode patch = JsonDiff.asJson(oldNode, newNode);
-        
+
         int contentChanges = 0;
         int storageChanges = 0;
         int systemChanges = 0;
-        
+
         if (patch.isArray()) {
             for (JsonNode op : patch) {
                 String path = op.path("path").asText();
-                
-                if (path.contains("publishedItems") || path.contains("ePersonsCount") || 
+
+                if (path.contains("publishedItems") || path.contains("ePersonsCount") ||
                     path.contains("communitiesCount")) {
                     contentChanges++;
                 } else if (path.contains("directoryStats") || path.contains("size")) {
@@ -773,7 +790,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 }
             }
         }
-        
+
         StringBuilder summary = new StringBuilder();
         summary.append("Change Types\n");
         if (contentChanges > 0) {
@@ -788,11 +805,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             summary.append("- System changes: ").append(systemChanges)
                    .append(" (report generation time)\n");
         }
-        
+
         if (contentChanges == 0 && storageChanges == 0 && systemChanges == 0) {
             summary.append("- No significant changes detected\n");
         }
-        
+
         return summary.toString();
     }
 
@@ -806,36 +823,51 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      */
     private String generateDetailedSummary(String oldJson, String newJson) throws IOException {
         JsonNode patch = JsonDiff.asJson(mapper.readTree(oldJson), mapper.readTree(newJson));
-        
+
         if (!patch.isArray()) {
             return "- No operations detected";
         }
-        
+
         int replaceOps = 0;
         int addOps = 0;
         int removeOps = 0;
         int totalFields = 0;
-        
+
         for (JsonNode op : patch) {
             String operation = op.path("op").asText();
             switch (operation) {
-                case "replace": replaceOps++; break;
-                case "add": addOps++; break;
-                case "remove": removeOps++; break;
+                case "replace":
+                    replaceOps++;
+                    break;
+                case "add":
+                    addOps++;
+                    break;
+                case "remove":
+                    removeOps++;
+                    break;
+                default:
+                    break;
             }
             totalFields++;
         }
-        
+
         StringBuilder summary = new StringBuilder();
         summary.append("- Total operations: ").append(totalFields);
-        if (replaceOps > 0) summary.append(" (").append(replaceOps).append(" REPLACE");
-        if (addOps > 0) summary.append(", ").append(addOps).append(" ADD");
-        if (removeOps > 0) summary.append(", ").append(removeOps).append(" REMOVE");
-        if (replaceOps > 0 || addOps > 0 || removeOps > 0) summary.append(")");
+        if (replaceOps > 0) {
+            summary.append(" (").append(replaceOps).append(" REPLACE");
+        }
+        if (addOps > 0) {
+            summary.append(", ").append(addOps).append(" ADD");
+        }
+        if (removeOps > 0) {
+            summary.append(", ").append(removeOps).append(" REMOVE");
+        }
+        if (replaceOps > 0 || addOps > 0 || removeOps > 0) {
+            summary.append(")");
+        }
         summary.append("\n");
-        
         summary.append("- Fields modified: ").append(totalFields).append("\n");
-        
+
         return summary.toString();
     }
 

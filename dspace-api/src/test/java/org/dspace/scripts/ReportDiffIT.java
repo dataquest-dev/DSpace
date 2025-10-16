@@ -124,7 +124,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-        assertThat(infoMessages, hasItem(containsString("CLARIN DSpace: Repository Health Report Diff")));
+        assertThat(infoMessages, hasItem(containsString("DSpace at My University: Repository Health Report Diff")));
         assertThat(infoMessages, hasItem(containsString("Section 1: Executive Summary")));
         assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/key: \"value1\" " +
                 "-> \"value2\"")));
@@ -422,31 +422,31 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         List<String> infoMessages = handler.getInfoMessages();
 
         // Test professional report header
-        assertThat(infoMessages, hasItem(containsString("CLARIN DSpace: Repository Health Report Diff")));
-        
+        assertThat(infoMessages, hasItem(containsString("DSpace at My University: Repository Health Report Diff")));
+
         // Test executive summary section
         assertThat(infoMessages, hasItem(containsString("Section 1: Executive Summary")));
         assertThat(infoMessages, hasItem(containsString("Report Type: healthcheck")));
         assertThat(infoMessages, hasItem(containsString("Report Period:")));
-        
+
         // Test key changes table
         assertThat(infoMessages, hasItem(containsString("Key Changes")));
         assertThat(infoMessages, hasItem(containsString("| Field")));
         assertThat(infoMessages, hasItem(containsString("| Difference")));
         assertThat(infoMessages, hasItem(containsString("Assetstore Size (bytes)")));
         assertThat(infoMessages, hasItem(containsString("Log Directory Size (bytes)")));
-        
+
         // Test change types summary
         assertThat(infoMessages, hasItem(containsString("Change Types")));
         assertThat(infoMessages, hasItem(containsString("Content changes:")));
         assertThat(infoMessages, hasItem(containsString("Storage changes:")));
-        
+
         // Test detailed change log section
         assertThat(infoMessages, hasItem(containsString("Section 2: Detailed Change Log")));
         assertThat(infoMessages, hasItem(containsString("Changes Summary")));
         assertThat(infoMessages, hasItem(containsString("Total operations:")));
         assertThat(infoMessages, hasItem(containsString("Fields modified:")));
-        
+
         // Test that the detailed diff still includes individual changes
         assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/publishedItems: 0 -> 2")));
         assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/ePersonsCount: 1 -> 1721")));
@@ -464,7 +464,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         context.commit();
 
         Thread.sleep(1000);
-        
+
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
@@ -481,9 +481,9 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-        
+
         // Should still have professional format even with no changes
-        assertThat(infoMessages, hasItem(containsString("CLARIN DSpace: Repository Health Report Diff")));
+        assertThat(infoMessages, hasItem(containsString("DSpace at My University: Repository Health Report Diff")));
         assertThat(infoMessages, hasItem(containsString("Section 1: Executive Summary")));
         assertThat(infoMessages, hasItem(containsString("No significant changes detected")));
         assertThat(infoMessages, hasItem(containsString("No differences found.")));
@@ -518,7 +518,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-        
+
         // Test that time period calculation is included
         assertThat(infoMessages, hasItem(containsString("Report Period:")));
         // Should show some time difference (seconds or minutes)
@@ -576,29 +576,84 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         // Test enhanced table format
         assertThat(infoMessages, hasItem(containsString("Key Changes Between Reports")));
-        
+
         // Should use actual report dates as column headers (not "Before/After")
         assertThat(infoMessages, not(hasItem(containsString("Before"))));
         assertThat(infoMessages, not(hasItem(containsString("After"))));
-        
+
         // Should have proper table structure with Field and Difference columns
         assertThat(infoMessages, hasItem(containsString("| Field")));
         assertThat(infoMessages, hasItem(containsString("| Difference")));
-        
+
         // Should show changes with proper formatting
         assertThat(infoMessages, hasItem(containsString("+15"))); // Published items increased
         assertThat(infoMessages, hasItem(containsString("+3")));  // EPerson count increased
         assertThat(infoMessages, hasItem(containsString("+2")));  // Collections increased
-        
+
         // Should show field names from configuration
         assertThat(infoMessages, hasItem(containsString("Published Items")));
         assertThat(infoMessages, hasItem(containsString("Users")));
         assertThat(infoMessages, hasItem(containsString("Collections")));
-        
+
         // Should show only changed fields (not unchanged ones like communities)
         boolean hasUnchangedCommunities = infoMessages.stream()
             .anyMatch(msg -> msg.contains("Communities") && msg.contains("| 2") && msg.contains("| 2"));
-        assertThat("Unchanged fields should not appear in table", hasUnchangedCommunities, 
+        assertThat("Unchanged fields should not appear in table", hasUnchangedCommunities,
                    org.hamcrest.Matchers.is(false));
+    }
+
+    @Test
+    public void testSizeDifferenceFormatting() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Create reports with size differences from "0 bytes" to "9 KB"
+        String fromReportJson =
+            "{ \"checks\": [" +
+            "  { \"report\": { \"totalSize\": \"0 bytes\" } }" +
+            "]}";
+
+        String toReportJson =
+            "{ \"checks\": [" +
+            "  { \"report\": { \"totalSize\": \"9 KB\" } }" +
+            "]}";
+
+        ReportResult fromReport = reportResultService.create(context);
+        fromReport.setType("healthcheck");
+        fromReport.setValue(fromReportJson);
+        reportResultService.update(context, fromReport);
+        context.commit();
+
+        // Wait to ensure different timestamps
+        Thread.sleep(1000);
+
+        ReportResult toReport = reportResultService.create(context);
+        toReport.setType("healthcheck");
+        toReport.setValue(toReportJson);
+        reportResultService.update(context, toReport);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        // Reload from database
+        fromReport = reportResultService.find(context, fromReport.getID());
+        toReport = reportResultService.find(context, toReport.getID());
+
+        TestDSpaceRunnableHandler testHandler = new TestDSpaceRunnableHandler();
+
+        String[] args = new String[] {
+            "report-diff",
+            "-f", formatDate(fromReport.getLastModified()),
+            "-t", formatDate(toReport.getLastModified())
+        };
+
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testHandler, kernelImpl);
+
+        List<String> infoMessages = testHandler.getInfoMessages();
+
+        // Verify that size differences show actual byte differences instead of "Changed"
+        boolean hasSizeDifference = infoMessages.stream()
+            .anyMatch(msg -> msg.contains("totalSize") && msg.contains("+9 KB"));
+
+        assertThat("Size differences should show actual size change (+9 KB), not just 'Changed'",
+                   hasSizeDifference, org.hamcrest.Matchers.is(true));
     }
 }
