@@ -124,7 +124,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-        assertThat(infoMessages, hasItem(containsString("Report Diff between two reports:")));
+        assertThat(infoMessages, hasItem(containsString("CLARIN DSpace: Repository Health Report Diff")));
+        assertThat(infoMessages, hasItem(containsString("Section 1: Executive Summary")));
         assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/key: \"value1\" " +
                 "-> \"value2\"")));
     }
@@ -371,5 +372,233 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         assertThat(infoMessages, hasItem(containsString("Report Type: healthcheck")));
         assertThat(infoMessages, not(hasItem(containsString(formatDate(report1.getLastModified())))));
         assertThat(infoMessages, hasItem(containsString(formatDate(report2.getLastModified()))));
+    }
+
+    @Test
+    public void testProfessionalReportFormat() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Create first report with sample health data
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"HealthCheck\",\"report\":{" +
+                "\"publishedItems\":0," +
+                "\"ePersonsCount\":1," +
+                "\"communitiesCount\":0," +
+                "\"generated\":\"2025-08-05 09:49:20\"," +
+                "\"directoryStats\":[" +
+                "{\"size_bytes\":7932,\"size_display\":\"7 KB\"}," +
+                "{\"size_bytes\":2411029,\"size_display\":\"2 MB\"}" +
+                "]}}]}");
+        reportResultService.update(context, report1);
+        context.commit();
+
+        Thread.sleep(1000);
+
+        // Create second report with changes
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"HealthCheck\",\"report\":{" +
+                "\"publishedItems\":2," +
+                "\"ePersonsCount\":1721," +
+                "\"communitiesCount\":9," +
+                "\"generated\":\"2025-08-05 10:04:05\"," +
+                "\"directoryStats\":[" +
+                "{\"size_bytes\":353581,\"size_display\":\"345 KB\"}," +
+                "{\"size_bytes\":9684308,\"size_display\":\"9 MB\"}" +
+                "]}}]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
+                "-t", formatDate(report2.getLastModified()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+
+        // Test professional report header
+        assertThat(infoMessages, hasItem(containsString("CLARIN DSpace: Repository Health Report Diff")));
+        
+        // Test executive summary section
+        assertThat(infoMessages, hasItem(containsString("Section 1: Executive Summary")));
+        assertThat(infoMessages, hasItem(containsString("Report Type: healthcheck")));
+        assertThat(infoMessages, hasItem(containsString("Report Period:")));
+        
+        // Test key changes table
+        assertThat(infoMessages, hasItem(containsString("Key Changes")));
+        assertThat(infoMessages, hasItem(containsString("| Field")));
+        assertThat(infoMessages, hasItem(containsString("| Difference")));
+        assertThat(infoMessages, hasItem(containsString("Assetstore Size (bytes)")));
+        assertThat(infoMessages, hasItem(containsString("Log Directory Size (bytes)")));
+        
+        // Test change types summary
+        assertThat(infoMessages, hasItem(containsString("Change Types")));
+        assertThat(infoMessages, hasItem(containsString("Content changes:")));
+        assertThat(infoMessages, hasItem(containsString("Storage changes:")));
+        
+        // Test detailed change log section
+        assertThat(infoMessages, hasItem(containsString("Section 2: Detailed Change Log")));
+        assertThat(infoMessages, hasItem(containsString("Changes Summary")));
+        assertThat(infoMessages, hasItem(containsString("Total operations:")));
+        assertThat(infoMessages, hasItem(containsString("Fields modified:")));
+        
+        // Test that the detailed diff still includes individual changes
+        assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/publishedItems: 0 -> 2")));
+        assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/ePersonsCount: 1 -> 1721")));
+        assertThat(infoMessages, hasItem(containsString("REPLACE at /checks/0/report/communitiesCount: 0 -> 9")));
+    }
+
+    @Test
+    public void testReportFormatWithNoChanges() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
+        reportResultService.update(context, report1);
+        context.commit();
+
+        Thread.sleep(1000);
+        
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value\"}}]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
+                "-t", formatDate(report2.getLastModified()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+        
+        // Should still have professional format even with no changes
+        assertThat(infoMessages, hasItem(containsString("CLARIN DSpace: Repository Health Report Diff")));
+        assertThat(infoMessages, hasItem(containsString("Section 1: Executive Summary")));
+        assertThat(infoMessages, hasItem(containsString("No significant changes detected")));
+        assertThat(infoMessages, hasItem(containsString("No differences found.")));
+    }
+
+    @Test
+    public void testCalculateTimePeriod() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
+        reportResultService.update(context, report1);
+        context.commit();
+
+        // Wait to ensure measurable time difference
+        Thread.sleep(2000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}}]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
+                "-t", formatDate(report2.getLastModified()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+        
+        // Test that time period calculation is included
+        assertThat(infoMessages, hasItem(containsString("Report Period:")));
+        // Should show some time difference (seconds or minutes)
+        boolean hasTimeDifference = infoMessages.stream()
+            .anyMatch(msg -> msg.contains("seconds") || msg.contains("minutes"));
+        assertThat("Report should show time difference", hasTimeDifference, org.hamcrest.Matchers.is(true));
+    }
+
+    @Test
+    public void testEnhancedKeyChangesTable() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Create first report with sample health data
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Info summary\",\"report\":{}}," +
+                "{\"name\":\"Item summary\",\"report\":{" +
+                "\"publishedItems\":10," +
+                "\"ePersonsCount\":5," +
+                "\"communitiesCount\":2," +
+                "\"collectionsCount\":3," +
+                "\"bitstreamsCount\":15," +
+                "\"workspaceItemsCount\":1" +
+                "}}]}");
+        reportResultService.update(context, report1);
+        context.commit();
+
+        Thread.sleep(1000);
+
+        // Create second report with changes
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Info summary\",\"report\":{}}," +
+                "{\"name\":\"Item summary\",\"report\":{" +
+                "\"publishedItems\":25," +
+                "\"ePersonsCount\":8," +
+                "\"communitiesCount\":2," +
+                "\"collectionsCount\":5," +
+                "\"bitstreamsCount\":30," +
+                "\"workspaceItemsCount\":2" +
+                "}}]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
+                "-t", formatDate(report2.getLastModified()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+
+        // Test enhanced table format
+        assertThat(infoMessages, hasItem(containsString("Key Changes Between Reports")));
+        
+        // Should use actual report dates as column headers (not "Before/After")
+        assertThat(infoMessages, not(hasItem(containsString("Before"))));
+        assertThat(infoMessages, not(hasItem(containsString("After"))));
+        
+        // Should have proper table structure with Field and Difference columns
+        assertThat(infoMessages, hasItem(containsString("| Field")));
+        assertThat(infoMessages, hasItem(containsString("| Difference")));
+        
+        // Should show changes with proper formatting
+        assertThat(infoMessages, hasItem(containsString("+15"))); // Published items increased
+        assertThat(infoMessages, hasItem(containsString("+3")));  // EPerson count increased
+        assertThat(infoMessages, hasItem(containsString("+2")));  // Collections increased
+        
+        // Should show field names from configuration
+        assertThat(infoMessages, hasItem(containsString("Published Items")));
+        assertThat(infoMessages, hasItem(containsString("Users")));
+        assertThat(infoMessages, hasItem(containsString("Collections")));
+        
+        // Should show only changed fields (not unchanged ones like communities)
+        boolean hasUnchangedCommunities = infoMessages.stream()
+            .anyMatch(msg -> msg.contains("Communities") && msg.contains("| 2") && msg.contains("| 2"));
+        assertThat("Unchanged fields should not appear in table", hasUnchangedCommunities, 
+                   org.hamcrest.Matchers.is(false));
     }
 }
