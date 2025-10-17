@@ -10,10 +10,10 @@ ARG JDK_VERSION=11
 ARG DSPACE_VERSION=dspace-7_x
 # The Docker registry to use for DSpace images. Defaults to "docker.io"
 # NOTE: non-DSpace images are hardcoded to use "docker.io" and are not impacted by this build argument
-ARG DOCKER_REGISTRY=dataquest
+ARG DOCKER_REGISTRY=docker.io
 
 # Step 1 - Run Maven Build
-FROM ${DOCKER_REGISTRY}/dspace-dependencies:${DSPACE_VERSION} AS build
+FROM ${DOCKER_REGISTRY}/dataquest/dspace-dependencies:${DSPACE_VERSION} AS build
 ARG TARGET_DIR=dspace-installer
 WORKDIR /app
 # The dspace-installer directory will be written to /install
