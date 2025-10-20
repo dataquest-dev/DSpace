@@ -894,11 +894,6 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="europe-directpagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
 
         <!-- OpenAIRE submission step definitions -->
         <step-definition id="OpenAIREpageone" mandatory="true">
@@ -908,11 +903,6 @@
         </step-definition>
         <step-definition id="OpenAIREpagetwo" mandatory="true">
             <heading>submit.progressbar.describe.steptwo</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
-        <step-definition id="OpenAIREpagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
@@ -928,11 +918,6 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="ekonomicka_revuepagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
 
         <!-- AEEE publication submission step definitions -->
         <step-definition id="publikacni_AEEEpageone" mandatory="true">
@@ -945,11 +930,6 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="publikacni_AEEEpagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
 
         <!-- Geoscience Engineering submission step definitions -->
         <step-definition id="GeoscienceEngineeringpageone" mandatory="true">
@@ -959,11 +939,6 @@
         </step-definition>
         <step-definition id="GeoscienceEngineeringpagetwo" mandatory="true">
             <heading>submit.progressbar.describe.steptwo</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
-        <step-definition id="GeoscienceEngineeringpagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
@@ -1471,6 +1446,7 @@
             <step id="collection"/>
             <step id="e-vyuka-9270pageone"/>
             <step id="e-vyuka-9270pagetwo"/>
+            <step id="e-vyuka-9270pagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1480,6 +1456,7 @@
             <step id="collection"/>
             <step id="e-vyuka-EKFpageone"/>
             <step id="e-vyuka-EKFpagetwo"/>
+            <step id="e-vyuka-EKFpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1489,6 +1466,7 @@
             <step id="collection"/>
             <step id="e-vyuka-FBIpageone"/>
             <step id="e-vyuka-FBIpagetwo"/>
+            <step id="e-vyuka-FBIpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1498,6 +1476,7 @@
             <step id="collection"/>
             <step id="e-vyuka-FEIpageone"/>
             <step id="e-vyuka-FEIpagetwo"/>
+            <step id="e-vyuka-FEIpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1507,6 +1486,7 @@
             <step id="collection"/>
             <step id="e-vyuka-FMTpageone"/>
             <step id="e-vyuka-FMTpagetwo"/>
+            <step id="e-vyuka-FMTpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1516,6 +1496,7 @@
             <step id="collection"/>
             <step id="e-vyuka-FASTpageone"/>
             <step id="e-vyuka-FASTpagetwo"/>
+            <step id="e-vyuka-FASTpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1525,6 +1506,7 @@
             <step id="collection"/>
             <step id="e-vyuka-FSpageone"/>
             <step id="e-vyuka-FSpagetwo"/>
+            <step id="e-vyuka-FSpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1534,6 +1516,7 @@
             <step id="collection"/>
             <step id="e-vyuka-HGFpageone"/>
             <step id="e-vyuka-HGFpagetwo"/>
+            <step id="e-vyuka-HGFpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
