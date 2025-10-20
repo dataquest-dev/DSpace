@@ -161,21 +161,21 @@
            <hint>Uveďte, pokud potřebujete nastavit něco, na co nemáte dostatečná oprávnění.</hint>
          </field>
        </row>
-
-       <row>
-         <field>
-           <dc-schema>dc</dc-schema>
-           <dc-element>description</dc-element>
-           <dc-qualifier>placeofpublication</dc-qualifier>
-           <repeatable>false</repeatable>
-           <label>Místo vydání</label>
-           <input-type>onebox</input-type>
-           <hint>Zadejte místo vydání.</hint>
-         </field>
-       </row>
     </form>
 
     <form name="e-vyuka-PARAMpagethree">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>placeofpublication</dc-qualifier>
+          <repeatable>false</repeatable>
+          <label>Místo vydání</label>
+          <input-type>onebox</input-type>
+          <hint>Zadejte místo vydání.</hint>
+        </field>
+      </row>
+
        <row>
          <field>
            <dc-schema>dc</dc-schema>
