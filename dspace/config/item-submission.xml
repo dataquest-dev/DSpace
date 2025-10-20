@@ -894,11 +894,6 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="europe-directpagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
 
         <!-- OpenAIRE submission step definitions -->
         <step-definition id="OpenAIREpageone" mandatory="true">
@@ -908,11 +903,6 @@
         </step-definition>
         <step-definition id="OpenAIREpagetwo" mandatory="true">
             <heading>submit.progressbar.describe.steptwo</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
-        <step-definition id="OpenAIREpagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
@@ -928,11 +918,6 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="ekonomicka_revuepagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
 
         <!-- AEEE publication submission step definitions -->
         <step-definition id="publikacni_AEEEpageone" mandatory="true">
@@ -945,11 +930,6 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
-        <step-definition id="publikacni_AEEEpagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
 
         <!-- Geoscience Engineering submission step definitions -->
         <step-definition id="GeoscienceEngineeringpageone" mandatory="true">
@@ -959,11 +939,6 @@
         </step-definition>
         <step-definition id="GeoscienceEngineeringpagetwo" mandatory="true">
             <heading>submit.progressbar.describe.steptwo</heading>
-            <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-            <type>submission-form</type>
-        </step-definition>
-        <step-definition id="GeoscienceEngineeringpagethree" mandatory="true">
-            <heading>submit.progressbar.describe.stepthree</heading>
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
@@ -1421,7 +1396,6 @@
             <step id="collection"/>
             <step id="europe-directpageone"/>
             <step id="europe-directpagetwo"/>
-            <step id="europe-directpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1432,7 +1406,6 @@
             <step id="collection"/>
             <step id="OpenAIREpageone"/>
             <step id="OpenAIREpagetwo"/>
-            <step id="OpenAIREpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1443,7 +1416,6 @@
             <step id="collection"/>
             <step id="ekonomicka_revuepageone"/>
             <step id="ekonomicka_revuepagetwo"/>
-            <step id="ekonomicka_revuepagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1454,7 +1426,6 @@
             <step id="collection"/>
             <step id="publikacni_AEEEpageone"/>
             <step id="publikacni_AEEEpagetwo"/>
-            <step id="publikacni_AEEEpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
@@ -1465,7 +1436,6 @@
             <step id="collection"/>
             <step id="GeoscienceEngineeringpageone"/>
             <step id="GeoscienceEngineeringpagetwo"/>
-            <step id="GeoscienceEngineeringpagethree"/>
             <step id="uploadOptional"/>
             <step id="cclicense"/>
             <step id="license"/>
