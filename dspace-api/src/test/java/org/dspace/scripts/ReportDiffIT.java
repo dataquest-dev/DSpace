@@ -222,8 +222,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         List<String> infoMessages = handler.getInfoMessages();
         assertThat(infoMessages, hasItem(containsString(expectedReplace(CHECK_KEY_PATH, "value1", "value2"))));
         assertThat("Should contain REPLACE operation for key field",
-        hasDiffOperation(infoMessages, "REPLACE", CHECK_KEY_PATH), 
-                   org.hamcrest.Matchers.is(true));
+                hasDiffOperation(infoMessages, "REPLACE", CHECK_KEY_PATH),
+                org.hamcrest.Matchers.is(true));
     }
 
     @Test
