@@ -128,13 +128,17 @@ public class CachingOrcidRestConnector {
      */
     @Cacheable(cacheNames = "orcid-labels", unless = "#result == null")
     public String getLabel(String orcid) {
-        log.debug("getLabel: " + orcid);
-        // in theory, we could use orcid.org/v3.0/<ORCID>/personal-details, but didn't want to write another converter
-        ExpandedSearchConverter.Results search = search("orcid:" + orcid, 0, 1);
-        if (search.isOk() && search.numFound() > 0) {
-            return search.results().get(0).label();
-        }
+        log.debug("getLabel: " + orcid + " - ORCID lookup disabled, returning null");
+        // COMMENTED OUT: ORCID API calls disabled to reduce excessive requests
+        // Return null to force indexing to use the metadata value instead
         return null;
+        // ORIGINAL CODE (commented out):
+        // in theory, we could use orcid.org/v3.0/<ORCID>/personal-details, but didn't want to write another converter
+        // ExpandedSearchConverter.Results search = search("orcid:" + orcid, 0, 1);
+        // if (search.isOk() && search.numFound() > 0) {
+        //     return search.results().get(0).label();
+        // }
+        // return null;
     }
 
     protected String getAccessToken(String clientSecret, String clientId, String OAUTHUrl) {
