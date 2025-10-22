@@ -98,12 +98,12 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         policyToBeCreated.setEPerson(ePerson);
         policyToBeCreated.setGroup(group);
         ResourcePolicy resourcePolicy = resourcePolicyDAO.create(context, policyToBeCreated);
-        
+
         // Add provenance when resource policy is attached to a DSpace object
         if (resourcePolicy.getdSpaceObject() != null) {
             provenanceService.createResourcePolicy(context, resourcePolicy);
         }
-        
+
         return resourcePolicy;
     }
 
@@ -163,12 +163,12 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
     @Override
     public void delete(Context context, ResourcePolicy resourcePolicy) throws SQLException, AuthorizeException {
         // FIXME: authorizations
-        
+
         // Add provenance before deletion
         if (resourcePolicy.getdSpaceObject() != null) {
             provenanceService.deleteResourcePolicy(context, resourcePolicy);
         }
-        
+
         // Remove ourself
         resourcePolicyDAO.delete(context, resourcePolicy);
 

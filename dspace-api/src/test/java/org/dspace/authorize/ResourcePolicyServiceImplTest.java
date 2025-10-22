@@ -75,7 +75,7 @@ public class ResourcePolicyServiceImplTest extends AbstractUnitTest {
     @Before
     public void setUp() throws Exception {
         context = new Context();
-        
+
         // Create mock objects
         resourcePolicy = mock(ResourcePolicy.class);
         eperson = mock(EPerson.class);

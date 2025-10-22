@@ -355,11 +355,11 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         if (resourcePolicy.getdSpaceObject() == null) {
             return;
         }
-        
+
         DSpaceObject dso = resourcePolicy.getdSpaceObject();
         String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
         String dsoType = getDSpaceObjectType(dso.getType());
-        
+
         try {
             if (dso.getType() == Constants.ITEM) {
                 Item item = (Item) dso;
@@ -387,11 +387,11 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         if (resourcePolicy.getdSpaceObject() == null) {
             return;
         }
-        
+
         DSpaceObject dso = resourcePolicy.getdSpaceObject();
         String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
         String dsoType = getDSpaceObjectType(dso.getType());
-        
+
         try {
             if (dso.getType() == Constants.ITEM) {
                 Item item = (Item) dso;
@@ -419,11 +419,11 @@ public class ProvenanceServiceImpl implements ProvenanceService {
         if (resourcePolicy.getdSpaceObject() == null) {
             return;
         }
-        
+
         DSpaceObject dso = resourcePolicy.getdSpaceObject();
         String resourcePolicyStr = messageProvider.getMessage(resourcePolicy);
         String dsoType = getDSpaceObjectType(dso.getType());
-        
+
         try {
             if (dso.getType() == Constants.ITEM) {
                 Item item = (Item) dso;

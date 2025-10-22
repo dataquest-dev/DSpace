@@ -71,7 +71,7 @@ public class ProvenanceServiceImplTest extends AbstractUnitTest {
     @Before
     public void setUp() throws Exception {
         context = new Context();
-        
+
         // Create mock objects
         item = mock(Item.class);
         bitstream = mock(Bitstream.class);
@@ -99,12 +99,12 @@ public class ProvenanceServiceImplTest extends AbstractUnitTest {
 
         // Assert
         verify(itemService, times(1)).addMetadata(
-            eq(context), 
-            eq(item), 
-            eq(MetadataSchemaEnum.DC.getName()), 
-            eq("description"), 
-            eq("provenance"), 
-            eq("en"), 
+            eq(context),
+            eq(item),
+            eq(MetadataSchemaEnum.DC.getName()),
+            eq("description"),
+            eq("provenance"),
+            eq("en"),
             any(String.class)
         );
         verify(itemService, times(1)).update(context, item);
@@ -125,12 +125,12 @@ public class ProvenanceServiceImplTest extends AbstractUnitTest {
 
         // Assert
         verify(itemService, times(1)).addMetadata(
-            eq(context), 
-            eq(item), 
-            eq(MetadataSchemaEnum.DC.getName()), 
-            eq("description"), 
-            eq("provenance"), 
-            eq("en"), 
+            eq(context),
+            eq(item),
+            eq(MetadataSchemaEnum.DC.getName()),
+            eq("description"),
+            eq("provenance"),
+            eq("en"),
             any(String.class)
         );
         verify(itemService, times(1)).update(context, item);
@@ -149,12 +149,12 @@ public class ProvenanceServiceImplTest extends AbstractUnitTest {
 
         // Assert
         verify(itemService, times(1)).addMetadata(
-            eq(context), 
-            eq(item), 
-            eq(MetadataSchemaEnum.DC.getName()), 
-            eq("description"), 
-            eq("provenance"), 
-            eq("en"), 
+            eq(context),
+            eq(item),
+            eq(MetadataSchemaEnum.DC.getName()),
+            eq("description"),
+            eq("provenance"),
+            eq("en"),
             any(String.class)
         );
         verify(itemService, times(1)).update(context, item);
@@ -173,12 +173,12 @@ public class ProvenanceServiceImplTest extends AbstractUnitTest {
 
         // Assert
         verify(itemService, times(1)).addMetadata(
-            eq(context), 
-            eq(item), 
-            eq(MetadataSchemaEnum.DC.getName()), 
-            eq("description"), 
-            eq("provenance"), 
-            eq("en"), 
+            eq(context),
+            eq(item),
+            eq(MetadataSchemaEnum.DC.getName()),
+            eq("description"),
+            eq("provenance"),
+            eq("en"),
             any(String.class)
         );
         verify(itemService, times(1)).update(context, item);
@@ -195,7 +195,8 @@ public class ProvenanceServiceImplTest extends AbstractUnitTest {
         provenanceService.deleteResourcePolicy(context, resourcePolicy);
 
         // Assert - No provenance should be added when dSpaceObject is null
-        verify(itemService, never()).addMetadata(any(Context.class), any(Item.class), any(String.class), any(String.class), any(String.class), any(String.class), any(String.class));
+        verify(itemService, never()).addMetadata(any(Context.class), any(Item.class), any(String.class),
+            any(String.class), any(String.class), any(String.class), any(String.class));
         verify(itemService, never()).update(any(), any());
     }
 
@@ -211,7 +212,8 @@ public class ProvenanceServiceImplTest extends AbstractUnitTest {
         provenanceService.createResourcePolicy(context, resourcePolicy);
 
         // Assert - No provenance should be added when bitstream has no associated item
-        verify(itemService, never()).addMetadata(any(Context.class), any(Item.class), any(String.class), any(String.class), any(String.class), any(String.class), any(String.class));
+        verify(itemService, never()).addMetadata(any(Context.class), any(Item.class), any(String.class),
+            any(String.class), any(String.class), any(String.class), any(String.class));
         verify(itemService, never()).update(any(), any());
     }
 
@@ -232,12 +234,12 @@ public class ProvenanceServiceImplTest extends AbstractUnitTest {
 
         // Assert
         verify(itemService, times(1)).addMetadata(
-            eq(context), 
-            eq(item), 
-            eq(MetadataSchemaEnum.DC.getName()), 
-            eq("description"), 
-            eq("provenance"), 
-            eq("en"), 
+            eq(context),
+            eq(item),
+            eq(MetadataSchemaEnum.DC.getName()),
+            eq("description"),
+            eq("provenance"),
+            eq("en"),
             any(String.class)
         );
         verify(itemService, times(1)).update(context, item);
@@ -248,14 +250,16 @@ public class ProvenanceServiceImplTest extends AbstractUnitTest {
         // Arrange
         when(resourcePolicy.getdSpaceObject()).thenReturn(item);
         when(item.getType()).thenReturn(Constants.ITEM);
-        when(itemService.addMetadata(any(Context.class), any(Item.class), any(String.class), any(String.class), any(String.class), any(String.class), any(String.class)))
+        when(itemService.addMetadata(any(Context.class), any(Item.class), any(String.class),
+            any(String.class), any(String.class), any(String.class), any(String.class)))
             .thenThrow(new SQLException("Database error"));
 
         // Act - Should not throw exception, but log error
         provenanceService.createResourcePolicy(context, resourcePolicy);
 
         // Assert - Exception should be caught and logged
-        verify(itemService, times(1)).addMetadata(any(Context.class), any(Item.class), any(String.class), any(String.class), any(String.class), any(String.class), any(String.class));
+        verify(itemService, times(1)).addMetadata(any(Context.class), any(Item.class), any(String.class),
+            any(String.class), any(String.class), any(String.class), any(String.class));
         verify(itemService, never()).update(any(), any()); // Should not reach update due to exception
     }
 
@@ -264,14 +268,16 @@ public class ProvenanceServiceImplTest extends AbstractUnitTest {
         // Arrange
         when(resourcePolicy.getdSpaceObject()).thenReturn(item);
         when(item.getType()).thenReturn(Constants.ITEM);
-        when(itemService.addMetadata(any(Context.class), any(Item.class), any(String.class), any(String.class), any(String.class), any(String.class), any(String.class)))
+        when(itemService.addMetadata(any(Context.class), any(Item.class), any(String.class),
+            any(String.class), any(String.class), any(String.class), any(String.class)))
             .thenThrow(new AuthorizeException("Authorization error"));
 
         // Act - Should not throw exception, but log error
         provenanceService.updateResourcePolicy(context, resourcePolicy);
 
         // Assert - Exception should be caught and logged
-        verify(itemService, times(1)).addMetadata(any(Context.class), any(Item.class), any(String.class), any(String.class), any(String.class), any(String.class), any(String.class));
+        verify(itemService, times(1)).addMetadata(any(Context.class), any(Item.class), any(String.class),
+            any(String.class), any(String.class), any(String.class), any(String.class));
         verify(itemService, never()).update(any(), any()); // Should not reach update due to exception
     }
 }
