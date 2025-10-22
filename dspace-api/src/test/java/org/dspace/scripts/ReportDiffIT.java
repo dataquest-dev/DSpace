@@ -24,9 +24,9 @@ import org.dspace.app.healthreport.HealthReport;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.content.ReportResult;
-import org.dspace.health.DateFormatConstants;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ReportResultService;
+import org.dspace.health.DateFormatConstants;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,7 +47,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
      * These reduce brittleness by centralizing the expected format strings.
      */
     private static final String DIFF_REPLACE_PATTERN = "REPLACE at %s: %s -> %s";
-    
+
     /**
      * Constants for common JSON paths used in tests.
      * These make tests more maintainable by avoiding hardcoded paths throughout the test file.
@@ -222,7 +222,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         List<String> infoMessages = handler.getInfoMessages();
         assertThat(infoMessages, hasItem(containsString(expectedReplace(CHECK_KEY_PATH, "value1", "value2"))));
         assertThat("Should contain REPLACE operation for key field",
-                   hasDiffOperation(infoMessages, "REPLACE", CHECK_KEY_PATH), 
+        hasDiffOperation(infoMessages, "REPLACE", CHECK_KEY_PATH), 
                    org.hamcrest.Matchers.is(true));
     }
 
