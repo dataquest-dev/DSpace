@@ -34,8 +34,9 @@ public class InfoCheck extends Check {
         sb.append("Generated: ").append(generatedStr).append("\n");
         root.put("generated", generatedStr);
 
-        String fromTill = "From - Till: " + new SimpleDateFormat(DateFormatConstants.DATE_FORMAT).format(ri.from().getTime()) +
-            " - " + new SimpleDateFormat(DateFormatConstants.DATE_FORMAT).format(ri.till().getTime());
+        String fromTill = "From - Till: " 
+            + new SimpleDateFormat(DateFormatConstants.DATE_FORMAT).format(ri.from().getTime())
+            + " - " + new SimpleDateFormat(DateFormatConstants.DATE_FORMAT).format(ri.till().getTime());
         sb.append(fromTill).append("\n");
         root.put("fromTill", fromTill);
 

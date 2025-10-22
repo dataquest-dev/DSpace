@@ -42,6 +42,6 @@ public final class DateFormatConstants {
     /**
      * DateTimeFormatter for extended datetime format with milliseconds.
      */
-    public static final DateTimeFormatter DATETIME_WITH_MILLIS_FORMATTER = 
+    public static final DateTimeFormatter DATETIME_WITH_MILLIS_FORMATTER =
             DateTimeFormatter.ofPattern(DATETIME_WITH_MILLIS_FORMAT);
 }
