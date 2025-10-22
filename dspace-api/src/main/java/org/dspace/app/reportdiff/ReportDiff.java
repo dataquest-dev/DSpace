@@ -40,6 +40,7 @@ import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.health.DateFormatConstants;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -96,7 +97,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      */
     private String[] emails;
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final DateTimeFormatter FORMATTER = DateFormatConstants.DATETIME_WITH_MILLIS_FORMATTER;
 
     private static final String REPORT_DIFF_FIELDS = "report-diff-fields.json";
     private static final String FIELD_MAPPINGS_KEY = "fieldMappings";
@@ -446,10 +447,6 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 fromReport.getLastModified(), toReport.getLastModified());
         sb.append(keyChangesTable);
 
-        // Change Types Summary
-        String changeTypesSummary = generateChangeTypesSummary(fromJson, toJson);
-        sb.append("\n").append(changeTypesSummary).append("\n\n");
-
         // Detailed Change Log
         sb.append("Section 2: Detailed Change Log\n\n");
         sb.append("Changes Summary\n");
@@ -490,7 +487,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             }
             return result;
         } else if (minutes > 0) {
-            return minutes + " minute" + (minutes != 1 ? "s" : "");
+            String result = minutes + " minute" + (minutes != 1 ? "s" : "");
+            if (seconds > 0) {
+                result += " " + seconds + " second" + (seconds != 1 ? "s" : "");
+            }
+            return result;
         } else if (seconds > 0) {
             return seconds + " second" + (seconds != 1 ? "s" : "");
         } else {
@@ -661,7 +662,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         }
 
         // Format dates for column headers
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(DateFormatConstants.DATETIME_FORMAT);
         String fromDateStr = dateFormat.format(fromDate);
         String toDateStr = dateFormat.format(toDate);
 
@@ -757,60 +758,6 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             this.newValue = newValue;
             this.difference = difference;
         }
-    }
-
-    /**
-     * Generate change types summary.
-     *
-     * @param oldJson the old JSON report
-     * @param newJson the new JSON report
-     * @return summary string
-     * @throws IOException if JSON parsing fails
-     */
-    private String generateChangeTypesSummary(String oldJson, String newJson) throws IOException {
-        JsonNode oldNode = mapper.readTree(oldJson);
-        JsonNode newNode = mapper.readTree(newJson);
-        JsonNode patch = JsonDiff.asJson(oldNode, newNode);
-
-        int contentChanges = 0;
-        int storageChanges = 0;
-        int systemChanges = 0;
-
-        if (patch.isArray()) {
-            for (JsonNode op : patch) {
-                String path = op.path("path").asText();
-
-                if (path.contains("publishedItems") || path.contains("ePersonsCount") ||
-                    path.contains("communitiesCount")) {
-                    contentChanges++;
-                } else if (path.contains("directoryStats") || path.contains("size")) {
-                    storageChanges++;
-                } else if (path.contains("generated")) {
-                    systemChanges++;
-                }
-            }
-        }
-
-        StringBuilder summary = new StringBuilder();
-        summary.append("Change Types\n");
-        if (contentChanges > 0) {
-            summary.append("- Content changes: ").append(contentChanges)
-                   .append(" (publishedItems, ePersonsCount, communitiesCount)\n");
-        }
-        if (storageChanges > 0) {
-            summary.append("- Storage changes: ").append(storageChanges)
-                   .append(" (directory metrics)\n");
-        }
-        if (systemChanges > 0) {
-            summary.append("- System changes: ").append(systemChanges)
-                   .append(" (report generation time)\n");
-        }
-
-        if (contentChanges == 0 && storageChanges == 0 && systemChanges == 0) {
-            summary.append("- No significant changes detected\n");
-        }
-
-        return summary.toString();
     }
 
     /**

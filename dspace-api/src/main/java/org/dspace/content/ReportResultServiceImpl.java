@@ -65,7 +65,8 @@ public class ReportResultServiceImpl implements ReportResultService {
 
     @Override
     public void update(Context context, ReportResult reportResult) throws SQLException {
-        // Let @UpdateTimestamp handle the timestamp automatically
+        // The @UpdateTimestamp annotation on the lastModified field of ReportResult
+        // automatically updates lastModified when the entity is saved.
         reportResultDAO.save(context, reportResult);
     }
 }

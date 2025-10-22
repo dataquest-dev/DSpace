@@ -45,25 +45,25 @@ public class ItemCheck extends Check {
 
     private static final BitstreamService bitstreamService =
             ContentServiceFactory.getInstance().getBitstreamService();
-    private static final  BundleService bundleService =
+    private static final BundleService bundleService =
             ContentServiceFactory.getInstance().getBundleService();
-    private static final  CollectionService collectionService =
+    private static final CollectionService collectionService =
             ContentServiceFactory.getInstance().getCollectionService();
-    private static final  CommunityService communityService =
+    private static final CommunityService communityService =
             ContentServiceFactory.getInstance().getCommunityService();
-    private static final  MetadataValueService metadataValueService =
+    private static final MetadataValueService metadataValueService =
             ContentServiceFactory.getInstance().getMetadataValueService();
-    private static final  ItemService itemService =
+    private static final ItemService itemService =
             ContentServiceFactory.getInstance().getItemService();
-    private static final  WorkspaceItemService workspaceItemService =
+    private static final WorkspaceItemService workspaceItemService =
             ContentServiceFactory.getInstance().getWorkspaceItemService();
-    private static final  XmlWorkflowItemService workflowItemService =
+    private static final XmlWorkflowItemService workflowItemService =
             XmlWorkflowServiceFactory.getInstance().getXmlWorkflowItemService();
-    private static final  HandleService handleService =
+    private static final HandleService handleService =
             HandleServiceFactory.getInstance().getHandleService();
-    private static final  EPersonService ePersonService =
+    private static final EPersonService ePersonService =
             EPersonServiceFactory.getInstance().getEPersonService();
-    private static final  GroupService groupService =
+    private static final GroupService groupService =
             EPersonServiceFactory.getInstance().getGroupService();
 
 

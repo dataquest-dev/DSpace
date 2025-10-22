@@ -23,8 +23,6 @@ import org.json.JSONObject;
  */
 public class InfoCheck extends Check {
 
-    private static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-
     @Override
     public String run(ReportInfo ri) {
         ConfigurationService configurationService
@@ -32,12 +30,12 @@ public class InfoCheck extends Check {
         StringBuilder sb = new StringBuilder();
         JSONObject root = new JSONObject();
 
-        String generatedStr = new SimpleDateFormat(DATETIME_FORMAT).format(new Date());
+        String generatedStr = new SimpleDateFormat(DateFormatConstants.DATETIME_FORMAT).format(new Date());
         sb.append("Generated: ").append(generatedStr).append("\n");
         root.put("generated", generatedStr);
 
-        String fromTill = "From - Till: " + new SimpleDateFormat("yyyy-MM-dd").format(ri.from().getTime()) +
-            " - " + new SimpleDateFormat("yyyy-MM-dd").format(ri.till().getTime());
+        String fromTill = "From - Till: " + new SimpleDateFormat(DateFormatConstants.DATE_FORMAT).format(ri.from().getTime()) +
+            " - " + new SimpleDateFormat(DateFormatConstants.DATE_FORMAT).format(ri.till().getTime());
         sb.append(fromTill).append("\n");
         root.put("fromTill", fromTill);
 
