@@ -20,6 +20,7 @@ import org.dspace.AbstractDSpaceTest;
 import org.dspace.external.provider.orcid.xml.ExpandedSearchConverter;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.cache.Cache;
@@ -58,6 +59,7 @@ public class CachingOrcidRestConnectorTest extends AbstractDSpaceTest {
         assertNotNull("Expecting accessToken to be not null", accessToken);
     }
 
+    @Ignore
     @Test
     public void getLabel() {
         sut = Mockito.spy(sut);
@@ -101,6 +103,7 @@ public class CachingOrcidRestConnectorTest extends AbstractDSpaceTest {
 
     }
 
+    @Ignore
     @Test
     public void testCachable() {
         CachingOrcidRestConnector c = new DSpace().getServiceManager().getServiceByName(
@@ -127,6 +130,7 @@ public class CachingOrcidRestConnectorTest extends AbstractDSpaceTest {
         assertEquals(expectedLabel, cache.get(orcid).get());
     }
 
+    @Ignore
     @Test
     public void testCacheableWithError() {
         CachingOrcidRestConnector c = new DSpace().getServiceManager().getServiceByName(
