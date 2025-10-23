@@ -61,6 +61,7 @@ import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -75,6 +76,9 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
 
     @Autowired
     AuthorizeService authorizeService;
+
+    @Autowired
+    EPersonService ePersonService;
 
     @Autowired
     ResourcePolicyService resourcePolicyService;
@@ -1734,6 +1738,12 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
         }
 
         context.restoreAuthSystemState();
+
+        colAdmin = ePersonService.find(context, colAdmin.getID());
+        colAdmin2 = ePersonService.find(context, colAdmin2.getID());
+        submitter = ePersonService.find(context, submitter.getID());
+
+        context.setCurrentUser(submitter);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         String authcolAdminToken = getAuthToken(colAdmin.getEmail(), password);

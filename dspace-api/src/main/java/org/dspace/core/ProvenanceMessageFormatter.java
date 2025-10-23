@@ -50,6 +50,14 @@ public class ProvenanceMessageFormatter {
         EPerson currentUser = context.getCurrentUser();
         String timestamp = DCDate.getCurrent().toString();
         String details = validateMessageTemplate(messageTemplate, args);
+
+        // Handle null user case
+        if (currentUser == null) {
+            return String.format("%s by None on %s",
+                    details,
+                    timestamp);
+        }
+
         return String.format("%s by %s (%s) on %s",
                 details,
                 currentUser.getFullName(),
