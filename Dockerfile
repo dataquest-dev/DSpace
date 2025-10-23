@@ -81,6 +81,8 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 WORKDIR /usr/local/tomcat/bin
 RUN chmod u+x redebug.sh undebug.sh custom_run.sh
 
+# For security reasons docker container should not run as root, therefore we create 
+# user dspace and give him sufficient access rights.
 RUN groupadd -g 999 dspace && useradd -u 999 -g 999 -r -s /bin/bash dspace \
     && chown -R dspace:dspace /dspace /usr/local/tomcat
 
