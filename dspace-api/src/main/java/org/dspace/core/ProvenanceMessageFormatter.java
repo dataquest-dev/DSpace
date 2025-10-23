@@ -96,13 +96,26 @@ public class ProvenanceMessageFormatter {
     }
 
     public String getMessage(ResourcePolicy resourcePolicy) {
-        return String.format("[Action: %s, %s%s%s%s%s]",
-                Constants.actionText[resourcePolicy.getAction()],
-                resourcePolicy.getEPerson() != null ? "EPerson: " + resourcePolicy.getEPerson().getEmail() : "",
-                resourcePolicy.getGroup() != null ? "Group: " + resourcePolicy.getGroup().getName() : "",
-                resourcePolicy.getStartDate() != null ? ", Start: " + resourcePolicy.getStartDate().toString() : "",
-                resourcePolicy.getEndDate() != null ? ", End: " + resourcePolicy.getEndDate().toString() : "",
-                resourcePolicy.getRpDescription() != null ? ", Description: " + resourcePolicy.getRpDescription() : "");
+        StringBuilder sb = new StringBuilder();
+        sb.append("[Action: ")
+                .append(Constants.actionText[resourcePolicy.getAction()]);
+        if (resourcePolicy.getEPerson() != null) {
+            sb.append(", EPerson: ").append(resourcePolicy.getEPerson().getEmail());
+        }
+        if (resourcePolicy.getGroup() != null) {
+            sb.append(", Group: ").append(resourcePolicy.getGroup().getName());
+        }
+        if (resourcePolicy.getStartDate() != null) {
+            sb.append(", Start: ").append(resourcePolicy.getStartDate().toString());
+        }
+        if (resourcePolicy.getEndDate() != null) {
+            sb.append(", End: ").append(resourcePolicy.getEndDate().toString());
+        }
+        if (resourcePolicy.getRpDescription() != null) {
+            sb.append(", Description: ").append(resourcePolicy.getRpDescription());
+        }
+        sb.append("]");
+        return sb.toString();
     }
 
     public String getMetadata(String oldMtdKey, String oldMtdValue) {
