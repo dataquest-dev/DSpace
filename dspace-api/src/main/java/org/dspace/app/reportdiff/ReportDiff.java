@@ -427,7 +427,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         // Header
         ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         String dspaceName = configurationService.getProperty("dspace.name", "DSpace");
-        sb.append(dspaceName + ": Repository Health Report Diff\n\n");
+        sb.append(dspaceName).append(": Repository Health Report Diff\n\n");
 
         // Executive Summary
         sb.append("Section 1: Executive Summary\n");
@@ -661,10 +661,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                    "No significant changes detected between reports.\n\n";
         }
 
-        // Format dates for column headers
-        SimpleDateFormat dateFormat = new SimpleDateFormat(DateFormatConstants.DATETIME_FORMAT);
-        String fromDateStr = dateFormat.format(fromDate);
-        String toDateStr = dateFormat.format(toDate);
+    // Format dates for column headers using thread-safe DateTimeFormatter
+    String fromDateStr = fromDate.toInstant().atZone(java.time.ZoneId.systemDefault()).format(FORMATTER);
+    String toDateStr = toDate.toInstant().atZone(java.time.ZoneId.systemDefault()).format(FORMATTER);
 
         // Calculate dynamic column widths including header content
         int fieldWidth = Math.max("Field".length(),

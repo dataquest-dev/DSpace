@@ -40,6 +40,20 @@ public final class DateFormatConstants {
     public static final String DATETIME_WITH_MILLIS_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
 
     /**
+     * DateTimeFormatter for simple date format (yyyy-MM-dd).
+     * Thread-safe alternative to SimpleDateFormat.
+     */
+    public static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern(DATE_FORMAT);
+
+    /**
+     * DateTimeFormatter for datetime format (yyyy-MM-dd HH:mm:ss).
+     * Thread-safe alternative to SimpleDateFormat.
+     */
+    public static final DateTimeFormatter DATETIME_FORMATTER =
+            DateTimeFormatter.ofPattern(DATETIME_FORMAT);
+
+    /**
      * DateTimeFormatter for extended datetime format with milliseconds.
      */
     public static final DateTimeFormatter DATETIME_WITH_MILLIS_FORMATTER =

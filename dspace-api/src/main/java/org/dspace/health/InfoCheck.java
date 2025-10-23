@@ -8,8 +8,8 @@
 package org.dspace.health;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.apache.commons.io.FileUtils;
 import org.dspace.services.ConfigurationService;
@@ -30,13 +30,13 @@ public class InfoCheck extends Check {
         StringBuilder sb = new StringBuilder();
         JSONObject root = new JSONObject();
 
-        String generatedStr = new SimpleDateFormat(DateFormatConstants.DATETIME_FORMAT).format(new Date());
+        String generatedStr = LocalDateTime.now().format(DateFormatConstants.DATETIME_FORMATTER);
         sb.append("Generated: ").append(generatedStr).append("\n");
         root.put("generated", generatedStr);
 
         String fromTill = "From - Till: "
-            + new SimpleDateFormat(DateFormatConstants.DATE_FORMAT).format(ri.from().getTime())
-            + " - " + new SimpleDateFormat(DateFormatConstants.DATE_FORMAT).format(ri.till().getTime());
+            + ri.from().toInstant().atZone(ZoneId.systemDefault()).format(DateFormatConstants.DATE_FORMATTER)
+            + " - " + ri.till().toInstant().atZone(ZoneId.systemDefault()).format(DateFormatConstants.DATE_FORMATTER);
         sb.append(fromTill).append("\n");
         root.put("fromTill", fromTill);
 
