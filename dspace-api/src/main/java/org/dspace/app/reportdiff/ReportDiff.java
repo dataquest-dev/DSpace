@@ -10,7 +10,6 @@ package org.dspace.app.reportdiff;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -661,9 +660,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                    "No significant changes detected between reports.\n\n";
         }
 
-    // Format dates for column headers using thread-safe DateTimeFormatter
-    String fromDateStr = fromDate.toInstant().atZone(java.time.ZoneId.systemDefault()).format(FORMATTER);
-    String toDateStr = toDate.toInstant().atZone(java.time.ZoneId.systemDefault()).format(FORMATTER);
+        // Format dates for column headers using thread-safe DateTimeFormatter
+        String fromDateStr = fromDate.toInstant().atZone(java.time.ZoneId.systemDefault()).format(FORMATTER);
+        String toDateStr = toDate.toInstant().atZone(java.time.ZoneId.systemDefault()).format(FORMATTER);
 
         // Calculate dynamic column widths including header content
         int fieldWidth = Math.max("Field".length(),
