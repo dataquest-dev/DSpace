@@ -11,44 +11,37 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Constants class for date format patterns used across health check and report diff functionality.
- * This centralizes date format definitions to ensure consistency and avoid duplication.
  *
  * @author Michaela Stefancova (dspace at dataquest.sk)
  */
 public final class DateFormatConstants {
 
     private DateFormatConstants() {
-        // Utility class - prevent instantiation
     }
 
     /**
      * Standard date format pattern: yyyy-MM-dd
-     * Used for simple date formatting without time information.
      */
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
     /**
      * Standard datetime format pattern: yyyy-MM-dd HH:mm:ss
-     * Used for datetime formatting with second precision.
      */
     public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     /**
      * Extended datetime format pattern: yyyy-MM-dd HH:mm:ss.SSS
-     * Used for datetime formatting with millisecond precision.
      */
     public static final String DATETIME_WITH_MILLIS_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
 
     /**
      * DateTimeFormatter for simple date format (yyyy-MM-dd).
-     * Thread-safe alternative to SimpleDateFormat.
      */
     public static final DateTimeFormatter DATE_FORMATTER =
             DateTimeFormatter.ofPattern(DATE_FORMAT);
 
     /**
      * DateTimeFormatter for datetime format (yyyy-MM-dd HH:mm:ss).
-     * Thread-safe alternative to SimpleDateFormat.
      */
     public static final DateTimeFormatter DATETIME_FORMATTER =
             DateTimeFormatter.ofPattern(DATETIME_FORMAT);
