@@ -1,12 +1,22 @@
-## Description
+## Problem Description
+
+---
+
+
+## Steps to Reproduce Problem
+
+
+---
+
+
+## Additional Info
+(Logs, screenshots, configuration, etc.)
 
 ---
 
 ## Pre-check
-- [ ] Checked in Vanille, mailing list, Slack?
-- [ ] Not already fixed?
-- [ ] Can reproduce the problem?
-- [ ] Logs/screenshots attached?
+- [ ] Confirmed in Vanille / mailing list / Slack?
+- [ ] Verified that it’s not already fixed or being worked on?
 
 ---
 
@@ -15,22 +25,11 @@
 2. Clarify why this is needed
 3. Research & estimate time
 4. Document as you go
-5. Plan your approach
+5. Code
 6. Test
-7. Code
-8. Test again
-9. Final review
+7. Review
+8. Update documentation
+9. Create test scenarios
 
 ---
 
-## Steps to Reproduce
-(Describe step-by-step how to reproduce the issue)
-
-1. Go to '...'
-2. Click on '...'
-3. Observe '...'
-
----
-
-## Additional Info
-(Logs, screenshots, configuration, etc.)
