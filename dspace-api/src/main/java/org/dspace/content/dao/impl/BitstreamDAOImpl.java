@@ -158,7 +158,7 @@ public class BitstreamDAOImpl extends AbstractHibernateDSODAO<Bitstream> impleme
                         "AND NOT EXISTS (" +
                         "    SELECT 1 FROM ResourcePolicy res " +
                         "    WHERE res.resourceTypeId = :typeId " +
-                        "      AND res.dSpaceObject = bit.id" +
+                        "      AND res.dSpaceObject.id = bit.id" +
                         ")"
         );
         query.setParameter("typeId", Constants.BITSTREAM);
