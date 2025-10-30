@@ -59,7 +59,6 @@ public class LicenseCheck extends Check {
                 if (item.getBundles(Constants.LICENSE_BUNDLE_NAME).isEmpty()) {
                     problemItems.computeIfAbsent(
                             "UUIDs of items without license bundle", k -> new ArrayList<>()).add(item.getID());
-                    continue;
                 }
                 List<Bitstream> bitstreams = bundles.get(0).getBitstreams();
                 if (bitstreams.isEmpty()) {
