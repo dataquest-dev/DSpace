@@ -21,7 +21,6 @@ import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
-import org.dspace.content.clarin.ClarinLicense.Confirmation;
 import org.dspace.content.dao.clarin.ClarinLicenseResourceMappingDAO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
@@ -184,8 +183,8 @@ public class ClarinLicenseResourceMappingServiceImpl implements ClarinLicenseRes
 
     public List<ClarinLicenseResourceMapping> findByBitstreamUUIDs(Context context, List<UUID> bitstreamIDs)
         throws SQLException {
-    return clarinLicenseResourceMappingDAO.findByBitstreamUUIDs(context, bitstreamIDs);
-}
+        return clarinLicenseResourceMappingDAO.findByBitstreamUUIDs(context, bitstreamIDs);
+    }
 
     @Override
     public ClarinLicense getLicenseToAgree(Context context, UUID userId, UUID resourceID) throws SQLException {

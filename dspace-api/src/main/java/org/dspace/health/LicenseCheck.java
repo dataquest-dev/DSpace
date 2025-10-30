@@ -43,7 +43,6 @@ public class LicenseCheck extends Check {
         Context context = new Context();
         StringBuilder sb = new StringBuilder();
         ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-        Map<UUID, Item> bitstreamToItem = new HashMap<>();
         Map<String, Integer> licensesCount = new HashMap<>();
         Map<String, List<UUID>> problemItems = new HashMap<>();
         List<UUID> bitstreamUUIDs = new ArrayList<>();
@@ -70,7 +69,6 @@ public class LicenseCheck extends Check {
                 }
                 Bitstream firstBitstream = bitstreams.get(0);
                 UUID uuid = firstBitstream.getID();
-                bitstreamToItem.put(uuid, item);
                 bitstreamUUIDs.add(uuid);
             }
             // Batch fetch all mappings for the collected UUIDs
@@ -95,11 +93,11 @@ public class LicenseCheck extends Check {
                 ClarinLicenseLabel nonExtendedLabel = mapping.getLicense().getNonExtendedClarinLicenseLabel();
                 if (Objects.isNull(nonExtendedLabel)) {
                     problemItems.computeIfAbsent(
-        "UUIDs of bitstreams without non-extended license labels", k -> new ArrayList<>()).add(uuid);
-    continue;
+                            "UUIDs of bitstreams without non-extended license labels",
+                            k -> new ArrayList<>()).add(uuid);
                 } else {
                     licensesCount.put(nonExtendedLabel.getLabel(),
-                        licensesCount.getOrDefault(nonExtendedLabel.getLabel(), 0) + 1);
+                            licensesCount.getOrDefault(nonExtendedLabel.getLabel(), 0) + 1);
                 }
             }
         } catch (SQLException e) {
