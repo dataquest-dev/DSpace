@@ -3,6 +3,7 @@ name: Docker images
 
 # Run this Build for all pushes to dtq-dev branch
 # Also run for PRs to ensure PR doesn't break Docker build process
+# NOTE: uses "reusable-docker-build.yml" to actually build each of the Docker images.
 on:
   push:
     branches:
@@ -14,6 +15,7 @@ on:
 
 permissions:
   contents: read  #  to fetch code (actions/checkout)
+  packages: write #  to write images to GitHub Container Registry (GHCR)
 
 jobs:
   ####################################################
@@ -93,7 +95,6 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
-
   ###########################################
   # Build/Push the 'dataquest/dspace-solr' image
   ###########################################
@@ -114,7 +115,6 @@ jobs:
       # These URLs MUST use different secrets than 'dspace/dspace' image build above as they are deployed separately.
       REDEPLOY_SANDBOX_URL: ${{ secrets.REDEPLOY_SANDBOX_SOLR_URL }}
       REDEPLOY_DEMO_URL: ${{ secrets.REDEPLOY_DEMO_SOLR_URL }}
-
 
   ###########################################################
   # Build/Push the 'dataquest/dspace-postgres-pgcrypto' image
