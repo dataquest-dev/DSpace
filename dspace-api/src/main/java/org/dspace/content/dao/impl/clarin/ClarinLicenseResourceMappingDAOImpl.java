@@ -37,6 +37,20 @@ public class ClarinLicenseResourceMappingDAOImpl extends AbstractHibernateDAO<Cl
     }
 
     @Override
+    public List<ClarinLicenseResourceMapping> findByBitstreamUUIDs(Context context, List<UUID> bitstreamUUIDs)
+        throws SQLException {
+        if (bitstreamUUIDs == null || bitstreamUUIDs.isEmpty()) {
+            return List.of();
+        }
+        Query query = createQuery(context, "SELECT clrm " +
+                "FROM ClarinLicenseResourceMapping clrm " +
+                "WHERE clrm.bitstream.id IN :bitstreamUUIDs");
+        query.setParameter("bitstreamUUIDs", bitstreamUUIDs);
+        query.setHint("org.hibernate.cacheable", Boolean.TRUE);
+        return list(query);
+    }
+
+    @Override
     public void delete(Context context, ClarinLicenseResourceMapping clarinLicenseResourceMapping) throws SQLException {
         clarinLicenseResourceMapping.setBitstream(null);
         super.delete(context, clarinLicenseResourceMapping);
