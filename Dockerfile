@@ -82,12 +82,11 @@ WORKDIR /usr/local/tomcat/bin
 RUN chmod u+x redebug.sh undebug.sh custom_run.sh
 
 # Make UID/GID configurable to match host user permissions (e.g., for volume mounts).
-# Default 1000:1000 is the standard first user on most Linux systems, avoiding permission issues.
-ARG DSPACE_UID=1000
-ARG DSPACE_GID=1000
+# Default 1001:1001 avoids conflict with existing 'ubuntu' user (1000:1000) in base tomcat image
+ARG DSPACE_UID=1001
+ARG DSPACE_GID=1001
 
 # Create a locked-down service user for running DSpace.
-# Default UID 1000: Matches typical host user, prevents permission conflicts with mounted volumes
 # /usr/sbin/nologin shell: Security hardening - prevents interactive login, but allows docker exec for debugging
 # No home directory (-M): Service accounts don't need home dirs, reduces attack surface
 # Single RUN layer: Keeps image smaller and more maintainable
