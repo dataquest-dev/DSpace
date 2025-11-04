@@ -24,6 +24,11 @@ public class ClarinLicenseResourceMappingDAOImpl extends AbstractHibernateDAO<Cl
         super();
     }
 
+    /**
+     * Maximum number of UUIDs to include per query batch.
+     */
+    private static final int BATCH_SIZE = 10_000;
+
     @Override
     public List<ClarinLicenseResourceMapping> findByBitstreamUUID(Context context, UUID bitstreamUUID)
             throws SQLException {
@@ -43,8 +48,6 @@ public class ClarinLicenseResourceMappingDAOImpl extends AbstractHibernateDAO<Cl
         if (bitstreamUUIDs == null || bitstreamUUIDs.isEmpty()) {
             return List.of();
         }
-        // PostgreSQL limit is 65,535 parameters, we stay well below that.
-        final int BATCH_SIZE = 10000;
         List<ClarinLicenseResourceMapping> results = new ArrayList<>();
 
         for (int i = 0; i < bitstreamUUIDs.size(); i += BATCH_SIZE) {
