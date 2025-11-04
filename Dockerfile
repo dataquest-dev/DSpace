@@ -87,13 +87,13 @@ ARG DSPACE_UID=1000
 ARG DSPACE_GID=1000
 
 # Create a locked-down service user for running DSpace.
-# UID 1000 (not 999): Matches typical host user, prevents permission conflicts with mounted volumes
-# nologin shell: Security hardening - prevents interactive login to the container
+# Default UID 1000: Matches typical host user, prevents permission conflicts with mounted volumes
+# /bin/false shell: Security hardening - prevents interactive login, portable across distributions
 # No home directory (-M): Service accounts don't need home dirs, reduces attack surface
 # Single RUN layer: Keeps image smaller and more maintainable
 RUN set -eux; \
     groupadd -g "${DSPACE_GID}" dspace && \
-    useradd -u "${DSPACE_UID}" -g "${DSPACE_GID}" -s /usr/sbin/nologin -M dspace && \
-    chown -R "${DSPACE_UID}":"${DSPACE_GID}" /dspace /usr/local/tomcat
+    useradd -u "${DSPACE_UID}" -g "${DSPACE_GID}" -s /bin/false -M dspace && \
+    chown -R dspace:dspace /dspace /usr/local/tomcat
 
 USER dspace
