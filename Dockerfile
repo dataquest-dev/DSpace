@@ -81,9 +81,19 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 WORKDIR /usr/local/tomcat/bin
 RUN chmod u+x redebug.sh undebug.sh custom_run.sh
 
-# For security reasons docker container should not run as root, therefore we create 
-# user dspace and give him sufficient access rights.
-RUN groupadd -g 999 dspace && useradd -u 999 -g 999 -r -s /bin/bash dspace \
-    && chown -R dspace:dspace /dspace /usr/local/tomcat
+# Make UID/GID configurable to match host user permissions (e.g., for volume mounts).
+# Default 1000:1000 is the standard first user on most Linux systems, avoiding permission issues.
+ARG DSPACE_UID=1000
+ARG DSPACE_GID=1000
+
+# Create a locked-down service user for running DSpace.
+# UID 1000 (not 999): Matches typical host user, prevents permission conflicts with mounted volumes
+# nologin shell: Security hardening - prevents interactive login to the container
+# No home directory (-M): Service accounts don't need home dirs, reduces attack surface
+# Single RUN layer: Keeps image smaller and more maintainable
+RUN set -eux; \
+    groupadd -g "${DSPACE_GID}" dspace && \
+    useradd -u "${DSPACE_UID}" -g "${DSPACE_GID}" -s /usr/sbin/nologin -M dspace && \
+    chown -R "${DSPACE_UID}":"${DSPACE_GID}" /dspace /usr/local/tomcat
 
 USER dspace
