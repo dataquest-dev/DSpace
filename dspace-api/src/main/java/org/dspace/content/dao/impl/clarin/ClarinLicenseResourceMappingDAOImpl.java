@@ -8,6 +8,7 @@
 package org.dspace.content.dao.impl.clarin;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.Query;
@@ -22,6 +23,11 @@ public class ClarinLicenseResourceMappingDAOImpl extends AbstractHibernateDAO<Cl
     protected ClarinLicenseResourceMappingDAOImpl() {
         super();
     }
+
+    /**
+     * Maximum number of UUIDs to include per query batch.
+     */
+    private static final int BATCH_SIZE = 10_000;
 
     @Override
     public List<ClarinLicenseResourceMapping> findByBitstreamUUID(Context context, UUID bitstreamUUID)
@@ -42,12 +48,22 @@ public class ClarinLicenseResourceMappingDAOImpl extends AbstractHibernateDAO<Cl
         if (bitstreamUUIDs == null || bitstreamUUIDs.isEmpty()) {
             return List.of();
         }
-        Query query = createQuery(context, "SELECT clrm " +
-                "FROM ClarinLicenseResourceMapping clrm " +
-                "WHERE clrm.bitstream.id IN :bitstreamUUIDs");
-        query.setParameter("bitstreamUUIDs", bitstreamUUIDs);
-        query.setHint("org.hibernate.cacheable", Boolean.TRUE);
-        return list(query);
+        List<ClarinLicenseResourceMapping> results = new ArrayList<>();
+
+        for (int i = 0; i < bitstreamUUIDs.size(); i += BATCH_SIZE) {
+            int end = Math.min(i + BATCH_SIZE, bitstreamUUIDs.size());
+            List<UUID> batch = bitstreamUUIDs.subList(i, end);
+
+            Query query = createQuery(context,
+                    "SELECT clrm FROM ClarinLicenseResourceMapping clrm " +
+                            "WHERE clrm.bitstream.id IN :bitstreamUUIDs");
+            query.setParameter("bitstreamUUIDs", batch);
+            query.setHint("org.hibernate.cacheable", Boolean.TRUE);
+
+            results.addAll(list(query));
+        }
+
+        return results;
     }
 
     @Override
