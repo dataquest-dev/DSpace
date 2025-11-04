@@ -87,7 +87,8 @@ ARG DSPACE_UID=1001
 ARG DSPACE_GID=1001
 
 # Create a locked-down service user for running DSpace.
-# /usr/sbin/nologin shell: Security hardening - prevents interactive login, but allows docker exec for debugging
+# /usr/sbin/nologin shell: Security hardening - prevents interactive login and interactive shells (e.g., 'docker exec -it ... /bin/bash'),
+# but allows non-interactive docker exec commands (e.g., 'docker exec container ls') for debugging.
 # No home directory (-M): Service accounts don't need home dirs, reduces attack surface
 # Single RUN layer: Keeps image smaller and more maintainable
 RUN set -eux; \
