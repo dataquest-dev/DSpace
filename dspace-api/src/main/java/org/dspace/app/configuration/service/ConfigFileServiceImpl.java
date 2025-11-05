@@ -15,7 +15,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -224,16 +223,12 @@ public class ConfigFileServiceImpl implements ConfigFileService {
         Path filePath = getConfigFilePath(fileName);
 
         try {
-            Long size = Files.exists(filePath) ? Files.size(filePath) : 0L;
-            LocalDateTime lastModified = null;
-
-            if (Files.exists(filePath)) {
-                Date lastModifiedDate = new Date(Files.getLastModifiedTime(filePath).toMillis());
-                lastModified = LocalDateTime.ofInstant(lastModifiedDate.toInstant(), ZoneId.systemDefault());
-            }
-
-            Boolean readable = Files.exists(filePath) ? Files.isReadable(filePath) : false;
-            Boolean writable = Files.exists(filePath) ? Files.isWritable(filePath) : false;
+            Long size = Files.size(filePath);
+            LocalDateTime lastModified = LocalDateTime.ofInstant(
+                Files.getLastModifiedTime(filePath).toInstant(),
+                ZoneId.systemDefault());
+            Boolean readable = Files.isReadable(filePath);
+            Boolean writable = Files.isWritable(filePath);
 
             ConfigFileMetadata metadata = new ConfigFileMetadata(
                 fileName, filePath, size, lastModified, readable, writable);
