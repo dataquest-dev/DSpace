@@ -74,25 +74,27 @@ public class ConfigFileRestController {
      */
     @RequestMapping(method = RequestMethod.GET)
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<List<ConfigFileRest>> getConfigFiles(HttpServletRequest request,
-                                                               HttpServletResponse response) {
+    public ResponseEntity<List<ConfigFileResource>> getConfigFiles(HttpServletRequest request,
+                                                                   HttpServletResponse response) {
         try {
             List<String> allowedFiles = configFileService.getAllowedConfigFiles();
-            List<ConfigFileRest> configFileRests = allowedFiles.stream()
+            List<ConfigFileResource> configFileResources = allowedFiles.stream()
                 .map(fileName -> {
                     try {
                         ConfigFileService.ConfigFileMetadata metadata = configFileService.getFileMetadata(fileName);
-                        return convertToRest(metadata);
+                        ConfigFileRest configFileRest = convertToRest(metadata);
+                        return converter.<ConfigFileResource>toResource(configFileRest);
                     } catch (Exception e) {
                         log.warn("Error getting metadata for file: {}", fileName, e);
-                        return createBasicConfigFileRest(fileName);
+                        ConfigFileRest basicRest = createBasicConfigFileRest(fileName);
+                        return converter.<ConfigFileResource>toResource(basicRest);
                     }
                 })
                 .collect(Collectors.toList());
 
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body(configFileRests);
+                .body(configFileResources);
 
         } catch (Exception e) {
             log.error("Error retrieving configuration files list", e);
