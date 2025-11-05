@@ -15,6 +15,7 @@ import org.dspace.app.rest.model.HarvestTypeEnum;
 import org.dspace.app.rest.model.HarvestedCollectionRest;
 import org.dspace.app.rest.model.HarvesterMetadataRest;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.app.rest.utils.TimezoneHelper;
 import org.dspace.content.Collection;
 import org.dspace.harvest.HarvestedCollection;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -505,7 +505,7 @@ public class DCDate {
      * @return a DSpaceDate object representing the current instant.
      */
     public static DCDate getCurrent() {
-        return (new DCDate(new Date()));
+        return new DCDate(new Date());
     }
 
     /**
