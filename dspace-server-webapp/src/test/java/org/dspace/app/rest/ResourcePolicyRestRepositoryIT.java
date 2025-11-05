@@ -2246,6 +2246,10 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
         calendar.set(Calendar.YEAR, 2010);
         calendar.set(Calendar.MONTH, 5);
         calendar.set(Calendar.DATE, 15);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
 
         Date date = calendar.getTime();
 
@@ -2264,6 +2268,10 @@ public class ResourcePolicyRestRepositoryIT extends AbstractControllerIntegratio
         calendar2.set(Calendar.YEAR, 2021);
         calendar2.set(Calendar.MONTH, 2);
         calendar2.set(Calendar.DATE, 21);
+        calendar2.set(Calendar.HOUR_OF_DAY, 12);
+        calendar2.set(Calendar.MINUTE, 0);
+        calendar2.set(Calendar.SECOND, 0);
+        calendar2.set(Calendar.MILLISECOND, 0);
 
         Date newDate = calendar2.getTime();
 
