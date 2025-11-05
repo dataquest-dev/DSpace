@@ -311,22 +311,6 @@ public class SolrOAIReindexer {
             return;
         }
 
-        // Check for test property to force event-based fallback
-        if ("true".equals(System.getProperty("dspace.test.force.event.fallback", "false"))) {
-            log.info("Test property detected - forcing event-based reindexing for item ID: " + item.getID());
-            boolean fallbackSuccessful = triggerReindexingViaEvent(item);
-            if (fallbackSuccessful) {
-                log.info("Event-based reindexing triggered successfully for item ID: " + item.getID());
-                safeClearCaches(item);
-            } else {
-                log.error("Event-based reindexing failed for item ID: " + item.getID());
-                if (!this.isTest()) {
-                    throw new RuntimeException("Event-based reindexing failed for item ID: " + item.getID());
-                }
-            }
-            return;
-        }
-
         try {
             // Before reindexing delete item
             deleteItemByQuery(item);
@@ -439,22 +423,6 @@ public class SolrOAIReindexer {
     }
 
     public void deleteItem(Item item) {
-        // Check for test property to force event-based fallback
-        if ("true".equals(System.getProperty("dspace.test.force.event.fallback", "false"))) {
-            log.info("Test property detected - forcing event-based deletion for item ID: " + item.getID());
-            boolean fallbackSuccessful = triggerDeletionViaEvent(item);
-            if (fallbackSuccessful) {
-                log.info("Event-based deletion triggered successfully for item ID: " + item.getID());
-                safeClearCaches(item);
-            } else {
-                log.error("Event-based deletion failed for item ID: " + item.getID());
-                if (!this.isTest()) {
-                    throw new RuntimeException("Event-based deletion failed for item ID: " + item.getID());
-                }
-            }
-            return;
-        }
-
         try {
             deleteItemByQuery(item);
             // Try to clear caches safely, but don't fail if it doesn't work

@@ -9,7 +9,11 @@ package org.dspace.app.rest;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.SolrOAIReindexer;
 import org.dspace.builder.CollectionBuilder;
@@ -18,9 +22,13 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.xoai.services.api.solr.SolrServerResolver;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Simple integration test for SolrOAIReindexer to verify that exceptions
@@ -31,6 +39,12 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
     @Autowired
     private SolrOAIReindexer solrOAIReindexer;
 
+    @Mock
+    private SolrServerResolver mockSolrServerResolver;
+
+    @Mock
+    private SolrClient mockSolrClient;
+
     private Community community;
     private Collection collection;
 
@@ -38,6 +52,9 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
+        
+        // Initialize Mockito annotations
+        MockitoAnnotations.openMocks(this);
 
         context.turnOffAuthorisationSystem();
 
@@ -111,47 +128,47 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void testEventFallbackMethods() throws Exception {
-        // Set system property to force event-based fallback
-        System.setProperty("dspace.test.force.event.fallback", "true");
+        context.turnOffAuthorisationSystem();
 
+        Item testItem = ItemBuilder.createItem(context, collection)
+                .withTitle("Test Item for Event Fallback")
+                .withAuthor("Test Author")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // Create a spy of the original solrOAIReindexer to mock the solrServerResolver
+        SolrOAIReindexer spySolrOAIReindexer = spy(solrOAIReindexer);
+
+        // Configure mock to throw exception when getServer() is called
+        when(mockSolrServerResolver.getServer()).thenThrow(new SolrServerException("Mocked Solr failure"));
+        
+        // Inject the mock into the spy
+        ReflectionTestUtils.setField(spySolrOAIReindexer, "solrServerResolver", mockSolrServerResolver);
+
+        // Test reindexing - should now use event-based approach due to Solr failure
+        boolean reindexCompleted = false;
         try {
-            context.turnOffAuthorisationSystem();
-
-            Item testItem = ItemBuilder.createItem(context, collection)
-                    .withTitle("Test Item for Event Fallback")
-                    .withAuthor("Test Author")
-                    .build();
-
-            context.restoreAuthSystemState();
-
-            // Test reindexing - should now use event-based approach due to system property
-            // Reindexing
-            boolean reindexCompleted = false;
-            try {
-                solrOAIReindexer.reindexItem(testItem);
-                reindexCompleted = true;
-            } catch (Exception e) {
-                // Should not happen with safe cache clearing
-            }
-            assertTrue("Reindexing should complete successfully", reindexCompleted);
-
-            // Deletion
-            boolean deleteCompleted = false;
-            try {
-                solrOAIReindexer.deleteItem(testItem);
-                deleteCompleted = true;
-            } catch (Exception e) {
-                // Should not happen with safe cache clearing
-            }
-
-            assertTrue("Event-based deletion should complete successfully", deleteCompleted);
-
-            // Verify the test item is still valid
-            assertNotNull("Test item should not be null", testItem);
-            assertNotNull("Test item should have an ID", testItem.getID());
-        } finally {
-            // Always clean up the system property
-            System.clearProperty("dspace.test.force.event.fallback");
+            spySolrOAIReindexer.reindexItem(testItem);
+            reindexCompleted = true;
+        } catch (Exception e) {
+            // Should not happen with fallback mechanism
         }
+        assertTrue("Reindexing should complete successfully via event fallback", reindexCompleted);
+
+        // Test deletion with similar mock setup
+        boolean deleteCompleted = false;
+        try {
+            spySolrOAIReindexer.deleteItem(testItem);
+            deleteCompleted = true;
+        } catch (Exception e) {
+            // Should not happen with fallback mechanism
+        }
+
+        assertTrue("Event-based deletion should complete successfully", deleteCompleted);
+
+        // Verify the test item is still valid
+        assertNotNull("Test item should not be null", testItem);
+        assertNotNull("Test item should have an ID", testItem.getID());
     }
 }
