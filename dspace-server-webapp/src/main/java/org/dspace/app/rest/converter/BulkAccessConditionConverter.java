@@ -13,8 +13,10 @@ import org.dspace.app.bulkaccesscontrol.model.BulkAccessConditionConfiguration;
 import org.dspace.app.rest.model.AccessConditionOptionRest;
 import org.dspace.app.rest.model.BulkAccessConditionRest;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.app.rest.utils.TimezoneHelper;
 import org.dspace.submit.model.AccessConditionOption;
 import org.dspace.util.DateMathParser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -24,12 +26,13 @@ import org.springframework.stereotype.Component;
  * @author Mohamed Eskander (mohamed.eskander at 4science.it)
  */
 @Component
-public class BulkAccessConditionConverter
-        implements DSpaceConverter<BulkAccessConditionConfiguration, BulkAccessConditionRest> {
+public class BulkAccessConditionConverter 
+    implements DSpaceConverter<BulkAccessConditionConfiguration, BulkAccessConditionRest> {
 
-    DateMathParser dateMathParser = new DateMathParser();
-
-    @Override
+    @Autowired
+    private TimezoneHelper timezoneHelper;
+    
+    DateMathParser dateMathParser = new DateMathParser();    @Override
     public BulkAccessConditionRest convert(BulkAccessConditionConfiguration config, Projection projection) {
         BulkAccessConditionRest model = new BulkAccessConditionRest();
         model.setId(config.getName());
@@ -51,7 +54,7 @@ public class BulkAccessConditionConverter
         optionRest.setHasEndDate(option.getHasEndDate());
         if (StringUtils.isNotBlank(option.getStartDateLimit())) {
             try {
-                optionRest.setMaxStartDate(dateMathParser.parseMath(option.getStartDateLimit()));
+                optionRest.setMaxStartDate(timezoneHelper.convertDateForDisplay(dateMathParser.parseMath(option.getStartDateLimit())));
             } catch (ParseException e) {
                 throw new IllegalStateException("Wrong start date limit configuration for the access condition "
                         + "option named  " + option.getName());
@@ -59,7 +62,7 @@ public class BulkAccessConditionConverter
         }
         if (StringUtils.isNotBlank(option.getEndDateLimit())) {
             try {
-                optionRest.setMaxEndDate(dateMathParser.parseMath(option.getEndDateLimit()));
+                optionRest.setMaxEndDate(timezoneHelper.convertDateForDisplay(dateMathParser.parseMath(option.getEndDateLimit())));
             } catch (ParseException e) {
                 throw new IllegalStateException("Wrong end date limit configuration for the access condition "
                         + "option named  " + option.getName());

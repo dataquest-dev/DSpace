@@ -29,6 +29,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class HarvestedCollectionConverter implements DSpaceConverter<HarvestedCollection, HarvestedCollectionRest> {
+    
+    @Autowired
+    private TimezoneHelper timezoneHelper;
 
     // Must be loaded @Lazy, as ConverterService autowires all DSpaceConverter components
     @Lazy
@@ -52,8 +55,8 @@ public class HarvestedCollectionConverter implements DSpaceConverter<HarvestedCo
             harvestedCollectionRest.setOaiSetId(obj.getOaiSetId());
             harvestedCollectionRest.setOaiSource(obj.getOaiSource());
             harvestedCollectionRest.setHarvestMessage(obj.getHarvestMessage());
-            harvestedCollectionRest.setHarvestStartTime(obj.getHarvestStartTime());
-            harvestedCollectionRest.setLastHarvested(obj.getHarvestDate());
+            harvestedCollectionRest.setHarvestStartTime(timezoneHelper.convertDateForDisplay(obj.getHarvestStartTime()));
+            harvestedCollectionRest.setLastHarvested(timezoneHelper.convertDateForDisplay(obj.getHarvestDate()));
         } else {
             harvestedCollectionRest.setHarvestType(HarvestTypeEnum.NONE);
         }
