@@ -54,7 +54,7 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        
+
         // Initialize Mockito annotations
         MockitoAnnotations.openMocks(this);
 
@@ -143,28 +143,30 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
 
-        // Create a custom test class that overrides triggerDeletionViaEvent to fail and handleFinalFailure to avoid exceptions
+        // Create a custom test class that overrides triggerDeletionViaEvent to fail
+        // and handleFinalFailure to avoid exceptions
         SolrOAIReindexer testReindexer = new SolrOAIReindexer() {
             private final Logger testLog = LogManager.getLogger(SolrOAIReindexer.class);
-            
+
             @Override
             protected boolean triggerDeletionViaEvent(Item item) {
                 // Simulate event failure
                 return false;
             }
-            
+
             @Override
             public void handleFinalFailure(String message) {
                 // Override to log error properly but avoid throwing RuntimeException during testing
                 testLog.error(message);
                 // In production this would throw RuntimeException, but for testing we just log
-                System.out.println("TEST: handleFinalFailure called (RuntimeException suppressed for testing): " + message);
+                System.out.println("TEST: handleFinalFailure called (RuntimeException suppressed for testing): "
+                        + message);
             }
         };
 
         // Mock Solr to fail
         when(mockSolrServerResolver.getServer()).thenThrow(new SolrServerException("Mocked Solr deletion failure"));
-        
+
         // Inject the mock into our test reindexer
         ReflectionTestUtils.setField(testReindexer, "solrServerResolver", mockSolrServerResolver);
 
@@ -177,7 +179,8 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
             // Should not happen - handleFinalFailure is overridden to not throw
         }
 
-        assertTrue("Deletion should complete without throwing exception (with overridden handleFinalFailure)", deleteCompleted);
+        assertTrue("Deletion should complete without throwing exception " +
+                "(with overridden handleFinalFailure)", deleteCompleted);
     }
 
     @Test
@@ -196,7 +199,7 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
 
         // Configure mock to throw exception when getServer() is called
         when(mockSolrServerResolver.getServer()).thenThrow(new SolrServerException("Mocked Solr failure"));
-        
+
         // Inject the mock into the spy
         ReflectionTestUtils.setField(spySolrOAIReindexer, "solrServerResolver", mockSolrServerResolver);
 
