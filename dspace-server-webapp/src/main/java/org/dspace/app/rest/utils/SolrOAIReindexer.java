@@ -378,7 +378,7 @@ public class SolrOAIReindexer {
             return true;
         } catch (Exception e) {
             log.warn("Failed to trigger fallback deletion event for item ID: " + item.getID() +
-                     " - " + e.getMessage());
+                    " - " + e.getMessage());
             return false;
         }
     }
@@ -398,7 +398,7 @@ public class SolrOAIReindexer {
             }
         } catch (Exception e) {
             log.warn("Failed to clear item-specific cache for item ID: " + item.getID() +
-                     " (will refresh naturally): " + e.getMessage());
+                     "(will refresh naturally): " + e.getMessage());
         }
 
         try {
@@ -410,7 +410,7 @@ public class SolrOAIReindexer {
         } catch (Exception e) {
             // This is expected to sometimes fail with "Device or resource busy"
             log.warn("Could not clear OAI request cache for item ID: " + item.getID() +
-                     " (harvesters will get fresh data on cache miss): " + e.getMessage());
+                    " (harvesters will get fresh data on cache miss): " + e.getMessage());
         }
     }
 
