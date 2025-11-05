@@ -22,8 +22,6 @@ public class ConfigFileRest extends BaseObjectRest<String> {
     public static final String PLURAL_NAME = "configfiles";
     public static final String CATEGORY = RestModel.CONFIGURATION;
 
-    public static final String CONTENT = "content";
-
     @JsonProperty("name")
     private String name;
 
