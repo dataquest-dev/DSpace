@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,9 +26,6 @@ import org.springframework.http.MediaType;
  * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTest {
-
-    @Autowired
-    private GroupService groupService;
 
     @Autowired
     private ConfigurationService configurationService;
