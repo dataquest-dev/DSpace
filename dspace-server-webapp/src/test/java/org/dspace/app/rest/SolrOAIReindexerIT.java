@@ -12,6 +12,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -124,6 +126,58 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
         }
 
         assertTrue("Deletion should complete successfully", completed);
+    }
+
+    /**
+     * Test that deletion handles failure gracefully when both Solr and event fallback fail
+     */
+    @Test
+    public void testDeleteWithFailedEventFallback() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Create a test item
+        Item testItem = ItemBuilder.createItem(context, collection)
+                .withTitle("Test Item for Failed Event Fallback")
+                .withAuthor("Test Author")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // Create a custom test class that overrides triggerDeletionViaEvent to fail and handleFinalFailure to avoid exceptions
+        SolrOAIReindexer testReindexer = new SolrOAIReindexer() {
+            private final Logger testLog = LogManager.getLogger(SolrOAIReindexer.class);
+            
+            @Override
+            protected boolean triggerDeletionViaEvent(Item item) {
+                // Simulate event failure
+                return false;
+            }
+            
+            @Override
+            public void handleFinalFailure(String message) {
+                // Override to log error properly but avoid throwing RuntimeException during testing
+                testLog.error(message);
+                // In production this would throw RuntimeException, but for testing we just log
+                System.out.println("TEST: handleFinalFailure called (RuntimeException suppressed for testing): " + message);
+            }
+        };
+
+        // Mock Solr to fail
+        when(mockSolrServerResolver.getServer()).thenThrow(new SolrServerException("Mocked Solr deletion failure"));
+        
+        // Inject the mock into our test reindexer
+        ReflectionTestUtils.setField(testReindexer, "solrServerResolver", mockSolrServerResolver);
+
+        // Test deletion - Solr fails, event fallback fails, handleFinalFailure is called but overridden
+        boolean deleteCompleted = false;
+        try {
+            testReindexer.deleteItem(testItem);
+            deleteCompleted = true;
+        } catch (Exception e) {
+            // Should not happen - handleFinalFailure is overridden to not throw
+        }
+
+        assertTrue("Deletion should complete without throwing exception (with overridden handleFinalFailure)", deleteCompleted);
     }
 
     @Test

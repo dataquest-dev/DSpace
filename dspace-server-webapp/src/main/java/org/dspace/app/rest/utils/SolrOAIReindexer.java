@@ -25,7 +25,7 @@ import javax.xml.stream.XMLStreamException;
 import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
 import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
-import org.apache.commons.lang3.StringUtils;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -335,16 +335,8 @@ public class SolrOAIReindexer {
                 safeClearCaches(item);
             } else {
                 // Fallback also failed
-                // Do not throw RuntimeException in tests
-                if (this.isTest()) {
-                    log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage() +
-                            ". Fallback reindexing via event also failed.");
-                } else {
-                    log.error("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage() +
-                            ". Fallback reindexing via event also failed.");
-                    throw new RuntimeException("Cannot reindex the item with ID: " + item.getID() + " because: "
-                            + e.getMessage() + ". Fallback reindexing via event also failed.");
-                }
+                handleFinalFailure("Cannot reindex the item with ID: " + item.getID() + " because: " + e.getMessage() +
+                        ". Fallback reindexing via event also failed.");
             }
         }
     }
@@ -357,7 +349,7 @@ public class SolrOAIReindexer {
      * @param item The item to trigger reindexing for
      * @return true if the event was successfully fired, false otherwise
      */
-    private boolean triggerReindexingViaEvent(Item item) {
+    protected boolean triggerReindexingViaEvent(Item item) {
         try (Context eventContext = new Context()) {
             eventContext.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null));
             eventContext.complete();
@@ -378,7 +370,7 @@ public class SolrOAIReindexer {
      * @param item The item to trigger deletion for
      * @return true if the event was successfully fired, false otherwise
      */
-    private boolean triggerDeletionViaEvent(Item item) {
+    protected boolean triggerDeletionViaEvent(Item item) {
         try (Context eventContext = new Context()) {
             eventContext.addEvent(new Event(Event.DELETE, Constants.ITEM, item.getID(), null));
             eventContext.complete();
@@ -442,31 +434,21 @@ public class SolrOAIReindexer {
                 safeClearCaches(item);
             } else {
                 // Fallback also failed
-                // Do not throw RuntimeException in tests
-                if (this.isTest()) {
-                    log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
-                            " because: " + e.getMessage() + ". Fallback deletion via event also failed.");
-                } else {
-                    log.error("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
-                            " because: " + e.getMessage() + ". Fallback deletion via event also failed.");
-                    throw new RuntimeException("Cannot reindex the Solr after deleting the item with ID: " +
-                            item.getID() + " because: " + e.getMessage() +
-                            ". Fallback deletion via event also failed.");
-                }
+                handleFinalFailure("Cannot reindex the Solr after deleting the item with ID: " + item.getID() +
+                        " because: " + e.getMessage() + ". Fallback deletion via event also failed.");
             }
         }
     }
 
-    private boolean isTest() {
-        try {
-            if (StringUtils.equals("jdbc:h2:mem:test", this.context.getDBConfig().getDatabaseUrl())) {
-                return true;
-            }
-        } catch (SQLException exception) {
-            return false;
-        }
-
-        return false;
+    /**
+     * Handles final failure when both direct Solr operation and event fallback fail.
+     * This method is public to allow mocking in tests to avoid RuntimeExceptions during testing.
+     *
+     * @param message The error message describing the failure
+     */
+    public void handleFinalFailure(String message) {
+        log.error(message);
+        throw new RuntimeException(message);
     }
 
     /**
