@@ -37,6 +37,7 @@ import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -67,7 +68,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                    //Our default Discovery config has 6 browse indexes, so we expect this to be reflected in the page
                    // object
                    .andExpect(jsonPath("$.page.size", is(20)))
-                   .andExpect(jsonPath("$.page.totalElements", is(6)))
+                   .andExpect(jsonPath("$.page.totalElements", is(5)))
                    .andExpect(jsonPath("$.page.totalPages", is(1)))
                    .andExpect(jsonPath("$.page.number", is(0)))
 
@@ -80,7 +81,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                        BrowseIndexMatcher.contributorBrowseIndex("asc"),
                        BrowseIndexMatcher.titleBrowseIndex("asc"),
                        BrowseIndexMatcher.subjectBrowseIndex("asc"),
-                       BrowseIndexMatcher.hierarchicalBrowseIndex("srsc"),
                        BrowseIndexMatcher.languageBrowseIndex("asc")
                    )))
         ;
@@ -128,6 +128,8 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
         ;
     }
 
+    // The srsc is disabled by configuration
+    @Ignore
     @Test
     public void findBrowseByVocabulary() throws Exception {
         //Use srsc as this vocabulary is included by default
