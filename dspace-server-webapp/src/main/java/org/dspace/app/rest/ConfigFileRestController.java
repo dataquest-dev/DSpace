@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.configuration.exception.ConfigFileNotAllowedException;
+import org.dspace.app.configuration.exception.ConfigFileNotFoundException;
 import org.dspace.app.configuration.service.ConfigFileService;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.model.ConfigFileRest;
@@ -128,15 +130,11 @@ public class ConfigFileRestController {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(resource);
 
+        } catch (ConfigFileNotFoundException e) {
+            throw new ResourceNotFoundException("Configuration file not found: " + fileName);
+        } catch (ConfigFileNotAllowedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
-            // Handle file not found
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
-                throw new ResourceNotFoundException("Configuration file not found: " + fileName);
-            }
-            // Handle access denied
-            if (e.getMessage() != null && e.getMessage().contains("not allowed")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
             log.error("Error retrieving configuration file: {}", fileName, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -171,15 +169,11 @@ public class ConfigFileRestController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
                 .body(content);
 
+        } catch (ConfigFileNotFoundException e) {
+            throw new ResourceNotFoundException("Configuration file not found: " + fileName);
+        } catch (ConfigFileNotAllowedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
-            // Handle file not found
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
-                throw new ResourceNotFoundException("Configuration file not found: " + fileName);
-            }
-            // Handle access denied
-            if (e.getMessage() != null && e.getMessage().contains("not allowed")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
             log.error("Error reading configuration file: {}", fileName, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -222,16 +216,12 @@ public class ConfigFileRestController {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body("{\"message\":\"Configuration file updated successfully\",\"file\":\"" + fileName + "\"}");
 
+        } catch (ConfigFileNotFoundException e) {
+            throw new ResourceNotFoundException("Configuration file not found: " + fileName);
+        } catch (ConfigFileNotAllowedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("{\"error\":\"Configuration file access not allowed\",\"file\":\"" + fileName + "\"}");
         } catch (Exception e) {
-            // Handle file not found
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
-                throw new ResourceNotFoundException("Configuration file not found: " + fileName);
-            }
-            // Handle access denied
-            if (e.getMessage() != null && e.getMessage().contains("not allowed")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("{\"error\":\"Configuration file access not allowed\",\"file\":\"" + fileName + "\"}");
-            }
             log.error("Error updating configuration file: {}", fileName, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("{\"error\":\"Failed to update configuration file\",\"file\":\"" + fileName + "\"}");
