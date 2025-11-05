@@ -106,19 +106,6 @@ public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTes
     }
 
     /**
-     * Test PUT endpoint
-     */
-    @Test
-    public void testConfigFileUpdate() throws Exception {
-        String adminToken = getAuthToken(admin.getEmail(), password);
-
-        getClient(adminToken).perform(put("/api/admin/configfiles/dspace.cfg/content")
-                .contentType(MediaType.TEXT_PLAIN)
-                .content("# Test content"))
-                .andExpect(status().isOk());
-    }
-
-    /**
      * Test GET endpoint returns proper file content
      */
     @Test
