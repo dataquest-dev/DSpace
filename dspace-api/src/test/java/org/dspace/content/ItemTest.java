@@ -681,8 +681,8 @@ public class ItemTest extends AbstractDSpaceObjectTest {
         assertEquals(element, dc.get(0).getMetadataField().getElement());
         assertEquals(qualifier, dc.get(0).getMetadataField().getQualifier());
         assertEquals(newValue, dc.get(0).getValue());
-        assertNull(dc.get(0).getAuthority());
-        assertEquals(-1, dc.get(0).getConfidence());
+        assertEquals(newAuthority, dc.get(0).getAuthority());
+        assertEquals(newConfidence.intValue(), dc.get(0).getConfidence());
     }
 
     /**
