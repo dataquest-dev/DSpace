@@ -81,18 +81,7 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 WORKDIR /usr/local/tomcat/bin
 RUN chmod u+x redebug.sh undebug.sh custom_run.sh
 
-# Make UID/GID configurable to match host user permissions (e.g., for volume mounts).
-# Default 1001:1001 avoids conflict with existing 'ubuntu' user (1000:1000) in base tomcat image
-ARG DSPACE_UID=1001
-ARG DSPACE_GID=1001
+# Use existing 'ubuntu' user (1000:1000) from base tomcat image
+RUN chown -R ubuntu:ubuntu /dspace /usr/local/tomcat
 
-# Create a locked-down service user for running DSpace.
-# /usr/sbin/nologin shell: Prevents authentication-based logins (ssh/login)
-# No home directory (-M): Service accounts don't need home dirs, reduces attack surface
-# Single RUN layer: Keeps image smaller and more maintainable
-RUN set -eux; \
-    groupadd -g "${DSPACE_GID}" dspace && \
-    useradd -u "${DSPACE_UID}" -g "${DSPACE_GID}" -s /usr/sbin/nologin -M dspace && \
-    chown -R dspace:dspace /dspace /usr/local/tomcat
-
-USER dspace
+USER ubuntu
