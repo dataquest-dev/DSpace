@@ -309,7 +309,6 @@ public class SolrOAIReindexer {
 //            we cannot put such item into solr
             return;
         }
-
         try {
             // Before reindexing delete item
             deleteItemByQuery(item);
@@ -320,7 +319,6 @@ public class SolrOAIReindexer {
 
             // Try to clear caches safely, but don't fail if it doesn't work
             safeClearCaches(item);
-
             log.info("Successfully reindexed item ID: " + item.getID());
         } catch (IOException | XMLStreamException | SQLException | WritingXmlException | SolrServerException e) {
             log.warn("Direct reindexing failed for item ID: " + item.getID() + " because: " + e.getMessage() +

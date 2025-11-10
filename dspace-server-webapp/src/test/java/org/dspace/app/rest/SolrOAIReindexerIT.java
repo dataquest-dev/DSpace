@@ -158,9 +158,6 @@ public class SolrOAIReindexerIT extends AbstractControllerIntegrationTest {
             public void handleFinalFailure(String message) {
                 // Override to log error properly but avoid throwing RuntimeException during testing
                 testLog.error(message);
-                // In production this would throw RuntimeException, but for testing we just log
-                System.out.println("TEST: handleFinalFailure called (RuntimeException suppressed for testing): "
-                        + message);
             }
         };
 
