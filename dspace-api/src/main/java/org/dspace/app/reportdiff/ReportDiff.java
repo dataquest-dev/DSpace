@@ -465,37 +465,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @return formatted time period string
      */
     private String calculateTimePeriod(Date fromDate, Date toDate) {
-        long diffMillis = toDate.getTime() - fromDate.getTime();
-
-        // Calculate time units
-        long days = diffMillis / (24 * 60 * 60 * 1000);
-        long hours = (diffMillis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000);
-        long minutes = (diffMillis % (60 * 60 * 1000)) / (60 * 1000);
-        long seconds = (diffMillis % (60 * 1000)) / 1000;
-
-        if (days > 0) {
-            String result = days + " day" + (days != 1 ? "s" : "");
-            if (hours > 0) {
-                result += " " + hours + " hour" + (hours != 1 ? "s" : "");
-            }
-            return result;
-        } else if (hours > 0) {
-            String result = hours + " hour" + (hours != 1 ? "s" : "");
-            if (minutes > 0) {
-                result += " " + minutes + " minute" + (minutes != 1 ? "s" : "");
-            }
-            return result;
-        } else if (minutes > 0) {
-            String result = minutes + " minute" + (minutes != 1 ? "s" : "");
-            if (seconds > 0) {
-                result += " " + seconds + " second" + (seconds != 1 ? "s" : "");
-            }
-            return result;
-        } else if (seconds > 0) {
-            return seconds + " second" + (seconds != 1 ? "s" : "");
-        } else {
-            return "0 seconds";
-        }
+        return org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWords(
+                Math.abs(toDate.getTime() - fromDate.getTime()), true, true);
     }
 
     /**
@@ -506,13 +477,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @return padded string
      */
     private String padRight(String text, int width) {
-        if (text == null) {
-            text = "";
-        }
-        if (text.length() >= width) {
-            return text.substring(0, width);
-        }
-        return String.format("%-" + width + "s", text);
+        return String.format(java.util.Locale.ROOT, "%1$-" + width + "." + width + "s",
+                java.util.Objects.toString(text, ""));
     }
 
     /**

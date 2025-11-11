@@ -144,51 +144,65 @@ public class ItemCheck extends Check {
     public String getObjectSizesInfo(Context context, JSONObject jo) throws SQLException {
         StringBuilder sb = new StringBuilder();
 
-        int bitstreamsCount = bitstreamService.countTotal(context);
-        sb.append(String.format("Count %-20s: %s\n", "Bitstream", String.valueOf(bitstreamsCount)));
-        jo.put("bitstreamsCount", bitstreamsCount);
+        // Simple ordered map approach - maintains insertion order
+        java.util.LinkedHashMap<String, CountInfo> entities = new java.util.LinkedHashMap<>();
+        entities.put("Bitstream", new CountInfo("bitstreamsCount", wrapSql(bitstreamService::countTotal)));
+        entities.put("Bundle", new CountInfo("bundlesCount", wrapSql(bundleService::countTotal)));
+        entities.put("Collection", new CountInfo("collectionsCount", wrapSql(collectionService::countTotal)));
+        entities.put("Community", new CountInfo("communitiesCount", wrapSql(communityService::countTotal)));
+        entities.put("MetadataValue", new CountInfo("metadataValuesCount", wrapSql(metadataValueService::countTotal)));
+        entities.put("EPerson", new CountInfo("ePersonsCount", wrapSql(ePersonService::countTotal)));
+        entities.put("Item", new CountInfo("itemsCount", wrapSql(itemService::countTotal)));
+        entities.put("Handle", new CountInfo("handlesCount", wrapSql(handleService::countTotal)));
+        entities.put("Group", new CountInfo("groupsCount", wrapSql(groupService::countTotal)));
+        entities.put("BasicWorkflowItem", new CountInfo("basicWorkflowItemsCount",
+                wrapSql(workflowItemService::countAll)));
+        entities.put("WorkspaceItem", new CountInfo("workspaceItemsCount", wrapSql(workspaceItemService::countTotal)));
 
-        int bundlesCount = bundleService.countTotal(context);
-        sb.append(String.format("Count %-20s: %s\n", "Bundle", String.valueOf(bundlesCount)));
-        jo.put("bundlesCount", bundlesCount);
-
-        int collectionsCount = collectionService.countTotal(context);
-        sb.append(String.format("Count %-20s: %s\n", "Collection", String.valueOf(collectionsCount)));
-        jo.put("collectionsCount", collectionsCount);
-
-        int communitiesCount = communityService.countTotal(context);
-        sb.append(String.format("Count %-20s: %s\n", "Community", String.valueOf(communitiesCount)));
-        jo.put("communitiesCount", communitiesCount);
-
-        int metadataValuesCount = metadataValueService.countTotal(context);
-        sb.append(String.format("Count %-20s: %s\n", "MetadataValue", String.valueOf(metadataValuesCount)));
-        jo.put("metadataValuesCount", metadataValuesCount);
-
-        int ePersonsCount = ePersonService.countTotal(context);
-        sb.append(String.format("Count %-20s: %s\n", "EPerson", String.valueOf(ePersonsCount)));
-        jo.put("ePersonsCount", ePersonsCount);
-
-        int itemsCount = itemService.countTotal(context);
-        sb.append(String.format("Count %-20s: %s\n", "Item", String.valueOf(itemsCount)));
-        jo.put("itemsCount", itemsCount);
-
-        int handlesCount = handleService.countTotal(context);
-        sb.append(String.format("Count %-20s: %s\n", "Handle", String.valueOf(handlesCount)));
-        jo.put("handlesCount", handlesCount);
-
-        int groupsCount = groupService.countTotal(context);
-        sb.append(String.format("Count %-20s: %s\n", "Group", String.valueOf(groupsCount)));
-        jo.put("groupsCount", groupsCount);
-
-        int basicWorkflowItemsCount = workflowItemService.countAll(context);
-        sb.append(String.format("Count %-20s: %s\n", "BasicWorkflowItem", String.valueOf(basicWorkflowItemsCount)));
-        jo.put("basicWorkflowItemsCount", basicWorkflowItemsCount);
-
-        int workspaceItemsCount = workspaceItemService.countTotal(context);
-        sb.append(String.format("Count %-20s: %s\n", "WorkspaceItem", String.valueOf(workspaceItemsCount)));
-        jo.put("workspaceItemsCount", workspaceItemsCount);
+        // Single iteration - do countTotal, append, put only once
+        for (java.util.Map.Entry<String, CountInfo> entry : entities.entrySet()) {
+            String displayName = entry.getKey();
+            CountInfo info = entry.getValue();
+            int count = info.countFunction.apply(context);
+            sb.append(String.format("Count %-20s: %s\n", displayName, String.valueOf(count)));
+            jo.put(info.jsonKey, count);
+        }
 
         return sb.toString();
+    }
+
+    /**
+     * Helper method to wrap SQLException-throwing functions into regular Functions
+     */
+    private static java.util.function.Function<Context, Integer> wrapSql(SqlFunction<Context, Integer> sqlFunction) {
+        return ctx -> {
+            try {
+                return sqlFunction.apply(ctx);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    /**
+     * Functional interface for functions that throw SQLException
+     */
+    @FunctionalInterface
+    private interface SqlFunction<T, R> {
+        R apply(T t) throws SQLException;
+    }
+
+    /**
+     * Simple data holder for count information
+     */
+    private static class CountInfo {
+        final String jsonKey;
+        final java.util.function.Function<Context, Integer> countFunction;
+
+        CountInfo(String jsonKey, java.util.function.Function<Context, Integer> countFunction) {
+            this.jsonKey = jsonKey;
+            this.countFunction = countFunction;
+        }
     }
 
     public String getCollectionSizesInfo(final Context context, JSONObject jo) throws SQLException {
