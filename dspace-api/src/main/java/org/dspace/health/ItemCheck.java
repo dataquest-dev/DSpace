@@ -179,7 +179,7 @@ public class ItemCheck extends Check {
             try {
                 return sqlFunction.apply(ctx);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Error executing SQL function in wrapSql", e);
             }
         };
     }
