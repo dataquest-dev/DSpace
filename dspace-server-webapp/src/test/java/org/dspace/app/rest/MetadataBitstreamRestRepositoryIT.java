@@ -36,6 +36,7 @@ import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
@@ -142,10 +143,10 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
     public void findByHandleAfterMediaFilterScript() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        parentCommunity = CommunityBuilder.createCommunity(context)
+        Community com = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
-        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+        Collection col = CollectionBuilder.createCollection(context, com).withName("Collection 1").build();
 
         Item publicItem = ItemBuilder.createItem(context, col)
                 .withTitle("Test")
@@ -202,7 +203,7 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
 
         ItemBuilder.deleteItem(publicItem.getID());
         CollectionBuilder.deleteCollection(col.getID());
-        CommunityBuilder.deleteCommunity(parentCommunity.getID());
+        CommunityBuilder.deleteCommunity(com.getID());
     }
 
     @Test
