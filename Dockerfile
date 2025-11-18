@@ -80,3 +80,8 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 
 WORKDIR /usr/local/tomcat/bin
 RUN chmod u+x redebug.sh undebug.sh custom_run.sh
+
+# For security reason (requirement on some cloud platforms) we want run dspace as non-root user.
+RUN chown -R ubuntu:ubuntu /dspace /usr/local/tomcat
+
+USER ubuntu
