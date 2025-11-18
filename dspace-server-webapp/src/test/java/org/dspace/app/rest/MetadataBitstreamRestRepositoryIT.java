@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
+import javax.imageio.ImageIO;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
@@ -44,8 +45,6 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.imageio.ImageIO;
 
 public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegrationTest {
 
@@ -200,6 +199,10 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams").exists())
                 .andExpect(jsonPath("$._embedded.metadatabitstreams").isArray());
+
+        ItemBuilder.deleteItem(publicItem.getID());
+        CollectionBuilder.deleteCollection(col.getID());
+        CommunityBuilder.deleteCommunity(parentCommunity.getID());
     }
 
     @Test
