@@ -10,14 +10,19 @@ package org.dspace.app.rest;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
+import javax.imageio.ImageIO;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
@@ -31,7 +36,9 @@ import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.services.ConfigurationService;
@@ -60,6 +67,9 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
 
     @Autowired
     ConfigurationService configurationService;
+
+    @Autowired
+    ItemService itemService;
 
     @Before
     public void setup() throws Exception {
@@ -127,6 +137,73 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                         .value(Matchers.containsInAnyOrder(Matchers.containsString(url))));
 
 
+    }
+
+    @Test
+    public void findByHandleAfterMediaFilterScript() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community com = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, com).withName("Collection 1").build();
+
+        Item publicItem = ItemBuilder.createItem(context, col)
+                .withTitle("Test")
+                .withIssueDate("2010-10-17")
+                .withAuthor("Smith, Donald")
+                .build();
+
+        BufferedImage img = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(img, "png", baos);
+        InputStream imageStream = new ByteArrayInputStream(baos.toByteArray());
+
+        Bitstream bitstream = null;
+        try (InputStream is = imageStream) {
+            bitstream = BitstreamBuilder
+                    .createBitstream(context, publicItem, is)
+                    .withName("Bitstream")
+                    .withMimeType("image/png")
+                    .withIIIFLabel("Custom Label")
+                    .withIIIFCanvasWidth(3163)
+                    .withIIIFCanvasHeight(4220)
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        getClient().perform(get(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT)
+                        .param("handle", publicItem.getHandle())
+                        .param("fileGrpType", "ORIGINAL,TEXT,THUMBNAIL"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$._embedded.metadatabitstreams").exists())
+                .andExpect(jsonPath("$._embedded.metadatabitstreams").isArray())
+                .andExpect(jsonPath("$._embedded.metadatabitstreams[*].name")
+                        .value(Matchers.containsInAnyOrder(Matchers.containsString(bitstream.getName()))))
+                .andExpect(jsonPath("$._embedded.metadatabitstreams[*].format")
+                        .value(Matchers.containsInAnyOrder(Matchers.containsString(
+                                bitstream.getFormat(context).getMIMEType()))));
+
+        context.turnOffAuthorisationSystem();
+        runDSpaceScript("filter-media", "-f", "-i", publicItem.getHandle());
+        context.restoreAuthSystemState();
+
+        publicItem = itemService.find(context, publicItem.getID());
+        assertEquals(2, publicItem.getBundles().size());
+        String handle = publicItem.getHandle();
+        // There should not be an error here
+        getClient().perform(get(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT)
+                        .param("handle", handle)
+                        .param("fileGrpType", "ORIGINAL,TEXT,THUMBNAIL"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$._embedded.metadatabitstreams").exists())
+                .andExpect(jsonPath("$._embedded.metadatabitstreams").isArray());
+
+        ItemBuilder.deleteItem(publicItem.getID());
+        CollectionBuilder.deleteCollection(col.getID());
+        CommunityBuilder.deleteCommunity(com.getID());
     }
 
     @Test
