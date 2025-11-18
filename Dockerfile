@@ -81,7 +81,6 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 WORKDIR /usr/local/tomcat/bin
 RUN chmod u+x redebug.sh undebug.sh custom_run.sh
 
-# Use existing 'ubuntu' user (1000:1000) from base tomcat image
 RUN chown -R ubuntu:ubuntu /dspace /usr/local/tomcat
 
 USER ubuntu
