@@ -146,7 +146,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                 rs.add(metadataBitstreamWrapperConverter.convert(bts, utils.obtainProjection()));
             }
         }
-
+        context.commit();
         return new PageImpl<>(rs, pageable, rs.size());
     }
 
