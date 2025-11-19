@@ -139,6 +139,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         } catch (IOException e) {
             log.error("Error loading report diff fields configuration '{}': {}. Using empty configuration.",
                     REPORT_DIFF_FIELDS, e.getMessage(), e);
+            log.warn("ReportDiff functionality will be degraded: field mappings are missing due to failed configuration load. " +
+                    "Please check '{}' and ensure it is present and readable.", REPORT_DIFF_FIELDS);
             // Fallback to empty configuration if file cannot be read
             fieldMappings = new HashMap<>();
             fieldOrder = new ArrayList<>();
