@@ -66,6 +66,7 @@
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="mets"/>
+            <Format ref="xoai"/>
             <Description>
                 This context complies with OpenAIRE Guidelines for Literature Repositories v3.0.
             </Description>
@@ -555,6 +556,13 @@
                 <string name="operator">ends_with</string>
                 <list name="values">
                     <string>article</string>
+                    <string>J_ČLÁNEK</string>
+                    <string>B_KNIHA - CELEK</string>
+                    <string>D_Stať ve sborníku</string>
+                    <string>C_KNIHA - KAPITOLA</string>
+                    <string>C_KNIHA_KAPITOLA</string>
+                    <string>N_CERTIFIKOVANÁ METODIKA</string>
+                    <string>Nmets-Metodiky schválené příslušným orgánem</string>
                     <string>bachelorThesis</string>
                     <string>masterThesis</string>
                     <string>doctoralThesis</string>
@@ -584,7 +592,18 @@
                 <string name="field">dc.rights</string>
                 <string name="operator">contains</string>
                 <list name="values">
-                    <string>openAccess</string>
+                    <string>OA</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+
+        <CustomCondition id="driverAccessCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.description.version</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>OA</string>
                 </list>
             </Configuration>
         </CustomCondition>

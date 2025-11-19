@@ -21,20 +21,38 @@
 	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name!='issued']" />
 
 	<!-- Prefixing dc.type -->
-	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field/text()">
-		<xsl:call-template name="addPrefix">
-			<xsl:with-param name="value" select="." />
-			<xsl:with-param name="prefix" select="'info:eu-repo/semantics/'"></xsl:with-param>
-		</xsl:call-template>
-	</xsl:template>
-	
-	<!-- Prefixing and Modifying dc.rights -->
-	<!-- Removing unwanted -->
-	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:element" />
-	<!-- Replacing -->
-	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field/text()">
+<!--	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field/text()">-->
+<!--		<xsl:call-template name="addPrefix">-->
+<!--			<xsl:with-param name="value" select="." />-->
+<!--			<xsl:with-param name="prefix" select="'info:eu-repo/semantics/'"></xsl:with-param>-->
+<!--		</xsl:call-template>-->
+<!--	</xsl:template>-->
+
+	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='version']/doc:element/doc:field/text()">
 		<xsl:choose>
-			<xsl:when test="contains(., 'open access')">
+			<xsl:when test="contains(., 'OA')">
+				<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+			</xsl:when>
+			<xsl:when test="contains(., 'openAccess')">
+				<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+			</xsl:when>
+			<xsl:when test="contains(., 'restrictedAccess')">
+				<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+			</xsl:when>
+			<xsl:when test="contains(., 'embargoedAccess')">
+				<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+			</xsl:when>
+		</xsl:choose>
+	</xsl:template>
+
+
+	<!-- Prefixing and Modifying dc.rights -->
+	<!-- Removing unwanted
+	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:element" />-->
+	<!-- Replacing  -->
+	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='access']/doc:element/doc:field/text()">
+		<xsl:choose>
+			<xsl:when test="contains(., 'OA')">
 				<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
 			</xsl:when>
 			<xsl:when test="contains(., 'openAccess')">
@@ -46,27 +64,48 @@
 			<xsl:when test="contains(., 'embargoedAccess')">
 				<xsl:text>info:eu-repo/semantics/embargoedAccess</xsl:text>
 			</xsl:when>
-			<xsl:otherwise>
+
+			<!-- <xsl:otherwise>
 				<xsl:text>info:eu-repo/semantics/restrictedAccess</xsl:text>
-			</xsl:otherwise>
+			</xsl:otherwise> -->
+		</xsl:choose>
+	</xsl:template>
+	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field/text()">
+		<xsl:choose>
+			<xsl:when test="contains(., 'OA')">
+				<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+			</xsl:when>
+			<xsl:when test="contains(., 'openAccess')">
+				<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+			</xsl:when>
+			<xsl:when test="contains(., 'restrictedAccess')">
+				<xsl:text>info:eu-repo/semantics/restrictedAccess</xsl:text>
+			</xsl:when>
+			<xsl:when test="contains(., 'embargoedAccess')">
+				<xsl:text>info:eu-repo/semantics/embargoedAccess</xsl:text>
+			</xsl:when>
+
+			<!-- <xsl:otherwise>
+				<xsl:text>info:eu-repo/semantics/restrictedAccess</xsl:text>
+			</xsl:otherwise> -->
 		</xsl:choose>
 	</xsl:template>
 
 	<!-- AUXILIARY TEMPLATES -->
 	
 	<!-- dc.type prefixing -->
-	<xsl:template name="addPrefix">
-		<xsl:param name="value" />
-		<xsl:param name="prefix" />
-		<xsl:choose>
-			<xsl:when test="starts-with($value, $prefix)">
-				<xsl:value-of select="$value" />
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:value-of select="concat($prefix, $value)" />
-			</xsl:otherwise>
-		</xsl:choose>
-	</xsl:template>
+<!--	<xsl:template name="addPrefix">-->
+<!--		<xsl:param name="value" />-->
+<!--		<xsl:param name="prefix" />-->
+<!--		<xsl:choose>-->
+<!--			<xsl:when test="starts-with($value, $prefix)">-->
+<!--				<xsl:value-of select="$value" />-->
+<!--			</xsl:when>-->
+<!--			<xsl:otherwise>-->
+<!--				<xsl:value-of select="concat($prefix, $value)" />-->
+<!--			</xsl:otherwise>-->
+<!--		</xsl:choose>-->
+<!--	</xsl:template>-->
 	
 	<!-- Date format -->
 	<xsl:template name="formatdate">
