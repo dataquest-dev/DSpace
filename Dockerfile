@@ -72,7 +72,7 @@ ENV JAVA_OPTS=-Xmx2000m
 # On startup, run DSpace Runnable JAR
 
 # For security reason (requirement on some cloud platforms) we want to run dspace as non-root user.
-RUN chown -R ubuntu:ubuntu /dspace /usr/local/tomcat
+RUN chown -R ubuntu:ubuntu /dspace
 USER ubuntu
 
 ENTRYPOINT ["java", "-jar", "webapps/server-boot.jar", "--dspace.dir=$DSPACE_INSTALL"]
