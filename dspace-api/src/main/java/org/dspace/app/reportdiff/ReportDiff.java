@@ -312,7 +312,6 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 from = allReports.get(size - 2).getLastModified();
             }
         } catch (SQLException e) {
-            handler.logError("Database error while fetching reports for default dates: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
