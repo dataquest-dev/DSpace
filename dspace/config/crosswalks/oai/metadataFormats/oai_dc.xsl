@@ -5,6 +5,25 @@
 	xmlns:doc="http://www.lyncode.com/xoai"
 	version="1.0">
 	<xsl:output omit-xml-declaration="yes" method="xml" indent="yes" />
+
+	<xsl:template name="transform-OA">
+		<xsl:for-each select ="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field/text()">
+			<xsl:choose>
+				<xsl:when test="contains(., 'OA')">
+					<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+				</xsl:when>
+				<xsl:when test="contains(., 'openAccess')">
+					<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+				</xsl:when>
+				<xsl:when test="contains(., 'restrictedAccess')">
+					<xsl:text>info:eu-repo/semantics/restrictedAccess</xsl:text>
+				</xsl:when>
+				<xsl:when test="contains(., 'embargoedAccess')">
+					<xsl:text>info:eu-repo/semantics/embargoedAccess</xsl:text>
+				</xsl:when>
+			</xsl:choose>
+		</xsl:for-each>
+	</xsl:template>
 	
 	<xsl:template match="/">
 		<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" 
@@ -43,6 +62,31 @@
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:element/doc:field[@name='value']">
 				<dc:subject><xsl:value-of select="." /></dc:subject>
 			</xsl:for-each>
+			<!-- dc.description.version -->
+			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='version']/doc:element/doc:field[@name='value']">
+				<dc:rights>
+					<xsl:choose>
+						<xsl:when test="contains(., 'OA')">
+							<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'openAccess')">
+							<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'restrictedAccess')">
+							<xsl:text>info:eu-repo/semantics/restrictedAccess</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'embargoedAccess')">
+							<xsl:text>info:eu-repo/semantics/embargoedAccess</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'Published Version')">
+							<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:text>info:eu-repo/semantics/restrictedAccess</xsl:text>
+						</xsl:otherwise>
+					</xsl:choose>
+				</dc:rights>
+			</xsl:for-each>
 			<!-- dc.description -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element/doc:field[@name='value']">
 				<dc:description><xsl:value-of select="." /></dc:description>
@@ -61,7 +105,32 @@
 			</xsl:for-each>
 			<!-- dc.type -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']">
-				<dc:type><xsl:value-of select="." /></dc:type>
+				<dc:type>
+					<xsl:choose>
+						<xsl:when test="contains(., 'J_ČLÁNEK')">
+							<xsl:text>info:eu-repo/semantics/article</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'B_KNIHA - CELEK')">
+							<xsl:text>info:eu-repo/semantics/book</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'D_Stať ve sborníku')">
+							<xsl:text>info:eu-repo/semantics/conferenceObject</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'C_KNIHA - KAPITOLA')">
+							<xsl:text>info:eu-repo/semantics/bookPart</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'N_CERTIFIKOVANÁ METODIKA')">
+							<xsl:text>info:eu-repo/semantics/workingPaper</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'Nmets-Metodiky schválené příslušným orgánem')">
+							<xsl:text>info:eu-repo/semantics/workingPaper</xsl:text>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:text>info:eu-repo/semantics/other</xsl:text>
+						</xsl:otherwise>
+
+					</xsl:choose>
+				</dc:type>
 			</xsl:for-each>
 			<!-- dc.type.* -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:element/doc:field[@name='value']">
@@ -84,12 +153,18 @@
 				<dc:language><xsl:value-of select="." /></dc:language>
 			</xsl:for-each>
 			<!-- dc.relation -->
+
+
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:field[@name='value']">
-				<dc:relation><xsl:value-of select="." /></dc:relation>
+				<dc:relation>info:eu-repo/grantAgreement/<xsl:value-of select="." /></dc:relation>
 			</xsl:for-each>
-			<!-- dc.relation.* -->
-			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:element/doc:field[@name='value']">
-				<dc:relation><xsl:value-of select="." /></dc:relation>
+			<!-- dc.relation.uri -->
+			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
+				<dc:identifier.doi><xsl:value-of select="." /></dc:identifier.doi>
+			</xsl:for-each>
+			<!-- dc.relation.ispartof -->
+			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element/doc:field[@name='value']">
+				<dc:identifier.ispartof><xsl:value-of select="." /></dc:identifier.ispartof>
 			</xsl:for-each>
 			<!-- dc.rights -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']">
