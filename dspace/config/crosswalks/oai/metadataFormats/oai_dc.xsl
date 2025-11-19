@@ -119,9 +119,6 @@
 						<xsl:when test="contains(., 'C_KNIHA - KAPITOLA')">
 							<xsl:text>info:eu-repo/semantics/bookPart</xsl:text>
 						</xsl:when>
-						<!-- <xsl:when test="contains(., 'C_KNIHA_KAPITOLA')">
-                            <xsl:text>info:eu-repo/semantics/bookPart</xsl:text>
-                        </xsl:when> -->
 						<xsl:when test="contains(., 'N_CERTIFIKOVANÁ METODIKA')">
 							<xsl:text>info:eu-repo/semantics/workingPaper</xsl:text>
 						</xsl:when>
@@ -169,14 +166,6 @@
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element/doc:field[@name='value']">
 				<dc:identifier.ispartof><xsl:value-of select="." /></dc:identifier.ispartof>
 			</xsl:for-each>
-			<!-- local.identifier.doi
-			<xsl:for-each select="doc:metadata/doc:element[@name='local']/doc:element[@name='identifier']/doc:element[@name='e-issn']/doc:element/doc:field[@name='value']">
-				<dc:relation><xsl:value-of select="." /></dc:relation>
-			</xsl:for-each>-->
-			<!-- dc.relation.*
-			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:element/doc:field[@name='value']">
-				<dc:relation><xsl:value-of select="." /></dc:relation>
-			</xsl:for-each>-->
 			<!-- dc.rights -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']">
 				<dc:rights><xsl:value-of select="." /></dc:rights>

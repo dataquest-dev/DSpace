@@ -93,20 +93,6 @@
 
 	<!-- AUXILIARY TEMPLATES -->
 	
-	<!-- dc.type prefixing -->
-<!--	<xsl:template name="addPrefix">-->
-<!--		<xsl:param name="value" />-->
-<!--		<xsl:param name="prefix" />-->
-<!--		<xsl:choose>-->
-<!--			<xsl:when test="starts-with($value, $prefix)">-->
-<!--				<xsl:value-of select="$value" />-->
-<!--			</xsl:when>-->
-<!--			<xsl:otherwise>-->
-<!--				<xsl:value-of select="concat($prefix, $value)" />-->
-<!--			</xsl:otherwise>-->
-<!--		</xsl:choose>-->
-<!--	</xsl:template>-->
-	
 	<!-- Date format -->
 	<xsl:template name="formatdate">
 		<xsl:param name="datestr" />
