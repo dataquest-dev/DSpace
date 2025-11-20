@@ -606,6 +606,8 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             return true;
         } catch (MissingLicenseAgreementException e) {
             return false;
+        } catch (AuthorizeException e) {
+            return false;
         }
     }
 
