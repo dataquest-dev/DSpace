@@ -50,3 +50,6 @@ rebel.xml
 
 ## Ignore jenv configuration
 .java-version
+
+## Do not push local paths into github
+__basic.bat
