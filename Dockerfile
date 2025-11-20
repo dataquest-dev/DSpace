@@ -71,7 +71,8 @@ EXPOSE 8080 8000
 ENV JAVA_OPTS=-Xmx2000m
 # On startup, run DSpace Runnable JAR
 
-# We create a 'dspace' user to run DSpace instead of running as root
+# We create a 'dspace' user to run DSpace instead of running as root. An explicit UID is required 
+# because Kubernetes deployment accepts only numeric user IDs when specifying the container user.
 RUN useradd -u 1100 -m -s /bin/bash dspace \
     && chown -Rv dspace: /dspace
 
