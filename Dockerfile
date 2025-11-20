@@ -71,8 +71,10 @@ EXPOSE 8080 8000
 ENV JAVA_OPTS=-Xmx2000m
 # On startup, run DSpace Runnable JAR
 
-# For security reason (requirement on some cloud platforms) we want to run dspace as non-root user.
-RUN chown -R ubuntu:ubuntu /dspace
-USER ubuntu
+# We create a 'dspace' user to run DSpace instead of running as root
+RUN useradd -u 1100 -m -s /bin/bash dspace \
+    && chown -Rv dspace: /dspace
+
+USER dspace
 
 ENTRYPOINT ["java", "-jar", "webapps/server-boot.jar", "--dspace.dir=$DSPACE_INSTALL"]
