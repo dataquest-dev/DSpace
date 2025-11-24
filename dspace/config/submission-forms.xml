@@ -77,6 +77,18 @@
             </row>
             <row>
                 <field>
+                    <dc-schema>local</dc-schema>
+                    <dc-element>author</dc-element>
+                    <dc-qualifier>alternative</dc-qualifier>
+                    <repeatable>true</repeatable>
+                    <label>Alternativní jména autora</label>
+                    <input-type>onebox</input-type>
+                    <hint>Zadejte alternativní jména autora (pseudonymy, přepisy, dřívější jména)</hint>
+                    <required></required>
+                </field>
+            </row>
+            <row>
+                <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>title</dc-element>
                     <dc-qualifier></dc-qualifier>
