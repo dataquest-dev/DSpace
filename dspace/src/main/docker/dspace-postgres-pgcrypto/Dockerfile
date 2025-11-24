@@ -19,5 +19,11 @@ ENV POSTGRES_DB=dspace
 ENV POSTGRES_USER=dspace
 ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
+# Create log directory for PostgreSQL
+RUN mkdir -p /var/log/postgresql && chown postgres:postgres /var/log/postgresql
+
+# Copy PostgreSQL configuration with log rotation
+COPY postgresql.conf /etc/postgresql/postgresql.conf
+
 # Copy over script which will initialize database and install pgcrypto extension
 COPY install-pgcrypto.sh /docker-entrypoint-initdb.d/
