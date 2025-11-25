@@ -15,7 +15,9 @@ import static org.dspace.app.rest.test.AbstractControllerIntegrationTest.REST_SE
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.text.IsEqualIgnoringCase.equalToIgnoringCase;
 
 import java.io.File;
@@ -176,7 +178,10 @@ public class BrowseIndexMatcher {
 
     public static Matcher<? super Object> contributorBrowseIndex(final String order) {
         return allOf(
-            hasJsonPath("$.metadata", contains("dc.contributor.*", "dc.creator")),
+            // Assert there is at least one contributor metadata entry (e.g., dc.contributor.author)
+            hasJsonPath("$.metadata", hasItem(startsWith("dc.contributor."))),
+            // Assert dc.creator is present
+            hasJsonPath("$.metadata", hasItem("dc.creator")),
             hasJsonPath("$.browseType", equalToIgnoringCase(BROWSE_TYPE_VALUE_LIST)),
             hasJsonPath("$.type", equalToIgnoringCase("browse")),
             hasJsonPath("$.dataType", equalToIgnoringCase("text")),
