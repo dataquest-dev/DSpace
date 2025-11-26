@@ -36,7 +36,12 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 
 /**
- * This admin script us used to manage(create or invalidate) clarin tokens, for selected user.
+ * This admin script us used to manage(create or invalidate) clarin tokens, for the user specified by ID or e-mail.
+ * In token creation, the user and the expiration time need to be set in script options.
+ * Created token string is then printed on the console.
+ * <p>
+ * Admin user can also use this script to generate encryption/decryption secret key and store it into
+ * "clarin.token.encryption.secret" config property.
  *
  * @author Milan Kuchtiak
  */
