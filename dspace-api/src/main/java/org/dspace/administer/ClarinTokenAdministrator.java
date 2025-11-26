@@ -35,6 +35,11 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 
+/**
+ * This admin script us used to manage(create or invalidate) clarin tokens, for selected user.
+ *
+ * @author Milan Kuchtiak
+ */
 public class ClarinTokenAdministrator {
 
     private static final Logger log = LogManager.getLogger(ClarinTokenAdministrator.class);

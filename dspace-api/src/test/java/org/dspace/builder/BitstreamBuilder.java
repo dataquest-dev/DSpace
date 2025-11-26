@@ -194,14 +194,14 @@ public class BitstreamBuilder extends AbstractDSpaceObjectBuilder<Bitstream> {
     /**
      * Guess the bitstream format as during the submission via the
      * {@link BitstreamFormatService#guessFormat(Context, Bitstream)}
-     * 
+     *
      * @return the BitstreamBuilder with the format set according to
      * {@link BitstreamFormatService#guessFormat(Context, Bitstream)}
      * @throws SQLException
      */
     public BitstreamBuilder guessFormat() throws SQLException {
         bitstream.setFormat(context, bitstreamFormatService.guessFormat(context, bitstream));
-	return this;
+        return this;
     }
 
     public BitstreamBuilder withCustomMimeType(String mimeType) throws AuthorizeException, SQLException {

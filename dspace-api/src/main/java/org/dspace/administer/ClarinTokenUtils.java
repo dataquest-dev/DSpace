@@ -25,6 +25,11 @@ import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.util.DateUtils;
 import org.dspace.content.clarin.ClarinToken;
 
+/**
+ * Utility methods for Clarin Token.
+ *
+ * @author Milan Kuchtiak
+ */
 public final class ClarinTokenUtils {
 
     private ClarinTokenUtils() {
@@ -37,7 +42,11 @@ public final class ClarinTokenUtils {
 
     public static Integer getTokenId(String token) throws ParseException {
         JWEObject jweObj = JWEObject.parse(token);
-        return Integer.parseInt(jweObj.getHeader().getKeyID());
+        try {
+            return Integer.parseInt(jweObj.getHeader().getKeyID());
+        } catch (NumberFormatException e) {
+            throw new ParseException("Invalid KeyID: not a valid integer", 0);
+        }
     }
 
     public static SecretKey getSecretKeyFromBase64EncodedString(String encodedSecretKey) {

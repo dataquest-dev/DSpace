@@ -188,6 +188,7 @@ public class ItemHandleCheckerIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @After
+    @Override
     public void destroy() throws Exception {
         // remove all registered handles properly
         identifierService.delete(context, item1, HANDLE_ITEM1);
