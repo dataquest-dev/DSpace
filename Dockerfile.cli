@@ -60,3 +60,11 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends unzip \
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
+
+# We create a 'dspace' user to run DSpace instead of running as root
+RUN useradd -u 1100 -m -s /bin/bash dspace \
+    && chown -Rv dspace: /dspace \
+    && mkdir -p /dspace/log /dspace/assetstore \
+    && chown -Rv dspace: /dspace/log /dspace/assetstore
+
+USER dspace

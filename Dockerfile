@@ -84,6 +84,8 @@ RUN chmod u+x redebug.sh undebug.sh custom_run.sh
 # We create a 'dspace' user to run DSpace instead of running as root. An explicit UID is required 
 # because Kubernetes deployment accepts only numeric user IDs when specifying the container user.
 RUN useradd -u 1100 -m -s /bin/bash dspace \
-    && chown -Rv dspace: /dspace /usr/local/tomcat
+    && chown -Rv dspace: /dspace /usr/local/tomcat \
+    && mkdir -p /dspace/log /dspace/assetstore \
+    && chown -Rv dspace: /dspace/log /dspace/assetstore
 
 USER dspace
