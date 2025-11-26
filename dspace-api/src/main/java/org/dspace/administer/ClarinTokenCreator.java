@@ -121,9 +121,7 @@ public class ClarinTokenCreator extends DSpaceRunnable<ClarinTokenConfiguration>
 
         Context context = new Context();
         EPerson ePerson = getEperson(context);
-        if (ePerson == null) {
-            throw new RuntimeException("Only authenticated user can run the script");
-        }
+        // ePerson cannot be null here because the script can only be run by an authenticated user
         context.setCurrentUser(ePerson);
         try {
             if (expirationDate != null) {

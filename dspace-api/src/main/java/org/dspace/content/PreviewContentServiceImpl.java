@@ -357,7 +357,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      */
     private void processGzipFile(List<String> filePaths, File file, Bitstream bitstream) {
         String fileName = bitstream.getName();
-        if (fileName != null) {
+        if (fileName == null) {
+            logBitstreamNameIsNull();
+        } else {
             if (fileName.toLowerCase().endsWith("tar.gz")) {
                 processTarGzipFile(filePaths, file, bitstream);
             } else {
@@ -379,7 +381,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
      */
     private void processXzFile(List<String> filePaths, File file, Bitstream bitstream) {
         String fileName = bitstream.getName();
-        if (fileName != null) {
+        if (fileName == null) {
+            logBitstreamNameIsNull();
+        } else {
             if (fileName.toLowerCase().endsWith("tar.xz")) {
                 try (TarArchiveInputStream tarInput = getTarXzInputStream(file)) {
                     processTarFile(filePaths, tarInput);
@@ -636,5 +640,9 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         } else {
             return fileName;
         }
+    }
+
+    private static void logBitstreamNameIsNull() {
+        log.warn("Error while processing file: Bitstream name is null");
     }
 }
