@@ -180,37 +180,36 @@ public class MatomoPDFExporter {
 
         for (MatomoReportSubscription mr : matomoReports) {
             Item item = mr.getItem();
-            if (item != null) {
-                if (!done.contains(item)) {
-                    if (!getHandle(item).isEmpty()) {
-                        try {
-                            log.info("Processing Item: {}", getHandle(item));
-                            if (verboseOutput) {
-                                System.out.println("Processing Item: " + item.getID() + "(" + getHandle(item) + ")");
-                            }
-                            generateItemReport(item);
-                            done.add(item);
-                        } catch (FileNotFoundException e) {
-                            log.info("404 '{}' probably nothing logged for that date", e.getMessage());
-                            if (verboseOutput) {
-                                System.out.println("Nothing logged for: " + e.getMessage());
-                            }
-                            continue;
-                        } catch (Exception e) {
-                            log.error("Unable to generate report.", e);
-                            continue;
+            // item cannot be null by design
+            if (!done.contains(item)) {
+                if (!getHandle(item).isEmpty()) {
+                    try {
+                        log.info("Processing Item: {}", getHandle(item));
+                        if (verboseOutput) {
+                            System.out.println("Processing Item: " + item.getID() + "(" + getHandle(item) + ")");
                         }
-                    } else {
-                        log.info("Item handle not found : item_id={}", item.getID());
+                        generateItemReport(item);
+                        done.add(item);
+                    } catch (FileNotFoundException e) {
+                        log.info("404 '{}' probably nothing logged for that date", e.getMessage());
+                        if (verboseOutput) {
+                            System.out.println("Nothing logged for: " + e.getMessage());
+                        }
+                        continue;
+                    } catch (Exception e) {
+                        log.error("Unable to generate report.", e);
+                        continue;
                     }
+                } else {
+                    log.info("Item handle not found : item_id={}", item.getID());
                 }
-                EPerson to = mr.getEPerson();
-                try {
-                    sendEmail(to, item, verboseOutput);
-                } catch (Exception e) {
-                    log.error("Failed to send email to recipient: {} for item ID: {}. Error: {}",
-                            to.getEmail(), item.getID(), e.getMessage(), e);
-                }
+            }
+            EPerson to = mr.getEPerson();
+            try {
+                sendEmail(to, item, verboseOutput);
+            } catch (Exception e) {
+                log.error("Failed to send email to recipient: {} for item ID: {}. Error: {}",
+                        to.getEmail(), item.getID(), e.getMessage(), e);
             }
         }
         //cleanup
