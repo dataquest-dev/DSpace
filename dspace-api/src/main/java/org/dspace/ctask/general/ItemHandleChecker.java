@@ -32,7 +32,7 @@ import org.glassfish.jersey.client.ClientProperties;
  */
 public class ItemHandleChecker extends BasicLinkChecker {
 
-    private static final int CONNECTION_TIMEOUT_SEC = 5;
+    private static final int CONNECTION_TIMEOUT_SEC = 2;
     private static final int READ_TIMEOUT_SEC = 3;
 
     private List<String> ignoredUrls;
