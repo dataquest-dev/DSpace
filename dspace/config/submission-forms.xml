@@ -83,7 +83,7 @@
                     <repeatable>true</repeatable>
                     <label>Alternativní jména autora</label>
                     <input-type>onebox</input-type>
-                    <hint>Zadejte alternativní jména autora (pseudonymy, přepisy, dřívější jména)</hint>
+                    <hint>Zadejte alternativní jména autora</hint>
                     <required></required>
                 </field>
             </row>
