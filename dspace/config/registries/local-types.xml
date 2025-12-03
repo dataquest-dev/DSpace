@@ -138,4 +138,11 @@
       . Check/extend html.xsl for available variables.</scope_note>
   </dc-type>
 
+  <dc-type>
+    <schema>local</schema>
+    <element>author</element>
+    <qualifier>alternative</qualifier>
+    <scope_note>Alternative author name</scope_note>
+  </dc-type>
+
 </dspace-dc-types>
