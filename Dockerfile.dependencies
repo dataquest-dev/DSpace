@@ -7,7 +7,7 @@
 ARG JDK_VERSION=11
 
 # Step 1 - Run Maven Build
-FROM maven:3-openjdk-${JDK_VERSION}-slim as build
+FROM docker.io/eclipse-temurin:${JDK_VERSION} AS ant_build
 ARG TARGET_DIR=dspace-installer
 WORKDIR /app
 # Create the 'dspace' user account & home directory
@@ -17,7 +17,7 @@ RUN useradd dspace \
 RUN chown -Rv dspace: /app
 # Need git to support buildnumber-maven-plugin, which lets us know what version of DSpace is being run.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git \
+    && apt-get install -y --no-install-recommends git maven\
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
 
