@@ -25,13 +25,5 @@ RUN mkdir -p /var/log/postgresql && chown postgres:postgres /var/log/postgresql
 # Copy configuration with log rotation
 COPY log.properties.conf /etc/postgresql/log.properties.conf
 
-# Copy script that enables logging include during DB initialization
-# Named with prefix to run first (scripts run in alphabetical order)
-COPY enable-logging.sh /docker-entrypoint-initdb.d/01-enable-logging.sh
-
 # Copy over script which will initialize database and install pgcrypto extension
-COPY install-pgcrypto.sh /docker-entrypoint-initdb.d/02-install-pgcrypto.sh
-
-# Make scripts executable
-RUN chmod +x /docker-entrypoint-initdb.d/01-enable-logging.sh && \
-    chmod +x /docker-entrypoint-initdb.d/02-install-pgcrypto.sh
+COPY install-pgcrypto.sh /docker-entrypoint-initdb.d/
