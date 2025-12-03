@@ -17,7 +17,7 @@ RUN useradd dspace \
 RUN chown -Rv dspace: /app
 # Need git to support buildnumber-maven-plugin, which lets us know what version of DSpace is being run.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git \
+    && apt-get install -y --no-install-recommends git maven\
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
 
