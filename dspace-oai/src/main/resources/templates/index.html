@@ -55,8 +55,9 @@
                     <a role="button" class="btn btn-outline-secondary" th:href="${item.baseUrl} + '?verb=Identify'">Identify</a>
                     <a role="button" class="btn btn-outline-secondary" th:href="${item.baseUrl} + '?verb=ListSets'">List Sets</a>
                     <a role="button" class="btn btn-outline-secondary" th:href="${item.baseUrl} + '?verb=ListMetadataFormats'">List Metadata Formats</a>
-                    <a role="button" class="btn btn-outline-secondary" th:href="${item.baseUrl} + '?verb=ListIdentifiers&metadataPrefix=oai_dc'">List Identifiers</a>
-                    <a role="button" class="btn btn-outline-secondary" th:href="${item.baseUrl} + '?verb=ListRecords&metadataPrefix=oai_dc'">List Records</a>
+                    <!-- Use oai_openaire for openaire4 context, oai_dc for others -->
+                    <a role="button" class="btn btn-outline-secondary" th:href="${item.baseUrl} + '?verb=ListIdentifiers&metadataPrefix=' + ${item.baseUrl.contains('openaire4') ? 'oai_openaire' : 'oai_dc'}">List Identifiers</a>
+                    <a role="button" class="btn btn-outline-secondary" th:href="${item.baseUrl} + '?verb=ListRecords&metadataPrefix=' + ${item.baseUrl.contains('openaire4') ? 'oai_openaire' : 'oai_dc'}">List Records</a>
                 </div>
                 </p>
             </div>
