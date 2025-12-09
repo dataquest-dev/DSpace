@@ -10,10 +10,10 @@ ARG JDK_VERSION=11
 ARG DSPACE_VERSION=dspace-7_x
 # The Docker registry to use for DSpace images. Defaults to "docker.io"
 # NOTE: non-DSpace images are hardcoded to use "docker.io" and are not impacted by this build argument
-ARG DOCKER_REGISTRY=dataquest
+ARG DOCKER_REGISTRY=docker.io
 
 # Step 1 - Run Maven Build
-FROM ${DOCKER_REGISTRY}/dspace-dependencies:${DSPACE_VERSION} AS build
+FROM ${DOCKER_REGISTRY}/dataquest/dspace-dependencies:${DSPACE_VERSION} AS build
 ARG TARGET_DIR=dspace-installer
 WORKDIR /app
 # The dspace-installer directory will be written to /install
@@ -80,3 +80,10 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 
 WORKDIR /usr/local/tomcat/bin
 RUN chmod u+x redebug.sh undebug.sh custom_run.sh
+
+# We create a 'dspace' user to run DSpace instead of running as root. An explicit UID is required 
+# because Kubernetes deployment accepts only numeric user IDs when specifying the container user.
+RUN useradd -u 1100 -m -s /bin/bash dspace \
+    && chown -Rv dspace: /dspace /usr/local/tomcat
+
+USER dspace
