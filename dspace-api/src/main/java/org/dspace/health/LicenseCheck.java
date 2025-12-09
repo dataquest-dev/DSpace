@@ -51,7 +51,6 @@ public class LicenseCheck extends Check {
         Map<String, Integer> licensesCount = new HashMap<>();
         Map<String, List<UUID>> problemItems = new HashMap<>();
         List<UUID> bitstreamUUIDs = new ArrayList<>();
-        Iterator<Item> items;
         try {
             items = itemService.findAll(context);
             while (items.hasNext()) {
