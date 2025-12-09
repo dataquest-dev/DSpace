@@ -58,8 +58,15 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
 
     @Test
     public void findAll() throws Exception {
-        //When we call the root endpoint
-        getClient().perform(get("/api/discover/browses"))
+        // Store original configuration value
+        String originalValue = configurationService.getProperty("webui.browse.vocabularies.disabled");
+        
+        // Set the configuration for this test
+        configurationService.setProperty("webui.browse.vocabularies.disabled", "srsc");
+        
+        try {
+            //When we call the root endpoint
+            getClient().perform(get("/api/discover/browses"))
                    //The status has to be 200 OK
                    .andExpect(status().isOk())
                    //We expect the content type to be "application/hal+json;charset=UTF-8"
@@ -83,7 +90,15 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                        BrowseIndexMatcher.subjectBrowseIndex("asc"),
                        BrowseIndexMatcher.languageBrowseIndex("asc")
                    )))
-        ;
+            ;
+        } finally {
+            // Restore the original configuration value
+            if (originalValue != null) {
+                configurationService.setProperty("webui.browse.vocabularies.disabled", originalValue);
+            } else {
+                configurationService.setProperty("webui.browse.vocabularies.disabled", null);
+            }
+        }
     }
 
     @Test
