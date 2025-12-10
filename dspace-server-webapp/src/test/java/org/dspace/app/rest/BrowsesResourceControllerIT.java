@@ -60,14 +60,11 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     public void findAll() throws Exception {
         // Save the original configuration value
         String[] originalValue = configurationService.getArrayProperty("webui.browse.vocabularies.disabled");
-        
         try {
             // Override the configuration specifically for this test to use 'srsc'
             configurationService.setProperty("webui.browse.vocabularies.disabled", "srsc");
-            
             // Clear cache to ensure the configuration change takes effect
             metadataAuthorityService.clearCache();
-            
             //When we call the root endpoint
         getClient().perform(get("/api/discover/browses"))
                 //The status has to be 200 OK
@@ -101,7 +98,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
             } else {
                 configurationService.setProperty("webui.browse.vocabularies.disabled", (String) null);
             }
-            
             // Clear cache to ensure the original configuration is restored
             metadataAuthorityService.clearCache();
         }
