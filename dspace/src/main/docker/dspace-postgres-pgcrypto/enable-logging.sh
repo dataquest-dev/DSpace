@@ -6,6 +6,7 @@
 #
 # http://www.dspace.org/license/
 #
+
 set -e
 
 CONF="$PGDATA/postgresql.conf"
