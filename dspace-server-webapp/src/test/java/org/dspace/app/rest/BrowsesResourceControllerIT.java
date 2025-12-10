@@ -72,8 +72,8 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                 .andExpect(jsonPath("$.page.totalPages", is(1)))
                 .andExpect(jsonPath("$.page.number", is(0)))
 
-                //The array of browse index should have a size 5
-                .andExpect(jsonPath("$._embedded.browses", hasSize(5)))
+                //The array of browse index should have a size 6
+                .andExpect(jsonPath("$._embedded.browses", hasSize(6)))
 
                 //Check that all (and only) the default browse indexes are present
                 .andExpect(jsonPath("$._embedded.browses", containsInAnyOrder(
