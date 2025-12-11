@@ -31,26 +31,11 @@ public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTes
     @Autowired
     private ConfigurationService configurationService;
 
-    private String originalConfigValue;
-
     @Before
     public void setup() throws Exception {
-        // Save original configuration value
-        originalConfigValue = configurationService.getProperty("config.admin.updateable.files");
-        
         configurationService.setProperty("config.admin.updateable.files",
                 "dspace.cfg,local.cfg,item-submission.xml,submission-forms.xml");
     }
-
-    @After
-    public void tearDown() throws Exception {
-        // Restore original configuration value to ensure test isolation
-        if (originalConfigValue != null) {
-            configurationService.setProperty("config.admin.updateable.files", originalConfigValue);
-        }
-        // Note: We don't explicitly set to null as ConfigurationService handles missing properties appropriately
-    }
-
 
     /**
      * Test that configuration files endpoint requires authentication
