@@ -58,32 +58,49 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
 
     @Test
     public void findAll() throws Exception {
-        //When we call the root endpoint
+        // Save the original configuration value
+        String[] originalValue = configurationService.getArrayProperty("webui.browse.vocabularies.disabled");
+        try {
+            // Override the configuration specifically for this test to use 'srsc'
+            configurationService.setProperty("webui.browse.vocabularies.disabled", "srsc");
+            // Clear cache to ensure the configuration change takes effect
+            metadataAuthorityService.clearCache();
+            //When we call the root endpoint
         getClient().perform(get("/api/discover/browses"))
-                   //The status has to be 200 OK
-                   .andExpect(status().isOk())
-                   //We expect the content type to be "application/hal+json;charset=UTF-8"
-                   .andExpect(content().contentType(contentType))
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //We expect the content type to be "application/hal+json;charset=UTF-8"
+                .andExpect(content().contentType(contentType))
 
-                   //Our default Discovery config has 6 browse indexes, so we expect this to be reflected in the page
-                   // object
-                   .andExpect(jsonPath("$.page.size", is(20)))
-                   .andExpect(jsonPath("$.page.totalElements", is(5)))
-                   .andExpect(jsonPath("$.page.totalPages", is(1)))
-                   .andExpect(jsonPath("$.page.number", is(0)))
+                //Our default Discovery config has 6 browse indexes, so we expect this to be reflected in the page
+                // object
+                .andExpect(jsonPath("$.page.size", is(20)))
+                .andExpect(jsonPath("$.page.totalElements", is(5)))
+                .andExpect(jsonPath("$.page.totalPages", is(1)))
+                .andExpect(jsonPath("$.page.number", is(0)))
 
-                   //The array of browse index should have a size 6
-                   .andExpect(jsonPath("$._embedded.browses", hasSize(6)))
+                //The array of browse index should have a size 6
+                .andExpect(jsonPath("$._embedded.browses", hasSize(5)))
 
-                   //Check that all (and only) the default browse indexes are present
-                   .andExpect(jsonPath("$._embedded.browses", containsInAnyOrder(
-                       BrowseIndexMatcher.dateIssuedBrowseIndex("asc"),
-                       BrowseIndexMatcher.contributorBrowseIndex("asc"),
-                       BrowseIndexMatcher.titleBrowseIndex("asc"),
-                       BrowseIndexMatcher.subjectBrowseIndex("asc"),
-                       BrowseIndexMatcher.languageBrowseIndex("asc")
-                   )))
+                //Check that all (and only) the default browse indexes are present
+                .andExpect(jsonPath("$._embedded.browses", containsInAnyOrder(
+                        BrowseIndexMatcher.dateIssuedBrowseIndex("asc"),
+                        BrowseIndexMatcher.contributorBrowseIndex("asc"),
+                        BrowseIndexMatcher.titleBrowseIndex("asc"),
+                        BrowseIndexMatcher.subjectBrowseIndex("asc"),
+                        BrowseIndexMatcher.languageBrowseIndex("asc")
+                )))
         ;
+        } finally {
+            // Restore the original configuration value
+            if (originalValue != null) {
+                configurationService.setProperty("webui.browse.vocabularies.disabled", originalValue);
+            } else {
+                configurationService.setProperty("webui.browse.vocabularies.disabled", (String) null);
+            }
+            // Clear cache to ensure the original configuration is restored
+            metadataAuthorityService.clearCache();
+        }
     }
 
     @Test
