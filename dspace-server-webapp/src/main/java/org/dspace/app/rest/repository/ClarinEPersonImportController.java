@@ -198,7 +198,6 @@ public class ClarinEPersonImportController {
             clarinUserRegistration.setPersonID(userRegistrationRest.getePersonID());
             clarinUserRegistration = clarinUserRegistrationService.create(context, clarinUserRegistration);
         }
-        
         userRegistrationRest = converter.toRest(clarinUserRegistration, utils.obtainProjection());
         context.commit();
         return userRegistrationRest;
