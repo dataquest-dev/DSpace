@@ -141,13 +141,62 @@ public class ClarinEPersonImportController {
         } catch (IOException e1) {
             throw new UnprocessableEntityException("Error parsing request body", e1);
         }
-        //create user registration
-        ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
-        clarinUserRegistration.setOrganization(userRegistrationRest.getOrganization());
-        clarinUserRegistration.setConfirmation(userRegistrationRest.isConfirmation());
-        clarinUserRegistration.setEmail(userRegistrationRest.getEmail());
-        clarinUserRegistration.setPersonID(userRegistrationRest.getePersonID());
-        clarinUserRegistration = clarinUserRegistrationService.create(context, clarinUserRegistration);
+        
+        ClarinUserRegistration clarinUserRegistration = null;
+        
+        // Check if user registration already exists by email or ePersonID
+        if (StringUtils.isNotBlank(userRegistrationRest.getEmail())) {
+            var existingRegistrations = clarinUserRegistrationService.findByEmail(context, userRegistrationRest.getEmail());
+            if (!existingRegistrations.isEmpty()) {
+                clarinUserRegistration = existingRegistrations.get(0);
+            }
+        }
+        
+        // If not found by email, try by ePersonID
+        if (Objects.isNull(clarinUserRegistration) && Objects.nonNull(userRegistrationRest.getePersonID())) {
+            var existingRegistrations = clarinUserRegistrationService.findByEPersonUUID(context, userRegistrationRest.getePersonID());
+            if (!existingRegistrations.isEmpty()) {
+                clarinUserRegistration = existingRegistrations.get(0);
+            }
+        }
+        
+        if (Objects.nonNull(clarinUserRegistration)) {
+            // Update existing registration if values are different
+            boolean needsUpdate = false;
+            
+            if (!Objects.equals(clarinUserRegistration.getOrganization(), userRegistrationRest.getOrganization())) {
+                clarinUserRegistration.setOrganization(userRegistrationRest.getOrganization());
+                needsUpdate = true;
+            }
+            
+            if (clarinUserRegistration.isConfirmation() != userRegistrationRest.isConfirmation()) {
+                clarinUserRegistration.setConfirmation(userRegistrationRest.isConfirmation());
+                needsUpdate = true;
+            }
+            
+            if (!Objects.equals(clarinUserRegistration.getEmail(), userRegistrationRest.getEmail())) {
+                clarinUserRegistration.setEmail(userRegistrationRest.getEmail());
+                needsUpdate = true;
+            }
+            
+            if (!Objects.equals(clarinUserRegistration.getPersonID(), userRegistrationRest.getePersonID())) {
+                clarinUserRegistration.setPersonID(userRegistrationRest.getePersonID());
+                needsUpdate = true;
+            }
+            
+            if (needsUpdate) {
+                clarinUserRegistrationService.update(context, clarinUserRegistration);
+            }
+        } else {
+            // Create new user registration
+            clarinUserRegistration = new ClarinUserRegistration();
+            clarinUserRegistration.setOrganization(userRegistrationRest.getOrganization());
+            clarinUserRegistration.setConfirmation(userRegistrationRest.isConfirmation());
+            clarinUserRegistration.setEmail(userRegistrationRest.getEmail());
+            clarinUserRegistration.setPersonID(userRegistrationRest.getePersonID());
+            clarinUserRegistration = clarinUserRegistrationService.create(context, clarinUserRegistration);
+        }
+        
         userRegistrationRest = converter.toRest(clarinUserRegistration, utils.obtainProjection());
         context.commit();
         return userRegistrationRest;
