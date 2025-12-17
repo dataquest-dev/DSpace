@@ -146,7 +146,8 @@ public class ClarinEPersonImportController {
 
         // Check if user registration already exists by email or ePersonID
         if (StringUtils.isNotBlank(userRegistrationRest.getEmail())) {
-            var existingRegistrations = clarinUserRegistrationService.findByEmail(context, userRegistrationRest.getEmail());
+            var existingRegistrations = clarinUserRegistrationService.findByEmail(context,
+                    userRegistrationRest.getEmail());
             if (!existingRegistrations.isEmpty()) {
                 clarinUserRegistration = existingRegistrations.get(0);
             }
@@ -154,7 +155,8 @@ public class ClarinEPersonImportController {
 
         // If not found by email, try by ePersonID
         if (Objects.isNull(clarinUserRegistration) && Objects.nonNull(userRegistrationRest.getePersonID())) {
-            var existingRegistrations = clarinUserRegistrationService.findByEPersonUUID(context, userRegistrationRest.getePersonID());
+            var existingRegistrations = clarinUserRegistrationService.findByEPersonUUID(context,
+                    userRegistrationRest.getePersonID());
             if (!existingRegistrations.isEmpty()) {
                 clarinUserRegistration = existingRegistrations.get(0);
             }
