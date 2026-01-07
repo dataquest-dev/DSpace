@@ -38,12 +38,12 @@ public class ReportResultDAOImpl extends AbstractHibernateDAO<ReportResult> impl
     @Override
     public ReportResult findByLastModifiedAndCheckType(Context context, Date lastModified, int checkType)
             throws SQLException {
-        // Use JSON path query for exact matching of checkType in args (assuming args is a JSON column)
+        // Use string matching for checkType in args (args contains command line options like "-c: 0")
         Query query = createQuery(context, "SELECT r FROM ReportResult r WHERE r.lastModified = :lastModified " +
-                "AND JSON_EXTRACT(r.args, '$.checkType') = :checkType");
+                "AND r.args LIKE :argsPattern");
 
         query.setParameter("lastModified", lastModified);
-        query.setParameter("checkType", String.valueOf(checkType));
+        query.setParameter("argsPattern", "%-c: " + checkType + "%");
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
 
         return singleResult(query);
