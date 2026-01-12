@@ -36,6 +36,8 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.PasswordHash;
 import org.dspace.eperson.service.EPersonService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,6 +52,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/clarin/import")
 public class ClarinEPersonImportController {
+    private static final Logger log = LoggerFactory.getLogger(ClarinEPersonImportController.class);
+
     @Autowired
     private EPersonRestRepository ePersonRestRepository;
     @Autowired
@@ -144,6 +148,7 @@ public class ClarinEPersonImportController {
         }
 
         ClarinUserRegistration clarinUserRegistration = null;
+        boolean foundByEmail = false;
 
         // Check if user registration already exists by email or ePersonID
         if (StringUtils.isNotBlank(userRegistrationRest.getEmail())) {
@@ -151,6 +156,7 @@ public class ClarinEPersonImportController {
                     userRegistrationRest.getEmail());
             if (!existingRegistrations.isEmpty()) {
                 clarinUserRegistration = existingRegistrations.get(0);
+                foundByEmail = true;
             }
         }
 
@@ -177,9 +183,19 @@ public class ClarinEPersonImportController {
                 needsUpdate = true;
             }
 
+            // Do not update email if registration was matched by ePersonID instead of email to prevent data inconsistency
             if (!Objects.equals(clarinUserRegistration.getEmail(), userRegistrationRest.getEmail())) {
-                clarinUserRegistration.setEmail(userRegistrationRest.getEmail());
-                needsUpdate = true;
+                if (foundByEmail) {
+                    clarinUserRegistration.setEmail(userRegistrationRest.getEmail());
+                    needsUpdate = true;
+                } else {
+                    // Registration found by ePersonID but email differs - potential data corruption
+                    log.warn("User registration found by ePersonID={} has different email. " +
+                            "Existing email='{}', incoming email='{}'. Email will NOT be updated to prevent data inconsistency.",
+                            userRegistrationRest.getePersonID(),
+                            clarinUserRegistration.getEmail(),
+                            userRegistrationRest.getEmail());
+                }
             }
 
             if (!Objects.equals(clarinUserRegistration.getPersonID(), userRegistrationRest.getePersonID())) {
