@@ -162,7 +162,8 @@ public class ClarinEPersonImportController {
 
         // If not found by email, try by ePersonID
         if (Objects.isNull(clarinUserRegistration) && Objects.nonNull(userRegistrationRest.getePersonID())) {
-            List<ClarinUserRegistration> existingRegistrationsByEPerson = clarinUserRegistrationService.findByEPersonUUID(context,
+            List<ClarinUserRegistration> existingRegistrationsByEPerson =
+                    clarinUserRegistrationService.findByEPersonUUID(context,
                     userRegistrationRest.getePersonID());
             if (!existingRegistrationsByEPerson.isEmpty()) {
                 clarinUserRegistration = existingRegistrationsByEPerson.get(0);
