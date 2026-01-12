@@ -86,8 +86,8 @@ RUN chmod u+x redebug.sh undebug.sh custom_run.sh
 RUN useradd -u 1100 -m -s /bin/bash dspace \
     && mkdir -p /dspace/assetstore \
     && chown -Rv dspace: /dspace /usr/local/tomcat
-# NOTE: We must explicitly create /dspace/assetstore directory here because it doesn't exist in the base image.
-# When Docker mounts a volume to a non-existent directory, it creates it with root:root permissions.
-# By creating it here as root and setting dspace ownership, Docker volumes will inherit the correct permissions.
+# NOTE: /dspace/assetstore does not exist in the base image.
+# We create it so Docker named volumes inherit the correct ownership.
+# This only works for *named volumes* — bind mounts use host permissions.
 
 USER dspace
