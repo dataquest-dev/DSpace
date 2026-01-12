@@ -75,7 +75,7 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
     /**
      * Helper method to create an initial ClarinUserRegistration for testing.
      */
-    private ClarinUserRegistration createInitialRegistration(EPerson ePerson, String email, String org) 
+    private ClarinUserRegistration createInitialRegistration(EPerson ePerson, String email, String org)
             throws Exception {
         return ClarinUserRegistrationBuilder
                 .createClarinUserRegistration(context)
@@ -89,7 +89,7 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
     /**
      * Helper method to build a ClarinUserRegistrationRest import request.
      */
-    private ClarinUserRegistrationRest buildImportRequest(String email, UUID ePersonID, String org, 
+    private ClarinUserRegistrationRest buildImportRequest(String email, UUID ePersonID, String org,
             boolean confirmation) {
         ClarinUserRegistrationRest request = new ClarinUserRegistrationRest();
         request.setEmail(email);
@@ -248,12 +248,12 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
     public void updatesExistingRegistrationWhenMatchedByEmail() throws Exception {
         context.turnOffAuthorisationSystem();
         EPerson ePerson = createTestEPerson("4", "qwerty04");
-        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "user@test.edu", 
+        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "user@test.edu",
                 "Original Org");
         context.restoreAuthSystemState();
 
         // Import with same email to match by email
-        ClarinUserRegistrationRest request = buildImportRequest("user@test.edu", ePerson.getID(), 
+        ClarinUserRegistrationRest request = buildImportRequest("user@test.edu", ePerson.getID(),
                 "Updated Org", true);
         String authToken = getAuthToken(admin.getEmail(), password);
 
@@ -274,12 +274,12 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
     public void preventsEmailUpdateWhenMatchedByEPersonID() throws Exception {
         context.turnOffAuthorisationSystem();
         EPerson ePerson = createTestEPerson("5", "qwerty05");
-        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "existing@test.edu", 
+        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "existing@test.edu",
                 "Original Org");
         context.restoreAuthSystemState();
 
         // Import with different email - will match by ePersonID instead
-        ClarinUserRegistrationRest request = buildImportRequest("different@test.edu", ePerson.getID(), 
+        ClarinUserRegistrationRest request = buildImportRequest("different@test.edu", ePerson.getID(),
                 "Updated Org", true);
         String authToken = getAuthToken(admin.getEmail(), password);
 
@@ -300,12 +300,12 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
     public void updatesRegistrationWhenBothEmailAndEPersonIDMatch() throws Exception {
         context.turnOffAuthorisationSystem();
         EPerson ePerson = createTestEPerson("6", "qwerty06");
-        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "consistent@test.edu", 
+        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "consistent@test.edu",
                 "Original Org");
         context.restoreAuthSystemState();
 
         // Import with same email and ePersonID - both match the same record
-        ClarinUserRegistrationRest request = buildImportRequest("consistent@test.edu", ePerson.getID(), 
+        ClarinUserRegistrationRest request = buildImportRequest("consistent@test.edu", ePerson.getID(),
                 "Updated Org", true);
         String authToken = getAuthToken(admin.getEmail(), password);
 

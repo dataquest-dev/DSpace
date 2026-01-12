@@ -184,7 +184,8 @@ public class ClarinEPersonImportController {
                 needsUpdate = true;
             }
 
-            // Do not update email if registration was matched by ePersonID instead of email to prevent data inconsistency
+            // Do not update email if registration was matched by ePersonID instead of email
+            // to prevent data inconsistency
             if (!Objects.equals(clarinUserRegistration.getEmail(), userRegistrationRest.getEmail())) {
                 if (foundByEmail) {
                     clarinUserRegistration.setEmail(userRegistrationRest.getEmail());
@@ -192,7 +193,8 @@ public class ClarinEPersonImportController {
                 } else {
                     // Registration found by ePersonID but email differs - potential data corruption
                     log.warn("User registration found by ePersonID={} has different email. " +
-                            "Existing email='{}', incoming email='{}'. Email will NOT be updated to prevent data inconsistency.",
+                            "Existing email='{}', incoming email='{}'. " +
+                            "Email will NOT be updated to prevent data inconsistency.",
                             userRegistrationRest.getePersonID(),
                             clarinUserRegistration.getEmail(),
                             userRegistrationRest.getEmail());
@@ -204,7 +206,7 @@ public class ClarinEPersonImportController {
                 if (foundByEmail && Objects.nonNull(userRegistrationRest.getePersonID())) {
                     List<ClarinUserRegistration> conflictingRegs = clarinUserRegistrationService
                             .findByEPersonUUID(context, userRegistrationRest.getePersonID());
-                    if (!conflictingRegs.isEmpty() && 
+                    if (!conflictingRegs.isEmpty() &&
                             !conflictingRegs.get(0).getID().equals(clarinUserRegistration.getID())) {
                         log.warn("User registration found by email='{}' has different ePersonID. " +
                                 "Incoming ePersonID={} is already associated with another registration ID={}. " +
