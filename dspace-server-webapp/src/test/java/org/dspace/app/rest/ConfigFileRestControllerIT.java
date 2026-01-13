@@ -15,7 +15,6 @@ import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
