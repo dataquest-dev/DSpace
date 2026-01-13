@@ -615,16 +615,16 @@ public class ItemTest extends AbstractDSpaceObjectTest {
         assertThat("testAddMetadata_7args_1 4", dc.get(0).getMetadataField().getQualifier(), equalTo(qualifier));
         assertThat("testAddMetadata_7args_1 5", dc.get(0).getLanguage(), equalTo(lang));
         assertThat("testAddMetadata_7args_1 6", dc.get(0).getValue(), equalTo(values.get(0)));
-        assertThat("testAddMetadata_7args_1 7", dc.get(0).getAuthority(), equalTo(authorities.get(0)));
-        assertThat("testAddMetadata_7args_1 8", dc.get(0).getConfidence(), equalTo(confidences.get(0)));
+        assertThat("testAddMetadata_7args_1 7", dc.get(0).getAuthority(), nullValue());
+        assertThat("testAddMetadata_7args_1 8", dc.get(0).getConfidence(), equalTo(-1));
         assertThat("testAddMetadata_7args_1 9", dc.get(1).getMetadataField().getMetadataSchema().getName(),
                    equalTo(schema));
         assertThat("testAddMetadata_7args_1 10", dc.get(1).getMetadataField().getElement(), equalTo(element));
         assertThat("testAddMetadata_7args_1 11", dc.get(1).getMetadataField().getQualifier(), equalTo(qualifier));
         assertThat("testAddMetadata_7args_1 12", dc.get(1).getLanguage(), equalTo(lang));
         assertThat("testAddMetadata_7args_1 13", dc.get(1).getValue(), equalTo(values.get(1)));
-        assertThat("testAddMetadata_7args_1 14", dc.get(1).getAuthority(), equalTo(authorities.get(1)));
-        assertThat("testAddMetadata_7args_1 15", dc.get(1).getConfidence(), equalTo(confidences.get(1)));
+        assertThat("testAddMetadata_7args_1 14", dc.get(1).getAuthority(), nullValue());
+        assertThat("testAddMetadata_7args_1 15", dc.get(1).getConfidence(), equalTo(-1));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -681,8 +681,8 @@ public class ItemTest extends AbstractDSpaceObjectTest {
         assertEquals(element, dc.get(0).getMetadataField().getElement());
         assertEquals(qualifier, dc.get(0).getMetadataField().getQualifier());
         assertEquals(newValue, dc.get(0).getValue());
-        assertEquals(newAuthority, dc.get(0).getAuthority());
-        assertEquals(newConfidence.intValue(), dc.get(0).getConfidence());
+        assertNull(dc.get(0).getAuthority());
+        assertEquals(-1, dc.get(0).getConfidence());
     }
 
     /**
