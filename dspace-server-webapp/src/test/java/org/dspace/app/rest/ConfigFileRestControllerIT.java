@@ -15,6 +15,7 @@ import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,16 @@ public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTes
     @Autowired
     private ConfigurationService configurationService;
 
+    private String originalConfigValue;
+
     @Before
     public void setup() throws Exception {
         configurationService.setProperty("config.admin.updateable.files",
                 "dspace.cfg,local.cfg,item-submission.xml,submission-forms.xml");
+
+        // Save original configuration value
+        originalConfigValue = configurationService.getProperty("config.admin.updateable.files");
+
     }
 
     /**
@@ -128,5 +135,13 @@ public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTes
                 .contentType(MediaType.TEXT_PLAIN)
                 .content(testContent))
                 .andExpect(status().isOk());
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        // Restore original configuration value to ensure test isolation
+        if (originalConfigValue != null) {
+            configurationService.setProperty("config.admin.updateable.files", originalConfigValue);
+        }
     }
 }
