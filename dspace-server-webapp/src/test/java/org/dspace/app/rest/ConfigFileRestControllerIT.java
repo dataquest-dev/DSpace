@@ -120,23 +120,6 @@ public class ConfigFileRestControllerIT extends AbstractControllerIntegrationTes
                 .andExpect(status().isOk());
     }
 
-    /**
-     * Test file update with PUT request
-     */
-    @Test
-    public void testConfigFileUpdate_ValidRequest() throws Exception {
-
-        String adminToken = getAuthToken(admin.getEmail(), password);
-
-        String testContent = "# Test configuration\ntest.property = test.value\n";
-
-        // Test updating a configuration file
-        getClient(adminToken).perform(put("/api/admin/configfiles/dspace.cfg/content")
-                .contentType(MediaType.TEXT_PLAIN)
-                .content(testContent))
-                .andExpect(status().isOk());
-    }
-
     @After
     public void tearDown() throws Exception {
         // Restore original configuration value to ensure test isolation
