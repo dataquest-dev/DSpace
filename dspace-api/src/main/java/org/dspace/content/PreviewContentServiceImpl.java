@@ -219,7 +219,7 @@ public class PreviewContentServiceImpl implements PreviewContentService {
         List<FileInfo> fileInfos = new ArrayList<>();
         String bitstreamMimeType = bitstream.getFormat(context).getMIMEType();
         if (bitstreamMimeType.equals("text/plain")) {
-            if (!validateBitstreamNameWithType(bitstream, "zip,tar,gz,tar.gz,xz,tar.bz2,tar.xz,7z")) {
+            if (!validateBitstreamNameWithType(bitstream, "zip,tar,gz,tar.gz,tar.bz2,tar.xz,xz,7z")) {
                 throw new IOException("The file has an incorrect type according to the MIME type stored in the " +
                         "database. This could cause the ZIP file to be previewed as a text file, potentially leading" +
                         " to a database error.");
