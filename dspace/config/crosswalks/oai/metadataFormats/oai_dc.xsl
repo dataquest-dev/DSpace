@@ -95,15 +95,40 @@
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name!='provenance']/doc:element/doc:field[@name='value']">
 				<dc:description><xsl:value-of select="." /></dc:description>
 			</xsl:for-each>
-			<!-- dc.date -->
-			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element/doc:field[@name='value']">
-				<dc:date><xsl:value-of select="." /></dc:date>
-			</xsl:for-each>
-			<!-- dc.date.* -->
-			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element/doc:element/doc:field[@name='value']">
+			<!-- dc.date.issued -->
+			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
 				<dc:date><xsl:value-of select="." /></dc:date>
 			</xsl:for-each>
 			<!-- dc.type -->
+			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']">
+				<dc:type>
+					<xsl:choose>
+						<xsl:when test="contains(., 'J_ČLÁNEK')">
+							<xsl:text>article</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'B_KNIHA - CELEK')">
+							<xsl:text>book</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'D_Stať ve sborníku')">
+							<xsl:text>conferenceObject</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'C_KNIHA - KAPITOLA')">
+							<xsl:text>bookPart</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'N_CERTIFIKOVANÁ METODIKA')">
+							<xsl:text>workingPaper</xsl:text>
+						</xsl:when>
+						<xsl:when test="contains(., 'Nmets-Metodiky schválené příslušným orgánem')">
+							<xsl:text>workingPaper</xsl:text>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:text>other</xsl:text>
+						</xsl:otherwise>
+
+					</xsl:choose>
+				</dc:type>
+			</xsl:for-each>
+			<!-- dc.type with `info:eu-repo/semantics/`-->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']">
 				<dc:type>
 					<xsl:choose>
@@ -140,8 +165,26 @@
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element/doc:field[@name='value']">
 				<dc:identifier><xsl:value-of select="." /></dc:identifier>
 			</xsl:for-each>
+			<!-- dc.identifier - formatted with additional metadata -->
+			<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']/doc:element/doc:field[@name='value']">
+				<dc:identifier>
+					<xsl:text>. </xsl:text>
+					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']" />
+					<xsl:text> vol. </xsl:text>
+					<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value']" />
+					<xsl:text>, č. </xsl:text>
+					<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value']" />
+					<!-- We do not have any information about pages, so it is `s. 0` by default -->
+					<xsl:text>, s. 0. ISSN </xsl:text>
+					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']/doc:element/doc:field[@name='value']" />
+				</dc:identifier>
+			</xsl:if>
 			<!-- dc.identifier.* -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element/doc:element/doc:field[@name='value']">
+				<dc:identifier><xsl:value-of select="." /></dc:identifier>
+			</xsl:for-each>
+			<!-- local.identifier.doi -->
+			<xsl:for-each select="doc:metadata/doc:element[@name='local']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value']">
 				<dc:identifier><xsl:value-of select="." /></dc:identifier>
 			</xsl:for-each>
 			<!-- dc.language -->
@@ -157,10 +200,6 @@
 
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:field[@name='value']">
 				<dc:relation>info:eu-repo/grantAgreement/<xsl:value-of select="." /></dc:relation>
-			</xsl:for-each>
-			<!-- dc.relation.uri -->
-			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
-				<dc:identifier.doi><xsl:value-of select="." /></dc:identifier.doi>
 			</xsl:for-each>
 			<!-- dc.relation.ispartof -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element/doc:field[@name='value']">
