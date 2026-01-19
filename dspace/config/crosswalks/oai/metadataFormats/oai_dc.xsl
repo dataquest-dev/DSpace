@@ -168,7 +168,7 @@
 			<!-- dc.identifier - formatted with additional metadata -->
 			<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']/doc:element/doc:field[@name='value']">
 				<dc:identifier>
-					<xsl:text>. </xsl:text>
+					<xsl:text> . </xsl:text>
 					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']" />
 					<xsl:text> vol. </xsl:text>
 					<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value']" />
