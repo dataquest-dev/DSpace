@@ -41,13 +41,18 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
     }
 
     public static WorkspaceItemBuilder createWorkspaceItem(final Context context, final Collection col) {
-        WorkspaceItemBuilder builder = new WorkspaceItemBuilder(context);
-        return builder.create(context, col, null);
+        return createWorkspaceItem(context, col, null);
     }
 
     public static WorkspaceItemBuilder createWorkspaceItem(final Context context, final Collection col, UUID uuid) {
         WorkspaceItemBuilder builder = new WorkspaceItemBuilder(context);
-        return builder.create(context, col, uuid);
+        return builder.create(context, col, uuid).withClarinLicense();
+    }
+
+    public static WorkspaceItemBuilder createWorkspaceItemWithNoClarinLicense(final Context context,
+                                                                              final Collection col) {
+        WorkspaceItemBuilder builder = new WorkspaceItemBuilder(context);
+        return builder.create(context, col, null);
     }
 
     /**
@@ -65,7 +70,7 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
             if (uuid == null) {
                 workspaceItem = workspaceItemService.create(context, col, false);
             } else {
-                workspaceItem = workspaceItemService.create(context, col, uuid, false);
+                workspaceItem = workspaceItemService.create(context, col, uuid, false, false);
             }
             item = workspaceItem.getItem();
         } catch (Exception e) {
@@ -224,6 +229,12 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
             handleException(e);
         }
         return this;
+    }
+
+    public WorkspaceItemBuilder withClarinLicense() {
+        addMetadataValue(MetadataSchemaEnum.DC.getName(), "rights", null, "GNU General Public Licence, version 3");
+        addMetadataValue(MetadataSchemaEnum.DC.getName(), "rights", "uri", "http://opensource.org/licenses/GPL-3.0");
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "rights", "label", "PUB");
     }
 
     public WorkspaceItemBuilder withFulltext(String name, String source, InputStream is) {
