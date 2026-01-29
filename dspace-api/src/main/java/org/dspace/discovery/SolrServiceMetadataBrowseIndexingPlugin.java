@@ -241,6 +241,24 @@ public class SolrServiceMetadataBrowseIndexingPlugin implements SolrServiceIndex
                                                 distValuesForAC.add(var);
                                             }
                                         }
+
+                                        // If no preferred label or variants were found,
+                                        // use the original metadata value as the display value
+                                        if (StringUtils.isBlank(preferedLabel) &&
+                                            (variants == null || variants.isEmpty())) {
+                                            String nVal = OrderFormat
+                                                .makeSortString(
+                                                    values.get(x).getValue(),
+                                                    values.get(x).getLanguage(),
+                                                    bi.getDataType());
+                                            distFValues
+                                                .add(nVal
+                                                         + SearchUtils.FILTER_SEPARATOR
+                                                         + values.get(x).getValue()
+                                                         + SearchUtils.AUTHORITY_SEPARATOR
+                                                         + values.get(x).getAuthority());
+                                            distValuesForAC.add(values.get(x).getValue());
+                                        }
                                     } else {
                                         // put it in the browse index as if it
                                         // hasn't have an authority key
