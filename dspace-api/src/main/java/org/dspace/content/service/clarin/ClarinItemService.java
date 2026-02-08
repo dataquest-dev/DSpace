@@ -102,4 +102,20 @@ public interface ClarinItemService {
      */
     void updateItemDatesMetadata(Context context, Item item) throws SQLException;
 
+    /**
+     * Derive the display value for {@code dc.date.issued} from the item's
+     * {@code local.approximateDate.issued} metadata.
+     *
+     * <ul>
+     *   <li>If approximateDate is a comma-separated list of numbers (e.g. "1938, 1945, 2022"),
+     *       returns the last number ("2022").</li>
+     *   <li>If approximateDate is non-numeric (e.g. "cca 1938 - 1945"), returns "0000".</li>
+     *   <li>If approximateDate is empty or missing, returns {@code null} (no override needed).</li>
+     * </ul>
+     *
+     * @param item the item to derive the date from.
+     * @return the derived date string, or {@code null} if no approximate date is present.
+     */
+    String deriveDateIssuedFromApproximateDate(Item item);
+
 }

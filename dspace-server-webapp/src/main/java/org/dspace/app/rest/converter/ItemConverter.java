@@ -9,6 +9,7 @@ package org.dspace.app.rest.converter;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -18,8 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.MetadataValueList;
+import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.projection.Projection;
-import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
@@ -27,7 +28,6 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexableObject;
-import org.dspace.services.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -53,18 +53,6 @@ public class ItemConverter
 
     @Override
     public ItemRest convert(Item obj, Projection projection) {
-        Context context = null;
-        Request currentRequest = requestService.getCurrentRequest();
-        if (currentRequest != null) {
-            context = ContextUtil.obtainContext(currentRequest.getHttpServletRequest());
-        }
-        try {
-            clarinItemService.updateItemDatesMetadata(context, obj);
-        } catch (SQLException e) {
-            log.error("Error updating item dates metadata", e);
-            throw new RuntimeException(e);
-        }
-
         ItemRest item = super.convert(obj, projection);
         item.setInArchive(obj.isArchived());
         item.setDiscoverable(obj.isDiscoverable());
@@ -77,7 +65,28 @@ public class ItemConverter
             item.setEntityType(entityTypes.get(0).getValue());
         }
 
+        // Override dc.date.issued on the REST DTO with the derived value from local.approximateDate.issued.
+        // This is a display-only override — it does NOT modify the JPA entity or touch the database.
+        // It ensures that even items with stale dc.date.issued in the DB display the correct derived value.
+        overrideDateIssuedFromApproximateDate(obj, item);
+
         return item;
+    }
+
+    /**
+     * If the item has a {@code local.approximateDate.issued} metadata value, override
+     * {@code dc.date.issued} on the REST DTO using the shared derivation logic in
+     * {@link ClarinItemService#deriveDateIssuedFromApproximateDate(Item)}.
+     * This is a display-only override — no database writes.
+     */
+    private void overrideDateIssuedFromApproximateDate(Item source, ItemRest target) {
+        String derivedValue = clarinItemService.deriveDateIssuedFromApproximateDate(source);
+        if (derivedValue == null) {
+            return;
+        }
+        MetadataValueRest dateRest = new MetadataValueRest(derivedValue);
+        dateRest.setPlace(0);
+        target.getMetadata().getMap().put("dc.date.issued", Collections.singletonList(dateRest));
     }
 
     /**
