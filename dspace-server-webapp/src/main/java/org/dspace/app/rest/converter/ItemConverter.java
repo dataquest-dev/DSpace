@@ -21,6 +21,7 @@ import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.MetadataValueList;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
@@ -84,7 +85,20 @@ public class ItemConverter
         if (derivedValue == null) {
             return;
         }
+
+        // Respect hidden-metadata configuration — do not override if dc.date.issued is hidden
+        Context context = ContextUtil.obtainCurrentRequestContext();
+        try {
+            if (metadataExposureService.isHidden(context, "dc", "date", "issued", source)) {
+                return;
+            }
+        } catch (SQLException e) {
+            log.error("Error checking metadata visibility for dc.date.issued", e);
+            return;
+        }
+
         MetadataValueRest dateRest = new MetadataValueRest(derivedValue);
+        dateRest.setConfidence(-1);
         dateRest.setPlace(0);
         target.getMetadata().getMap().put("dc.date.issued", Collections.singletonList(dateRest));
     }

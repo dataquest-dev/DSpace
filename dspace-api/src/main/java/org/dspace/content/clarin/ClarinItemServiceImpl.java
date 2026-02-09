@@ -224,15 +224,19 @@ public class ClarinItemServiceImpl implements ClarinItemService {
             return;
         }
 
-        try {
-            // Clear the current `dc.date.issued` metadata
-            itemService.clearMetadata(context, item, "dc", "date", "issued", Item.ANY);
-
-            // Update the `dc.date.issued` metadata with the derived value
-            itemService.addMetadata(context, item, "dc", "date", "issued", Item.ANY, derivedDate);
-        } catch (SQLException e) {
-            log.error("Cannot remove `dc.date.issued` metadata because: {}", e.getMessage());
+        // Short-circuit if dc.date.issued already has the correct derived value
+        List<MetadataValue> currentDateIssued =
+                itemService.getMetadata(item, "dc", "date", "issued", Item.ANY, false);
+        if (CollectionUtils.isNotEmpty(currentDateIssued)
+                && derivedDate.equals(currentDateIssued.get(0).getValue())) {
+            return;
         }
+
+        // Clear the current `dc.date.issued` metadata
+        itemService.clearMetadata(context, item, "dc", "date", "issued", Item.ANY);
+
+        // Update the `dc.date.issued` metadata with the derived value
+        itemService.addMetadata(context, item, "dc", "date", "issued", Item.ANY, derivedDate);
     }
 
     @Override
