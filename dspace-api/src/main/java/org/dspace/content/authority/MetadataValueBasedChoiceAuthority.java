@@ -84,7 +84,8 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
             }
 
             if (StringUtils.isNotBlank(locale)) {
-                List<MetadataValue> fallbackResults = metadataValueService.findByAuthorityAndLanguage(context, key, null);
+                List<MetadataValue> fallbackResults =
+                        metadataValueService.findByAuthorityAndLanguage(context, key, null);
                 if (!fallbackResults.isEmpty()) {
                     return fallbackResults.get(0).getValue();
                 }
@@ -103,11 +104,14 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
         }
 
         Context context = getContext();
-        if (context == null) return new Choices(Choices.CF_NOTFOUND);
+        if (context == null) {
+            return new Choices(Choices.CF_NOTFOUND);
+        }
 
         try {
             List<MetadataValue> allResults = new ArrayList<>();
-            List<MetadataValue> authorityResults = metadataValueService.findByAuthorityAndLanguage(context, query, locale);
+            List<MetadataValue> authorityResults =
+                    metadataValueService.findByAuthorityAndLanguage(context, query, locale);
             allResults.addAll(authorityResults);
 
             Iterator<MetadataValue> valueResults = metadataValueService.findByValueLike(context, query);
@@ -123,13 +127,17 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
             for (MetadataValue mv : allResults) {
                 boolean exists = uniqueResults.stream().anyMatch(e ->
                         e.getAuthority().equals(mv.getAuthority()) && e.getValue().equals(mv.getValue()));
-                if (!exists) uniqueResults.add(mv);
+                if (!exists) {
+                    uniqueResults.add(mv);
+                }
             }
 
             int fromIndex = Math.max(0, start);
             int toIndex = limit > 0 ? Math.min(uniqueResults.size(), start + limit) : uniqueResults.size();
 
-            if (fromIndex > uniqueResults.size()) return new Choices(Choices.CF_NOTFOUND);
+            if (fromIndex > uniqueResults.size()) {
+                return new Choices(Choices.CF_NOTFOUND);
+            }
 
             List<MetadataValue> paginated = uniqueResults.subList(fromIndex, toIndex);
             List<Choice> choices = new ArrayList<>();
@@ -155,10 +163,14 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
 
     @Override
     public Choices getBestMatch(String text, String locale) {
-        if (StringUtils.isBlank(text)) return new Choices(Choices.CF_NOTFOUND);
+        if (StringUtils.isBlank(text)) {
+            return new Choices(Choices.CF_NOTFOUND);
+        }
 
         Context context = getContext();
-        if (context == null) return new Choices(Choices.CF_NOTFOUND);
+        if (context == null) {
+            return new Choices(Choices.CF_NOTFOUND);
+        }
 
         try {
             Iterator<MetadataValue> valueResults = metadataValueService.findByValueLike(context, text);

@@ -77,16 +77,16 @@ public class MetadataValueDAOImpl extends AbstractHibernateDAO<MetadataValue> im
             throws SQLException {
         StringBuilder queryString = new StringBuilder();
         queryString.append("SELECT m FROM MetadataValue m WHERE m.authority = :authority");
-        
+
         if (language != null) {
             queryString.append(" AND m.language = :language");
         }
-        
+
         queryString.append(" ORDER BY m.place ASC");
 
         Query query = createQuery(context, queryString.toString());
         query.setParameter("authority", authority);
-        
+
         if (language != null) {
             query.setParameter("language", language);
         }
