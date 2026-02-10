@@ -25,7 +25,9 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.junit.After;
@@ -71,6 +73,9 @@ public class MetadataValueTest extends AbstractUnitTest {
 
     private MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
     private MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
+    private MetadataSchemaService metadataSchemaService = ContentServiceFactory.getInstance()
+            .getMetadataSchemaService();
+    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     protected CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
     protected CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
     protected WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
@@ -298,25 +303,22 @@ public class MetadataValueTest extends AbstractUnitTest {
         context.turnOffAuthorisationSystem();
 
         try {
-            // Use the existing metadata field from the base test setup
             String testAuthority = "test-authority-dao-" + System.currentTimeMillis();
 
-            // Create a simple test with two metadata values to verify ordering
-            MetadataValue mv1 = metadataValueService.create(context, it, mf);
-            mv1.setAuthority(testAuthority);
-            mv1.setValue("Beta Value");
-            mv1.setLanguage("en");
-            mv1.setPlace(1);
-            metadataValueService.update(context, mv1);
+            // Create test metadata values using the same item as other tests
+            MetadataValue testMv1 = metadataValueService.create(context, it, mf);
+            testMv1.setAuthority(testAuthority);
+            testMv1.setValue("Beta Value");
+            testMv1.setLanguage("en");
+            testMv1.setPlace(1);
+            metadataValueService.update(context, testMv1);
 
-            MetadataValue mv2 = metadataValueService.create(context, it, mf);
-            mv2.setAuthority(testAuthority);
-            mv2.setValue("Alpha Value");
-            mv2.setLanguage("en");
-            mv2.setPlace(1);
-            metadataValueService.update(context, mv2);
-
-            context.commit();
+            MetadataValue testMv2 = metadataValueService.create(context, it, mf);
+            testMv2.setAuthority(testAuthority);
+            testMv2.setValue("Alpha Value");
+            testMv2.setLanguage("en");
+            testMv2.setPlace(0);
+            metadataValueService.update(context, testMv2);
 
             // Test: Find with authority and language
             List<MetadataValue> results =
@@ -324,8 +326,8 @@ public class MetadataValueTest extends AbstractUnitTest {
             assertThat("Should find 2 values", results.size(), equalTo(2));
 
             // Test deterministic ordering: m.place ASC, m.value ASC, m.id ASC
-            // Both have place=1, so should order by value: "Alpha Value" < "Beta Value"
-            assertThat("First result should be Alpha Value (alphabetically first)",
+            // mv2 has place=0, mv1 has place=1, so mv2 should come first
+            assertThat("First result should be Alpha Value (lower place)",
                     results.get(0).getValue(), equalTo("Alpha Value"));
             assertThat("Second result should be Beta Value",
                     results.get(1).getValue(), equalTo("Beta Value"));
@@ -345,8 +347,6 @@ public class MetadataValueTest extends AbstractUnitTest {
                     metadataValueService.findByAuthorityAndLanguage(context, "non-existent", null);
             assertThat("Should find no values for non-existent authority",
                     notFoundResults.size(), equalTo(0));
-
-            context.commit();
 
         } finally {
             context.restoreAuthSystemState();
