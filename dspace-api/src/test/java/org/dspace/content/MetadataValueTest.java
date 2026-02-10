@@ -289,5 +289,67 @@ public class MetadataValueTest extends AbstractUnitTest {
         metadataValueService.update(context, mv);
     }
 
+    /**
+     * Test of findByAuthorityAndLanguage method with basic functionality
+     * verifying language filtering and deterministic ordering
+     */
+    @Test
+    public void testFindByAuthorityAndLanguage() throws Exception {
+        context.turnOffAuthorisationSystem();
 
+        try {
+            // Use the existing metadata field from the base test setup
+            String testAuthority = "test-authority-dao-" + System.currentTimeMillis();
+
+            // Create a simple test with two metadata values to verify ordering
+            MetadataValue mv1 = metadataValueService.create(context, it, mf);
+            mv1.setAuthority(testAuthority);
+            mv1.setValue("Beta Value");
+            mv1.setLanguage("en");
+            mv1.setPlace(1);
+            metadataValueService.update(context, mv1);
+
+            MetadataValue mv2 = metadataValueService.create(context, it, mf);
+            mv2.setAuthority(testAuthority);
+            mv2.setValue("Alpha Value");
+            mv2.setLanguage("en");
+            mv2.setPlace(1);
+            metadataValueService.update(context, mv2);
+
+            context.commit();
+
+            // Test: Find with authority and language
+            List<MetadataValue> results =
+                    metadataValueService.findByAuthorityAndLanguage(context, testAuthority, "en");
+            assertThat("Should find 2 values", results.size(), equalTo(2));
+
+            // Test deterministic ordering: m.place ASC, m.value ASC, m.id ASC
+            // Both have place=1, so should order by value: "Alpha Value" < "Beta Value"
+            assertThat("First result should be Alpha Value (alphabetically first)",
+                    results.get(0).getValue(), equalTo("Alpha Value"));
+            assertThat("Second result should be Beta Value",
+                    results.get(1).getValue(), equalTo("Beta Value"));
+
+            // Test: Find with authority but different language (should return empty)
+            List<MetadataValue> noResults =
+                    metadataValueService.findByAuthorityAndLanguage(context, testAuthority, "fr");
+            assertThat("Should find no French values", noResults.size(), equalTo(0));
+
+            // Test: Find with authority and null language (should include all languages)
+            List<MetadataValue> allResults =
+                    metadataValueService.findByAuthorityAndLanguage(context, testAuthority, null);
+            assertThat("Should find both values with null language filter", allResults.size(), equalTo(2));
+
+            // Test: Find with non-existent authority
+            List<MetadataValue> notFoundResults =
+                    metadataValueService.findByAuthorityAndLanguage(context, "non-existent", null);
+            assertThat("Should find no values for non-existent authority",
+                    notFoundResults.size(), equalTo(0));
+
+            context.commit();
+
+        } finally {
+            context.restoreAuthSystemState();
+        }
+    }
 }

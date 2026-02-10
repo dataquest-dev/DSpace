@@ -82,7 +82,7 @@ public class MetadataValueDAOImpl extends AbstractHibernateDAO<MetadataValue> im
             queryString.append(" AND m.language = :language");
         }
 
-        queryString.append(" ORDER BY m.place ASC");
+        queryString.append(" ORDER BY m.place ASC, m.value ASC, m.id ASC");
 
         Query query = createQuery(context, queryString.toString());
         query.setParameter("authority", authority);
@@ -90,9 +90,6 @@ public class MetadataValueDAOImpl extends AbstractHibernateDAO<MetadataValue> im
         if (language != null) {
             query.setParameter("language", language);
         }
-
-        // Limit results since typical usage only needs the first (best) match
-        query.setMaxResults(1);
 
         @SuppressWarnings("unchecked")
         List<MetadataValue> results = query.getResultList();

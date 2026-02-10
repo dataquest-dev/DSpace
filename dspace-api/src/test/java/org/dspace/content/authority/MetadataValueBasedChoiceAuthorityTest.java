@@ -143,8 +143,6 @@ public class MetadataValueBasedChoiceAuthorityTest {
         assertEquals("Unknown", result);
     }
 
-    // Test removed - requires full DSpace initialization
-
     @Test
     public void testGetLabelWithNoResults() throws SQLException {
         String key = "nonexistentKey";
@@ -201,8 +199,6 @@ public class MetadataValueBasedChoiceAuthorityTest {
         result = authority.getMatches(null, 0, 10, "en");
         assertEquals(Choices.CF_NOTFOUND, result.confidence);
     }
-
-    // Test removed - requires full DSpace initialization
 
     @Test
     public void testGetMatchesWithPagination() throws SQLException {
@@ -390,8 +386,6 @@ public class MetadataValueBasedChoiceAuthorityTest {
         assertEquals(Choices.CF_NOTFOUND, result.confidence);
     }
 
-    // Test removed - requires full DSpace initialization
-
     @Test
     public void testGetBestMatchNoResults() throws SQLException {
         String text = "No Match";
@@ -431,6 +425,4 @@ public class MetadataValueBasedChoiceAuthorityTest {
         Choices result = authority.getMatches(query, 0, 10, "en");
         assertEquals(Choices.CF_NOTFOUND, result.confidence);
     }
-
-    // Test removed - requires full DSpace initialization
 }
