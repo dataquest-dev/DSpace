@@ -234,6 +234,128 @@ public class MetadataValueBasedChoiceAuthorityTest {
     }
 
     @Test
+    public void testGetMatchesWithNegativeStart() throws SQLException {
+        String query = "test";
+
+        staticContextUtil.when(ContextUtil::obtainCurrentRequestContext).thenReturn(mockContext);
+
+        when(mockMetadataValue1.getAuthority()).thenReturn("auth1");
+        when(mockMetadataValue1.getValue()).thenReturn("Test 1");
+        when(mockMetadataValueService.findByAuthorityAndLanguage(mockContext, query, null))
+            .thenReturn(Arrays.asList(mockMetadataValue1));
+
+        @SuppressWarnings("unchecked")
+        Iterator<MetadataValue> mockIterator = mock(Iterator.class);
+        when(mockIterator.hasNext()).thenReturn(false);
+        when(mockMetadataValueService.findByValueLike(mockContext, query)).thenReturn(mockIterator);
+
+        // Test with negative start - should normalize to 0 and return from beginning
+        Choices result = authority.getMatches(query, -5, 2, null);
+
+        assertNotNull(result);
+        assertEquals(1, result.values.length);
+        assertEquals("auth1", result.values[0].authority);
+        assertEquals("Test 1", result.values[0].value);
+        assertFalse(result.more);
+    }
+
+    @Test
+    public void testGetMatchesWithZeroLimit() throws SQLException {
+        String query = "test";
+
+        staticContextUtil.when(ContextUtil::obtainCurrentRequestContext).thenReturn(mockContext);
+
+        when(mockMetadataValue1.getAuthority()).thenReturn("auth1");
+        when(mockMetadataValue1.getValue()).thenReturn("Test 1");
+        when(mockMetadataValue2.getAuthority()).thenReturn("auth2");
+        when(mockMetadataValue2.getValue()).thenReturn("Test 2");
+        when(mockMetadataValueService.findByAuthorityAndLanguage(mockContext, query, null))
+            .thenReturn(Arrays.asList(mockMetadataValue1, mockMetadataValue2));
+
+        @SuppressWarnings("unchecked")
+        Iterator<MetadataValue> mockIterator = mock(Iterator.class);
+        when(mockIterator.hasNext()).thenReturn(false);
+        when(mockMetadataValueService.findByValueLike(mockContext, query)).thenReturn(mockIterator);
+
+        // Test with limit=0 (unlimited) - should return all results
+        Choices result = authority.getMatches(query, 0, 0, null);
+
+        assertNotNull(result);
+        assertEquals(2, result.values.length);
+        assertEquals("auth1", result.values[0].authority);
+        assertEquals("auth2", result.values[1].authority);
+        assertFalse("Should indicate no more results since all returned", result.more);
+    }
+
+    @Test
+    public void testGetMatchesWithBlankLocale() throws SQLException {
+        String query = "test";
+
+        staticContextUtil.when(ContextUtil::obtainCurrentRequestContext).thenReturn(mockContext);
+
+        when(mockMetadataValue1.getAuthority()).thenReturn("auth1");
+        when(mockMetadataValue1.getValue()).thenReturn("Test 1");
+        // Test that blank locale gets normalized to null in the service call
+        when(mockMetadataValueService.findByAuthorityAndLanguage(mockContext, query, null))
+            .thenReturn(Arrays.asList(mockMetadataValue1));
+
+        @SuppressWarnings("unchecked")
+        Iterator<MetadataValue> mockIterator = mock(Iterator.class);
+        when(mockIterator.hasNext()).thenReturn(false);
+        when(mockMetadataValueService.findByValueLike(mockContext, query)).thenReturn(mockIterator);
+
+        // Test with blank locale - should be normalized to null
+        Choices result = authority.getMatches(query, 0, 10, "");
+
+        assertNotNull(result);
+        assertEquals(1, result.values.length);
+        verify(mockMetadataValueService).findByAuthorityAndLanguage(mockContext, query, null);
+    }
+
+    @Test
+    public void testGetMatchesDefaultSelectionIndex() throws SQLException {
+        String query = "exact";
+
+        staticContextUtil.when(ContextUtil::obtainCurrentRequestContext).thenReturn(mockContext);
+
+        when(mockMetadataValue1.getAuthority()).thenReturn("auth1");
+        when(mockMetadataValue1.getValue()).thenReturn("other");
+        when(mockMetadataValue2.getAuthority()).thenReturn("auth2");
+        when(mockMetadataValue2.getValue()).thenReturn("exact"); // This should match query
+        when(mockMetadataValueService.findByAuthorityAndLanguage(mockContext, query, null))
+            .thenReturn(Arrays.asList(mockMetadataValue1, mockMetadataValue2));
+
+        @SuppressWarnings("unchecked")
+        Iterator<MetadataValue> mockIterator = mock(Iterator.class);
+        when(mockIterator.hasNext()).thenReturn(false);
+        when(mockMetadataValueService.findByValueLike(mockContext, query)).thenReturn(mockIterator);
+
+        Choices result = authority.getMatches(query, 0, 10, null);
+
+        assertNotNull(result);
+        assertEquals(2, result.values.length);
+        assertEquals(1, result.defaultSelected); // Should be index 1 (second item) that matches query
+    }
+
+    @Test
+    public void testGetLabelWithBlankLocale() throws SQLException {
+        String key = "testKey";
+        String expectedLabel = "Test Label";
+
+        staticContextUtil.when(ContextUtil::obtainCurrentRequestContext).thenReturn(mockContext);
+        when(mockMetadataValue1.getValue()).thenReturn(expectedLabel);
+        // Test that blank locale gets normalized to null in the service call
+        when(mockMetadataValueService.findByAuthorityAndLanguage(mockContext, key, null))
+            .thenReturn(Arrays.asList(mockMetadataValue1));
+
+        // Test with blank locale - should be normalized to null
+        String result = authority.getLabel(key, "");
+
+        assertEquals(expectedLabel, result);
+        verify(mockMetadataValueService).findByAuthorityAndLanguage(mockContext, key, null);
+    }
+
+    @Test
     public void testGetBestMatchExact() throws SQLException {
         String text = "Exact Match";
         String locale = "en";

@@ -91,6 +91,9 @@ public class MetadataValueDAOImpl extends AbstractHibernateDAO<MetadataValue> im
             query.setParameter("language", language);
         }
 
+        // Limit results since typical usage only needs the first (best) match
+        query.setMaxResults(1);
+
         @SuppressWarnings("unchecked")
         List<MetadataValue> results = query.getResultList();
         return results;

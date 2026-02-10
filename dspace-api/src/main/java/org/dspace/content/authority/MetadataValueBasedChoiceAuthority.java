@@ -8,8 +8,10 @@
 package org.dspace.content.authority;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -32,8 +34,6 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
 
     private String pluginInstanceName;
 
-    private Context cliContext;
-
     @Override
     public String getPluginInstanceName() {
         return pluginInstanceName;
@@ -44,46 +44,34 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
         this.pluginInstanceName = name;
     }
 
-    /**
-     * Retrieves the context. If no web context exists, it creates a shared context for CLI operations.
-     */
-    protected Context getContext() {
-        Context context = ContextUtil.obtainCurrentRequestContext();
-        if (context != null) {
-            return context;
-        }
-
-        try {
-            if (cliContext == null || !cliContext.isValid()) {
-                cliContext = new Context(Context.Mode.READ_ONLY);
-                log.debug("Created new READ_ONLY context for CLI operations");
-            }
-            return cliContext;
-        } catch (Exception e) {
-            log.error("Failed to create context for database operations", e);
-            return null;
-        }
-    }
-
     @Override
     public String getLabel(String key, String locale) {
         if (StringUtils.isBlank(key)) {
             return "Unknown";
         }
 
-        Context context = getContext();
-        if (context == null) {
-            return key;
+        Context context = ContextUtil.obtainCurrentRequestContext();
+        boolean isCliContext = (context == null);
+        
+        if (isCliContext) {
+            try {
+                context = new Context(Context.Mode.READ_ONLY);
+                log.debug("Created new READ_ONLY context for CLI operations");
+            } catch (Exception e) {
+                log.error("Failed to create context for database operations", e);
+                return key;
+            }
         }
 
         try {
-            List<MetadataValue> results = metadataValueService.findByAuthorityAndLanguage(context, key, locale);
+            String normalizedLocale = StringUtils.isBlank(locale) ? null : locale;
+            List<MetadataValue> results = metadataValueService.findByAuthorityAndLanguage(context, key, normalizedLocale);
 
             if (!results.isEmpty()) {
                 return results.get(0).getValue();
             }
 
-            if (StringUtils.isNotBlank(locale)) {
+            if (StringUtils.isNotBlank(normalizedLocale)) {
                 List<MetadataValue> fallbackResults =
                         metadataValueService.findByAuthorityAndLanguage(context, key, null);
                 if (!fallbackResults.isEmpty()) {
@@ -92,6 +80,14 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
             }
         } catch (Exception e) {
             log.error("Error retrieving label for authority key '{}'", key, e);
+        } finally {
+            if (isCliContext && context != null) {
+                try {
+                    context.abort();
+                } catch (Exception e) {
+                    log.warn("Error closing CLI context", e);
+                }
+            }
         }
 
         return key;
@@ -103,37 +99,46 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
             return new Choices(Choices.CF_NOTFOUND);
         }
 
-        Context context = getContext();
-        if (context == null) {
-            return new Choices(Choices.CF_NOTFOUND);
+        Context context = ContextUtil.obtainCurrentRequestContext();
+        boolean isCliContext = (context == null);
+        
+        if (isCliContext) {
+            try {
+                context = new Context(Context.Mode.READ_ONLY);
+                log.debug("Created new READ_ONLY context for CLI operations");
+            } catch (Exception e) {
+                log.error("Failed to create context for database operations", e);
+                return new Choices(Choices.CF_NOTFOUND);
+            }
         }
 
         try {
+            String normalizedLocale = StringUtils.isBlank(locale) ? null : locale;
             List<MetadataValue> allResults = new ArrayList<>();
             List<MetadataValue> authorityResults =
-                    metadataValueService.findByAuthorityAndLanguage(context, query, locale);
+                    metadataValueService.findByAuthorityAndLanguage(context, query, normalizedLocale);
             allResults.addAll(authorityResults);
 
             Iterator<MetadataValue> valueResults = metadataValueService.findByValueLike(context, query);
             while (valueResults.hasNext()) {
                 MetadataValue mv = valueResults.next();
                 if (StringUtils.isNotBlank(mv.getAuthority()) &&
-                        (StringUtils.isBlank(locale) || locale.equals(mv.getLanguage()))) {
+                        (StringUtils.isBlank(normalizedLocale) || normalizedLocale.equals(mv.getLanguage()))) {
                     allResults.add(mv);
                 }
             }
 
             List<MetadataValue> uniqueResults = new ArrayList<>();
+            Set<String> seenKeys = new HashSet<>();
             for (MetadataValue mv : allResults) {
-                boolean exists = uniqueResults.stream().anyMatch(e ->
-                        e.getAuthority().equals(mv.getAuthority()) && e.getValue().equals(mv.getValue()));
-                if (!exists) {
+                String compositeKey = mv.getAuthority() + "\u0000" + mv.getValue();
+                if (seenKeys.add(compositeKey)) {
                     uniqueResults.add(mv);
                 }
             }
 
             int fromIndex = Math.max(0, start);
-            int toIndex = limit > 0 ? Math.min(uniqueResults.size(), start + limit) : uniqueResults.size();
+            int toIndex = limit > 0 ? Math.min(uniqueResults.size(), fromIndex + limit) : uniqueResults.size();
 
             if (fromIndex > uniqueResults.size()) {
                 return new Choices(Choices.CF_NOTFOUND);
@@ -147,17 +152,25 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
                 MetadataValue mv = paginated.get(i);
                 choices.add(new Choice(mv.getAuthority(), mv.getValue(), mv.getValue()));
                 if (query.equalsIgnoreCase(mv.getValue()) && defaultSelected == -1) {
-                    defaultSelected = start + i;
+                    defaultSelected = i;
                 }
             }
 
             return new Choices(choices.toArray(new Choice[0]), start, uniqueResults.size(),
                     choices.isEmpty() ? Choices.CF_NOTFOUND : Choices.CF_AMBIGUOUS,
-                    (start + limit) < uniqueResults.size(), defaultSelected);
+                    toIndex < uniqueResults.size(), defaultSelected);
 
         } catch (Exception e) {
             log.error("Error getting matches for query '{}'", query, e);
             return new Choices(Choices.CF_NOTFOUND);
+        } finally {
+            if (isCliContext && context != null) {
+                try {
+                    context.abort();
+                } catch (Exception e) {
+                    log.warn("Error closing CLI context", e);
+                }
+            }
         }
     }
 
@@ -167,9 +180,17 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
             return new Choices(Choices.CF_NOTFOUND);
         }
 
-        Context context = getContext();
-        if (context == null) {
-            return new Choices(Choices.CF_NOTFOUND);
+        Context context = ContextUtil.obtainCurrentRequestContext();
+        boolean isCliContext = (context == null);
+        
+        if (isCliContext) {
+            try {
+                context = new Context(Context.Mode.READ_ONLY);
+                log.debug("Created new READ_ONLY context for CLI operations");
+            } catch (Exception e) {
+                log.error("Failed to create context for database operations", e);
+                return new Choices(Choices.CF_NOTFOUND);
+            }
         }
 
         try {
@@ -183,6 +204,14 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
             }
         } catch (Exception e) {
             log.error("Error getting best match for text '{}'", text, e);
+        } finally {
+            if (isCliContext && context != null) {
+                try {
+                    context.abort();
+                } catch (Exception e) {
+                    log.warn("Error closing CLI context", e);
+                }
+            }
         }
 
         return new Choices(Choices.CF_NOTFOUND);
