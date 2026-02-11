@@ -25,7 +25,6 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.InstallItemService;
-import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.MetadataValueService;
@@ -73,9 +72,8 @@ public class MetadataValueTest extends AbstractUnitTest {
 
     private MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
     private MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
-    private MetadataSchemaService metadataSchemaService = ContentServiceFactory.getInstance()
-            .getMetadataSchemaService();
-    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    private MetadataSchemaService metadataSchemaService =
+            ContentServiceFactory.getInstance().getMetadataSchemaService();
     protected CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
     protected CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
     protected WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
