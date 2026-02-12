@@ -90,7 +90,7 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
         try {
             String normalizedLocale = StringUtils.isBlank(locale) ? null : locale;
             List<MetadataValue> results = metadataValueService.findByAuthorityAndLanguage(
-                    contextWrapper.context, key, locale);
+                    contextWrapper.context, key, normalizedLocale);
 
             if (!results.isEmpty()) {
                 // Extract value immediately to avoid lazy loading later
