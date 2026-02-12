@@ -30,18 +30,18 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
 
     private static final Logger log = LogManager.getLogger(MetadataValueBasedChoiceAuthority.class);
 
-    private MetadataValueService metadataValueService;
+    private MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
 
     private String pluginInstanceName;
 
-    /**
-     * Get the metadata value service, initializing it if needed
-     */
-    private MetadataValueService getMetadataValueService() {
-        if (metadataValueService == null) {
-            metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
-        }
-        return metadataValueService;
+    @Override
+    public String getPluginInstanceName() {
+        return pluginInstanceName;
+    }
+
+    @Override
+    public void setPluginInstanceName(String name) {
+        this.pluginInstanceName = name;
     }
 
     /**
@@ -67,43 +67,13 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
         }
 
         try {
-            context = new Context();
-            log.debug("Created new context for CLI operations");
+            context = new Context(Context.Mode.READ_ONLY);
+            log.debug("Created new READ_ONLY context for CLI operations");
             return new ContextWrapper(context, true);
         } catch (Exception e) {
             log.error("Failed to create context for database operations", e);
             return new ContextWrapper(null, false);
         }
-    }
-
-    /**
-     * Cleans up context if needed
-     */
-    private void cleanupContext(ContextWrapper wrapper) {
-        if (wrapper != null && wrapper.needsCleanup && wrapper.context != null) {
-            try {
-                if (wrapper.context.isValid()) {
-                    wrapper.context.complete();
-                }
-            } catch (Exception e) {
-                log.warn("Error closing CLI context", e);
-                try {
-                    wrapper.context.abort();
-                } catch (Exception abortEx) {
-                    log.warn("Error aborting CLI context", abortEx);
-                }
-            }
-        }
-    }
-
-    @Override
-    public String getPluginInstanceName() {
-        return pluginInstanceName;
-    }
-
-    @Override
-    public void setPluginInstanceName(String name) {
-        this.pluginInstanceName = name;
     }
 
     @Override
@@ -119,24 +89,24 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
 
         try {
             String normalizedLocale = StringUtils.isBlank(locale) ? null : locale;
-            List<MetadataValue> results = getMetadataValueService().findByAuthorityAndLanguage(
-                    contextWrapper.context, key, normalizedLocale);
+            List<MetadataValue> results = metadataValueService.findByAuthorityAndLanguage(
+                    contextWrapper.context, key, locale);
 
             if (!results.isEmpty()) {
+                // Extract value immediately to avoid lazy loading later
                 return results.get(0).getValue();
             }
 
             if (StringUtils.isNotBlank(normalizedLocale)) {
                 List<MetadataValue> fallbackResults =
-                        getMetadataValueService().findByAuthorityAndLanguage(contextWrapper.context, key, null);
+                        metadataValueService.findByAuthorityAndLanguage(contextWrapper.context, key, null);
                 if (!fallbackResults.isEmpty()) {
+                    // Extract value immediately to avoid lazy loading later
                     return fallbackResults.get(0).getValue();
                 }
             }
         } catch (Exception e) {
             log.error("Error retrieving label for authority key '{}'", key, e);
-        } finally {
-            cleanupContext(contextWrapper);
         }
 
         return key;
@@ -158,34 +128,42 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
             int fromIndex = Math.max(0, start);
             int maxNeeded = limit > 0 ? fromIndex + limit + 1 : Integer.MAX_VALUE;
 
-            List<MetadataValue> uniqueResults = new ArrayList<>();
+            // Use simple data structure to avoid lazy loading issues
+            List<Choice> uniqueResults = new ArrayList<>();
             Set<String> seenKeys = new HashSet<>();
 
             // Process authority results first
-            List<MetadataValue> authorityResults = getMetadataValueService()
+            List<MetadataValue> authorityResults = metadataValueService
                     .findByAuthorityAndLanguage(contextWrapper.context, query, normalizedLocale);
             for (MetadataValue mv : authorityResults) {
                 if (uniqueResults.size() >= maxNeeded) {
                     break;
                 }
-                String compositeKey = mv.getAuthority() + "\u0000" + mv.getValue();
+                // Extract values immediately to avoid lazy loading later
+                String authority = mv.getAuthority();
+                String value = mv.getValue();
+                String compositeKey = authority + "\u0000" + value;
                 if (seenKeys.add(compositeKey)) {
-                    uniqueResults.add(mv);
+                    uniqueResults.add(new Choice(authority, value, value));
                 }
             }
 
             // Process value-like results only if we need more
             if (uniqueResults.size() < maxNeeded) {
                 Iterator<MetadataValue> valueResults =
-                        getMetadataValueService().findByValueLike(contextWrapper.context, query);
+                        metadataValueService.findByValueLike(contextWrapper.context, query);
                 while (valueResults.hasNext() && uniqueResults.size() < maxNeeded) {
                     MetadataValue mv = valueResults.next();
-                    if (StringUtils.isNotBlank(mv.getAuthority()) &&
+                    String authority = mv.getAuthority();
+                    String value = mv.getValue();
+                    String language = mv.getLanguage();
+                    
+                    if (StringUtils.isNotBlank(authority) &&
                             (StringUtils.isBlank(normalizedLocale) ||
-                                    normalizedLocale.equals(mv.getLanguage()))) {
-                        String compositeKey = mv.getAuthority() + "\u0000" + mv.getValue();
+                                    normalizedLocale.equals(language))) {
+                        String compositeKey = authority + "\u0000" + value;
                         if (seenKeys.add(compositeKey)) {
-                            uniqueResults.add(mv);
+                            uniqueResults.add(new Choice(authority, value, value));
                         }
                     }
                 }
@@ -197,27 +175,23 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
 
             int toIndex = limit > 0 ? Math.min(uniqueResults.size(), fromIndex + limit) : uniqueResults.size();
 
-            List<MetadataValue> paginated = uniqueResults.subList(fromIndex, toIndex);
-            List<Choice> choices = new ArrayList<>();
+            List<Choice> paginated = uniqueResults.subList(fromIndex, toIndex);
             int defaultSelected = -1;
 
             for (int i = 0; i < paginated.size(); i++) {
-                MetadataValue mv = paginated.get(i);
-                choices.add(new Choice(mv.getAuthority(), mv.getValue(), mv.getValue()));
-                if (query.equalsIgnoreCase(mv.getValue()) && defaultSelected == -1) {
+                Choice choice = paginated.get(i);
+                if (query.equalsIgnoreCase(choice.value) && defaultSelected == -1) {
                     defaultSelected = i;
                 }
             }
 
-            return new Choices(choices.toArray(new Choice[0]), fromIndex, uniqueResults.size(),
-                    choices.isEmpty() ? Choices.CF_NOTFOUND : Choices.CF_AMBIGUOUS,
+            return new Choices(paginated.toArray(new Choice[0]), fromIndex, uniqueResults.size(),
+                    paginated.isEmpty() ? Choices.CF_NOTFOUND : Choices.CF_AMBIGUOUS,
                     toIndex < uniqueResults.size(), defaultSelected);
 
         } catch (Exception e) {
             log.error("Error getting matches for query '{}'", query, e);
             return new Choices(Choices.CF_NOTFOUND);
-        } finally {
-            cleanupContext(contextWrapper);
         }
     }
 
@@ -233,19 +207,20 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
         }
 
         try {
-            Iterator<MetadataValue> valueResults = getMetadataValueService()
+            Iterator<MetadataValue> valueResults = metadataValueService
                     .findByValueLike(contextWrapper.context, text);
             while (valueResults.hasNext()) {
                 MetadataValue mv = valueResults.next();
-                if (text.equalsIgnoreCase(mv.getValue()) && StringUtils.isNotBlank(mv.getAuthority())) {
-                    return new Choices(new Choice[] { new Choice(mv.getAuthority(), mv.getValue(), mv.getValue()) },
+                // Extract values immediately to avoid lazy loading later
+                String authority = mv.getAuthority();
+                String value = mv.getValue();
+                if (text.equalsIgnoreCase(value) && StringUtils.isNotBlank(authority)) {
+                    return new Choices(new Choice[] { new Choice(authority, value, value) },
                             0, 1, Choices.CF_ACCEPTED, false, 0);
                 }
             }
         } catch (Exception e) {
             log.error("Error getting best match for text '{}'", text, e);
-        } finally {
-            cleanupContext(contextWrapper);
         }
 
         return new Choices(Choices.CF_NOTFOUND);
