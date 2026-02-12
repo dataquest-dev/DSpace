@@ -157,7 +157,6 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
                     String authority = mv.getAuthority();
                     String value = mv.getValue();
                     String language = mv.getLanguage();
-                    
                     if (StringUtils.isNotBlank(authority) &&
                             (StringUtils.isBlank(normalizedLocale) ||
                                     normalizedLocale.equals(language))) {
