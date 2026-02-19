@@ -25,8 +25,6 @@ import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
-import org.dspace.content.Collection;
-import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -53,6 +51,10 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
     private String handlePrefix;
     private Map<String, Integer> complexInputs;
 
+    private String[] nonRepeatableMetadata;
+    private String[] strangeMetadata;
+    private String[] highlyRecommended;
+
     private static final Logger log = LogManager.getLogger(ItemMetadataQAChecker.class);
 
     @Override
@@ -71,6 +73,23 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
             dcTypeValuesSet = new HashSet<>(Arrays.asList(
                 "corpus", "lexicalConceptualResource", "languageDescription", "toolService"));
         }
+
+        nonRepeatableMetadata = configurationService.getArrayProperty("lr.curation.metadata.nonrepeatable",
+                new String[]{
+                    "local.branding",
+                    "dc.type",
+                    "dc.date.accessioned",
+                    "dc.rights.label",
+                    "dc.date.available",
+                    "dc.source.uri",
+                    "metashare.ResourceInfo#DistributionInfo#LicenseInfo.license"
+                });
+        strangeMetadata = configurationService.getArrayProperty("lr.curation.metadata.strange", new String[]{
+            "dc.description.uri",
+        });
+        highlyRecommended = configurationService.getArrayProperty("lr.curation.metadata.recommended", new String[]{
+            "dc.subject",
+        });
 
         complexInputs = new HashMap<>();
         loadComplexInputs();
@@ -134,9 +153,8 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
                         validateDcLanguageIso(item, results);
                         validateRelation(item, results);
                         validateEmptyMetadata(item, metadataValues, results);
-                        validateDuplicateMetadata(item, results);
+                        validatePredefinedNonRepeatableMetadata(item, results);
                         validateStrangeMetadata(item, results);
-                        validateBrandingConsistency(item, results);
                         validateRightsLabels(item, results);
                         itemWithFilesHasLicense(item);
                         validateHighlyRecommendedMetadata(item, results);
@@ -355,51 +373,14 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
         }
     }
 
-    private void validateDuplicateMetadata(Item item, StringBuilder results) throws CurateException {
-        for (String noDuplicate : new String[]{
-            "local.branding",
-            "dc.type",
-            "dc.date.accessioned",
-            "dc.rights.label",
-            "dc.date.available",
-            "dc.source.uri",
-            "metashare.ResourceInfo#DistributionInfo#LicenseInfo.license"
-        }) {
+    private void validatePredefinedNonRepeatableMetadata(Item item, StringBuilder results) throws CurateException {
+        for (String noDuplicate : nonRepeatableMetadata) {
             List<MetadataValue> vals = itemService.getMetadataByMetadataString(item, noDuplicate);
             if (null != vals && vals.size() > 1) {
                 throw new CurateException(
                     String.format("value [%s] is present multiple times", noDuplicate),
                     Curator.CURATE_FAIL);
             }
-        }
-    }
-
-    private void validateBrandingConsistency(Item item, StringBuilder results) throws CurateException {
-        try {
-            Collection owningCollection = item.getOwningCollection();
-            if (owningCollection != null) {
-                List<Community> communities = owningCollection.getCommunities();
-                if (communities != null && !communities.isEmpty()) {
-                    String cName = communities.get(0).getName();
-                    List<MetadataValue> brandings = itemService.getMetadata(item, "local", "branding", null, Item.ANY);
-                    if (1 != brandings.size()) {
-                        throw new CurateException(
-                            String.format("local.branding present [%d] count", brandings.size()),
-                            Curator.CURATE_FAIL);
-                    }
-                    if (!cName.equals(brandings.get(0).getValue())) {
-                        throw new CurateException(
-                            String.format("local.branding [%s] does not match community [%s]",
-                                brandings.get(0).getValue(), cName),
-                            Curator.CURATE_FAIL);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            throw new CurateException(
-                String.format("has invalid community [%s]", e.getMessage()),
-                Curator.CURATE_FAIL);
-
         }
     }
 
@@ -427,9 +408,7 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
     }
 
     private void validateHighlyRecommendedMetadata(Item item, StringBuilder results) throws CurateException {
-        for (String md : new String[]{
-            "dc.subject",
-        }) {
+        for (String md : highlyRecommended) {
             List<MetadataValue> vals = itemService.getMetadataByMetadataString(item, md);
             if (null == vals || vals.isEmpty()) {
                 throw new CurateException(
@@ -440,9 +419,7 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
     }
 
     private void validateStrangeMetadata(Item item, StringBuilder results) throws CurateException {
-        for (String md : new String[]{
-            "dc.description.uri",
-        }) {
+        for (String md : strangeMetadata) {
             List<MetadataValue> vals = itemService.getMetadataByMetadataString(item, md);
             if (null != vals && !vals.isEmpty()) {
                 throw new CurateException(
