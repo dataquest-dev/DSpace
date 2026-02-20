@@ -95,7 +95,7 @@ public class BitstreamByHandleRestController {
             DSpaceObject dso = handleService.resolveToObject(context, handle);
             if (Objects.isNull(dso) || !(dso instanceof Item)) {
                 log.warn("Handle '{}' does not resolve to a valid Item.", handle);
-                response.sendError(HttpServletResponse.SC_UNPROCESSABLE_ENTITY,
+                response.sendError(422,
                         "Handle '" + handle + "' does not resolve to a valid item.");
                 return;
             }
@@ -151,7 +151,11 @@ public class BitstreamByHandleRestController {
                     "An internal error occurred.");
         } finally {
             if (context != null && context.isValid()) {
-                context.complete();
+                try {
+                    context.complete();
+                } catch (SQLException e) {
+                    log.error("Error completing context: {}", e.getMessage());
+                }
             }
         }
     }
