@@ -30,8 +30,10 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -95,7 +97,7 @@ public class BitstreamByHandleRestController {
             DSpaceObject dso = handleService.resolveToObject(context, handle);
             if (Objects.isNull(dso) || !(dso instanceof Item)) {
                 log.warn("Handle '{}' does not resolve to a valid Item.", handle);
-                response.sendError(422,
+                response.sendError(HttpStatus.SC_UNPROCESSABLE_ENTITY,
                         "Handle '" + handle + "' does not resolve to a valid item.");
                 return;
             }
@@ -115,7 +117,7 @@ public class BitstreamByHandleRestController {
 
             // Retrieve content and stream it
             BitstreamFormat format = bitstream.getFormat(context);
-            String mimeType = (format != null) ? format.getMIMEType() : "application/octet-stream";
+            String mimeType = (format != null) ? format.getMIMEType() : MediaType.APPLICATION_OCTET_STREAM_VALUE;
             String name = StringUtils.isNotBlank(bitstream.getName())
                     ? bitstream.getName() : bitstream.getID().toString();
 
