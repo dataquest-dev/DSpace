@@ -191,5 +191,8 @@
 
     <bean class="org.dspace.core.ProvenanceServiceImpl"/>
 
+    <!-- Suggest service for autocomplete via Solr suggest handler and JSON static files -->
+    <bean class="org.dspace.discovery.SolrSuggestService"/>
+
 </beans>
 

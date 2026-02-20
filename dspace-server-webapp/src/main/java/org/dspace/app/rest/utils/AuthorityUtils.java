@@ -47,7 +47,14 @@ public class AuthorityUtils {
 
 
     public boolean isChoice(String schema, String element, String qualifier) {
-        return cas.isChoicesConfigured(org.dspace.core.Utils.standardize(schema, element, qualifier, "_"), null);
+        try {
+            return cas.isChoicesConfigured(
+                    org.dspace.core.Utils.standardize(schema, element, qualifier, "_"), null);
+        } catch (IllegalStateException e) {
+            // Vocabularies of type "suggest" are not registered as choice authorities,
+            // so isChoicesConfigured may throw. Return false in that case.
+            return false;
+        }
     }
 
     public String getAuthorityName(String schema, String element, String qualifier) {

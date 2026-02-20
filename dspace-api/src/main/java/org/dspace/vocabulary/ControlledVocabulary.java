@@ -34,6 +34,22 @@ import org.xml.sax.SAXException;
  * @author Kevin Van de Velde (kevin at atmire dot com)
  */
 public class ControlledVocabulary {
+
+    /**
+     * Vocabulary type constant for XML-based controlled vocabularies.
+     */
+    public static final String XML = "xml";
+
+    /**
+     * Vocabulary type constant for authority-based controlled vocabularies.
+     */
+    public static final String AUTHORITY = "authority";
+
+    /**
+     * Vocabulary type constant for Solr suggest-based autocomplete.
+     */
+    public static final String SUGGEST = "suggest";
+
     private String id;
     private String label;
     private String value;

@@ -31,6 +31,7 @@ import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.core.Context;
 import org.dspace.submit.model.LanguageFormField;
+import org.dspace.vocabulary.ControlledVocabulary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -123,7 +124,15 @@ public class SubmissionFormConverter implements DSpaceConverter<DCInputSet, Subm
                 String inputType = dcinput.getInputType();
 
                 SelectableMetadata selMd = new SelectableMetadata();
-                if (isChoice(dcinput.getSchema(), dcinput.getElement(), dcinput.getQualifier(),
+                // Handle "suggest" vocabulary type: set vocabulary info without
+                // registering as a choice authority, so the frontend can use
+                // the /suggest endpoint instead.
+                if (ControlledVocabulary.SUGGEST.equals(dcinput.getVocabularyType())) {
+                    inputRest.setType(inputType);
+                    selMd.setControlledVocabulary(dcinput.getVocabulary());
+                    selMd.setClosed(dcinput.isClosedVocabulary());
+                    selMd.setVocabularyType(ControlledVocabulary.SUGGEST);
+                } else if (isChoice(dcinput.getSchema(), dcinput.getElement(), dcinput.getQualifier(),
                         dcinput.getPairsType(), dcinput.getVocabulary())) {
                     inputRest.setType(getPresentation(dcinput.getSchema(), dcinput.getElement(),
                                                       dcinput.getQualifier(), inputType));

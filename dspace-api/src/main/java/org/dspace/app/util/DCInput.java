@@ -170,6 +170,11 @@ public class DCInput {
     private String autocompleteCustom = null;
 
     /**
+     * the type of the vocabulary (xml, authority, or suggest)
+     */
+    private String vocabularyType = null;
+
+    /**
      * the custom field for the type bind
      */
     private String typeBindField = null;
@@ -254,6 +259,7 @@ public class DCInput {
         visibility = fieldMap.get("visibility");
         readOnly = fieldMap.get("readonly");
         vocabulary = fieldMap.get("vocabulary");
+        vocabularyType = fieldMap.get("vocabularyType");
         this.initRegex(fieldMap.get("regex"));
         acl = ACL.fromString(fieldMap.get("acl"));
         String closedVocabularyStr = fieldMap.get("closedVocabulary");
@@ -507,6 +513,24 @@ public class DCInput {
      */
     public void setVocabulary(String vocabulary) {
         this.vocabulary = vocabulary;
+    }
+
+    /**
+     * Get the type of the vocabulary associated with this field.
+     *
+     * @return the vocabulary type (xml, authority, or suggest), or null if not set
+     */
+    public String getVocabularyType() {
+        return vocabularyType;
+    }
+
+    /**
+     * Set the type of the vocabulary associated with this field.
+     *
+     * @param vocabularyType the vocabulary type
+     */
+    public void setVocabularyType(String vocabularyType) {
+        this.vocabularyType = vocabularyType;
     }
 
     /**

@@ -203,6 +203,18 @@
         </analyzer>
     </fieldType>
 
+    <!--This field is used for the suggest handler autocomplete feature-->
+    <fieldType name="suggestAutoComplete" class="solr.TextField" positionIncrementGap="100">
+        <analyzer type="index">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+    </fieldType>
+
     <!--
      SpellCheck analysis config based off of http://wiki.apache.org/solr/
      SpellCheckingAnalysis
@@ -306,6 +318,9 @@
     <!--Dynamic field used for search autocompletion-->
     <dynamicField name="*_ac" type="dspaceAutoComplete" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
 	<dynamicField name="*_acid" type="keywordFilter" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
+
+    <!--Dynamic field used for the suggest handler autocomplete feature-->
+    <dynamicField name="*_suggest" type="suggestAutoComplete" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
 
     <!--Dynamic field used for sidebar filters & SOLR browse by value -->
     <dynamicField name="*_filter" type="keywordFilter" indexed="true" stored="true" multiValued="true" omitNorms="true" />

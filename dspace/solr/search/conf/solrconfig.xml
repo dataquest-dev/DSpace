@@ -158,4 +158,42 @@
             <str>spellcheck</str>
         </arr>
     </requestHandler>
+
+    <!--
+        Suggest handler for autocomplete.
+        Uses AnalyzingInfixLookupFactory for infix matching (e.g. "grove" matching "Punga Grove").
+        Dictionaries are built from _suggest dynamic fields indexed by SolrServiceIndexSuggestFieldPlugin.
+    -->
+    <searchComponent name="suggest" class="solr.SuggestComponent">
+        <lst name="suggester">
+            <str name="name">subject</str>
+            <str name="lookupImpl">org.apache.solr.spelling.suggest.fst.AnalyzingInfixLookupFactory</str>
+            <str name="dictionaryImpl">org.apache.solr.spelling.suggest.HighFrequencyDictionaryFactory</str>
+            <str name="field">subject_suggest</str>
+            <str name="suggestAnalyzerFieldType">suggestAutoComplete</str>
+            <float name="threshold">0.0</float>
+            <str name="buildOnCommit">true</str>
+            <str name="buildOnStartup">false</str>
+        </lst>
+        <lst name="suggester">
+            <str name="name">authors</str>
+            <str name="lookupImpl">org.apache.solr.spelling.suggest.fst.AnalyzingInfixLookupFactory</str>
+            <str name="dictionaryImpl">org.apache.solr.spelling.suggest.HighFrequencyDictionaryFactory</str>
+            <str name="field">authors_suggest</str>
+            <str name="suggestAnalyzerFieldType">suggestAutoComplete</str>
+            <float name="threshold">0.0</float>
+            <str name="buildOnCommit">true</str>
+            <str name="buildOnStartup">false</str>
+        </lst>
+    </searchComponent>
+
+    <requestHandler name="/suggest" class="solr.SearchHandler" startup="lazy">
+        <lst name="defaults">
+            <str name="suggest">true</str>
+            <str name="suggest.count">10</str>
+        </lst>
+        <arr name="components">
+            <str>suggest</str>
+        </arr>
+    </requestHandler>
 </config>

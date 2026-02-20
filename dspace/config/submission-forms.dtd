@@ -86,6 +86,7 @@
  <!ELEMENT vocabulary (#PCDATA) >
 
  <!ATTLIST vocabulary closed (true|false) "false">
+ <!ATTLIST vocabulary type (xml|authority|suggest) "xml">
 
  <!ELEMENT visibility (#PCDATA) >
 

@@ -36,6 +36,7 @@ import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 import org.dspace.services.ConfigurationService;
 import org.dspace.submit.factory.SubmissionServiceFactory;
 import org.dspace.submit.service.SubmissionConfigService;
+import org.dspace.vocabulary.ControlledVocabulary;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -335,6 +336,11 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
                         for (DCInput dcinput : dcrows) {
                             // for each input in the form check if it is associated with a real value pairs
                             // or an xml vocabulary
+                            // Skip "suggest" vocabulary type - those use the /suggest endpoint
+                            // and are not registered as choice authorities
+                            if (ControlledVocabulary.SUGGEST.equals(dcinput.getVocabularyType())) {
+                                continue;
+                            }
                             String authorityName = null;
                             if (StringUtils.isNotBlank(dcinput.getPairsType())
                                     && !StringUtils.equals(dcinput.getInputType(), "qualdrop_value")) {
