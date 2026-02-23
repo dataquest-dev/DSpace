@@ -111,7 +111,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void testHelpInformation() throws Exception {
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-i" };
+        String[] args = new String[] { "report-diff", "-h" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
@@ -193,9 +193,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
-        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}},{\"name\":\"Check2\"" +
+        report1.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{\"key\":\"value1\"}},{\"name\":\"Item summary\"" +
                 ",\"report\":{\"key\":\"other\"}}]}");
-        report1.setArgs("-c: 0");
         reportResultService.update(context, report1);
         // Force commit and flush to ensure timestamp is set
         context.commit();
@@ -205,9 +204,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
-        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}},{\"name\":\"Check2\"" +
+        report2.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{\"key\":\"value2\"}},{\"name\":\"Item summary\"" +
                 ",\"report\":{\"key\":\"other\"}}]}");
-        report2.setArgs("-c: 0");
         reportResultService.update(context, report2);
         context.commit();
         context.restoreAuthSystemState();
@@ -215,6 +213,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1 = reportResultService.find(context, report1.getID());
         report2 = reportResultService.find(context, report2.getID());
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        // -c 0 filters comparison to only General Information check
         String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
                 "-t", formatDate(report2.getLastModified()), "-c", "0" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
@@ -370,7 +369,6 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}},{\"name\":\"Check2\"" +
                 ",\"report\":{\"key\":\"other\"}}]}");
-        report1.setArgs("-c: 0");
         reportResultService.update(context, report1);
 
         // Force commit and flush to ensure timestamp is set
@@ -383,7 +381,6 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2.setType("healthcheck");
         report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}},{\"name\":\"Check2\"" +
                 ",\"report\":{\"key\":\"other\"}}]}");
-        report2.setArgs("-c: 0");
         reportResultService.update(context, report2);
         context.commit();
         context.restoreAuthSystemState();
@@ -436,10 +433,10 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     public void testProfessionalReportFormat() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        // Create first report with sample health data
+        // Create first report with sample health data using real check name
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
-        report1.setValue("{\"checks\":[{\"name\":\"HealthCheck\",\"report\":{" +
+        report1.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{" +
                 "\"publishedItems\":0," +
                 "\"ePersonsCount\":1," +
                 "\"communitiesCount\":0," +
@@ -456,7 +453,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         // Create second report with changes
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
-        report2.setValue("{\"checks\":[{\"name\":\"HealthCheck\",\"report\":{" +
+        report2.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{" +
                 "\"publishedItems\":2," +
                 "\"ePersonsCount\":1721," +
                 "\"communitiesCount\":9," +
@@ -584,10 +581,10 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     public void testEnhancedKeyChangesTable() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        // Create first report with sample health data
+        // Create first report with sample health data using real check names
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
-        report1.setValue("{\"checks\":[{\"name\":\"Info summary\",\"report\":{}}," +
+        report1.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{}}," +
                 "{\"name\":\"Item summary\",\"report\":{" +
                 "\"publishedItems\":10," +
                 "\"ePersonsCount\":5," +
@@ -604,7 +601,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         // Create second report with changes
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
-        report2.setValue("{\"checks\":[{\"name\":\"Info summary\",\"report\":{}}," +
+        report2.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{}}," +
                 "{\"name\":\"Item summary\",\"report\":{" +
                 "\"publishedItems\":25," +
                 "\"ePersonsCount\":8," +
@@ -708,5 +705,54 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat("Size differences should show actual size change (9 KB).'",
                    hasSizeDifference, org.hamcrest.Matchers.is(true));
+    }
+
+    @Test
+    public void testSkippedChecksSection() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Create report1 with checks A and B
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[" +
+                "{\"name\":\"General Information\",\"report\":{\"key\":\"val1\"}}," +
+                "{\"name\":\"Only In From\",\"report\":{\"key\":\"fromOnly\"}}" +
+                "]}");
+        reportResultService.update(context, report1);
+        context.commit();
+
+        Thread.sleep(1000);
+
+        // Create report2 with checks A and C (B missing, C new)
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[" +
+                "{\"name\":\"General Information\",\"report\":{\"key\":\"val2\"}}," +
+                "{\"name\":\"Only In To\",\"report\":{\"key\":\"toOnly\"}}" +
+                "]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
+                "-t", formatDate(report2.getLastModified()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+
+        // Should show the skipped checks section
+        assertThat(infoMessages, hasItem(containsString("Skipped Checks")));
+        assertThat(infoMessages, hasItem(containsString("not present in both reports")));
+        assertThat(infoMessages, hasItem(containsString("Only In From")));
+        assertThat(infoMessages, hasItem(containsString("Only In To")));
+
+        // The common check "General Information" should be compared normally
+        assertThat("Should contain diff for common check",
+                hasDiffOperation(infoMessages, "REPLACE", CHECK_KEY_PATH),
+                org.hamcrest.Matchers.is(true));
     }
 }

@@ -13,8 +13,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.mail.MessagingException;
@@ -59,9 +61,9 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
     private static final LinkedHashMap<String, Check> checks = Report.checks();
 
     /**
-     * `-i`: Info, show help information.
+     * `-h`: Help, show help information.
      */
-    private boolean info = false;
+    private boolean help = false;
 
     /**
      * `-e`: Email, send report to specified email address.
@@ -69,9 +71,10 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
     private String[] emails;
 
     /**
-     * `-c`: Check, perform only specific check by index (0-`getNumberOfChecks()`).
+     * `-c`: Check, perform only specific checks by index (0-`getNumberOfChecks()`).
+     * Supports multiple values.
      */
-    private int specificCheck = -1;
+    private List<Integer> specificChecks = new ArrayList<>();
 
     /**
      * `-f`: For, specify the last N days to consider.
@@ -80,9 +83,9 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
     private int forLastNDays = configurationService.getIntProperty("healthcheck.last_n_days");
 
     /**
-     * `-o`: Output, specify a file to save the report.
+     * `-r`: Report, specify a file to save the report.
      */
-    private String fileName;
+    private String reportFile;
 
     @Override
     public HealthReportScriptConfiguration getScriptConfiguration() {
@@ -93,9 +96,9 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
     @Override
     public void setup() throws ParseException {
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-        // `-i`: Info, show help information.
-        if (commandLine.hasOption('i')) {
-            info = true;
+        // `-h`: Help, show help information.
+        if (commandLine.hasOption('h')) {
+            help = true;
             return;
         }
 
@@ -105,40 +108,53 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             handler.logInfo("\nReport sent to this email address: " + String.join(", ", emails));
         }
 
-        // `-c`: Check, perform only specific check by index (0-`getNumberOfChecks()`).
+        // `-c`: Check, perform only specific checks by index (0-`getNumberOfChecks()`).
+        // Supports multiple values e.g. -c 0 -c 3 -c 4
         if (commandLine.hasOption('c')) {
-            String checkOption = commandLine.getOptionValue('c');
-            try {
-                specificCheck = Integer.parseInt(checkOption);
-                if (specificCheck < 0 || specificCheck >= getNumberOfChecks()) {
-                    specificCheck = -1;
+            String[] checkOptions = commandLine.getOptionValues('c');
+            for (String checkOption : checkOptions) {
+                try {
+                    int checkIndex = Integer.parseInt(checkOption);
+                    if (checkIndex < 0 || checkIndex >= getNumberOfChecks()) {
+                        handler.logError("Invalid value for check: " + checkOption +
+                                ". Must be an integer from 0 to " + (getNumberOfChecks() - 1) + ".");
+                        throw new ParseException("Invalid check index: " + checkOption);
+                    }
+                    specificChecks.add(checkIndex);
+                } catch (NumberFormatException e) {
+                    handler.logError("Invalid value for check: '" + checkOption +
+                            "'. It has to be an integer number from 0 to " + (getNumberOfChecks() - 1) + ".");
+                    throw new ParseException("Invalid check value: " + checkOption);
                 }
-            } catch (NumberFormatException e) {
-                log.info("Invalid value for check. It has to be a number from the displayed range.");
-                return;
             }
         }
 
-        // `-f`: For, specify the last N days to consider.
+        // `-f`: For, specify the last N days to consider. Must be a positive integer.
         if (commandLine.hasOption('f')) {
             String daysOption = commandLine.getOptionValue('f');
             try {
                 forLastNDays = Integer.parseInt(daysOption);
+                if (forLastNDays <= 0) {
+                    handler.logError("Invalid value for -f: " + daysOption +
+                            ". Must be a positive integer (greater than 0).");
+                    throw new ParseException("Invalid -f value: " + daysOption);
+                }
             } catch (NumberFormatException e) {
-                log.info("Invalid value for last N days. Argument f has to be a number.");
-                return;
+                handler.logError("Invalid value for -f: '" + daysOption +
+                        "'. Must be a positive integer.");
+                throw new ParseException("Invalid -f value: " + daysOption);
             }
         }
 
-        // `-o`: Output, specify a file to save the report.
-        if (commandLine.hasOption('o')) {
-            fileName = commandLine.getOptionValue('o');
+        // `-r`: Report, specify a file to save the report.
+        if (commandLine.hasOption('r')) {
+            reportFile = commandLine.getOptionValue('r');
         }
     }
 
     @Override
     public void internalRun() throws Exception {
-        if (info) {
+        if (help) {
             printHelp();
             return;
         }
@@ -157,7 +173,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             JSONArray checksArray = new JSONArray();
             for (Map.Entry<String, Check> check_entry : Report.checks().entrySet()) {
                 ++position;
-                if (specificCheck != -1 && specificCheck != position) {
+                if (!specificChecks.isEmpty() && !specificChecks.contains(position)) {
                     continue;
                 }
 
@@ -198,9 +214,9 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             context.commit();
 
             // save output to file
-            if (fileName != null) {
+            if (reportFile != null) {
                 InputStream inputStream = toInputStream(sbReport.toString(), StandardCharsets.UTF_8);
-                handler.writeFilestream(context, fileName, inputStream, "export");
+                handler.writeFilestream(context, reportFile, inputStream, "export");
 
                 context.restoreAuthSystemState();
 
@@ -226,14 +242,15 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
 
     @Override
     public void printHelp() {
-        handler.logInfo("\n\nINFORMATION\nThis process creates a health report of your DSpace.\n" +
+        handler.logInfo("\n\nHELP\nThis process creates a health report of your DSpace.\n" +
                 "You can choose from these available options:\n" +
-                "  -i, --info            Show help information\n" +
+                "  -h, --help            Show help information\n" +
                 "  -e, --email           Send report to specified email address\n" +
-                "  -c, --check           Perform only specific check by index (0-" + (getNumberOfChecks() - 1) + ")\n" +
-                "  -f, --for             Specify the last N days to consider\n" +
-                "  -o, --output          Specify a file to save the report\n\n" +
-                "If you want to execute only one check using -c, use check index:\n" + checksNamesToString() + "\n"
+                "  -c, --check           Perform specific check(s) by index (0-" + (getNumberOfChecks() - 1) +
+                "). Can be used multiple times, e.g. -c 0 -c 3 -c 4\n" +
+                "  -f, --for             Specify the last N days to consider (positive integer)\n" +
+                "  -r, --report          Specify a file to save the report\n\n" +
+                "Available checks:\n" + checksNamesToString() + "\n"
         );
     }
 

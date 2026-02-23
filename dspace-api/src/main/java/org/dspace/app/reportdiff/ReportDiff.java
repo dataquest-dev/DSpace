@@ -61,9 +61,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     private EPersonService ePersonService;
 
     /**
-     * `-i`: Info, show help information.
+     * `-h`: Help, show help information.
      */
-    private boolean info = false;
+    private boolean help = false;
 
     /**
      * `-d`: Dates, show all dates that the report was generated for a specific check type.
@@ -158,9 +158,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     public void setup() throws ParseException {
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         reportResultService = ContentServiceFactory.getInstance().getReportResultService();
-        // `-i`: Info, show help information.
-        if (commandLine.hasOption('i')) {
-            info = true;
+        // `-h`: Help, show help information.
+        if (commandLine.hasOption('h')) {
+            help = true;
             return;
         }
 
@@ -201,7 +201,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     @Override
     public void internalRun() throws Exception {
         // If the user requested help information, we will display it.
-        if (info) {
+        if (help) {
             printHelp();
             return;
         }
@@ -364,6 +364,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * Compare two reports based on the specified `from` and `to` dates.
      * If the reports are not found, log an appropriate message.
      * If the reports are found, generate a comparison report showing the differences.
+     * The comparison is based on the intersection of check names present in both reports.
      *
      * @param context the application context
      */
@@ -371,13 +372,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         try {
             context.setCurrentUser(ePersonService.find(context, getEpersonIdentifier()));
 
-            ReportResult fromReport = specificCheck != -1
-                    ? reportResultService.findByLastModifiedAndCheckType(context, from, specificCheck)
-                    : reportResultService.findByLastModified(context, from);
-
-            ReportResult toReport = specificCheck != -1
-                    ? reportResultService.findByLastModifiedAndCheckType(context, to, specificCheck)
-                    : reportResultService.findByLastModified(context, to);
+            ReportResult fromReport = reportResultService.findByLastModified(context, from);
+            ReportResult toReport = reportResultService.findByLastModified(context, to);
 
             if (fromReport == null || toReport == null) {
                 handler.logInfo("No reports found for specified dates.");
@@ -407,8 +403,120 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
+     * Holds the result of normalizing two reports to their intersection,
+     * including information about checks that were skipped (present in one report only).
+     */
+    private static class NormalizationResult {
+        final String normalizedFromJson;
+        final String normalizedToJson;
+        /** Check names that exist only in the "from" report. */
+        final List<String> onlyInFrom;
+        /** Check names that exist only in the "to" report. */
+        final List<String> onlyInTo;
+
+        NormalizationResult(String normalizedFromJson, String normalizedToJson,
+                            List<String> onlyInFrom, List<String> onlyInTo) {
+            this.normalizedFromJson = normalizedFromJson;
+            this.normalizedToJson = normalizedToJson;
+            this.onlyInFrom = onlyInFrom;
+            this.onlyInTo = onlyInTo;
+        }
+    }
+
+    /**
+     * Normalize two report JSON strings so that they only contain checks
+     * that are present (by name) in both reports. This allows correct comparison
+     * when reports were created with different check selections.
+     *
+     * If the `-c` option was specified, additionally filters to only include
+     * checks matching the specified check index (by name from the configured check list).
+     *
+     * @param fromJson the JSON string of the "from" report
+     * @param toJson   the JSON string of the "to" report
+     * @return a {@link NormalizationResult} containing normalized JSON and skipped check info
+     * @throws IOException if JSON parsing fails
+     */
+    private NormalizationResult normalizeReportsToIntersection(String fromJson, String toJson) throws IOException {
+        JsonNode fromRoot = mapper.readTree(fromJson);
+        JsonNode toRoot = mapper.readTree(toJson);
+
+        JsonNode fromChecks = fromRoot.get("checks");
+        JsonNode toChecks = toRoot.get("checks");
+
+        if (fromChecks == null || toChecks == null || !fromChecks.isArray() || !toChecks.isArray()) {
+            return new NormalizationResult(fromJson, toJson,
+                    new ArrayList<>(), new ArrayList<>());
+        }
+
+        // Build maps of check name -> check node for both reports
+        Map<String, JsonNode> fromCheckMap = new LinkedHashMap<>();
+        for (JsonNode check : fromChecks) {
+            JsonNode nameNode = check.get("name");
+            if (nameNode != null) {
+                fromCheckMap.put(nameNode.asText(), check);
+            }
+        }
+
+        Map<String, JsonNode> toCheckMap = new LinkedHashMap<>();
+        for (JsonNode check : toChecks) {
+            JsonNode nameNode = check.get("name");
+            if (nameNode != null) {
+                toCheckMap.put(nameNode.asText(), check);
+            }
+        }
+
+        // Compute intersection of check names
+        List<String> commonNames = new ArrayList<>(fromCheckMap.keySet());
+        commonNames.retainAll(toCheckMap.keySet());
+
+        // If specificCheck is set, further filter to only that check name
+        if (specificCheck != -1) {
+            String targetCheckName = HealthReport.getCheckName(specificCheck);
+            if (targetCheckName != null) {
+                commonNames.retainAll(java.util.Collections.singletonList(targetCheckName));
+            }
+        }
+
+        if (commonNames.isEmpty()) {
+            handler.logInfo("No common checks found between the two reports for comparison.");
+        }
+
+        // Determine checks that are only in one report
+        List<String> onlyInFrom = new ArrayList<>(fromCheckMap.keySet());
+        onlyInFrom.removeAll(toCheckMap.keySet());
+        List<String> onlyInTo = new ArrayList<>(toCheckMap.keySet());
+        onlyInTo.removeAll(fromCheckMap.keySet());
+
+        // Build normalized JSON with only the common checks (in the same order)
+        com.fasterxml.jackson.databind.node.ObjectNode normalizedFrom =
+                mapper.createObjectNode();
+        com.fasterxml.jackson.databind.node.ArrayNode normalizedFromChecks =
+                mapper.createArrayNode();
+        for (String name : commonNames) {
+            normalizedFromChecks.add(fromCheckMap.get(name));
+        }
+        normalizedFrom.set("checks", normalizedFromChecks);
+
+        com.fasterxml.jackson.databind.node.ObjectNode normalizedTo =
+                mapper.createObjectNode();
+        com.fasterxml.jackson.databind.node.ArrayNode normalizedToChecks =
+                mapper.createArrayNode();
+        for (String name : commonNames) {
+            normalizedToChecks.add(toCheckMap.get(name));
+        }
+        normalizedTo.set("checks", normalizedToChecks);
+
+        return new NormalizationResult(
+                mapper.writeValueAsString(normalizedFrom),
+                mapper.writeValueAsString(normalizedTo),
+                onlyInFrom, onlyInTo);
+    }
+
+    /**
      * Generate a comparison report between two ReportResult objects.
      * The report includes the type, last modified dates, and the differences in JSON format.
+     * When comparing reports with different check selections, only the intersection
+     * of common check names is compared.
      *
      * @param fromReport the "from" report
      * @param toReport   the "to" report
@@ -422,6 +530,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         if (fromJson == null || toJson == null) {
             return "One of the reports has no value. Cannot compare.";
         }
+
+        // Normalize both reports to contain only intersection of check names
+        NormalizationResult normalized = normalizeReportsToIntersection(fromJson, toJson);
+        String normalizedFromJson = normalized.normalizedFromJson;
+        String normalizedToJson = normalized.normalizedToJson;
 
         StringBuilder sb = new StringBuilder();
 
@@ -444,17 +557,37 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         sb.append("Report Period: ").append(timePeriod).append("\n\n");
 
         // Enhanced Key Changes Table
-        String keyChangesTable = generateEnhancedKeyChangesTable(fromJson, toJson,
+        String keyChangesTable = generateEnhancedKeyChangesTable(normalizedFromJson, normalizedToJson,
                 fromReport.getLastModified(), toReport.getLastModified());
         sb.append(keyChangesTable);
 
         // Detailed Change Log
         sb.append("Section 2: Detailed Change Log\n\n");
         sb.append("Changes Summary\n");
-        String detailedSummary = generateDetailedSummary(fromJson, toJson);
+        String detailedSummary = generateDetailedSummary(normalizedFromJson, normalizedToJson);
         sb.append(detailedSummary).append("\n");
 
-        sb.append(generateDiff(fromJson, toJson));
+        sb.append(generateDiff(normalizedFromJson, normalizedToJson));
+
+        // Section 3: Skipped Checks (not present in both reports)
+        if (!normalized.onlyInFrom.isEmpty() || !normalized.onlyInTo.isEmpty()) {
+            sb.append("\nSection 3: Skipped Checks\n\n");
+            sb.append("The following checks could not be compared because they were not present in both reports.\n\n");
+            if (!normalized.onlyInFrom.isEmpty()) {
+                sb.append("Only in 'From' report (").append(fromReport.getLastModified()).append("):\n");
+                for (String name : normalized.onlyInFrom) {
+                    sb.append("  - ").append(name).append("\n");
+                }
+                sb.append("\n");
+            }
+            if (!normalized.onlyInTo.isEmpty()) {
+                sb.append("Only in 'To' report (").append(toReport.getLastModified()).append("):\n");
+                for (String name : normalized.onlyInTo) {
+                    sb.append("  - ").append(name).append("\n");
+                }
+                sb.append("\n");
+            }
+        }
 
         return sb.toString();
     }
@@ -590,7 +723,134 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
+     * Resolve a field path with attribute selectors to a JSON value.
+     * <p>
+     * Supports XPath-like selector syntax for matching array elements by a named field:
+     * <pre>
+     *   /checks/[name=General Information]/report/publishedItems
+     * </pre>
+     * The segment {@code [name=General Information]} means: find the element in the {@code checks}
+     * array whose {@code "name"} field equals {@code "General Information"}.
+     * <p>
+     * Regular path segments (e.g. {@code /report/collectionsSizesInfo/totalSize}) are resolved
+     * as standard JSON object field traversal. Numeric segments (e.g. {@code /0}) are resolved
+     * as array indices.
+     *
+     * @param rootNode  the root JSON node to resolve against
+     * @param fieldPath the selector path, e.g.
+     *                  {@code /checks/[name=Item summary]/report/communitiesCount}
+     * @return the resolved {@link JsonNode}, or {@code null} if not found
+     */
+    private JsonNode resolveFieldPath(JsonNode rootNode, String fieldPath) {
+        if (fieldPath == null || rootNode == null) {
+            return null;
+        }
+
+        // Remove leading slash and split into segments
+        String path = fieldPath.startsWith("/") ? fieldPath.substring(1) : fieldPath;
+        // Split carefully: we need to handle segments like [name=General Information]
+        // which contain spaces but no slashes
+        List<String> segments = splitPathSegments(path);
+
+        JsonNode current = rootNode;
+        for (String segment : segments) {
+            if (current == null) {
+                return null;
+            }
+
+            if (segment.startsWith("[") && segment.endsWith("]")) {
+                // Attribute selector, e.g. [name=General Information]
+                // The previous segment should have navigated us to an array node
+                if (!current.isArray()) {
+                    return null;
+                }
+                String selectorContent = segment.substring(1, segment.length() - 1);
+                int eqIndex = selectorContent.indexOf('=');
+                if (eqIndex < 0) {
+                    return null;
+                }
+                String attrName = selectorContent.substring(0, eqIndex).trim();
+                String attrValue = selectorContent.substring(eqIndex + 1).trim();
+
+                // Find matching element in the array
+                JsonNode matched = null;
+                for (JsonNode element : current) {
+                    JsonNode attrNode = element.get(attrName);
+                    if (attrNode != null && attrValue.equals(attrNode.asText())) {
+                        matched = element;
+                        break;
+                    }
+                }
+                current = matched;
+            } else if (current.isArray() && segment.matches("\\d+")) {
+                // Numeric index into array
+                int index = Integer.parseInt(segment);
+                current = (index >= 0 && index < current.size()) ? current.get(index) : null;
+            } else {
+                // Regular object field
+                current = current.get(segment);
+            }
+        }
+
+        return current;
+    }
+
+    /**
+     * Split a path string into segments, keeping bracket selectors as single segments.
+     * For example, {@code "checks/[name=General Information]/report/directoryStats/0/size_bytes"}
+     * becomes: {@code ["checks", "[name=General Information]", "report", "directoryStats", "0", "size_bytes"]}.
+     *
+     * @param path the path to split (without leading slash)
+     * @return list of path segments
+     */
+    private List<String> splitPathSegments(String path) {
+        List<String> segments = new ArrayList<>();
+        int i = 0;
+        while (i < path.length()) {
+            if (path.charAt(i) == '[') {
+                // Find matching closing bracket
+                int closeBracket = path.indexOf(']', i);
+                if (closeBracket < 0) {
+                    closeBracket = path.length() - 1;
+                }
+                segments.add(path.substring(i, closeBracket + 1));
+                i = closeBracket + 1;
+                // Skip following slash if present
+                if (i < path.length() && path.charAt(i) == '/') {
+                    i++;
+                }
+            } else {
+                // Regular segment - find next slash or bracket
+                int nextSlash = path.indexOf('/', i);
+                int nextBracket = path.indexOf('[', i);
+                int end;
+                if (nextSlash < 0 && nextBracket < 0) {
+                    end = path.length();
+                } else if (nextSlash < 0) {
+                    end = nextBracket;
+                } else if (nextBracket < 0) {
+                    end = nextSlash;
+                } else {
+                    end = Math.min(nextSlash, nextBracket);
+                }
+                String segment = path.substring(i, end);
+                if (!segment.isEmpty()) {
+                    segments.add(segment);
+                }
+                i = end;
+                // Skip slash separator
+                if (i < path.length() && path.charAt(i) == '/') {
+                    i++;
+                }
+            }
+        }
+        return segments;
+    }
+
+    /**
      * Generate enhanced key changes table with dynamic sizing and configurable field names.
+     * Uses selector-based field resolution that works regardless of check ordering or selection.
+     * Field paths use XPath-like syntax, e.g. {@code /checks/[name=Item summary]/report/publishedItems}.
      *
      * @param oldJson the old JSON report
      * @param newJson the new JSON report
@@ -610,8 +870,15 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         List<TableRow> changes = new ArrayList<>();
 
         for (String fieldPath : fieldOrder) {
-            JsonNode oldValue = getValueFromPath(oldNode, fieldPath);
-            JsonNode newValue = getValueFromPath(newNode, fieldPath);
+            JsonNode oldValue = resolveFieldPath(oldNode, fieldPath);
+            JsonNode newValue = resolveFieldPath(newNode, fieldPath);
+
+            // Skip fields that don't exist in either report (check not present in both)
+            boolean oldMissing = oldValue == null || oldValue.isMissingNode();
+            boolean newMissing = newValue == null || newValue.isMissingNode();
+            if (oldMissing && newMissing) {
+                continue;
+            }
 
             if (!Objects.equals(getDisplayValue(oldValue), getDisplayValue(newValue))) {
                 String displayName = fieldMappings.getOrDefault(fieldPath, fieldPath);

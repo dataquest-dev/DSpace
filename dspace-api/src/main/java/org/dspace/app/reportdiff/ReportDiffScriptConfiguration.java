@@ -33,14 +33,15 @@ public class ReportDiffScriptConfiguration<T extends ReportDiff> extends ScriptC
     public Options getOptions() {
         if (options == null) {
             Options options = new Options();
-            options.addOption("i", "info", false,
+            options.addOption("h", "help", false,
                     "Show help information.");
             options.addOption("e", "email", true,
                     "Send report to this email address.");
             options.getOption("e").setType(String.class);
             options.addOption("c", "check", true,
-                    String.format("Perform only specific check (use index from 0 to %d, " +
-                            "otherwise perform default checks).", HealthReport.getNumberOfChecks() - 1));
+                    String.format("Filter comparison to a specific check by index (0 to %d). " +
+                            "Only the specified check will be compared from both reports.",
+                            HealthReport.getNumberOfChecks() - 1));
             options.getOption("c").setType(String.class);
 
             options.addOption("d", "dates", false, "Show all report dates");
