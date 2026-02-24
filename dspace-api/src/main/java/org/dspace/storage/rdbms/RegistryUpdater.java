@@ -14,6 +14,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.hibernate.exception.ConstraintViolationException;
+
 import org.dspace.administer.MetadataImporter;
 import org.dspace.administer.RegistryImportException;
 import org.dspace.administer.RegistryLoader;
@@ -87,6 +89,16 @@ public class RegistryUpdater implements Callback {
             // Commit changes and close context
             context.complete();
             log.info("All Bitstream Format Regitry and Metadata Registry updates were completed.");
+        } catch (ConstraintViolationException e) {
+            // A unique constraint violation can occur when multiple DSpace instances start concurrently
+            // (e.g., after a DB import) and each tries to create the same bitstream format entries
+            // simultaneously. In that case, the registry may already be up to date (another instance
+            // completed the update), so we log a warning and allow DSpace to start normally.
+            // The context is aborted in the finally block, rolling back any partial changes.
+            // The registry update will be retried on the next DSpace startup.
+            log.warn("Registry update encountered a unique constraint violation. This may be caused by "
+                    + "concurrent startup of multiple DSpace instances or a DB import where registry "
+                    + "entries already exist. Registry update will be retried on next DSpace startup.", e);
         } catch (IOException | SQLException | ParserConfigurationException
                 | TransformerException | RegistryImportException
                 | AuthorizeException | NonUniqueMetadataException
