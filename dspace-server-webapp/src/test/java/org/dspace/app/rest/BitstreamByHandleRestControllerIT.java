@@ -159,7 +159,7 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
         getClient(token).perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/restricted.txt"))
                 .andExpect(status().isForbidden());
     }
-    
+
     @Test
     public void downloadBitstreamByHandleInvalidHandle() throws Exception {
         getClient().perform(get(ENDPOINT_BASE + "/99999/99999/nonexistent.txt"))
