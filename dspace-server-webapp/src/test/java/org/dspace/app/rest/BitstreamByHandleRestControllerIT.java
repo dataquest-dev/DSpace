@@ -21,11 +21,13 @@ import org.apache.commons.io.IOUtils;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.builder.BitstreamBuilder;
+import org.dspace.builder.BundleBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.ResourcePolicyBuilder;
 import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamService;
@@ -76,7 +78,7 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
         getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/testfile.txt"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-                        equalTo("attachment; filename=\"testfile.txt\"")))
+                        equalTo("attachment; filename=\"testfile.txt\"; filename*=UTF-8''testfile.txt")))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, equalTo("text/plain")))
                 .andExpect(content().string(bitstreamContent));
     }
@@ -220,6 +222,46 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
 
         getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/my file (2).txt"))
                 .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        equalTo("attachment; filename=\"my file (2).txt\"; "
+                                + "filename*=UTF-8''my%20file%20%282%29.txt")))
+                .andExpect(content().string(bitstreamContent));
+    }
+
+    @Test
+    public void downloadBitstreamByHandleUtf8Filename() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+        // Filename with diacritics: "Médiá (3).jfif"
+        String utf8Name = "M\u00e9di\u00e1 (3).jfif";
+        String bitstreamContent = "Utf8FilenameContent";
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, item, is)
+                    .withName(utf8Name)
+                    .withMimeType("image/jpeg")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        // The URL must percent-encode the UTF-8 filename
+        getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "/M%C3%A9di%C3%A1%20(3).jfif"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        // ASCII fallback replaces non-ASCII with underscore; filename* has UTF-8 encoding
+                        equalTo("attachment; filename=\"M_di_ (3).jfif\"; "
+                                + "filename*=UTF-8''M%C3%A9di%C3%A1%20%283%29.jfif")))
                 .andExpect(content().string(bitstreamContent));
     }
 
@@ -290,6 +332,81 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
         getClient().perform(head(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/headtest.txt"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-                        equalTo("attachment; filename=\"headtest.txt\"")));
+                        equalTo("attachment; filename=\"headtest.txt\"; filename*=UTF-8''headtest.txt")));
+    }
+
+    @Test
+    public void downloadBitstreamByHandleForbidden() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+
+        String bitstreamContent = "ForbiddenContent";
+        Bitstream bitstream;
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            bitstream = BitstreamBuilder.createBitstream(context, item, is)
+                    .withName("admin-only.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+
+        // Remove all read policies and grant access only to admin
+        authorizeService.removeAllPolicies(context, bitstream);
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withDspaceObject(bitstream)
+                .withAction(Constants.READ)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        // Authenticated non-admin user should get 401 (AuthorizeException)
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token).perform(
+                get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/admin-only.txt"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void downloadBitstreamFromNonOriginalBundle() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+
+        // Place a bitstream only in the TEXT bundle (not ORIGINAL)
+        Bundle textBundle = BundleBuilder.createBundle(context, item)
+                .withName("TEXT")
+                .build();
+        String bitstreamContent = "ExtractedTextContent";
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, textBundle, is)
+                    .withName("extracted.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        // Bitstream in TEXT bundle should not be found by this endpoint
+        getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/extracted.txt"))
+                .andExpect(status().isNotFound());
     }
 }
