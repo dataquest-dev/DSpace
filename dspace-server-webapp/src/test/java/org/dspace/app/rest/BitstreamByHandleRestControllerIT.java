@@ -125,9 +125,45 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
     }
 
     @Test
+    public void downloadBitstreamByHandleForbiddenForNonAdmin() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+        String bitstreamContent = "RestrictedContent";
+        Bitstream bitstream;
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            bitstream = BitstreamBuilder.createBitstream(context, item, is)
+                    .withName("restricted.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        // Remove all read policies from the bitstream
+        authorizeService.removeAllPolicies(context, bitstream);
+        // Add a read policy only for admin
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+                .withDspaceObject(bitstream)
+                .withAction(Constants.READ)
+                .build();
+        context.restoreAuthSystemState();
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+        // Authenticated non-admin user should get 403
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token).perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/restricted.txt"))
+                .andExpect(status().isForbidden());
+    }
+    
+    @Test
     public void downloadBitstreamByHandleInvalidHandle() throws Exception {
         getClient().perform(get(ENDPOINT_BASE + "/99999/99999/nonexistent.txt"))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isNotFound());
     }
 
     @Test

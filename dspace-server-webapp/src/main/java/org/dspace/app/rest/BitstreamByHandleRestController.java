@@ -97,7 +97,7 @@ public class BitstreamByHandleRestController {
             DSpaceObject dso = handleService.resolveToObject(context, handle);
             if (Objects.isNull(dso) || !(dso instanceof Item)) {
                 log.warn("Handle '{}' does not resolve to a valid Item.", handle);
-                response.sendError(HttpStatus.SC_UNPROCESSABLE_ENTITY,
+                response.sendError(HttpStatus.SC_NOT_FOUND,
                         "Handle '" + handle + "' does not resolve to a valid item.");
                 return;
             }
