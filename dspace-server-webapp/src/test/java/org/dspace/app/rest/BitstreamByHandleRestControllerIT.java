@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.InputStream;
+import java.net.URI;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
@@ -79,7 +80,7 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
                         equalTo("attachment; filename=\"testfile.txt\"; filename*=UTF-8''testfile.txt")))
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, equalTo("text/plain")))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "text/plain;charset=UTF-8"))
                 .andExpect(content().string(bitstreamContent));
     }
 
@@ -254,9 +255,9 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
         String handle = item.getHandle();
         String[] handleParts = handle.split("/");
 
-        // The URL must percent-encode the UTF-8 filename
-        getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
-                        + "/M%C3%A9di%C3%A1%20(3).jfif"))
+        // Use URI.create to pass a pre-encoded URL — get(String) would double-encode %C3 to %25C3
+        getClient().perform(get(URI.create(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "/M%C3%A9di%C3%A1%20(3).jfif")))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
                         // ASCII fallback replaces non-ASCII with underscore; filename* has UTF-8 encoding
@@ -469,8 +470,9 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
         String handle = item.getHandle();
         String[] handleParts = handle.split("/");
 
-        getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
-                        + "/file%20%22quoted%22.txt"))
+        // Use URI.create to pass a pre-encoded URL — get(String) would double-encode %22 to %2522
+        getClient().perform(get(URI.create(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "/file%20%22quoted%22.txt")))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
                         equalTo("attachment; filename=\"file \\\"quoted\\\".txt\"; "
@@ -505,8 +507,9 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
         String handle = item.getHandle();
         String[] handleParts = handle.split("/");
 
-        getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
-                        + "/%E6%97%A5%E6%9C%AC%E8%AA%9E.txt"))
+        // Use URI.create to pass a pre-encoded URL — get(String) would double-encode CJK sequences
+        getClient().perform(get(URI.create(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "/%E6%97%A5%E6%9C%AC%E8%AA%9E.txt")))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
                         // CJK chars replaced with _ in ASCII fallback; filename* has UTF-8 encoding
