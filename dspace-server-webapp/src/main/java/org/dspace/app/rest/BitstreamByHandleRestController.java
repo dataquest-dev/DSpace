@@ -192,14 +192,14 @@ public class BitstreamByHandleRestController {
                 }
             }
 
-            // Close the DB connection before streaming to avoid holding it open during download
-            context.complete();
-
             if (RequestMethod.HEAD.name().equals(request.getMethod())) {
                 // HEAD request — only headers, no body
+                context.complete();
                 return;
             }
 
+            // Stream the bitstream content. The context must remain open because
+            // bitstreamService.retrieve() needs an active DB connection / assetstore session.
             try (InputStream is = bitstreamService.retrieve(context, bitstream)) {
                 byte[] buffer = new byte[BUFFER_SIZE];
                 int bytesRead;
@@ -208,6 +208,8 @@ public class BitstreamByHandleRestController {
                 }
                 response.getOutputStream().flush();
             }
+            // Close DB connection after streaming is complete
+            context.complete();
         } catch (AuthorizeException e) {
             log.warn("Unauthorized access to bitstream '{}' for handle '{}'.", filename, handle);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
