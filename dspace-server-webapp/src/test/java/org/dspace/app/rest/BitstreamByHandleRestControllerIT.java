@@ -125,7 +125,7 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
     }
 
     @Test
-    public void downloadBitstreamByHandleForbiddenForNonAdmin() throws Exception {
+    public void downloadBitstreamByHandleUnauthorizedForNonAdmin() throws Exception {
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
@@ -157,7 +157,7 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
         // Authenticated non-admin user should get 403
         String token = getAuthToken(eperson.getEmail(), password);
         getClient(token).perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/restricted.txt"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
