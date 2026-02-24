@@ -559,4 +559,41 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
                 .andExpect(status().isOk())
                 .andExpect(content().string(originalContent));
     }
+
+    @Test
+    public void downloadBitstreamByHandleComplexFilename() throws Exception {
+        // Verify a filename with diacritics, plus, hash, and unmatched parenthesis
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+        // "M\u00e9di\u00e1 (+)#9) ano"
+        String complexName = "M\u00e9di\u00e1 (+)#9) ano";
+        String bitstreamContent = "ComplexNameContent";
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, item, is)
+                    .withName(complexName)
+                    .withMimeType("application/octet-stream")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        // Pre-encoded URL: e=C3A9, a=C3A1, space=20, (=28, +=2B, )=29, #=23
+        getClient().perform(get(URI.create(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "/M%C3%A9di%C3%A1%20(%2B)%239)%20ano")))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        equalTo("attachment; filename=\"M_di_ (+)#9) ano\"; "
+                                + "filename*=UTF-8''M%C3%A9di%C3%A1%20%28%2B%29%239%29%20ano")))
+                .andExpect(content().string(bitstreamContent));
+    }
 }
