@@ -7,28 +7,50 @@
  */
 package org.dspace.content.authority;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.MetadataValueService;
+import org.dspace.core.Context;
 import org.dspace.external.CachingOrcidRestConnector;
 import org.dspace.external.provider.orcid.xml.ExpandedSearchConverter;
 import org.dspace.utils.DSpace;
+import org.dspace.web.ContextUtil;
 
 
 /**
- * ChoiceAuthority using the ORCID API.
- * It uses the orcid as the authority value and thus is simpler to use then the * SolrAuthority.
+ * ChoiceAuthority using the ORCID API for search and local DB for label resolution.
+ * Uses ORCID API for getMatches/getBestMatch (submission workflow).
+ * Falls back to metadata_value table for getLabel when ORCID returns null (browse).
+ *
+ * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public class SimpleORCIDAuthority implements ChoiceAuthority {
 
     private static final Logger log = LogManager.getLogger(SimpleORCIDAuthority.class);
+    private static final int MAX_RESULTS = 100;
 
     private String pluginInstanceName;
-    private final CachingOrcidRestConnector orcidRestConnector = new DSpace().getServiceManager().getServiceByName(
-            "CachingOrcidRestConnector", CachingOrcidRestConnector.class);
-    private static final int maxResults = 100;
+    private final CachingOrcidRestConnector orcidRestConnector;
+    private final MetadataValueService metadataValueService;
+
+    public SimpleORCIDAuthority() {
+        this.orcidRestConnector = new DSpace().getServiceManager()
+            .getServiceByName("CachingOrcidRestConnector", CachingOrcidRestConnector.class);
+        this.metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
+    }
+
+    SimpleORCIDAuthority(CachingOrcidRestConnector orcidRestConnector,
+                         MetadataValueService metadataValueService) {
+        this.orcidRestConnector = orcidRestConnector;
+        this.metadataValueService = metadataValueService;
+    }
 
     /**
      * Get all values from the authority that match the preferred value.
@@ -52,14 +74,14 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
      */
     @Override
     public Choices getMatches(String text, int start, int limit, String locale) {
-        log.debug("getMatches: " + text + ", start: " + start + ", limit: " + limit + ", locale: " + locale);
+        log.debug("getMatches: {}, start: {}, limit: {}, locale: {}", text, start, limit, locale);
         if (text == null || text.trim().isEmpty()) {
             return new Choices(true);
         }
 
         start = Math.max(start, 0);
-        if (limit < 1 || limit > maxResults) {
-            limit = maxResults;
+        if (limit < 1 || limit > MAX_RESULTS) {
+            limit = MAX_RESULTS;
         }
 
         ExpandedSearchConverter.Results search = orcidRestConnector.search(text, start, limit);
@@ -92,7 +114,7 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
      */
     @Override
     public Choices getBestMatch(String text, String locale) {
-        log.debug("getBestMatch: " + text);
+        log.debug("getBestMatch: {}", text);
         Choices matches = getMatches(text, 0, 1, locale);
         if (matches.values.length != 0 && !matches.values[0].value.equalsIgnoreCase(text)) {
             // novalue
@@ -115,9 +137,68 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
      */
     @Override
     public String getLabel(String key, String locale) {
-        log.debug("getLabel: " + key);
+        if (StringUtils.isBlank(key)) {
+            return key;
+        }
+
         String label = orcidRestConnector.getLabel(key);
-        return label != null ? label : key;
+        if (label != null) {
+            return label;
+        }
+
+        return resolveLocalLabel(key, locale);
+    }
+
+    private String resolveLocalLabel(String key, String locale) {
+        Context requestContext = ContextUtil.obtainCurrentRequestContext();
+        boolean createdContext = (requestContext == null);
+        Context context = requestContext;
+
+        try {
+            if (createdContext) {
+                context = createReadOnlyContext();
+            }
+            if (context == null) {
+                return key;
+            }
+            return queryLabel(context, key, locale);
+        } catch (Exception e) {
+            log.error("Error resolving local label for authority key '{}'", key, e);
+            return key;
+        } finally {
+            if (createdContext && context != null) {
+                context.abort();
+            }
+        }
+    }
+
+    Context createReadOnlyContext() {
+        try {
+            return new Context(Context.Mode.READ_ONLY);
+        } catch (Exception | ExceptionInInitializerError e) {
+            log.error("Failed to create read-only context", e);
+            return null;
+        }
+    }
+
+    private String queryLabel(Context context, String key, String locale) throws SQLException {
+        String normalizedLocale = StringUtils.isBlank(locale) ? null : locale;
+
+        List<MetadataValue> results = metadataValueService
+            .findByAuthorityAndLanguage(context, key, normalizedLocale);
+        if (!results.isEmpty()) {
+            return results.get(0).getValue();
+        }
+
+        if (normalizedLocale != null) {
+            List<MetadataValue> fallback = metadataValueService
+                .findByAuthorityAndLanguage(context, key, null);
+            if (!fallback.isEmpty()) {
+                return fallback.get(0).getValue();
+            }
+        }
+
+        return key;
     }
 
     /**
