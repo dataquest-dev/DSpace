@@ -259,8 +259,8 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
                         + "/M%C3%A9di%C3%A1%20(3).jfif"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-                        // filename has the original UTF-8 name; filename* has RFC 5987 encoding
-                        equalTo("attachment; filename=\"M\u00e9di\u00e1 (3).jfif\"; "
+                        // ASCII fallback replaces non-ASCII with underscore; filename* has UTF-8 encoding
+                        equalTo("attachment; filename=\"M_di_ (3).jfif\"; "
                                 + "filename*=UTF-8''M%C3%A9di%C3%A1%20%283%29.jfif")))
                 .andExpect(content().string(bitstreamContent));
     }
@@ -408,5 +408,152 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
         // Bitstream in TEXT bundle should not be found by this endpoint
         getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/extracted.txt"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void downloadBitstreamByHandleMultipleDots() throws Exception {
+        // Verify that Spring {filename:.+} correctly captures filenames with multiple dots
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+        String bitstreamContent = "TarGzContent";
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, item, is)
+                    .withName("archive.v2.1.tar.gz")
+                    .withMimeType("application/gzip")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "/archive.v2.1.tar.gz"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        equalTo("attachment; filename=\"archive.v2.1.tar.gz\"; "
+                                + "filename*=UTF-8''archive.v2.1.tar.gz")))
+                .andExpect(content().string(bitstreamContent));
+    }
+
+    @Test
+    public void downloadBitstreamByHandleQuoteInFilename() throws Exception {
+        // Verify double quotes in filename are escaped in Content-Disposition
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+        String bitstreamContent = "QuoteContent";
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, item, is)
+                    .withName("file \"quoted\".txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "/file%20%22quoted%22.txt"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        equalTo("attachment; filename=\"file \\\"quoted\\\".txt\"; "
+                                + "filename*=UTF-8''file%20%22quoted%22.txt")))
+                .andExpect(content().string(bitstreamContent));
+    }
+
+    @Test
+    public void downloadBitstreamByHandleCjkFilename() throws Exception {
+        // Verify CJK characters (beyond ISO-8859-1) are handled correctly
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+        // "日本語.txt" — three CJK characters
+        String cjkName = "\u65e5\u672c\u8a9e.txt";
+        String bitstreamContent = "CjkContent";
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, item, is)
+                    .withName(cjkName)
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "/%E6%97%A5%E6%9C%AC%E8%AA%9E.txt"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        // CJK chars replaced with _ in ASCII fallback; filename* has UTF-8 encoding
+                        equalTo("attachment; filename=\"___.txt\"; "
+                                + "filename*=UTF-8''%E6%97%A5%E6%9C%AC%E8%AA%9E.txt")))
+                .andExpect(content().string(bitstreamContent));
+    }
+
+    @Test
+    public void downloadBitstreamByHandleSameNameDifferentBundles() throws Exception {
+        // A file with the same name in ORIGINAL and TEXT bundles — only ORIGINAL should be served
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+        String originalContent = "OriginalBundleContent";
+        try (InputStream is = IOUtils.toInputStream(originalContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, item, is)
+                    .withName("data.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        // Add same name in TEXT bundle
+        Bundle textBundle = BundleBuilder.createBundle(context, item)
+                .withName("TEXT")
+                .build();
+        String textContent = "TextBundleContent";
+        try (InputStream is = IOUtils.toInputStream(textContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, textBundle, is)
+                    .withName("data.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        // Should return ORIGINAL bundle content, not TEXT bundle
+        getClient().perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/data.txt"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(originalContent));
     }
 }

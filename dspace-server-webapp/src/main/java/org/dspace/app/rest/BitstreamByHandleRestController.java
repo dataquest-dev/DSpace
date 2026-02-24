@@ -275,14 +275,13 @@ public class BitstreamByHandleRestController {
         // RFC 5987 percent-encoding for filename*
         String encoded = URLEncoder.encode(name, StandardCharsets.UTF_8)
                 .replace("+", "%20");
-        // Use the original filename in the filename parameter — characters in the
-        // ISO-8859-1 range (e.g. é, á, ü) are transmitted correctly by Tomcat and
-        // understood by curl on Western/Central-European code pages. For full Unicode
-        // support, filename* provides RFC 5987 percent-encoded UTF-8 which modern
-        // curl (7.56+) prefers over filename per RFC 6266.
-        String escapedName = name.replace("\"", "\\\"");
+        // ASCII fallback: replace non-ASCII chars with underscore, escape quotes.
+        // Modern clients use filename* (RFC 5987 / RFC 6266) with real UTF-8 name.
+        String asciiFallback = name.replaceAll("[^\\x20-\\x7E]", "_")
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
         return String.format("attachment; filename=\"%s\"; filename*=UTF-8''%s",
-                escapedName, encoded);
+                asciiFallback, encoded);
     }
 
     /**
