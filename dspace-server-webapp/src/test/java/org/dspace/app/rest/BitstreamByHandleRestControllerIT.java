@@ -259,8 +259,8 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
                         + "/M%C3%A9di%C3%A1%20(3).jfif"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-                        // ASCII fallback replaces non-ASCII with underscore; filename* has UTF-8 encoding
-                        equalTo("attachment; filename=\"M_di_ (3).jfif\"; "
+                        // filename has the original UTF-8 name; filename* has RFC 5987 encoding
+                        equalTo("attachment; filename=\"M\u00e9di\u00e1 (3).jfif\"; "
                                 + "filename*=UTF-8''M%C3%A9di%C3%A1%20%283%29.jfif")))
                 .andExpect(content().string(bitstreamContent));
     }
