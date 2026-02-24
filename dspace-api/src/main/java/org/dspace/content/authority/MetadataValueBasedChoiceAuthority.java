@@ -25,6 +25,7 @@ import org.dspace.web.ContextUtil;
 /**
  * ChoiceAuthority implementation that retrieves labels from metadata values table.
  * Fixed LazyInitializationException by managing context persistence for CLI operations.
+ * @author Michaela Stefancova at (dspace at dataquest.sk)
  */
 public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
 
@@ -142,6 +143,7 @@ public class MetadataValueBasedChoiceAuthority implements ChoiceAuthority {
                 // Extract values immediately to avoid lazy loading later
                 String authority = mv.getAuthority();
                 String value = mv.getValue();
+                // "\u0000" is the null character used as a safe separator between two values.
                 String compositeKey = authority + "\u0000" + value;
                 if (seenKeys.add(compositeKey)) {
                     uniqueResults.add(new Choice(authority, value, value));
