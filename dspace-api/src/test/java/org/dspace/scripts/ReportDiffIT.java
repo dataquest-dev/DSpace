@@ -659,12 +659,14 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         // Create reports with size differences from "0 bytes" to "9 KB"
         String fromReportJson =
             "{ \"checks\": [" +
-            "  { \"report\": { \"totalSize\": \"0 bytes\" } }" +
+            "  { \"name\": \"Item summary\", \"report\": {" +
+            "    \"collectionsSizesInfo\": { \"totalSize\": \"0 bytes\" } } }" +
             "]}";
 
         String toReportJson =
             "{ \"checks\": [" +
-            "  { \"report\": { \"totalSize\": \"9 KB\" } }" +
+            "  { \"name\": \"Item summary\", \"report\": {" +
+            "    \"collectionsSizesInfo\": { \"totalSize\": \"9 KB\" } } }" +
             "]}";
 
         ReportResult fromReport = reportResultService.create(context);
