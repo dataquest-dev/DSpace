@@ -161,7 +161,7 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
 
     /**
      * Verifies that multiple -c values run only the specified checks.
-     * Covers Issue #1328 item 2: support multiple check selection (e.g. -c 0 -c 3).
+     * Support multiple check selection (e.g. -c 0 -c 3).
      */
     @Test
     public void testMultipleChecks() throws Exception {
@@ -182,7 +182,6 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
 
     /**
      * Verifies that an out-of-range -c value causes a script error.
-     * Covers Issue #1328 item 3: validate -c values.
      */
     @Test
     public void testInvalidCheckOutOfRange() throws Exception {
@@ -197,7 +196,6 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
 
     /**
      * Verifies that a non-integer -c value causes a script error.
-     * Covers Issue #1328 item 3: validate -c values.
      */
     @Test
     public void testInvalidCheckNonInteger() throws Exception {
@@ -211,7 +209,7 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
 
     /**
      * Verifies that a non-positive -f value (zero) causes a script error.
-     * Covers Issue #1328 item 3: validate -f must be positive integer (greater than 0).
+     * Validate -f must be positive integer (greater than 0).
      */
     @Test
     public void testInvalidForDaysZero() throws Exception {
@@ -225,7 +223,7 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
 
     /**
      * Verifies that a non-integer -f value causes a script error.
-     * Covers Issue #1328 item 3: validate -f must be integer.
+     * Validate -f must be integer.
      */
     @Test
     public void testInvalidForDaysNonInteger() throws Exception {

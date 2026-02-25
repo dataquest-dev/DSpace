@@ -759,7 +759,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Verifies Issue #1334: when one report has more checks than the other, the diff
+     * When one report has more checks than the other, the diff
      * compares only the intersection and does NOT show null values for fields in
      * the common check.
      */
