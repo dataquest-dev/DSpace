@@ -39,7 +39,7 @@ public class HealthReportScriptConfiguration<T extends HealthReport> extends Scr
             options.getOption("e").setType(String.class);
             options.addOption("c", "check", true,
                     String.format("Perform specific check(s) by index (0 to %d). " +
-                            "Can be used multiple times, e.g. -c 0 -c 3 -c 4.",
+                            "Accepts multiple space-separated values, e.g. -c 0 3 4.",
                             HealthReport.getNumberOfChecks() - 1));
             options.getOption("c").setType(String.class);
             options.getOption("c").setArgs(Integer.MAX_VALUE);

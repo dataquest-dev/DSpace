@@ -247,7 +247,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
                 "  -h, --help            Show help information\n" +
                 "  -e, --email           Send report to specified email address\n" +
                 "  -c, --check           Perform specific check(s) by index (0-" + (getNumberOfChecks() - 1) +
-                "). Can be used multiple times, e.g. -c 0 -c 3 -c 4\n" +
+                "). Accepts multiple space-separated values, e.g. -c 0 3 4\n" +
                 "  -f, --for             Specify the last N days to consider (positive integer)\n" +
                 "  -r, --report          Specify a file to save the report\n\n" +
                 "Available checks:\n" + checksNamesToString() + "\n"

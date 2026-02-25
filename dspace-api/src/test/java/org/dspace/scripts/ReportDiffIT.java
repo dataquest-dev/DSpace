@@ -757,4 +757,75 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
                 hasDiffOperation(infoMessages, "REPLACE", CHECK_KEY_PATH),
                 org.hamcrest.Matchers.is(true));
     }
+
+    /**
+     * Verifies Issue #1334: when one report has more checks than the other, the diff
+     * compares only the intersection and does NOT show null values for fields in
+     * the common check.
+     */
+    @Test
+    public void testIntersectionComparisonNoNullsForCommonChecks() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // report1 has 5 checks (all)
+        String allChecksJson = "{\"checks\":[" +
+                "{\"name\":\"General Information\",\"report\":{\"directoryStats\":[" +
+                "  {\"size_bytes\":1000}," +
+                "  {\"size_bytes\":2000}" +
+                "]}}," +
+                "{\"name\":\"Item summary\",\"report\":{\"itemsCount\":100,\"publishedItems\":80}}," +
+                "{\"name\":\"User summary\",\"report\":{\"selfRegistered\":5}}," +
+                "{\"name\":\"License summary\",\"report\":{\"licenses\":3}}," +
+                "{\"name\":\"Embargo check\",\"report\":{}}" +
+                "]}";
+
+        // report2 has only 1 check (Item summary)
+        String singleCheckJson = "{\"checks\":[" +
+                "{\"name\":\"Item summary\",\"report\":{\"itemsCount\":120,\"publishedItems\":100}}" +
+                "]}";
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue(allChecksJson);
+        reportResultService.update(context, report1);
+        context.commit();
+
+        Thread.sleep(1000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue(singleCheckJson);
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-f", formatDate(report1.getLastModified()),
+                "-t", formatDate(report2.getLastModified()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+
+        // The diff output must not contain null values for the common "Item summary" check
+        boolean hasNullInKeyChanges = infoMessages.stream()
+                .anyMatch(msg -> msg.contains("| null") || msg.contains("null |"));
+        assertThat("Key Changes table must not show null for fields present in both reports",
+                hasNullInKeyChanges, org.hamcrest.Matchers.is(false));
+
+        // The checks only present in report1 (General Information, User summary, License summary, Embargo check)
+        // should appear in the Skipped Checks section
+        assertThat(infoMessages, hasItem(containsString("Skipped Checks")));
+        assertThat(infoMessages, hasItem(containsString("General Information")));
+        assertThat(infoMessages, hasItem(containsString("User summary")));
+        assertThat(infoMessages, hasItem(containsString("License summary")));
+        assertThat(infoMessages, hasItem(containsString("Embargo check")));
+
+        // Item summary - the common check - must show actual diff (itemsCount 100 -> 120)
+        assertThat("Should contain diff for common Item summary check",
+                hasDiffOperation(infoMessages, "REPLACE", "/checks/0/report/itemsCount"),
+                org.hamcrest.Matchers.is(true));
+    }
 }
