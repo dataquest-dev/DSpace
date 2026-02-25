@@ -259,13 +259,12 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
      * This method is used to print the options used for the report.
      */
     private String printCommandlineOptions() {
-        // Return key-value pairs of options
         StringBuilder options = new StringBuilder();
         for (Option option : commandLine.getOptions()) {
             String key = option.getOpt();
-            String value = commandLine.getOptionValue(key);
-            if (value != null) {
-                options.append(String.format("  -%s: %s\n", key, value));
+            String[] values = commandLine.getOptionValues(key);
+            if (values != null) {
+                options.append(String.format("  -%s: %s\n", key, String.join(", ", values)));
             } else {
                 options.append(String.format("  -%s\n", key));
             }

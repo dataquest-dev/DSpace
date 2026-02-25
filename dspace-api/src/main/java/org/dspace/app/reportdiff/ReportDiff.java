@@ -135,6 +135,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                         fieldOrder.add(fieldNode.asText());
                     }
                 }
+            } else {
+                log.warn("Report diff fields configuration '{}' not found on the classpath. " +
+                        "Field mappings will be empty.", REPORT_DIFF_FIELDS);
+                fieldMappings = new LinkedHashMap<>();
+                fieldOrder = new ArrayList<>();
             }
         } catch (IOException e) {
             log.error("Error loading report diff fields configuration '{}': {}. Using empty configuration.",
@@ -269,18 +274,25 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
-     * Validate the date range specified by `from` and `to`.
-     * If the dates are invalid, log an error and return false.
-     * If both dates are set, ensure that `to` is not before `from`.
+     * Validate the date range specified by {@code from} and {@code to}.
+     * Logs a specific error if either date is missing (not provided and not resolvable from the DB)
+     * or if {@code to} precedes {@code from}.
      *
-     * @return true if the date range is valid, false otherwise
+     * @return true if both dates are set and {@code to} is not before {@code from}, false otherwise
      */
     private boolean validateDateRange() {
         if (to != null && from != null && to.before(from)) {
             handler.logError("The 'to' date cannot be before the 'from' date.");
             return false;
-        } else if (Objects.isNull(from) || Objects.isNull(to)) {
-            handler.logError("Both 'from' and 'to' dates must be specified when using a specific check.");
+        }
+        if (Objects.isNull(from)) {
+            handler.logError("The 'from' date could not be determined. " +
+                    "Specify it with -f or ensure at least 2 reports exist in the database.");
+            return false;
+        }
+        if (Objects.isNull(to)) {
+            handler.logError("The 'to' date could not be determined. " +
+                    "Specify it with -t or ensure at least 1 report exists in the database.");
             return false;
         }
         return true;
@@ -937,43 +949,6 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         table.append(separator).append("\n\n");
 
         return table.toString();
-    }
-
-    /**
-     * Get value from JSON node using path notation (JSON Pointer style).
-     */
-    private JsonNode getValueFromPath(JsonNode node, String path) {
-        try {
-            // Use Jackson's JSON Pointer functionality for paths like /checks/0/report/publishedItems
-            if (path.startsWith("/")) {
-                return node.at(path);
-            }
-
-            // Fallback for simple dot notation paths
-            return getValueFromSimplePath(node, path);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    /**
-     * Get value from simple dot-notation path.
-     */
-    private JsonNode getValueFromSimplePath(JsonNode node, String path) {
-        if (path.isEmpty()) {
-            return node;
-        }
-        String[] parts = path.split("\\.");
-        JsonNode current = node;
-
-        for (String part : parts) {
-            if (current == null || !current.has(part)) {
-                return null;
-            }
-            current = current.get(part);
-        }
-
-        return current;
     }
 
     /**
