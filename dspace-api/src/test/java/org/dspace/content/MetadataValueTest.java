@@ -26,6 +26,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.junit.After;
@@ -71,6 +72,8 @@ public class MetadataValueTest extends AbstractUnitTest {
 
     private MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
     private MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
+    private MetadataSchemaService metadataSchemaService =
+            ContentServiceFactory.getInstance().getMetadataSchemaService();
     protected CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
     protected CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
     protected WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
@@ -289,5 +292,62 @@ public class MetadataValueTest extends AbstractUnitTest {
         metadataValueService.update(context, mv);
     }
 
+    /**
+     * Test of findByAuthorityAndLanguage method with basic functionality
+     * verifying language filtering and deterministic ordering
+     */
+    @Test
+    public void testFindByAuthorityAndLanguage() throws Exception {
+        context.turnOffAuthorisationSystem();
 
+        try {
+            String testAuthority = "test-authority-dao-" + System.currentTimeMillis();
+
+            // Create test metadata values using the same item as other tests
+            MetadataValue testMv1 = metadataValueService.create(context, it, mf);
+            testMv1.setAuthority(testAuthority);
+            testMv1.setValue("Beta Value");
+            testMv1.setLanguage("en");
+            testMv1.setPlace(1);
+            metadataValueService.update(context, testMv1);
+
+            MetadataValue testMv2 = metadataValueService.create(context, it, mf);
+            testMv2.setAuthority(testAuthority);
+            testMv2.setValue("Alpha Value");
+            testMv2.setLanguage("en");
+            testMv2.setPlace(0);
+            metadataValueService.update(context, testMv2);
+
+            // Test: Find with authority and language
+            List<MetadataValue> results =
+                    metadataValueService.findByAuthorityAndLanguage(context, testAuthority, "en");
+            assertThat("Should find 2 values", results.size(), equalTo(2));
+
+            // Test deterministic ordering: m.place ASC, m.value ASC, m.id ASC
+            // mv2 has place=0, mv1 has place=1, so mv2 should come first
+            assertThat("First result should be Alpha Value (lower place)",
+                    results.get(0).getValue(), equalTo("Alpha Value"));
+            assertThat("Second result should be Beta Value",
+                    results.get(1).getValue(), equalTo("Beta Value"));
+
+            // Test: Find with authority but different language (should return empty)
+            List<MetadataValue> noResults =
+                    metadataValueService.findByAuthorityAndLanguage(context, testAuthority, "fr");
+            assertThat("Should find no French values", noResults.size(), equalTo(0));
+
+            // Test: Find with authority and null language (should include all languages)
+            List<MetadataValue> allResults =
+                    metadataValueService.findByAuthorityAndLanguage(context, testAuthority, null);
+            assertThat("Should find both values with null language filter", allResults.size(), equalTo(2));
+
+            // Test: Find with non-existent authority
+            List<MetadataValue> notFoundResults =
+                    metadataValueService.findByAuthorityAndLanguage(context, "non-existent", null);
+            assertThat("Should find no values for non-existent authority",
+                    notFoundResults.size(), equalTo(0));
+
+        } finally {
+            context.restoreAuthSystemState();
+        }
+    }
 }
