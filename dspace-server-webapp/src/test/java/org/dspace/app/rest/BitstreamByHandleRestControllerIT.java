@@ -157,10 +157,10 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
         context.restoreAuthSystemState();
         String handle = item.getHandle();
         String[] handleParts = handle.split("/");
-        // Authenticated non-admin user should get 401 (Unauthorized)
+        // Authenticated non-admin user should get 403 (Forbidden)
         String token = getAuthToken(eperson.getEmail(), password);
         getClient(token).perform(get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/restricted.txt"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test
