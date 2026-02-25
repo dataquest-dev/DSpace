@@ -812,6 +812,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * For example, {@code "checks/[name=General Information]/report/directoryStats/0/size_bytes"}
      * becomes: {@code ["checks", "[name=General Information]", "report", "directoryStats", "0", "size_bytes"]}.
      *
+     * <p><b>Limitation:</b> The parser finds the first {@code ]} after an opening {@code [}, so check
+     * names that themselves contain bracket characters (e.g., {@code [name=Check [beta]]}) are not
+     * supported and will produce incorrect segments. Check names must not contain {@code [} or {@code ]}.
+     *
      * @param path the path to split (without leading slash)
      * @return list of path segments
      */
