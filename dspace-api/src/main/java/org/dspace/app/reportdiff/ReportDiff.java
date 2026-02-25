@@ -77,9 +77,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     private long limit = -1;
 
     /**
-     * `-c`: Check, perform only specific check by index (0-`getNumberOfChecks()`).
+     * `-c`: Check, perform only specific checks by index (0-`getNumberOfChecks()`).
+     * Supports multiple values.
      */
-    private int specificCheck = -1;
+    private List<Integer> specificChecks = new ArrayList<>();
 
     /**
      * `-f`: From, specify the start date for the report.
@@ -169,12 +170,17 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             return;
         }
 
-        // `-c`: Check, perform only specific check by index (0-`getNumberOfChecks()`).
+        // `-c`: Check, perform only specific checks by index (0-`getNumberOfChecks()`).
+        // Supports multiple values e.g. -c 0 3 4
         if (commandLine.hasOption('c')) {
-            specificCheck = parseCheckOption(commandLine.getOptionValue('c'));
-            if (specificCheck == -1) {
-                // Error already logged in parseCheckOption
-                return;
+            String[] checkOptions = commandLine.getOptionValues('c');
+            for (String checkOption : checkOptions) {
+                int parsedCheck = parseCheckOption(checkOption);
+                if (parsedCheck == -1) {
+                    // Error already logged in parseCheckOption
+                    return;
+                }
+                specificChecks.add(parsedCheck);
             }
         }
 
@@ -481,12 +487,16 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         List<String> commonNames = new ArrayList<>(fromCheckMap.keySet());
         commonNames.retainAll(toCheckMap.keySet());
 
-        // If specificCheck is set, further filter to only that check name
-        if (specificCheck != -1) {
-            String targetCheckName = HealthReport.getCheckName(specificCheck);
-            if (targetCheckName != null) {
-                commonNames.retainAll(java.util.Collections.singletonList(targetCheckName));
+        // If specificChecks are set, further filter to only those check names
+        if (!specificChecks.isEmpty()) {
+            List<String> targetCheckNames = new ArrayList<>();
+            for (int checkIndex : specificChecks) {
+                String targetCheckName = HealthReport.getCheckName(checkIndex);
+                if (targetCheckName != null) {
+                    targetCheckNames.add(targetCheckName);
+                }
             }
+            commonNames.retainAll(targetCheckNames);
         }
 
         if (commonNames.isEmpty()) {
@@ -498,6 +508,12 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         onlyInFrom.removeAll(toCheckMap.keySet());
         List<String> onlyInTo = new ArrayList<>(toCheckMap.keySet());
         onlyInTo.removeAll(fromCheckMap.keySet());
+
+        // When specific checks are requested, do not report other checks as skipped
+        if (!specificChecks.isEmpty()) {
+            onlyInFrom.clear();
+            onlyInTo.clear();
+        }
 
         // Build normalized JSON with only the common checks (in the same order)
         com.fasterxml.jackson.databind.node.ObjectNode normalizedFrom =
