@@ -29,7 +29,8 @@ import org.dspace.web.ContextUtil;
  * Uses ORCID API for getMatches/getBestMatch (submission workflow).
  * Falls back to metadata_value table for getLabel when ORCID returns null (browse).
  *
- * @author Milan Majchrak (milan.majchrak at dataquest.sk)
+ * @author Michaela Paurikova (dspace at dataquest.sk)
+ * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public class SimpleORCIDAuthority implements ChoiceAuthority {
 
