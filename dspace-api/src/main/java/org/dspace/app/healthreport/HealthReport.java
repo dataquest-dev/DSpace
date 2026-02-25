@@ -109,7 +109,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
         }
 
         // `-c`: Check, perform only specific checks by index (0-`getNumberOfChecks()`).
-        // Supports multiple values e.g. -c 0 -c 3 -c 4
+        // Supports multiple values e.g. -c 0 3 4
         if (commandLine.hasOption('c')) {
             String[] checkOptions = commandLine.getOptionValues('c');
             for (String checkOption : checkOptions) {
