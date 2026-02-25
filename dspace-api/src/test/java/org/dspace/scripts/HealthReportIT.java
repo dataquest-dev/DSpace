@@ -160,8 +160,8 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Verifies that multiple -c values run only the specified checks.
-     * Support multiple check selection (e.g. -c 0 -c 3).
+     * Verifies that multiple values for a single -c option run only the specified checks.
+     * Supports multiple check selection (e.g. -c 0 3).
      */
     @Test
     public void testMultipleChecks() throws Exception {
