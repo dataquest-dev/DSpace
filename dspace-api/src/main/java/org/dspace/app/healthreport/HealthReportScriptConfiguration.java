@@ -42,7 +42,7 @@ public class HealthReportScriptConfiguration<T extends HealthReport> extends Scr
                             "Accepts multiple space-separated values, e.g. -c 0 3 4.",
                             HealthReport.getNumberOfChecks() - 1));
             options.getOption("c").setType(String.class);
-            options.getOption("c").setArgs(Integer.MAX_VALUE);
+            options.getOption("c").setArgs(org.apache.commons.cli.Option.UNLIMITED_VALUES);
             options.addOption("f", "for", true,
                     "Report for last N days (positive integer). Used only in general information for now.");
             options.getOption("f").setType(String.class);
