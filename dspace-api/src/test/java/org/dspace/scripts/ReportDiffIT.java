@@ -193,8 +193,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
-        report1.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{\"key\":\"value1\"}},{\"name\":\"Item summary\"" +
-                ",\"report\":{\"key\":\"other\"}}]}");
+        report1.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{\"key\":\"value1\"}},"
+                + "{\"name\":\"Item summary\",\"report\":{\"key\":\"other\"}}]}");
         reportResultService.update(context, report1);
         // Force commit and flush to ensure timestamp is set
         context.commit();
@@ -204,8 +204,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         ReportResult report2 = reportResultService.create(context);
         report2.setType("healthcheck");
-        report2.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{\"key\":\"value2\"}},{\"name\":\"Item summary\"" +
-                ",\"report\":{\"key\":\"other\"}}]}");
+        report2.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{\"key\":\"value2\"}},"
+                + "{\"name\":\"Item summary\",\"report\":{\"key\":\"other\"}}]}");
         reportResultService.update(context, report2);
         context.commit();
         context.restoreAuthSystemState();
