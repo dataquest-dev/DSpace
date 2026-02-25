@@ -200,20 +200,36 @@ public class BitstreamByHandleRestController {
 
             // Stream the bitstream content. The context must remain open because
             // bitstreamService.retrieve() needs an active DB connection / assetstore session.
-            try (InputStream is = bitstreamService.retrieve(context, bitstream)) {
-                byte[] buffer = new byte[BUFFER_SIZE];
-                int bytesRead;
-                while ((bytesRead = is.read(buffer)) != -1) {
-                    response.getOutputStream().write(buffer, 0, bytesRead);
+            Context downloadContext = null;
+            boolean downloadContextCompleted = false;
+            try {
+                downloadContext = new Context();
+                try (InputStream is = bitstreamService.retrieve(downloadContext, bitstream)) {
+                    byte[] buffer = new byte[BUFFER_SIZE];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        response.getOutputStream().write(buffer, 0, bytesRead);
+                    }
+                    response.getOutputStream().flush();
                 }
-                response.getOutputStream().flush();
+                downloadContext.complete();
+                downloadContextCompleted = true;
+            } finally {
+                if (downloadContext != null && !downloadContextCompleted) {
+                    downloadContext.abort();
+                }
             }
             // Close DB connection after streaming is complete
             context.complete();
         } catch (AuthorizeException e) {
             log.warn("Unauthorized access to bitstream '{}' for handle '{}'.", filename, handle);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
-                    "You are not authorized to download this file.");
+            if (context.getCurrentUser() == null) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+                        "You are not authorized to download this file.");
+            } else {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "You are not authorized to download this file.");
+            }
         } catch (SQLException e) {
             log.error("Database error while downloading bitstream '{}' for handle '{}': {}",
                     filename, handle, e.getMessage());
@@ -293,7 +309,7 @@ public class BitstreamByHandleRestController {
      * @return the matching Bitstream, or null if not found
      */
     private Bitstream findBitstreamByName(Item item, String filename) {
-        List<Bundle> bundles = item.getBundles("ORIGINAL");
+        List<Bundle> bundles = item.getBundles(CONTENT_BUNDLE_NAME);
         for (Bundle bundle : bundles) {
             for (Bitstream bitstream : bundle.getBitstreams()) {
                 if (StringUtils.equals(bitstream.getName(), filename)) {
