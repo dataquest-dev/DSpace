@@ -25,7 +25,6 @@ import org.dspace.handle.Handle;
 import org.dspace.storage.rdbms.DatabaseConfigVO;
 import org.hibernate.FlushMode;
 import org.hibernate.Hibernate;
-import org.hibernate.LazyInitializationException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -302,17 +301,16 @@ public class HibernateDBConnection implements DBConnection<Session> {
             } else if (entity instanceof Bundle) {
                 Bundle bundle = (Bundle) entity;
 
-                try {
-                    // Bundle.getBitstreams() creates a defensive copy (new ArrayList) which
-                    // triggers lazy loading. We must catch LazyInitializationException in case
-                    // the session is already closed (e.g. during CLI reindexing).
-                    if (Hibernate.isInitialized(bundle.getBitstreams())) {
-                        for (Bitstream bitstream : Utils.emptyIfNull(bundle.getBitstreams())) {
-                            uncacheEntity(bitstream);
-                        }
+                // Bundle.getBitstreams() creates a defensive copy via new ArrayList<>(bitstreams)
+                // which iterates the Hibernate proxy, triggering lazy loading unconditionally.
+                // Unlike Item.getBundles() which returns the raw proxy, we cannot safely call
+                // getBitstreams() when the bundle is detached from the session.
+                // Guard with session.contains(): if the bundle is still managed,
+                // lazy loading will work; if detached (e.g. after session.clear()), we skip.
+                if (getSession().contains(bundle)) {
+                    for (Bitstream bitstream : Utils.emptyIfNull(bundle.getBitstreams())) {
+                        uncacheEntity(bitstream);
                     }
-                } catch (LazyInitializationException e) {
-                    log.debug("Skipping bitstream uncaching for bundle {} - session already closed", bundle.getID());
                 }
                 // BITSTREAM
                 // No specific child entities to decache
