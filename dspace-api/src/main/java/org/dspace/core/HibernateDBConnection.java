@@ -25,6 +25,7 @@ import org.dspace.handle.Handle;
 import org.dspace.storage.rdbms.DatabaseConfigVO;
 import org.hibernate.FlushMode;
 import org.hibernate.Hibernate;
+import org.hibernate.LazyInitializationException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -301,10 +302,17 @@ public class HibernateDBConnection implements DBConnection<Session> {
             } else if (entity instanceof Bundle) {
                 Bundle bundle = (Bundle) entity;
 
-                if (Hibernate.isInitialized(bundle.getBitstreams())) {
-                    for (Bitstream bitstream : Utils.emptyIfNull(bundle.getBitstreams())) {
-                        uncacheEntity(bitstream);
+                try {
+                    // Bundle.getBitstreams() creates a defensive copy (new ArrayList) which
+                    // triggers lazy loading. We must catch LazyInitializationException in case
+                    // the session is already closed (e.g. during CLI reindexing).
+                    if (Hibernate.isInitialized(bundle.getBitstreams())) {
+                        for (Bitstream bitstream : Utils.emptyIfNull(bundle.getBitstreams())) {
+                            uncacheEntity(bitstream);
+                        }
                     }
+                } catch (LazyInitializationException e) {
+                    log.debug("Skipping bitstream uncaching for bundle {} - session already closed", bundle.getID());
                 }
                 // BITSTREAM
                 // No specific child entities to decache
