@@ -152,11 +152,10 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
 
     private String resolveLocalLabel(String key, String locale) {
         Context requestContext = ContextUtil.obtainCurrentRequestContext();
-        boolean createdContext = (requestContext == null);
         Context context = requestContext;
 
         try {
-            if (createdContext) {
+            if (context == null) {
                 context = createReadOnlyContext();
             }
             if (context == null) {
@@ -166,11 +165,16 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
         } catch (Exception e) {
             log.error("Error resolving local label for authority key '{}'", key, e);
             return key;
-        } finally {
-            if (createdContext && context != null) {
-                context.abort();
-            }
         }
+        // We intentionally do NOT call context.abort() on a locally created Context.
+        // During CLI operations (e.g. reindexing), the new Context shares the Hibernate
+        // session (thread-local) with the caller's Context. Calling abort() triggers
+        // closeDBConnection() → rollback(), which kills the shared transaction and causes
+        // Hibernate to clear the persistence context — detaching ALL managed entities.
+        // This leads to LazyInitializationException when the caller later accesses
+        // lazy-loaded properties (e.g. DSpaceObject.handles).
+        // Since we only performed read operations, no cleanup is needed.
+        // The session/transaction lifecycle is managed by the caller's Context.
     }
 
     Context createReadOnlyContext() {

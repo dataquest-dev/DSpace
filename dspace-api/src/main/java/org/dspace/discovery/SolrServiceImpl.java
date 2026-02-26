@@ -358,7 +358,13 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     final Iterator<IndexableObject> indexableObjects = indexableObjectService.findAll(context);
                     while (indexableObjects.hasNext()) {
                         final IndexableObject indexableObject = indexableObjects.next();
-                        indexContent(context, indexableObject, force);
+                        try {
+                            indexContent(context, indexableObject, force);
+                        } catch (RuntimeException e) {
+                            log.error("Failed to index object {} (type={}): {}",
+                                indexableObject.getUniqueIndexID(), indexableObject.getType(),
+                                e.getMessage(), e);
+                        }
                         context.uncacheEntity(indexableObject.getIndexedObject());
                         indexObject++;
                         if ((indexObject % 100) == 0 && indexableObjectService instanceof ItemIndexFactory) {
