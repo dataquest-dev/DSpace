@@ -133,6 +133,57 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath("//ccmm:title", equalTo("Test Webpage"))));
     }
 
+    // ---- Fallback scenario tests ----
+
+    @Test
+    public void ccmmFallbackTitleIsUntitled() throws Exception {
+        // When dc.title is missing, fallback to "Untitled"
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-minimal-test.xml"));
+        assertThat(result, is(ccmm().withXPath("//ccmm:dataset/ccmm:title", equalTo("Untitled"))));
+    }
+
+    @Test
+    public void ccmmFallbackPublicationYearIs9999() throws Exception {
+        // When dc.date.issued and dc.date.accessioned are missing, fallback to "9999"
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-minimal-test.xml"));
+        assertThat(result, is(ccmm().withXPath("//ccmm:dataset/ccmm:publication_year", equalTo("9999"))));
+    }
+
+    @Test
+    public void ccmmFallbackSubjectIsUnspecified() throws Exception {
+        // When dc.subject is missing, fallback to "unspecified"
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-minimal-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:subject/ccmm:title", equalTo("unspecified"))));
+    }
+
+    @Test
+    public void ccmmFallbackIdentifierUsesOthersHandle() throws Exception {
+        // When dc.identifier.uri and dc.identifier.doi are missing, use others/handle
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-minimal-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:identifier/ccmm:value",
+            equalTo("http://hdl.handle.net/99999/test-1"))));
+    }
+
+    @Test
+    public void ccmmFallbackRepositoryNameIsUnknown() throws Exception {
+        // When repository/name is missing, fallback to "Unknown Repository"
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-minimal-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:metadata_identification/ccmm:qualified_relation/ccmm:relation/ccmm:organization/ccmm:name",
+            equalTo("Unknown Repository"))));
+    }
+
+    @Test
+    public void ccmmFallbackLicenseIsUnspecified() throws Exception {
+        // When dc.rights.uri is missing but dc.rights text exists, license IRI is unspecified
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-minimal-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:terms_of_use/ccmm:license/ccmm:iri",
+            equalTo("https://model.ccmm.cz/vocabulary/ccmm/license/unspecified"))));
+    }
+
     private XmlMatcherBuilder ccmm() {
         return xml()
             .withNamespace("ccmm", CCMM_NS);

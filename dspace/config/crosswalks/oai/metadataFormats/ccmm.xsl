@@ -18,6 +18,15 @@
 
     <xsl:output omit-xml-declaration="yes" method="xml" indent="yes" />
 
+    <!-- ============================================================ -->
+    <!-- Fallback constants: extracted for maintainability             -->
+    <!-- ============================================================ -->
+    <xsl:variable name="FALLBACK_REPOSITORY_NAME" select="'Unknown Repository'"/>
+    <xsl:variable name="FALLBACK_REPOSITORY_URL" select="'http://unknown.repository'"/>
+    <xsl:variable name="FALLBACK_TITLE" select="'Untitled'"/>
+    <xsl:variable name="FALLBACK_SUBJECT" select="'unspecified'"/>
+    <xsl:variable name="FALLBACK_PUBLICATION_YEAR" select="'9999'"/>
+
     <!-- Main template -->
     <xsl:template match="/">
         <ccmm:dataset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -88,7 +97,7 @@
                                 <xsl:when test="doc:metadata/doc:element[@name='repository']/doc:field[@name='name']">
                                     <xsl:value-of select="doc:metadata/doc:element[@name='repository']/doc:field[@name='name']"/>
                                 </xsl:when>
-                                <xsl:otherwise>Unknown Repository</xsl:otherwise>
+                                <xsl:otherwise><xsl:value-of select="$FALLBACK_REPOSITORY_NAME"/></xsl:otherwise>
                             </xsl:choose>
                         </ccmm:name>
                     </ccmm:organization>
@@ -109,7 +118,11 @@
                     <xsl:choose>
                         <xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
                             <xsl:variable name="uri" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'][1]"/>
-                            <!-- Extract base URL from handle URI -->
+                            <!--
+                                Extract repository base URL from Handle URI.
+                                Assumes DSpace-style URLs like https://repo.example.org/handle/123/456.
+                                Also handles hdl.handle.net URIs as-is.
+                            -->
                             <xsl:choose>
                                 <xsl:when test="contains($uri, '/handle/')">
                                     <xsl:value-of select="substring-before($uri, '/handle/')"/>
@@ -119,7 +132,7 @@
                                 </xsl:otherwise>
                             </xsl:choose>
                         </xsl:when>
-                        <xsl:otherwise>http://unknown.repository</xsl:otherwise>
+                        <xsl:otherwise><xsl:value-of select="$FALLBACK_REPOSITORY_URL"/></xsl:otherwise>
                     </xsl:choose>
                 </ccmm:iri>
                 <xsl:if test="doc:metadata/doc:element[@name='repository']/doc:field[@name='name']">
@@ -169,8 +182,12 @@
                 </ccmm:identifier>
             </xsl:if>
         </xsl:for-each>
-        <!-- Fallback: if no identifiers found, use the handle from others section -->
-        <xsl:if test="not(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']) and not(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value'])">
+        <!--
+            Fallback: use handle from 'others' section if no Handle or DOI
+            was found from dc.identifier.uri/doi. This covers cases where
+            dc.identifier.uri exists but contains non-Handle URIs.
+        -->
+        <xsl:if test="not(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'][contains(., 'hdl.handle.net') or contains(., '/handle/')]) and not(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value'])">
             <xsl:if test="doc:metadata/doc:element[@name='others']/doc:field[@name='handle']">
                 <ccmm:identifier>
                     <ccmm:value>
@@ -205,7 +222,7 @@
                 <xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
                     <xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']"/>
                 </xsl:when>
-                <xsl:otherwise>Untitled</xsl:otherwise>
+                <xsl:otherwise><xsl:value-of select="$FALLBACK_TITLE"/></xsl:otherwise>
             </xsl:choose>
         </ccmm:title>
     </xsl:template>
@@ -284,7 +301,12 @@
                 </ccmm:role>
             </ccmm:qualified_relation>
         </xsl:for-each>
-        <!-- dc.publisher -> Publisher (organization) -->
+        <!--
+            dc.publisher mapped to Distributor role.
+            In CCMM/DataCite vocabulary, the DSpace publisher typically acts as
+            the distributing organization rather than the original publisher.
+            See https://model.ccmm.cz/vocabulary/datacite/contributorType/Distributor
+        -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']">
             <ccmm:qualified_relation>
                 <ccmm:relation>
@@ -312,7 +334,7 @@
                 <xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']">
                     <xsl:value-of select="substring(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value'], 1, 4)"/>
                 </xsl:when>
-                <xsl:otherwise>9999</xsl:otherwise>
+                <xsl:otherwise><xsl:value-of select="$FALLBACK_PUBLICATION_YEAR"/></xsl:otherwise>
             </xsl:choose>
         </ccmm:publication_year>
     </xsl:template>
@@ -369,12 +391,16 @@
                 </ccmm:date_type>
             </ccmm:time_reference>
         </xsl:for-each>
-        <!-- Fallback: if no dates at all, create a minimal time_reference from accessioned -->
-        <xsl:if test="not(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']) and not(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']) and not(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='available']/doc:element/doc:field[@name='value'])">
+        <!-- Fallback: if no issued/available dates, create a minimal time_reference from accessioned -->
+        <xsl:if test="not(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']) and not(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='available']/doc:element/doc:field[@name='value']) and doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']">
+            <xsl:variable name="accessionedDate"
+                          select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value'][1]"/>
             <ccmm:time_reference>
                 <ccmm:temporal_representation>
                     <ccmm:time_instant>
-                        <ccmm:date>9999-01-01</ccmm:date>
+                        <xsl:call-template name="FormatDate">
+                            <xsl:with-param name="dateStr" select="$accessionedDate"/>
+                        </xsl:call-template>
                     </ccmm:time_instant>
                 </ccmm:temporal_representation>
                 <ccmm:date_type>
@@ -519,7 +545,7 @@
         <!-- Fallback: if no subjects, provide a placeholder -->
         <xsl:if test="not(doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']) and not(doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:element/doc:field[@name='value'])">
             <ccmm:subject>
-                <ccmm:title xml:lang="en">unspecified</ccmm:title>
+                <ccmm:title xml:lang="en"><xsl:value-of select="$FALLBACK_SUBJECT"/></ccmm:title>
             </ccmm:subject>
         </xsl:if>
     </xsl:template>
@@ -623,9 +649,17 @@
             <xsl:when test="string-length($dateStr) = 4">
                 <ccmm:date><xsl:value-of select="concat($dateStr, '-01-01')"/></ccmm:date>
             </xsl:when>
-            <!-- Fallback -->
+            <!-- Fallback: attempt to derive a date only if the first 4 chars form a valid year -->
             <xsl:otherwise>
-                <ccmm:date><xsl:value-of select="concat(substring($dateStr, 1, 4), '-01-01')"/></ccmm:date>
+                <xsl:variable name="year" select="substring($dateStr, 1, 4)"/>
+                <xsl:choose>
+                    <xsl:when test="string-length($dateStr) &gt;= 4 and not(translate($year, '0123456789', ''))">
+                        <ccmm:date><xsl:value-of select="concat($year, '-01-01')"/></ccmm:date>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <ccmm:date/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
