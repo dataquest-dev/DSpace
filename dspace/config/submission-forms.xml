@@ -102,6 +102,18 @@
                     <hint>Datum publikování záznamu (případně i v jiném repozitáři)</hint>
                     <required>Musíte zadat datum publikování záznamu</required>
                 </field>
+
+                <field>
+                    <dc-schema>dc</dc-schema>
+                    <dc-element>publisher</dc-element>
+                    <dc-qualifier></dc-qualifier>
+                    <repeatable>false</repeatable>
+                    <label>Nakladatel</label>
+                    <style>col-sm-8</style>
+                    <input-type>onebox</input-type>
+                    <hint>Vložte jméno nakladatele nebo zveřejnitele</hint>
+                    <required></required>
+                </field>
             </row>
             <row>
                 <field>
