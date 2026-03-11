@@ -37,10 +37,18 @@ public class ClarinUserRegistrationDAOImpl extends AbstractHibernateDAO<ClarinUs
 
     @Override
     public List<ClarinUserRegistration> findByEmail(Context context, String email) throws SQLException {
+        // The email column may contain multiple semicolon-separated addresses (e.g. "a@x.com;b@x.com").
+        // Match the address when it appears as the only value, at the start, in the middle, or at the end.
         Query query = createQuery(context, "SELECT cur FROM ClarinUserRegistration as cur " +
-                "WHERE cur.email = :email");
+                "WHERE cur.email = :email " +
+                "OR cur.email LIKE :emailStart " +
+                "OR cur.email LIKE :emailMiddle " +
+                "OR cur.email LIKE :emailEnd");
 
         query.setParameter("email", email);
+        query.setParameter("emailStart", email + ";%");
+        query.setParameter("emailMiddle", "%;" + email + ";%");
+        query.setParameter("emailEnd", "%;" + email);
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
 
         return list(query);

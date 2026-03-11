@@ -322,6 +322,40 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
         }
     }
 
+    @Test
+    public void importEpersonDoesNotCreateUserRegistration() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        EPersonRest data = new EPersonRest();
+        data.setEmail("importnoregistration@example.com");
+        data.setCanLogIn(true);
+        data.setMetadata(new MetadataRest());
+
+        AtomicReference<UUID> idRef = new AtomicReference<>();
+        String authToken = getAuthToken(admin.getEmail(), password);
+
+        try {
+            getClient(authToken).perform(post("/api/clarin/import/eperson")
+                            .content(mapper.writeValueAsBytes(data))
+                            .contentType(contentType)
+                            .param("selfRegistered", "false")
+                            .param("lastActive", "2020-01-01T00:00:00.000"))
+                    .andExpect(status().isOk())
+                    .andDo(result -> idRef
+                            .set(UUID.fromString(read(result.getResponse().getContentAsString(), "$.id"))));
+
+            // Verify no user registration was automatically created for the imported EPerson
+            EPerson currentUser = context.getCurrentUser();
+            context.setCurrentUser(admin);
+            java.util.List<ClarinUserRegistration> registrations =
+                    clarinUserRegistrationService.findByEPersonUUID(context, idRef.get());
+            context.setCurrentUser(currentUser);
+
+            assertTrue("No user registration should be created on EPerson import", registrations.isEmpty());
+        } finally {
+            EPersonBuilder.deleteEPerson(idRef.get());
+        }
+    }
+
     private String getStringFromDate(Date value) throws ParseException {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
         return df.format(value);

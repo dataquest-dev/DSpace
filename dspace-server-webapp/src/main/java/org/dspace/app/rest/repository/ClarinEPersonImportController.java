@@ -103,6 +103,14 @@ public class ClarinEPersonImportController {
         //salt and digest_algorithm are changing with password
         EPersonRest epersonRest = ePersonRestRepository.createAndReturn(context);
         EPerson eperson = ePersonService.find(context, UUID.fromString(epersonRest.getUuid()));
+
+        // Remove the automatically created "Unknown" user registration - during import,
+        // user registrations are managed separately via the importUserRegistration endpoint.
+        List<ClarinUserRegistration> autoCreatedRegistrations =
+                clarinUserRegistrationService.findByEPersonUUID(context, eperson.getID());
+        for (ClarinUserRegistration reg : autoCreatedRegistrations) {
+            clarinUserRegistrationService.delete(context, reg);
+        }
         eperson.setSelfRegistered(selfRegistered);
         eperson.setLastActive(lastActive);
         //the password is already hashed in the request
