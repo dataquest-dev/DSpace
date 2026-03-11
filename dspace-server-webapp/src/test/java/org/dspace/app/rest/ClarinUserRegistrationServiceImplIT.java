@@ -57,7 +57,6 @@ public class ClarinUserRegistrationServiceImplIT extends AbstractControllerInteg
                 .withPassword("password123")
                 .build();
 
-        // First creation — should insert a new row
         ClarinUserRegistration first = new ClarinUserRegistration();
         first.setEmail("duptest@example.com");
         first.setPersonID(testPerson.getID());
@@ -71,7 +70,6 @@ public class ClarinUserRegistrationServiceImplIT extends AbstractControllerInteg
         assertEquals("OrgA", created.getOrganization());
         assertEquals("duptest@example.com", created.getEmail());
 
-        // Second creation with same eperson_id — should update, not insert
         ClarinUserRegistration second = new ClarinUserRegistration();
         second.setEmail("duptest-updated@example.com");
         second.setPersonID(testPerson.getID());
@@ -81,7 +79,6 @@ public class ClarinUserRegistrationServiceImplIT extends AbstractControllerInteg
         ClarinUserRegistration result = clarinUserRegistrationService.create(context, second);
         assertNotNull("Second create should return a non-null registration", result);
 
-        // The returned registration must be the same row as the first one
         assertEquals("Should return the existing registration ID, not a new one",
                 firstId, result.getID());
 
@@ -100,8 +97,7 @@ public class ClarinUserRegistrationServiceImplIT extends AbstractControllerInteg
     }
 
     /**
-     * Verify that creating registrations for different ePersons still works normally
-     * (i.e. the dedup guard does not prevent distinct users from each having a registration).
+     * Verify that creating registrations for different ePersons works
      */
     @Test
     public void createShouldAllowDifferentEPersonIds() throws Exception {
