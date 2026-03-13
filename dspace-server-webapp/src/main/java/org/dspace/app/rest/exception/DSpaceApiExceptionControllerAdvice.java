@@ -66,7 +66,7 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
      * so that expected 404s don't flood production logs.
      * Set to WARN in log4j2.xml to see 404 responses in logs.
      */
-    private static final Logger notFoundLog = LogManager.getLogger("org.dspace.app.rest.NotFound");
+    private static final Logger notFoundLog = LogManager.getLogger("org.dspace.app.rest.exception.DSpaceApiExceptionControllerAdvice.NotFound");
 
     /**
      * Default collection of HTTP error codes to log as ERROR with full stack trace.
