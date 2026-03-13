@@ -283,11 +283,9 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
         if (statusCodesLoggedAsErrors.contains(statusCode)) {
             log.error("{} (status:{})", message, statusCode, ex);
         } else {
-            // Log the error as a single-line WARN
             StackTraceElement[] trace = ex.getStackTrace();
             String location = trace.length <= 0 ? "unknown" : trace[0].toString();
-            log.warn("{} (status:{} exception: {} at: {})",
-                    message, statusCode, ex.getClass().getName(), location);
+            logClientError(statusCode, message, ex.getClass().getName(), location);
         }
 
         response.sendError(statusCode, message);
@@ -322,7 +320,6 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
             // Log the full error and status code
             log.error("{} (status:{})", message, statusCode, ex);
         } else if (HttpStatus.valueOf(statusCode).is4xxClientError()) {
-            // Log the error as a single-line WARN
             String location;
             String exceptionMessage;
             if (null == ex) {
@@ -333,12 +330,25 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
                 StackTraceElement[] trace = ex.getStackTrace();
                 location = trace.length <= 0 ? "unknown" : trace[0].toString();
             }
-            log.warn("{} (status:{} exception: {} at: {})", message, statusCode,
-                    exceptionMessage, location);
+            logClientError(statusCode, message, exceptionMessage, location);
         }
 
         //Exception properties will be set by org.springframework.boot.web.support.ErrorPageFilter
         response.sendError(statusCode, message);
+    }
+
+    /**
+     * Log a 4xx client error. 404 NOT_FOUND is logged at DEBUG level (normal REST response),
+     * all other 4xx errors are logged at WARN level.
+     */
+    private void logClientError(int statusCode, String message, String exceptionMessage, String location) {
+        if (statusCode == HttpServletResponse.SC_NOT_FOUND) {
+            log.debug("{} (status:{} exception: {} at: {})", message, statusCode,
+                    exceptionMessage, location);
+        } else {
+            log.warn("{} (status:{} exception: {} at: {})", message, statusCode,
+                    exceptionMessage, location);
+        }
     }
 
     /**
