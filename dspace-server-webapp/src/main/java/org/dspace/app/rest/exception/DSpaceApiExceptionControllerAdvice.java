@@ -62,24 +62,19 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
     private static final Logger log = LogManager.getLogger();
 
     /**
+     * Dedicated logger for 404 NOT_FOUND responses. Defaults to DEBUG level so that
+     * expected 404s (e.g. missing config properties) don't flood production logs.
+     * Level is controllable via standard Log4j2 configuration.
+     */
+    private static final Logger notFoundLog = LogManager.getLogger("org.dspace.app.rest.NotFound");
+
+    /**
      * Default collection of HTTP error codes to log as ERROR with full stack trace.
      */
     private static final String[] LOG_AS_ERROR_DEFAULT = { "422" };
 
     /** Configuration parameter for ERROR treatment. */
     private static final String P_LOG_AS_ERROR = "logging.server.include-stacktrace-for-httpcode";
-
-    /**
-     * Configuration property name controlling whether 404 NOT_FOUND responses
-     * are logged at DEBUG level instead of WARN.
-     */
-    private static final String P_LOG_NOT_FOUND_AS_DEBUG = "logging.server.debug-404";
-
-    /**
-     * Default value for {@link #P_LOG_NOT_FOUND_AS_DEBUG}. When {@code true},
-     * 404 NOT_FOUND responses are logged at DEBUG level.
-     */
-    private static final boolean LOG_NOT_FOUND_AS_DEBUG_DEFAULT = true;
 
     @Inject
     private ConfigurationService configurationService;
@@ -294,7 +289,7 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
         String message = ex.getMessage();
         if (statusCodesLoggedAsErrors.contains(statusCode)) {
             log.error("{} (status:{})", message, statusCode, ex);
-        } else if (!isNotFoundSuppressed(statusCode)) {
+        } else {
             StackTraceElement[] trace = ex.getStackTrace();
             String location = trace.length <= 0 ? "unknown" : trace[0].toString();
             logClientError(statusCode, message, ex.getClass().getName(), location);
@@ -331,7 +326,7 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
         if (HttpStatus.valueOf(statusCode).is5xxServerError() || LOG_AS_ERROR.contains(statusCode)) {
             // Log the full error and status code
             log.error("{} (status:{})", message, statusCode, ex);
-        } else if (HttpStatus.valueOf(statusCode).is4xxClientError() && !isNotFoundSuppressed(statusCode)) {
+        } else if (HttpStatus.valueOf(statusCode).is4xxClientError()) {
             String location;
             String exceptionMessage;
             if (null == ex) {
@@ -350,35 +345,18 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
     }
 
     /**
-     * Log a 4xx client error. By default, 404 NOT_FOUND is logged at DEBUG level
-     * (normal REST response), all other 4xx errors are logged at WARN level.
-     * This behavior for 404 can be overridden via {@link #P_LOG_NOT_FOUND_AS_DEBUG}.
+     * Log a 4xx client error. 404 NOT_FOUND is sent to a dedicated logger ({@link #notFoundLog})
+     * at DEBUG level, all other 4xx errors are logged at WARN level.
+     * The 404 log level is controllable via standard Log4j2 configuration.
      */
     private void logClientError(int statusCode, String message, String exceptionMessage, String location) {
-        if (statusCode == HttpServletResponse.SC_NOT_FOUND && isNotFoundLoggedAsDebug()) {
-            log.debug("{} (status:{} exception: {} at: {})", message, statusCode,
+        if (statusCode == HttpServletResponse.SC_NOT_FOUND) {
+            notFoundLog.debug("{} (status:{} exception: {} at: {})", message, statusCode,
                     exceptionMessage, location);
         } else {
             log.warn("{} (status:{} exception: {} at: {})", message, statusCode,
                     exceptionMessage, location);
         }
-    }
-
-    private boolean isNotFoundLoggedAsDebug() {
-        return configurationService.getBooleanProperty(
-                P_LOG_NOT_FOUND_AS_DEBUG,
-                LOG_NOT_FOUND_AS_DEBUG_DEFAULT
-        );
-    }
-
-    /**
-     * Check if a 404 response would be suppressed (debug-404 enabled but DEBUG logging off).
-     * Used to skip unnecessary stack trace extraction on frequent 404s in production.
-     */
-    private boolean isNotFoundSuppressed(int statusCode) {
-        return statusCode == HttpServletResponse.SC_NOT_FOUND
-                && isNotFoundLoggedAsDebug()
-                && !log.isDebugEnabled();
     }
 
     /**
