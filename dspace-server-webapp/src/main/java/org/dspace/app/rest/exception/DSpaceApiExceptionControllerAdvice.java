@@ -62,9 +62,9 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
     private static final Logger log = LogManager.getLogger();
 
     /**
-     * Dedicated logger for 404 NOT_FOUND responses. Defaults to DEBUG level so that
-     * expected 404s (e.g. missing config properties) don't flood production logs.
-     * Level is controllable via standard Log4j2 configuration.
+     * Dedicated logger for 404 NOT_FOUND responses. Configured at OFF level by default
+     * so that expected 404s don't flood production logs.
+     * Set to WARN in log4j2.xml to see 404 responses in logs.
      */
     private static final Logger notFoundLog = LogManager.getLogger("org.dspace.app.rest.NotFound");
 
@@ -346,12 +346,12 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
 
     /**
      * Log a 4xx client error. 404 NOT_FOUND is sent to a dedicated logger ({@link #notFoundLog})
-     * at DEBUG level, all other 4xx errors are logged at WARN level.
-     * The 404 log level is controllable via standard Log4j2 configuration.
+     * at WARN level, but the logger is set to OFF by default in log4j2.xml (suppressed).
+     * Set logger to WARN in log4j2.xml to see 404 responses in logs.
      */
     private void logClientError(int statusCode, String message, String exceptionMessage, String location) {
         if (statusCode == HttpServletResponse.SC_NOT_FOUND) {
-            notFoundLog.debug("{} (status:{} exception: {} at: {})", message, statusCode,
+            notFoundLog.warn("{} (status:{} exception: {} at: {})", message, statusCode,
                     exceptionMessage, location);
         } else {
             log.warn("{} (status:{} exception: {} at: {})", message, statusCode,
