@@ -69,6 +69,18 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
     /** Configuration parameter for ERROR treatment. */
     private static final String P_LOG_AS_ERROR = "logging.server.include-stacktrace-for-httpcode";
 
+    /**
+     * Configuration property name controlling whether 404 NOT_FOUND responses
+     * are logged at DEBUG level instead of WARN.
+     */
+    private static final String P_LOG_NOT_FOUND_AS_DEBUG = "logging.server.debug-404";
+
+    /**
+     * Default value for {@link #P_LOG_NOT_FOUND_AS_DEBUG}. When {@code true},
+     * 404 NOT_FOUND responses are logged at DEBUG level.
+     */
+    private static final boolean LOG_NOT_FOUND_AS_DEBUG_DEFAULT = true;
+
     @Inject
     private ConfigurationService configurationService;
 
@@ -338,17 +350,25 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
     }
 
     /**
-     * Log a 4xx client error. 404 NOT_FOUND is logged at DEBUG level (normal REST response),
-     * all other 4xx errors are logged at WARN level.
+     * Log a 4xx client error. By default, 404 NOT_FOUND is logged at DEBUG level
+     * (normal REST response), all other 4xx errors are logged at WARN level.
+     * This behavior for 404 can be overridden via {@link #P_LOG_NOT_FOUND_AS_DEBUG}.
      */
     private void logClientError(int statusCode, String message, String exceptionMessage, String location) {
-        if (statusCode == HttpServletResponse.SC_NOT_FOUND) {
+        if (statusCode == HttpServletResponse.SC_NOT_FOUND && isNotFoundLoggedAsDebug()) {
             log.debug("{} (status:{} exception: {} at: {})", message, statusCode,
                     exceptionMessage, location);
         } else {
             log.warn("{} (status:{} exception: {} at: {})", message, statusCode,
                     exceptionMessage, location);
         }
+    }
+
+    private boolean isNotFoundLoggedAsDebug() {
+        return configurationService.getBooleanProperty(
+                P_LOG_NOT_FOUND_AS_DEBUG,
+                LOG_NOT_FOUND_AS_DEBUG_DEFAULT
+        );
     }
 
     /**
@@ -365,7 +385,6 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
                 statusCodesLoggedAsErrors.add(Integer.valueOf(code));
             } catch (NumberFormatException e) {
                 log.warn("Non-integer HTTP status code {} in {}", code, P_LOG_AS_ERROR);
-                // And continue
             }
         }
         return statusCodesLoggedAsErrors;
