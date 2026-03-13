@@ -35,13 +35,6 @@
             <AppenderRef ref='A1'/>
         </Logger>
 
-        <!-- 404 NOT_FOUND responses. Set to WARN to see 404s in logs. -->
-        <Logger name='org.dspace.app.rest.NotFound'
-                level='OFF'
-                additivity='false'>
-            <AppenderRef ref='A1'/>
-        </Logger>
-
         <!-- The checksum checker -->
         <Logger name='org.dspace.checker'
                 level='INFO'
