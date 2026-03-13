@@ -294,7 +294,7 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
         String message = ex.getMessage();
         if (statusCodesLoggedAsErrors.contains(statusCode)) {
             log.error("{} (status:{})", message, statusCode, ex);
-        } else {
+        } else if (!isNotFoundSuppressed(statusCode)) {
             StackTraceElement[] trace = ex.getStackTrace();
             String location = trace.length <= 0 ? "unknown" : trace[0].toString();
             logClientError(statusCode, message, ex.getClass().getName(), location);
@@ -331,7 +331,7 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
         if (HttpStatus.valueOf(statusCode).is5xxServerError() || LOG_AS_ERROR.contains(statusCode)) {
             // Log the full error and status code
             log.error("{} (status:{})", message, statusCode, ex);
-        } else if (HttpStatus.valueOf(statusCode).is4xxClientError()) {
+        } else if (HttpStatus.valueOf(statusCode).is4xxClientError() && !isNotFoundSuppressed(statusCode)) {
             String location;
             String exceptionMessage;
             if (null == ex) {
@@ -369,6 +369,16 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
                 P_LOG_NOT_FOUND_AS_DEBUG,
                 LOG_NOT_FOUND_AS_DEBUG_DEFAULT
         );
+    }
+
+    /**
+     * Check if a 404 response would be suppressed (debug-404 enabled but DEBUG logging off).
+     * Used to skip unnecessary stack trace extraction on frequent 404s in production.
+     */
+    private boolean isNotFoundSuppressed(int statusCode) {
+        return statusCode == HttpServletResponse.SC_NOT_FOUND
+                && isNotFoundLoggedAsDebug()
+                && !log.isDebugEnabled();
     }
 
     /**
