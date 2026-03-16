@@ -88,6 +88,13 @@
             <AppenderRef ref='A1'/>
         </Logger>
 
+        <!-- NotFound logger for 404 responses - set to WARN to enable 404 logging -->
+        <Logger name='org.dspace.app.rest.exception.DSpaceApiExceptionControllerAdvice.NotFound'
+                level='OFF'
+                additivity='false'>
+            <AppenderRef ref='A1'/>
+        </Logger>
+
         <!-- Block services logging except on exceptions -->
         <Logger name='org.dspace.kernel'
                 level='ERROR'/>
