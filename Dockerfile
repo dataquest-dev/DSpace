@@ -17,6 +17,8 @@ FROM ${DOCKER_REGISTRY}/dspace/dspace-dependencies:${DSPACE_VERSION} AS build
 ARG TARGET_DIR=dspace-installer
 WORKDIR /app
 # The dspace-installer directory will be written to /install
+# Run as root to create /install (base image may default to non-root dspace user)
+USER root
 RUN mkdir /install \
     && chown -Rv dspace: /install \
     && chown -Rv dspace: /app
