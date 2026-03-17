@@ -220,7 +220,7 @@ public class ClarinItemServiceImpl implements ClarinItemService {
 
         String derivedDate = deriveDateIssuedFromApproximateDate(item);
         if (derivedDate == null) {
-            log.warn("Cannot update item dates metadata because the approximate date is empty.");
+            log.debug("Cannot update item dates metadata because the approximate date is empty.");
             return;
         }
 
