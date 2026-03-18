@@ -87,6 +87,7 @@
             <!-- Openaire filter -->
             <Filter ref="openaire4Filter"/>
             <!-- Metadata Formats -->
+            <Format ref="oaidc"/>
             <Format ref="oaiopenaire"/>
             <Description>
                 This contexts complies with Openaire Guidelines for Literature Repositories v4.0.
