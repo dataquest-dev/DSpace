@@ -35,6 +35,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
@@ -663,77 +664,67 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         // read in HashMap first, to get list of handles & source dirs
         Map<String, String> myHash = readMapFile(mapFile);
 
-        // for each handle, re-import the item, discard the new handle
-        // and re-assign the old handle
+        // for each handle, update the existing item's metadata and embargo
         for (Map.Entry<String, String> mapEntry : myHash.entrySet()) {
-            // get the old handle
             String newItemName = mapEntry.getKey();
             String oldHandle = mapEntry.getValue();
 
-            Item oldItem = null;
+            Item existingItem = null;
 
             if (oldHandle.indexOf('/') != -1) {
-                logInfo("\tReplacing:  " + oldHandle);
-
-                // add new item, locate old one
-                oldItem = (Item) handleService.resolveToObject(c, oldHandle);
+                logInfo("\tUpdating:  " + oldHandle);
+                existingItem = (Item) handleService.resolveToObject(c, oldHandle);
             } else {
-                oldItem = itemService.findByIdOrLegacyId(c, oldHandle);
+                existingItem = itemService.findByIdOrLegacyId(c, oldHandle);
             }
 
-            /* Rather than exposing public item methods to change handles --
-             * two handles can't exist at the same time due to key constraints
-             * so would require temp handle being stored, old being copied to new and
-             * new being copied to old, all a bit messy -- a handle file is written to
-             * the import directory containing the old handle, the existing item is
-             * deleted and then the import runs as though it were loading an item which
-             * had already been assigned a handle (so a new handle is not even assigned).
-             * As a commit does not occur until after a successful add, it is safe to
-             * do a delete as any error results in an aborted transaction without harming
-             * the original item */
-            File handleFile = new File(sourceDir + File.separatorChar + newItemName + File.separatorChar + "handle");
-            PrintWriter handleOut = new PrintWriter(new FileWriter(handleFile, true));
+            if (existingItem == null) {
+                logError("ERROR: Item not found for handle/id: " + oldHandle);
+                continue;
+            }
 
-            handleOut.println(oldHandle);
-            handleOut.close();
+            // normalize and validate path
+            Path itemPath = new File(sourceDir + File.separatorChar + newItemName + File.separatorChar)
+                .toPath().normalize();
+            if (!itemPath.startsWith(sourceDir)) {
+                throw new IOException("Illegal item metadata path: '" + itemPath);
+            }
+            String itemPathDir = itemPath.toString() + File.separatorChar;
 
-            deleteItem(c, oldItem);
-            Item newItem = addItem(c, mycollections, sourceDir, newItemName, null, template);
-            c.uncacheEntity(oldItem);
-            c.uncacheEntity(newItem);
+            // Clear existing metadata and load new metadata from SAF
+            itemService.clearMetadata(c, existingItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+            loadMetadata(c, existingItem, itemPathDir);
 
-            // attach license, license label requires an update
-            // get license name and check if exists and is not null, license name is stored in the metadatum
-            // `dc.rights`
+            // Remove existing embargo policies from bitstreams (Anonymous READ with startDate)
+            removeEmbargoFromItemBitstreams(c, existingItem);
+
+            // Process embargo metadata and apply new embargo policies
+            processEmbargoMetadata(c, existingItem);
+
+            // Handle Clarin licenses
             List<MetadataValue> dcRights =
-                    itemService.getMetadata(newItem, "dc", "rights", null, Item.ANY);
-            if (CollectionUtils.isEmpty(dcRights) || Objects.isNull(dcRights.get(0))) {
-                log.error("Item doesn't have the Clarin License name in the metadata `dc.rights`.");
-                continue;
-            }
-
-            final String licenseName = dcRights.get(0).getValue();
-            if (Objects.isNull(licenseName)) {
-                log.error("License name loaded from the `dc.rights` is null.");
-                continue;
-            }
-
-            final ClarinLicense license = clarinLicenseService.findByName(c, licenseName);
-            for (Bundle bundle : newItem.getBundles(CONTENT_BUNDLE_NAME)) {
-                for (Bitstream b : bundle.getBitstreams()) {
-                    this.clarinLicenseResourceMappingService.detachLicenses(c, b);
-                    // add the license to bitstream
-                    this.clarinLicenseResourceMappingService.attachLicense(c, license, b);
+                    itemService.getMetadata(existingItem, "dc", "rights", null, Item.ANY);
+            if (!CollectionUtils.isEmpty(dcRights) && !Objects.isNull(dcRights.get(0))) {
+                final String licenseName = dcRights.get(0).getValue();
+                if (!Objects.isNull(licenseName)) {
+                    final ClarinLicense license = clarinLicenseService.findByName(c, licenseName);
+                    if (license != null) {
+                        for (Bundle bundle : existingItem.getBundles(CONTENT_BUNDLE_NAME)) {
+                            for (Bitstream b : bundle.getBitstreams()) {
+                                this.clarinLicenseResourceMappingService.detachLicenses(c, b);
+                                this.clarinLicenseResourceMappingService.attachLicense(c, license, b);
+                            }
+                        }
+                        itemService.clearMetadata(c, existingItem, "dc", "rights", "label", Item.ANY);
+                        itemService.addMetadata(c, existingItem, "dc", "rights", "label", Item.ANY,
+                                license.getNonExtendedClarinLicenseLabel().getLabel());
+                    }
                 }
             }
 
-            itemService.clearMetadata(c, newItem, "dc", "rights", "label", Item.ANY);
-            itemService.addMetadata(c, newItem, "dc", "rights", "label", Item.ANY,
-                    license.getNonExtendedClarinLicenseLabel().getLabel());
-            clarinItemService.updateItemFilesMetadata(c, newItem);
-
-            itemService.update(c, newItem);
-            c.uncacheEntity(newItem);
+            clarinItemService.updateItemFilesMetadata(c, existingItem);
+            itemService.update(c, existingItem);
+            c.uncacheEntity(existingItem);
         }
     }
 
@@ -2592,6 +2583,14 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                             ". Embargo will not be applied.");
                     return;
                 }
+
+                // Resource policy start date = embargoend + 1 day
+                // The embargo end date is the last day of the embargo,
+                // so the file becomes accessible the day after.
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(endDate);
+                cal.add(Calendar.DAY_OF_MONTH, 1);
+                endDate = cal.getTime();
             } catch (Exception e) {
                 logError("ERROR: Failed to parse embargo end date: " + embargoEndDateStr +
                         ". Error: " + e.getMessage());
@@ -2682,6 +2681,31 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         } catch (Exception e) {
             logError("ERROR: Failed to apply embargo to item bitstreams", e);
             throw e; // Re-throw to maintain method signature contract
+        }
+    }
+
+    /**
+     * Remove existing embargo ResourcePolicies from all bitstreams in the item's ORIGINAL bundles.
+     * Removes Anonymous READ policies that have a start date (embargo policies).
+     */
+    protected void removeEmbargoFromItemBitstreams(Context c, Item item)
+            throws SQLException, AuthorizeException {
+        Group anonymousGroup = groupService.findByName(c, Group.ANONYMOUS);
+        if (anonymousGroup == null) {
+            return;
+        }
+
+        List<Bundle> originalBundles = item.getBundles("ORIGINAL");
+        for (Bundle bundle : originalBundles) {
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                List<ResourcePolicy> policies = resourcePolicyService.find(c, bitstream, Constants.READ);
+                for (ResourcePolicy policy : policies) {
+                    if (policy.getGroup() != null && policy.getGroup().equals(anonymousGroup)
+                            && policy.getStartDate() != null) {
+                        resourcePolicyService.delete(c, policy);
+                    }
+                }
+            }
         }
     }
 
