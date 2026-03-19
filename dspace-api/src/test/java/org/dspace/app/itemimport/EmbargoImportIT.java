@@ -53,6 +53,8 @@ import org.junit.Test;
 public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String EMBARGOEND_DATE_FUTURE = "2026-06-30";
+    // The resource policy start date should be embargoend + 1 day
+    private static final String EXPECTED_POLICY_START_DATE = "2026-07-01";
     private static final String EMBARGOEND_DATE_PAST = "2020-01-01";
     private static final String ITEM_TITLE = "Test Embargo Item";
 
@@ -171,10 +173,10 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
         assertNotNull("Should have embargo policy for Anonymous group", embargoPolicy);
         assertNotNull("Embargo policy should have start date", embargoPolicy.getStartDate());
 
-        // Verify start date matches embargo end date
+        // Verify start date is embargoend + 1 day (file becomes accessible day after embargo ends)
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        assertEquals("Embargo start date should match embargoend metadata",
-                EMBARGOEND_DATE_FUTURE, sdf.format(embargoPolicy.getStartDate()));
+        assertEquals("Embargo policy start date should be embargoend + 1 day",
+                EXPECTED_POLICY_START_DATE, sdf.format(embargoPolicy.getStartDate()));
     }
 
     /**
@@ -360,8 +362,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
             assertNotNull("Each embargo policy should have start date", embargoPolicy.getStartDate());
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            assertEquals("Each embargo start date should match embargoend metadata",
-                    EMBARGOEND_DATE_FUTURE, sdf.format(embargoPolicy.getStartDate()));
+            assertEquals("Each embargo start date should be embargoend + 1 day",
+                    EXPECTED_POLICY_START_DATE, sdf.format(embargoPolicy.getStartDate()));
         }
     }
 }

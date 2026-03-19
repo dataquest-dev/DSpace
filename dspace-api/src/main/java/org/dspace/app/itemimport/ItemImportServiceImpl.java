@@ -35,6 +35,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
@@ -2592,6 +2593,14 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                             ". Embargo will not be applied.");
                     return;
                 }
+
+                // Resource policy start date = embargoend + 1 day
+                // The embargo end date is the last day of the embargo,
+                // so the file becomes accessible the day after.
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(endDate);
+                cal.add(Calendar.DAY_OF_MONTH, 1);
+                endDate = cal.getTime();
             } catch (Exception e) {
                 logError("ERROR: Failed to parse embargo end date: " + embargoEndDateStr +
                         ". Error: " + e.getMessage());
