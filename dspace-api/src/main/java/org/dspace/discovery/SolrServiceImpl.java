@@ -1252,7 +1252,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             filterQuery.append(field);
 
 
-            if (operator.endsWith("equals")) {
+            if ("startsWith".equals(operator)) {
+                // Use _sort field: lowerCaseSort type stores whole value as a single lowercased token,
+                // enabling case-insensitive prefix matching with wildcards.
+                filterQuery.append("_sort");
+            } else if (operator.endsWith("equals")) {
                 final boolean isStandardField
                     = Optional.ofNullable(config)
                               .flatMap(c -> Optional.ofNullable(c.getSidebarFacet(field)))
@@ -1272,7 +1276,12 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
 
             filterQuery.append(":");
-            if ("equals".equals(operator) || "notequals".equals(operator)) {
+            if ("startsWith".equals(operator)) {
+                // Lowercase and escape the value, then append wildcard for prefix matching.
+                // The _sort field uses lowerCaseSort type, so both indexed and query values are lowercased.
+                value = ClientUtils.escapeQueryChars(value.toLowerCase());
+                filterQuery.append(value).append("*");
+            } else if ("equals".equals(operator) || "notequals".equals(operator)) {
                 //DO NOT ESCAPE RANGE QUERIES !
                 if (!value.matches("\\[.*TO.*\\]")) {
                     value = ClientUtils.escapeQueryChars(value);

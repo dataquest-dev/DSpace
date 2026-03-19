@@ -102,6 +102,9 @@ public class CommunityIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Inde
         addContainerMetadataField(doc, highlightedMetadataFields, toIgnoreMetadataFields, "dc.rights", rights);
         addContainerMetadataField(doc, highlightedMetadataFields, toIgnoreMetadataFields, "dc.title", title);
         doc.addField("dc.title_sort", title);
+        // Also index as "title_sort" so the standard searchFilterTitle-based
+        // discovery filter (f.title + startsWith) works for communities.
+        doc.addField("title_sort", title);
         return doc;
     }
 

@@ -128,6 +128,9 @@ public class CollectionIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Ind
                                   rights_license);
         addContainerMetadataField(doc, highlightedMetadataFields, toIgnoreMetadataFields, "dc.title", title);
         doc.addField("dc.title_sort", title);
+        // Also index as "title_sort" so the standard searchFilterTitle-based
+        // discovery filter (f.title + startsWith) works for collections.
+        doc.addField("title_sort", title);
 
         if (StringUtils.isBlank(entityType)) {
             entityType = Constants.ENTITY_TYPE_NONE;

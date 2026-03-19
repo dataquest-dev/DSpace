@@ -9,7 +9,6 @@ package org.dspace.app.rest.converter;
 
 import org.dspace.app.rest.model.WorkflowItemRest;
 import org.dspace.app.rest.projection.Projection;
-import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.discovery.IndexableObject;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.springframework.stereotype.Component;
@@ -25,7 +24,7 @@ import org.springframework.stereotype.Component;
 public class WorkflowItemConverter
     extends AInprogressItemConverter<XmlWorkflowItem, org.dspace.app.rest.model.WorkflowItemRest> {
 
-    public WorkflowItemConverter() throws SubmissionConfigReaderException {
+    public WorkflowItemConverter() {
         super();
     }
 

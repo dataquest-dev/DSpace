@@ -101,10 +101,10 @@ public class SubmissionService {
     private ConverterService converter;
     @Autowired
     private org.dspace.app.rest.utils.Utils utils;
+    @Autowired
     private SubmissionConfigService submissionConfigService;
 
-    public SubmissionService() throws SubmissionConfigReaderException {
-        submissionConfigService = SubmissionServiceFactory.getInstance().getSubmissionConfigService();
+    public SubmissionService() {
     }
 
     /**

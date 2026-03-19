@@ -77,11 +77,21 @@ public class SubmissionConfigReader {
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(SubmissionConfigReader.class);
 
     /**
-     * The fully qualified pathname of the directory containing the Item Submission Configuration file
+     * The fully qualified pathname of the directory containing the Item Submission Configuration file.
+     * Initialized lazily to avoid calling DSpaceServicesFactory.getInstance() before the DSpace kernel
+     * service manager has fully started (which would cause a NullPointerException when this class is
+     * instantiated during the kernel's own Spring context initialization).
      */
-    private String configDir = DSpaceServicesFactory.getInstance()
-                                                    .getConfigurationService().getProperty("dspace.dir")
-        + File.separator + "config" + File.separator;
+    private String configDir = null;
+
+    private String getConfigDir() {
+        if (configDir == null) {
+            configDir = DSpaceServicesFactory.getInstance()
+                                            .getConfigurationService().getProperty("dspace.dir")
+                + File.separator + "config" + File.separator;
+        }
+        return configDir;
+    }
 
     /**
      * Hashmap which stores which submission process configuration is used by
@@ -122,14 +132,14 @@ public class SubmissionConfigReader {
      * @throws SubmissionConfigReaderException if servlet error
      */
     public SubmissionConfigReader() throws SubmissionConfigReaderException {
-        buildInputs(configDir + SUBMIT_DEF_FILE_PREFIX + SUBMIT_DEF_FILE_SUFFIX);
+        buildInputs(getConfigDir() + SUBMIT_DEF_FILE_PREFIX + SUBMIT_DEF_FILE_SUFFIX);
     }
 
     public void reload() throws SubmissionConfigReaderException {
         collectionToSubmissionConfig = null;
         stepDefns = null;
         submitDefns = null;
-        buildInputs(configDir + SUBMIT_DEF_FILE_PREFIX + SUBMIT_DEF_FILE_SUFFIX);
+        buildInputs(getConfigDir() + SUBMIT_DEF_FILE_PREFIX + SUBMIT_DEF_FILE_SUFFIX);
     }
 
     /**

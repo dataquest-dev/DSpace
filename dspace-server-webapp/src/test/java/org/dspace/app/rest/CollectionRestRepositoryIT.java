@@ -701,72 +701,159 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         context.restoreAuthSystemState();
 
         String tokenEPerson = getAuthToken(eperson.getEmail(), password);
+        // "collection" is a prefix of "Collection of sample items": match (eperson has col1,col3;
+        // col3 title starts with "Collection", col1 title "Sample collection" does NOT)
         getClient(tokenEPerson).perform(get("/api/core/collections/search/findSubmitAuthorized")
                  .param("query", "collection"))
                  .andExpect(status().isOk())
-                 .andExpect(jsonPath("$._embedded.collections", Matchers.containsInAnyOrder(
-                         CollectionMatcher.matchProperties(col1.getName(), col1.getID(), col1.getHandle()),
+                 .andExpect(jsonPath("$._embedded.collections", Matchers.contains(
                          CollectionMatcher.matchProperties(col3.getName(), col3.getID(), col3.getHandle())
                          )))
-                 .andExpect(jsonPath("$.page.totalElements", is(2)));
+                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
+        // "COLLECTION" is case-insensitively the same prefix as "collection"
         getClient(tokenEPerson).perform(get("/api/core/collections/search/findSubmitAuthorized")
                  .param("query", "COLLECTION"))
                  .andExpect(status().isOk())
-                 .andExpect(jsonPath("$._embedded.collections", Matchers.containsInAnyOrder(
-                        CollectionMatcher.matchProperties(col1.getName(), col1.getID(), col1.getHandle()),
+                 .andExpect(jsonPath("$._embedded.collections", Matchers.contains(
                         CollectionMatcher.matchProperties(col3.getName(), col3.getID(), col3.getHandle())
                         )))
-                 .andExpect(jsonPath("$.page.totalElements", is(2)));
+                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
+        // eperson does not own col2 ("Test collection"), so query "test" returns nothing
         getClient(tokenEPerson).perform(get("/api/core/collections/search/findSubmitAuthorized")
                  .param("query", "test"))
                  .andExpect(status().isOk())
                  .andExpect(jsonPath("$.page.totalElements", is(0)));
 
+        // "samp" is a prefix of "Sample collection" (col1)
         getClient(tokenEPerson).perform(get("/api/core/collections/search/findSubmitAuthorized")
-                .param("query", "auto"))
+                .param("query", "samp"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements", is(0)));
+                .andExpect(jsonPath("$._embedded.collections", Matchers.contains(
+                           CollectionMatcher.matchProperties(col1.getName(), col1.getID(), col1.getHandle())
+                           )))
+                .andExpect(jsonPath("$.page.totalElements", is(1)));
 
         String tokenEPerson2 = getAuthToken(eperson2.getEmail(), password);
+        // "test" is a prefix of "Testing autocomplete in submission" (col4), which eperson2 owns
         getClient(tokenEPerson2).perform(get("/api/core/collections/search/findSubmitAuthorized")
-                .param("query", "auto"))
+                .param("query", "test"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.collections", Matchers.contains(
                            CollectionMatcher.matchProperties(col4.getName(), col4.getID(), col4.getHandle())
                            )))
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
+        // "testing auto" is a prefix of "Testing autocomplete in submission"
         getClient(tokenEPerson2).perform(get("/api/core/collections/search/findSubmitAuthorized")
-                 .param("query", "testing auto"))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$.page.totalElements", is(0)));
+                .param("query", "testing auto"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.collections", Matchers.contains(
+                           CollectionMatcher.matchProperties(col4.getName(), col4.getID(), col4.getHandle())
+                           )))
+                .andExpect(jsonPath("$.page.totalElements", is(1)));
 
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        // "samp" is a prefix of "Sample collection" (col1); "Collection of sample items" does NOT start with "samp"
         getClient(tokenAdmin).perform(get("/api/core/collections/search/findSubmitAuthorized")
-                 .param("query", "sample"))
+                 .param("query", "samp"))
                  .andExpect(status().isOk())
-                 .andExpect(jsonPath("$._embedded.collections", Matchers.containsInAnyOrder(
-                           CollectionMatcher.matchProperties(col1.getName(), col1.getID(), col1.getHandle()),
-                           CollectionMatcher.matchProperties(col3.getName(), col3.getID(), col3.getHandle())
+                 .andExpect(jsonPath("$._embedded.collections", Matchers.contains(
+                           CollectionMatcher.matchProperties(col1.getName(), col1.getID(), col1.getHandle())
                            )))
-                 .andExpect(jsonPath("$.page.totalElements", is(2)));
+                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
+        // "collection" is a prefix of "Collection of sample items" and "Test collection" does NOT start with "collection"
         getClient(tokenAdmin).perform(get("/api/core/collections/search/findSubmitAuthorized")
-                .param("query", "items sample"))
+                .param("query", "collection"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.collections", Matchers.contains(
                            CollectionMatcher.matchProperties(col3.getName(), col3.getID(), col3.getHandle())
                            )))
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
+        // "test" is a prefix of both "Test collection" (col2) and "Testing autocomplete" (col4)
         getClient(tokenAdmin).perform(get("/api/core/collections/search/findSubmitAuthorized")
                  .param("query", "test"))
                  .andExpect(status().isOk())
                  .andExpect(jsonPath("$._embedded.collections", Matchers.containsInAnyOrder(
                          CollectionMatcher.matchProperties(col2.getName(), col2.getID(), col2.getHandle()),
                          CollectionMatcher.matchProperties(col4.getName(), col4.getID(), col4.getHandle())
+                         )))
+                 .andExpect(jsonPath("$.page.totalElements", is(2)));
+    }
+
+    /**
+     * Verify that {@code findSubmitAuthorized} implements word-level prefix matching:
+     * <ul>
+     *   <li>"te" must find collections whose title contains a word starting with "te".</li>
+     *   <li>"es" must NOT find "Test collection" because no word starts with "es".</li>
+     * </ul>
+     */
+    @Test
+    public void findSubmitAuthorizedWithQueryPrefixMatchTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Test collection")
+                                           .withSubmitterGroup(eperson)
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Testing autocomplete in submission")
+                                           .withSubmitterGroup(eperson)
+                                           .build();
+        Collection col3 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Sample items repository")
+                                           .withSubmitterGroup(eperson)
+                                           .build();
+
+        context.restoreAuthSystemState();
+
+        String tokenEPerson = getAuthToken(eperson.getEmail(), password);
+
+        // "te" is a prefix of "test" and "testing" → finds col1 and col2
+        getClient(tokenEPerson).perform(get("/api/core/collections/search/findSubmitAuthorized")
+                 .param("query", "te"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$._embedded.collections", Matchers.containsInAnyOrder(
+                         CollectionMatcher.matchProperties(col1.getName(), col1.getID(), col1.getHandle()),
+                         CollectionMatcher.matchProperties(col2.getName(), col2.getID(), col2.getHandle())
+                         )))
+                 .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        // "es" is NOT a prefix of any word in "Test collection" → no results
+        getClient(tokenEPerson).perform(get("/api/core/collections/search/findSubmitAuthorized")
+                 .param("query", "es"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$.page.totalElements", is(0)));
+
+        // "samp" is a prefix of "sample" → finds col3 only
+        getClient(tokenEPerson).perform(get("/api/core/collections/search/findSubmitAuthorized")
+                 .param("query", "samp"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$._embedded.collections", Matchers.contains(
+                         CollectionMatcher.matchProperties(col3.getName(), col3.getID(), col3.getHandle())
+                         )))
+                 .andExpect(jsonPath("$.page.totalElements", is(1)));
+
+        // Case-insensitive: "TE" behaves the same as "te" → finds col1 and col2
+        getClient(tokenEPerson).perform(get("/api/core/collections/search/findSubmitAuthorized")
+                 .param("query", "TE"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        // "test" is a prefix of both "test" (col1) and "testing" (col2) → finds both
+        getClient(tokenEPerson).perform(get("/api/core/collections/search/findSubmitAuthorized")
+                 .param("query", "test"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$._embedded.collections", Matchers.containsInAnyOrder(
+                         CollectionMatcher.matchProperties(col1.getName(), col1.getID(), col1.getHandle()),
+                         CollectionMatcher.matchProperties(col2.getName(), col2.getID(), col2.getHandle())
                          )))
                  .andExpect(jsonPath("$.page.totalElements", is(2)));
     }
@@ -802,20 +889,21 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         context.restoreAuthSystemState();
 
         String tokenAdminParentCom = getAuthToken(eperson.getEmail(), password);
+        // "samp" is a prefix of "Sample collection" only (not "Collection of sample items")
         getClient(tokenAdminParentCom).perform(get("/api/core/collections/search/findSubmitAuthorizedByCommunity")
                  .param("uuid", parentCommunity.getID().toString())
-                 .param("query", "sample"))
+                 .param("query", "samp"))
                  .andExpect(status().isOk())
                  .andExpect(content().contentType(contentType))
-                 .andExpect(jsonPath("$._embedded.collections", Matchers.containsInAnyOrder(
-                         CollectionMatcher.matchProperties(col1.getName(), col1.getID(), col1.getHandle()),
-                         CollectionMatcher.matchProperties(col3.getName(), col3.getID(), col3.getHandle())
+                 .andExpect(jsonPath("$._embedded.collections", Matchers.contains(
+                         CollectionMatcher.matchProperties(col1.getName(), col1.getID(), col1.getHandle())
                          )))
-                 .andExpect(jsonPath("$.page.totalElements", is(2)));
+                 .andExpect(jsonPath("$.page.totalElements", is(1)));
 
+        // "collection" is a prefix of "Collection of sample items" (col3) within child2
         getClient(tokenAdminParentCom).perform(get("/api/core/collections/search/findSubmitAuthorizedByCommunity")
                 .param("uuid", child2.getID().toString())
-                .param("query", "sample"))
+                .param("query", "collection"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$._embedded.collections", Matchers.contains(

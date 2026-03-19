@@ -18,6 +18,7 @@ import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.core.Context;
 import org.dspace.submit.factory.SubmissionServiceFactory;
 import org.dspace.submit.service.SubmissionConfigService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,8 +34,9 @@ public class SubmissionPanelRestRepository extends DSpaceRestRepository<Submissi
 
     private SubmissionConfigService submissionConfigService;
 
-    public SubmissionPanelRestRepository() throws SubmissionConfigReaderException {
-        submissionConfigService = SubmissionServiceFactory.getInstance().getSubmissionConfigService();
+    @Autowired
+    public SubmissionPanelRestRepository(SubmissionConfigService submissionConfigService) {
+        this.submissionConfigService = submissionConfigService;
     }
 
     @PreAuthorize("hasAuthority('AUTHENTICATED')")

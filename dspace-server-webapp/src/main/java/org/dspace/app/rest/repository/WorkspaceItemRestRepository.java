@@ -146,8 +146,9 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
     private SubmissionConfigService submissionConfigService;
 
-    public WorkspaceItemRestRepository() throws SubmissionConfigReaderException {
-        submissionConfigService = SubmissionServiceFactory.getInstance().getSubmissionConfigService();
+    @Autowired
+    public WorkspaceItemRestRepository(SubmissionConfigService submissionConfigService) {
+        this.submissionConfigService = submissionConfigService;
     }
 
     @PreAuthorize("hasPermission(#id, 'WORKSPACEITEM', 'READ')")

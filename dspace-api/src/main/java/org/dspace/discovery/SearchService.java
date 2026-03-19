@@ -76,7 +76,7 @@ public interface SearchService {
      *
      * @param context  The relevant DSpace Context.
      * @param field    the field of the filter query
-     * @param operator equals/notequals/notcontains/authority/notauthority
+     * @param operator equals/notequals/notcontains/authority/notauthority/startsWith
      * @param value    the filter query value
      * @param config   (nullable) the discovery configuration (if not null, field's corresponding facet.type checked to
      *                be standard so suffix is not added for equals operator)

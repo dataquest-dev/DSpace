@@ -175,6 +175,7 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterDcTitle" />
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterSubject" />
                 <ref bean="searchFilterIssued" />
@@ -2225,6 +2226,19 @@
 
     <bean id="searchFilterTitle" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
         <property name="indexFieldName" value="title"/>
+        <property name="metadataFields">
+            <list>
+                <value>dc.title</value>
+            </list>
+        </property>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+    </bean>
+
+    <!-- Filter using dc.title as indexFieldName so that 'startsWith' operator maps to
+         dc.title_sort which is explicitly indexed for communities and collections. -->
+    <bean id="searchFilterDcTitle" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+        <property name="indexFieldName" value="dc.title"/>
         <property name="metadataFields">
             <list>
                 <value>dc.title</value>

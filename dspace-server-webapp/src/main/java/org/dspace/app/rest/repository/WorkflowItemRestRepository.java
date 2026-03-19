@@ -116,8 +116,9 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
 
     private SubmissionConfigService submissionConfigService;
 
-    public WorkflowItemRestRepository() throws SubmissionConfigReaderException {
-        submissionConfigService = SubmissionServiceFactory.getInstance().getSubmissionConfigService();
+    @Autowired
+    public WorkflowItemRestRepository(SubmissionConfigService submissionConfigService) {
+        this.submissionConfigService = submissionConfigService;
     }
 
     @Override

@@ -9,7 +9,6 @@ package org.dspace.app.rest.converter;
 
 import org.dspace.app.rest.model.WorkspaceItemRest;
 import org.dspace.app.rest.projection.Projection;
-import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.discovery.IndexableObject;
 import org.springframework.stereotype.Component;
@@ -24,7 +23,7 @@ import org.springframework.stereotype.Component;
 public class WorkspaceItemConverter
     extends AInprogressItemConverter<WorkspaceItem, WorkspaceItemRest> {
 
-    public WorkspaceItemConverter() throws SubmissionConfigReaderException {
+    public WorkspaceItemConverter() {
         super();
     }
 

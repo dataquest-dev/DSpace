@@ -1020,10 +1020,13 @@ public class CollectionServiceImpl extends DSpaceObjectServiceImpl<Collection> i
             discoverQuery.addFilterQueries("search.entitytype:" + entityType);
         }
         if (StringUtils.isNotBlank(q)) {
-            StringBuilder buildQuery = new StringBuilder();
-            String escapedQuery = ClientUtils.escapeQueryChars(q);
-            buildQuery.append("(").append(escapedQuery).append(" OR ").append(escapedQuery).append("*").append(")");
-            discoverQuery.setQuery(buildQuery.toString());
+            // Build a title prefix filter using dc.title_sort (lowerCaseSort type).
+            // This field stores the entire title as a single lowercased token, enabling
+            // reliable case-insensitive prefix matching without analysis/stemming interference.
+            // The whole query (lowercased) is used as a prefix – e.g. query "te" matches any
+            // title that starts with "te" (case-insensitive).
+            String lowerQ = ClientUtils.escapeQueryChars(q.trim().toLowerCase());
+            discoverQuery.addFilterQueries("dc.title_sort:" + lowerQ + "*");
         }
         DiscoverResult resp = searchService.search(context, discoverQuery);
         return resp;

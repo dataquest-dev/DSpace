@@ -111,6 +111,7 @@ public enum RestSearchOperator {
             allowedSearchOperatorStrings.add(restSearchOperator.getDspaceOperator());
         }
         allowedSearchOperatorStrings.add("query");
+        allowedSearchOperatorStrings.add("startsWith");
         return allowedSearchOperatorStrings;
     }
 }

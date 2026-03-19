@@ -25,6 +25,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
+import javax.annotation.PostConstruct;
+
 import org.dspace.submit.factory.SubmissionServiceFactory;
 import org.dspace.submit.service.SubmissionConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,13 +56,12 @@ public abstract class AInprogressItemConverter<T extends InProgressSubmission,
     @Autowired
     private SubmissionSectionConverter submissionSectionConverter;
 
-    protected SubmissionConfigService submissionConfigService;
-
     @Autowired
     SubmissionService submissionService;
+    @Autowired
+    protected SubmissionConfigService submissionConfigService;
 
-    public AInprogressItemConverter() throws SubmissionConfigReaderException {
-        submissionConfigService = SubmissionServiceFactory.getInstance().getSubmissionConfigService();
+    public AInprogressItemConverter() {
     }
 
     protected void fillFromModel(T obj, R witem, Projection projection) {
