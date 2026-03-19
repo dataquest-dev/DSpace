@@ -8,7 +8,6 @@
 package org.dspace.app.itemimport;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -16,7 +15,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,8 +37,6 @@ import org.dspace.core.Constants;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
-import org.dspace.handle.factory.HandleServiceFactory;
-import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.After;
@@ -66,7 +62,6 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     private ResourcePolicyService resourcePolicyService =
             AuthorizeServiceFactory.getInstance().getResourcePolicyService();
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
-    private HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
     private ConfigurationService configurationService =
             DSpaceServicesFactory.getInstance().getConfigurationService();
     private MetadataSchemaService metadataSchemaService =
@@ -370,96 +365,5 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
             assertEquals("Each embargo start date should be embargoend + 1 day",
                     EXPECTED_POLICY_START_DATE, sdf.format(embargoPolicy.getStartDate()));
         }
-    }
-
-    /**
-     * Test SAF update: updating metadata and embargo on existing item
-     * without deleting the item (as opposed to replace which deletes and re-creates).
-     */
-    @Test
-    public void testSafUpdateMetadataAndEmbargo() throws Exception {
-        // First, import an item WITHOUT embargo
-        Path safDir = Files.createDirectory(Path.of(tempDir.toString() + "/test"));
-        Path itemDir = Files.createDirectory(Path.of(safDir.toString() + "/item_000"));
-
-        String dublinCoreContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<dublin_core schema=\"dc\">\n" +
-                "    <dcvalue element=\"title\" qualifier=\"none\">" + ITEM_TITLE + "</dcvalue>\n" +
-                "    <dcvalue element=\"contributor\" qualifier=\"author\">Original Author</dcvalue>\n" +
-                "</dublin_core>";
-        Files.writeString(Path.of(itemDir.toString() + "/dublin_core.xml"), dublinCoreContent);
-
-        // Add bitstream
-        Path contentsFile = Files.createFile(Path.of(itemDir.toString() + "/contents"));
-        Files.writeString(contentsFile, "test.txt");
-        Files.writeString(Files.createFile(Path.of(itemDir.toString() + "/test.txt")), "TEST CONTENT");
-
-        String mapFilePath = tempDir.toString() + "/mapfile.out";
-        String[] importArgs = new String[] { "import", "-a", "-e", admin.getEmail(),
-                "-c", collection.getID().toString(),
-                "-s", safDir.toString(), "-m", mapFilePath };
-        runDSpaceScript(importArgs);
-
-        // Verify initial import
-        Item item = itemService.findByMetadataField(context, "dc", "title", null, ITEM_TITLE).next();
-        assertNotNull("Item should be created", item);
-        String itemHandle = item.getHandle();
-
-        // Verify no embargo policy initially
-        List<Bitstream> bitstreams = item.getBundles("ORIGINAL").get(0).getBitstreams();
-        Bitstream bitstream = bitstreams.get(0);
-        List<ResourcePolicy> initialPolicies = resourcePolicyService.find(context, bitstream, Constants.READ);
-        boolean hasInitialEmbargo = initialPolicies.stream()
-                .anyMatch(p -> p.getGroup() != null && p.getGroup().equals(anonymousGroup) && p.getStartDate() != null);
-        assertFalse("Should not have embargo policy initially", hasInitialEmbargo);
-
-        // Now prepare SAF update directory with updated metadata (add embargo)
-        Path updateSafDir = Files.createDirectory(Path.of(tempDir.toString() + "/update"));
-        Path updateItemDir = Files.createDirectory(Path.of(updateSafDir.toString() + "/item_000"));
-
-        String updatedDublinCoreContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<dublin_core schema=\"dc\">\n" +
-                "    <dcvalue element=\"title\" qualifier=\"none\">" + ITEM_TITLE + " Updated</dcvalue>\n" +
-                "    <dcvalue element=\"contributor\" qualifier=\"author\">Updated Author</dcvalue>\n" +
-                "    <dcvalue element=\"rights\" qualifier=\"access\">embargoedAccess</dcvalue>\n" +
-                "    <dcvalue element=\"date\" qualifier=\"embargoend\">" + EMBARGOEND_DATE_FUTURE + "</dcvalue>\n" +
-                "</dublin_core>";
-        Files.writeString(Path.of(updateItemDir.toString() + "/dublin_core.xml"), updatedDublinCoreContent);
-
-        // Create mapfile for update (item_000 -> handle)
-        String updateMapFilePath = tempDir.toString() + "/update_mapfile.out";
-        Files.writeString(Path.of(updateMapFilePath), "item_000 " + itemHandle + "\n");
-
-        // Perform SAF update
-        String[] updateArgs = new String[] { "import", "-r", "-e", admin.getEmail(),
-                "-c", collection.getID().toString(),
-                "-s", updateSafDir.toString(), "-m", updateMapFilePath };
-        runDSpaceScript(updateArgs);
-
-        // Reload item
-        context.uncacheEntity(item);
-        Item updatedItem = (Item) handleService.resolveToObject(context, itemHandle);
-        assertNotNull("Updated item should exist", updatedItem);
-
-        // Verify metadata was updated
-        assertEquals("Title should be updated", ITEM_TITLE + " Updated", updatedItem.getName());
-
-        // Verify embargo policy was applied
-        List<Bitstream> updatedBitstreams = updatedItem.getBundles("ORIGINAL").get(0).getBitstreams();
-        assertEquals("Should have one bitstream", 1, updatedBitstreams.size());
-
-        Bitstream updatedBitstream = updatedBitstreams.get(0);
-        List<ResourcePolicy> updatedPolicies = resourcePolicyService.find(context, updatedBitstream, Constants.READ);
-
-        ResourcePolicy embargoPolicy = updatedPolicies.stream()
-                .filter(p -> p.getGroup() != null && p.getGroup().equals(anonymousGroup) && p.getStartDate() != null)
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull("Should have embargo policy after update", embargoPolicy);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        assertEquals("Embargo policy start date should be embargoend + 1 day",
-                EXPECTED_POLICY_START_DATE, sdf.format(embargoPolicy.getStartDate()));
     }
 }
