@@ -142,6 +142,17 @@ public class FacetEntryMatcher {
         );
     }
 
+    public static Matcher<? super Object> dateAccessionedFacet() {
+        return allOf(
+            hasJsonPath("$.name", is("dateAccessioned")),
+            hasJsonPath("$.facetType", is("date")),
+            hasJsonPath("$.facetLimit", any(Integer.class)),
+            hasJsonPath("$.openByDefault", any(Boolean.class)),
+            hasJsonPath("$._links.self.href", containsString("api/discover/facets/dateAccessioned")),
+            hasJsonPath("$._links", matchNextLink("api/discover/facets/dateAccessioned"))
+        );
+    }
+
     public static Matcher<? super Object> dateIssuedFacetWithMinMax(String min, String max) {
         return allOf(
             hasJsonPath("$.name", is("dateIssued")),
@@ -152,6 +163,19 @@ public class FacetEntryMatcher {
             hasJsonPath("$.openByDefault", any(Boolean.class)),
             hasJsonPath("$._links.self.href", containsString("api/discover/facets/dateIssued")),
             hasJsonPath("$._links", matchNextLink("api/discover/facets/dateIssued"))
+        );
+    }
+
+    public static Matcher<? super Object> dateAccessionedFacetWithMinMax(String min, String max) {
+        return allOf(
+            hasJsonPath("$.name", is("dateAccessioned")),
+            hasJsonPath("$.facetType", is("date")),
+            hasJsonPath("$.facetLimit", any(Integer.class)),
+            hasJsonPath("$.minValue", is(min)),
+            hasJsonPath("$.maxValue", is(max)),
+            hasJsonPath("$.openByDefault", any(Boolean.class)),
+            hasJsonPath("$._links.self.href", containsString("api/discover/facets/dateAccessioned")),
+            hasJsonPath("$._links", matchNextLink("api/discover/facets/dateAccessioned"))
         );
     }
 
