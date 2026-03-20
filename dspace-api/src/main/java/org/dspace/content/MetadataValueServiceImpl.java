@@ -115,6 +115,12 @@ public class MetadataValueServiceImpl implements MetadataValueService {
     }
 
     @Override
+    public List<MetadataValue> findByAuthorityAndLanguage(Context context, String authority, String language)
+            throws SQLException {
+        return metadataValueDAO.findByAuthorityAndLanguage(context, authority, language);
+    }
+
+    @Override
     public void deleteByMetadataField(Context context, MetadataField metadataField) throws SQLException {
         metadataValueDAO.deleteByMetadataField(context, metadataField);
     }
