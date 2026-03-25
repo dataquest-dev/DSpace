@@ -58,7 +58,6 @@ public class ClarinUserRegistrationServiceImplIT extends AbstractControllerInteg
                 .build();
 
         ClarinUserRegistration first = new ClarinUserRegistration();
-        first.setEmail("duptest@example.com");
         first.setPersonID(testPerson.getID());
         first.setOrganization("OrgA");
         first.setConfirmation(false);
@@ -68,10 +67,8 @@ public class ClarinUserRegistrationServiceImplIT extends AbstractControllerInteg
         Integer firstId = created.getID();
         assertNotNull("Created registration should have an ID", firstId);
         assertEquals("OrgA", created.getOrganization());
-        assertEquals("duptest@example.com", created.getEmail());
 
         ClarinUserRegistration second = new ClarinUserRegistration();
-        second.setEmail("duptest-updated@example.com");
         second.setPersonID(testPerson.getID());
         second.setOrganization("OrgB");
         second.setConfirmation(true);
@@ -82,9 +79,8 @@ public class ClarinUserRegistrationServiceImplIT extends AbstractControllerInteg
         assertEquals("Should return the existing registration ID, not a new one",
                 firstId, result.getID());
 
-        // Fields should be updated to the new values
+        // Organization should be updated to the new value
         assertEquals("OrgB", result.getOrganization());
-        assertEquals("duptest-updated@example.com", result.getEmail());
         assertTrue("Confirmation should be updated to true", result.isConfirmation());
 
         // Verify only one row exists in the database for this eperson_id
@@ -113,13 +109,11 @@ public class ClarinUserRegistrationServiceImplIT extends AbstractControllerInteg
                 .build();
 
         ClarinUserRegistration regA = new ClarinUserRegistration();
-        regA.setEmail("personA@example.com");
         regA.setPersonID(personA.getID());
         regA.setOrganization("OrgA");
         regA.setConfirmation(true);
 
         ClarinUserRegistration regB = new ClarinUserRegistration();
-        regB.setEmail("personB@example.com");
         regB.setPersonID(personB.getID());
         regB.setOrganization("OrgB");
         regB.setConfirmation(true);
@@ -147,13 +141,11 @@ public class ClarinUserRegistrationServiceImplIT extends AbstractControllerInteg
         context.turnOffAuthorisationSystem();
 
         ClarinUserRegistration anon1 = new ClarinUserRegistration();
-        anon1.setEmail("anonymous");
         anon1.setOrganization("Unknown");
         anon1.setConfirmation(true);
         // personID is null by default
 
         ClarinUserRegistration anon2 = new ClarinUserRegistration();
-        anon2.setEmail("anonymous");
         anon2.setOrganization("Unknown");
         anon2.setConfirmation(true);
 

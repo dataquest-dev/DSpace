@@ -70,7 +70,6 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
                         "Updating existing registration (id={}) instead of creating a duplicate.",
                         epersonId, existingRegistration.getID());
                 // Update the existing registration with new values
-                existingRegistration.setEmail(clarinUserRegistration.getEmail());
                 existingRegistration.setOrganization(clarinUserRegistration.getOrganization());
                 existingRegistration.setConfirmation(clarinUserRegistration.isConfirmation());
                 clarinUserRegistrationDAO.save(context, existingRegistration);
@@ -115,9 +114,9 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
     }
 
     @Override
-    public List<ClarinUserRegistration> findByEmail(Context context, String email)
+    public List<ClarinUserRegistration> findByOrganization(Context context, String organization)
             throws SQLException {
-        return clarinUserRegistrationDAO.findByEmail(context, email);
+        return clarinUserRegistrationDAO.findByOrganization(context, organization);
     }
 
     @Override

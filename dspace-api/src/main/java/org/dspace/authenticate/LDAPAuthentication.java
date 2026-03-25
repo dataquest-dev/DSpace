@@ -38,6 +38,9 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.authenticate.service.AuthenticationService;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinUserRegistration;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.dspace.eperson.EPerson;
@@ -80,6 +83,8 @@ public class LDAPAuthentication implements AuthenticationMethod {
             = EPersonServiceFactory.getInstance().getEPersonService();
     protected GroupService groupService
             = EPersonServiceFactory.getInstance().getGroupService();
+    private ClarinUserRegistrationService clarinUserRegistrationService =
+            ClarinServiceFactory.getInstance().getClarinUserRegistration();
     protected ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
 
@@ -344,6 +349,11 @@ public class LDAPAuthentication implements AuthenticationMethod {
                                     authenticationService.initEPerson(context, request, eperson);
                                     ePersonService.update(context, eperson);
                                     context.dispatchEvents();
+                                    ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
+                                    clarinUserRegistration.setPersonID(eperson.getID());
+                                    clarinUserRegistration.setOrganization(ClarinUserRegistration.UNKNOWN_USER_REGISTRATION);
+                                    clarinUserRegistration.setConfirmation(false);
+                                    clarinUserRegistrationService.create(context, clarinUserRegistration);
                                     context.setCurrentUser(eperson);
                                     request.setAttribute(LDAP_AUTHENTICATED, true);
 

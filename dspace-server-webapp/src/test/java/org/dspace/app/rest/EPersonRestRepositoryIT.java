@@ -174,8 +174,6 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .andExpect(jsonPath(
                         "$._embedded.clarinuserregistrations[0].id", is(not(empty()))))
                 .andExpect(jsonPath(
-                        "$._embedded.clarinuserregistrations[0].email", is("createtest@example.com")))
-                .andExpect(jsonPath(
                         "$._embedded.clarinuserregistrations[0].confirmation", is(true)))
                 .andExpect(jsonPath(
                         "$._embedded.clarinuserregistrations[0].ePersonID", is(idRef.get().toString())))
@@ -191,9 +189,6 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .andExpect(jsonPath("$.page.totalElements", is(1)))
                     .andExpect(jsonPath(
                             "$._embedded.clarinuserregistrations[0].id", is(not(empty()))))
-                    .andExpect(jsonPath(
-                            "$._embedded.clarinuserregistrations[0].email",
-                            is("createtestfull@example.com")))
                     .andExpect(jsonPath(
                             "$._embedded.clarinuserregistrations[0].confirmation", is(true)))
                     .andExpect(jsonPath(

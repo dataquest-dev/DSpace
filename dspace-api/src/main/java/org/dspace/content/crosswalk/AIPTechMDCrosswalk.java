@@ -19,6 +19,9 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.clarin.ClarinUserRegistration;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.Site;
@@ -89,6 +92,8 @@ public class AIPTechMDCrosswalk implements IngestionCrosswalk, DisseminationCros
     protected final HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
     protected final ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
+    private final ClarinUserRegistrationService clarinUserRegistrationService =
+            ClarinServiceFactory.getInstance().getClarinUserRegistration();
 
     /**
      * Get XML namespaces of the elements this crosswalk may return.
@@ -405,6 +410,16 @@ public class AIPTechMDCrosswalk implements IngestionCrosswalk, DisseminationCros
                                     sub.setEmail(value);
                                     sub.setCanLogIn(false);
                                     ePersonService.update(context, sub);
+                                    ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
+                                    clarinUserRegistration.setPersonID(sub.getID());
+                                    clarinUserRegistration.setOrganization(
+                                            ClarinUserRegistration.UNKNOWN_USER_REGISTRATION);
+                                    clarinUserRegistration.setConfirmation(false);
+                                    try {
+                                        clarinUserRegistrationService.create(context, clarinUserRegistration);
+                                    } catch (AuthorizeException e) {
+                                        log.warn("Failed to create ClarinUserRegistration for submitter {}", value, e);
+                                    }
                                 } else {
                                     log.warn(
                                         "Ignoring unknown Submitter=" + value + " in AIP Tech MD, no matching EPerson" +

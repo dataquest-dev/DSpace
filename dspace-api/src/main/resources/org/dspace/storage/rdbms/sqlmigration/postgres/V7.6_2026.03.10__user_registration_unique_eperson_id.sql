@@ -9,3 +9,5 @@
 CREATE UNIQUE INDEX IF NOT EXISTS user_registration_eperson_id_unique
     ON user_registration (eperson_id)
     WHERE eperson_id IS NOT NULL;
+
+ALTER TABLE user_registration DROP COLUMN IF EXISTS email;

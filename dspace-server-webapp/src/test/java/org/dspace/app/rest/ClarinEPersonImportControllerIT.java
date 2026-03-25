@@ -75,11 +75,10 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
     /**
      * Helper method to create an initial ClarinUserRegistration for testing.
      */
-    private ClarinUserRegistration createInitialRegistration(EPerson ePerson, String email, String org)
+    private ClarinUserRegistration createInitialRegistration(EPerson ePerson, String org)
             throws Exception {
         return ClarinUserRegistrationBuilder
                 .createClarinUserRegistration(context)
-                .withEmail(email)
                 .withEPersonID(ePerson.getID())
                 .withOrganization(org)
                 .withConfirmation(false)
@@ -89,10 +88,9 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
     /**
      * Helper method to build a ClarinUserRegistrationRest import request.
      */
-    private ClarinUserRegistrationRest buildImportRequest(String email, UUID ePersonID, String org,
+    private ClarinUserRegistrationRest buildImportRequest(UUID ePersonID, String org,
             boolean confirmation) {
         ClarinUserRegistrationRest request = new ClarinUserRegistrationRest();
-        request.setEmail(email);
         request.setePersonID(ePersonID);
         request.setOrganization(org);
         request.setConfirmation(confirmation);
@@ -215,7 +213,6 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
         ClarinUserRegistrationRest userRegistrationRest = new ClarinUserRegistrationRest();
         userRegistrationRest.setConfirmation(true);
-        userRegistrationRest.setEmail("test@test.edu");
         userRegistrationRest.setePersonID(ePerson.getID());
         userRegistrationRest.setOrganization("Test");
 
@@ -236,7 +233,6 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
             ClarinUserRegistration clarinUserRegistration = clarinUserRegistrationService.find(context, idRef.get());
             context.setCurrentUser(currentUser);
             assertTrue(clarinUserRegistration.isConfirmation());
-            assertEquals(clarinUserRegistration.getEmail(), "test@test.edu");
             assertEquals(clarinUserRegistration.getPersonID(), ePerson.getID());
             assertEquals(clarinUserRegistration.getOrganization(), "Test");
         } finally {
@@ -245,78 +241,67 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
     }
 
     @Test
-    public void updatesExistingRegistrationWhenMatchedByEmail() throws Exception {
+    public void updatesExistingRegistrationByEPersonID() throws Exception {
         context.turnOffAuthorisationSystem();
         EPerson ePerson = createTestEPerson("4", "qwerty04");
-        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "user@test.edu",
-                "Original Org");
+        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "Original Org");
         context.restoreAuthSystemState();
 
-        // Import with same email to match by email
-        ClarinUserRegistrationRest request = buildImportRequest("user@test.edu", ePerson.getID(),
-                "Updated Org", true);
+        // Import with same ePersonID to match existing registration
+        ClarinUserRegistrationRest request = buildImportRequest(ePerson.getID(), "Updated Org", true);
         String authToken = getAuthToken(admin.getEmail(), password);
 
         try {
             performImportRequest(authToken, request);
 
-            // Verify updates were applied
+            // Verify organization was updated
             ClarinUserRegistration updated = findAsAdmin(initialRegistration.getID());
-            assertEquals("user@test.edu", updated.getEmail());
             assertEquals("Updated Org", updated.getOrganization());
-            assertTrue(updated.isConfirmation());
         } finally {
             ClarinUserRegistrationBuilder.deleteClarinUserRegistration(initialRegistration.getID());
         }
     }
 
     @Test
-    public void preventsEmailUpdateWhenMatchedByEPersonID() throws Exception {
+    public void updatesOrganizationWhenMatchedByEPersonID() throws Exception {
         context.turnOffAuthorisationSystem();
         EPerson ePerson = createTestEPerson("5", "qwerty05");
-        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "existing@test.edu",
-                "Original Org");
+        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "Original Org");
         context.restoreAuthSystemState();
 
-        // Import with different email - will match by ePersonID instead
-        ClarinUserRegistrationRest request = buildImportRequest("different@test.edu", ePerson.getID(),
-                "Updated Org", true);
+        // Import with same ePersonID and different organization
+        ClarinUserRegistrationRest request = buildImportRequest(ePerson.getID(), "Updated Org", true);
         String authToken = getAuthToken(admin.getEmail(), password);
 
         try {
             performImportRequest(authToken, request);
 
-            // Verify email was NOT updated but other fields were
+            // Verify only organization was updated
             ClarinUserRegistration updated = findAsAdmin(initialRegistration.getID());
-            assertEquals("existing@test.edu", updated.getEmail()); // Email unchanged
-            assertEquals("Updated Org", updated.getOrganization()); // Organization updated
-            assertTrue(updated.isConfirmation()); // Confirmation updated
+            assertEquals("Updated Org", updated.getOrganization());
+            assertFalse(updated.isConfirmation());
         } finally {
             ClarinUserRegistrationBuilder.deleteClarinUserRegistration(initialRegistration.getID());
         }
     }
 
     @Test
-    public void updatesRegistrationWhenBothEmailAndEPersonIDMatch() throws Exception {
+    public void updatesRegistrationWhenMatchedByEPersonID() throws Exception {
         context.turnOffAuthorisationSystem();
         EPerson ePerson = createTestEPerson("6", "qwerty06");
-        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "consistent@test.edu",
-                "Original Org");
+        ClarinUserRegistration initialRegistration = createInitialRegistration(ePerson, "Original Org");
         context.restoreAuthSystemState();
 
-        // Import with same email and ePersonID - both match the same record
-        ClarinUserRegistrationRest request = buildImportRequest("consistent@test.edu", ePerson.getID(),
-                "Updated Org", true);
+        // Import with same ePersonID
+        ClarinUserRegistrationRest request = buildImportRequest(ePerson.getID(), "Updated Org", true);
         String authToken = getAuthToken(admin.getEmail(), password);
 
         try {
             performImportRequest(authToken, request);
 
-            // Verify all fields were updated (happy path)
+            // Verify organization was updated
             ClarinUserRegistration updated = findAsAdmin(initialRegistration.getID());
-            assertEquals("consistent@test.edu", updated.getEmail());
             assertEquals("Updated Org", updated.getOrganization());
-            assertTrue(updated.isConfirmation());
         } finally {
             ClarinUserRegistrationBuilder.deleteClarinUserRegistration(initialRegistration.getID());
         }

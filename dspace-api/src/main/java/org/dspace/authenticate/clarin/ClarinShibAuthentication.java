@@ -745,20 +745,17 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
          * Register User in the CLARIN license database
          *
          */
-        // if no email the registration is postponed after entering and confirming mail
-        if (Objects.nonNull(email)) {
-            try {
-                ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
-                clarinUserRegistration.setConfirmation(true);
-                clarinUserRegistration.setEmail(email);
-                clarinUserRegistration.setPersonID(eperson.getID());
-                clarinUserRegistration.setOrganization(org);
-                clarinUserRegistrationService.create(context, clarinUserRegistration);
-                eperson.setCanLogIn(false);
-                ePersonService.update(context, eperson);
-            } catch (Exception e) {
-                throw new AuthorizeException("User has not been added among registred users!") ;
-            }
+        try {
+            ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
+            clarinUserRegistration.setConfirmation(true);
+            clarinUserRegistration.setPersonID(eperson.getID());
+            clarinUserRegistration.setOrganization(
+                    Objects.nonNull(org) ? org : ClarinUserRegistration.UNKNOWN_USER_REGISTRATION);
+            clarinUserRegistrationService.create(context, clarinUserRegistration);
+            eperson.setCanLogIn(false);
+            ePersonService.update(context, eperson);
+        } catch (Exception e) {
+            throw new AuthorizeException("User has not been added among registred users!") ;
         }
 
         /* CLARIN */
@@ -901,6 +898,19 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
         }
         ePersonService.update(context, eperson);
         context.dispatchEvents();
+
+        // Sync ClarinUserRegistration organization from the current IdP
+        String currentOrg = shibheaders.get_idp();
+        if (currentOrg != null) {
+            List<ClarinUserRegistration> registrations =
+                    clarinUserRegistrationService.findByEPersonUUID(context, eperson.getID());
+            if (!registrations.isEmpty()) {
+                ClarinUserRegistration reg = registrations.get(0);
+                reg.setOrganization(currentOrg);
+                clarinUserRegistrationService.update(context, reg);
+            }
+        }
+
         context.restoreAuthSystemState();
     }
 
