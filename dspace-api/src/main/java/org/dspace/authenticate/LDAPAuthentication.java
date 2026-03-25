@@ -351,7 +351,8 @@ public class LDAPAuthentication implements AuthenticationMethod {
                                     context.dispatchEvents();
                                     ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
                                     clarinUserRegistration.setPersonID(eperson.getID());
-                                    clarinUserRegistration.setOrganization(ClarinUserRegistration.UNKNOWN_USER_REGISTRATION);
+                                    clarinUserRegistration.setOrganization(
+                                        ClarinUserRegistration.UNKNOWN_USER_REGISTRATION);
                                     clarinUserRegistration.setConfirmation(false);
                                     clarinUserRegistrationService.create(context, clarinUserRegistration);
                                     context.setCurrentUser(eperson);
