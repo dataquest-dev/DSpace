@@ -101,61 +101,11 @@
 			</xsl:for-each>
 			<!-- dc.type -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']">
-				<dc:type>
-					<xsl:choose>
-						<xsl:when test="contains(., 'J_ČLÁNEK')">
-							<xsl:text>article</xsl:text>
-						</xsl:when>
-						<xsl:when test="contains(., 'B_KNIHA - CELEK')">
-							<xsl:text>book</xsl:text>
-						</xsl:when>
-						<xsl:when test="contains(., 'D_Stať ve sborníku')">
-							<xsl:text>conferenceObject</xsl:text>
-						</xsl:when>
-						<xsl:when test="contains(., 'C_KNIHA - KAPITOLA')">
-							<xsl:text>bookPart</xsl:text>
-						</xsl:when>
-						<xsl:when test="contains(., 'N_CERTIFIKOVANÁ METODIKA')">
-							<xsl:text>workingPaper</xsl:text>
-						</xsl:when>
-						<xsl:when test="contains(., 'Nmets-Metodiky schválené příslušným orgánem')">
-							<xsl:text>workingPaper</xsl:text>
-						</xsl:when>
-						<xsl:otherwise>
-							<xsl:text>other</xsl:text>
-						</xsl:otherwise>
-
-					</xsl:choose>
-				</dc:type>
+				<dc:type><xsl:value-of select="." /></dc:type>
 			</xsl:for-each>
 			<!-- dc.type with `info:eu-repo/semantics/`-->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']">
-				<dc:type>
-					<xsl:choose>
-						<xsl:when test="contains(., 'J_ČLÁNEK')">
-							<xsl:text>info:eu-repo/semantics/article</xsl:text>
-						</xsl:when>
-						<xsl:when test="contains(., 'B_KNIHA - CELEK')">
-							<xsl:text>info:eu-repo/semantics/book</xsl:text>
-						</xsl:when>
-						<xsl:when test="contains(., 'D_Stať ve sborníku')">
-							<xsl:text>info:eu-repo/semantics/conferenceObject</xsl:text>
-						</xsl:when>
-						<xsl:when test="contains(., 'C_KNIHA - KAPITOLA')">
-							<xsl:text>info:eu-repo/semantics/bookPart</xsl:text>
-						</xsl:when>
-						<xsl:when test="contains(., 'N_CERTIFIKOVANÁ METODIKA')">
-							<xsl:text>info:eu-repo/semantics/workingPaper</xsl:text>
-						</xsl:when>
-						<xsl:when test="contains(., 'Nmets-Metodiky schválené příslušným orgánem')">
-							<xsl:text>info:eu-repo/semantics/workingPaper</xsl:text>
-						</xsl:when>
-						<xsl:otherwise>
-							<xsl:text>info:eu-repo/semantics/other</xsl:text>
-						</xsl:otherwise>
-
-					</xsl:choose>
-				</dc:type>
+				<dc:type><xsl:value-of select="concat('info:eu-repo/semantics/', .)" /></dc:type>
 			</xsl:for-each>
 			<!-- dc.type.* -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:element/doc:field[@name='value']">

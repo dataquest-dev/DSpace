@@ -557,13 +557,6 @@
                 <string name="operator">ends_with</string>
                 <list name="values">
                     <string>article</string>
-                    <string>J_ČLÁNEK</string>
-                    <string>B_KNIHA - CELEK</string>
-                    <string>D_Stať ve sborníku</string>
-                    <string>C_KNIHA - KAPITOLA</string>
-                    <string>C_KNIHA_KAPITOLA</string>
-                    <string>N_CERTIFIKOVANÁ METODIKA</string>
-                    <string>Nmets-Metodiky schválené příslušným orgánem</string>
                     <string>bachelorThesis</string>
                     <string>masterThesis</string>
                     <string>doctoralThesis</string>
