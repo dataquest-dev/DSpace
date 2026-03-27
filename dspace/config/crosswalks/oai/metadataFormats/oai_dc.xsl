@@ -116,17 +116,17 @@
 				<dc:identifier><xsl:value-of select="." /></dc:identifier>
 			</xsl:for-each>
 			<!-- dc.identifier - formatted with additional metadata -->
-			<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']/doc:element/doc:field[@name='value']">
+			<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value']">
 				<dc:identifier>
-					<xsl:text> . </xsl:text>
+					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element/doc:field[@name='value']" />
+					<xsl:text>. </xsl:text>
 					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']" />
-					<xsl:text> vol. </xsl:text>
+					<xsl:text>, vol. </xsl:text>
 					<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value']" />
 					<xsl:text>, č. </xsl:text>
 					<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value']" />
 					<!-- We do not have any information about pages, so it is `s. 0` by default -->
-					<xsl:text>, s. 0. ISSN </xsl:text>
-					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']/doc:element/doc:field[@name='value']" />
+					<xsl:text>, s. 0.</xsl:text>
 				</dc:identifier>
 			</xsl:if>
 			<!-- dc.identifier.* -->
@@ -153,7 +153,7 @@
 			</xsl:for-each>
 			<!-- dc.relation.ispartof -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element/doc:field[@name='value']">
-				<dc:identifier.ispartof><xsl:value-of select="." /></dc:identifier.ispartof>
+				<dc:relation><xsl:value-of select="." /></dc:relation>
 			</xsl:for-each>
 			<!-- dc.rights -->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']">
