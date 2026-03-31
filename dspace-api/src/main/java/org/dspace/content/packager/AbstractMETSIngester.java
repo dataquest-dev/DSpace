@@ -23,6 +23,9 @@ import java.util.zip.ZipFile;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
@@ -124,6 +127,10 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
                                                                                      .getWorkspaceItemService();
     protected final ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
+
+
+    protected AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+
 
     /**
      * <p>
@@ -758,10 +765,16 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
                 bitstream.setSequenceID(Integer.parseInt(seqID));
             }
 
+            // Get TYPE_SUBMISSION policies before removing them in the `manifest.crosswalkBitstream` method.
+            List<ResourcePolicy> bitstreamPolicies =
+                authorizeService.findPoliciesByDSOAndType(context, bitstream, ResourcePolicy.TYPE_SUBMISSION);
+
             // crosswalk this bitstream's administrative metadata located in
             // METS manifest (or referenced externally)
             manifest.crosswalkBitstream(context, params, bitstream, mfileID,
                                         mdRefCallback);
+
+            authorizeService.addPolicies(context, bitstreamPolicies, bitstream);
 
             // is this the primary bitstream?
             if (primaryID != null && mfileID.equals(primaryID)) {
