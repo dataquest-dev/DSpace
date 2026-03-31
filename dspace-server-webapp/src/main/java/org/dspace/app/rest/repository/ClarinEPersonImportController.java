@@ -167,8 +167,16 @@ public class ClarinEPersonImportController {
 
         if (Objects.nonNull(clarinUserRegistration)) {
             // Update organization if the value has changed
+            boolean requiresUpdate = false;
             if (!Objects.equals(clarinUserRegistration.getOrganization(), userRegistrationRest.getOrganization())) {
                 clarinUserRegistration.setOrganization(userRegistrationRest.getOrganization());
+                requiresUpdate = true;
+            }
+            if (clarinUserRegistration.isConfirmation() != userRegistrationRest.isConfirmation()) {
+                clarinUserRegistration.setConfirmation(userRegistrationRest.isConfirmation());
+                requiresUpdate = true;
+            }
+            if (requiresUpdate) {
                 clarinUserRegistrationService.update(context, clarinUserRegistration);
             }
         } else {

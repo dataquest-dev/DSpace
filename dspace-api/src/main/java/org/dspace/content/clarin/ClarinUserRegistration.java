@@ -45,7 +45,7 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
             allocationSize = 1)
     protected Integer id;
 
-    @Column(name = "eperson_id", unique = true)
+    @Column(name = "eperson_id")
     private UUID ePersonID = null;
 
     @Column(name = "organization")
