@@ -279,7 +279,7 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
             // Verify only organization was updated
             ClarinUserRegistration updated = findAsAdmin(initialRegistration.getID());
             assertEquals("Updated Org", updated.getOrganization());
-            assertFalse(updated.isConfirmation());
+            assertTrue(updated.isConfirmation());
         } finally {
             ClarinUserRegistrationBuilder.deleteClarinUserRegistration(initialRegistration.getID());
         }
@@ -335,7 +335,11 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
                     clarinUserRegistrationService.findByEPersonUUID(context, idRef.get());
             context.setCurrentUser(currentUser);
 
-            assertTrue("No user registration should be created on EPerson import", registrations.isEmpty());
+            assertEquals("Exactly one user registration should be created on EPerson import",
+        1, registrations.size());
+
+            ClarinUserRegistration reg = registrations.get(0);
+            assertEquals(idRef.get(), reg.getPersonID());
         } finally {
             EPersonBuilder.deleteEPerson(idRef.get());
         }

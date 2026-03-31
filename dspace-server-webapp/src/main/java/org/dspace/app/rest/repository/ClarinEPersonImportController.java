@@ -103,14 +103,6 @@ public class ClarinEPersonImportController {
         //salt and digest_algorithm are changing with password
         EPersonRest epersonRest = ePersonRestRepository.createAndReturn(context);
         EPerson eperson = ePersonService.find(context, UUID.fromString(epersonRest.getUuid()));
-
-        // Remove the automatically created "Unknown" user registration - during import,
-        // user registrations are managed separately via the importUserRegistration endpoint.
-        List<ClarinUserRegistration> autoCreatedRegistrations =
-                clarinUserRegistrationService.findByEPersonUUID(context, eperson.getID());
-        for (ClarinUserRegistration reg : autoCreatedRegistrations) {
-            clarinUserRegistrationService.delete(context, reg);
-        }
         eperson.setSelfRegistered(selfRegistered);
         eperson.setLastActive(lastActive);
         //the password is already hashed in the request
@@ -166,7 +158,7 @@ public class ClarinEPersonImportController {
                 existingRegistrationsByEPerson.isEmpty() ? null : existingRegistrationsByEPerson.get(0);
 
         if (Objects.nonNull(clarinUserRegistration)) {
-            // Update organization if the value has changed
+            // Update organization and registration if the values have changed
             boolean requiresUpdate = false;
             if (!Objects.equals(clarinUserRegistration.getOrganization(), userRegistrationRest.getOrganization())) {
                 clarinUserRegistration.setOrganization(userRegistrationRest.getOrganization());
@@ -176,6 +168,32 @@ public class ClarinEPersonImportController {
                 clarinUserRegistration.setConfirmation(userRegistrationRest.isConfirmation());
                 requiresUpdate = true;
             }
+            if (!Objects.equals(clarinUserRegistration.getPersonID(), userRegistrationRest.getePersonID())) {
+                boolean canUpdate = true;
+
+                // Check for ePersonID conflicts if the incoming value is non-null
+                if (Objects.nonNull(userRegistrationRest.getePersonID())) {
+                    List<ClarinUserRegistration> conflictingRegs = clarinUserRegistrationService
+                            .findByEPersonUUID(context, userRegistrationRest.getePersonID());
+                    if (!conflictingRegs.isEmpty() &&
+                            !conflictingRegs.get(0).getID().equals(clarinUserRegistration.getID())) {
+                        // Conflict detected - log appropriate message based on how registration was found
+                        log.warn("User registration found by ePersonID={} has different incoming ePersonID. " +
+                                "Incoming ePersonID={} is already associated with another registration ID={}. " +
+                                "ePersonID will NOT be updated to prevent data inconsistency.",
+                                clarinUserRegistration.getPersonID(),
+                                userRegistrationRest.getePersonID(),
+                                conflictingRegs.get(0).getID());
+                        canUpdate = false;
+                    }
+                }
+                // Update ePersonID if no conflict was detected
+                if (canUpdate) {
+                    clarinUserRegistration.setPersonID(userRegistrationRest.getePersonID());
+                    requiresUpdate = true;
+                }
+            }
+            // Update ePersonID if no conflict was detected
             if (requiresUpdate) {
                 clarinUserRegistrationService.update(context, clarinUserRegistration);
             }
