@@ -32,8 +32,6 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.scripts.DSpaceRunnable;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 
 /**
@@ -50,24 +48,15 @@ public class OrcidAuthorityAssign
     private static final Pattern ORCID_PATTERN =
             Pattern.compile("(\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX])");
 
-    private ConfigurationService configurationService;
     private MetadataFieldService metadataFieldService;
     private MetadataValueService metadataValueService;
 
-    private String orcidUrlPrefix;
     private Context context;
 
     @Override
     public void setup() throws ParseException {
         this.metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
         this.metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
-        this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-
-        String domainUrl = configurationService.getProperty("orcid.domain-url");
-        if (StringUtils.isBlank(domainUrl)) {
-            throw new IllegalStateException("Configuration property 'orcid.domain-url' is not set.");
-        }
-        this.orcidUrlPrefix = domainUrl.trim().endsWith("/") ? domainUrl.trim() : domainUrl.trim() + "/";
     }
 
     @Override
@@ -168,8 +157,7 @@ public class OrcidAuthorityAssign
             String orcidId = authorNameToOrcid.get(normalizedAuthor);
 
             if (orcidId != null) {
-                String authorityValue = orcidUrlPrefix + orcidId;
-                authorMv.setAuthority(authorityValue);
+                authorMv.setAuthority(orcidId);
                 authorMv.setConfidence(Choices.CF_ACCEPTED);
                 metadataValueService.update(context, authorMv, true);
                 updated++;

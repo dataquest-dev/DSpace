@@ -35,8 +35,6 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,20 +49,11 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
     private MetadataFieldService metadataFieldService;
     private MetadataSchemaService metadataSchemaService;
 
-    /**
-     * The expected ORCID URL prefix, read from the same config the script uses.
-     */
-    private String orcidUrlPrefix;
-
     @Before
     public void setup() throws Exception {
         itemService = ContentServiceFactory.getInstance().getItemService();
         metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
         metadataSchemaService = ContentServiceFactory.getInstance().getMetadataSchemaService();
-
-        ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-        String domainUrl = configurationService.getProperty("orcid.domain-url");
-        orcidUrlPrefix = domainUrl.trim().endsWith("/") ? domainUrl.trim() : domainUrl.trim() + "/";
 
         context.turnOffAuthorisationSystem();
 
@@ -109,7 +98,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         context.restoreAuthSystemState();
 
         assertThat(authors, hasSize(1));
-        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authors.get(0).getAuthority());
+        assertEquals("1234-5678-9012-3456", authors.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
     }
 
@@ -143,7 +132,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         // Find each author by value and check authority
         for (MetadataValue mv : authors) {
             if ("Smith, Donald".equals(mv.getValue())) {
-                assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", mv.getAuthority());
+                assertEquals("1234-5678-9012-3456", mv.getAuthority());
                 assertEquals(Choices.CF_ACCEPTED, mv.getConfidence());
             } else if ("Doe, Jane".equals(mv.getValue())) {
                 assertNull(mv.getAuthority());
@@ -184,8 +173,8 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authors2 = itemService.getMetadata(item2, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authors1.get(0).getAuthority());
-        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authors2.get(0).getAuthority());
+        assertEquals("1234-5678-9012-3456", authors1.get(0).getAuthority());
+        assertEquals("1234-5678-9012-3456", authors2.get(0).getAuthority());
     }
 
     /**
@@ -228,7 +217,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authorsAfter = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authorsAfter.get(0).getAuthority());
+        assertEquals("1234-5678-9012-3456", authorsAfter.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authorsAfter.get(0).getConfidence());
     }
 
@@ -283,7 +272,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals(orcidUrlPrefix + "1234-5678-9012-345X", authors.get(0).getAuthority());
+        assertEquals("1234-5678-9012-345X", authors.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
     }
 
@@ -311,7 +300,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authors.get(0).getAuthority());
+        assertEquals("1234-5678-9012-3456", authors.get(0).getAuthority());
     }
 
     /**
@@ -372,10 +361,10 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         for (MetadataValue mv : authors) {
             if ("Smith, Donald".equals(mv.getValue())) {
-                assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", mv.getAuthority());
+                assertEquals("1234-5678-9012-3456", mv.getAuthority());
                 assertEquals(Choices.CF_ACCEPTED, mv.getConfidence());
             } else if ("Doe, Jane".equals(mv.getValue())) {
-                assertEquals(orcidUrlPrefix + "1234-5678-9012-7890", mv.getAuthority());
+                assertEquals("1234-5678-9012-7890", mv.getAuthority());
                 assertEquals(Choices.CF_ACCEPTED, mv.getConfidence());
             }
         }
@@ -408,7 +397,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         context.restoreAuthSystemState();
 
         assertThat(authors, hasSize(1));
-        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authors.get(0).getAuthority());
+        assertEquals("1234-5678-9012-3456", authors.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
     }
 
