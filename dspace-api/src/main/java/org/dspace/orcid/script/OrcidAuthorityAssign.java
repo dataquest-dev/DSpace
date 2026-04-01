@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -22,6 +23,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.MetadataFieldService;
@@ -79,7 +81,7 @@ public class OrcidAuthorityAssign
      * Set the authority of dc.contributor.author metadata 
      * based on matching author names in dc.identifier.orcid.
      */
-    private void performAuthorityAssignment() throws SQLException, IOException {
+    private void performAuthorityAssignment() throws SQLException, IOException, AuthorizeException {
         // Build the author-name-to-ORCID map from dc.identifier.orcid
         MetadataField orcidField = metadataFieldService.findByElement(context, "dc", "identifier", "orcid");
         if (orcidField == null) {
@@ -159,12 +161,13 @@ public class OrcidAuthorityAssign
                 String authorityValue = ORCID_URL_PREFIX + orcidId;
                 authorMv.setAuthority(authorityValue);
                 authorMv.setConfidence(Choices.CF_ACCEPTED);
-                metadataValueService.update(context, authorMv);
+                metadataValueService.update(context, authorMv, true);
                 updated++;
 
-                // Flush in batches to avoid memory issues
+                // Evict processed entities from the Hibernate session in batches
+                // to keep memory bounded.
                 if (updated % batchSize == 0) {
-                    context.commit();
+                    context.uncacheEntity(authorMv);
                     handler.logInfo("Progress: " + updated + " authors updated so far...");
                 }
             }
@@ -183,7 +186,7 @@ public class OrcidAuthorityAssign
         if (name == null) {
             return "";
         }
-        return name.trim().toLowerCase().replaceAll("\\s+", " ");
+        return name.trim().toLowerCase(Locale.ROOT).replace(",", "").replaceAll("\\s+", " ");
     }
 
     /**

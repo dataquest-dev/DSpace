@@ -81,8 +81,8 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Test publication")
-            .withAuthor("Muroň, Mikuláš")
-            .withMetadata("dc", "identifier", "orcid", "Muroň, Mikuláš 0000-0003-1344-1772")
+            .withAuthor("Smith, Donald")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
             .build();
 
         context.restoreAuthSystemState();
@@ -98,7 +98,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         context.restoreAuthSystemState();
 
         assertThat(authors, hasSize(1));
-        assertEquals("https://orcid.org/0000-0003-1344-1772", authors.get(0).getAuthority());
+        assertEquals("https://orcid.org/0000-0002-1111-2222", authors.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
     }
 
@@ -111,9 +111,9 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Multi-author publication")
-            .withAuthor("Muroň, Mikuláš")
-            .withAuthor("Novák, Jan")
-            .withMetadata("dc", "identifier", "orcid", "Muroň, Mikuláš 0000-0003-1344-1772")
+            .withAuthor("Smith, Donald")
+            .withAuthor("Doe, Jane")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
             .build();
 
         context.restoreAuthSystemState();
@@ -131,10 +131,10 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         // Find each author by value and check authority
         for (MetadataValue mv : authors) {
-            if ("Muroň, Mikuláš".equals(mv.getValue())) {
-                assertEquals("https://orcid.org/0000-0003-1344-1772", mv.getAuthority());
+            if ("Smith, Donald".equals(mv.getValue())) {
+                assertEquals("https://orcid.org/0000-0002-1111-2222", mv.getAuthority());
                 assertEquals(Choices.CF_ACCEPTED, mv.getConfidence());
-            } else if ("Novák, Jan".equals(mv.getValue())) {
+            } else if ("Doe, Jane".equals(mv.getValue())) {
                 assertNull(mv.getAuthority());
             }
         }
@@ -149,13 +149,13 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         Item item1 = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("First publication")
-            .withAuthor("Muroň, Mikuláš")
-            .withMetadata("dc", "identifier", "orcid", "Muroň, Mikuláš 0000-0003-1344-1772")
+            .withAuthor("Smith, Donald")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
             .build();
 
         Item item2 = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Second publication")
-            .withAuthor("Muroň, Mikuláš")
+            .withAuthor("Smith, Donald")
             .build();
 
         context.restoreAuthSystemState();
@@ -173,8 +173,8 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authors2 = itemService.getMetadata(item2, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals("https://orcid.org/0000-0003-1344-1772", authors1.get(0).getAuthority());
-        assertEquals("https://orcid.org/0000-0003-1344-1772", authors2.get(0).getAuthority());
+        assertEquals("https://orcid.org/0000-0002-1111-2222", authors1.get(0).getAuthority());
+        assertEquals("https://orcid.org/0000-0002-1111-2222", authors2.get(0).getAuthority());
     }
 
     /**
@@ -187,8 +187,8 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         // Create item with an author that already has some authority
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Publication with existing authority")
-            .withAuthor("Muroň, Mikuláš", "old-authority-value", Choices.CF_UNCERTAIN)
-            .withMetadata("dc", "identifier", "orcid", "Muroň, Mikuláš 0000-0003-1344-1772")
+            .withAuthor("Smith, Donald", "old-authority-value", Choices.CF_UNCERTAIN)
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
             .build();
 
         context.restoreAuthSystemState();
@@ -211,7 +211,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authorsAfter = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals("https://orcid.org/0000-0003-1344-1772", authorsAfter.get(0).getAuthority());
+        assertEquals("https://orcid.org/0000-0002-1111-2222", authorsAfter.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authorsAfter.get(0).getConfidence());
     }
 
@@ -224,7 +224,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("No ORCID publication")
-            .withAuthor("Unknown, Author")
+            .withAuthor("Doe, Jane")
             .build();
 
         context.restoreAuthSystemState();
@@ -251,8 +251,8 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Checksum X publication")
-            .withAuthor("Test, Author")
-            .withMetadata("dc", "identifier", "orcid", "Test, Author 0000-0001-2345-678X")
+            .withAuthor("White, Walter")
+            .withMetadata("dc", "identifier", "orcid", "White, Walter 0000-0002-1234-567X")
             .build();
 
         context.restoreAuthSystemState();
@@ -266,7 +266,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals("https://orcid.org/0000-0001-2345-678X", authors.get(0).getAuthority());
+        assertEquals("https://orcid.org/0000-0002-1234-567X", authors.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
     }
 
@@ -279,8 +279,8 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Case test publication")
-            .withAuthor("muroň, mikuláš")
-            .withMetadata("dc", "identifier", "orcid", "Muroň, Mikuláš 0000-0003-1344-1772")
+            .withAuthor("smith, donald")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
             .build();
 
         context.restoreAuthSystemState();
@@ -294,7 +294,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals("https://orcid.org/0000-0003-1344-1772", authors.get(0).getAuthority());
+        assertEquals("https://orcid.org/0000-0002-1111-2222", authors.get(0).getAuthority());
     }
 
     /**
@@ -306,8 +306,8 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Non-matching publication")
-            .withAuthor("Neznámý, Autor")
-            .withMetadata("dc", "identifier", "orcid", "Muroň, Mikuláš 0000-0003-1344-1772")
+            .withAuthor("Pinkman, Jesse")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
             .build();
 
         context.restoreAuthSystemState();
@@ -334,10 +334,10 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Multi-ORCID publication")
-            .withAuthor("Muroň, Mikuláš")
-            .withAuthor("Novák, Jan")
-            .withMetadata("dc", "identifier", "orcid", "Muroň, Mikuláš 0000-0003-1344-1772")
-            .withMetadata("dc", "identifier", "orcid", "Novák, Jan 0000-0001-2222-3333")
+            .withAuthor("Smith, Donald")
+            .withAuthor("Doe, Jane")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
+            .withMetadata("dc", "identifier", "orcid", "Doe, Jane 0000-0002-3333-4444")
             .build();
 
         context.restoreAuthSystemState();
@@ -354,14 +354,45 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         assertThat(authors, hasSize(2));
 
         for (MetadataValue mv : authors) {
-            if ("Muroň, Mikuláš".equals(mv.getValue())) {
-                assertEquals("https://orcid.org/0000-0003-1344-1772", mv.getAuthority());
+            if ("Smith, Donald".equals(mv.getValue())) {
+                assertEquals("https://orcid.org/0000-0002-1111-2222", mv.getAuthority());
                 assertEquals(Choices.CF_ACCEPTED, mv.getConfidence());
-            } else if ("Novák, Jan".equals(mv.getValue())) {
-                assertEquals("https://orcid.org/0000-0001-2222-3333", mv.getAuthority());
+            } else if ("Doe, Jane".equals(mv.getValue())) {
+                assertEquals("https://orcid.org/0000-0002-3333-4444", mv.getAuthority());
                 assertEquals(Choices.CF_ACCEPTED, mv.getConfidence());
             }
         }
+    }
+
+    /**
+     * Test that author matching works even when dc.contributor.author has no comma
+     * but dc.identifier.orcid uses "Lastname, Firstname ORCID" format (and vice versa).
+     */
+    @Test
+    public void testCommaFormatMismatch() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Author without comma, ORCID entry with comma
+        Item item = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("Comma mismatch publication")
+            .withAuthor("Smith Donald")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = runScript();
+
+        assertThat(handler.getErrorMessages(), empty());
+
+        context.turnOffAuthorisationSystem();
+        item = context.reloadEntity(item);
+        List<MetadataValue> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
+        context.restoreAuthSystemState();
+
+        assertThat(authors, hasSize(1));
+        assertEquals("https://orcid.org/0000-0002-1111-2222", authors.get(0).getAuthority());
+        assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
     }
 
     /**
