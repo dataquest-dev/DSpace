@@ -139,6 +139,13 @@
         </step>
     </command>
     <command>
+        <name>orcid-authority-assign</name>
+        <description>Assign ORCID-based authority to dc.contributor.author metadata by matching author names in dc.identifier.orcid</description>
+        <step>
+            <class>org.dspace.orcid.script.OrcidAuthorityAssign</class>
+        </step>
+    </command>
+    <command>
         <name>packager</name>
         <description>Execute a packager</description>
         <step>
