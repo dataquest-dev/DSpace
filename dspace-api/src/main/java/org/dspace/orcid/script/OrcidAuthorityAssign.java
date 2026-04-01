@@ -21,9 +21,9 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.MetadataFieldService;
@@ -78,7 +78,7 @@ public class OrcidAuthorityAssign
     }
 
     /**
-     * Set the authority of dc.contributor.author metadata 
+     * Set the authority of dc.contributor.author metadata
      * based on matching author names in dc.identifier.orcid.
      */
     private void performAuthorityAssignment() throws SQLException, IOException, AuthorizeException {
