@@ -35,6 +35,8 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -49,11 +51,20 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
     private MetadataFieldService metadataFieldService;
     private MetadataSchemaService metadataSchemaService;
 
+    /**
+     * The expected ORCID URL prefix, read from the same config the script uses.
+     */
+    private String orcidUrlPrefix;
+
     @Before
     public void setup() throws Exception {
         itemService = ContentServiceFactory.getInstance().getItemService();
         metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
         metadataSchemaService = ContentServiceFactory.getInstance().getMetadataSchemaService();
+
+        ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        String domainUrl = configurationService.getProperty("orcid.domain-url");
+        orcidUrlPrefix = domainUrl.trim().endsWith("/") ? domainUrl.trim() : domainUrl.trim() + "/";
 
         context.turnOffAuthorisationSystem();
 
@@ -82,7 +93,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Test publication")
             .withAuthor("Smith, Donald")
-            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-3456")
             .build();
 
         context.restoreAuthSystemState();
@@ -98,7 +109,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         context.restoreAuthSystemState();
 
         assertThat(authors, hasSize(1));
-        assertEquals("https://orcid.org/0000-0002-1111-2222", authors.get(0).getAuthority());
+        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authors.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
     }
 
@@ -113,7 +124,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
             .withTitle("Multi-author publication")
             .withAuthor("Smith, Donald")
             .withAuthor("Doe, Jane")
-            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-3456")
             .build();
 
         context.restoreAuthSystemState();
@@ -132,7 +143,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         // Find each author by value and check authority
         for (MetadataValue mv : authors) {
             if ("Smith, Donald".equals(mv.getValue())) {
-                assertEquals("https://orcid.org/0000-0002-1111-2222", mv.getAuthority());
+                assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", mv.getAuthority());
                 assertEquals(Choices.CF_ACCEPTED, mv.getConfidence());
             } else if ("Doe, Jane".equals(mv.getValue())) {
                 assertNull(mv.getAuthority());
@@ -150,7 +161,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         Item item1 = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("First publication")
             .withAuthor("Smith, Donald")
-            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-3456")
             .build();
 
         Item item2 = ItemBuilder.createItem(context, publicationCollection)
@@ -173,8 +184,8 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authors2 = itemService.getMetadata(item2, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals("https://orcid.org/0000-0002-1111-2222", authors1.get(0).getAuthority());
-        assertEquals("https://orcid.org/0000-0002-1111-2222", authors2.get(0).getAuthority());
+        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authors1.get(0).getAuthority());
+        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authors2.get(0).getAuthority());
     }
 
     /**
@@ -184,19 +195,25 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
     public void testOverwritesExistingAuthority() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        // Create item with an author that already has some authority
+        // Create item with an author and ORCID entry
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Publication with existing authority")
-            .withAuthor("Smith, Donald", "old-authority-value", Choices.CF_UNCERTAIN)
-            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
+            .withAuthor("Smith, Donald")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-3456")
             .build();
 
-        context.restoreAuthSystemState();
-
-        // Verify original authority
-        context.turnOffAuthorisationSystem();
         item = context.reloadEntity(item);
         List<MetadataValue> authorsBefore = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
+        assertThat(authorsBefore, hasSize(1));
+        MetadataValue authorMv = authorsBefore.get(0);
+        authorMv.setAuthority("old-authority-value");
+        authorMv.setConfidence(Choices.CF_UNCERTAIN);
+        itemService.update(context, item);
+        context.commit();
+
+        // Verify original authority was persisted
+        item = context.reloadEntity(item);
+        authorsBefore = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
         assertEquals("old-authority-value", authorsBefore.get(0).getAuthority());
         assertEquals(Choices.CF_UNCERTAIN, authorsBefore.get(0).getConfidence());
         context.restoreAuthSystemState();
@@ -211,7 +228,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authorsAfter = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals("https://orcid.org/0000-0002-1111-2222", authorsAfter.get(0).getAuthority());
+        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authorsAfter.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authorsAfter.get(0).getConfidence());
     }
 
@@ -252,7 +269,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Checksum X publication")
             .withAuthor("White, Walter")
-            .withMetadata("dc", "identifier", "orcid", "White, Walter 0000-0002-1234-567X")
+            .withMetadata("dc", "identifier", "orcid", "White, Walter 1234-5678-9012-345X")
             .build();
 
         context.restoreAuthSystemState();
@@ -266,7 +283,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals("https://orcid.org/0000-0002-1234-567X", authors.get(0).getAuthority());
+        assertEquals(orcidUrlPrefix + "1234-5678-9012-345X", authors.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
     }
 
@@ -280,7 +297,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Case test publication")
             .withAuthor("smith, donald")
-            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-3456")
             .build();
 
         context.restoreAuthSystemState();
@@ -294,7 +311,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         List<MetadataValue> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
         context.restoreAuthSystemState();
 
-        assertEquals("https://orcid.org/0000-0002-1111-2222", authors.get(0).getAuthority());
+        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authors.get(0).getAuthority());
     }
 
     /**
@@ -307,7 +324,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Non-matching publication")
             .withAuthor("Pinkman, Jesse")
-            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-3456")
             .build();
 
         context.restoreAuthSystemState();
@@ -336,8 +353,8 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
             .withTitle("Multi-ORCID publication")
             .withAuthor("Smith, Donald")
             .withAuthor("Doe, Jane")
-            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
-            .withMetadata("dc", "identifier", "orcid", "Doe, Jane 0000-0002-3333-4444")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-3456")
+            .withMetadata("dc", "identifier", "orcid", "Doe, Jane 1234-5678-9012-7890")
             .build();
 
         context.restoreAuthSystemState();
@@ -355,10 +372,10 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
 
         for (MetadataValue mv : authors) {
             if ("Smith, Donald".equals(mv.getValue())) {
-                assertEquals("https://orcid.org/0000-0002-1111-2222", mv.getAuthority());
+                assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", mv.getAuthority());
                 assertEquals(Choices.CF_ACCEPTED, mv.getConfidence());
             } else if ("Doe, Jane".equals(mv.getValue())) {
-                assertEquals("https://orcid.org/0000-0002-3333-4444", mv.getAuthority());
+                assertEquals(orcidUrlPrefix + "1234-5678-9012-7890", mv.getAuthority());
                 assertEquals(Choices.CF_ACCEPTED, mv.getConfidence());
             }
         }
@@ -376,7 +393,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         Item item = ItemBuilder.createItem(context, publicationCollection)
             .withTitle("Comma mismatch publication")
             .withAuthor("Smith Donald")
-            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 0000-0002-1111-2222")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-3456")
             .build();
 
         context.restoreAuthSystemState();
@@ -391,7 +408,7 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         context.restoreAuthSystemState();
 
         assertThat(authors, hasSize(1));
-        assertEquals("https://orcid.org/0000-0002-1111-2222", authors.get(0).getAuthority());
+        assertEquals(orcidUrlPrefix + "1234-5678-9012-3456", authors.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
     }
 

@@ -32,12 +32,15 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 
 /**
  * Script that assigns ORCID-based authority values to dc.contributor.author metadata
  * by matching author names found in dc.identifier.orcid metadata entries.
  * The script always overwrites existing authority values to keep data up-to-date.
+ * @author Matus Kasak (dspace at dataquest.sk)
  */
 public class OrcidAuthorityAssign
         extends DSpaceRunnable<OrcidAuthorityAssignScriptConfiguration<OrcidAuthorityAssign>> {
@@ -47,17 +50,24 @@ public class OrcidAuthorityAssign
     private static final Pattern ORCID_PATTERN =
             Pattern.compile("(\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX])");
 
-    private static final String ORCID_URL_PREFIX = "https://orcid.org/";
-
+    private ConfigurationService configurationService;
     private MetadataFieldService metadataFieldService;
     private MetadataValueService metadataValueService;
 
+    private String orcidUrlPrefix;
     private Context context;
 
     @Override
     public void setup() throws ParseException {
         this.metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
         this.metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
+        this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+
+        String domainUrl = configurationService.getProperty("orcid.domain-url");
+        if (StringUtils.isBlank(domainUrl)) {
+            throw new IllegalStateException("Configuration property 'orcid.domain-url' is not set.");
+        }
+        this.orcidUrlPrefix = domainUrl.trim().endsWith("/") ? domainUrl.trim() : domainUrl.trim() + "/";
     }
 
     @Override
@@ -158,7 +168,7 @@ public class OrcidAuthorityAssign
             String orcidId = authorNameToOrcid.get(normalizedAuthor);
 
             if (orcidId != null) {
-                String authorityValue = ORCID_URL_PREFIX + orcidId;
+                String authorityValue = orcidUrlPrefix + orcidId;
                 authorMv.setAuthority(authorityValue);
                 authorMv.setConfidence(Choices.CF_ACCEPTED);
                 metadataValueService.update(context, authorMv, true);
