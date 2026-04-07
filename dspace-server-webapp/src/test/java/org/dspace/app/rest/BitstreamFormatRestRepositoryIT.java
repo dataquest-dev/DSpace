@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
@@ -38,6 +39,7 @@ import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.core.I18nUtil;
 import org.dspace.eperson.EPerson;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +58,12 @@ public class BitstreamFormatRestRepositoryIT extends AbstractControllerIntegrati
     @Autowired
     private BitstreamFormatConverter bitstreamFormatConverter;
 
-    private final int DEFAULT_AMOUNT_FORMATS = 95;
+    private int DEFAULT_AMOUNT_FORMATS;
+
+    @Before
+    public void init() throws SQLException {
+        DEFAULT_AMOUNT_FORMATS = bitstreamFormatService.findAll(context).size();
+    }
 
     @Test
     public void findAllPaginationTest() throws Exception {

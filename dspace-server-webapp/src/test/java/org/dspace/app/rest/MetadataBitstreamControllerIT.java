@@ -7,17 +7,17 @@
  */
 package org.dspace.app.rest;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.zip.Deflater;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.io.IOUtils;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -78,23 +78,22 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
 
     @Test
     public void downloadAllZip() throws Exception {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ZipArchiveOutputStream zip = new ZipArchiveOutputStream(byteArrayOutputStream);
-        zip.setCreateUnicodeExtraFields(ZipArchiveOutputStream.UnicodeExtraFieldPolicy.ALWAYS);
-        zip.setLevel(Deflater.NO_COMPRESSION);
-        ZipArchiveEntry ze = new ZipArchiveEntry(bts.getName());
-        zip.putArchiveEntry(ze);
-        InputStream is = bitstreamService.retrieve(context, bts);
-        org.apache.commons.compress.utils.IOUtils.copy(is, zip);
-        zip.closeArchiveEntry();
-        is.close();
-        zip.close();
+        String bitstreamContent = "ThisIsSomeDummyText";
 
         String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get(METADATABITSTREAM_ENDPOINT + "/" + publicItem.getID() +
+        byte[] responseBytes = getClient(token).perform(get(METADATABITSTREAM_ENDPOINT + "/" + publicItem.getID() +
                         "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, publicItem.getHandle()))
                 .andExpect(status().isOk())
-                .andExpect(content().bytes(byteArrayOutputStream.toByteArray()));
+                .andReturn().getResponse().getContentAsByteArray();
 
+        // Verify the ZIP content by extracting and comparing the entry
+        try (ZipArchiveInputStream zipIn = new ZipArchiveInputStream(new ByteArrayInputStream(responseBytes))) {
+            ZipArchiveEntry entry = zipIn.getNextZipEntry();
+            // Verify entry name matches bitstream name
+            assertEquals(bts.getName(), entry.getName());
+            // Verify uncompressed content matches the original bitstream content
+            byte[] extractedBytes = org.apache.commons.compress.utils.IOUtils.toByteArray(zipIn);
+            assertArrayEquals(bitstreamContent.getBytes(CharEncoding.UTF_8), extractedBytes);
+        }
     }
 }
