@@ -40,7 +40,6 @@ import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
 
 public class IIIFControllerIT extends AbstractControllerIntegrationTest {
 
@@ -51,9 +50,6 @@ public class IIIFControllerIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ConfigurationService configurationService;
-
-    @Autowired
-    private CacheManager cacheManager;
 
     @Test
     public void disabledTest() throws Exception {
@@ -1275,9 +1271,6 @@ public class IIIFControllerIT extends AbstractControllerIntegrationTest {
             .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
             .andExpect(status().isOk());
 
-        // Explicitly evict the cached manifest to ensure the updated data is returned
-        cacheManager.getCache("manifests").evictIfPresent(publicItem1.getID().toString());
-
         // Verify that the updated canvas label is in the manifest.
         getClient().perform(get("/iiif/" + publicItem1.getID() + "/manifest"))
                    .andExpect(status().isOk())
@@ -1399,9 +1392,6 @@ public class IIIFControllerIT extends AbstractControllerIntegrationTest {
                                 .content(patchRequestBody)
                                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                         .andExpect(status().isOk());
-
-        // Explicitly evict the cached manifest to ensure the updated data is returned
-        cacheManager.getCache("manifests").evictIfPresent(publicItem1.getID().toString());
 
         // Verify that the updated title is in the manifest.
         getClient().perform(get("/iiif/" + publicItem1.getID() + "/manifest"))

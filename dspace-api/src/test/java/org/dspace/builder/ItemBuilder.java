@@ -399,7 +399,7 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     @Override
     public void cleanup() throws Exception {
-       try (Context c = new Context()) {
+        try (Context c = new Context()) {
             c.setDispatcher("noindex");
             c.turnOffAuthorisationSystem();
             // If the workspaceItem used to create this item still exists, delete it
@@ -413,7 +413,7 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
                  delete(c, item);
             }
             c.complete();
-       }
+        }
     }
 
     @Override
