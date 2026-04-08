@@ -98,7 +98,7 @@ public class RequiredMetadataIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void testPerform() throws IOException {
         CoreServiceFactory.getInstance().getPluginService().clearNamedPluginClasses();
-        
+
         Curator curator = new Curator();
         curator.addTask(TASK_NAME);
         CuratorReportTest.ListReporter reporter = new CuratorReportTest.ListReporter();
