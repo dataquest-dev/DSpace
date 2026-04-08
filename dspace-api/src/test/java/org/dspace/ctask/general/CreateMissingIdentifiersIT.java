@@ -23,8 +23,6 @@ import org.dspace.identifier.VersionedHandleIdentifierProvider;
 import org.dspace.identifier.VersionedHandleIdentifierProviderWithCanonicalHandles;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -40,28 +38,6 @@ public class CreateMissingIdentifiersIT
     private static final String TASK_NAME = "test";
 
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-
-    /**
-     * Original value of the curation task plugin configuration, saved before test modifications.
-     */
-    private String[] originalTaskDefs;
-
-    @Before
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        // Save the original curation task configuration so we can restore it after the test
-        originalTaskDefs = configurationService.getArrayProperty(P_TASK_DEF);
-    }
-
-    @After
-    @Override
-    public void destroy() throws Exception {
-        // Restore the original curation task configuration to avoid polluting other tests
-        configurationService.setProperty(P_TASK_DEF, originalTaskDefs);
-        CoreServiceFactory.getInstance().getPluginService().clearNamedPluginClasses();
-        super.destroy();
-    }
 
     @Test
     public void testPerform()
