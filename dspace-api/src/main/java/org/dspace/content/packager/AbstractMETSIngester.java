@@ -129,7 +129,7 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
             = DSpaceServicesFactory.getInstance().getConfigurationService();
 
 
-    protected AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+    protected final AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
 
 
     /**
@@ -774,7 +774,14 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
             manifest.crosswalkBitstream(context, params, bitstream, mfileID,
                                         mdRefCallback);
 
-            authorizeService.addPolicies(context, bitstreamPolicies, bitstream);
+            // Only add the saved TYPE_SUBMISSION policies if the crosswalk actually removed them to prevent duplicates.
+            if (!bitstreamPolicies.isEmpty()) {
+                List<ResourcePolicy> remainingSubmissionPolicies =
+                    authorizeService.findPoliciesByDSOAndType(context, bitstream, ResourcePolicy.TYPE_SUBMISSION);
+                if (remainingSubmissionPolicies.isEmpty()) {
+                    authorizeService.addPolicies(context, bitstreamPolicies, bitstream);
+                }
+            }
 
             // is this the primary bitstream?
             if (primaryID != null && mfileID.equals(primaryID)) {
