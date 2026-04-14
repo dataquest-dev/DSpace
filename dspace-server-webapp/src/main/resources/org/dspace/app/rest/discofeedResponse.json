@@ -1,0 +1,14 @@
+[
+  {
+    "entityID": "https://idp.example.org/idp/shibboleth",
+    "DisplayNames": [
+      {"value": "Example University", "lang": "en"}
+    ]
+  },
+  {
+    "entityID": "https://idp2.example.org/idp/shibboleth",
+    "DisplayNames": [
+      {"value": "Test University", "lang": "en"}
+    ]
+  }
+]

@@ -241,3 +241,26 @@ db.password = dspace
 #  LDN INBOX SETTINGS  #
 ########################
 ldn.enabled = true
+
+#------------------------------------------------------------------#
+#-----------------------DISCOFEED / SHIBBOLETH---------------------#
+#------------------------------------------------------------------#
+
+# Master switch - set to true to enable the /api/discojuice/feeds endpoint
+shibboleth.discofeed.allowed = true
+
+# Where to fetch the IdP list from.
+# Option A: Use a test file (for local development without a Shibboleth SP):
+# shibboleth.discofeed.url = TEST:/org/dspace/app/rest/discofeedResponse.json
+# Option B: Use a real Shibboleth SP (for staging/production):
+shibboleth.discofeed.url = https://lindat.mff.cuni.cz/Shibboleth.sso/DiscoFeed
+
+# How often to refresh the cached feed (Spring cron = seconds min hour day month weekday)
+# This means: every 2 hours
+discojuice.refresh = 0 0 */2 * * ?
+
+# List of entityIDs whose country should be rewritten (can be empty placeholders)
+discojuice.rewriteCountries = https://idp.scc.kit.edu/idp/shibboleth
+
+# Disable SSL certificate check for the discofeed URL (useful for self-signed certs in dev)
+disable.ssl.check.specific.requests = true
