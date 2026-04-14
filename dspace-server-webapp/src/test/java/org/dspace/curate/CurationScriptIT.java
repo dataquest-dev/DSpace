@@ -667,7 +667,7 @@ public class CurationScriptIT extends AbstractControllerIntegrationTest {
                 // MetadataValueLinkChecker uri field with regular link
                 .withMetadata("dc", "description", null, "https://google.com")
                 // MetadataValueLinkChecker uri field with redirect link
-                .withMetadata("dc", "description", "uri", "https://demo7.dspace.org/handle/123456789/1")
+                .withMetadata("dc", "description", "uri", "http://google.com")
                 // MetadataValueLinkChecker uri field with non resolving link
                 .withMetadata("dc", "description", "uri", "https://www.atmire.com/broken-link")
                 .withSubject("ExtraEntry")
