@@ -11,7 +11,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lyncode.xoai.dataprovider.xml.xoai.Element;
@@ -107,14 +109,55 @@ public class ItemUtils {
         return e;
     }
 
+    /**
+     * Default list of bundle names that must never be exposed through OAI-PMH.
+     * These are typically derivative bundles produced by {@code dspace filter-media}
+     * (extracted plain-text for indexing, generated thumbnails) or internal bundles
+     * such as the SWORD deposit package. Exposing them leaks content that is not
+     * intended to be a first-class resource of the item (see ufal/clarin-dspace#1355).
+     * The list is overridable through the {@code oai.bundle.excluded} configuration
+     * property (comma separated list of bundle names).
+     */
+    private static final String[] DEFAULT_EXCLUDED_BUNDLES = new String[] {
+        "TEXT", "THUMBNAIL", "SWORD"
+    };
+
+    /**
+     * @return the names of the bundles that must not be exposed through OAI-PMH.
+     */
+    private static Set<String> getExcludedBundleNames() {
+        String[] configured = configurationService
+                .getArrayProperty("oai.bundle.excluded");
+        String[] effective = (configured != null && configured.length > 0)
+                ? configured
+                : DEFAULT_EXCLUDED_BUNDLES;
+        Set<String> excluded = new HashSet<>();
+        for (String name : effective) {
+            if (name != null) {
+                String trimmed = name.trim();
+                if (!trimmed.isEmpty()) {
+                    excluded.add(trimmed);
+                }
+            }
+        }
+        return excluded;
+    }
+
     private static Element createBundlesElement(Context context, Item item, AtomicBoolean restricted)
             throws SQLException {
         Element bundles = create("bundles");
 
         List<Bundle> bs;
 
+        Set<String> excludedBundleNames = getExcludedBundleNames();
+
         bs = item.getBundles();
         for (Bundle b : bs) {
+            // Skip bundles that must not be exposed via OAI-PMH (e.g. TEXT/THUMBNAIL
+            // bundles produced by `dspace filter-media`). See ufal/clarin-dspace#1355.
+            if (b.getName() != null && excludedBundleNames.contains(b.getName())) {
+                continue;
+            }
             Element bundle = create("bundle");
             bundles.getElement().add(bundle);
             bundle.getField().add(createValue("name", b.getName()));
