@@ -114,7 +114,7 @@ public class ItemUtils {
      * These are typically derivative bundles produced by {@code dspace filter-media}
      * (extracted plain-text for indexing, generated thumbnails) or internal bundles
      * such as the SWORD deposit package. Exposing them may leak content that is not
-     * intended to be a first-class resource of the item (see ufal/clarin-dspace#1355).
+     * intended to be a first-class resource of the item.
      * The {@code oai.bundle.excluded} configuration property, when set, overrides
      * this default list with a comma-separated list of bundle names.
      */
@@ -156,7 +156,7 @@ public class ItemUtils {
         bs = item.getBundles();
         for (Bundle b : bs) {
             // Skip bundles that must not be exposed via OAI-PMH (e.g. TEXT/THUMBNAIL
-            // bundles produced by `dspace filter-media`). See ufal/clarin-dspace#1355.
+            // bundles produced by `dspace filter-media`).
             if (b.getName() != null && excludedBundleNames.contains(b.getName())) {
                 continue;
             }
