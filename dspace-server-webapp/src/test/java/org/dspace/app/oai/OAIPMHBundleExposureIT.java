@@ -51,7 +51,7 @@ public class OAIPMHBundleExposureIT extends AbstractControllerIntegrationTest {
             ContentServiceFactory.getInstance().getBundleService();
 
     private Collection collection;
-        private String originalOaiBundleExcluded;
+    private String originalOaiBundleExcluded;
 
     @Before
     public void setupStructure() throws Exception {
