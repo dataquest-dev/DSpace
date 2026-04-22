@@ -110,20 +110,22 @@ public class ItemUtils {
     }
 
     /**
-     * Default list of bundle names that must never be exposed through OAI-PMH.
+     * Default list of bundle names excluded from OAI-PMH exposure.
      * These are typically derivative bundles produced by {@code dspace filter-media}
      * (extracted plain-text for indexing, generated thumbnails) or internal bundles
-     * such as the SWORD deposit package. Exposing them leaks content that is not
+     * such as the SWORD deposit package. Exposing them may leak content that is not
      * intended to be a first-class resource of the item (see ufal/clarin-dspace#1355).
-     * The list is overridable through the {@code oai.bundle.excluded} configuration
-     * property (comma separated list of bundle names).
+     * The {@code oai.bundle.excluded} configuration property, when set, overrides
+     * this default list with a comma-separated list of bundle names.
      */
     private static final String[] DEFAULT_EXCLUDED_BUNDLES = new String[] {
         "TEXT", "THUMBNAIL", "SWORD"
     };
 
     /**
-     * @return the names of the bundles that must not be exposed through OAI-PMH.
+     * @return the effective names of bundles excluded from OAI-PMH exposure,
+     * using {@code oai.bundle.excluded} when configured, or the default
+     * excluded bundle list otherwise.
      */
     private static Set<String> getExcludedBundleNames() {
         String[] configured = configurationService
