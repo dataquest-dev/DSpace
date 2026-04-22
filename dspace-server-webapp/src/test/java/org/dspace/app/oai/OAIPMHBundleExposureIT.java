@@ -31,6 +31,7 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.xoai.util.ItemUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,7 @@ public class OAIPMHBundleExposureIT extends AbstractControllerIntegrationTest {
             ContentServiceFactory.getInstance().getBundleService();
 
     private Collection collection;
+        private String originalOaiBundleExcluded;
 
     @Before
     public void setupStructure() throws Exception {
@@ -61,6 +63,14 @@ public class OAIPMHBundleExposureIT extends AbstractControllerIntegrationTest {
                 .withName("Test Collection")
                 .build();
         context.restoreAuthSystemState();
+
+        // Preserve the loaded value so each test can safely mutate this property.
+        originalOaiBundleExcluded = configurationService.getProperty("oai.bundle.excluded");
+    }
+
+    @After
+    public void restoreOaiBundleExcludedConfiguration() {
+        configurationService.setProperty("oai.bundle.excluded", originalOaiBundleExcluded);
     }
 
     /**
@@ -149,19 +159,16 @@ public class OAIPMHBundleExposureIT extends AbstractControllerIntegrationTest {
     @Test
     public void customExcludedBundles_allowsOverrideOfDefaults() throws Exception {
         configurationService.setProperty("oai.bundle.excluded", "THUMBNAIL");
-        try {
-            Item item = buildItemWithDerivativeBundles();
-            Metadata metadata = ItemUtils.retrieveMetadata(context, item);
 
-            List<String> exposed = bundleNames(metadata);
+        Item item = buildItemWithDerivativeBundles();
+        Metadata metadata = ItemUtils.retrieveMetadata(context, item);
 
-            assertThat("With a custom exclusion list the ORIGINAL, TEXT and SWORD "
-                       + "bundles must be exposed and only THUMBNAIL must be hidden",
-                    exposed,
-                    containsInAnyOrder("ORIGINAL", "TEXT", "SWORD"));
-        } finally {
-            configurationService.setProperty("oai.bundle.excluded", null);
-        }
+        List<String> exposed = bundleNames(metadata);
+
+        assertThat("With a custom exclusion list the ORIGINAL, TEXT and SWORD "
+                   + "bundles must be exposed and only THUMBNAIL must be hidden",
+                exposed,
+                containsInAnyOrder("ORIGINAL", "TEXT", "SWORD"));
     }
 
     /**
@@ -171,18 +178,15 @@ public class OAIPMHBundleExposureIT extends AbstractControllerIntegrationTest {
     @Test
     public void emptyExcludedBundles_fallsBackToDefaults() throws Exception {
         configurationService.setProperty("oai.bundle.excluded", "");
-        try {
-            Item item = buildItemWithDerivativeBundles();
-            Metadata metadata = ItemUtils.retrieveMetadata(context, item);
 
-            List<String> exposed = bundleNames(metadata);
+        Item item = buildItemWithDerivativeBundles();
+        Metadata metadata = ItemUtils.retrieveMetadata(context, item);
 
-            assertThat(exposed, hasItem("ORIGINAL"));
-            assertThat(exposed, not(hasItem("TEXT")));
-            assertThat(exposed, not(hasItem("THUMBNAIL")));
-            assertThat(exposed, not(hasItem("SWORD")));
-        } finally {
-            configurationService.setProperty("oai.bundle.excluded", null);
-        }
+        List<String> exposed = bundleNames(metadata);
+
+        assertThat(exposed, hasItem("ORIGINAL"));
+        assertThat(exposed, not(hasItem("TEXT")));
+        assertThat(exposed, not(hasItem("THUMBNAIL")));
+        assertThat(exposed, not(hasItem("SWORD")));
     }
 }
