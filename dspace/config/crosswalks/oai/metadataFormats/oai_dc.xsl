@@ -130,16 +130,25 @@
 			<xsl:variable name="hasAuthors" select="boolean(doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value'])" />
 			<xsl:variable name="hasTitle" select="boolean(doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value'])" />
 			<xsl:variable name="hasYear" select="boolean(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value'])" />
+			<!-- Lower→upper mapy pre uppercase priezvisk vrátane českej diakritiky (XSLT 1.0 translate funguje na úrovni Unicode codepointov) -->
+			<xsl:variable name="lc">abcdefghijklmnopqrstuvwxyzáäčďéěíĺľňóôöřšťúůýžàâãåæçèêëìîïðñòõøùûüýÿ</xsl:variable>
+			<xsl:variable name="uc">ABCDEFGHIJKLMNOPQRSTUVWXYZÁÄČĎÉĚÍĹĽŇÓÔÖŘŠŤÚŮÝŽÀÂÃÅÆÇÈÊËÌÎÏÐÑÒÕØÙÛÜÝŸ</xsl:variable>
 			<xsl:if test="$hasAuthors or $hasTitle or $hasYear">
 				<dc:identifier>
-					<!-- AUTHORS: "Priezvisko, Krstné; Priezvisko2, Krstné2. " -->
+					<!-- AUTHORS: "PRIEZVISKO, Krstné; PRIEZVISKO2, Krstné2; " (priezvisko VEĽKÝM PÍSMOM, ako v DSpace 6 pre Citace PRO) -->
 					<xsl:if test="$hasAuthors">
 						<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value']">
-							<xsl:value-of select="." />
 							<xsl:choose>
-								<xsl:when test="position() = last()"><xsl:text>. </xsl:text></xsl:when>
-								<xsl:otherwise><xsl:text>; </xsl:text></xsl:otherwise>
+								<xsl:when test="contains(., ',')">
+									<xsl:value-of select="translate(substring-before(., ','), $lc, $uc)" />
+									<xsl:text>,</xsl:text>
+									<xsl:value-of select="substring-after(., ',')" />
+								</xsl:when>
+								<xsl:otherwise>
+									<xsl:value-of select="translate(., $lc, $uc)" />
+								</xsl:otherwise>
 							</xsl:choose>
+							<xsl:text>; </xsl:text>
 						</xsl:for-each>
 					</xsl:if>
 					<!-- YEAR: "2024. " -->
