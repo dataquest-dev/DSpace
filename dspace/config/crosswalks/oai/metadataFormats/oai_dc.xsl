@@ -115,18 +115,112 @@
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element/doc:field[@name='value']">
 				<dc:identifier><xsl:value-of select="." /></dc:identifier>
 			</xsl:for-each>
-			<!-- dc.identifier - formatted with additional metadata -->
-			<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value']">
+			<!-- dc.identifier - úplná citácia v ČSN ISO 690 formáte (pre Citace PRO) -->
+			<!-- Replikuje pôvodnú hodnotu dc.identifier.citation z DSpace 6 (Mirage2 itemSummaryView-DIM-cite-test) -->
+			<xsl:variable name="citType">
+				<xsl:choose>
+					<xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element[@name='none']/doc:field[@name='value']">
+						<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element[@name='none']/doc:field[@name='value'][1]" />
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'][1]" />
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:variable>
+			<xsl:variable name="hasAuthors" select="boolean(doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value'])" />
+			<xsl:variable name="hasTitle" select="boolean(doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value'])" />
+			<xsl:variable name="hasYear" select="boolean(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value'])" />
+			<xsl:if test="$hasAuthors or $hasTitle or $hasYear">
 				<dc:identifier>
-					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element/doc:field[@name='value']" />
-					<xsl:text>. </xsl:text>
-					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']" />
-					<xsl:text>, vol. </xsl:text>
-					<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value']" />
-					<xsl:text>, č. </xsl:text>
-					<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value']" />
-					<!-- We do not have any information about pages, so it is `s. 0` by default -->
-					<xsl:text>, s. 0.</xsl:text>
+					<!-- AUTHORS: "Priezvisko, Krstné; Priezvisko2, Krstné2. " -->
+					<xsl:if test="$hasAuthors">
+						<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value']">
+							<xsl:value-of select="." />
+							<xsl:choose>
+								<xsl:when test="position() = last()"><xsl:text>. </xsl:text></xsl:when>
+								<xsl:otherwise><xsl:text>; </xsl:text></xsl:otherwise>
+							</xsl:choose>
+						</xsl:for-each>
+					</xsl:if>
+					<!-- YEAR: "2024. " -->
+					<xsl:if test="$hasYear">
+						<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']" />
+						<xsl:text>. </xsl:text>
+					</xsl:if>
+					<!-- TITLE: "Title. " -->
+					<xsl:if test="$hasTitle">
+						<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value'][1]" />
+						<xsl:text>. </xsl:text>
+					</xsl:if>
+					<!-- Source / journal / book name (dc.relation.ispartof) -->
+					<xsl:variable name="ispartof" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element/doc:field[@name='value']" />
+					<xsl:if test="$ispartof != ''">
+						<xsl:value-of select="$ispartof" />
+						<xsl:text>. </xsl:text>
+					</xsl:if>
+					<xsl:choose>
+						<!-- Article: "volume(issue), pages. " -->
+						<xsl:when test="$citType = 'article' or $citType = 'conferenceObject' or contains($citType, 'J_')">
+							<xsl:variable name="vol" select="doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value']" />
+							<xsl:variable name="num" select="doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value']" />
+							<xsl:variable name="pages" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='format']/doc:element[@name='none']/doc:field[@name='value'] | doc:metadata/doc:element[@name='dc']/doc:element[@name='format']/doc:element[not(@name='none')]/doc:field[@name='value']" />
+							<xsl:if test="$vol != ''">
+								<xsl:value-of select="$vol" />
+								<xsl:if test="$num != ''">
+									<xsl:text>(</xsl:text>
+									<xsl:value-of select="$num" />
+									<xsl:text>)</xsl:text>
+								</xsl:if>
+							</xsl:if>
+							<xsl:if test="$pages[1] != ''">
+								<xsl:if test="$vol != ''"><xsl:text>, </xsl:text></xsl:if>
+								<xsl:value-of select="$pages[1]" />
+							</xsl:if>
+							<xsl:if test="$vol != '' or $pages[1] != ''"><xsl:text>. </xsl:text></xsl:if>
+						</xsl:when>
+						<!-- Book / bookPart / workingPaper / other: publisher, pages -->
+						<xsl:otherwise>
+							<xsl:variable name="publisher" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']" />
+							<xsl:variable name="pages2" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='format']/doc:element/doc:field[@name='value']" />
+							<xsl:if test="$publisher != ''">
+								<xsl:value-of select="$publisher" />
+								<xsl:text>. </xsl:text>
+							</xsl:if>
+							<xsl:if test="$pages2[1] != ''">
+								<xsl:value-of select="$pages2[1]" />
+								<xsl:text>. </xsl:text>
+							</xsl:if>
+						</xsl:otherwise>
+					</xsl:choose>
+					<!-- ISSN -->
+					<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']/doc:element/doc:field[@name='value']">
+						<xsl:text>ISSN </xsl:text>
+						<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']/doc:element/doc:field[@name='value']" />
+						<xsl:text>. </xsl:text>
+					</xsl:if>
+					<!-- ISBN -->
+					<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isbn']/doc:element/doc:field[@name='value']">
+						<xsl:text>ISBN </xsl:text>
+						<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isbn']/doc:element/doc:field[@name='value']" />
+						<xsl:text>. </xsl:text>
+					</xsl:if>
+					<!-- URL: priorita dc.relation.uri (zdrojová stránka článku), inak DOI, inak dc.identifier.uri (handle) -->
+					<xsl:choose>
+						<xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
+							<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='uri']/doc:element/doc:field[@name='value']" />
+						</xsl:when>
+						<xsl:when test="doc:metadata/doc:element[@name='local']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value']">
+							<xsl:text>https://doi.org/</xsl:text>
+							<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value']" />
+						</xsl:when>
+						<xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value']">
+							<xsl:text>https://doi.org/</xsl:text>
+							<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value']" />
+						</xsl:when>
+						<xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
+							<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']" />
+						</xsl:when>
+					</xsl:choose>
 				</dc:identifier>
 			</xsl:if>
 			<!-- dc.identifier.* -->
