@@ -253,6 +253,11 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
      */
     private void validateDcLanguageIso(Item item, StringBuilder results) throws CurateException {
         List<MetadataValue> dcsLanguageIso = itemService.getMetadataByMetadataString(item, "dc.language.iso");
+
+        // build maps of expected and actual language names keyed by place
+        Map<Integer, String> expectedLangNamesByPlace = new HashMap<>();
+        Map<Integer, String> isoCodesByPlace = new HashMap<>();
+
         if (dcsLanguageIso != null && !dcsLanguageIso.isEmpty()) {
             // Validate dc.language.iso codes
             for (MetadataValue langCodeDC : dcsLanguageIso) {
@@ -265,6 +270,12 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
                         String.format("Invalid language code - %s", langCode),
                         Curator.CURATE_FAIL);
                 }
+
+                Integer place = langCodeDC.getPlace();
+                String expectedLangName = IsoLangCodes.getLangForCode(langCode);
+                expectedLangNamesByPlace.put(place, expectedLangName);
+                isoCodesByPlace.put(place, langCode);
+
             }
 
             // Validate local.language.name matches dc.language.iso
@@ -276,15 +287,33 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
                     Curator.CURATE_FAIL);
             }
 
-            // Validate that each language name corresponds to its ISO code
-            for (int i = 0; i < dcsLanguageIso.size(); i++) {
-                String expectedLangName = IsoLangCodes.getLangForCode(dcsLanguageIso.get(i).getValue());
-                String actualLangName = languageNames.get(i).getValue();
+            Map<Integer, String> actualLangNamesByPlace = new HashMap<>();
+            for (MetadataValue languageName : languageNames) {
+                Integer place = languageName.getPlace();
+                String actualLangName = languageName.getValue();
+                actualLangNamesByPlace.put(place, actualLangName);
+            }
+
+            // Ensure that the sets of places match between ISO codes and language names
+            Set<Integer> expectedPlaces = expectedLangNamesByPlace.keySet();
+            Set<Integer> actualPlaces = actualLangNamesByPlace.keySet();
+            if (!expectedPlaces.equals(actualPlaces)) {
+                throw new CurateException(
+                        String.format("local.language.name places %s do not match dc.language.iso places %s",
+                                actualPlaces, expectedPlaces),
+                        Curator.CURATE_FAIL);
+            }
+            // Validate that each language name corresponds to its ISO code for each place
+            for (Integer place : expectedPlaces) {
+                String expectedLangName = expectedLangNamesByPlace.get(place);
+                String actualLangName = actualLangNamesByPlace.get(place);
                 if (!expectedLangName.equals(actualLangName)) {
                     throw new CurateException(
-                        String.format("local.language.name [%s] does not match expected name [%s] for ISO code [%s]",
-                            actualLangName, expectedLangName, dcsLanguageIso.get(i).getValue()),
-                        Curator.CURATE_FAIL);
+                            String.format(
+                                    "local.language.name [%s] at place [%d] does not match expected name [%s] " +
+                                            "for ISO code [%s]",
+                                    actualLangName, place, expectedLangName, isoCodesByPlace.get(place)),
+                            Curator.CURATE_FAIL);
                 }
             }
         }
