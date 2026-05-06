@@ -31,10 +31,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
+ * This check runs the "metadataqa" curation task on the whole repository,
+ * and provides a report about the number of errors and warnings.
+ *
  * @author Milan Kuchtiak
  */
 public class MetadataCheck extends Check {
 
+    private static final String CURATION_TASK_NAME = "metadataqa";
     private static final String QA_METADATA_ERROR_PATTERNS_JSON = "metadata-check-patterns.json";
     private static final String VALIDATION_TYPE_OTHER = "validation.other";
     private static final int COUNT_INDENTATION = 30;
@@ -88,7 +92,7 @@ public class MetadataCheck extends Check {
         JSONObject root = new JSONObject();
 
         Curator curator = new Curator();
-        curator.addTask("metadataqa");
+        curator.addTask(CURATION_TASK_NAME);
 
         MetadataReporter reporter = new MetadataReporter(
                 maxErrorsToShow,
