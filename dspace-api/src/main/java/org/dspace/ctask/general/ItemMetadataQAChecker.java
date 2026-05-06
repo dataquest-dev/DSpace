@@ -275,7 +275,6 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
                 String expectedLangName = IsoLangCodes.getLangForCode(langCode);
                 expectedLangNamesByPlace.put(place, expectedLangName);
                 isoCodesByPlace.put(place, langCode);
-
             }
 
             // Validate local.language.name matches dc.language.iso
