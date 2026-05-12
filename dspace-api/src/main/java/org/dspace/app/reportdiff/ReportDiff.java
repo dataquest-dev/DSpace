@@ -10,7 +10,6 @@ package org.dspace.app.reportdiff;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,6 +21,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.mail.MessagingException;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -83,14 +84,14 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     private List<Integer> specificChecks = new ArrayList<>();
 
     /**
-     * `-f`: From, specify the start date for the report.
+      * `-f`: From, specify source report ID.
      */
-    private Date from = null;
+     private Integer fromReportId = null;
 
     /**
-     * `-t`: Till, specify the end date for the report.
+      * `-t`: Till, specify target report ID.
      */
-    private Date to = null;
+     private Integer toReportId = null;
 
     /**
      * `-e`: Email, send report to specified email address.
@@ -102,6 +103,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     private static final String REPORT_DIFF_FIELDS = "report-diff-fields.json";
     private static final String FIELD_MAPPINGS_KEY = "fieldMappings";
     private static final String FIELD_ORDER_KEY = "fieldOrder";
+    private static final Pattern SHORT_ARG_WITH_VALUE = Pattern.compile("^-([a-zA-Z]):\\s*(.*)$");
+    private static final Pattern SHORT_ARG_WITHOUT_VALUE = Pattern.compile("^-([a-zA-Z])$");
 
     // Field configuration cache
     private static Map<String, String> fieldMappings = null;
@@ -198,10 +201,17 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         }
 
 
-        // `-f`: From, specify the start date for the report.
-        from = parseDateOption(commandLine.getOptionValue('f'));
-        // `-t`: To, specify the end date for the report.
-        to = parseDateOption(commandLine.getOptionValue('t'));
+        // `-f`: From, specify source report ID.
+        fromReportId = parseReportIdOption(commandLine.getOptionValue('f'));
+        if (commandLine.hasOption('f') && fromReportId == null) {
+            return;
+        }
+
+        // `-t`: To, specify target report ID.
+        toReportId = parseReportIdOption(commandLine.getOptionValue('t'));
+        if (commandLine.hasOption('t') && toReportId == null) {
+            return;
+        }
 
         if (commandLine.hasOption('e')) {
             emails = commandLine.getOptionValues('e');
@@ -223,10 +233,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             return;
         }
         try (Context context = new Context()) {
-            defaultDate(context);
+            defaultReportIds(context);
 
-            // If the user specified a specific check, we need to ensure that both `from` and `to` dates are set.
-            if (!validateDateRange()) {
+            if (!validateReportIdSelection()) {
                 return;
             }
 
@@ -259,61 +268,60 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
-     * Parse the date option and return a Date object.
+     * Parse report ID option and return an Integer.
      * If the option is invalid, log an error and return null.
-     * The date format is expected to be "yyyy-MM-dd HH:mm:ss.SSS".
      *
      * @param optionValue the date option value
-     * @return the parsed Date or null if invalid
+     * @return the parsed report ID or null if invalid
      */
-    private Date parseDateOption(String optionValue) {
+    private Integer parseReportIdOption(String optionValue) {
         if (optionValue == null) {
             return null;
         }
         try {
-            LocalDateTime ldt = LocalDateTime.parse(optionValue, FORMATTER);
-            return Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+            return Integer.parseInt(optionValue);
         } catch (Exception e) {
-            handler.logError("Cannot create a Date from the input: " + optionValue);
+            handler.logError("Cannot parse report ID from input: " + optionValue);
             return null;
         }
     }
 
     /**
-     * Validate the date range specified by {@code from} and {@code to}.
-     * Logs a specific error if either date is missing (not provided and not resolvable from the DB)
-     * or if {@code to} precedes {@code from}.
+     * Validate report ID selection for comparison.
+     * If one ID is set, both must be set.
      *
-     * @return true if both dates are set and {@code to} is not before {@code from}, false otherwise
+     * @return true if the report IDs are valid, false otherwise
      */
-    private boolean validateDateRange() {
-        if (to != null && from != null && to.before(from)) {
-            handler.logError("The 'to' date cannot be before the 'from' date.");
+    private boolean validateReportIdSelection() {
+        if ((Objects.isNull(fromReportId) && Objects.nonNull(toReportId))
+                || (Objects.nonNull(fromReportId) && Objects.isNull(toReportId))) {
+            handler.logError("Both 'from' and 'to' report IDs must be specified.");
             return false;
         }
-        if (Objects.isNull(from)) {
-            handler.logError("The 'from' date could not be determined. " +
-                    "Specify it with -f or ensure at least 2 reports exist in the database.");
+
+        if (Objects.nonNull(fromReportId) && fromReportId <= 0) {
+            handler.logError("The 'from' report ID must be a positive integer.");
             return false;
         }
-        if (Objects.isNull(to)) {
-            handler.logError("The 'to' date could not be determined. " +
-                    "Specify it with -t or ensure at least 1 report exists in the database.");
+
+        if (Objects.nonNull(toReportId) && toReportId <= 0) {
+            handler.logError("The 'to' report ID must be a positive integer.");
             return false;
         }
+
         return true;
     }
 
     /**
-     * Sets default values for the `from` and `to` dates if they are not already specified.
+     * Sets default values for the source and target report IDs if not already specified.
      *
      * @param context the application context used for fetching reports and logging
      */
-    private void defaultDate(Context context) {
-        if (Objects.nonNull(from) && Objects.nonNull(to)) {
+    private void defaultReportIds(Context context) {
+        if (Objects.nonNull(fromReportId) && Objects.nonNull(toReportId)) {
             return;
         }
-        handler.logInfo("No dates specified, using the last two dates from the database.");
+        handler.logInfo("No report IDs specified, using the last two reports from the database.");
         try {
             List<ReportResult> allReports = reportResultService.findAll(context);
 
@@ -324,11 +332,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
             int size = allReports.size();
 
-            if (Objects.isNull(to) && size > 0) {
-                to = allReports.get(size - 1).getLastModified();
+            if (Objects.isNull(toReportId) && size > 0) {
+                toReportId = allReports.get(size - 1).getID();
             }
-            if (Objects.isNull(from) && size > 1) {
-                from = allReports.get(size - 2).getLastModified();
+            if (Objects.isNull(fromReportId) && size > 1) {
+                fromReportId = allReports.get(size - 2).getID();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -336,10 +344,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
-     * Display all report dates for the specified check type.
+        * Display available reports with their IDs and timestamps.
      * If no reports are found, log an appropriate message.
-     * Display the last 20 report dates for each type, sorted by date.
-     * In the format "Report Type: <type>\n  - <date> | <args>\n",
+        * Display the last 20 report entries for each type, sorted by date.
+        * In the format "Report Type: <type>\n  - ID: <id> | <date> | <args>\n",
      */
     private void displayReportDates() {
         try (Context context = new Context()) {
@@ -355,10 +363,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                         .toInstant()
                         .atZone(ZoneId.systemDefault()).toLocalDateTime());
                 reportDatesMap.computeIfAbsent(report.getType(), k -> new ArrayList<>())
-                        .add(new DateWithArgs(formattedDate, report.getArgs()));
+                    .add(new DateWithArgs(report.getID(), formattedDate, report.getArgs()));
             }
 
-            StringBuilder sb = new StringBuilder("Report Dates Summary:\n");
+            StringBuilder sb = new StringBuilder("Available Reports Summary:\n");
             reportDatesMap.forEach((type, dates) -> {
                 sb.append("Report Type: ").append(type).append("\n");
                 dates.stream()
@@ -366,15 +374,96 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                         .limit(20)
                         .forEach(dwa -> sb
                                 .append("  - ")
+                                .append("ID: ").append(dwa.getId())
+                                .append(" | ")
                                 .append(dwa.getDate())
                                 .append(" | ")
-                                .append(dwa.getArgs() != null ? dwa.getArgs().strip() : "")
+                                .append(formatReportArgsForDisplay(dwa.getArgs()))
                                 .append("\n"));
             });
 
             handler.logInfo(sb.toString());
         } catch (Exception e) {
             handler.logError("Error fetching report dates: " + e.getMessage());
+        }
+    }
+
+    private String formatReportArgsForDisplay(String args) {
+        if (args == null || args.isBlank()) {
+            return "";
+        }
+
+        List<String> formattedEntries = new ArrayList<>();
+        String[] lines = args.split("\\r?\\n");
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+
+            Matcher withValue = SHORT_ARG_WITH_VALUE.matcher(trimmed);
+            if (withValue.matches()) {
+                String shortOpt = withValue.group(1);
+                String value = withValue.group(2);
+                String longOpt = resolveHealthReportLongOption(shortOpt);
+
+                if ("c".equals(shortOpt)) {
+                    value = appendCheckName(value);
+                }
+
+                if (longOpt != null) {
+                    formattedEntries.add("--" + longOpt + ": " + value);
+                } else {
+                    formattedEntries.add(trimmed);
+                }
+                continue;
+            }
+
+            Matcher withoutValue = SHORT_ARG_WITHOUT_VALUE.matcher(trimmed);
+            if (withoutValue.matches()) {
+                String shortOpt = withoutValue.group(1);
+                String longOpt = resolveHealthReportLongOption(shortOpt);
+                if (longOpt != null) {
+                    formattedEntries.add("--" + longOpt);
+                } else {
+                    formattedEntries.add(trimmed);
+                }
+                continue;
+            }
+
+            formattedEntries.add(trimmed);
+        }
+
+        return String.join(", ", formattedEntries);
+    }
+
+    private String resolveHealthReportLongOption(String shortOpt) {
+        switch (shortOpt) {
+            case "h":
+                return "help";
+            case "e":
+                return "email";
+            case "c":
+                return "check";
+            case "f":
+                return "for";
+            case "r":
+                return "report";
+            default:
+                return null;
+        }
+    }
+
+    private String appendCheckName(String value) {
+        try {
+            int checkIndex = Integer.parseInt(value.trim());
+            String checkName = HealthReport.getCheckName(checkIndex);
+            if (checkName != null) {
+                return checkIndex + " (" + checkName + ")";
+            }
+            return value;
+        } catch (NumberFormatException e) {
+            return value;
         }
     }
 
@@ -390,11 +479,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         try {
             context.setCurrentUser(ePersonService.find(context, getEpersonIdentifier()));
 
-            ReportResult fromReport = reportResultService.findByLastModified(context, from);
-            ReportResult toReport = reportResultService.findByLastModified(context, to);
+            ReportResult fromReport = reportResultService.find(context, fromReportId);
+            ReportResult toReport = reportResultService.find(context, toReportId);
 
             if (fromReport == null || toReport == null) {
-                handler.logInfo("No reports found for specified dates.");
+                handler.logInfo("No reports found for specified report IDs.");
                 return;
             }
 
@@ -577,8 +666,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
         // Report metadata
         sb.append("Report Type: ").append(toReport.getType()).append("\n");
-        sb.append("From: ").append(fromReport.getLastModified()).append("\n");
-        sb.append("To: ").append(toReport.getLastModified()).append("\n");
+        sb.append("Source Report: ID ").append(fromReport.getID())
+            .append(" at ").append(fromReport.getLastModified()).append("\n");
+        sb.append("Target Report: ID ").append(toReport.getID())
+            .append(" at ").append(toReport.getLastModified()).append("\n");
 
         // Calculate time period
         String timePeriod = calculateTimePeriod(fromReport.getLastModified(), toReport.getLastModified());
@@ -674,6 +765,20 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @return difference string
      */
     private String calculateDifference(JsonNode oldValue, JsonNode newValue) {
+        if (oldValue == null || newValue == null
+                || oldValue.isMissingNode() || newValue.isMissingNode()
+                || oldValue.isNull() || newValue.isNull()) {
+            if ((oldValue == null || oldValue.isMissingNode() || oldValue.isNull())
+                    && !(newValue == null || newValue.isMissingNode() || newValue.isNull())) {
+                return "Added";
+            }
+            if ((newValue == null || newValue.isMissingNode() || newValue.isNull())
+                    && !(oldValue == null || oldValue.isMissingNode() || oldValue.isNull())) {
+                return "Removed";
+            }
+            return "Changed";
+        }
+
         if (oldValue.isNumber() && newValue.isNumber()) {
             long oldNum = oldValue.asLong();
             long newNum = newValue.asLong();
@@ -1050,10 +1155,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     public void printHelp() {
         handler.printHelp(getScriptConfiguration().getOptions(), getScriptConfiguration().getName());
         handler.logInfo("This script compares two health reports and shows the differences between them.");
-        handler.logInfo("You can specify the 'from' and 'to' dates to compare reports from specific dates.");
-        handler.logInfo("If you want to see all available report dates, use the '-d' option.");
+        handler.logInfo("You can specify the 'from' and 'to' report IDs to compare specific reports.");
+        handler.logInfo("If you want to see all available reports with IDs, use the '-d' option.");
         handler.logInfo("If you want to compare a specific check, use the '-c' option with the check index, " +
-                "in this case you must also specify the `from` and `to` dates.");
+                "in this case you must also specify the `from` and `to` report IDs.");
         handler.logInfo("If you want to send the report to a specified email address, use '-e'.");
     }
 
@@ -1228,12 +1333,18 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
  * Used for displaying report dates with their arguments.
  */
 class DateWithArgs {
+    private final Integer id;
     private final String date;
     private final String args;
 
-    public DateWithArgs(String date, String args) {
+    public DateWithArgs(Integer id, String date, String args) {
+        this.id = id;
         this.date = date;
         this.args = args;
+    }
+
+    public Integer getId() {
+        return id;
     }
 
     public String getDate() {

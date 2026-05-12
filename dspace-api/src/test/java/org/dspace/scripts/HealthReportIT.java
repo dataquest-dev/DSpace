@@ -34,11 +34,13 @@ import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.content.ReportResult;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
 import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ReportResultService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
@@ -253,4 +255,20 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
         String content = Files.readString(tempFile.toPath());
         assertThat("Report file must contain health report header", content, containsString("HEALTH REPORT:"));
     }
+        @Test
+        public void testStoredArgsContainAllCheckOptions() throws Exception {
+                ReportResultService reportResultService = ContentServiceFactory.getInstance().getReportResultService();
+
+                TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+                String[] args = new String[] { "health-report", "-c", "2", "-c", "3" };
+                ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+                context.reloadEntity(eperson);
+                List<ReportResult> allReports = reportResultService.findAll(context);
+                ReportResult latest = allReports.get(allReports.size() - 1);
+
+                assertThat(handler.getErrorMessages(), empty());
+                assertThat(latest.getArgs(), containsString("-c: 2"));
+                assertThat(latest.getArgs(), containsString("-c: 3"));
+        }
 }

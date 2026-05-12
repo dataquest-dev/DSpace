@@ -44,16 +44,16 @@ public class ReportDiffScriptConfiguration<T extends ReportDiff> extends ScriptC
                             HealthReport.getNumberOfChecks() - 1));
             options.getOption("c").setType(String.class);
 
-            options.addOption("d", "dates", false, "Show all report dates");
+            options.addOption("d", "dates", false, "Show available reports (ID, timestamp, args)");
 
             options.addOption("l", "limit", true,
                     "Limit the number of entries (use only with -d). If omitted, all entries are shown.");
             options.getOption("l").setType(String.class);
 
-            options.addOption("f", "from", true,"Report from specific date [YYYY-MM-DD HH:mm:ss.SSS].");
+            options.addOption("f", "from", true,"Source report ID (integer).");
             options.getOption("f").setType(String.class);
 
-            options.addOption("t", "to", true,"Report to specific date [YYYY-MM-DD HH:mm:ss.SSS].");
+            options.addOption("t", "to", true,"Target report ID (integer).");
             options.getOption("t").setType(String.class);
 
             super.options =  options;

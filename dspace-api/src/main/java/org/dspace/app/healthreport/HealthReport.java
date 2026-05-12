@@ -16,9 +16,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import javax.mail.MessagingException;
 
 import org.apache.commons.cli.Option;
@@ -217,6 +219,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             if (reportFile != null) {
                 InputStream inputStream = toInputStream(sbReport.toString(), StandardCharsets.UTF_8);
                 handler.writeFilestream(context, reportFile, inputStream, "export");
+                context.commit();
 
                 context.restoreAuthSystemState();
 
@@ -260,11 +263,20 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
      */
     private String printCommandlineOptions() {
         StringBuilder options = new StringBuilder();
+        Set<String> processedOptions = new LinkedHashSet<>();
+
         for (Option option : commandLine.getOptions()) {
             String key = option.getOpt();
+            if (key == null || processedOptions.contains(key)) {
+                continue;
+            }
+            processedOptions.add(key);
+
             String[] values = commandLine.getOptionValues(key);
-            if (values != null) {
-                options.append(String.format("  -%s: %s\n", key, String.join(", ", values)));
+            if (values != null && values.length > 0) {
+                for (String value : values) {
+                    options.append(String.format("  -%s: %s\n", key, value));
+                }
             } else {
                 options.append(String.format("  -%s\n", key));
             }
