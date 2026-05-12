@@ -118,15 +118,26 @@
 			<!-- dc.identifier - formatted with additional metadata -->
 			<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value'] or doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value']">
 				<dc:identifier>
+					<xsl:variable name="isConferenceObject" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'][normalize-space(.)='conferenceObject']" />
+					<xsl:variable name="isBookPart" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'][normalize-space(.)='bookPart']" />
+					<xsl:variable name="formatValue" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='format']/doc:element/doc:field[@name='value'][1]" />
 					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element/doc:field[@name='value']" />
 					<xsl:text>. </xsl:text>
 					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']" />
-					<xsl:text>, vol. </xsl:text>
-					<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value']" />
-					<xsl:text>, č. </xsl:text>
-					<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value']" />
-					<!-- We do not have any information about pages, so it is `s. 0` by default -->
-					<xsl:text>, s. 0.</xsl:text>
+					<xsl:if test="not($isConferenceObject or $isBookPart)">
+						<xsl:text>, vol. </xsl:text>
+						<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='volume']/doc:element/doc:field[@name='value']" />
+						<xsl:text>, č. </xsl:text>
+						<xsl:value-of select="doc:metadata/doc:element[@name='local']/doc:element[@name='number']/doc:element/doc:field[@name='value']" />
+					</xsl:if>
+					<xsl:text>, s. </xsl:text>
+					<xsl:choose>
+						<xsl:when test="$formatValue">
+							<xsl:value-of select="$formatValue" />
+						</xsl:when>
+						<xsl:otherwise>0</xsl:otherwise>
+					</xsl:choose>
+					<xsl:text>.</xsl:text>
 				</dc:identifier>
 			</xsl:if>
 			<!-- dc.identifier.* -->
