@@ -121,6 +121,7 @@
 					<xsl:variable name="isConferenceObject" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'][normalize-space(.)='conferenceObject']" />
 					<xsl:variable name="isBookPart" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'][normalize-space(.)='bookPart']" />
 					<xsl:variable name="formatValue" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='format']/doc:element/doc:field[@name='value'][1]" />
+					<xsl:variable name="isbnValue" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isbn']/doc:element/doc:field[@name='value'][1]" />
 					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element/doc:field[@name='value']" />
 					<xsl:text>. </xsl:text>
 					<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']" />
@@ -138,6 +139,10 @@
 						<xsl:otherwise>0</xsl:otherwise>
 					</xsl:choose>
 					<xsl:text>.</xsl:text>
+					<xsl:if test="$isbnValue != ''">
+						<xsl:text> ISBN </xsl:text>
+						<xsl:value-of select="$isbnValue" />
+					</xsl:if>
 				</dc:identifier>
 			</xsl:if>
 			<!-- dc.identifier.* -->
