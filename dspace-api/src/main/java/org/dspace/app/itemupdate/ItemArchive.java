@@ -214,21 +214,66 @@ public class ItemArchive {
 
         String uri = dtom.value;
 
-        if (!uri.startsWith(ItemUpdate.HANDLE_PREFIX)) {
-            throw new Exception("dc.identifier.uri for item " + uri
-                                    + " does not begin with prefix: " + ItemUpdate.HANDLE_PREFIX);
+        // Default behavior: dc.identifier.uri contains canonical handle URI.
+        if (uri.startsWith(ItemUpdate.HANDLE_PREFIX)) {
+            String handle = uri.substring(ItemUpdate.HANDLE_PREFIX.length());
+
+            DSpaceObject dso = handleService.resolveToObject(context, handle);
+            if (dso instanceof Item) {
+                return (Item) dso;
+            }
         }
 
-        String handle = uri.substring(ItemUpdate.HANDLE_PREFIX.length());
-
-        DSpaceObject dso = handleService.resolveToObject(context, handle);
-        if (dso instanceof Item) {
-            item = (Item) dso;
-        } else {
-            ItemUpdate.pr("Warning: item not instantiated");
-            throw new IllegalArgumentException("Item " + handle + " not instantiated.");
+        // SAF updates may contain non-canonical URI values, so fallback to metadata lookup.
+        Item resolvedByUri = findSingleItemByMetadata(context, "dc.identifier.uri", uri);
+        if (resolvedByUri != null) {
+            return resolvedByUri;
         }
-        return item;
+
+        // Optional secondary fallback for legacy thesis identifiers.
+        DtoMetadata thesisIdentifier = getMetadataField("dc.identifier.thesis");
+        if (thesisIdentifier != null) {
+            Item resolvedByThesis = findSingleItemByMetadata(context, "dc.identifier.thesis", thesisIdentifier.value);
+            if (resolvedByThesis != null) {
+                return resolvedByThesis;
+            }
+        }
+
+        throw new IllegalArgumentException("Unable to resolve item by dc.identifier.uri or dc.identifier.thesis for "
+                                               + dirname);
+    }
+
+    protected Item findSingleItemByMetadata(Context context, String metadataField, String metadataValue)
+            throws SQLException, AuthorizeException, IOException {
+        if (metadataValue == null) {
+            return null;
+        }
+
+        String[] parts = metadataField.split("\\.");
+        if (parts.length < 2 || parts.length > 3) {
+            return null;
+        }
+
+        String schema = parts[0];
+        String element = parts[1];
+        String qualifier = parts.length == 3 ? parts[2] : null;
+        Iterator<Item> itr = itemService.findByMetadataField(context, schema, element, qualifier, metadataValue);
+
+        Item candidate = null;
+        int count = 0;
+        while (itr.hasNext()) {
+            candidate = itr.next();
+            count++;
+        }
+
+        if (count == 1) {
+            return candidate;
+        }
+
+        if (count > 1) {
+            ItemUpdate.pr("Warning: Ambiguous item match for " + metadataField + "='" + metadataValue + "'");
+        }
+        return null;
     }
 
     /**

@@ -14,8 +14,10 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -28,13 +30,25 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang3.StringUtils;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.ResourcePolicyService;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.DCDate;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.eperson.Group;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 
@@ -85,6 +99,12 @@ public class ItemUpdate {
     protected static final EPersonService epersonService = EPersonServiceFactory.getInstance().getEPersonService();
     protected static final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     protected static final HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
+    protected static final GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+    protected static final ResourcePolicyService resourcePolicyService = AuthorizeServiceFactory.getInstance()
+        .getResourcePolicyService();
+
+    private static final String EMBARGO_FIELD_RIGHTS_ACCESS = "dc.rights.access";
+    private static final String EMBARGO_FIELD_DATE_END = "dc.date.embargoend";
 
     static {
         filterAliases.put("ORIGINAL", "org.dspace.app.itemupdate.OriginalBitstreamFilter");
@@ -161,6 +181,7 @@ public class ItemUpdate {
         boolean alterProvenance = true;
         String itemField = null;
         String metadataIndexName = null;
+        boolean syncEmbargoPolicies = false;
 
         Context context = null;
         ItemUpdate iu = new ItemUpdate();
@@ -212,6 +233,7 @@ public class ItemUpdate {
 
             if (line.hasOption('d')) {
                 String[] targetFields = line.getOptionValues('d');
+                syncEmbargoPolicies = syncEmbargoPolicies || containsEmbargoField(targetFields);
 
                 DeleteMetadataAction delMetadataAction = (DeleteMetadataAction) iu.actionMgr
                     .getUpdateAction(DeleteMetadataAction.class);
@@ -230,6 +252,7 @@ public class ItemUpdate {
 
             if (line.hasOption('a')) {
                 String[] targetFields = line.getOptionValues('a');
+                syncEmbargoPolicies = syncEmbargoPolicies || containsEmbargoField(targetFields);
 
                 AddMetadataAction addMetadataAction = (AddMetadataAction) iu.actionMgr
                     .getUpdateAction(AddMetadataAction.class);
@@ -340,7 +363,8 @@ public class ItemUpdate {
 
             HANDLE_PREFIX = handleService.getCanonicalPrefix();
 
-            iu.processArchive(context, sourcedir, itemField, metadataIndexName, alterProvenance, isTest);
+            iu.processArchive(context, sourcedir, itemField, metadataIndexName, alterProvenance, isTest,
+                              syncEmbargoPolicies);
 
             context.complete();  // complete all transactions
         } catch (Exception e) {
@@ -375,7 +399,8 @@ public class ItemUpdate {
      * @throws Exception if error
      */
     protected void processArchive(Context context, String sourceDirPath, String itemField,
-                                  String metadataIndexName, boolean alterProvenance, boolean isTest)
+                                  String metadataIndexName, boolean alterProvenance, boolean isTest,
+                                  boolean syncEmbargoPolicies)
         throws Exception {
         // open and process the source directory
         File sourceDir = new File(sourceDirPath);
@@ -421,6 +446,9 @@ public class ItemUpdate {
                 }
                 if (!isTest) {
                     Item item = itarch.getItem();
+                    if (syncEmbargoPolicies) {
+                        this.syncEmbargoPolicies(context, item);
+                    }
                     itemService.update(context, item);  //need to update before commit
                     context.uncacheEntity(item);
                 }
@@ -564,6 +592,143 @@ public class ItemUpdate {
     static void prv(String s) {
         if (verbose) {
             System.out.println(s);
+        }
+    }
+
+    protected static boolean containsEmbargoField(String[] targetFields) {
+        if (targetFields == null) {
+            return false;
+        }
+
+        for (String field : targetFields) {
+            if (field == null) {
+                continue;
+            }
+            String normalized = field.trim();
+            if (EMBARGO_FIELD_RIGHTS_ACCESS.equals(normalized)
+                    || EMBARGO_FIELD_DATE_END.equals(normalized)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected void syncEmbargoPolicies(Context context, Item item) throws SQLException, AuthorizeException {
+        clearExistingSafEmbargoPolicies(context, item);
+
+        List<MetadataValue> embargoEndDates = itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY);
+        if (embargoEndDates.isEmpty()) {
+            List<MetadataValue> accessRights = itemService.getMetadata(item, "dc", "rights", "access", Item.ANY);
+            for (MetadataValue accessRight : accessRights) {
+                if ("embargoedAccess".equals(accessRight.getValue())) {
+                    ItemUpdate.pr("WARNING: Item has dc.rights.access=embargoedAccess but no dc.date.embargoend. "
+                                      + "Cannot set embargo without end date.");
+                    break;
+                }
+            }
+            return;
+        }
+
+        String embargoEndDateStr = embargoEndDates.get(0).getValue();
+        if (StringUtils.isBlank(embargoEndDateStr)) {
+            ItemUpdate.pr("WARNING: dc.date.embargoend is empty. Cannot set embargo.");
+            return;
+        }
+
+        Date accessStartDate;
+        try {
+            DCDate embargoEndDate = new DCDate(embargoEndDateStr);
+            Date endDate = embargoEndDate.toDate();
+            if (endDate == null) {
+                ItemUpdate.pr("ERROR: Invalid embargo end date format: " + embargoEndDateStr);
+                return;
+            }
+
+            if (endDate.before(new Date())) {
+                ItemUpdate.pr("WARNING: Embargo end date is in the past: " + embargoEndDateStr
+                                  + ". Embargo will not be applied.");
+                return;
+            }
+
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(endDate);
+            cal.add(Calendar.DAY_OF_MONTH, 1);
+            accessStartDate = cal.getTime();
+        } catch (Exception e) {
+            ItemUpdate.pr("ERROR: Failed to parse embargo end date: " + embargoEndDateStr
+                              + ". Error: " + e.getMessage());
+            return;
+        }
+
+        List<MetadataValue> accessRights = itemService.getMetadata(item, "dc", "rights", "access", Item.ANY);
+        boolean hasEmbargoedAccess = false;
+        for (MetadataValue accessRight : accessRights) {
+            if ("embargoedAccess".equals(accessRight.getValue())) {
+                hasEmbargoedAccess = true;
+                break;
+            }
+        }
+
+        String policyReason = hasEmbargoedAccess ? "Standard Embargo"
+                : "Special Case Embargo - No access rights metadata";
+        applyEmbargoToItemBitstreams(context, item, accessStartDate, policyReason);
+    }
+
+    protected void clearExistingSafEmbargoPolicies(Context context, Item item) throws SQLException, AuthorizeException {
+        Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
+        if (anonymousGroup == null) {
+            return;
+        }
+
+        List<Bundle> originalBundles = item.getBundles("ORIGINAL");
+        for (Bundle bundle : originalBundles) {
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, bitstream, Constants.READ);
+                for (ResourcePolicy policy : readPolicies) {
+                    if (policy.getGroup() != null
+                            && anonymousGroup.equals(policy.getGroup())
+                            && policy.getStartDate() != null
+                            && ("Standard Embargo".equals(policy.getRpName())
+                                    || "Special Case Embargo - No access rights metadata".equals(policy.getRpName()))) {
+                        resourcePolicyService.delete(context, policy);
+                    }
+                }
+            }
+        }
+    }
+
+    protected void applyEmbargoToItemBitstreams(Context context, Item item, Date startDate, String policyReason)
+            throws SQLException, AuthorizeException {
+        Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
+        if (anonymousGroup == null) {
+            return;
+        }
+
+        List<Bundle> originalBundles = item.getBundles("ORIGINAL");
+        for (Bundle bundle : originalBundles) {
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                removeImmediateAnonymousReadPolicies(context, bitstream, anonymousGroup);
+
+                ResourcePolicy policy = resourcePolicyService.create(context, null, anonymousGroup);
+                policy.setdSpaceObject(bitstream);
+                policy.setAction(Constants.READ);
+                policy.setStartDate(startDate);
+                policy.setRpName(policyReason);
+                bitstream.getResourcePolicies().add(policy);
+                resourcePolicyService.update(context, policy);
+            }
+        }
+    }
+
+    protected void removeImmediateAnonymousReadPolicies(Context context, Bitstream bitstream, Group anonymousGroup)
+            throws SQLException, AuthorizeException {
+        List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, bitstream, Constants.READ);
+        for (ResourcePolicy policy : readPolicies) {
+            if (policy.getGroup() != null
+                    && anonymousGroup.equals(policy.getGroup())
+                    && policy.getStartDate() == null) {
+                resourcePolicyService.delete(context, policy);
+            }
         }
     }
 
