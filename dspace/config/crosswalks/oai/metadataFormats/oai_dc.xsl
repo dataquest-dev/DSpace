@@ -132,8 +132,8 @@
 					</xsl:if>
 					<xsl:text>, s. </xsl:text>
 					<xsl:choose>
-						<xsl:when test="$formatValue">
-							<xsl:value-of select="$formatValue" />
+						<xsl:when test="normalize-space($formatValue) != ''">
+							<xsl:value-of select="normalize-space($formatValue)" />
 						</xsl:when>
 						<xsl:otherwise>0</xsl:otherwise>
 					</xsl:choose>
