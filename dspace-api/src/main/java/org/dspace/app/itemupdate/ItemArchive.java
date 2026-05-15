@@ -222,6 +222,7 @@ public class ItemArchive {
             if (dso instanceof Item) {
                 return (Item) dso;
             }
+            log.warn("Canonical handle URI '{}' did not resolve to an Item; falling back to metadata lookup.", uri);
         }
 
         // SAF updates may contain non-canonical URI values, so fallback to metadata lookup.
@@ -259,21 +260,17 @@ public class ItemArchive {
         String qualifier = parts.length == 3 ? parts[2] : null;
         Iterator<Item> itr = itemService.findByMetadataField(context, schema, element, qualifier, metadataValue);
 
-        Item candidate = null;
-        int count = 0;
-        while (itr.hasNext()) {
-            candidate = itr.next();
-            count++;
+        if (!itr.hasNext()) {
+            return null;
         }
 
-        if (count == 1) {
-            return candidate;
-        }
-
-        if (count > 1) {
+        Item candidate = itr.next();
+        if (itr.hasNext()) {
             ItemUpdate.pr("Warning: Ambiguous item match for " + metadataField + "='" + metadataValue + "'");
+            return null;
         }
-        return null;
+
+        return candidate;
     }
 
     /**

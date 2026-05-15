@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -38,10 +37,12 @@ import org.dspace.builder.ResourcePolicyBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.Group;
@@ -59,7 +60,7 @@ import org.junit.Test;
 public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String STANDARD_EMBARGO = "Standard Embargo";
-    private static final String SPECIAL_CASE_EMBARGO = "Special Case Embargo - No access rights metadata";
+    private static final String SPECIAL_CASE_EMBARGO = "Special Case Embargo";
 
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     private HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
@@ -68,10 +69,13 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
     private MetadataSchemaService metadataSchemaService =
             ContentServiceFactory.getInstance().getMetadataSchemaService();
+    private MetadataFieldService metadataFieldService =
+            ContentServiceFactory.getInstance().getMetadataFieldService();
 
     private Collection collection;
     private Group anonymousGroup;
     private Path tempDir;
+    private String previousHandlePrefix;
 
     @Before
     @Override
@@ -87,8 +91,11 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
                 .build();
 
         ensureMetadataFieldExists("identifier", "thesis");
+        ensureMetadataFieldExists("rights", "access");
+        ensureMetadataFieldExists("date", "embargoend");
 
         anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
+        previousHandlePrefix = ItemUpdate.HANDLE_PREFIX;
         ItemUpdate.HANDLE_PREFIX = handleService.getCanonicalPrefix();
 
         context.restoreAuthSystemState();
@@ -99,6 +106,7 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
     @After
     @Override
     public void destroy() throws Exception {
+        ItemUpdate.HANDLE_PREFIX = previousHandlePrefix;
         if (tempDir != null) {
             PathUtils.deleteDirectory(tempDir);
         }
@@ -240,8 +248,8 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         String newEmbargoDate = LocalDate.now().plusDays(35).toString();
 
         Item item = createItem("Embargo Update Item",
-            "rights", "access", "embargoedAccess",
-            "date", "embargoend", oldEmbargoDate);
+                "rights", "access", "embargoedAccess",
+                "date", "embargoend", oldEmbargoDate);
         Bitstream bitstream = createBitstream(item, "update-embargo.txt");
 
         LocalDate oldPolicyDate = LocalDate.parse(oldEmbargoDate).plusDays(1);
@@ -261,29 +269,29 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, reloadedBitstream, Constants.READ);
 
         boolean hasOldEmbargoPolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-            && STANDARD_EMBARGO.equals(policy.getRpName())
-            && policy.getStartDate() != null
-            && toLocalDate(policy.getStartDate()).equals(oldPolicyDate));
+                && STANDARD_EMBARGO.equals(policy.getRpName())
+                && policy.getStartDate() != null
+                && toLocalDate(policy.getStartDate()).equals(oldPolicyDate));
         assertFalse(hasOldEmbargoPolicy);
 
         boolean hasNewEmbargoPolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-            && STANDARD_EMBARGO.equals(policy.getRpName())
-            && policy.getStartDate() != null
-            && toLocalDate(policy.getStartDate()).equals(expectedPolicyDate));
+                && STANDARD_EMBARGO.equals(policy.getRpName())
+                && policy.getStartDate() != null
+                && toLocalDate(policy.getStartDate()).equals(expectedPolicyDate));
         assertTrue(hasNewEmbargoPolicy);
-        }
+    }
 
-        @Test
-        public void processArchiveUpdateWithBlankEmbargoDateClearsSafEmbargoPolicies() throws Exception {
+    @Test
+    public void processArchiveUpdateWithBlankEmbargoDateClearsSafEmbargoPolicies() throws Exception {
         String oldEmbargoDate = LocalDate.now().plusDays(12).toString();
 
         Item item = createItem("Blank Embargo Date Update",
-            "rights", "access", "embargoedAccess",
-            "date", "embargoend", oldEmbargoDate);
+                "rights", "access", "embargoedAccess",
+                "date", "embargoend", oldEmbargoDate);
         Bitstream bitstream = createBitstream(item, "blank-embargo-date.txt");
 
         Date oldPolicyStart = Date.from(LocalDate.parse(oldEmbargoDate).plusDays(1)
-            .atStartOfDay(ZoneId.systemDefault()).toInstant());
+                .atStartOfDay(ZoneId.systemDefault()).toInstant());
         createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
 
         runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, "embargoedAccess", ""));
@@ -292,22 +300,22 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, reloadedBitstream, Constants.READ);
 
         boolean hasSafEmbargoPolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-            && (STANDARD_EMBARGO.equals(policy.getRpName())
-            || SPECIAL_CASE_EMBARGO.equals(policy.getRpName())));
+                && (STANDARD_EMBARGO.equals(policy.getRpName())
+                || SPECIAL_CASE_EMBARGO.equals(policy.getRpName())));
         assertFalse(hasSafEmbargoPolicy);
-        }
+    }
 
-        @Test
-        public void processArchiveUpdateRemovingEmbargoMetadataClearsPoliciesAndMetadata() throws Exception {
+    @Test
+    public void processArchiveUpdateRemovingEmbargoMetadataClearsPoliciesAndMetadata() throws Exception {
         String oldEmbargoDate = LocalDate.now().plusDays(10).toString();
 
         Item item = createItem("Remove Embargo Metadata Update",
-            "rights", "access", "embargoedAccess",
-            "date", "embargoend", oldEmbargoDate);
+                "rights", "access", "embargoedAccess",
+                "date", "embargoend", oldEmbargoDate);
         Bitstream bitstream = createBitstream(item, "remove-embargo.txt");
 
         Date oldPolicyStart = Date.from(LocalDate.parse(oldEmbargoDate).plusDays(1)
-            .atStartOfDay(ZoneId.systemDefault()).toInstant());
+                .atStartOfDay(ZoneId.systemDefault()).toInstant());
         createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
 
         runEmbargoMetadataUpdate(item, dublinCore(item));
@@ -322,23 +330,23 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, reloadedBitstream, Constants.READ);
         boolean hasSafEmbargoPolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-            && (STANDARD_EMBARGO.equals(policy.getRpName())
-            || SPECIAL_CASE_EMBARGO.equals(policy.getRpName())));
+                && (STANDARD_EMBARGO.equals(policy.getRpName())
+                || SPECIAL_CASE_EMBARGO.equals(policy.getRpName())));
         assertFalse(hasSafEmbargoPolicy);
-        }
+    }
 
-        @Test
-        public void processArchiveUpdateWithEmbargoDateAndNoRightsCreatesSpecialCasePolicy() throws Exception {
+    @Test
+    public void processArchiveUpdateWithEmbargoDateAndNoRightsCreatesSpecialCasePolicy() throws Exception {
         String oldEmbargoDate = LocalDate.now().plusDays(8).toString();
         String newEmbargoDate = LocalDate.now().plusDays(25).toString();
 
         Item item = createItem("Special Case Update",
-            "rights", "access", "embargoedAccess",
-            "date", "embargoend", oldEmbargoDate);
+                "rights", "access", "embargoedAccess",
+                "date", "embargoend", oldEmbargoDate);
         Bitstream bitstream = createBitstream(item, "special-case-update.txt");
 
         Date oldPolicyStart = Date.from(LocalDate.parse(oldEmbargoDate).plusDays(1)
-            .atStartOfDay(ZoneId.systemDefault()).toInstant());
+                .atStartOfDay(ZoneId.systemDefault()).toInstant());
         createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
 
         runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, null, newEmbargoDate));
@@ -353,22 +361,21 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, reloadedBitstream, Constants.READ);
 
         boolean hasSpecialCasePolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-            && SPECIAL_CASE_EMBARGO.equals(policy.getRpName())
-            && policy.getStartDate() != null
-            && toLocalDate(policy.getStartDate()).equals(expectedPolicyDate));
+                && SPECIAL_CASE_EMBARGO.equals(policy.getRpName())
+                && policy.getStartDate() != null
+                && toLocalDate(policy.getStartDate()).equals(expectedPolicyDate));
         assertTrue(hasSpecialCasePolicy);
 
         boolean hasStandardPolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-            && STANDARD_EMBARGO.equals(policy.getRpName()));
+                && STANDARD_EMBARGO.equals(policy.getRpName()));
         assertFalse(hasStandardPolicy);
     }
 
-    private void ensureMetadataFieldExists(String element, String qualifier) throws SQLException {
+    private void ensureMetadataFieldExists(String element, String qualifier) throws Exception {
         MetadataSchema dcSchema = metadataSchemaService.find(context, "dc");
-        try {
+        MetadataField existingField = metadataFieldService.findByElement(context, dcSchema, element, qualifier);
+        if (existingField == null) {
             MetadataFieldBuilder.createMetadataField(context, dcSchema, element, qualifier, null).build();
-        } catch (Exception e) {
-            // Field may already exist.
         }
     }
 
@@ -441,7 +448,7 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         return sb.toString();
     }
 
-        private void runEmbargoMetadataUpdate(Item item, String dublinCoreContent) throws Exception {
+    private void runEmbargoMetadataUpdate(Item item, String dublinCoreContent) throws Exception {
         Path sourceRoot = Files.createDirectory(tempDir.resolve("update-source-" + System.nanoTime()));
         Files.createFile(sourceRoot.resolve(ItemUpdate.SUPPRESS_UNDO_FILENAME));
 
@@ -463,35 +470,35 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         // Force entity reload in caller assertions after update transaction.
         context.uncacheEntity(item);
-        }
+    }
 
-        private String dublinCore(Item item) {
+    private String dublinCore(Item item) {
         String identifierUri = ItemUpdate.HANDLE_PREFIX + item.getHandle();
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<dublin_core schema=\"dc\">\n"
-            + "    <dcvalue element=\"identifier\" qualifier=\"uri\">" + identifierUri + "</dcvalue>\n"
-            + "</dublin_core>";
-        }
+                + "<dublin_core schema=\"dc\">\n"
+                + "    <dcvalue element=\"identifier\" qualifier=\"uri\">" + identifierUri + "</dcvalue>\n"
+                + "</dublin_core>";
+    }
 
-        private String dublinCoreWithEmbargo(Item item, String rightsAccess, String embargoEndDate) {
+    private String dublinCoreWithEmbargo(Item item, String rightsAccess, String embargoEndDate) {
         String identifierUri = ItemUpdate.HANDLE_PREFIX + item.getHandle();
         StringBuilder sb = new StringBuilder();
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-            .append("<dublin_core schema=\"dc\">\n")
-            .append("    <dcvalue element=\"identifier\" qualifier=\"uri\">")
-            .append(identifierUri)
-            .append("</dcvalue>\n");
+                .append("<dublin_core schema=\"dc\">\n")
+                .append("    <dcvalue element=\"identifier\" qualifier=\"uri\">")
+                .append(identifierUri)
+                .append("</dcvalue>\n");
 
         if (rightsAccess != null) {
             sb.append("    <dcvalue element=\"rights\" qualifier=\"access\">")
-                .append(rightsAccess)
-                .append("</dcvalue>\n");
+                    .append(rightsAccess)
+                    .append("</dcvalue>\n");
         }
 
         if (embargoEndDate != null) {
             sb.append("    <dcvalue element=\"date\" qualifier=\"embargoend\">")
-                .append(embargoEndDate)
-                .append("</dcvalue>\n");
+                    .append(embargoEndDate.isEmpty() ? " " : embargoEndDate)
+                    .append("</dcvalue>\n");
         }
 
         sb.append("</dublin_core>");
@@ -499,6 +506,9 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
     }
 
     private LocalDate toLocalDate(Date date) {
+        if (date instanceof java.sql.Date) {
+            return ((java.sql.Date) date).toLocalDate();
+        }
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 }

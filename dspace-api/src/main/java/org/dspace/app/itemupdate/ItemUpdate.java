@@ -105,6 +105,10 @@ public class ItemUpdate {
 
     private static final String EMBARGO_FIELD_RIGHTS_ACCESS = "dc.rights.access";
     private static final String EMBARGO_FIELD_DATE_END = "dc.date.embargoend";
+    private static final String EMBARGOED_ACCESS = "embargoedAccess";
+    private static final String STANDARD_EMBARGO_POLICY_NAME = "Standard Embargo";
+    // Must fit resourcepolicy.rpname length (varchar(30))
+    private static final String SPECIAL_CASE_EMBARGO_POLICY_NAME = "Special Case Embargo";
 
     static {
         filterAliases.put("ORIGINAL", "org.dspace.app.itemupdate.OriginalBitstreamFilter");
@@ -399,6 +403,25 @@ public class ItemUpdate {
      * @throws Exception if error
      */
     protected void processArchive(Context context, String sourceDirPath, String itemField,
+                                  String metadataIndexName, boolean alterProvenance, boolean isTest)
+        throws Exception {
+        processArchive(context, sourceDirPath, itemField, metadataIndexName, alterProvenance, isTest, false);
+    }
+
+    /**
+     * process an archive
+     *
+     * @param context             DSpace Context
+     * @param sourceDirPath       source path
+     * @param itemField           item field
+     * @param metadataIndexName   index name
+     * @param alterProvenance     whether to alter provenance
+     * @param isTest              test flag
+     * @param syncEmbargoPolicies if true, synchronize bitstream embargo resource policies with the embargo metadata
+     *                            (dc.rights.access, dc.date.embargoend) after the SAF update is applied
+     * @throws Exception if error
+     */
+    protected void processArchive(Context context, String sourceDirPath, String itemField,
                                   String metadataIndexName, boolean alterProvenance, boolean isTest,
                                   boolean syncEmbargoPolicies)
         throws Exception {
@@ -617,10 +640,13 @@ public class ItemUpdate {
         clearExistingSafEmbargoPolicies(context, item);
 
         List<MetadataValue> embargoEndDates = itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY);
+        if (embargoEndDates.size() > 1) {
+            ItemUpdate.pr("WARNING: Multiple dc.date.embargoend values found. Using first value only.");
+        }
         if (embargoEndDates.isEmpty()) {
             List<MetadataValue> accessRights = itemService.getMetadata(item, "dc", "rights", "access", Item.ANY);
             for (MetadataValue accessRight : accessRights) {
-                if ("embargoedAccess".equals(accessRight.getValue())) {
+                if (EMBARGOED_ACCESS.equals(accessRight.getValue())) {
                     ItemUpdate.pr("WARNING: Item has dc.rights.access=embargoedAccess but no dc.date.embargoend. "
                                       + "Cannot set embargo without end date.");
                     break;
@@ -635,42 +661,35 @@ public class ItemUpdate {
             return;
         }
 
-        Date accessStartDate;
-        try {
-            DCDate embargoEndDate = new DCDate(embargoEndDateStr);
-            Date endDate = embargoEndDate.toDate();
-            if (endDate == null) {
-                ItemUpdate.pr("ERROR: Invalid embargo end date format: " + embargoEndDateStr);
-                return;
-            }
-
-            if (endDate.before(new Date())) {
-                ItemUpdate.pr("WARNING: Embargo end date is in the past: " + embargoEndDateStr
-                                  + ". Embargo will not be applied.");
-                return;
-            }
-
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(endDate);
-            cal.add(Calendar.DAY_OF_MONTH, 1);
-            accessStartDate = cal.getTime();
-        } catch (Exception e) {
-            ItemUpdate.pr("ERROR: Failed to parse embargo end date: " + embargoEndDateStr
-                              + ". Error: " + e.getMessage());
+        DCDate embargoEndDate = new DCDate(embargoEndDateStr);
+        Date endDate = embargoEndDate.toDate();
+        if (endDate == null) {
+            ItemUpdate.pr("ERROR: Invalid embargo end date format: " + embargoEndDateStr);
             return;
         }
+
+        if (endDate.before(new Date())) {
+            ItemUpdate.pr("WARNING: Embargo end date is in the past: " + embargoEndDateStr
+                              + ". Embargo will not be applied.");
+            return;
+        }
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(endDate);
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        Date accessStartDate = cal.getTime();
 
         List<MetadataValue> accessRights = itemService.getMetadata(item, "dc", "rights", "access", Item.ANY);
         boolean hasEmbargoedAccess = false;
         for (MetadataValue accessRight : accessRights) {
-            if ("embargoedAccess".equals(accessRight.getValue())) {
+            if (EMBARGOED_ACCESS.equals(accessRight.getValue())) {
                 hasEmbargoedAccess = true;
                 break;
             }
         }
 
-        String policyReason = hasEmbargoedAccess ? "Standard Embargo"
-                : "Special Case Embargo - No access rights metadata";
+        String policyReason = hasEmbargoedAccess ? STANDARD_EMBARGO_POLICY_NAME
+                : SPECIAL_CASE_EMBARGO_POLICY_NAME;
         applyEmbargoToItemBitstreams(context, item, accessStartDate, policyReason);
     }
 
@@ -680,7 +699,7 @@ public class ItemUpdate {
             return;
         }
 
-        List<Bundle> originalBundles = item.getBundles("ORIGINAL");
+        List<Bundle> originalBundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
         for (Bundle bundle : originalBundles) {
             for (Bitstream bitstream : bundle.getBitstreams()) {
                 List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, bitstream, Constants.READ);
@@ -688,8 +707,8 @@ public class ItemUpdate {
                     if (policy.getGroup() != null
                             && anonymousGroup.equals(policy.getGroup())
                             && policy.getStartDate() != null
-                            && ("Standard Embargo".equals(policy.getRpName())
-                                    || "Special Case Embargo - No access rights metadata".equals(policy.getRpName()))) {
+                            && (STANDARD_EMBARGO_POLICY_NAME.equals(policy.getRpName())
+                                    || SPECIAL_CASE_EMBARGO_POLICY_NAME.equals(policy.getRpName()))) {
                         resourcePolicyService.delete(context, policy);
                     }
                 }
@@ -704,7 +723,7 @@ public class ItemUpdate {
             return;
         }
 
-        List<Bundle> originalBundles = item.getBundles("ORIGINAL");
+        List<Bundle> originalBundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
         for (Bundle bundle : originalBundles) {
             for (Bitstream bitstream : bundle.getBitstreams()) {
                 removeImmediateAnonymousReadPolicies(context, bitstream, anonymousGroup);
