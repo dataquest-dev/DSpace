@@ -60,7 +60,7 @@ import org.junit.Test;
 public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String STANDARD_EMBARGO = "Standard Embargo";
-    private static final String SPECIAL_CASE_EMBARGO = "Special Case Embargo - No access rights metadata";
+    private static final String SPECIAL_CASE_EMBARGO = "Special Case Embargo";
 
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     private HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
@@ -91,6 +91,8 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
                 .build();
 
         ensureMetadataFieldExists("identifier", "thesis");
+        ensureMetadataFieldExists("rights", "access");
+        ensureMetadataFieldExists("date", "embargoend");
 
         anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
         previousHandlePrefix = ItemUpdate.HANDLE_PREFIX;
@@ -495,7 +497,7 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         if (embargoEndDate != null) {
             sb.append("    <dcvalue element=\"date\" qualifier=\"embargoend\">")
-                    .append(embargoEndDate)
+                    .append(embargoEndDate.isEmpty() ? " " : embargoEndDate)
                     .append("</dcvalue>\n");
         }
 
@@ -504,6 +506,9 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
     }
 
     private LocalDate toLocalDate(Date date) {
+        if (date instanceof java.sql.Date) {
+            return ((java.sql.Date) date).toLocalDate();
+        }
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 }

@@ -107,7 +107,8 @@ public class ItemUpdate {
     private static final String EMBARGO_FIELD_DATE_END = "dc.date.embargoend";
     private static final String EMBARGOED_ACCESS = "embargoedAccess";
     private static final String STANDARD_EMBARGO_POLICY_NAME = "Standard Embargo";
-    private static final String SPECIAL_CASE_EMBARGO_POLICY_NAME = "Special Case Embargo - No access rights metadata";
+    // Must fit resourcepolicy.rpname length (varchar(30))
+    private static final String SPECIAL_CASE_EMBARGO_POLICY_NAME = "Special Case Embargo";
 
     static {
         filterAliases.put("ORIGINAL", "org.dspace.app.itemupdate.OriginalBitstreamFilter");
