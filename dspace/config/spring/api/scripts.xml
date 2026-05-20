@@ -66,6 +66,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidBulkPush"/>
     </bean>
 
+    <bean id="orcid-authority-assign" class="org.dspace.orcid.script.OrcidAuthorityAssignScriptConfiguration">
+        <property name="description" value="Assign ORCID-based authority to dc.contributor.author metadata by matching author names in dc.identifier.orcid"/>
+        <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidAuthorityAssign"/>
+    </bean>
+
     <bean id="solr-database-resync" class="org.dspace.app.solrdatabaseresync.SolrDatabaseResyncCliScriptConfiguration">
         <property name="description" value="Update the database status of Items in solr"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.solrdatabaseresync.SolrDatabaseResyncCli"/>
