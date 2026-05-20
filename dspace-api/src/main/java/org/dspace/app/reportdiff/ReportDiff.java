@@ -262,6 +262,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
             defaultReportIds(context);
 
+            if (sourceReportId == null || targetReportId == null) {
+                handler.logInfo("Need at least 2 reports in the database to perform a comparison. Aborting.");
+                return;
+            }
+
             if (!validateReportIdSelection()) {
                 return;
             }
@@ -353,6 +358,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 return;
             }
 
+            // findAll() does not guarantee ordering; sort by lastModified ascending so the
+            // newest reports are at the end of the list.
+            allReports.sort(Comparator.comparing(ReportResult::getLastModified));
             int size = allReports.size();
 
             if (Objects.isNull(targetReportId) && size > 0) {
@@ -376,6 +384,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         try (Context context = new Context()) {
             context.setCurrentUser(ePersonService.find(context, getEpersonIdentifier()));
             List<ReportResult> allReports = reportResultService.findAll(context);
+            // findAll() does not guarantee ordering; sort by lastModified ascending so the
+            // newest reports are at the end of the list.
+            allReports.sort(Comparator.comparing(ReportResult::getLastModified));
             // Determine how many reports to process, respecting maxEntries if it's within valid range
             long limitCount = (maxEntries > 0 && maxEntries < allReports.size()) ? maxEntries : allReports.size();
             Map<String, List<DateWithArgs>> reportDatesMap = new HashMap<>();

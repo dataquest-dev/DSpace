@@ -7,6 +7,7 @@
  */
 package org.dspace.app.reportdiff;
 
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.dspace.app.healthreport.HealthReport;
 import org.dspace.scripts.configuration.ScriptConfiguration;
@@ -38,11 +39,13 @@ public class ReportDiffScriptConfiguration<T extends ReportDiff> extends ScriptC
             options.addOption("e", "email", true,
                     "Send report to this email address.");
             options.getOption("e").setType(String.class);
-            options.addOption("c", "check", true,
-                    String.format("Filter comparison to a specific check by index (0 to %d). " +
-                            "Only the specified check will be compared from both reports.",
-                            HealthReport.getNumberOfChecks() - 1));
-            options.getOption("c").setType(String.class);
+            Option checkOption = Option.builder("c").longOpt("check").hasArgs()
+                    .desc(String.format("Filter comparison to one or more specific checks by index (0 to %d). " +
+                            "Repeat the flag (e.g. -c 1 -c 3) to compare multiple checks from both reports.",
+                            HealthReport.getNumberOfChecks() - 1))
+                    .type(String.class)
+                    .build();
+            options.addOption(checkOption);
 
             options.addOption("l", "list", false,
                     "List available reports (ID, timestamp, args). Use to find report IDs.");
