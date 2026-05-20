@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
-import org.dspace.app.healthreport.HealthReport;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.content.ReportResult;
@@ -145,7 +144,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-d" };
+        String[] args = new String[] { "report-diff", "-l" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
@@ -185,7 +184,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", String.valueOf(report1.getID()),
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
             "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
@@ -222,7 +221,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         // -c 0 filters comparison to only General Information check
-        String[] args = new String[] { "report-diff", "-f", String.valueOf(report1.getID()),
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
             "-t", String.valueOf(report2.getID()), "-c", "0" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
@@ -236,28 +235,32 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void testInvalidCheckIndex() throws Exception {
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", "1", "-t", "2", "-c", "999" };
+        String[] args = new String[] { "report-diff", "-s", "1", "-t", "2", "-c", "999" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasItem("Invalid value for check. Must be between 0 and " +
-                (HealthReport.getNumberOfChecks() - 1) + ". Using all checks."));
+        // Invalid -c is now a warning + fallback (all checks compared), not a hard error.
+        List<String> warningMessages = handler.getWarningMessages();
+        assertThat(warningMessages, hasItem(containsString("Invalid value for -c: '999'")));
+        assertThat(warningMessages, hasItem(containsString("All checks will be compared.")));
     }
 
     @Test
     public void testInvalidReportIdFormat() throws Exception {
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", "invalid-id", "-t", "2" };
+        String[] args = new String[] { "report-diff", "-s", "invalid-id", "-t", "2" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasItem(containsString("Cannot parse report ID from input: invalid-id")));
+        // Invalid -s value is now a warning + fallback (last two reports), not a hard error.
+        List<String> warningMessages = handler.getWarningMessages();
+        assertThat(warningMessages, hasItem(containsString("Invalid value for -s: 'invalid-id'")));
+        assertThat(warningMessages, hasItem(containsString(
+                "The last two reports from the database will be compared instead.")));
     }
 
     @Test
     public void testNoReportsForIds() throws Exception {
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", "999999", "-t", "999998" };
+        String[] args = new String[] { "report-diff", "-s", "999999", "-t", "999998" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
@@ -267,11 +270,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void testNonPositiveReportId() throws Exception {
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", "-1", "-t", "1" };
+        String[] args = new String[] { "report-diff", "-s", "-1", "-t", "1" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasItem(containsString("The 'from' report ID must be a positive integer.")));
+        assertThat(errorMessages, hasItem(containsString("The 'source' report ID must be a positive integer.")));
     }
 
     @Test
@@ -296,7 +299,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", String.valueOf(report1.getID()),
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
             "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
@@ -327,7 +330,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report1 = reportResultService.find(context, report1.getID());
         report2 = reportResultService.find(context, report2.getID());
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", String.valueOf(report1.getID()),
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
             "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
@@ -424,7 +427,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-d", "-l", "1" };
+        String[] args = new String[] { "report-diff", "-l", "-m", "1" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
@@ -475,7 +478,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", String.valueOf(report1.getID()),
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
             "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
@@ -493,11 +496,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         assertThat(infoMessages, hasItem(containsString("Key Changes")));
         assertThat(infoMessages, hasItem(containsString("| Field")));
         assertThat(infoMessages, hasItem(containsString("| Difference")));
-        assertThat(infoMessages, hasItem(containsString("Assetstore Size (bytes)")));
-        assertThat(infoMessages, hasItem(containsString("Log Directory Size (bytes)")));
+        assertThat(infoMessages, hasItem(containsString("Assetstore Size")));
+        assertThat(infoMessages, hasItem(containsString("Log Directory Size")));
 
         // Test detailed change log section
-        assertThat(infoMessages, hasItem(containsString("Section 2: Detailed Change Log")));
+        assertThat(infoMessages, hasItem(containsString("Section 3: Detailed Change Log")));
         assertThat(infoMessages, hasItem(containsString("Changes Summary")));
         assertThat(infoMessages, hasItem(containsString("Total operations:")));
         assertThat(infoMessages, hasItem(containsString("Fields modified:")));
@@ -531,7 +534,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", String.valueOf(report1.getID()),
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
             "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
@@ -568,7 +571,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", String.valueOf(report1.getID()),
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
             "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
@@ -623,7 +626,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", String.valueOf(report1.getID()),
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
             "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
@@ -700,7 +703,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         String[] args = new String[] {
             "report-diff",
-            "-f", String.valueOf(fromReport.getID()),
+            "-s", String.valueOf(fromReport.getID()),
             "-t", String.valueOf(toReport.getID())
         };
 
@@ -747,7 +750,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", String.valueOf(report1.getID()),
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
             "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
@@ -790,12 +793,193 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-f", String.valueOf(report1.getID()),
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
                 "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         assertThat("Script should not fail with missing mapped field", handler.getErrorMessages(), empty());
         assertThat(handler.getInfoMessages(), hasItem(containsString("Repository Health Report Diff")));
         assertThat(handler.getInfoMessages(), hasItem(containsString("Published Items")));
+    }
+
+    /**
+     * When only -s is provided (no -t), the script should warn the user and fall back
+     * to comparing the last two reports in the database.
+     */
+    @Test
+    public void testSourceWithoutTargetWarnsAndFallsBack() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
+        reportResultService.update(context, report1);
+        context.commit();
+        Thread.sleep(1000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}}]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        assertThat(handler.getWarningMessages(), hasItem(containsString(
+                "Only one of '-s'/'-t' was specified.")));
+        assertThat(handler.getInfoMessages(), hasItem(containsString(
+                "No report IDs specified, using the last two reports from the database.")));
+        assertThat(handler.getErrorMessages(), empty());
+    }
+
+    /**
+     * When only -t is provided (no -s), the script should warn the user and fall back
+     * to comparing the last two reports in the database.
+     */
+    @Test
+    public void testTargetWithoutSourceWarnsAndFallsBack() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
+        reportResultService.update(context, report1);
+        context.commit();
+        Thread.sleep(1000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}}]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-t", String.valueOf(report2.getID()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        assertThat(handler.getWarningMessages(), hasItem(containsString(
+                "Only one of '-s'/'-t' was specified.")));
+        assertThat(handler.getInfoMessages(), hasItem(containsString(
+                "No report IDs specified, using the last two reports from the database.")));
+        assertThat(handler.getErrorMessages(), empty());
+    }
+
+    /**
+     * When -s has a non-numeric value, the script should warn and fall back to the
+     * last two reports for comparison.
+     */
+    @Test
+    public void testInvalidSourceValueWarnsAndFallsBack() throws Exception {
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-s", "abc", "-t", "2" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -s: 'abc'")));
+        assertThat(handler.getWarningMessages(), hasItem(containsString(
+                "The last two reports from the database will be compared instead.")));
+        // Should also fall back via the XOR branch since -s became null while -t is set.
+        assertThat(handler.getWarningMessages(), hasItem(containsString(
+                "Only one of '-s'/'-t' was specified.")));
+    }
+
+    /**
+     * When -c is an out-of-range index, the script should warn and compare all checks
+     * instead of filtering to one.
+     */
+    @Test
+    public void testInvalidCheckIndexWarnsAndComparesAll() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{\"key\":\"v1\"}}]}");
+        reportResultService.update(context, report1);
+        context.commit();
+        Thread.sleep(1000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"General Information\",\"report\":{\"key\":\"v2\"}}]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff",
+                "-s", String.valueOf(report1.getID()),
+                "-t", String.valueOf(report2.getID()),
+                "-c", "999" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -c: '999'")));
+        assertThat(handler.getWarningMessages(), hasItem(containsString("All checks will be compared.")));
+        // Comparison still runs and produces the diff for the common check.
+        assertThat(handler.getInfoMessages(), hasItem(containsString("Repository Health Report Diff")));
+        assertThat(handler.getErrorMessages(), empty());
+    }
+
+    /**
+     * When -c is a non-numeric value, the script should warn and compare all checks.
+     */
+    @Test
+    public void testNonNumericCheckIndexWarnsAndComparesAll() throws Exception {
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-s", "1", "-t", "2", "-c", "abc" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -c: 'abc'")));
+        assertThat(handler.getWarningMessages(), hasItem(containsString("All checks will be compared.")));
+    }
+
+    /**
+     * When -m has a non-numeric value alongside -l, the script should warn and show
+     * all available entries (no limit).
+     */
+    @Test
+    public void testInvalidMaxValueWarnsAndShowsAll() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[]}");
+        reportResultService.update(context, report1);
+        context.commit();
+        Thread.sleep(1000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-l", "-m", "abc" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -m: 'abc'")));
+        assertThat(handler.getWarningMessages(), hasItem(containsString("All entries will be shown.")));
+        // Both reports must be present in the listing since the limit was discarded.
+        assertThat(handler.getInfoMessages(), hasItem(containsString("ID: " + report1.getID())));
+        assertThat(handler.getInfoMessages(), hasItem(containsString("ID: " + report2.getID())));
+        assertThat(handler.getErrorMessages(), empty());
+    }
+
+    /**
+     * When -m has a non-positive value, same fallback as non-numeric: warn and show all.
+     */
+    @Test
+    public void testNonPositiveMaxValueWarnsAndShowsAll() throws Exception {
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-l", "-m", "0" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -m: '0'")));
+        assertThat(handler.getWarningMessages(), hasItem(containsString("All entries will be shown.")));
+        assertThat(handler.getErrorMessages(), empty());
     }
 }

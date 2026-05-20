@@ -58,8 +58,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private ReportResultService reportResultService;
-    private EPersonService ePersonService;
+    private ReportResultService reportResultService = ContentServiceFactory.getInstance().getReportResultService();
+    private EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
     /**
      * `-h`: Help, show help information.
@@ -67,15 +67,15 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     private boolean help = false;
 
     /**
-     * `-d`: Dates, show all dates that the report was generated for a specific check type.
+     * `-l`: List all stored reports with IDs, timestamps and arguments.
      */
-    private boolean showDates = false;
+    private boolean showList = false;
 
     /**
-     * `-l`: Limits the number of report entries (dates) displayed when using the --date option.
+     * `-m`: Maximum number of report entries displayed when using --list.
      * Default is -1 (no limit).
      */
-    private long limit = -1;
+    private long maxEntries = -1;
 
     /**
      * `-c`: Check, perform only specific checks by index (0-`getNumberOfChecks()`).
@@ -84,14 +84,14 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     private List<Integer> specificChecks = new ArrayList<>();
 
     /**
-      * `-f`: From, specify source report ID.
+     * `-s`: Source, specify source report ID.
      */
-     private Integer fromReportId = null;
+    private Integer sourceReportId = null;
 
     /**
-      * `-t`: Till, specify target report ID.
+     * `-t`: Till, specify target report ID.
      */
-     private Integer toReportId = null;
+    private Integer targetReportId = null;
 
     /**
      * `-e`: Email, send report to specified email address.
@@ -166,7 +166,6 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     @Override
     public void setup() throws ParseException {
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-        reportResultService = ContentServiceFactory.getInstance().getReportResultService();
         // `-h`: Help, show help information.
         if (commandLine.hasOption('h')) {
             help = true;
@@ -180,42 +179,61 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             for (String checkOption : checkOptions) {
                 int parsedCheck = parseCheckOption(checkOption);
                 if (parsedCheck == -1) {
-                    // Error already logged in parseCheckOption
-                    return;
+                    handler.logWarning("Invalid value for -c: '" + checkOption
+                            + "'. All checks will be compared.");
+                    specificChecks.clear();
+                    break;
                 }
                 specificChecks.add(parsedCheck);
             }
         }
 
-        // `-d`: Dates, show all dates that the report was generated for a specific check type.
-        if (commandLine.hasOption('d')) {
-            showDates = true;
-            try {
-                if (commandLine.hasOption("l")) {
-                    limit = Long.parseLong(commandLine.getOptionValue("l"));
+        // `-l`: List all available reports with IDs/timestamps/args.
+        if (commandLine.hasOption('l')) {
+            showList = true;
+            if (commandLine.hasOption('m')) {
+                String mValue = commandLine.getOptionValue('m');
+                try {
+                    long parsedMax = Long.parseLong(mValue);
+                    if (parsedMax <= 0) {
+                        handler.logWarning("Invalid value for -m: '" + mValue
+                                + "'. Must be a positive integer. All entries will be shown.");
+                        maxEntries = -1;
+                    } else {
+                        maxEntries = parsedMax;
+                    }
+                } catch (NumberFormatException e) {
+                    handler.logWarning("Invalid value for -m: '" + mValue
+                            + "'. Must be a positive integer. All entries will be shown.");
+                    maxEntries = -1;
                 }
-            } catch (NumberFormatException e) {
-                handler.logError("Invalid value for -l. Must be a valid number.");
-                return;
             }
         }
 
 
-        // `-f`: From, specify source report ID.
-        fromReportId = parseReportIdOption(commandLine.getOptionValue('f'));
-        if (commandLine.hasOption('f') && fromReportId == null) {
-            return;
+        // `-s`: Source, specify source report ID.
+        if (commandLine.hasOption('s')) {
+            String sValue = commandLine.getOptionValue('s');
+            sourceReportId = parseReportIdOption(sValue);
+            if (sourceReportId == null) {
+                handler.logWarning("Invalid value for -s: '" + sValue
+                        + "'. The last two reports from the database will be compared instead.");
+            }
         }
 
-        // `-t`: To, specify target report ID.
-        toReportId = parseReportIdOption(commandLine.getOptionValue('t'));
-        if (commandLine.hasOption('t') && toReportId == null) {
-            return;
+        // `-t`: Target, specify target report ID.
+        if (commandLine.hasOption('t')) {
+            String tValue = commandLine.getOptionValue('t');
+            targetReportId = parseReportIdOption(tValue);
+            if (targetReportId == null) {
+                handler.logWarning("Invalid value for -t: '" + tValue
+                        + "'. The last two reports from the database will be compared instead.");
+            }
         }
 
         if (commandLine.hasOption('e')) {
             emails = commandLine.getOptionValues('e');
-            handler.logInfo("\nReport sent to this email address: " + String.join(", ", emails));
+            handler.logInfo("\nReport will be sent to: " + String.join(", ", emails));
         }
     }
 
@@ -228,11 +246,20 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         }
 
         // If the user requested to see all report dates, we will display them.
-        if (showDates) {
+        if (showList) {
             displayReportDates();
             return;
         }
         try (Context context = new Context()) {
+            // If only one of -s/-t is specified, warn the user and fall back to the
+            // last two reports for comparison.
+            if ((sourceReportId == null) ^ (targetReportId == null)) {
+                handler.logWarning("Only one of '-s'/'-t' was specified. "
+                        + "The last two reports from the database will be compared instead.");
+                sourceReportId = null;
+                targetReportId = null;
+            }
+
             defaultReportIds(context);
 
             if (!validateReportIdSelection()) {
@@ -256,13 +283,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         try {
             int index = Integer.parseInt(checkOption);
             if (index < 0 || index >= HealthReport.getNumberOfChecks()) {
-                handler.logError("Invalid value for check. Must be between 0 and " +
-                        (HealthReport.getNumberOfChecks() - 1) + ". Using all checks.");
                 return -1;
             }
             return index;
         } catch (NumberFormatException e) {
-            handler.logError("Invalid value for check. It must be a NUMBER from the displayed range.");
             return -1;
         }
     }
@@ -281,7 +305,6 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         try {
             return Integer.parseInt(optionValue);
         } catch (Exception e) {
-            handler.logError("Cannot parse report ID from input: " + optionValue);
             return null;
         }
     }
@@ -293,19 +316,19 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @return true if the report IDs are valid, false otherwise
      */
     private boolean validateReportIdSelection() {
-        if ((Objects.isNull(fromReportId) && Objects.nonNull(toReportId))
-                || (Objects.nonNull(fromReportId) && Objects.isNull(toReportId))) {
-            handler.logError("Both 'from' and 'to' report IDs must be specified.");
+        if ((Objects.isNull(sourceReportId) && Objects.nonNull(targetReportId))
+                || (Objects.nonNull(sourceReportId) && Objects.isNull(targetReportId))) {
+            handler.logError("Both 'source' and 'target' report IDs must be specified.");
             return false;
         }
 
-        if (Objects.nonNull(fromReportId) && fromReportId <= 0) {
-            handler.logError("The 'from' report ID must be a positive integer.");
+        if (Objects.nonNull(sourceReportId) && sourceReportId <= 0) {
+            handler.logError("The 'source' report ID must be a positive integer.");
             return false;
         }
 
-        if (Objects.nonNull(toReportId) && toReportId <= 0) {
-            handler.logError("The 'to' report ID must be a positive integer.");
+        if (Objects.nonNull(targetReportId) && targetReportId <= 0) {
+            handler.logError("The 'target' report ID must be a positive integer.");
             return false;
         }
 
@@ -318,7 +341,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @param context the application context used for fetching reports and logging
      */
     private void defaultReportIds(Context context) {
-        if (Objects.nonNull(fromReportId) && Objects.nonNull(toReportId)) {
+        if (Objects.nonNull(sourceReportId) && Objects.nonNull(targetReportId)) {
             return;
         }
         handler.logInfo("No report IDs specified, using the last two reports from the database.");
@@ -332,11 +355,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
             int size = allReports.size();
 
-            if (Objects.isNull(toReportId) && size > 0) {
-                toReportId = allReports.get(size - 1).getID();
+            if (Objects.isNull(targetReportId) && size > 0) {
+                targetReportId = allReports.get(size - 1).getID();
             }
-            if (Objects.isNull(fromReportId) && size > 1) {
-                fromReportId = allReports.get(size - 2).getID();
+            if (Objects.isNull(sourceReportId) && size > 1) {
+                sourceReportId = allReports.get(size - 2).getID();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -353,8 +376,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         try (Context context = new Context()) {
             context.setCurrentUser(ePersonService.find(context, getEpersonIdentifier()));
             List<ReportResult> allReports = reportResultService.findAll(context);
-            // Determine how many reports to process, respecting the `limit` if it's within valid range
-            long limitCount = (limit > 0 && limit < allReports.size()) ? limit : allReports.size();
+            // Determine how many reports to process, respecting maxEntries if it's within valid range
+            long limitCount = (maxEntries > 0 && maxEntries < allReports.size()) ? maxEntries : allReports.size();
             Map<String, List<DateWithArgs>> reportDatesMap = new HashMap<>();
             for (long i = 0; i < limitCount; i++) {
                 // the newest report is at the end of the list, so we reverse the index
@@ -479,8 +502,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         try {
             context.setCurrentUser(ePersonService.find(context, getEpersonIdentifier()));
 
-            ReportResult fromReport = reportResultService.find(context, fromReportId);
-            ReportResult toReport = reportResultService.find(context, toReportId);
+            ReportResult fromReport = reportResultService.find(context, sourceReportId);
+            ReportResult toReport = reportResultService.find(context, targetReportId);
 
             if (fromReport == null || toReport == null) {
                 handler.logInfo("No reports found for specified report IDs.");
@@ -677,36 +700,37 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
         // Enhanced Key Changes Table
         String keyChangesTable = generateEnhancedKeyChangesTable(normalizedFromJson, normalizedToJson,
-                fromReport.getLastModified(), toReport.getLastModified());
+                fromReport.getID(), toReport.getID());
         sb.append(keyChangesTable);
 
-        // Detailed Change Log
-        sb.append("Section 2: Detailed Change Log\n\n");
-        sb.append("Changes Summary\n");
-        String detailedSummary = generateDetailedSummary(normalizedFromJson, normalizedToJson);
-        sb.append(detailedSummary).append("\n");
-
-        sb.append(generateDiff(normalizedFromJson, normalizedToJson));
-
-        // Section 3: Skipped Checks (not present in both reports)
+        // Section 2: Skipped Checks (not present in both reports)
         if (!normalized.onlyInFrom.isEmpty() || !normalized.onlyInTo.isEmpty()) {
-            sb.append("\nSection 3: Skipped Checks\n\n");
-            sb.append("The following checks could not be compared because they were not present in both reports.\n\n");
+            sb.append("Section 2: Skipped Checks\n\n");
+            sb.append("The following checks could not be compared because they were not present in " +
+                    "both reports.\n\n");
             if (!normalized.onlyInFrom.isEmpty()) {
-                sb.append("Only in 'From' report (").append(fromReport.getLastModified()).append("):\n");
+                sb.append("Only in source report (ID ").append(fromReport.getID()).append("):\n");
                 for (String name : normalized.onlyInFrom) {
                     sb.append("  - ").append(name).append("\n");
                 }
                 sb.append("\n");
             }
             if (!normalized.onlyInTo.isEmpty()) {
-                sb.append("Only in 'To' report (").append(toReport.getLastModified()).append("):\n");
+                sb.append("Only in target report (ID ").append(toReport.getID()).append("):\n");
                 for (String name : normalized.onlyInTo) {
                     sb.append("  - ").append(name).append("\n");
                 }
                 sb.append("\n");
             }
         }
+
+        // Section 3: Detailed Change Log
+        sb.append("Section 3: Detailed Change Log\n\n");
+        sb.append("Changes Summary\n");
+        String detailedSummary = generateDetailedSummary(normalizedFromJson, normalizedToJson);
+        sb.append(detailedSummary).append("\n");
+
+        sb.append(generateDiff(normalizedFromJson, normalizedToJson));
 
         return sb.toString();
     }
@@ -856,6 +880,53 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
+     * Format an unsigned byte count with two-decimal precision for KB/MB/GB; used for value
+     * columns of byte-typed fields in the Key Changes table.
+     *
+     * @param bytes byte count (negatives are treated as their absolute value)
+     * @return formatted string, e.g. {@code 65.32 MB}
+     */
+    private String formatBytesHuman(long bytes) {
+        long abs = Math.abs(bytes);
+        if (abs < 1024L) {
+            return abs + " B";
+        }
+        if (abs < 1024L * 1024) {
+            return String.format(java.util.Locale.ROOT, "%.2f KB", abs / 1024.0);
+        }
+        if (abs < 1024L * 1024 * 1024) {
+            return String.format(java.util.Locale.ROOT, "%.2f MB", abs / (1024.0 * 1024));
+        }
+        return String.format(java.util.Locale.ROOT, "%.2f GB", abs / (1024.0 * 1024 * 1024));
+    }
+
+    /**
+     * Format a (possibly negative) byte delta into a signed, human-readable string used in the
+     * Difference column for byte-typed fields. Produces values such as {@code -5.71 KB} or
+     * {@code +123 B} so administrators don't have to read raw byte counts.
+     *
+     * @param bytes signed byte delta
+     * @return formatted signed string
+     */
+    private String formatSignedBytesHuman(long bytes) {
+        if (bytes == 0) {
+            return "0 B";
+        }
+        String sign = bytes > 0 ? "+" : "-";
+        long abs = Math.abs(bytes);
+        if (abs < 1024L) {
+            return sign + abs + " B";
+        }
+        if (abs < 1024L * 1024) {
+            return String.format(java.util.Locale.ROOT, "%s%.2f KB", sign, abs / 1024.0);
+        }
+        if (abs < 1024L * 1024 * 1024) {
+            return String.format(java.util.Locale.ROOT, "%s%.2f MB", sign, abs / (1024.0 * 1024));
+        }
+        return String.format(java.util.Locale.ROOT, "%s%.2f GB", sign, abs / (1024.0 * 1024 * 1024));
+    }
+
+    /**
      * Resolve a field path with attribute selectors to a JSON value.
      * <p>
      * Supports XPath-like selector syntax for matching array elements by a named field:
@@ -997,7 +1068,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @throws IOException if JSON parsing fails
      */
     private String generateEnhancedKeyChangesTable(String oldJson, String newJson,
-                                                   Date fromDate, Date toDate) throws IOException {
+                                                   Integer sourceReportId, Integer targetReportId)
+            throws IOException {
         loadFieldConfiguration();
 
         JsonNode oldNode = mapper.readTree(oldJson);
@@ -1017,12 +1089,27 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 continue;
             }
 
-            if (!Objects.equals(getDisplayValue(oldValue), getDisplayValue(newValue))) {
-                String displayName = fieldMappings.getOrDefault(fieldPath, fieldPath);
-                String oldDisplay = getDisplayValue(oldValue);
-                String newDisplay = getDisplayValue(newValue);
-                String difference = calculateDifference(oldValue, newValue);
+            // For byte-typed fields (paths ending with size_bytes) render values and diff in
+            // human-readable units so administrators get e.g. -5.71 KB instead of -5850.
+            boolean isByteField = fieldPath.endsWith("size_bytes");
+            String oldDisplay;
+            String newDisplay;
+            String difference;
+            if (isByteField && oldValue != null && newValue != null
+                    && oldValue.isNumber() && newValue.isNumber()) {
+                long oldBytes = oldValue.asLong();
+                long newBytes = newValue.asLong();
+                oldDisplay = formatBytesHuman(oldBytes);
+                newDisplay = formatBytesHuman(newBytes);
+                difference = formatSignedBytesHuman(newBytes - oldBytes);
+            } else {
+                oldDisplay = getDisplayValue(oldValue);
+                newDisplay = getDisplayValue(newValue);
+                difference = calculateDifference(oldValue, newValue);
+            }
 
+            if (!Objects.equals(oldDisplay, newDisplay)) {
+                String displayName = fieldMappings.getOrDefault(fieldPath, fieldPath);
                 changes.add(new TableRow(displayName, oldDisplay, newDisplay, difference));
             }
         }
@@ -1032,16 +1119,16 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                    "No significant changes detected between reports.\n\n";
         }
 
-        // Format dates for column headers using thread-safe DateTimeFormatter
-        String fromDateStr = fromDate.toInstant().atZone(java.time.ZoneId.systemDefault()).format(FORMATTER);
-        String toDateStr = toDate.toInstant().atZone(java.time.ZoneId.systemDefault()).format(FORMATTER);
+        // Compact ID-only column headers; full timestamps appear in the Executive Summary above.
+        String fromHeader = "Source: ID " + sourceReportId;
+        String toHeader = "Target: ID " + targetReportId;
 
         // Calculate dynamic column widths including header content
         int fieldWidth = Math.max("Field".length(),
                 changes.stream().mapToInt(r -> r.field.length()).max().orElse(25));
-        int oldWidth = Math.max(fromDateStr.length(),
+        int oldWidth = Math.max(fromHeader.length(),
                 changes.stream().mapToInt(r -> r.oldValue.length()).max().orElse(15));
-        int newWidth = Math.max(toDateStr.length(),
+        int newWidth = Math.max(toHeader.length(),
                 changes.stream().mapToInt(r -> r.newValue.length()).max().orElse(15));
         int diffWidth = Math.max("Difference".length(),
                 changes.stream().mapToInt(r -> r.difference.length()).max().orElse(12));
@@ -1056,8 +1143,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         // Header with separator
         table.append(separator).append("\n");
         table.append("| ").append(padRight("Field", fieldWidth))
-             .append(" | ").append(padRight(fromDateStr, oldWidth))
-             .append(" | ").append(padRight(toDateStr, newWidth))
+             .append(" | ").append(padRight(fromHeader, oldWidth))
+             .append(" | ").append(padRight(toHeader, newWidth))
              .append(" | ").append(padRight("Difference", diffWidth))
              .append(" |\n");
         table.append(separator).append("\n");
@@ -1155,10 +1242,12 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     public void printHelp() {
         handler.printHelp(getScriptConfiguration().getOptions(), getScriptConfiguration().getName());
         handler.logInfo("This script compares two health reports and shows the differences between them.");
-        handler.logInfo("You can specify the 'from' and 'to' report IDs to compare specific reports.");
-        handler.logInfo("If you want to see all available reports with IDs, use the '-d' option.");
+        handler.logInfo("Use '-s/--source' and '-t/--target' with report IDs to pick the source" +
+                " and target report.");
+        handler.logInfo("Use '-l/--list' to list all available reports with their IDs and timestamps.");
+        handler.logInfo("Use '-m/--max' together with '--list' to limit how many entries are shown.");
         handler.logInfo("If you want to compare a specific check, use the '-c' option with the check index, " +
-                "in this case you must also specify the `from` and `to` report IDs.");
+                "in this case you must also specify the source and target report IDs.");
         handler.logInfo("If you want to send the report to a specified email address, use '-e'.");
     }
 

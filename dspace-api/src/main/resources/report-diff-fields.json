@@ -1,7 +1,7 @@
 {
   "fieldMappings": {
-    "/checks/[name=General Information]/report/directoryStats/0/size_bytes": "Assetstore Size (bytes)",
-    "/checks/[name=General Information]/report/directoryStats/1/size_bytes": "Log Directory Size (bytes)",
+    "/checks/[name=General Information]/report/directoryStats/0/size_bytes": "Assetstore Size",
+    "/checks/[name=General Information]/report/directoryStats/1/size_bytes": "Log Directory Size",
     "/checks/[name=Item summary]/report/communitiesCount": "Communities",
     "/checks/[name=Item summary]/report/collectionsCount": "Collections",
     "/checks/[name=Item summary]/report/collectionsSizesInfo/totalSize": "Total Content Size",
