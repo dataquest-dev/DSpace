@@ -551,9 +551,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
             clarinLicenseName = jsonNodeValue.asText();
         }
 
-        // Delegate to shared helper so the top-level `/license` path
-        // (legacy / backward-compat) and the new section patch path
-        // `/sections/clarin-license/name` apply the same logic.
+        // Delegate to the shared helper so the legacy `/license` path and the
+        // section path `/sections/clarin-license/select` apply the same logic.
         org.dspace.app.rest.submit.step.ClarinLicenseSubmissionUtils
                 .applyLicense(context, item, clarinLicenseName);
     }

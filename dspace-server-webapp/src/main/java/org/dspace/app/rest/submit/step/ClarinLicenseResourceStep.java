@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.app.rest.model.patch.JsonValueEvaluator;
 import org.dspace.app.rest.model.patch.Operation;
-import org.dspace.app.rest.model.step.DataClarinLicense;
+import org.dspace.app.rest.model.step.ClarinDataLicense;
 import org.dspace.app.rest.submit.AbstractProcessingStep;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.util.SubmissionStepConfig;
@@ -26,16 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * CLARIN license resource step for DSpace Spring REST.
- * <p>
- * Exposes the CLARIN license currently selected for the in-progress
- * submission (sourced from the item's {@code dc.rights*} metadata) and
- * accepts section-scoped patches under
- * {@code /sections/clarin-license/name} to update that selection.
- * <p>
- * This step is intentionally <strong>not</strong> a clone of
- * {@code LicenseStep} any more — the CLARIN license has nothing to do with
- * the distribution license stored in {@code LICENSE/license.txt}.
+ * Submission step exposing the CLARIN resource license selected for the
+ * in-progress submission. Data is sourced from the item's {@code dc.rights*}
+ * metadata; the selection is updated via a section-scoped patch
+ * {@code /sections/clarin-license/select}.
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
@@ -44,15 +38,15 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
     private static final Logger log = LoggerFactory.getLogger(ClarinLicenseResourceStep.class);
 
     /**
-     * Section patch path entry used to set the selected CLARIN license name,
-     * e.g. {@code /sections/clarin-license/name}.
+     * Sub-path of the section patch used to select a CLARIN license by name,
+     * e.g. {@code /sections/clarin-license/select}.
      */
-    public static final String CLARIN_LICENSE_NAME_OPERATION_ENTRY = "name";
+    public static final String LICENSE_SELECT_OPERATION_ENTRY = "select";
 
     @Override
-    public DataClarinLicense getData(SubmissionService submissionService, InProgressSubmission obj,
+    public ClarinDataLicense getData(SubmissionService submissionService, InProgressSubmission obj,
             SubmissionStepConfig config) {
-        DataClarinLicense result = new DataClarinLicense();
+        ClarinDataLicense result = new ClarinDataLicense();
         Item item = obj.getItem();
         if (item == null) {
             return result;
@@ -83,7 +77,7 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
 
         String path = op.getPath();
 
-        if (path.endsWith("/" + CLARIN_LICENSE_NAME_OPERATION_ENTRY)
+        if (path.endsWith("/" + LICENSE_SELECT_OPERATION_ENTRY)
                 || path.endsWith("/" + stepConf.getId())) {
             String licenseName = extractLicenseName(op);
             ClarinLicenseSubmissionUtils.applyLicense(context, source.getItem(), licenseName);
@@ -91,10 +85,7 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
         }
 
         if (path.endsWith(LICENSE_STEP_OPERATION_ENTRY)) {
-            // The CLARIN license section is no longer backed by the deposit
-            // license bitstream, therefore a `granted` patch on this section
-            // is a no-op kept only for backward compatibility with older
-            // submission clients.
+            // `granted` patches are a no-op on this section; kept for older clients.
             log.info("Ignoring legacy '{}/granted' patch on the CLARIN license section.", stepConf.getId());
             return;
         }

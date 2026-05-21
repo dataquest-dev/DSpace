@@ -11,16 +11,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 /**
- * Java Bean exposing the CLARIN license selected for an in-progress submission.
- * <p>
- * Unlike {@link DataLicense} which represents the distribution / deposit
- * {@code LICENSE/license.txt} bitstream, this DTO represents the CLARIN
- * resource license chosen by the user and stored in the item metadata
- * ({@code dc.rights}, {@code dc.rights.uri}, {@code dc.rights.label}).
+ * DTO of the CLARIN resource license selected for an in-progress submission.
+ * Backed by the item metadata {@code dc.rights}, {@code dc.rights.uri} and
+ * {@code dc.rights.label}. Distinct from {@link DataLicense}, which represents
+ * the deposit {@code LICENSE/license.txt} bitstream.
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-public class DataClarinLicense implements SectionData {
+public class ClarinDataLicense implements SectionData {
 
     /**
      * Display name of the CLARIN license (value of {@code dc.rights}).

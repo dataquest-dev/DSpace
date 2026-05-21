@@ -821,8 +821,8 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
     }
 
     /**
-     * Riesenie B: applying the CLARIN license via the section-scoped path
-     * `/sections/clarin-license/name` must work exactly like the legacy
+     * Applying the CLARIN license via the section-scoped path
+     * `/sections/clarin-license/select` must work exactly like the legacy
      * top-level `/license` path.
      */
     @Test
@@ -838,7 +838,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
         List<Operation> replaceOperations = new ArrayList<Operation>();
         Map<String, String> licenseReplaceOpValue = new HashMap<String, String>();
         licenseReplaceOpValue.put("value", clarinLicenseName);
-        replaceOperations.add(new ReplaceOperation("/sections/clarin-license/name",
+        replaceOperations.add(new ReplaceOperation("/sections/clarin-license/select",
                 licenseReplaceOpValue));
         String updateBody = getPatchContent(replaceOperations);
 
@@ -858,8 +858,8 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
     }
 
     /**
-     * Riesenie B: after applying a CLARIN license, GET on the workspace item
-     * must expose distinct payloads for the standard `license` section
+     * After applying a CLARIN license, GET on the workspace item must expose
+     * distinct payloads for the standard `license` section
      * (CC license: url/acceptanceDate/granted) and the `clarin-license`
      * section (name/definition/label/granted from `dc.rights*`).
      */
@@ -873,11 +873,11 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                 Confirmation.NOT_REQUIRED);
         context.restoreAuthSystemState();
 
-        // Apply the CLARIN license through the new section-scoped path
+        // Apply the CLARIN license through the section-scoped path
         List<Operation> replaceOperations = new ArrayList<Operation>();
         Map<String, String> licenseReplaceOpValue = new HashMap<String, String>();
         licenseReplaceOpValue.put("value", clarinLicenseName);
-        replaceOperations.add(new ReplaceOperation("/sections/clarin-license/name",
+        replaceOperations.add(new ReplaceOperation("/sections/clarin-license/select",
                 licenseReplaceOpValue));
         String updateBody = getPatchContent(replaceOperations);
 

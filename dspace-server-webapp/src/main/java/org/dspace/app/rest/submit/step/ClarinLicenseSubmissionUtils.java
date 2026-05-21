@@ -30,12 +30,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Shared logic for applying a CLARIN license selection to an in-progress
- * submission item. Used by both the top-level {@code /license} patch path
- * in {@code WorkspaceItemRestRepository} (backward compatibility) and the
- * section-based patch path handled by
- * {@link ClarinLicenseResourceStep} (preferred contract introduced as part
- * of the API duplicity fix between {@code sections.license} and
- * {@code sections.clarin-license}).
+ * submission item. Used by both the legacy top-level {@code /license} patch
+ * path in {@code WorkspaceItemRestRepository} and the section-scoped patch
+ * path handled by {@link ClarinLicenseResourceStep}.
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
