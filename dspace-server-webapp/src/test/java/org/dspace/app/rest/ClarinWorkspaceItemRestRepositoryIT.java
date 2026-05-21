@@ -821,6 +821,84 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
     }
 
     /**
+     * Riesenie B: applying the CLARIN license via the section-scoped path
+     * `/sections/clarin-license/name` must work exactly like the legacy
+     * top-level `/license` path.
+     */
+    @Test
+    public void addClarinLicenseViaSectionPatch() throws Exception {
+        context.turnOffAuthorisationSystem();
+        WorkspaceItem witem = createWorkspaceItemWithFile();
+
+        String clarinLicenseName = "Test Section Clarin License";
+        ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info",
+                Confirmation.NOT_REQUIRED);
+        context.restoreAuthSystemState();
+
+        List<Operation> replaceOperations = new ArrayList<Operation>();
+        Map<String, String> licenseReplaceOpValue = new HashMap<String, String>();
+        licenseReplaceOpValue.put("value", clarinLicenseName);
+        replaceOperations.add(new ReplaceOperation("/sections/clarin-license/name",
+                licenseReplaceOpValue));
+        String updateBody = getPatchContent(replaceOperations);
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        // Item metadata `dc.rights` must contain the CLARIN license name
+        assertClarinLicenseMetadata(witem, "dc", "rights", null, clarinLicenseName, false);
+
+        // Bitstream must be attached to the CLARIN license
+        getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bitstreams", is(1)));
+    }
+
+    /**
+     * Riesenie B: after applying a CLARIN license, GET on the workspace item
+     * must expose distinct payloads for the standard `license` section
+     * (CC license: url/acceptanceDate/granted) and the `clarin-license`
+     * section (name/definition/label/granted from `dc.rights*`).
+     */
+    @Test
+    public void getWorkspaceItemReturnsDistinctLicenseSections() throws Exception {
+        context.turnOffAuthorisationSystem();
+        WorkspaceItem witem = createWorkspaceItemWithFile();
+
+        String clarinLicenseName = "Distinct Sections Clarin License";
+        createClarinLicense(clarinLicenseName, "Test Def", "Test R Info",
+                Confirmation.NOT_REQUIRED);
+        context.restoreAuthSystemState();
+
+        // Apply the CLARIN license through the new section-scoped path
+        List<Operation> replaceOperations = new ArrayList<Operation>();
+        Map<String, String> licenseReplaceOpValue = new HashMap<String, String>();
+        licenseReplaceOpValue.put("value", clarinLicenseName);
+        replaceOperations.add(new ReplaceOperation("/sections/clarin-license/name",
+                licenseReplaceOpValue));
+        String updateBody = getPatchContent(replaceOperations);
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(updateBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        // GET the workspace item and assert the two sections are distinct
+        getClient(tokenAdmin).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                // clarin-license section reflects CLARIN-specific fields
+                .andExpect(jsonPath("$.sections['clarin-license'].name", is(clarinLicenseName)))
+                .andExpect(jsonPath("$.sections['clarin-license'].granted", is(true)))
+                // the standard CC license section must NOT be polluted with the
+                // CLARIN license name; it exposes its own (CC) shape with `url`
+                .andExpect(jsonPath("$.sections.license.name").doesNotExist());
+    }
+
+    /**
      * Create Item with standard handle. The handle definition for every community is configured
      * by the `lr.pid.community.configurations` properties.
      */

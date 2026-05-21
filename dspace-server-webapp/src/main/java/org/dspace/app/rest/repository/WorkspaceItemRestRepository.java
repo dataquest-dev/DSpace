@@ -31,7 +31,6 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.WorkspaceItemConverter;
-import org.dspace.app.rest.exception.ClarinLicenseNotFoundException;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
@@ -51,14 +50,11 @@ import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.LicenseUtils;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
-import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CollectionService;
@@ -555,53 +551,11 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
             clarinLicenseName = jsonNodeValue.asText();
         }
 
-        // Get clarin license by definition
-        ClarinLicense clarinLicense = clarinLicenseService.findByName(context, clarinLicenseName);
-        if (StringUtils.isNotBlank(clarinLicenseName) && Objects.isNull(clarinLicense)) {
-            throw new ClarinLicenseNotFoundException("Cannot patch workspace item with id: " + source.getID() + "," +
-                    " because the clarin license with name: " + clarinLicenseName + " isn't supported in" +
-                    " the CLARIN/DSpace");
-        }
-
-        // Clear the license metadata from the item
-        clarinLicenseService.clearLicenseMetadataFromItem(context, item);
-
-        // Detach the clarin licenses from the uploaded bitstreams
-        List<Bundle> bundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
-        for (Bundle bundle : bundles) {
-            List<Bitstream> bitstreamList = bundle.getBitstreams();
-            for (Bitstream bitstream : bitstreamList) {
-                // in case bitstream ID exists in license table for some reason .. just remove it
-                this.clarinLicenseResourceMappingService.detachLicenses(context, bitstream);
-            }
-        }
-
-        // Save changes to database
-        itemService.update(context, item);
-
-        if (Objects.isNull(clarinLicense)) {
-            log.info("The clarin license is null so all item metadata for license was cleared and the" +
-                    "licenses was detached.");
-            return;
-        }
-
-        // If the clarin license is not null that means some clarin license was updated and accepted
-        // Attach the new clarin license to every bitstream and add clarin license values to the item metadata.
-
-        // update item metadata with license data
-        clarinLicenseService.addLicenseMetadataToItem(context, clarinLicense, item);
-
-        // Attach the clarin license to the bitstreams
-        for (Bundle bundle : bundles) {
-            List<Bitstream> bitstreamList = bundle.getBitstreams();
-            for (Bitstream bitstream : bitstreamList) {
-                // in case bitstream ID exists in license table for some reason .. just remove it
-                this.clarinLicenseResourceMappingService.attachLicense(context, clarinLicense, bitstream);
-            }
-        }
-
-        // Save changes to database
-        itemService.update(context, item);
+        // Delegate to shared helper so the top-level `/license` path
+        // (legacy / backward-compat) and the new section patch path
+        // `/sections/clarin-license/name` apply the same logic.
+        org.dspace.app.rest.submit.step.ClarinLicenseSubmissionUtils
+                .applyLicense(context, item, clarinLicenseName);
     }
 
     private void grantDistributionLicense(Context context, WorkspaceItem source, Operation op)
