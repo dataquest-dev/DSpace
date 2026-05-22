@@ -12,9 +12,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.collections4.CollectionUtils;
+import org.dspace.app.rest.exception.ClarinLicenseNotFoundException;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.JsonValueEvaluator;
 import org.dspace.app.rest.model.patch.Operation;
-import org.dspace.app.rest.model.step.ClarinDataLicense;
+import org.dspace.app.rest.model.step.ClarinDataLicenseRest;
 import org.dspace.app.rest.submit.AbstractProcessingStep;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.util.SubmissionStepConfig;
@@ -44,9 +46,9 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
     public static final String LICENSE_SELECT_OPERATION_ENTRY = "select";
 
     @Override
-    public ClarinDataLicense getData(SubmissionService submissionService, InProgressSubmission obj,
+    public ClarinDataLicenseRest getData(SubmissionService submissionService, InProgressSubmission obj,
             SubmissionStepConfig config) {
-        ClarinDataLicense result = new ClarinDataLicense();
+        ClarinDataLicenseRest result = new ClarinDataLicenseRest();
         Item item = obj.getItem();
         if (item == null) {
             return result;
@@ -80,7 +82,12 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
         if (path.endsWith("/" + LICENSE_SELECT_OPERATION_ENTRY)
                 || path.endsWith("/" + stepConf.getId())) {
             String licenseName = extractLicenseName(op);
-            ClarinLicenseSubmissionUtils.applyLicense(context, source.getItem(), licenseName);
+            try {
+                ClarinLicenseSubmissionUtils.applyLicense(context, source.getItem(), licenseName);
+            } catch (ClarinLicenseNotFoundException ex) {
+                // Surface invalid client input as 422 instead of leaking as 500.
+                throw new UnprocessableEntityException(ex.getMessage(), ex);
+            }
             return;
         }
 

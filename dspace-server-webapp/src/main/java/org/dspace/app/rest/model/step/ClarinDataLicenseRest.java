@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-public class ClarinDataLicense implements SectionData {
+public class ClarinDataLicenseRest implements SectionData {
 
     /**
      * Display name of the CLARIN license (value of {@code dc.rights}).

@@ -899,6 +899,148 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
     }
 
     /**
+     * PATCH on `/sections/clarin-license/select` with an empty value must clear
+     * the previously selected license: `dc.rights*` metadata is removed and the
+     * license is detached from the uploaded bitstream.
+     */
+    @Test
+    public void patchSelectWithEmptyValueClearsLicense() throws Exception {
+        context.turnOffAuthorisationSystem();
+        WorkspaceItem witem = createWorkspaceItemWithFile();
+
+        String clarinLicenseName = "Empty Value Clarin License";
+        ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info",
+                Confirmation.NOT_REQUIRED);
+        context.restoreAuthSystemState();
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        // First select the license through the new section path
+        List<Operation> ops = new ArrayList<Operation>();
+        Map<String, String> selectValue = new HashMap<String, String>();
+        selectValue.put("value", clarinLicenseName);
+        ops.add(new ReplaceOperation("/sections/clarin-license/select", selectValue));
+        getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(getPatchContent(ops))
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        assertClarinLicenseMetadata(witem, "dc", "rights", null, clarinLicenseName, false);
+        getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(jsonPath("$.bitstreams", is(1)));
+
+        // Now clear the selection with an empty value
+        ops.clear();
+        Map<String, String> emptyValue = new HashMap<String, String>();
+        emptyValue.put("value", "");
+        ops.add(new ReplaceOperation("/sections/clarin-license/select", emptyValue));
+        getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(getPatchContent(ops))
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        // Item metadata cleared and license detached from bitstream
+        assertClarinLicenseMetadata(witem, "dc", "rights", null, null, true);
+        getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
+                .andExpect(jsonPath("$.bitstreams", is(0)));
+    }
+
+    /**
+     * Two consecutive PATCHes on `/sections/clarin-license/select` must replace
+     * the previously selected license: `dc.rights` reflects the latest name and
+     * the bitstream is moved from the first license to the second one.
+     */
+    @Test
+    public void patchSelectReplacesPreviousLicense() throws Exception {
+        context.turnOffAuthorisationSystem();
+        WorkspaceItem witem = createWorkspaceItemWithFile();
+
+        String firstName = "First Clarin License";
+        String secondName = "Second Clarin License";
+        ClarinLicense first = createClarinLicense(firstName, "Def1", "Info1", Confirmation.NOT_REQUIRED);
+        ClarinLicense second = createClarinLicense(secondName, "Def2", "Info2", Confirmation.NOT_REQUIRED);
+        context.restoreAuthSystemState();
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        // Select first license
+        List<Operation> ops = new ArrayList<Operation>();
+        Map<String, String> v1 = new HashMap<String, String>();
+        v1.put("value", firstName);
+        ops.add(new ReplaceOperation("/sections/clarin-license/select", v1));
+        getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(getPatchContent(ops))
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+        assertClarinLicenseMetadata(witem, "dc", "rights", null, firstName, false);
+        getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + first.getID()))
+                .andExpect(jsonPath("$.bitstreams", is(1)));
+
+        // Replace with second license through the same section path
+        ops.clear();
+        Map<String, String> v2 = new HashMap<String, String>();
+        v2.put("value", secondName);
+        ops.add(new ReplaceOperation("/sections/clarin-license/select", v2));
+        getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(getPatchContent(ops))
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        assertClarinLicenseMetadata(witem, "dc", "rights", null, secondName, false);
+        getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + first.getID()))
+                .andExpect(jsonPath("$.bitstreams", is(0)));
+        getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + second.getID()))
+                .andExpect(jsonPath("$.bitstreams", is(1)));
+    }
+
+    /**
+     * PATCH on `/sections/clarin-license/select` with a name that does not
+     * resolve to an existing CLARIN license must fail with 422 and must not
+     * mutate the item's `dc.rights*` metadata.
+     */
+    @Test
+    public void patchSelectWithUnknownLicenseNameFails() throws Exception {
+        context.turnOffAuthorisationSystem();
+        WorkspaceItem witem = createWorkspaceItemWithFile();
+        context.restoreAuthSystemState();
+
+        List<Operation> ops = new ArrayList<Operation>();
+        Map<String, String> v = new HashMap<String, String>();
+        v.put("value", "Definitely Not An Existing License");
+        ops.add(new ReplaceOperation("/sections/clarin-license/select", v));
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(getPatchContent(ops))
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isUnprocessableEntity());
+        // The 422 response guarantees no mutation: applyLicense resolves the
+        // license up-front and throws before clearing/updating any metadata.
+    }
+
+    /**
+     * Anonymous PATCH on `/sections/clarin-license/select` must be rejected
+     * (the user is not authenticated to modify the submission).
+     */
+    @Test
+    public void patchSelectAsAnonymousIsUnauthorized() throws Exception {
+        context.turnOffAuthorisationSystem();
+        WorkspaceItem witem = createWorkspaceItemWithFile();
+        String clarinLicenseName = "Anon Clarin License";
+        createClarinLicense(clarinLicenseName, "Def", "Info", Confirmation.NOT_REQUIRED);
+        context.restoreAuthSystemState();
+
+        List<Operation> ops = new ArrayList<Operation>();
+        Map<String, String> v = new HashMap<String, String>();
+        v.put("value", clarinLicenseName);
+        ops.add(new ReplaceOperation("/sections/clarin-license/select", v));
+
+        getClient().perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(getPatchContent(ops))
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /**
      * Create Item with standard handle. The handle definition for every community is configured
      * by the `lr.pid.community.configurations` properties.
      */
