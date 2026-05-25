@@ -79,8 +79,7 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
 
         String path = op.getPath();
 
-        if (path.endsWith("/" + LICENSE_SELECT_OPERATION_ENTRY)
-                || path.endsWith("/" + stepConf.getId())) {
+        if (path.endsWith("/" + LICENSE_SELECT_OPERATION_ENTRY)) {
             if (!"replace".equals(op.getOp())) {
                 throw new UnprocessableEntityException(
                         "The operation '" + op.getOp() + "' is not supported for path " + path);

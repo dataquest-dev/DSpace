@@ -63,6 +63,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.app.rest.exception.ClarinLicenseNotFoundException;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -554,7 +555,11 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
         // Delegate to the shared helper so the legacy `/license` path and the
         // section path `/sections/clarin-license/select` apply the same logic.
-        ClarinLicenseSubmissionUtils.applyLicense(context, item, clarinLicenseName);
+        try {
+            ClarinLicenseSubmissionUtils.applyLicense(context, item, clarinLicenseName);
+        } catch (ClarinLicenseNotFoundException ex) {
+            throw new UnprocessableEntityException(ex.getMessage(), ex);
+        }
     }
 
     private void grantDistributionLicense(Context context, WorkspaceItem source, Operation op)
