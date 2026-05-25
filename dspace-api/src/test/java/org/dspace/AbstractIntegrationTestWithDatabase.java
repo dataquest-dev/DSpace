@@ -169,25 +169,37 @@ public class AbstractIntegrationTestWithDatabase extends AbstractDSpaceIntegrati
     public void destroy() throws Exception {
         // Cleanup our global context object
         try {
-            // Builders/cleanupContext can trigger a transactional commit through Hibernate.
+            // Builders/cleanupContext can trigger transactional commits through Hibernate.
             // Older Hibernate releases have a race in ResourceRegistryStandardImpl#releaseResources
-            // where the close() callback removes the just-iterated entry from the registry map,
-            // causing an intermittent ConcurrentModificationException (see HHH-15116).
-            // The DB cleanup work is best-effort here (test data is purged per-class anyway),
-            // so on CME we abort the context to release the JDBC connection and continue
-            // with the remaining (Solr/config) cleanup instead of failing an already-passed test.
-            try {
-                AbstractBuilder.cleanupObjects();
-                parentCommunity = null;
-                cleanupContext();
-            } catch (ConcurrentModificationException cme) {
-                log.warn("Ignoring transient Hibernate CME during @After cleanup (HHH-15116); "
-                        + "aborting context and continuing.", cme);
-                if (context != null && context.isValid()) {
-                    context.abort();
+            // which may raise an intermittent ConcurrentModificationException (HHH-15116).
+            // Retry cleanup after aborting the context so we don't silently skip DB cleanup.
+            final int maxCleanupAttempts = 3;
+            boolean cleanupComplete = false;
+            for (int cleanupAttempt = 1; cleanupAttempt <= maxCleanupAttempts; cleanupAttempt++) {
+                try {
+                    AbstractBuilder.cleanupObjects();
+                    parentCommunity = null;
+                    cleanupContext();
+                    cleanupComplete = true;
+                    break;
+                } catch (ConcurrentModificationException cme) {
+                    log.warn("Transient Hibernate CME during @After cleanup (HHH-15116), attempt {}/{}; "
+                            + "aborting context and retrying cleanup.", cleanupAttempt, maxCleanupAttempts, cme);
+                    if (context != null && context.isValid()) {
+                        context.abort();
+                    }
+                    context = null;
+                    parentCommunity = null;
+
+                    if (cleanupAttempt < maxCleanupAttempts) {
+                        context = new Context(Context.Mode.READ_WRITE);
+                        context.turnOffAuthorisationSystem();
+                    }
                 }
-                context = null;
-                parentCommunity = null;
+            }
+
+            if (!cleanupComplete) {
+                throw new IllegalStateException("Unable to complete @After DB cleanup after retries.");
             }
 
             ServiceManager serviceManager = DSpaceServicesFactory.getInstance().getServiceManager();
