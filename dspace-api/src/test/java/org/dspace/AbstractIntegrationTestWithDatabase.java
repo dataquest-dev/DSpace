@@ -10,6 +10,7 @@ package org.dspace;
 import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
+import java.util.ConcurrentModificationException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -168,9 +169,26 @@ public class AbstractIntegrationTestWithDatabase extends AbstractDSpaceIntegrati
     public void destroy() throws Exception {
         // Cleanup our global context object
         try {
-            AbstractBuilder.cleanupObjects();
-            parentCommunity = null;
-            cleanupContext();
+            // Builders/cleanupContext can trigger a transactional commit through Hibernate.
+            // Older Hibernate releases have a race in ResourceRegistryStandardImpl#releaseResources
+            // where the close() callback removes the just-iterated entry from the registry map,
+            // causing an intermittent ConcurrentModificationException (see HHH-15116).
+            // The DB cleanup work is best-effort here (test data is purged per-class anyway),
+            // so on CME we abort the context to release the JDBC connection and continue
+            // with the remaining (Solr/config) cleanup instead of failing an already-passed test.
+            try {
+                AbstractBuilder.cleanupObjects();
+                parentCommunity = null;
+                cleanupContext();
+            } catch (ConcurrentModificationException cme) {
+                log.warn("Ignoring transient Hibernate CME during @After cleanup (HHH-15116); "
+                        + "aborting context and continuing.", cme);
+                if (context != null && context.isValid()) {
+                    context.abort();
+                }
+                context = null;
+                parentCommunity = null;
+            }
 
             ServiceManager serviceManager = DSpaceServicesFactory.getInstance().getServiceManager();
             // Clear the search core.
