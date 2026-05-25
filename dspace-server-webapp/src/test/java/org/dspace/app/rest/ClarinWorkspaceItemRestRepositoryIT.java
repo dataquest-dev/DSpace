@@ -1003,6 +1003,12 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
     public void patchSelectWithUnknownLicenseNameFails() throws Exception {
         context.turnOffAuthorisationSystem();
         WorkspaceItem witem = createWorkspaceItemWithFile();
+                List<MetadataValue> rightsBefore = itemService.getMetadata(witem.getItem(), "dc", "rights", null,
+                                null, Item.ANY);
+                List<String> rightsBeforeValues = new ArrayList<String>();
+                for (MetadataValue metadataValue : rightsBefore) {
+                        rightsBeforeValues.add(metadataValue.getValue());
+                }
         context.restoreAuthSystemState();
 
         List<Operation> ops = new ArrayList<Operation>();
@@ -1015,7 +1021,15 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                         .content(getPatchContent(ops))
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isUnprocessableEntity());
-        assertClarinLicenseMetadata(witem, "dc", "rights", null, null, true);
+
+        witem = context.reloadEntity(witem);
+        List<MetadataValue> rightsAfter = itemService.getMetadata(witem.getItem(), "dc", "rights", null,
+                null, Item.ANY);
+        List<String> rightsAfterValues = new ArrayList<String>();
+        for (MetadataValue metadataValue : rightsAfter) {
+            rightsAfterValues.add(metadataValue.getValue());
+        }
+        Assert.assertEquals(rightsBeforeValues, rightsAfterValues);
     }
 
     /**
