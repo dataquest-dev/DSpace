@@ -11,37 +11,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 /**
- * DTO of the CLARIN resource license selected for an in-progress submission.
- * Backed by the item metadata {@code dc.rights}, {@code dc.rights.uri} and
- * {@code dc.rights.label}. Distinct from {@link DataLicense}, which represents
- * the deposit {@code LICENSE/license.txt} bitstream.
+ * Java Bean to expose the CLARIN license section during in progress submission.
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-public class ClarinDataLicenseRest implements SectionData {
+public class ClarinDataLicense implements SectionData {
 
-    /**
-     * Display name of the CLARIN license (value of {@code dc.rights}).
-     */
     private String name;
 
-    /**
-     * URI / definition of the CLARIN license (value of {@code dc.rights.uri}).
-     */
     @JsonProperty(access = Access.READ_ONLY)
     private String definition;
 
-    /**
-     * Short label of the CLARIN license (value of {@code dc.rights.label}).
-     */
     @JsonProperty(access = Access.READ_ONLY)
     private String label;
 
-    /**
-     * Whether the CLARIN license is granted, i.e. all three metadata fields
-     * ({@code dc.rights}, {@code dc.rights.uri}, {@code dc.rights.label}) are
-     * present on the item.
-     */
     private boolean granted = false;
 
     public String getName() {

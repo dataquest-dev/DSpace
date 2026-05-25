@@ -42,6 +42,7 @@ import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.repository.handler.service.UriListHandlerService;
 import org.dspace.app.rest.submit.SubmissionService;
+import org.dspace.app.rest.submit.step.ClarinLicenseSubmissionUtils;
 import org.dspace.app.rest.submit.UploadableStep;
 import org.dspace.app.rest.utils.BigMultipartFile;
 import org.dspace.app.rest.utils.Utils;
@@ -553,8 +554,7 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
         // Delegate to the shared helper so the legacy `/license` path and the
         // section path `/sections/clarin-license/select` apply the same logic.
-        org.dspace.app.rest.submit.step.ClarinLicenseSubmissionUtils
-                .applyLicense(context, item, clarinLicenseName);
+        ClarinLicenseSubmissionUtils.applyLicense(context, item, clarinLicenseName);
     }
 
     private void grantDistributionLicense(Context context, WorkspaceItem source, Operation op)

@@ -892,10 +892,12 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                 .andExpect(status().isOk())
                 // clarin-license section reflects CLARIN-specific fields
                 .andExpect(jsonPath("$.sections['clarin-license'].name", is(clarinLicenseName)))
+                .andExpect(jsonPath("$.sections['clarin-license'].definition").isNotEmpty())
+                .andExpect(jsonPath("$.sections['clarin-license'].label").isNotEmpty())
                 .andExpect(jsonPath("$.sections['clarin-license'].granted", is(true)))
-                // the standard CC license section must NOT be polluted with the
-                // CLARIN license name; it exposes its own (CC) shape with `url`
-                .andExpect(jsonPath("$.sections.license.name").doesNotExist());
+                .andExpect(jsonPath("$.sections.license.granted", is(false)))
+                .andExpect(jsonPath("$.sections.license.acceptanceDate").isEmpty())
+                .andExpect(jsonPath("$.sections.license.url").isEmpty());
     }
 
     /**
@@ -1013,8 +1015,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                         .content(getPatchContent(ops))
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isUnprocessableEntity());
-        // The 422 response guarantees no mutation: applyLicense resolves the
-        // license up-front and throws before clearing/updating any metadata.
+        assertClarinLicenseMetadata(witem, "dc", "rights", null, null, true);
     }
 
     /**

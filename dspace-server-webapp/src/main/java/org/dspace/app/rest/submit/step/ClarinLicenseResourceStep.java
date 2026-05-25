@@ -16,7 +16,7 @@ import org.dspace.app.rest.exception.ClarinLicenseNotFoundException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.JsonValueEvaluator;
 import org.dspace.app.rest.model.patch.Operation;
-import org.dspace.app.rest.model.step.ClarinDataLicenseRest;
+import org.dspace.app.rest.model.step.ClarinDataLicense;
 import org.dspace.app.rest.submit.AbstractProcessingStep;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.util.SubmissionStepConfig;
@@ -46,9 +46,9 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
     public static final String LICENSE_SELECT_OPERATION_ENTRY = "select";
 
     @Override
-    public ClarinDataLicenseRest getData(SubmissionService submissionService, InProgressSubmission obj,
+    public ClarinDataLicense getData(SubmissionService submissionService, InProgressSubmission obj,
             SubmissionStepConfig config) {
-        ClarinDataLicenseRest result = new ClarinDataLicenseRest();
+        ClarinDataLicense result = new ClarinDataLicense();
         Item item = obj.getItem();
         if (item == null) {
             return result;
@@ -81,6 +81,10 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
 
         if (path.endsWith("/" + LICENSE_SELECT_OPERATION_ENTRY)
                 || path.endsWith("/" + stepConf.getId())) {
+            if (!"replace".equals(op.getOp())) {
+                throw new UnprocessableEntityException(
+                        "The operation '" + op.getOp() + "' is not supported for path " + path);
+            }
             String licenseName = extractLicenseName(op);
             try {
                 ClarinLicenseSubmissionUtils.applyLicense(context, source.getItem(), licenseName);
@@ -97,7 +101,7 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
             return;
         }
 
-        log.info("Ignoring unsupported patch path on CLARIN license section: {}", path);
+        throw new UnprocessableEntityException("The path " + path + " cannot be patched");
     }
 
     private String extractLicenseName(Operation op) {
