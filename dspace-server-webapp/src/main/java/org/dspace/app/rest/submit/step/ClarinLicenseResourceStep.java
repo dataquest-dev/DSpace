@@ -12,10 +12,12 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.exception.ClarinLicenseNotFoundException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.JsonValueEvaluator;
 import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.model.step.ClarinDataLicense;
 import org.dspace.app.rest.submit.AbstractProcessingStep;
 import org.dspace.app.rest.submit.SubmissionService;
@@ -43,7 +45,7 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
      * Sub-path of the section patch used to select a CLARIN license by name,
      * e.g. {@code /sections/clarin-license/select}.
      */
-    public static final String LICENSE_SELECT_OPERATION_ENTRY = "select";
+    private static final String LICENSE_SELECT_OPERATION_ENTRY = "select";
 
     @Override
     public ClarinDataLicense getData(SubmissionService submissionService, InProgressSubmission obj,
@@ -80,14 +82,16 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
         String path = op.getPath();
 
         if (path.endsWith("/" + LICENSE_SELECT_OPERATION_ENTRY)) {
-            if (!"replace".equals(op.getOp())) {
+            if (!(op instanceof ReplaceOperation)) {
                 throw new UnprocessableEntityException(
                         "The operation '" + op.getOp() + "' is not supported for path " + path);
             }
             String licenseName = extractLicenseName(op);
-            if (licenseName == null || licenseName.isEmpty()) {
-                // No usable license name in the patch payload -> reject as client error
-                // instead of calling the service with a null/empty value.
+            // Section endpoint: a missing or blank license name is treated as a
+            // client error (422). The legacy `/license` path in
+            // WorkspaceItemRestRepository intentionally treats a blank value as
+            // "clear the current license" for backwards compatibility.
+            if (StringUtils.isBlank(licenseName)) {
                 throw new UnprocessableEntityException(
                         "The patch value for path " + path + " must contain a non-empty license name.");
             }
@@ -131,7 +135,8 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
      *
      * @param op the JSON Patch operation targeting the license {@code select} path
      * @return the license name extracted from the operation value, or {@code null}
-     *         if the operation has no usable value
+     *         if the operation has no usable value (missing, null, or of an
+     *         unsupported type)
      */
     private String extractLicenseName(Operation op) {
         Object value = op.getValue();
@@ -154,6 +159,8 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
                 return valueNode.asText();
             }
         }
-        return String.valueOf(value);
+        log.warn("Unsupported Operation value type for license name extraction: {}",
+                value.getClass().getName());
+        return null;
     }
 }

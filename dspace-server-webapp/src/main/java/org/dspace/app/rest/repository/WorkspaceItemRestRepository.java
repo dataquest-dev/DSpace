@@ -530,12 +530,13 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         // Get item
         Item item = source.getItem();
         if (Objects.isNull(item)) {
-            // add log
+            log.warn("Cannot maintain CLARIN licenses: workspace item {} has no underlying item.", source.getID());
             return;
         }
         // Get value from operation
         if (!(op instanceof ReplaceOperation)) {
-            // add log
+            log.warn("Ignoring non-replace operation '{}' on license patch path for workspace item {}.",
+                    op.getOp(), source.getID());
             return;
         }
 

@@ -101,9 +101,9 @@ public final class ClarinLicenseSubmissionUtils {
             }
         }
 
-        itemService.update(context, item);
-
         if (Objects.isNull(clarinLicense)) {
+            // Persist the cleared metadata state and stop.
+            itemService.update(context, item);
             log.info("CLARIN license selection cleared on item {}.", item.getID());
             return;
         }
@@ -115,6 +115,8 @@ public final class ClarinLicenseSubmissionUtils {
                 clarinLicenseResourceMappingService.attachLicense(context, clarinLicense, bitstream);
             }
         }
+        // Persist all metadata changes in a single update at the end.
         itemService.update(context, item);
+        log.info("CLARIN license '{}' applied to item {}.", clarinLicenseName, item.getID());
     }
 }
