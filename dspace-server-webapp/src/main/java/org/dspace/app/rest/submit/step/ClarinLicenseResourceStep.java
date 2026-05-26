@@ -85,6 +85,12 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
                         "The operation '" + op.getOp() + "' is not supported for path " + path);
             }
             String licenseName = extractLicenseName(op);
+            if (licenseName == null || licenseName.isEmpty()) {
+                // No usable license name in the patch payload -> reject as client error
+                // instead of calling the service with a null/empty value.
+                throw new UnprocessableEntityException(
+                        "The patch value for path " + path + " must contain a non-empty license name.");
+            }
             try {
                 ClarinLicenseSubmissionUtils.applyLicense(context, source.getItem(), licenseName);
             } catch (ClarinLicenseNotFoundException ex) {
@@ -103,6 +109,30 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
         throw new UnprocessableEntityException("The path " + path + " cannot be patched");
     }
 
+    /**
+     * Extract the CLARIN license name from a JSON Patch {@link Operation}.
+     * <p>
+     * The submission API receives section updates as JSON Patch operations
+     * (see {@code /sections/clarin-license/select}). The {@code value} field
+     * of such an operation is not strongly typed: depending on the request
+     * shape and how the JSON Patch payload was parsed upstream, it can arrive
+     * as:
+     * <ul>
+     *   <li>a plain {@link String}, e.g. {@code "value": "CC-BY"};</li>
+     *   <li>a {@link JsonValueEvaluator} wrapping a {@link JsonNode}, when the
+     *       payload is sent as a JSON object such as
+     *       {@code "value": { "value": "CC-BY" }} or as a bare textual node;</li>
+     *   <li>{@code null} when the client omitted the value entirely.</li>
+     * </ul>
+     * This helper normalizes those cases into a single {@code String} license
+     * name (or {@code null} if no usable value is present), so the rest of the
+     * step can call {@link ClarinLicenseSubmissionUtils#applyLicense} with a
+     * simple value and treat missing input as a client error.
+     *
+     * @param op the JSON Patch operation targeting the license {@code select} path
+     * @return the license name extracted from the operation value, or {@code null}
+     *         if the operation has no usable value
+     */
     private String extractLicenseName(Operation op) {
         Object value = op.getValue();
         if (value == null) {
