@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.exception.ClarinLicenseNotFoundException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.JsonValueEvaluator;
@@ -87,14 +86,11 @@ public class ClarinLicenseResourceStep extends AbstractProcessingStep {
                         "The operation '" + op.getOp() + "' is not supported for path " + path);
             }
             String licenseName = extractLicenseName(op);
-            // Section endpoint: a missing or blank license name is treated as a
-            // client error (422). The legacy `/license` path in
-            // WorkspaceItemRestRepository intentionally treats a blank value as
-            // "clear the current license" for backwards compatibility.
-            if (StringUtils.isBlank(licenseName)) {
-                throw new UnprocessableEntityException(
-                        "The patch value for path " + path + " must contain a non-empty license name.");
-            }
+            // A blank/missing license name is intentionally treated as a request
+            // to clear the currently selected CLARIN license, mirroring the
+            // legacy `/license` path in WorkspaceItemRestRepository.
+            // {@link ClarinLicenseSubmissionUtils#applyLicense} handles a blank
+            // name as a "clear" operation.
             try {
                 ClarinLicenseSubmissionUtils.applyLicense(context, source.getItem(), licenseName);
             } catch (ClarinLicenseNotFoundException ex) {
