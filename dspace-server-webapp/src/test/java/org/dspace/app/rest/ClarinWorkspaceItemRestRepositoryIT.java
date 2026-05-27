@@ -901,12 +901,13 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
     }
 
     /**
-     * PATCH on `/sections/clarin-license/select` with an empty value must clear
-     * the previously selected license: `dc.rights*` metadata is removed and the
-     * license is detached from the uploaded bitstream.
+     * PATCH on `/sections/clarin-license/select` with an empty value must be
+     * rejected as a client error (422): the section endpoint requires a
+     * non-empty license name. The previously selected license must remain
+     * untouched on the item and on its bitstreams.
      */
     @Test
-    public void patchSelectWithEmptyValueClearsLicense() throws Exception {
+    public void patchSelectWithEmptyValueFails() throws Exception {
         context.turnOffAuthorisationSystem();
         WorkspaceItem witem = createWorkspaceItemWithFile();
 
@@ -930,7 +931,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
         getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
                 .andExpect(jsonPath("$.bitstreams", is(1)));
 
-        // Now clear the selection with an empty value
+        // Now attempt to "clear" the selection with an empty value – this must fail
         ops.clear();
         Map<String, String> emptyValue = new HashMap<String, String>();
         emptyValue.put("value", "");
@@ -938,12 +939,13 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
         getClient(tokenAdmin).perform(patch("/api/submission/workspaceitems/" + witem.getID())
                         .content(getPatchContent(ops))
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isUnprocessableEntity());
 
-        // Item metadata cleared and license detached from bitstream
-        assertClarinLicenseMetadata(witem, "dc", "rights", null, null, true);
+        // The previously selected license must still be present on the item
+        // and still attached to the uploaded bitstream.
+        assertClarinLicenseMetadata(witem, "dc", "rights", null, clarinLicenseName, false);
         getClient(tokenAdmin).perform(get("/api/core/clarinlicenses/" + clarinLicense.getID()))
-                .andExpect(jsonPath("$.bitstreams", is(0)));
+                .andExpect(jsonPath("$.bitstreams", is(1)));
     }
 
     /**
