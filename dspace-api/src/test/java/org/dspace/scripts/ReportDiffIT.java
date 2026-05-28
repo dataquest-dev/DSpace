@@ -264,7 +264,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-        assertThat(infoMessages, hasItem(containsString("No reports found for specified report IDs.")));
+        assertThat(infoMessages, hasItem(containsString("No report found for report ID:")));
     }
 
     @Test
@@ -828,10 +828,9 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        assertThat(handler.getWarningMessages(), hasItem(containsString(
-                "Only one of '-s'/'-t' was specified.")));
+        // When only -s is supplied, the missing -t is now auto-filled with the latest report. 
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-                "No report IDs specified, using the last two reports from the database.")));
+                "Only one of '-s'/'-t' was specified")));
         assertThat(handler.getErrorMessages(), empty());
     }
 
@@ -861,10 +860,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        assertThat(handler.getWarningMessages(), hasItem(containsString(
-                "Only one of '-s'/'-t' was specified.")));
+        // When only -t is supplied, the missing -s is now auto-filled with the next latest
+        // report (instead of falling back to the last two reports). The script logs a dedicated
+        // info message announcing that and the comparison still runs without errors.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-                "No report IDs specified, using the last two reports from the database.")));
+                "Only one of '-s'/'-t' was specified")));
         assertThat(handler.getErrorMessages(), empty());
     }
 
@@ -881,9 +881,10 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -s: 'abc'")));
         assertThat(handler.getWarningMessages(), hasItem(containsString(
                 "The last two reports from the database will be compared instead.")));
-        // Should also fall back via the XOR branch since -s became null while -t is set.
-        assertThat(handler.getWarningMessages(), hasItem(containsString(
-                "Only one of '-s'/'-t' was specified.")));
+        // Source becomes null after the invalid -s parse, so the missing-source branch in
+        // defaultReportIds now logs an info message instead of the legacy XOR warning.
+        assertThat(handler.getInfoMessages(), hasItem(containsString(
+                "Only one of '-s'/'-t' was specified")));
     }
 
     /**

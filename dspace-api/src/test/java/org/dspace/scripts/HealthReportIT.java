@@ -73,7 +73,7 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
 
         List<String> messages = testDSpaceRunnableHandler.getInfoMessages();
         assertThat(messages, hasSize(1));
-        assertThat(messages, hasItem(containsString("HEALTH REPORT:")));
+        assertThat(messages, hasItem(containsString("HEALTH REPORT ")));
     }
 
     @Test
@@ -174,7 +174,7 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(handler.getErrorMessages(), empty());
         List<String> messages = handler.getInfoMessages();
-        assertThat(messages, hasItem(containsString("HEALTH REPORT:")));
+        assertThat(messages, hasItem(containsString("HEALTH REPORT ")));
         assertThat(messages, hasItem(containsString("General Information")));
         assertThat(messages, hasItem(containsString("License summary")));
         // Item summary (check index 1) should NOT be present
@@ -253,7 +253,7 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(handler.getErrorMessages(), empty());
         assertThat("Report file must exist after -r option", tempFile.exists(), org.hamcrest.Matchers.is(true));
         String content = Files.readString(tempFile.toPath());
-        assertThat("Report file must contain health report header", content, containsString("HEALTH REPORT:"));
+        assertThat("Report file must contain health report header", content, containsString("HEALTH REPORT "));
     }
 
     @Test
@@ -266,6 +266,8 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
 
         context.reloadEntity(eperson);
         List<ReportResult> allReports = reportResultService.findAll(context);
+        // findAll() does not guarantee ordering; sort by lastModified so the newest report is last.
+        allReports.sort(java.util.Comparator.comparing(ReportResult::getLastModified));
         ReportResult latest = allReports.get(allReports.size() - 1);
 
         assertThat(handler.getErrorMessages(), empty());

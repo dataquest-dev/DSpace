@@ -251,15 +251,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             return;
         }
         try (Context context = new Context()) {
-            // If only one of -s/-t is specified, warn the user and fall back to the
-            // last two reports for comparison.
-            if ((sourceReportId == null) ^ (targetReportId == null)) {
-                handler.logWarning("Only one of '-s'/'-t' was specified. "
-                        + "The last two reports from the database will be compared instead.");
-                sourceReportId = null;
-                targetReportId = null;
-            }
-
+            // If only one of -s/-t was specified, fill in the missing one with the latest
+            // stored report (handled inside defaultReportIds).
             defaultReportIds(context);
 
             if (sourceReportId == null || targetReportId == null) {
@@ -349,7 +342,13 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         if (Objects.nonNull(sourceReportId) && Objects.nonNull(targetReportId)) {
             return;
         }
-        handler.logInfo("No report IDs specified, using the last two reports from the database.");
+        boolean bothMissing = Objects.isNull(sourceReportId) && Objects.isNull(targetReportId);
+        if (bothMissing) {
+            handler.logInfo("No report IDs specified, using the last two reports from the database.");
+        } else {
+            handler.logInfo("Only one of '-s'/'-t' was specified; the missing one will be set to the "
+                    + "latest report from the database.");
+        }
         try {
             List<ReportResult> allReports = reportResultService.findAll(context);
 
@@ -384,6 +383,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         try (Context context = new Context()) {
             context.setCurrentUser(ePersonService.find(context, getEpersonIdentifier()));
             List<ReportResult> allReports = reportResultService.findAll(context);
+            if (allReports == null || allReports.isEmpty()) {
+                handler.logInfo("No reports found in the database.");
+                return;
+            }
             // findAll() does not guarantee ordering; sort by lastModified ascending so the
             // newest reports are at the end of the list.
             allReports.sort(Comparator.comparing(ReportResult::getLastModified));
@@ -516,8 +519,12 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             ReportResult fromReport = reportResultService.find(context, sourceReportId);
             ReportResult toReport = reportResultService.find(context, targetReportId);
 
-            if (fromReport == null || toReport == null) {
-                handler.logInfo("No reports found for specified report IDs.");
+            if (fromReport == null) {
+                handler.logInfo("No report found for report ID: " + sourceReportId);
+                return;
+            }
+            if (toReport == null) {
+                handler.logInfo("No report found for report ID: " + targetReportId);
                 return;
             }
 
@@ -554,13 +561,17 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         final List<String> onlyInFrom;
         /** Check names that exist only in the "to" report. */
         final List<String> onlyInTo;
+        /** True when the two reports share at least one check eligible for comparison. */
+        final boolean hasCommonChecks;
 
         NormalizationResult(String normalizedFromJson, String normalizedToJson,
-                            List<String> onlyInFrom, List<String> onlyInTo) {
+                            List<String> onlyInFrom, List<String> onlyInTo,
+                            boolean hasCommonChecks) {
             this.normalizedFromJson = normalizedFromJson;
             this.normalizedToJson = normalizedToJson;
             this.onlyInFrom = onlyInFrom;
             this.onlyInTo = onlyInTo;
+            this.hasCommonChecks = hasCommonChecks;
         }
     }
 
@@ -586,7 +597,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
         if (fromChecks == null || toChecks == null || !fromChecks.isArray() || !toChecks.isArray()) {
             return new NormalizationResult(fromJson, toJson,
-                    new ArrayList<>(), new ArrayList<>());
+                    new ArrayList<>(), new ArrayList<>(), true);
         }
 
         // Build maps of check name -> check node for both reports
@@ -660,7 +671,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         return new NormalizationResult(
                 mapper.writeValueAsString(normalizedFrom),
                 mapper.writeValueAsString(normalizedTo),
-                onlyInFrom, onlyInTo);
+                onlyInFrom, onlyInTo,
+                !commonNames.isEmpty());
     }
 
     /**
@@ -708,6 +720,32 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         // Calculate time period
         String timePeriod = calculateTimePeriod(fromReport.getLastModified(), toReport.getLastModified());
         sb.append("Report Period: ").append(timePeriod).append("\n\n");
+
+        // When there are no checks in common between the two reports there is nothing to diff.
+        // In that case, only show the executive summary and the list of skipped checks so the
+        // user can immediately see why the comparison was not performed.
+        if (!normalized.hasCommonChecks) {
+            if (!normalized.onlyInFrom.isEmpty() || !normalized.onlyInTo.isEmpty()) {
+                sb.append("Section 2: Skipped Checks\n\n");
+                sb.append("The following checks could not be compared because they were not present in " +
+                        "both reports.\n\n");
+                if (!normalized.onlyInFrom.isEmpty()) {
+                    sb.append("Only in source report (ID ").append(fromReport.getID()).append("):\n");
+                    for (String name : normalized.onlyInFrom) {
+                        sb.append("  - ").append(name).append("\n");
+                    }
+                    sb.append("\n");
+                }
+                if (!normalized.onlyInTo.isEmpty()) {
+                    sb.append("Only in target report (ID ").append(toReport.getID()).append("):\n");
+                    for (String name : normalized.onlyInTo) {
+                        sb.append("  - ").append(name).append("\n");
+                    }
+                    sb.append("\n");
+                }
+            }
+            return sb.toString();
+        }
 
         // Enhanced Key Changes Table
         String keyChangesTable = generateEnhancedKeyChangesTable(normalizedFromJson, normalizedToJson,
@@ -1073,8 +1111,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      *
      * @param oldJson the old JSON report
      * @param newJson the new JSON report
-     * @param fromDate the date of the old report
-     * @param toDate the date of the new report
+     * @param sourceReportId the ID of the source (older) report, used in column headers
+     * @param targetReportId the ID of the target (newer) report, used in column headers
      * @return formatted table string
      * @throws IOException if JSON parsing fails
      */

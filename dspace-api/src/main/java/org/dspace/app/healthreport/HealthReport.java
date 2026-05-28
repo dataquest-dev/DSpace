@@ -166,7 +166,6 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             ReportInfo ri = new ReportInfo(this.forLastNDays);
 
             StringBuilder sbReport = new StringBuilder();
-            sbReport.append("\n\nHEALTH REPORT:\n");
 
             int position = -1;
             JSONObject root = new JSONObject();
@@ -214,9 +213,12 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             reportResultService.update(context, reportResult);
             context.commit();
 
+            // Prepend the header with the persisted report ID so users can refer to it later
+            String finalReport = "\n\nHEALTH REPORT " + reportResult.getID() + ":\n" + sbReport.toString();
+
             // save output to file
             if (reportFile != null) {
-                InputStream inputStream = toInputStream(sbReport.toString(), StandardCharsets.UTF_8);
+                InputStream inputStream = toInputStream(finalReport, StandardCharsets.UTF_8);
                 handler.writeFilestream(context, reportFile, inputStream, "export");
                 context.commit();
 
@@ -231,7 +233,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
                     for (String recipient : emails) {
                         e.addRecipient(recipient);
                     }
-                    e.addArgument(sbReport.toString());
+                    e.addArgument(finalReport);
                     e.send();
                     handler.logInfo("Report sent to: " + String.join(", ", emails));
                 } catch (IOException | MessagingException e) {
@@ -241,19 +243,22 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
                 }
             }
 
-            handler.logInfo(sbReport.toString());
+            handler.logInfo(finalReport);
         }
     }
 
     @Override
     public void printHelp() {
+        int configuredForLastNDays = configurationService.getIntProperty("healthcheck.last_n_days");
         handler.logInfo("\n\nHELP\nThis process creates a health report of your DSpace.\n" +
                 "You can choose from these available options:\n" +
                 "  -h, --help            Show help information\n" +
                 "  -e, --email           Send report to specified email address\n" +
                 "  -c, --check           Perform specific check(s) by index (0-" + (getNumberOfChecks() - 1) +
-                "). Accepts multiple space-separated values, e.g. -c 0 3 4\n" +
-                "  -f, --for             Specify the last N days to consider (positive integer)\n" +
+                "). Repeat the flag (e.g. -c 1 -c 3) to run multiple checks. " +
+                "Default: All checks\n" +
+                "  -f, --for             Specify the last N days to consider (positive integer). " +
+                "Default: " + configuredForLastNDays + "\n" +
                 "  -r, --report          Specify a file to save the report\n\n" +
                 "Available checks:\n" + checksNamesToString() + "\n"
         );
