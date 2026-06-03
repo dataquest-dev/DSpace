@@ -71,6 +71,7 @@ import org.dspace.orcid.client.OrcidConfiguration;
 import org.dspace.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -140,16 +141,33 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     /**
      * Replace the active AuthenticationMethod plugin sequence.
      *
-     * <p>Calling {@link org.dspace.services.ConfigurationService#setProperty(String, Object)}
-     * directly with a {@code String[]} value has shown intermittent leakage of previous values
-     * in the underlying Apache Commons Configuration in-memory overlay (causing flaky
-     * {@code WWW-Authenticate} headers that include realms from prior tests, e.g. a stray
-     * {@code password realm} appearing when only Shibboleth should be active). Explicitly
-     * clearing the property first guarantees a clean replacement.</p>
+     * <p>This sets the sequence via a JVM <em>system property</em> (plus an explicit
+     * {@link org.dspace.services.ConfigurationService#reloadConfig()} so the change is visible
+     * immediately) rather than via {@link org.dspace.services.ConfigurationService#setProperty(String, Object)}.</p>
+     *
+     * <p>A plain {@code setProperty(...)} override only lives in the in-memory view of the combined
+     * configuration and is silently discarded whenever that view is rebuilt. The auto-reload listener
+     * rebuilds it as soon as any reloadable cfg file's last-modified timestamp changes (which happens
+     * intermittently during a CI run, e.g. another test writing {@code local.cfg}). When that rebuild lands
+     * between this call and the request under test, the on-disk default returns -- in CLARIN that default is
+     * {@code [PasswordAuthentication, ClarinShibAuthentication]} -- and a stray {@code password realm} leaks
+     * into the {@code WWW-Authenticate} header even though only e.g. Shibboleth was requested. A system
+     * property sits in the highest-precedence (override) section of the combined config and is re-read on
+     * every rebuild, so it survives auto-reload. It is cleared again in {@link #clearAuthenticationMethodSequence()}.</p>
      */
     private void setAuthenticationMethodSequence(String[] methods) {
-        configurationService.setProperty(AUTH_PLUGIN_KEY, null);
-        configurationService.setProperty(AUTH_PLUGIN_KEY, methods);
+        System.setProperty(AUTH_PLUGIN_KEY, String.join(",", methods));
+        configurationService.reloadConfig();
+    }
+
+    /**
+     * Remove the system-property override set by {@link #setAuthenticationMethodSequence(String[])} so it
+     * does not leak into other test classes running in the same JVM. Runs before the superclass @After,
+     * whose {@code reloadConfig()} then restores the on-disk default.
+     */
+    @After
+    public void clearAuthenticationMethodSequence() {
+        System.clearProperty(AUTH_PLUGIN_KEY);
     }
 
     @Before
