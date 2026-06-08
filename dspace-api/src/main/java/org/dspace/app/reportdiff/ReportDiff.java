@@ -217,7 +217,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             sourceReportId = parseReportIdOption(sValue);
             if (sourceReportId == null) {
                 handler.logWarning("Invalid value for -s: '" + sValue
-                        + "'. The last two reports from the database will be compared instead.");
+                        + "'. The last report from the database will be used instead.");
             }
         }
 
@@ -227,7 +227,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             targetReportId = parseReportIdOption(tValue);
             if (targetReportId == null) {
                 handler.logWarning("Invalid value for -t: '" + tValue
-                        + "'. The last two reports from the database will be compared instead.");
+                        + "'. The last report from the database will be used instead.");
             }
         }
 
@@ -251,9 +251,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             return;
         }
         try (Context context = new Context()) {
-            // If only one of -s/-t was specified, fill in the missing one with the latest
-            // stored report (handled inside defaultReportIds).
-            defaultReportIds(context);
+            // If at least one of -s/-t is missing, fill missing values from latest reports.
+            if (Objects.isNull(sourceReportId) || Objects.isNull(targetReportId)) {
+                defaultReportIds(context);
+            }
 
             if (sourceReportId == null || targetReportId == null) {
                 handler.logInfo("Need at least 2 reports in the database to perform a comparison. Aborting.");
@@ -339,16 +340,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @param context the application context used for fetching reports and logging
      */
     private void defaultReportIds(Context context) {
-        if (Objects.nonNull(sourceReportId) && Objects.nonNull(targetReportId)) {
-            return;
-        }
         boolean bothMissing = Objects.isNull(sourceReportId) && Objects.isNull(targetReportId);
-        if (bothMissing) {
-            handler.logInfo("No report IDs specified, using the last two reports from the database.");
-        } else {
-            handler.logInfo("Only one of '-s'/'-t' was specified; the missing one will be set to the "
-                    + "latest report from the database.");
-        }
         try {
             List<ReportResult> allReports = reportResultService.findAll(context);
 
@@ -362,11 +354,31 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             allReports.sort(Comparator.comparing(ReportResult::getLastModified));
             int size = allReports.size();
 
-            if (Objects.isNull(targetReportId) && size > 0) {
-                targetReportId = allReports.get(size - 1).getID();
+            if (bothMissing) {
+                handler.logInfo("No report IDs specified, using the last two reports from the database.");
+                if (size > 0) {
+                    targetReportId = allReports.get(size - 1).getID();
+                }
+                if (size > 1) {
+                    sourceReportId = allReports.get(size - 2).getID();
+                }
+                return;
             }
-            if (Objects.isNull(sourceReportId) && size > 1) {
-                sourceReportId = allReports.get(size - 2).getID();
+
+            if (Objects.isNull(sourceReportId)) {
+                handler.logInfo("Only '-t' was specified; '-s' will be set to the latest report from the "
+                        + "database.");
+                if (size > 0) {
+                    sourceReportId = allReports.get(size - 1).getID();
+                }
+            }
+
+            if (Objects.isNull(targetReportId)) {
+                handler.logInfo("Only '-s' was specified; '-t' will be set to the latest report from the "
+                        + "database.");
+                if (size > 0) {
+                    targetReportId = allReports.get(size - 1).getID();
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -752,6 +764,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 fromReport.getID(), toReport.getID());
         sb.append(keyChangesTable);
 
+        // Keep output concise when the compared (common) checks are identical.
+        if (!hasDifferences(normalizedFromJson, normalizedToJson)) {
+            return sb.toString();
+        }
+
         // Section 2: Skipped Checks (not present in both reports)
         if (!normalized.onlyInFrom.isEmpty() || !normalized.onlyInTo.isEmpty()) {
             sb.append("Section 2: Skipped Checks\n\n");
@@ -782,6 +799,19 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         sb.append(generateDiff(normalizedFromJson, normalizedToJson));
 
         return sb.toString();
+    }
+
+    /**
+     * Determine whether two normalized report JSON payloads differ.
+     *
+     * @param oldJson source report JSON
+     * @param newJson target report JSON
+     * @return true if there is at least one JSON Patch operation, false otherwise
+     * @throws IOException if JSON parsing fails
+     */
+    private boolean hasDifferences(String oldJson, String newJson) throws IOException {
+        JsonNode patch = JsonDiff.asJson(mapper.readTree(oldJson), mapper.readTree(newJson));
+        return patch.isArray() && patch.size() > 0;
     }
 
     /**
