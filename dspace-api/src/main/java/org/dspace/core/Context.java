@@ -765,22 +765,13 @@ public class Context implements AutoCloseable {
         currentUserPreviousState = null;
     }
 
-    /**
-     *  Close the context, aborting any open transactions (if any).
-     * @throws Throwable
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        /*
-         * If a context is garbage-collected, we roll back and free up the
-         * database connection if there is one.
-         */
-        if (dbConnection != null && dbConnection.isTransActionAlive()) {
-            abort();
-        }
-
-        super.finalize();
-    }
+    // NOTE: Context intentionally does NOT override finalize(). A finalizer runs on the GC Finalizer thread,
+    // where dbConnection.isTransActionAlive()/abort() resolve sessionFactory.getCurrentSession() to a brand-new
+    // session bound to the Finalizer thread - never the (now-unreachable) thread that opened this Context. So a
+    // finalizer could not roll back this Context's transaction anyway; it only opened and leaked a throwaway
+    // Hibernate session on the Finalizer thread (and threw IllegalStateException once the SessionFactory closed).
+    // Abandoned Contexts are cleaned up safely when their owning thread's session ends. Always close a Context
+    // via complete()/abort() or try-with-resources (Context implements AutoCloseable).
 
     public void shutDownDatabase() throws SQLException {
         dbConnection.shutdown();
