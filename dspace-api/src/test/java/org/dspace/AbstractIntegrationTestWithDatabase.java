@@ -9,12 +9,7 @@ package org.dspace;
 
 import static org.junit.Assert.fail;
 
-import java.io.File;
-import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.ConcurrentModificationException;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -111,12 +106,6 @@ public class AbstractIntegrationTestWithDatabase extends AbstractDSpaceIntegrati
     @Before
     public void setUp() throws Exception {
         try {
-            // DIAGNOSTIC (temporary): start the JVM-wide Hibernate concurrency monitor and mark this JUnit
-            // thread as a legitimate test thread. The monitor hunts the transient thread behind the rare
-            // @After ConcurrentModificationException (see destroy()/dumpAllThreadsOnCme()).
-            HibernateConcurrencyMonitor.startOnce();
-            HibernateConcurrencyMonitor.markTestThread();
-
             //Start a new context
             context = new Context(Context.Mode.READ_WRITE);
             context.turnOffAuthorisationSystem();
@@ -179,50 +168,9 @@ public class AbstractIntegrationTestWithDatabase extends AbstractDSpaceIntegrati
     public void destroy() throws Exception {
         // Cleanup our global context object
         try {
-            // Builders/cleanupContext commit transactions through Hibernate. We have observed a rare,
-            // CI-only intermittent ConcurrentModificationException thrown from
-            // ResourceRegistryStandardImpl#releaseResources (a HashMap.forEach over the JDBC resource
-            // registry) while committing here. That registry is per-Hibernate-Session and explicitly NOT
-            // thread-safe, so the CME means a second thread is touching the same Session concurrently
-            // during cleanup. The exact offending thread has not yet been identified (it does not
-            // reproduce locally), so on CME we (a) capture a full thread dump to pinpoint the colliding
-            // thread the next time it happens in CI, and (b) retry the cleanup so an already-passed test
-            // is not failed by this teardown race. See dumpAllThreadsOnCme().
-            final int maxCleanupAttempts = 3;
-            boolean cleanupComplete = false;
-            for (int cleanupAttempt = 1; cleanupAttempt <= maxCleanupAttempts; cleanupAttempt++) {
-                try {
-                    AbstractBuilder.cleanupObjects();
-                    parentCommunity = null;
-                    cleanupContext();
-                    cleanupComplete = true;
-                    break;
-                } catch (ConcurrentModificationException cme) {
-                    // Capture a full thread dump the instant the CME is caught, so we can see which OTHER
-                    // thread is concurrently inside JDBC/Hibernate code on the same (non-thread-safe) session.
-                    dumpAllThreadsOnCme(cme, cleanupAttempt);
-                    // Also flush the background monitor's accumulated fingerprints of any non-test thread that
-                    // was ever seen inside Hibernate JDBC/session code (the most reliable culprit signal).
-                    HibernateConcurrencyMonitor.flush("cme-attempt" + cleanupAttempt);
-                    log.warn("Transient Hibernate CME during @After cleanup (concurrent access to the "
-                            + "per-session JDBC resource registry), attempt {}/{}; aborting context, capturing a "
-                            + "thread dump and retrying cleanup.", cleanupAttempt, maxCleanupAttempts, cme);
-                    if (context != null && context.isValid()) {
-                        context.abort();
-                    }
-                    context = null;
-                    parentCommunity = null;
-
-                    if (cleanupAttempt < maxCleanupAttempts) {
-                        context = new Context(Context.Mode.READ_WRITE);
-                        context.turnOffAuthorisationSystem();
-                    }
-                }
-            }
-
-            if (!cleanupComplete) {
-                throw new IllegalStateException("Unable to complete @After DB cleanup after retries.");
-            }
+            AbstractBuilder.cleanupObjects();
+            parentCommunity = null;
+            cleanupContext();
 
             ServiceManager serviceManager = DSpaceServicesFactory.getInstance().getServiceManager();
             // Clear the search core.
@@ -251,47 +199,6 @@ public class AbstractIntegrationTestWithDatabase extends AbstractDSpaceIntegrati
             // are cached and reused for all tests. This speeds up all tests.
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    // Counter to give each captured dump a unique file name.
-    private static final AtomicInteger CME_DUMP_COUNTER = new AtomicInteger(0);
-
-    /**
-     * Diagnostic helper: when a ConcurrentModificationException is caught during @After cleanup, dump the
-     * stack traces of ALL live threads to a file under target/cme-dumps/ (archived as a CI artifact). The
-     * CME is thrown on the test thread while another thread concurrently mutates the same Hibernate
-     * session's (non-thread-safe) JDBC ResourceRegistry; this dump is meant to reveal that other thread so
-     * the underlying concurrency bug can be fixed at its source.
-     */
-    private static void dumpAllThreadsOnCme(ConcurrentModificationException cme, int attempt) {
-        try {
-            File dir = new File("target/cme-dumps");
-            dir.mkdirs();
-            int idx = CME_DUMP_COUNTER.incrementAndGet();
-            File out = new File(dir, "cme-" + System.currentTimeMillis() + "-" + idx + "-attempt" + attempt + ".txt");
-            try (PrintWriter pw = new PrintWriter(out, "UTF-8")) {
-                pw.println("===== ConcurrentModificationException caught during @After cleanup =====");
-                pw.println("Caught on thread: " + Thread.currentThread().getName());
-                pw.println("Attempt: " + attempt);
-                pw.println();
-                pw.println("----- CME stack -----");
-                cme.printStackTrace(pw);
-                pw.println();
-                pw.println("----- ALL THREAD STACKS at moment of CME -----");
-                for (Map.Entry<Thread, StackTraceElement[]> e : Thread.getAllStackTraces().entrySet()) {
-                    Thread t = e.getKey();
-                    pw.println();
-                    pw.println("\"" + t.getName() + "\" id=" + t.getId() + " state=" + t.getState()
-                            + " daemon=" + t.isDaemon());
-                    for (StackTraceElement ste : e.getValue()) {
-                        pw.println("\tat " + ste);
-                    }
-                }
-            }
-            log.error("CME thread dump written to {}", out.getAbsolutePath());
-        } catch (Exception dumpEx) {
-            log.error("Failed to write CME thread dump", dumpEx);
         }
     }
 

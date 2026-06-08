@@ -78,20 +78,6 @@ jobs:
           name: ${{ matrix.type }} results
           path: ${{ matrix.resultsdir }}
 
-      # Always upload any Hibernate teardown thread dumps captured by AbstractIntegrationTestWithDatabase
-      # when the rare ConcurrentModificationException race fires during @After cleanup. These are written
-      # even when the cleanup retry ultimately succeeds (so the build stays green), so this step must NOT be
-      # gated on failure() - otherwise a successful retry would hide the very diagnostic that pinpoints the
-      # colliding thread. 'if-no-files-found: ignore' keeps this a no-op on the (normal) runs with no CME.
-      - name: Upload Hibernate CME thread dumps (if any)
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.type }} cme-dumps
-          path: '**/target/cme-dumps/**'
-          if-no-files-found: ignore
-          retention-days: 30
-
       # Upload code coverage report to artifact, so that it can be shared with the 'codecov' job (see below)
       - name: Upload code coverage report to Artifact
         uses: actions/upload-artifact@v4
