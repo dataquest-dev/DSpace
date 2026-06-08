@@ -111,6 +111,12 @@ public class AbstractIntegrationTestWithDatabase extends AbstractDSpaceIntegrati
     @Before
     public void setUp() throws Exception {
         try {
+            // DIAGNOSTIC (temporary): start the JVM-wide Hibernate concurrency monitor and mark this JUnit
+            // thread as a legitimate test thread. The monitor hunts the transient thread behind the rare
+            // @After ConcurrentModificationException (see destroy()/dumpAllThreadsOnCme()).
+            HibernateConcurrencyMonitor.startOnce();
+            HibernateConcurrencyMonitor.markTestThread();
+
             //Start a new context
             context = new Context(Context.Mode.READ_WRITE);
             context.turnOffAuthorisationSystem();
@@ -195,6 +201,9 @@ public class AbstractIntegrationTestWithDatabase extends AbstractDSpaceIntegrati
                     // Capture a full thread dump the instant the CME is caught, so we can see which OTHER
                     // thread is concurrently inside JDBC/Hibernate code on the same (non-thread-safe) session.
                     dumpAllThreadsOnCme(cme, cleanupAttempt);
+                    // Also flush the background monitor's accumulated fingerprints of any non-test thread that
+                    // was ever seen inside Hibernate JDBC/session code (the most reliable culprit signal).
+                    HibernateConcurrencyMonitor.flush("cme-attempt" + cleanupAttempt);
                     log.warn("Transient Hibernate CME during @After cleanup (concurrent access to the "
                             + "per-session JDBC resource registry), attempt {}/{}; aborting context, capturing a "
                             + "thread dump and retrying cleanup.", cleanupAttempt, maxCleanupAttempts, cme);
