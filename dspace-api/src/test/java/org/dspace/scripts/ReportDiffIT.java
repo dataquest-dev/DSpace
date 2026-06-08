@@ -250,11 +250,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-s", "invalid-id", "-t", "2" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // Invalid -s value is now a warning + fallback (last two reports), not a hard error.
+        // Invalid -s value is now a warning and the missing ID falls back to latest report.
         List<String> warningMessages = handler.getWarningMessages();
         assertThat(warningMessages, hasItem(containsString("Invalid value for -s: 'invalid-id'")));
         assertThat(warningMessages, hasItem(containsString(
-                "The last two reports from the database will be compared instead.")));
+            "The last report from the database will be used instead.")));
     }
 
     @Test
@@ -335,7 +335,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-        assertThat(infoMessages, hasItem(containsString("No differences found.")));
+        assertThat(infoMessages, hasItem(containsString("No significant changes detected between reports.")));
     }
 
     @Test
@@ -544,7 +544,6 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         assertThat(infoMessages, hasItem(containsString("DSpace at My University: Repository Health Report Diff")));
         assertThat(infoMessages, hasItem(containsString("Section 1: Executive Summary")));
         assertThat(infoMessages, hasItem(containsString("No significant changes detected")));
-        assertThat(infoMessages, hasItem(containsString("No differences found.")));
     }
 
     @Test
@@ -803,8 +802,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * When only -s is provided (no -t), the script should warn the user and fall back
-     * to comparing the last two reports in the database.
+     * When only -s is provided (no -t), the script should warn the user and set -t to
+     * the latest report in the database.
      */
     @Test
     public void testSourceWithoutTargetWarnsAndFallsBack() throws Exception {
@@ -830,13 +829,13 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         // When only -s is supplied, the missing -t is now auto-filled with the latest report. 
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-                "Only one of '-s'/'-t' was specified")));
+            "Only '-s' was specified; '-t' will be set to the latest report from the database.")));
         assertThat(handler.getErrorMessages(), empty());
     }
 
     /**
-     * When only -t is provided (no -s), the script should warn the user and fall back
-     * to comparing the last two reports in the database.
+     * When only -t is provided (no -s), the script should warn the user and set -s to
+     * the latest report in the database.
      */
     @Test
     public void testTargetWithoutSourceWarnsAndFallsBack() throws Exception {
@@ -864,13 +863,13 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         // report (instead of falling back to the last two reports). The script logs a dedicated
         // info message announcing that and the comparison still runs without errors.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-                "Only one of '-s'/'-t' was specified")));
+            "Only '-t' was specified; '-s' will be set to the latest report from the database.")));
         assertThat(handler.getErrorMessages(), empty());
     }
 
     /**
-     * When -s has a non-numeric value, the script should warn and fall back to the
-     * last two reports for comparison.
+     * When -s has a non-numeric value, the script should warn and default missing IDs
+     * to latest report values.
      */
     @Test
     public void testInvalidSourceValueWarnsAndFallsBack() throws Exception {
@@ -880,11 +879,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -s: 'abc'")));
         assertThat(handler.getWarningMessages(), hasItem(containsString(
-                "The last two reports from the database will be compared instead.")));
+            "The last report from the database will be used instead.")));
         // Source becomes null after the invalid -s parse, so the missing-source branch in
         // defaultReportIds now logs an info message instead of the legacy XOR warning.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-                "Only one of '-s'/'-t' was specified")));
+            "Only '-t' was specified; '-s' will be set to the latest report from the database.")));
     }
 
     /**
