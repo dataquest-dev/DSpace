@@ -153,7 +153,8 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
      * {@code [PasswordAuthentication, ClarinShibAuthentication]} -- and a stray {@code password realm} leaks
      * into the {@code WWW-Authenticate} header even though only e.g. Shibboleth was requested. A system
      * property sits in the highest-precedence (override) section of the combined config and is re-read on
-     * every rebuild, so it survives auto-reload. It is cleared again in {@link #clearAuthenticationMethodSequence()}.</p>
+     * every rebuild, so it survives auto-reload. It is cleared again in
+     * {@link #clearAuthenticationMethodSequence()}.</p>
      */
     private void setAuthenticationMethodSequence(String[] methods) {
         System.setProperty(AUTH_PLUGIN_KEY, String.join(",", methods));

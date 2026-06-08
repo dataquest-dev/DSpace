@@ -36,24 +36,36 @@ public class AbstractHibernateDAOIteratorIT extends AbstractIntegrationTestWithD
     private final MetadataValueService metadataValueService =
             ContentServiceFactory.getInstance().getMetadataValueService();
 
+    /**
+     * Verifies that the iterator returned by {@link AbstractHibernateDAO#iterate(javax.persistence.Query)}
+     * (exercised here through {@code MetadataValueService.findByValueLike}) does not close its backing Hibernate
+     * stream from a {@code finalize()} override anywhere in its class hierarchy, and that it still iterates to
+     * exhaustion (closing its cursor on the owning thread) without error. No matching rows are required - the
+     * wrapper iterator is created regardless of the result count.
+     *
+     * @throws Exception passed through.
+     */
     @Test
     public void iterateIteratorMustNotCloseStreamFromFinalizer() throws Exception {
-        // findByValueLike() delegates to AbstractHibernateDAO.iterate(); the concrete (anonymous) iterator type
-        // is what we assert on. No matching rows are required - the wrapper iterator is created regardless.
         Iterator<MetadataValue> iterator =
                 metadataValueService.findByValueLike(context, "no-such-metadata-value-" + System.nanoTime());
         assertNotNull(iterator);
 
-        // The returned iterator MUST NOT declare its own finalize(): closing the backing Hibernate Stream from
-        // the GC Finalizer thread is exactly the cross-thread access to the non-thread-safe JDBC
-        // ResourceRegistry that caused the flaky ConcurrentModificationException.
-        try {
-            iterator.getClass().getDeclaredMethod("finalize");
-            fail("AbstractHibernateDAO.iterate() iterator must not declare a finalize() override - closing the "
-                    + "Hibernate Stream on the GC Finalizer thread races the owning thread's non-thread-safe "
-                    + "JDBC ResourceRegistry and intermittently throws ConcurrentModificationException.");
-        } catch (NoSuchMethodException expected) {
-            // good: no stream-closing finalizer on the iterator
+        // The returned iterator - and every class in its hierarchy up to Object - MUST NOT declare a finalize()
+        // override: closing the backing Hibernate Stream from the GC Finalizer thread is exactly the cross-thread
+        // access to the non-thread-safe per-session JDBC ResourceRegistry that caused the flaky
+        // ConcurrentModificationException. Walking the hierarchy also catches a finalizer reintroduced on a
+        // superclass/helper rather than on the anonymous leaf class.
+        for (Class<?> type = iterator.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            try {
+                type.getDeclaredMethod("finalize");
+                fail("AbstractHibernateDAO.iterate() iterator must not declare a finalize() override (found on "
+                        + type.getName() + ") - closing the Hibernate Stream on the GC Finalizer thread races the "
+                        + "owning thread's non-thread-safe JDBC ResourceRegistry and intermittently throws "
+                        + "ConcurrentModificationException.");
+            } catch (NoSuchMethodException expected) {
+                // good: no stream-closing finalizer on this class
+            }
         }
 
         // It must still iterate to exhaustion and close its cursor on THIS (the owning) thread without error.
