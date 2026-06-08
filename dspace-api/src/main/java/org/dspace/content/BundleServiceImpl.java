@@ -40,6 +40,7 @@ import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.dspace.eperson.Group;
 import org.dspace.event.Event;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -61,6 +62,8 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
 
     @Autowired(required = true)
     protected BitstreamService bitstreamService;
+    @Autowired(required = true)
+    protected ConfigurationService configurationService;
     @Autowired(required = true)
     protected ItemService itemService;
     @Autowired(required = true)
@@ -181,9 +184,33 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
                 Constants.BITSTREAM, bitstream.getID(), String.valueOf(bitstream.getSequenceID()),
                 getIdentifiers(context, bundle)));
 
-        // copy authorization policies from bundle to bitstream
-        // FIXME: multiple inclusion is affected by this...
-        authorizeService.inheritPolicies(context, bundle, bitstream);
+        // If this item is archived (not in-progress) and the bundle is restricted
+        // simply clear all policies, otherwise proceed with normal inheritance
+        var restrictedBundles = List.of(configurationService.getArrayProperty(
+            "core.authorization.restricted-bundle",Constants.DEFAULT_RESTRICTED_BUNDLES));
+        if (owningItem != null && owningItem.isArchived()
+            && restrictedBundles.contains(bundle.getName())) {
+            resourcePolicyService.removeAllPolicies(context, bitstream);
+        } else {
+            // add authorization policies from owning bundle and handle embargoes
+            // hmm, not very "multiple-inclusion" friendly
+            authorizeService.inheritPolicies(context, bundle, bitstream, true);
+            applyDefaultReadPermissionsToBitstream(context, owningItem, bitstream);
+        }
+
+
+        bitstreamService.update(context, bitstream);
+    }
+
+    /**
+     * Ensure that any future start dates on the item or bitstream read policies are honoured
+     * and not overwritten by more "open" owning collection or item policies
+     * @param context DSpace context
+     * @param owningItem the item to which the bitstream belongs
+     * @param bitstream the bitstream to which policies are applied
+     */
+    private void applyDefaultReadPermissionsToBitstream(Context context, Item owningItem, Bitstream bitstream)
+        throws SQLException, AuthorizeException {
         // The next logic is a bit overly cautious but ensures that if there are any future start dates
         // on the item or bitstream read policies, that we'll skip inheriting anything from the owning collection
         // just in case. In practice, the item install process would overwrite these anyway but it may satisfy
@@ -216,11 +243,14 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
                 }
             }
         }
+<<<<<<< HEAD
         bitstreamService.update(context, bitstream);
 
         clarinItemService.updateItemFilesMetadata(context, owningItem, bundle);
         // Add clarin license to the bitstream and clarin license values to the item metadata
         clarinLicenseService.addClarinLicenseToBitstream(context, owningItem, bundle, bitstream);
+=======
+>>>>>>> ddeebfff17 (restrict bitstreams in internal bundles on a configurable restricted list)
     }
 
     @Override
