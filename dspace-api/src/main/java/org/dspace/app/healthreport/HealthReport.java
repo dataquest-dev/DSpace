@@ -32,11 +32,12 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ReportResultService;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
+import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.core.service.PluginService;
 import org.dspace.core.I18nUtil;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.health.Check;
-import org.dspace.health.Report;
 import org.dspace.health.ReportInfo;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
@@ -60,7 +61,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
     /**
      * Checks to be performed.
      */
-    private static final LinkedHashMap<String, Check> checks = Report.checks();
+    private static final LinkedHashMap<String, Check> checks = getChecks();
 
     /**
      * `-h`: Help, show help information.
@@ -171,7 +172,7 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             JSONObject root = new JSONObject();
             // Create the array
             JSONArray checksArray = new JSONArray();
-            for (Map.Entry<String, Check> check_entry : Report.checks().entrySet()) {
+            for (Map.Entry<String, Check> check_entry : checks.entrySet()) {
                 ++position;
                 if (!specificChecks.isEmpty() && !specificChecks.contains(position)) {
                     continue;
@@ -329,5 +330,26 @@ public class HealthReport extends DSpaceRunnable<HealthReportScriptConfiguration
             pos++;
         }
         return null; // should not happen
+    }
+
+    /**
+     * Create check list from configured healthcheck plugins.
+     */
+    private static LinkedHashMap<String, Check> getChecks() {
+        LinkedHashMap<String, Check> loadedChecks = new LinkedHashMap<>();
+        String[] checkNames = DSpaceServicesFactory.getInstance().getConfigurationService()
+                .getArrayProperty("healthcheck.checks");
+        PluginService pluginService = CoreServiceFactory.getInstance().getPluginService();
+
+        for (String checkName : checkNames) {
+            Check check = (Check) pluginService.getNamedPlugin(Check.class, checkName);
+            if (check != null) {
+                loadedChecks.put(checkName, check);
+            } else {
+                log.warn("Could not find implementation for [{}]", checkName);
+            }
+        }
+
+        return loadedChecks;
     }
 }
