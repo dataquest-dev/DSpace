@@ -827,7 +827,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // When only -s is supplied, the missing -t is now auto-filled with the latest report. 
+        // When only -s is supplied, the missing -t is now auto-filled with the latest report.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
             "Only '-s' was specified; '-t' will be set to the latest report from the database.")));
         assertThat(handler.getErrorMessages(), empty());
