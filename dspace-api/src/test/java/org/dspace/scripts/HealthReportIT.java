@@ -357,6 +357,9 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(
                 StringUtils.countMatches(messages.get(0), "does not refer back via dc.relation.isreplacedby"), is(1));
         assertThat(messages.get(0), containsString("and more..."));
+
+        configurationService.setProperty("healthcheck.metadata.max-errors-to-show", null);
+        configurationService.setProperty("healthcheck.metadata.error-dispersion-quota", null);
     }
 
     private String findItemUri(Item item) {
