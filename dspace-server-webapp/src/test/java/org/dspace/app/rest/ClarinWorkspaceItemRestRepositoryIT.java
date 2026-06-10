@@ -833,7 +833,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
 
         String clarinLicenseName = "Test Section Clarin License";
         ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info",
-                Confirmation.NOT_REQUIRED);
+                "lbl", Confirmation.NOT_REQUIRED);
         context.restoreAuthSystemState();
 
         List<Operation> replaceOperations = new ArrayList<Operation>();
@@ -871,7 +871,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
 
         String clarinLicenseName = "Distinct Sections Clarin License";
         createClarinLicense(clarinLicenseName, "Test Def", "Test R Info",
-                Confirmation.NOT_REQUIRED);
+                "lbl", Confirmation.NOT_REQUIRED);
         context.restoreAuthSystemState();
 
         // Apply the CLARIN license through the section-scoped path
@@ -913,7 +913,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
 
         String clarinLicenseName = "Empty Value Clarin License";
         ClarinLicense clarinLicense = createClarinLicense(clarinLicenseName, "Test Def", "Test R Info",
-                Confirmation.NOT_REQUIRED);
+                "lbl", Confirmation.NOT_REQUIRED);
         context.restoreAuthSystemState();
 
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
@@ -959,8 +959,8 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
 
         String firstName = "First Clarin License";
         String secondName = "Second Clarin License";
-        ClarinLicense first = createClarinLicense(firstName, "Def1", "Info1", Confirmation.NOT_REQUIRED);
-        ClarinLicense second = createClarinLicense(secondName, "Def2", "Info2", Confirmation.NOT_REQUIRED);
+        ClarinLicense first = createClarinLicense(firstName, "Def1", "Info1", "lbl1", Confirmation.NOT_REQUIRED);
+        ClarinLicense second = createClarinLicense(secondName, "Def2", "Info2", "lbl2", Confirmation.NOT_REQUIRED);
         context.restoreAuthSystemState();
 
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
@@ -1042,7 +1042,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
         context.turnOffAuthorisationSystem();
         WorkspaceItem witem = createWorkspaceItemWithFile();
         String clarinLicenseName = "Anon Clarin License";
-        createClarinLicense(clarinLicenseName, "Def", "Info", Confirmation.NOT_REQUIRED);
+        createClarinLicense(clarinLicenseName, "Def", "Info", "lbl", Confirmation.NOT_REQUIRED);
         context.restoreAuthSystemState();
 
         List<Operation> ops = new ArrayList<Operation>();
