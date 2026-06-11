@@ -17,9 +17,20 @@ import org.dspace.app.rest.matcher.ExternalSourceEntryMatcher;
 import org.dspace.app.rest.matcher.ExternalSourceMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
 
 public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrationTest {
+
+    String token;
+
+    @Before
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        // All tests just require basic authentication privileges
+        token = getAuthToken(eperson.getEmail(), password);
+    }
 
     /**
      * Test openaire funding external source
@@ -27,8 +38,13 @@ public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrat
      * @throws Exception
      */
     @Test
+<<<<<<< HEAD:dspace-server-webapp/src/test/java/org/dspace/app/rest/OpenAIREFundingExternalSourcesIT.java
     public void findOneOpenAIREFundingExternalSourceTest() throws Exception {
         getClient().perform(get("/api/integration/externalsources")).andExpect(status().isOk())
+=======
+    public void findOneOpenaireFundingExternalSourceTest() throws Exception {
+        getClient(token).perform(get("/api/integration/externalsources")).andExpect(status().isOk())
+>>>>>>> 72a1c67ecb (Update ITs to authenticate. Add ITs for anonymous user checks.):dspace-server-webapp/src/test/java/org/dspace/app/rest/OpenaireFundingExternalSourcesIT.java
                 .andExpect(jsonPath("$._embedded.externalsources", Matchers.hasItem(
                         ExternalSourceMatcher.matchExternalSource("openAIREFunding", "openAIREFunding", false))));
     }
@@ -39,10 +55,23 @@ public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrat
      * @throws Exception
      */
     @Test
+<<<<<<< HEAD:dspace-server-webapp/src/test/java/org/dspace/app/rest/OpenAIREFundingExternalSourcesIT.java
     public void findOneOpenAIREFundingExternalSourceEntriesEmptyWithQueryTest() throws Exception {
 
         getClient().perform(get("/api/integration/externalsources/openAIREFunding/entries").param("query", "empty"))
+=======
+    public void findOneOpenaireFundingExternalSourceEntriesEmptyWithQueryTest() throws Exception {
+        getClient(token).perform(get("/api/integration/externalsources/openaireFunding/entries")
+                                     .param("query", "empty"))
+>>>>>>> 72a1c67ecb (Update ITs to authenticate. Add ITs for anonymous user checks.):dspace-server-webapp/src/test/java/org/dspace/app/rest/OpenaireFundingExternalSourcesIT.java
                 .andExpect(status().isOk()).andExpect(jsonPath("$.page.number", is(0)));
+    }
+
+    @Test
+    public void findOneOpenaireFundingExternalSourceEntriesEmptyWithQueryAnonymousTest() throws Exception {
+        getClient().perform(get("/api/integration/externalsources/openaireFunding/entries")
+                                     .param("query", "empty"))
+                        .andExpect(status().isUnauthorized());
     }
 
     /**
@@ -54,7 +83,7 @@ public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrat
     @Test
     public void findOneOpenAIREFundingExternalSourceEntriesWithQueryMultipleKeywordsTest() throws Exception {
 
-        getClient()
+        getClient(token)
                 .perform(
                         get("/api/integration/externalsources/openAIREFunding/entries").param("query", "empty+results"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.page.number", is(0)));
@@ -66,8 +95,14 @@ public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrat
      * @throws Exception
      */
     @Test
+<<<<<<< HEAD:dspace-server-webapp/src/test/java/org/dspace/app/rest/OpenAIREFundingExternalSourcesIT.java
     public void findOneOpenAIREFundingExternalSourceEntriesWithQueryTest() throws Exception {
         getClient().perform(get("/api/integration/externalsources/openAIREFunding/entries").param("query", "mushroom"))
+=======
+    public void findOneOpenaireFundingExternalSourceEntriesWithQueryTest() throws Exception {
+        getClient(token).perform(get("/api/integration/externalsources/openaireFunding/entries")
+                                     .param("query", "mushroom"))
+>>>>>>> 72a1c67ecb (Update ITs to authenticate. Add ITs for anonymous user checks.):dspace-server-webapp/src/test/java/org/dspace/app/rest/OpenaireFundingExternalSourcesIT.java
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.externalSourceEntries",
                         Matchers.hasItem(ExternalSourceEntryMatcher.matchExternalSourceEntry(
@@ -90,7 +125,11 @@ public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrat
         String projectName = "Portuguese Wild Mushrooms: Chemical characterization and functional study"
                 + " of antiproliferative and proapoptotic properties in cancer cell lines";
 
+<<<<<<< HEAD:dspace-server-webapp/src/test/java/org/dspace/app/rest/OpenAIREFundingExternalSourcesIT.java
         getClient().perform(get("/api/integration/externalsources/openAIREFunding/entryValues/" + projectID))
+=======
+        getClient(token).perform(get("/api/integration/externalsources/openaireFunding/entryValues/" + projectID))
+>>>>>>> 72a1c67ecb (Update ITs to authenticate. Add ITs for anonymous user checks.):dspace-server-webapp/src/test/java/org/dspace/app/rest/OpenaireFundingExternalSourcesIT.java
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",
                         Matchers.allOf(hasJsonPath("$.id", is(projectID)), hasJsonPath("$.display", is(projectName)),
