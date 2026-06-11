@@ -27,6 +27,8 @@ import javax.mail.MessagingException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.flipkart.zjsonpatch.JsonDiff;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
@@ -251,18 +253,22 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             return;
         }
         try (Context context = new Context()) {
-            // If at least one of -s/-t is missing, fill missing values from latest reports.
-            if (Objects.isNull(sourceReportId) || Objects.isNull(targetReportId)) {
-                defaultReportIds(context);
-            }
-
-            if (sourceReportId == null || targetReportId == null) {
-                handler.logInfo("Need at least 2 reports in the database to perform a comparison. Aborting.");
-                return;
-            }
-
+            // Validate the explicitly provided report IDs before defaulting the missing ones,
+            // so no defaulting message is logged when a provided report ID is invalid.
             if (!validateReportIdSelection()) {
                 return;
+            }
+            if (!reportExists(context, sourceReportId) || !reportExists(context, targetReportId)) {
+                return;
+            }
+
+            // If at least one of -s/-t is missing, fill missing values from latest reports.
+            if (sourceReportId == null || targetReportId == null) {
+                defaultReportIds(context);
+                if (sourceReportId == null || targetReportId == null) {
+                    handler.logInfo("Need at least 2 reports in the database to perform a comparison. Aborting.");
+                    return;
+                }
             }
 
             // If the user specified a specific check, we will parse the dates and compare the reports.
@@ -309,28 +315,43 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
-     * Validate report ID selection for comparison.
-     * If one ID is set, both must be set.
+     * Validate the explicitly provided report IDs.
+     * The report IDs are optional (missing ones are defaulted later),
+     * but when provided they must be positive integers.
      *
-     * @return true if the report IDs are valid, false otherwise
+     * @return true if the provided report IDs are valid, false otherwise
      */
     private boolean validateReportIdSelection() {
-        if ((Objects.isNull(sourceReportId) && Objects.nonNull(targetReportId))
-                || (Objects.nonNull(sourceReportId) && Objects.isNull(targetReportId))) {
-            handler.logError("Both 'source' and 'target' report IDs must be specified.");
-            return false;
-        }
-
-        if (Objects.nonNull(sourceReportId) && sourceReportId <= 0) {
+        if (sourceReportId != null && sourceReportId <= 0) {
             handler.logError("The 'source' report ID must be a positive integer.");
             return false;
         }
 
-        if (Objects.nonNull(targetReportId) && targetReportId <= 0) {
+        if (targetReportId != null && targetReportId <= 0) {
             handler.logError("The 'target' report ID must be a positive integer.");
             return false;
         }
 
+        return true;
+    }
+
+    /**
+     * Check that an explicitly provided report ID exists in the database.
+     * A {@code null} report ID is considered valid because it is defaulted later.
+     *
+     * @param context  the application context
+     * @param reportId the report ID to check, may be null
+     * @return true if the report ID is null or the report exists, false otherwise
+     * @throws SQLException if a database error occurs
+     */
+    private boolean reportExists(Context context, Integer reportId) throws SQLException {
+        if (reportId == null) {
+            return true;
+        }
+        if (reportResultService.find(context, reportId) == null) {
+            handler.logInfo("No report found for report ID: " + reportId);
+            return false;
+        }
         return true;
     }
 
@@ -340,7 +361,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @param context the application context used for fetching reports and logging
      */
     private void defaultReportIds(Context context) {
-        boolean bothMissing = Objects.isNull(sourceReportId) && Objects.isNull(targetReportId);
+        boolean bothMissing = sourceReportId == null && targetReportId == null;
         try {
             List<ReportResult> allReports = reportResultService.findAll(context);
 
@@ -365,7 +386,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 return;
             }
 
-            if (Objects.isNull(sourceReportId)) {
+            if (sourceReportId == null) {
                 handler.logInfo("Only '-t' was specified; '-s' will be set to the latest report from the "
                         + "database.");
                 if (size > 0) {
@@ -373,7 +394,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 }
             }
 
-            if (Objects.isNull(targetReportId)) {
+            if (targetReportId == null) {
                 handler.logInfo("Only '-s' was specified; '-t' will be set to the latest report from the "
                         + "database.");
                 if (size > 0) {
@@ -662,19 +683,15 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         }
 
         // Build normalized JSON with only the common checks (in the same order)
-        com.fasterxml.jackson.databind.node.ObjectNode normalizedFrom =
-                mapper.createObjectNode();
-        com.fasterxml.jackson.databind.node.ArrayNode normalizedFromChecks =
-                mapper.createArrayNode();
+        ObjectNode normalizedFrom = mapper.createObjectNode();
+        ArrayNode normalizedFromChecks = mapper.createArrayNode();
         for (String name : commonNames) {
             normalizedFromChecks.add(fromCheckMap.get(name));
         }
         normalizedFrom.set("checks", normalizedFromChecks);
 
-        com.fasterxml.jackson.databind.node.ObjectNode normalizedTo =
-                mapper.createObjectNode();
-        com.fasterxml.jackson.databind.node.ArrayNode normalizedToChecks =
-                mapper.createArrayNode();
+        ObjectNode normalizedTo = mapper.createObjectNode();
+        ArrayNode normalizedToChecks = mapper.createArrayNode();
         for (String name : commonNames) {
             normalizedToChecks.add(toCheckMap.get(name));
         }
@@ -737,25 +754,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         // In that case, only show the executive summary and the list of skipped checks so the
         // user can immediately see why the comparison was not performed.
         if (!normalized.hasCommonChecks) {
-            if (!normalized.onlyInFrom.isEmpty() || !normalized.onlyInTo.isEmpty()) {
-                sb.append("Section 2: Skipped Checks\n\n");
-                sb.append("The following checks could not be compared because they were not present in " +
-                        "both reports.\n\n");
-                if (!normalized.onlyInFrom.isEmpty()) {
-                    sb.append("Only in source report (ID ").append(fromReport.getID()).append("):\n");
-                    for (String name : normalized.onlyInFrom) {
-                        sb.append("  - ").append(name).append("\n");
-                    }
-                    sb.append("\n");
-                }
-                if (!normalized.onlyInTo.isEmpty()) {
-                    sb.append("Only in target report (ID ").append(toReport.getID()).append("):\n");
-                    for (String name : normalized.onlyInTo) {
-                        sb.append("  - ").append(name).append("\n");
-                    }
-                    sb.append("\n");
-                }
-            }
+            appendSkippedChecksSection(sb, normalized, fromReport, toReport);
             return sb.toString();
         }
 
@@ -770,25 +769,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         }
 
         // Section 2: Skipped Checks (not present in both reports)
-        if (!normalized.onlyInFrom.isEmpty() || !normalized.onlyInTo.isEmpty()) {
-            sb.append("Section 2: Skipped Checks\n\n");
-            sb.append("The following checks could not be compared because they were not present in " +
-                    "both reports.\n\n");
-            if (!normalized.onlyInFrom.isEmpty()) {
-                sb.append("Only in source report (ID ").append(fromReport.getID()).append("):\n");
-                for (String name : normalized.onlyInFrom) {
-                    sb.append("  - ").append(name).append("\n");
-                }
-                sb.append("\n");
-            }
-            if (!normalized.onlyInTo.isEmpty()) {
-                sb.append("Only in target report (ID ").append(toReport.getID()).append("):\n");
-                for (String name : normalized.onlyInTo) {
-                    sb.append("  - ").append(name).append("\n");
-                }
-                sb.append("\n");
-            }
-        }
+        appendSkippedChecksSection(sb, normalized, fromReport, toReport);
 
         // Section 3: Detailed Change Log
         sb.append("Section 3: Detailed Change Log\n\n");
@@ -802,6 +783,39 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
+     * Append the "Section 2: Skipped Checks" block listing checks that are present
+     * in only one of the compared reports. Appends nothing when no check was skipped.
+     *
+     * @param sb         the StringBuilder to append to
+     * @param normalized the normalization result holding the skipped check names
+     * @param fromReport the "from" report
+     * @param toReport   the "to" report
+     */
+    private void appendSkippedChecksSection(StringBuilder sb, NormalizationResult normalized,
+                                            ReportResult fromReport, ReportResult toReport) {
+        if (normalized.onlyInFrom.isEmpty() && normalized.onlyInTo.isEmpty()) {
+            return;
+        }
+        sb.append("Section 2: Skipped Checks\n\n");
+        sb.append("The following checks could not be compared because they were not present in " +
+                "both reports.\n\n");
+        if (!normalized.onlyInFrom.isEmpty()) {
+            sb.append("Only in source report (ID ").append(fromReport.getID()).append("):\n");
+            for (String name : normalized.onlyInFrom) {
+                sb.append("  - ").append(name).append("\n");
+            }
+            sb.append("\n");
+        }
+        if (!normalized.onlyInTo.isEmpty()) {
+            sb.append("Only in target report (ID ").append(toReport.getID()).append("):\n");
+            for (String name : normalized.onlyInTo) {
+                sb.append("  - ").append(name).append("\n");
+            }
+            sb.append("\n");
+        }
+    }
+
+    /**
      * Determine whether two normalized report JSON payloads differ.
      *
      * @param oldJson source report JSON
@@ -811,7 +825,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      */
     private boolean hasDifferences(String oldJson, String newJson) throws IOException {
         JsonNode patch = JsonDiff.asJson(mapper.readTree(oldJson), mapper.readTree(newJson));
-        return patch.isArray() && patch.size() > 0;
+        return patch.isArray() && !patch.isEmpty();
     }
 
     /**
@@ -839,13 +853,25 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
+     * Check whether a JSON node carries no usable value, i.e. it is {@code null},
+     * a missing node or a JSON null. Note this is different from {@link JsonNode#isEmpty()},
+     * which checks for empty containers.
+     *
+     * @param node the JSON node to check, may be null
+     * @return true if the node is null, missing or a JSON null
+     */
+    private static boolean isNullOrMissing(JsonNode node) {
+        return node == null || node.isMissingNode() || node.isNull();
+    }
+
+    /**
      * Get a display-friendly version of a JSON node value.
      *
      * @param node the JSON node
      * @return display string
      */
     private String getDisplayValue(JsonNode node) {
-        if (node == null || node.isMissingNode() || node.isNull()) {
+        if (isNullOrMissing(node)) {
             return "null";
         }
 
@@ -868,15 +894,13 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * @return difference string
      */
     private String calculateDifference(JsonNode oldValue, JsonNode newValue) {
-        if (oldValue == null || newValue == null
-                || oldValue.isMissingNode() || newValue.isMissingNode()
-                || oldValue.isNull() || newValue.isNull()) {
-            if ((oldValue == null || oldValue.isMissingNode() || oldValue.isNull())
-                    && !(newValue == null || newValue.isMissingNode() || newValue.isNull())) {
+        boolean oldMissing = isNullOrMissing(oldValue);
+        boolean newMissing = isNullOrMissing(newValue);
+        if (oldMissing || newMissing) {
+            if (oldMissing && !newMissing) {
                 return "Added";
             }
-            if ((newValue == null || newValue.isMissingNode() || newValue.isNull())
-                    && !(oldValue == null || oldValue.isMissingNode() || oldValue.isNull())) {
+            if (newMissing && !oldMissing) {
                 return "Removed";
             }
             return "Changed";
@@ -1346,7 +1370,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
         JsonNode patch = JsonDiff.asJson(oldNode, newNode);
 
-        if (!patch.isArray() || patch.size() == 0) {
+        if (!patch.isArray() || patch.isEmpty()) {
             return "No differences found.";
         }
 
@@ -1485,14 +1509,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     /**
      * Return the node’s JSON-string representation, so that special characters
      * like newline (\n) appear as "\\n" inside the returned quote marks.
+     * For any primitive or object/array, toString() returns valid JSON. MissingNode.toString()
+     * would return an empty string, so null/missing/JSON-null nodes are all rendered as "null".
      */
     private static String nodeToEscapedString(JsonNode node) {
-        if (node == null || node.isMissingNode() || node.isNull()) {
-            return "null";
-        }
-        // For any primitive or object/array, toString() returns valid JSON.
-        // In particular, a text node will come out as "\"some text\\n\"" (with \\n escaped).
-        return node.toString();
+        return isNullOrMissing(node) ? "null" : node.toString();
     }
 }
 

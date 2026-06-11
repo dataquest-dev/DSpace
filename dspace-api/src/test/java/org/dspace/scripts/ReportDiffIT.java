@@ -873,8 +873,24 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
      */
     @Test
     public void testInvalidSourceValueWarnsAndFallsBack() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
+        reportResultService.update(context, report1);
+        context.commit();
+        Thread.sleep(1000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}}]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "report-diff", "-s", "abc", "-t", "2" };
+        String[] args = new String[] { "report-diff", "-s", "abc", "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -s: 'abc'")));
@@ -884,6 +900,21 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         // defaultReportIds now logs an info message instead of the legacy XOR warning.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
             "Only '-t' was specified; '-s' will be set to the latest report from the database.")));
+    }
+
+    /**
+     * When -s points to a non-existing report, the script aborts with "No report found"
+     * and does not log the defaulting message for the missing -t.
+     */
+    @Test
+    public void testNonExistingSourceIdAbortsWithoutDefaulting() throws Exception {
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-s", "999999" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        assertThat(handler.getInfoMessages(), hasItem(containsString("No report found for report ID: 999999")));
+        assertThat(handler.getInfoMessages(), not(hasItem(containsString(
+            "Only '-s' was specified; '-t' will be set to the latest report from the database."))));
     }
 
     /**
