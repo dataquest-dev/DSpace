@@ -56,7 +56,6 @@ public class BitstreamFormatRestRepositoryIT extends AbstractControllerIntegrati
     @Autowired
     private BitstreamFormatConverter bitstreamFormatConverter;
 
-    private final int DEFAULT_AMOUNT_FORMATS = 95;
 
     @Test
     public void findAllPaginationTest() throws Exception {
@@ -180,9 +179,24 @@ public class BitstreamFormatRestRepositoryIT extends AbstractControllerIntegrati
 
     }
 
+    /**
+     * Get the current number of bitstream formats via REST. Other test classes
+     * may leak formats into the registry depending on execution order, so
+     * count-based assertions must be relative to the current state.
+     */
+    private int getCurrentAmountOfFormats() throws Exception {
+        AtomicReference<Integer> totalRef = new AtomicReference<>();
+        getClient().perform(get("/api/core/bitstreamformats/"))
+                   .andExpect(status().isOk())
+                   .andDo(result -> totalRef.set(
+                           read(result.getResponse().getContentAsString(), "$.page.totalElements")));
+        return totalRef.get();
+    }
+
     @Test
     public void createNonValidSupportLevel() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+        int amountOfFormatsBefore = getCurrentAmountOfFormats();
         BitstreamFormatRest bitstreamFormatRest = this.createRandomMockBitstreamRest(false);
         bitstreamFormatRest.setSupportLevel("NONVALID SUPPORT LVL");
         //Attempt to create bitstream with a non-valid support lvl
@@ -194,12 +208,13 @@ public class BitstreamFormatRestRepositoryIT extends AbstractControllerIntegrati
         // Check that no new bitstreamformat was created
         getClient().perform(get("/api/core/bitstreamformats/"))
                    .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.page.totalElements", is(DEFAULT_AMOUNT_FORMATS)));
+                   .andExpect(jsonPath("$.page.totalElements", is(amountOfFormatsBefore)));
     }
 
     @Test
     public void createNoAccess() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+        int amountOfFormatsBefore = getCurrentAmountOfFormats();
         BitstreamFormatRest bitstreamFormatRest = this.createRandomMockBitstreamRest(false);
 
         //Try to create bitstreamFormat without auth token
@@ -210,12 +225,13 @@ public class BitstreamFormatRestRepositoryIT extends AbstractControllerIntegrati
         // Check that no new bitstreamformat was created
         getClient().perform(get("/api/core/bitstreamformats/"))
                    .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.page.totalElements", is(DEFAULT_AMOUNT_FORMATS)));
+                   .andExpect(jsonPath("$.page.totalElements", is(amountOfFormatsBefore)));
     }
 
     @Test
     public void createNonAdminAccess() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+        int amountOfFormatsBefore = getCurrentAmountOfFormats();
         BitstreamFormatRest bitstreamFormatRest = this.createRandomMockBitstreamRest(false);
         context.turnOffAuthorisationSystem();
         EPerson user = EPersonBuilder.createEPerson(context)
@@ -234,12 +250,13 @@ public class BitstreamFormatRestRepositoryIT extends AbstractControllerIntegrati
         // Check that no new bitstreamformat was created
         getClient().perform(get("/api/core/bitstreamformats/"))
                    .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.page.totalElements", is(DEFAULT_AMOUNT_FORMATS)));
+                   .andExpect(jsonPath("$.page.totalElements", is(amountOfFormatsBefore)));
     }
 
     @Test
     public void createAlreadyExisting() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+        int amountOfFormatsBefore = getCurrentAmountOfFormats();
         BitstreamFormatRest bitstreamFormatRest = this.createRandomMockBitstreamRest(true);
 
         // Capture the Id of the created BitstreamFormat (see andDo() below)
@@ -264,7 +281,7 @@ public class BitstreamFormatRestRepositoryIT extends AbstractControllerIntegrati
             // Check that the new bitstreamformat was created only once
             getClient().perform(get("/api/core/bitstreamformats/"))
                        .andExpect(status().isOk())
-                       .andExpect(jsonPath("$.page.totalElements", is(DEFAULT_AMOUNT_FORMATS + 1)));
+                       .andExpect(jsonPath("$.page.totalElements", is(amountOfFormatsBefore + 1)));
 
 
         } finally {
