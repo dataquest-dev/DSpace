@@ -13,8 +13,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import org.dspace.AbstractDSpaceTest;
 import org.dspace.external.provider.orcid.xml.ExpandedSearchConverter;
@@ -33,7 +37,21 @@ public class CachingOrcidRestConnectorTest extends AbstractDSpaceTest {
     private static final String orcid = "0000-0002-9150-2529";
     private static final String expectedLabel = "Connor, John";
 
+    // Canned ORCID "expanded-search" response (num-found=1725, first result -> "Connor, John").
+    // Used to mock the HTTP layer so the tests don't depend on the live ORCID sandbox.
+    private static final String EXPANDED_SEARCH_XML = "org/dspace/external/orcid-expanded-search.xml";
+
     private CachingOrcidRestConnector sut;
+
+    /**
+     * Load a canned API response from the test classpath as a fresh InputStream.
+     * (A new stream is returned on every call because the connector consumes/closes it.)
+     */
+    private InputStream cannedResponse(String resource) {
+        InputStream is = getClass().getClassLoader().getResourceAsStream(resource);
+        assertNotNull("Missing test resource: " + resource, is);
+        return is;
+    }
 
     @Before
     public void setup() {
@@ -59,40 +77,54 @@ public class CachingOrcidRestConnectorTest extends AbstractDSpaceTest {
     }
 
     @Test
-    public void getLabel() {
+    public void getLabel() throws Exception {
         sut = Mockito.spy(sut);
         sut.setApiURL("https://pub.sandbox.orcid.org/v3.0");
         //Mock the CachingOrcidRestConnector so that getAccessToken returns sandboxToken
         doReturn(sandboxToken).when(sut).getAccessToken(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        //Mock the HTTP layer with a canned response so we don't depend on the live ORCID sandbox.
+        doReturn(cannedResponse(EXPANDED_SEARCH_XML)).when(sut).httpGet(Mockito.anyString(), Mockito.anyString());
 
         String label = sut.getLabel(orcid);
         assertEquals(expectedLabel, label);
     }
     @Test
-    public void search() {
+    public void search() throws Exception {
         sut = Mockito.spy(sut);
         sut.setApiURL("https://pub.sandbox.orcid.org/v3.0");
         //Mock the CachingOrcidRestConnector so that getAccessToken returns sandboxToken
         doReturn(sandboxToken).when(sut).getAccessToken(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        //Mock the HTTP layer with a canned ORCID expanded-search response. Previously this test hit the live
+        //ORCID sandbox and asserted numFound() > 1000, which flaked whenever the sandbox dataset was reset/shrunk.
+        //Mocking the transport keeps the real parsing + edismax wildcard query-building path under test, but makes
+        //the result deterministic.
+        doReturn(cannedResponse(EXPANDED_SEARCH_XML)).when(sut).httpGet(Mockito.anyString(), Mockito.anyString());
 
         ExpandedSearchConverter.Results search = sut.search("joh", 0, 1);
-        //Should match all Johns also, because edismax with wildcard
-        assertTrue(search.numFound() > 1000);
+        assertTrue("Expected a successful ORCID response, got: " + search, search.isOk());
+        //'joh' is alphabetic, so the connector turns it into an edismax wildcard query ("joh || joh*") that matches
+        //many authors; the canned response carries num-found=1725.
+        assertEquals("Unexpected num-found for the canned ORCID response", 1725L, (long) search.numFound());
+        assertEquals("Connor, John", search.results().get(0).label());
     }
 
     @Test
-    public void search_fail() {
+    public void search_fail() throws Exception {
         sut = Mockito.spy(sut);
         sut.setApiURL("https://pub.sandbox.orcid.org/v3.0");
-        //Mock the CachingOrcidRestConnector so that getAccessToken returns and invalid token
+        //Mock the CachingOrcidRestConnector so that getAccessToken returns an invalid token
         doReturn("FAKE").when(sut).getAccessToken(Mockito.anyString(), Mockito.anyString(),
                 Mockito.anyString());
+        //Simulate the ORCID API rejecting the (fake) token: every httpGet fails. Done via the mocked HTTP layer
+        //so the test is deterministic and doesn't rely on the live sandbox returning a 401.
+        doThrow(new IOException("simulated ORCID auth failure")).when(sut)
+                .httpGet(Mockito.anyString(), Mockito.anyString());
 
         ExpandedSearchConverter.Results search = sut.search("joh", 0, 1);
 
         assertFalse(search.isOk());
 
-        //Further calls fail too, token is stored
+        //Further calls fail too, token is stored (so getAccessToken is only resolved once)
         search = sut.search("joh", 0, 1);
         assertFalse(search.isOk());
 
