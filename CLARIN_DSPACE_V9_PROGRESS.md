@@ -14,7 +14,10 @@
 - **PR `CONFLICTING` is expected & not caused by this tranche:** PR base = `dtq-dev` (old
   CLARIN 7.6.5), head = vanilla-9.3 + CLARIN additions, so the diff still spans the whole
   7.6.5↔9 gap. Resolving it requires the full port to land (or a base change) — track separately.
-- **Next:** watch CI; wire CLARIN Spring beans; port deferred BE features; REST; frontend.
+- **Tranche 2 (Spring wiring) CI-GREEN** too (commit `8836cc632a`): Unit ✅, Integration ✅,
+  CodeRabbit ✅ (codecov = same pre-existing infra red). CLARIN services are runtime-active + CI-validated.
+- **Next:** port deferred BE features (S3/sync, preview, report/health, matomo, PID/EPIC, versioning);
+  CLARIN BE unit/IT tests; REST (`dspace-server-webapp`); frontend (PR #1316); Docker + Playwright.
 - **Backend PR:** https://github.com/dataquest-dev/DSpace/pull/1339 — base `dtq-dev`, head `ufal/clarin-dspace-upgrade-v9`, **OPEN, CONFLICTING**. Head is currently **pristine vanilla DSpace 9.3** (no CLARIN code yet).
 - **Frontend PR:** https://github.com/dataquest-dev/dspace-angular/pull/1316 — base `dtq-dev`, head `ufal/clarin-dspace-upgrade-v9`, **OPEN, CONFLICTING**. Head is currently **pristine vanilla dspace-angular 9.x**.
 - **What "the PR diff" really is:** Because head = vanilla 9.3 and base = old CLARIN `dtq-dev` (7.6.5), the GitHub PR diff (BE 2372 files, FE 3944 files) is *the entire 7.6.5↔9.3 gap*, NOT work done. It would currently *delete* CLARIN. The real task = re-apply the CLARIN fork-delta on top of v9.
@@ -260,6 +263,8 @@ but that changes the PR's "replace dtq-dev" intent, so left to the maintainer.
 | 2026-06-18 | license headers | `mvn -o -pl dspace-api license:check` | ✅ OK (removed an empty stray test artifact). |
 | 2026-06-18 | **PR #1339 CI run 1** | GitHub Actions (push `bb7a599cd2`) | **Integration Tests ✅ PASS (30m); Unit Tests ❌ FAIL** — transient: `net.handle:handle:9.3.2` not fetched from `handle.net` repo (fell back to central). Root pom unchanged by my commit + IT passed same dep ⇒ flaky infra. Re-ran failed job. |
 | 2026-06-18 | **PR #1339 CI re-run** | `gh run rerun ... --failed` | **Unit Tests ✅ PASS (11m); Integration Tests ✅ PASS; CodeRabbit ✅.** `codecov` ❌ = pre-existing infra (missing CODECOV_TOKEN on protected branch), not code-related. **Tranche 1 is CI-green on all code checks.** |
+| 2026-06-18 | spring wiring validate (local) | `mvn install -DskipUnitTests=false -Dtest=AccessStatusServiceTest` | ✅ 3/3; full Spring context boots with all CLARIN beans, no autowiring errors. |
+| 2026-06-18 | **PR #1339 CI run (tranche 2 `8836cc632a`)** | GitHub Actions | **Unit ✅ PASS (11m), Integration ✅ PASS (26m), CodeRabbit ✅** (codecov infra red). Tranche 2 CI-green first try. |
 
 ### Work done in working tree (not yet pushed)
 - **Backend migrations:** 19 CLARIN Flyway migrations ported from `dtq-dev` (h2×9, postgres×10) into
@@ -291,7 +296,8 @@ Added CORE bean defs (deferred classes skipped) to make ported services runtime-
   HandleClarinServiceImpl, EpicHandleServiceImpl, ProvenanceServiceImpl) + `MatomoTracker` bean wired to
   v9's existing `${matomo.tracker.url}` (factory `@Autowired(required=true)` needs it). (ClarinBitstream/
   PreviewContent/ReportResult/ClarinMatomo* trackers deferred.)
-Validation: booting full Spring context via `AccessStatusServiceTest` (result pending).
+Validation: ✅ full Spring context boots cleanly (`AccessStatusServiceTest` 3/3, no
+autowiring/bean-creation errors). **Committed `8836cc632a`, pushed to PR #1339; CI running.**
 
 ### Deferred backend files (in `_deferred/`, OUTSIDE repo — re-port as their feature lands) — 42 files
 Reason: depend on bigger v9 rewrites or are leaf features, kept out to reach a compiling core.
