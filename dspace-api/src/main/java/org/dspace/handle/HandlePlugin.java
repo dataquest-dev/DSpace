@@ -7,12 +7,15 @@
  */
 package org.dspace.handle;
 
+import static org.dspace.handle.external.ExternalHandleConstants.DEFAULT_CANONICAL_HANDLE_PREFIX;
+
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import net.cnri.util.StreamTable;
 import net.handle.hdllib.Encoder;
@@ -57,6 +60,13 @@ public class HandlePlugin implements HandleStorage {
      * The DSpace service manager kernel
      **/
     private static transient DSpaceKernelImpl kernelImpl;
+
+    /**
+     * CLARIN: cached repository name, canonical handle prefix and configuration service,
+     * used by external handle resolution ({@link org.dspace.handle.external.Handle}).
+     */
+    private static String repositoryName;
+    private static String canonicalHandlePrefix;
 
     /**
      * References to DSpace Services
@@ -403,5 +413,48 @@ public class HandlePlugin implements HandleStorage {
                 }
             }
         }
+    }
+
+    /**
+     * CLARIN: the configured repository name ({@code dspace.name}), cached after first lookup.
+     * Used by external handle (magic URL) resolution.
+     *
+     * @return the trimmed repository name, or {@code null} if unavailable
+     */
+    public static String getRepositoryName() {
+        if (Objects.nonNull(repositoryName)) {
+            return repositoryName;
+        }
+        ConfigurationService cfg = DSpaceServicesFactory.getInstance().getConfigurationService();
+        if (Objects.isNull(cfg)) {
+            return null;
+        }
+        String name = cfg.getProperty("dspace.name");
+        if (Objects.isNull(name)) {
+            repositoryName = null;
+            return repositoryName;
+        }
+        repositoryName = name.trim();
+        return repositoryName;
+    }
+
+    /**
+     * CLARIN: the canonical handle prefix ({@code handle.canonical.prefix}, default
+     * {@link org.dspace.handle.external.ExternalHandleConstants#DEFAULT_CANONICAL_HANDLE_PREFIX}),
+     * cached after first lookup. Used by external handle resolution.
+     *
+     * @return the canonical handle prefix
+     */
+    public static String getCanonicalHandlePrefix() {
+        if (Objects.nonNull(canonicalHandlePrefix)) {
+            return canonicalHandlePrefix;
+        }
+        ConfigurationService cfg = DSpaceServicesFactory.getInstance().getConfigurationService();
+        if (Objects.isNull(cfg)) {
+            canonicalHandlePrefix = DEFAULT_CANONICAL_HANDLE_PREFIX;
+        } else {
+            canonicalHandlePrefix = cfg.getProperty("handle.canonical.prefix", DEFAULT_CANONICAL_HANDLE_PREFIX);
+        }
+        return canonicalHandlePrefix;
     }
 }
