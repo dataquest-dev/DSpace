@@ -6,7 +6,15 @@
 
 ## 0. TL;DR / current status
 
-- **Phase:** Foundation / discovery complete; porting **not yet started** (code-wise).
+- **Phase:** Backend **Tranche 1 (data layer) PUSHED + CI-GREEN** on PR #1339 (commit `bb7a599cd2`,
+  131 files, +15461). After re-running a transient `net.handle` repo flake:
+  **Unit Tests ✅ PASS, Integration Tests ✅ PASS, CodeRabbit ✅ PASS.** Only `codecov` is red and
+  that is **pre-existing CI infra** ("Token required because branch is protected" — needs a repo
+  `CODECOV_TOKEN` secret; fails for any commit on this branch, unrelated to the code, not fixable here).
+- **PR `CONFLICTING` is expected & not caused by this tranche:** PR base = `dtq-dev` (old
+  CLARIN 7.6.5), head = vanilla-9.3 + CLARIN additions, so the diff still spans the whole
+  7.6.5↔9 gap. Resolving it requires the full port to land (or a base change) — track separately.
+- **Next:** watch CI; wire CLARIN Spring beans; port deferred BE features; REST; frontend.
 - **Backend PR:** https://github.com/dataquest-dev/DSpace/pull/1339 — base `dtq-dev`, head `ufal/clarin-dspace-upgrade-v9`, **OPEN, CONFLICTING**. Head is currently **pristine vanilla DSpace 9.3** (no CLARIN code yet).
 - **Frontend PR:** https://github.com/dataquest-dev/dspace-angular/pull/1316 — base `dtq-dev`, head `ufal/clarin-dspace-upgrade-v9`, **OPEN, CONFLICTING**. Head is currently **pristine vanilla dspace-angular 9.x**.
 - **What "the PR diff" really is:** Because head = vanilla 9.3 and base = old CLARIN `dtq-dev` (7.6.5), the GitHub PR diff (BE 2372 files, FE 3944 files) is *the entire 7.6.5↔9.3 gap*, NOT work done. It would currently *delete* CLARIN. The real task = re-apply the CLARIN fork-delta on top of v9.
@@ -221,6 +229,24 @@ Cloned to `C:\workspace\clarin-dspace-v9-upgrade\dspace-ui-tests` (private, bran
 5. **Hardening**
    - [ ] Resolve PR conflicts; keep CI green; independent review agents; fix findings.
 
+## 7b. PR conflict-resolution strategy (IMPORTANT)
+
+Trial merge `origin/dtq-dev` → branch = **310 conflicts** (measured 2026-06-18). These are the
+fundamental 7.6.5↔9 divergence (e.g. `dspace-api/pom.xml` parent `9.3` vs `7.6.5`; `HandlePlugin`
+v9/lang3 vs 7.6.5/commons-lang2). **Do NOT naively resolve:**
+- Resolving toward `dtq-dev` reverts the upgrade (re-introduces 7.6.5 code) and breaks the build.
+- `git merge -s ours dtq-dev` makes the PR *look* mergeable but, if merged, **deletes every
+  not-yet-ported CLARIN feature** from `dtq-dev` (our tree supersedes it). A landmine.
+- `git merge -X ours dtq-dev` still pulls in all dtq-dev-only 7.6.5 files (un-ported CLARIN
+  classes) → won't compile.
+
+The `CONFLICTING` badge is **protective** — it blocks a premature destructive merge. The conflicts
+are a symptom of the port being incomplete. **Correct resolution = complete the port, then do ONE
+reconciliation merge taking the v9 side at the end** (when "take ours" drops nothing). Each tranche
+shrinks the real divergence; badge clears at completion. Alternative the maintainer could choose:
+re-point the PR base to vanilla `dspace-9.3` (then the diff is purely CLARIN additions, no conflicts) —
+but that changes the PR's "replace dtq-dev" intent, so left to the maintainer.
+
 ## 8. Tests executed (log)
 
 | Date | Scope | Command | Result |
@@ -228,6 +254,12 @@ Cloned to `C:\workspace\clarin-dspace-v9-upgrade\dspace-ui-tests` (private, bran
 | 2026-06-18 | env probe | `docker/java/mvn/node --version` | all present (see §2) |
 | 2026-06-18 | baseline build | `mvn -q -T 1C -DskipTests -pl dspace-api,dspace-server-webapp,dspace-oai -am install` | ✅ BUILD SUCCESS in ~4 min; `dspace-api-9.3.jar` installed. Vanilla 9.3 BE compiles. Maven cache warm. |
 | 2026-06-18 | migration validation attempt (unit test) | `mvn install -DskipUnitTests=false -pl dspace-api -am -Dtest=AccessStatusServiceTest` | ⚠ Test errored in setup with "DSpace home directory could not be determined / config-definition.xml" — kernel never started, Flyway never ran. **NOT a migration problem.** Pre-existing harness wrinkle (see KI-1). Migration validation deferred to Docker/postgres. |
+| 2026-06-18 | KI-1 root cause + fix | full-reactor `mvn install -DskipUnitTests=false ...` (testEnv needs `dspace` assembly module) | ✅ resolved; unit-test harness works. |
+| 2026-06-18 | entity↔schema validate (h2) | `mvn -o -pl dspace-api test -DskipUnitTests=false -Dtest=AccessStatusServiceTest` | ✅ 3/3 pass; SessionFactory builds, all 9 CLARIN entities pass hbm2ddl validate. |
+| 2026-06-18 | checkstyle | `mvn -o -pl dspace-api checkstyle:check` | ✅ 0 violations (after `fix_imports.py` normalized jakarta import groups in 30 files). |
+| 2026-06-18 | license headers | `mvn -o -pl dspace-api license:check` | ✅ OK (removed an empty stray test artifact). |
+| 2026-06-18 | **PR #1339 CI run 1** | GitHub Actions (push `bb7a599cd2`) | **Integration Tests ✅ PASS (30m); Unit Tests ❌ FAIL** — transient: `net.handle:handle:9.3.2` not fetched from `handle.net` repo (fell back to central). Root pom unchanged by my commit + IT passed same dep ⇒ flaky infra. Re-ran failed job. |
+| 2026-06-18 | **PR #1339 CI re-run** | `gh run rerun ... --failed` | **Unit Tests ✅ PASS (11m); Integration Tests ✅ PASS; CodeRabbit ✅.** `codecov` ❌ = pre-existing infra (missing CODECOV_TOKEN on protected branch), not code-related. **Tranche 1 is CI-green on all code checks.** |
 
 ### Work done in working tree (not yet pushed)
 - **Backend migrations:** 19 CLARIN Flyway migrations ported from `dtq-dev` (h2×9, postgres×10) into
@@ -248,6 +280,18 @@ Cloned to `C:\workspace\clarin-dspace-v9-upgrade\dspace-ui-tests` (private, bran
   - Entities registered in `dspace/config/hibernate.cfg.xml` (9 CLARIN `<mapping>` entries).
   - **Hibernate 6 fix:** `ClarinLicense.confirmation` ORDINAL enum pinned `@JdbcTypeCode(SqlTypes.INTEGER)`
     (H6 defaults ORDINAL→TINYINT; column is INTEGER). Entity↔schema validation iterating (see §6d).
+
+### Tranche 2 (in progress, working tree): CLARIN Spring bean wiring
+Added CORE bean defs (deferred classes skipped) to make ported services runtime-active:
+- `core-factory-services.xml`: `clarinServiceFactory`, `handleClarinServiceFactory`.
+- `core-dao-services.xml`: 11 CLARIN DAO beans (license/label/mapping/userreg/usermeta/allowance/
+  item/verificationtoken/matomoreport/token + HandleClarinDAOImpl). (PreviewContent/ReportResult DAOs deferred.)
+- `core-services.xml`: 16 service beans (license framework, user metadata/registration, verification +
+  clarin tokens, item/workspace, matomo report subscription, DspaceObjectClarin, AuthorizationBitstreamUtils,
+  HandleClarinServiceImpl, EpicHandleServiceImpl, ProvenanceServiceImpl) + `MatomoTracker` bean wired to
+  v9's existing `${matomo.tracker.url}` (factory `@Autowired(required=true)` needs it). (ClarinBitstream/
+  PreviewContent/ReportResult/ClarinMatomo* trackers deferred.)
+Validation: booting full Spring context via `AccessStatusServiceTest` (result pending).
 
 ### Deferred backend files (in `_deferred/`, OUTSIDE repo — re-port as their feature lands) — 42 files
 Reason: depend on bigger v9 rewrites or are leaf features, kept out to reach a compiling core.
