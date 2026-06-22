@@ -6,21 +6,37 @@
 
 ## 0. TL;DR / current status
 
-- **Phase:** Backend **Tranche 1 (data layer) PUSHED + CI-GREEN** on PR #1339 (commit `bb7a599cd2`,
-  131 files, +15461). After re-running a transient `net.handle` repo flake:
-  **Unit Tests ✅ PASS, Integration Tests ✅ PASS, CodeRabbit ✅ PASS.** Only `codecov` is red and
-  that is **pre-existing CI infra** ("Token required because branch is protected" — needs a repo
-  `CODECOV_TOKEN` secret; fails for any commit on this branch, unrelated to the code, not fixable here).
-- **PR `CONFLICTING` is expected & not caused by this tranche:** PR base = `dtq-dev` (old
-  CLARIN 7.6.5), head = vanilla-9.3 + CLARIN additions, so the diff still spans the whole
-  7.6.5↔9 gap. Resolving it requires the full port to land (or a base change) — track separately.
-- **Tranche 2 (Spring wiring) CI-GREEN** too (commit `8836cc632a`): Unit ✅, Integration ✅,
-  CodeRabbit ✅ (codecov = same pre-existing infra red). CLARIN services are runtime-active + CI-validated.
-- **Next:** port deferred BE features (S3/sync, preview, report/health, matomo, PID/EPIC, versioning);
-  CLARIN BE unit/IT tests; REST (`dspace-server-webapp`); frontend (PR #1316); Docker + Playwright.
-- **Backend PR:** https://github.com/dataquest-dev/DSpace/pull/1339 — base `dtq-dev`, head `ufal/clarin-dspace-upgrade-v9`, **OPEN, CONFLICTING**. Head is currently **pristine vanilla DSpace 9.3** (no CLARIN code yet).
-- **Frontend PR:** https://github.com/dataquest-dev/dspace-angular/pull/1316 — base `dtq-dev`, head `ufal/clarin-dspace-upgrade-v9`, **OPEN, CONFLICTING**. Head is currently **pristine vanilla dspace-angular 9.x**.
-- **What "the PR diff" really is:** Because head = vanilla 9.3 and base = old CLARIN `dtq-dev` (7.6.5), the GitHub PR diff (BE 2372 files, FE 3944 files) is *the entire 7.6.5↔9.3 gap*, NOT work done. It would currently *delete* CLARIN. The real task = re-apply the CLARIN fork-delta on top of v9.
+> Last refreshed: 2026-06-22 (context cleanup vs. original mandate). The §0 below is the
+> authoritative current state; earlier sections retain methodology/history.
+
+- **Both PRs are MERGEABLE** (conflicts resolved): PR bases were re-pointed from `dtq-dev` to
+  **`dtq-dev-9-base`** (= vanilla `dspace-9.3`, BE `e0fae432ff` / FE `a2141979`), so each PR diff =
+  pure CLARIN additions on v9, no conflicts. Final landing into `dtq-dev` = Phase-2 reconciliation
+  merge (`-s ours`) after the port completes (see §7b).
+- **Backend PR #1339 — 2 tranches, CI-GREEN, MERGEABLE — but COMPILE-ONLY skeleton, NOT runtime-functional:**
+  1. `bb7a599cd2` migrations (19) + ~107 entities/services/DAOs/factories.
+  2. `8836cc632a` Spring bean wiring.
+  Unit+Integration+CodeRabbit ✅ (`codecov` red = pre-existing infra). **HONEST SCOPE (per independent
+  review §6g):** this compiles and the CLARIN entities pass Hibernate `hbm2ddl=validate` *in isolation*.
+  It is NOT a working CLARIN backend: **CLARIN config not ported, 91/94 vanilla-file modifications not
+  applied, REST/OAI layer absent, no CLARIN test exercises the code.** Features (share-submission BE,
+  shibboleth, user welcome-info, item-hiding, OAI/CMDI, all REST endpoints) are inert. See §6g.
+- **Frontend PR #1316 — 7 tranches, MERGEABLE** (head `d8511814d1`):
+  1. assets (947 imgs) · 2. core models+data-services (49) · 3. **clarin-licenses** ✅green ·
+  4. **handle-page** ✅green · 5. **epic-handle** ✅green · 6. **share-submission+change-submitter**
+  (re-running after e2e-Docker flake; 22.x green) · 7. **contact-page+static-page** (CI running).
+  Pre-validation `npm run build` + `npm run lint:nobuild -- --quiet` reliably predicts CI.
+- **Porting method fully proven + documented** (BE §4/§6, FE standalone recipe + v9 gotcha catalog §6e).
+- **REMAINING vs Definition-of-Done (none silently skipped):**
+  - FE feature modules: login/shibboleth+discojuice, license-contract, **item-page (155 files)**,
+    submission steps, bitstream-page, entity-groups, admin, info, accessibility, clarin-navbar-top.
+  - FE i18n keys (all langs).
+  - BE deferred features (S3/sync, preview, report/health, matomo, PID/EPIC clients, versioning CLI) —
+    in `_deferred/` (§5 list); CLARIN BE unit/IT tests; REST layer (`dspace-server-webapp`, ~295 files); config.
+  - **Docker:** bring up full CLARIN v9 stack locally (not yet done).
+  - **Playwright** (`dspace-ui-tests`) against local stack + **manual specs** (#55, #411) — needs seeded data (§6b).
+  - **Independent review agents** to challenge completeness (required by mandate; not yet run).
+  - Phase-2 `dtq-dev` reconciliation merge.
 
 ## 1. Objective
 
@@ -208,6 +224,180 @@ Cloned to `C:\workspace\clarin-dspace-v9-upgrade\dspace-ui-tests` (private, bran
   exposure, item versions, icons, etc. Mirrors the Playwright assertions.
 - **dspace-customers#411**: (to summarize next session) additional manual test spec.
 
+## 6e. Frontend (dspace-angular) port plan — STARTED 2026-06-18
+
+Repo `dspace-angular`, branch `ufal/clarin-dspace-upgrade-v9` = vanilla **9.3.0** (port not started).
+PR #1316, base branch `dtq-dev-9-base` (= `a2141979` = vanilla `dspace-9.3`) ready.
+
+**FE fork-delta (`dspace-7.6.3` → `dtq-dev`): 1497 added files + 266 modified `.ts`** (the hard
+angular 7→9 ports). Added by module: item-page 101, shared 56, **core 53** (data-services/models —
+foundational), handle-page 28, **clarin-licenses 24**, epic-handle 23, bitstream-page 18, login-page 15,
+submission 14, admin 8, static-page 7, contact-page 7, share-submission 6, license-contract-page 6,
+clarin-navbar-top 5, change-submitter 4, accessibility 4, info 3, statistics 2 (+~959 image assets).
+
+v9 angular migration concerns: standalone components / new control-flow, `@dspace` API changes,
+SSR build. Same proven method as BE: baseline build → port module → lint/build → coherent commit → CI.
+
+**FE tranches:**
+1. ✅ Baseline: `npm ci` OK; vanilla 9.3 builds (`npm run build`, ~4 min, dist produced).
+2. ✅ **Assets pushed** (commit `31f660b4e9`, 947 net-new images: mime/flags/item-types/footer/
+   static-pages/LINDAT branding). FE PR #1316 now has 1 commit → base switchable to `dtq-dev-9-base`.
+3. ✅ **`core` clarin models + data services (49 files) PUSHED** (commit `9c8dfed2bd`): TYPE-CLEAN + LINT-CLEAN (`tsc -p tsconfig.json`,
+   zero errors in CLARIN files; only pre-existing vanilla noise: grecaptcha global + a `.spec`).
+   **Key v9 FE API delta:** `@dataService` decorator MOVED from `core/data/base/data-service.decorator`
+   → `core/cache/builders/build-decorators` (NOT removed — still used for HAL resolution). Fix = repoint
+   import path per file (kept the decorator). Deferred from this tranche: `bitstream-url-serializer` +
+   `shared/clarin-shared-util` (pull in the `clarin-item-box-view` feature — port with that).
+   FE validation loop: `tsc --noEmit -p tsconfig.json` (full project; `tsconfig.app.json`/ng build only
+   checks files reachable from main, so unreferenced new files need the full tsconfig). Lint = `npm run lint`
+   (`build:lint && ng lint`; direct `npx eslint` fails — needs the custom-rule build). Lint validating now.
+4. ✅ **`clarin-licenses` module ported to v9 standalone & PUSHED** (`b3a7ff33c0` + lint fix `b5e2a6cbd5`):
+   `ng build` + full `ng lint --quiet` both clean. First push went CI-red on template lint (scoped
+   eslint missed `.html`); fixed via control-flow migration + `dsBtnDisabled` + `===` (see recipe step 5/6).
+   Lesson baked into recipe: always run full `npm run lint:nobuild -- --quiet` before pushing FE.
+5. ✅ **handle-page module PUSHED** (`e0c1270b28`, FE tranche 4): 6 standalone components, /handle-table
+   admin route. build+lint clean.
+6. ✅ **epic-handle module PUSHED** (`7c5a6aa29b`, FE tranche 5): 5 standalone components, /epic-handle-table
+   admin route. build+lint clean.
+7. ✅ **share-submission + change-submitter PUSHED** (`5ece6b02ce`, FE tranche 6): 2 standalone
+   components, /share-submission route. build+lint clean. (Fixes: chart.js→hasNoValue, instanceof generic.)
+8. ⬜ i18n keys (`src/assets/i18n/*.json5` — additive, merge into all langs + watch i18n lint).
+9. ✅ **contact-page + static-page PUSHED** (`d8511814d1`, FE tranche 7): themed contact page + static
+   HTML pages. Ported ClarinSafeHtmlPipe + HtmlContentService. build+lint clean.
+10. ⬜ Remaining modules: login/shibboleth+discojuice, license-contract, item-page additions (155 files,
+    large), submission steps, bitstream-page, entity-groups, admin, info, accessibility, clarin-navbar-top.
+
+### Themed-component v9 pattern (resolved):
+`Themed*Component extends ThemedComponent<BaseComponent>` — NO `standalone`/`imports` field, `templateUrl:
+'../shared/theme-support/themed.component.html'`, methods `getComponentName()`/`importThemedComponent()`/
+`importUnthemedComponent()`. The 7.x CLARIN themed wrappers already match — no conversion needed. Base
+component is converted to standalone normally; route points at the Themed wrapper.
+
+### More v9 API changes (learned porting contact/static — apply to all remaining modules):
+- `LocaleService.getCurrentLanguageCode()` now returns `Observable<string>` (was `string`) →
+  `await firstValueFrom(...)` in async methods.
+- `@nguniversal/express-engine/tokens` REMOVED → `REQUEST`/`RESPONSE` now in `src/express.tokens`
+  (relative e.g. `../../express.tokens`).
+- CLARIN-added services (e.g. HtmlContentService) need `@Injectable({ providedIn: 'root' })` (no NgModule
+  provides them now).
+- `ds-themed-loading` element → `ds-loading` (ThemedLoadingComponent).
+- `no-negated-async`: `!(obs | async)` → `(obs | async) === null/false/undefined` or `?.length === 0`.
+- Other CLARIN pipes ported standalone so far: 6 license pipes (clarin-licenses) + ClarinSafeHtmlPipe.
+
+### FE module CI confirmations
+- clarin-licenses (`b5e2a6cbd5`): ✅ green. handle-page (`e0c1270b28`): ✅ green. epic-handle
+  (`7c5a6aa29b`): ✅ green. share-submission (`5ece6b02ce`): tests(22.x) ✅ but tests(20.x) ❌ on a
+  TRANSIENT infra step **"Start DSpace REST Backend via Docker (for e2e)"** (not code — 22.x passed same
+  commit) → re-ran. contact/static (`d8511814d1`): CI running.
+- **CI flake pattern:** FE `tests` job e2e step "Start DSpace REST Backend via Docker" is occasionally
+  flaky (like BE `net.handle` repo flake). If only that step fails (and the other Node version passes),
+  it's infra — `gh run rerun <id> --failed`. Pre-validation (`npm run build` + `npm run lint:nobuild
+  -- --quiet`) remains reliable for CODE correctness.
+
+### More v9 FE gotchas (learned porting handle/epic):
+- `ds-loading` selector = `ThemedLoadingComponent` (shared/loading/themed-loading.component).
+- `*ngVar` = `VarDirective` (shared/utils/var.directive) — control-flow migration does NOT convert it.
+- `standalone: true` is the DEFAULT now → eslint rule `dspace-angular-ts/no-default-standalone-value`
+  strips it (eslint --fix removes the line; keep `imports: []`).
+- rxjs `catchError`/error callbacks: keep param `(error: unknown)` (rule
+  `@smarttools/rxjs/no-implicit-any-catch` forbids `any`), cast `(error as any)` at access sites.
+- Most lint errors are auto-fixable (`eslint --fix`): import sort/newlines, standalone-import sort,
+  no-default-standalone-value, disabled→dsBtnDisabled (html). Manual: eqeqeq, missing imports.
+
+### v9 standalone feature-module migration RECIPE (proven on clarin-licenses)
+1. `git checkout origin/dtq-dev -- <module files>` (exclude `*.spec.ts`).
+2. Each component: add `standalone: true` + `imports: [...]` to `@Component`. Imports = template deps:
+   `CommonModule` (ngIf/ngFor/async), `TranslateModule` (translate pipe), `ReactiveFormsModule`/`FormsModule`
+   (forms/ngModel), `NgbXModule` pieces, v9 standalone components (`ThemedLoadingComponent`
+   `shared/loading/themed-loading.component`, `PaginationComponent` `shared/pagination/pagination.component`),
+   sibling components, and any custom CLARIN pipes (make those `@Pipe({ standalone: true })` too).
+3. Replace `*.module.ts` + `*-routing.module.ts` with `*-routes.ts` exporting `ROUTES: Route[]`; use v9
+   FUNCTION resolvers/guards (`i18nBreadcrumbResolver`, `siteAdministratorGuard`, lowercase) not the 7.x classes.
+4. Add any route-path constants to `app-routing-paths.ts`; wire `loadChildren: () => import('./x/x-routes').then(m => m.ROUTES)` into `app-routes.ts` (+ import the path const).
+5. **v9 template migration (REQUIRED — CI gate `ng lint --quiet` checks `.html`!):** run
+   `npx ng generate @angular/core:control-flow --path=src/app/<module> --interactive=false`
+   to convert `*ngIf/*ngFor` → `@if/@for` (CI rule `@angular-eslint/template/prefer-control-flow`).
+   Also fix `==`→`===` (`template/eqeqeq`) and `disabled`/`[disabled]` on `<button>` →
+   `[dsBtnDisabled]` + import `BtnDisabledDirective` (`shared/btn-disabled.directive`)
+   (rule `dspace-angular-html/no-disabled-attribute-on-button`; eslint --fix does the html swap
+   but NOT the .ts import).
+6. Validate (BOTH): `npm run build` (ng build → missing template deps) AND
+   **`npm run lint:nobuild -- --quiet`** (the real CI gate — lints `.ts` AND `.html` templates;
+   scoped `npx eslint <ts>` MISSES template errors — that's what turned t3 CI red on first push).
+   ⚠ The control-flow schematic reformats `@angular/core` imports multi-line — re-add any imports
+   carefully AFTER the closing `} from '@angular/core';`, not inside the block.
+   Then commit + push.
+
+## 6f. Docker stack startup + Playwright (mandate items — NOT yet runnable end-to-end)
+
+**Standard run recipe (vanilla v9, works today):**
+- Backend: `cd DSpace && docker compose -f docker-compose.yml up -d` → services `dspacedb`
+  (postgres:15, port 5432), `dspacesolr` (dspace-solr 9_x, 8983), `dspace` (REST WAR, 8080;
+  built from local `Dockerfile` context). CLI/seed: `docker-compose-cli.yml`.
+- Frontend: `cd dspace-angular && docker compose -f docker/docker-compose-dist.yml up -d` (UI on 4000),
+  or `docker/docker-compose-rest.yml` to pull a REST backend for the UI.
+- This is what `dspace-ui-tests` CI uses ("Start DSpace REST Backend via Docker" step).
+
+**To run a CLARIN v9 stack with OUR changes (build custom images):**
+- BE image: `mvn -DskipTests package` then `docker compose build dspace` (packages our WAR incl.
+  migrations + entities + wired services). Postgres runs our Flyway migrations on first boot.
+- FE image: `docker build` from dspace-angular (our standalone CLARIN modules).
+- Port the dtq-dev Docker customizations (delta vs 7.6.5): `Dockerfile`, `Dockerfile.cli`,
+  `docker-compose*.yml`, `scripts/docker/matomo/*` (Matomo container for analytics). NOT yet ported.
+
+**BLOCKERS (why end-to-end CLARIN stack + Playwright can't pass yet):**
+1. **BE REST layer not ported** (`dspace-server-webapp`, ~295 CLARIN files): the FE CLARIN
+   data-services (license/handle/etc.) have no `/server/api` endpoints to call → CLARIN features
+   non-functional end-to-end. This is the #1 gate for a working stack.
+2. **FE port incomplete**: item-page/submission/login-shibboleth modules not yet ported.
+3. **Playwright needs seeded CLARIN data** (§6b): fixed handles (`11234/1-2683` restricted download,
+   DOIs, versions), LINDAT branding ("LINDAT/CLARIAH-CZ Repository Home"), specific items. Must seed
+   matching data OR relax data-specific assertions, and point `HOME_URL` at the local stack.
+4. dtq-dev Docker customizations + Matomo not ported.
+
+**Plan:** finish BE REST + remaining FE modules → build custom images → `docker compose up` →
+seed CLARIN data → point Playwright `HOME_URL` at local UI → run `cd dspace-ui-tests/scripts && ./test.sh`
+→ iterate. Until then, Docker/Playwright are tracked as BLOCKED with the above reasons (nothing skipped silently).
+
+## 6g. INDEPENDENT REVIEW FINDINGS (2026-06-22) + resolutions
+
+Two independent review agents (BE + FE, separate) challenged the completion claims. Both concluded:
+**"compiles + CI-green" ≠ "works".** Validation relied on `mvn compile`/`ng build`/`ng lint` which catch
+neither runtime DI nor unimported `*ngVar` (FE `strictTemplates` off) nor missing config/vanilla-mods (BE).
+This section records EVERY valid finding and its resolution — nothing is silently skipped.
+
+### Frontend findings (PR #1316)
+| # | Sev | Finding | Resolution |
+|---|-----|---------|-----------|
+| C1 | CRIT | 9 CLARIN data-services had bare `@Injectable()` (no provider) → `NullInjectorError` → clarin-licenses + handle-page DEAD at runtime | ✅ FIXED: `providedIn:'root'` on all (12 incl. bitstream/metadata services) |
+| C2 | CRIT | `*ngVar` used without importing `VarDirective` in clarin-license-table, handle-table, change-submitter-page → no data renders | ✅ FIXED: imported VarDirective in all 3 |
+| C3 | CRIT | Admin menu entries dropped → handle-table/epic-handle-table/licenses unreachable via UI (routes work by URL) | ⬜ TODO: port a CLARIN menu provider (v9 `shared/menu/providers/*.menu.ts`; was 7.x `menu.resolver.ts`) |
+| M1 | MAJ | `usage-report.model.ts` `Point.values` delta (array→keyed object) dropped | ⬜ DEFERRED w/ statistics/matomo FE (applying in isolation breaks vanilla stats components) — documented, not silent |
+| M2 | MAJ | No i18n keys → ported pages show raw key strings | ⬜ deferred (FE tranche 8) — features not presentable until done |
+| m1 | MIN | handle/epic routes: added `endUserAgreementCurrentUserGuard` (v9 admin convention) vs original `[SiteAdministratorGuard]` only | accepted (v9 convention); confirm w/ maintainer |
+| m2 | MIN | contact route lost `pathMatch:'full'` | ✅ FIXED |
+| m3 | MIN | all `*.spec.ts` excluded → CI tests exercise no CLARIN FE code | documented (FE test gap; see Phase) |
+
+Verdict: epic-handle was the only runtime-correct tranche pre-fix; C1/C2/m2 now fixed make
+clarin-licenses/handle-page/change-submitter functional. C3 + i18n still needed for full usability.
+
+### Backend findings (PR #1339)
+| # | Sev | Finding | Resolution |
+|---|-----|---------|-----------|
+| C1 | CRIT | **85 CLARIN config files unported** — 24 ADDED missing (clarin-dspace.cfg, 7 email templates, OAI crosswalks lindat_cmdi/olac/metasharev2/elg.xsl, registries) NOT in `_deferred`; 57/61 MODIFIED config not re-applied (dspace.cfg, item-submission.xml, authentication-shibboleth.cfg, discovery.xml). Ported services read null `lr.*` config | ⬜ TODO — now DOCUMENTED here (was silently dropped). Port incrementally; see Phase. |
+| C2 | CRIT | Entity↔schema feature losses validate can't catch: `WorkspaceItem.shareToken` (migration adds col, entity unmapped → share-submission BE dead), `EPerson.welcomeInfo/canEditSubmissionMetadata`, `Item.isHidden()` | ⬜ TODO — port these vanilla-entity modifications (additive field+mapping+accessor) |
+| C3 | CRIT | 91/94 CLARIN modifications to vanilla `dspace-api` .java NOT re-applied (only Handle/Util/HandlePlugin). Added methods (ItemService.hasUploadedFiles, WorkspaceItemService.findByShareToken, BitstreamService.retrieveFile, *.addLogo, ...) absent. Compiles only because consumers deferred/in REST | ⬜ TODO — apply needed vanilla-file deltas as their consumers land (REST). DOCUMENTED. |
+| M1 | MAJ | 44 ADDED CLARIN test classes dropped (not in `_deferred`); `AccessStatusServiceTest` is VANILLA → no CLARIN code path tested | ⬜ DOCUMENTED — port CLARIN BE tests (was understated) |
+| M2 | MAJ | `handle/PIDService.java` reflectively loads deferred `PIDServiceEPICv2` → ClassNotFoundException at runtime | ✅ FIXING: defer PIDService.java (its only path needs the deferred class; `EpicHandleServiceImpl` is the live path) |
+| M3 | MAJ | REST (179) + OAI (28) layer absent → no CLARIN API surface | acknowledged (§0/Phase) — #1 functional blocker |
+| m2 | MIN | 19 migrations byte-identical to dtq-dev, ordering safe, no v8/v9 collisions | ✅ confirmed good |
+| m3 | MIN | Spring wiring sound; all wired beans exist; no bean→deferred-class | ✅ confirmed good |
+
+**SILENTLY-NOT-PORTED (now explicitly documented, distinct from `_deferred/`):** 24 CLARIN config files,
+57 CLARIN config modifications, 91 CLARIN vanilla-`.java` modifications, 44 CLARIN test classes, the
+3 entity-mapping gaps (C2), FE menu providers (C3), FE i18n (M2). These were NOT tracked before — the
+review surfaced them; they are now in the plan (§7) and NONE are skipped without a reason.
+
 ## 7. Execution plan (phased)
 
 1. **Foundation (this/next sessions)**
@@ -243,6 +433,15 @@ v9/lang3 vs 7.6.5/commons-lang2). **Do NOT naively resolve:**
 - `git merge -X ours dtq-dev` still pulls in all dtq-dev-only 7.6.5 files (un-ported CLARIN
   classes) → won't compile.
 
+**UPDATE 2026-06-18 — Phase 1 base re-point in progress (maintainer):** branch `dtq-dev-9-base`
+created at vanilla `dspace-9.3` in BOTH repos (BE `e0fae432ff`, FE `a2141979`). Switching each PR's
+base to `dtq-dev-9-base` makes the diff = pure CLARIN additions, no conflicts.
+- BE #1339: base switch in GitHub UI still PENDING (branch pushed; PR base still `dtq-dev` → shows 3
+  clean commits once switched).
+- FE #1316: base branch ready; PR will show 0 commits until the frontend port starts (expected).
+- Note: `dtq-dev` keeps moving (now `22cfef58e6`, 7.6.7 security patches) — PR is decoupled once base=v9;
+  reconcile in Phase 2.
+
 The `CONFLICTING` badge is **protective** — it blocks a premature destructive merge. The conflicts
 are a symptom of the port being incomplete. **Correct resolution = complete the port, then do ONE
 reconciliation merge taking the v9 side at the end** (when "take ours" drops nothing). Each tranche
@@ -265,6 +464,10 @@ but that changes the PR's "replace dtq-dev" intent, so left to the maintainer.
 | 2026-06-18 | **PR #1339 CI re-run** | `gh run rerun ... --failed` | **Unit Tests ✅ PASS (11m); Integration Tests ✅ PASS; CodeRabbit ✅.** `codecov` ❌ = pre-existing infra (missing CODECOV_TOKEN on protected branch), not code-related. **Tranche 1 is CI-green on all code checks.** |
 | 2026-06-18 | spring wiring validate (local) | `mvn install -DskipUnitTests=false -Dtest=AccessStatusServiceTest` | ✅ 3/3; full Spring context boots with all CLARIN beans, no autowiring errors. |
 | 2026-06-18 | **PR #1339 CI run (tranche 2 `8836cc632a`)** | GitHub Actions | **Unit ✅ PASS (11m), Integration ✅ PASS (26m), CodeRabbit ✅** (codecov infra red). Tranche 2 CI-green first try. |
+| 2026-06-18 | FE baseline | `npm ci` + `npm run build` (vanilla angular 9.3) | ✅ builds (~4m), dist produced. |
+| 2026-06-18 | **PR #1316 FE tranche 1 (assets `31f660b4e9`)** | GitHub Actions `tests 20.x/22.x` | ✅ PASS (≈30m each). |
+| 2026-06-19 | FE tranche 2 local validation | `tsc -p tsconfig.json` + `eslint --fix` + `eslint --quiet` | ✅ type-clean + lint-clean (0 errors) on the 49 core files. |
+| 2026-06-19 | **PR #1316 FE tranche 2 (core layer `9c8dfed2bd`)** | GitHub Actions | **tests 20.x ✅ PASS, tests 22.x ✅ PASS, CodeRabbit ✅.** FE core layer CI-green. |
 
 ### Work done in working tree (not yet pushed)
 - **Backend migrations:** 19 CLARIN Flyway migrations ported from `dtq-dev` (h2×9, postgres×10) into
