@@ -39,6 +39,14 @@
   `/server/api/core/clarinlicenses|clarinlicenselabels|handles` → 200 (valid HAL, empty because
   insert_default_licenses.sql is an intentionally-commented template); `clarinlruallowances|
   clarinusermetadatas` → 401 (correctly auth-protected). This is the proof BE compile+CI could not give.
+  Full endpoint sweep: clarinlicenses/clarinlicenselabels/clarinlicenseresourcemappings/handles=200,
+  clarinlruallowances/clarinusermetadatas/clarinuserregistrations=401, clarinlicenses/search=200.
+  KNOWN QUIRK (faithful to 7.x, NOT a regression): `clarinverificationtokens` returns **500** for
+  anonymous because the service throws `AuthorizeException("You must be an admin...")` which the repo
+  wraps as RuntimeException (it returns 200 with admin auth). Left as-is to preserve port fidelity;
+  could be improved to 403 via `@PreAuthorize("hasAuthority('ADMIN')")` like the sibling repos. Also:
+  CLARIN endpoints are not advertised in the discoverable `/api/core` index (no DiscoverableEndpoints
+  registration) — harmless, the FE calls them by path.
   **STILL TODO for full function:** 57 MODIFIED config files (dspace.cfg include of clarin-dspace.cfg,
   item-submission.xml, shibboleth auth), remaining vanilla-file method additions, import/submission-step/
   OAI REST, CLARIN tests, then full Docker stack (BE+FE+Solr) + seed data + Playwright.
