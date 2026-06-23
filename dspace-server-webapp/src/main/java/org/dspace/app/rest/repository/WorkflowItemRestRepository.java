@@ -213,6 +213,10 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
         WorkflowItemRest wsi = findOne(context, id);
         XmlWorkflowItem source = wis.find(context, id);
 
+        if (source == null) {
+            throw new ResourceNotFoundException("WorkflowItem with id " + id + " not found");
+        }
+
         this.checkIfEditMetadataAllowedInCurrentStep(context, source);
         List<ErrorRest> errors = submissionService.uploadFileToInprogressSubmission(context, request, wsi, source,
                 file);
@@ -252,7 +256,8 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
                 submissionService.evaluatePatchToInprogressSubmission(context, request, source, wsi, section, op);
             } else {
                 throw new DSpaceBadRequestException(
-                    "Patch path operation need to starts with '" + OPERATION_PATH_SECTIONS + "'");
+                    "Patch path operation need to starts with '" +
+                            OPERATION_PATH_LICENSE_RESOURCE + "' or '" + OPERATION_PATH_SECTIONS + "'");
             }
         }
         wis.update(context, source);
@@ -325,8 +330,8 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
     }
 
     private DSpaceBadRequestException wrongValueFormatException(Operation op) {
-        return new DSpaceBadRequestException("Unsupported value type for operation: " + op.getOp()
-                + ". Expected a string or an object with a textual 'value' field.");
+        return new DSpaceBadRequestException("Unsupported value format for operation '" + op.getOp()
+                + "'. Expected a string or an object with a textual 'value' field.");
     }
 
     /**
