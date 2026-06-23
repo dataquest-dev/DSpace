@@ -77,6 +77,17 @@
   - LESSON LEARNED: tranche 7 first pushed a duplicate-@PreAuthorize (7 of 8 CLARIN repos ALREADY had
     findOne @PreAuthorize in 7.x; only ClarinLicenseLabel lacked it) — a STALE incremental compile
     masked it -> CI red. Fixed `d28db8cab` by restoring originals. ALWAYS verify with `clean compile`.
+  - Tranche 10 `64feedacce`: vanilla Utils methods (ONLY the ones v9.3 lacks — it already had maskEmail/
+    getAllowedTemplateConfig/getSecureVelocityProperties/getMaxTimestamp; full delta would duplicate):
+    core.Utils replaceLast/getTransactionPid/fetchUUIDFromUrl; rest.utils.Utils normalizeDiscoverQuery
+    (+helpers)/encodeNonAsciiCharacters/disableCertificateValidation/distinctByKey/
+    getCanonicalHandleUrlNoProtocol. Un-deferred 7 controllers (Authorization+AuthrnRest[+getTypePlural]/
+    Resource, ClarinUserMetadata REST+Import, Submission, Suggestion) + json-simple 1.1.1 pom.
+    Verified combined reactor clean compile (api+webapp) + checkstyle. STILL DEFERRED (7, deep
+    v9-migration in _deferred/): ClarinRefBoxController (ancient com.hp.hpl.jena), SolrOAIReindexer +
+    Clarin{Item,EPerson}ImportController (Date->Instant), ClarinShibbolethLoginFilter (StatelessLoginFilter
+    ctor changed), ClarinGroupRestController (GroupRest.GROUPS), DBConnectionStatisticsController
+    (getHibernateStatistics). Each needs individual v9 API adaptation.
   **STILL TODO for full function:** 57 MODIFIED config files (dspace.cfg include of clarin-dspace.cfg,
   item-submission.xml, shibboleth auth), remaining vanilla-file method additions, import/submission-step/
   OAI REST, CLARIN tests, then full Docker stack (BE+FE+Solr) + seed data + Playwright.
