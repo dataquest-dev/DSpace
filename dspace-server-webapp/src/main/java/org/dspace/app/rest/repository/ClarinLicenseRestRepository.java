@@ -57,7 +57,7 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-@Component(ClarinLicenseRest.CATEGORY + "." + ClarinLicenseRest.NAME)
+@Component(ClarinLicenseRest.CATEGORY + "." + ClarinLicenseRest.PLURAL_NAME)
 public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLicenseRest, Integer> {
 
     public static final String OPERATION_PATH_LICENSE_RESOURCE = "license";

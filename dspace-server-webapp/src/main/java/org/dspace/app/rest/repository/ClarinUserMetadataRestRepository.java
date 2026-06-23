@@ -26,7 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-@Component(ClarinUserMetadataRest.CATEGORY + "." + ClarinUserMetadataRest.NAME)
+@Component(ClarinUserMetadataRest.CATEGORY + "." + ClarinUserMetadataRest.PLURAL_NAME)
 public class ClarinUserMetadataRestRepository extends DSpaceRestRepository<ClarinUserMetadataRest, Integer> {
     @Autowired
     ClarinUserMetadataService clarinUserMetadataService;

@@ -23,6 +23,7 @@ import org.dspace.app.rest.RestResourceController;
 public class HandleRest extends BaseObjectRest<Integer> {
 
     public static final String NAME = "handle";
+    public static final String PLURAL_NAME = NAME + "s";
     public static final String NAME_PLURAL = "handles";
     public static final String CATEGORY = RestAddressableModel.CORE;
 

@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-@Component(ClarinUserRegistrationRest.CATEGORY + "." + ClarinUserRegistrationRest.NAME)
+@Component(ClarinUserRegistrationRest.CATEGORY + "." + ClarinUserRegistrationRest.PLURAL_NAME)
 public class ClarinUserRegistrationRestRepository extends DSpaceRestRepository<ClarinUserRegistrationRest, Integer> {
 
     @Autowired

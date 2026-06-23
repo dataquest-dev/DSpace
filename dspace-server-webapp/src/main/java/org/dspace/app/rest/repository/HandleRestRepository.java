@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
-@Component(HandleRest.CATEGORY + "." + HandleRest.NAME)
+@Component(HandleRest.CATEGORY + "." + HandleRest.PLURAL_NAME)
 public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Integer> {
 
     /**

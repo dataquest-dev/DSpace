@@ -27,6 +27,7 @@ import org.dspace.app.rest.RestResourceController;
 public class ClarinLicenseResourceUserAllowanceRest extends BaseObjectRest<Integer> {
     // clarinlicenseresourceuserallowances
     public static final String NAME = "clarinlruallowance";
+    public static final String PLURAL_NAME = NAME + "s";
     public static final String CATEGORY = RestAddressableModel.CORE;
 
     public static final String RESOURCE_MAPPING = "resourceMapping";

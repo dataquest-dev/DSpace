@@ -16,11 +16,32 @@
 - **Backend PR #1339 — 2 tranches, CI-GREEN, MERGEABLE — but COMPILE-ONLY skeleton, NOT runtime-functional:**
   1. `bb7a599cd2` migrations (19) + ~107 entities/services/DAOs/factories.
   2. `8836cc632a` Spring bean wiring.
-  Unit+Integration+CodeRabbit ✅ (`codecov` red = pre-existing infra). **HONEST SCOPE (per independent
-  review §6g):** this compiles and the CLARIN entities pass Hibernate `hbm2ddl=validate` *in isolation*.
-  It is NOT a working CLARIN backend: **CLARIN config not ported, 91/94 vanilla-file modifications not
-  applied, REST/OAI layer absent, no CLARIN test exercises the code.** Features (share-submission BE,
-  shibboleth, user welcome-info, item-hiding, OAI/CMDI, all REST endpoints) are inert. See §6g.
+  Unit+Integration+CodeRabbit ✅ (`codecov` red = pre-existing infra).
+  - Tranche 3 `85b260f567`: 24 ADDED CLARIN config files (clarin-dspace.cfg, OAI crosswalks, emails,
+    registries) + entity columns (WorkspaceItem.shareToken, EPerson.welcomeInfo/canEditSubmissionMetadata).
+  - Tranche 4 `7219832193`: **CLARIN License REST** (17 files: model/hateoas/converter/repository) →
+    /server/api/core/clarinlicenses(+labels/resourcemappings/lruallowances) endpoints. compile+checkstyle ✅.
+  - Tranche 5 `060e4fc6e8`: **handle/epic-handle/user-metadata/user-registration/verification-token/
+    featured-service REST** (31 files incl. HandleRestRepository + link repositories). compile+checkstyle ✅.
+    Deferred: ExternalHandleRestRepository (needs RandomStringGenerator bean).
+  - Tranche 6 (plural bean-name fix): **RUNTIME-VALIDATED**. v9's REST framework resolves
+    `getBean(category + "." + modelPlural)` (Utils.getResourceRepositoryByCategoryAndModel) — CLARIN
+    repos were registered with singular `NAME` (7.x pattern) → every CLARIN endpoint 404'd. Added
+    `PLURAL_NAME = NAME + "s"` to 8 Rest models + switched 8 RestRepositories' `@Component` to PLURAL_NAME.
+  **RUNTIME VALIDATION (2026-06-23, the milestone reviewers demanded — "does it actually boot/work?"):**
+  Built full reactor `mvn -o package` → **BUILD SUCCESS** (deployable installer, WAR + boot jar). Deployed
+  via `ant fresh_install` to a local runtime, started a local Postgres (pgcrypto) container on :54321. Ran
+  `dspace database migrate` → **ALL CLARIN Flyway migrations applied cleanly on real Postgres** (previously
+  only h2): tables license_definition/label/label_extended_mapping/resource_mapping/resource_user_allowance,
+  clarin_token, user_metadata, user_registration, previewcontent + columns workspaceitem.share_token,
+  eperson.welcome_info/can_edit_submission_metadata, handle.url/dead/dead_since. Booted `server-boot.jar`
+  (v9.3) → Spring context wires all CLARIN beans; **CLARIN REST endpoints serve from Postgres**:
+  `/server/api/core/clarinlicenses|clarinlicenselabels|handles` → 200 (valid HAL, empty because
+  insert_default_licenses.sql is an intentionally-commented template); `clarinlruallowances|
+  clarinusermetadatas` → 401 (correctly auth-protected). This is the proof BE compile+CI could not give.
+  **STILL TODO for full function:** 57 MODIFIED config files (dspace.cfg include of clarin-dspace.cfg,
+  item-submission.xml, shibboleth auth), remaining vanilla-file method additions, import/submission-step/
+  OAI REST, CLARIN tests, then full Docker stack (BE+FE+Solr) + seed data + Playwright.
 - **Frontend PR #1316 — 7 tranches, MERGEABLE** (head `d8511814d1`):
   1. assets (947 imgs) · 2. core models+data-services (49) · 3. **clarin-licenses** ✅green ·
   4. **handle-page** ✅green · 5. **epic-handle** ✅green · 6. **share-submission+change-submitter**

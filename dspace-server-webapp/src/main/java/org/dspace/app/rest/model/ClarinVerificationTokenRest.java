@@ -17,6 +17,7 @@ import org.dspace.app.rest.RestResourceController;
  */
 public class ClarinVerificationTokenRest extends BaseObjectRest<Integer> {
     public static final String NAME = "clarinverificationtoken";
+    public static final String PLURAL_NAME = NAME + "s";
     public static final String CATEGORY = RestAddressableModel.CORE;
 
     private String ePersonNetID;

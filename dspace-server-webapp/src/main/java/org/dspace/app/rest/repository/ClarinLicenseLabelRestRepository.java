@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-@Component(ClarinLicenseLabelRest.CATEGORY + "." + ClarinLicenseLabelRest.NAME)
+@Component(ClarinLicenseLabelRest.CATEGORY + "." + ClarinLicenseLabelRest.PLURAL_NAME)
 public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<ClarinLicenseLabelRest, Integer> {
 
     @Autowired

@@ -27,7 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-@Component(ClarinLicenseResourceUserAllowanceRest.CATEGORY + "." + ClarinLicenseResourceUserAllowanceRest.NAME)
+@Component(ClarinLicenseResourceUserAllowanceRest.CATEGORY + "." + ClarinLicenseResourceUserAllowanceRest.PLURAL_NAME)
 public class ClarinLicenseResourceUserAllowanceRestRepository
         extends DSpaceRestRepository<ClarinLicenseResourceUserAllowanceRest, Integer> {
 

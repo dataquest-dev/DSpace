@@ -29,6 +29,7 @@ import org.dspace.app.rest.RestResourceController;
 })
 public class ClarinUserRegistrationRest extends BaseObjectRest<Integer> {
     public static final String NAME = "clarinuserregistration";
+    public static final String PLURAL_NAME = NAME + "s";
     public static final String CATEGORY = RestAddressableModel.CORE;
 
     public static final String CLARIN_LICENSES = "clarinLicenses";

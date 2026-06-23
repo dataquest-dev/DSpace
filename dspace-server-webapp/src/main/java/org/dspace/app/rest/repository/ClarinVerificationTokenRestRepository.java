@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-@Component(ClarinVerificationTokenRest.CATEGORY + "." + ClarinVerificationTokenRest.NAME)
+@Component(ClarinVerificationTokenRest.CATEGORY + "." + ClarinVerificationTokenRest.PLURAL_NAME)
 public class ClarinVerificationTokenRestRepository extends DSpaceRestRepository<ClarinVerificationTokenRest, Integer> {
     private static final Logger log = LogManager.getLogger(ClarinVerificationTokenRestRepository.class);
 
