@@ -66,6 +66,7 @@ public class PreviewContentServiceImplIT extends AbstractControllerIntegrationTe
     Bitstream gzFile;
     Bitstream tarXzFile;
     Bitstream xzFile;
+    Bitstream tgzFileWithGzipMimeType;
     Bitstream tarGzFileWithWrongExtension;
     Bitstream tarXzFileWithIncorrectMimeType;
 
@@ -130,6 +131,15 @@ public class PreviewContentServiceImplIT extends AbstractControllerIntegrationTe
                     .withName("logos.tar.gz")
                     .withDescription("tar.gz compressed file")
                     .withCustomMimeType("application/x-gzip")
+                    .build();
+        }
+
+        try (InputStream is = getClass().getResourceAsStream("assetstore/logos.tgz")) {
+            tgzFileWithGzipMimeType = BitstreamBuilder.
+                    createBitstream(context, bundle1, is)
+                    .withName("logos.tgz")
+                    .withDescription("tar.gz compressed file with tgz extension")
+                    .withMimeType("application/x-gzip")
                     .build();
         }
 
@@ -235,17 +245,20 @@ public class PreviewContentServiceImplIT extends AbstractControllerIntegrationTe
         BitstreamBuilder.deleteBitstream(tarGzFile.getID());
 
         BitstreamFormat customMimeTypeFormat = tarXGzipFile.getFormat(context);
-        BitstreamBuilder.deleteBitstream(tarXGzipFile.getID());
-        if (customMimeTypeFormat != null) {
-            bitstreamFormatService.delete(context, customMimeTypeFormat);
-        }
 
+        BitstreamBuilder.deleteBitstream(tarXGzipFile.getID());
         BitstreamBuilder.deleteBitstream(tgzFile.getID());
         BitstreamBuilder.deleteBitstream(gzFile.getID());
         BitstreamBuilder.deleteBitstream(tarXzFile.getID());
         BitstreamBuilder.deleteBitstream(xzFile.getID());
+        BitstreamBuilder.deleteBitstream(tgzFileWithGzipMimeType.getID());
         BitstreamBuilder.deleteBitstream(tarGzFileWithWrongExtension.getID());
         BitstreamBuilder.deleteBitstream(tarXzFileWithIncorrectMimeType.getID());
+
+        // removing custom mime type format created for tarXGzipFile and tgzFileWithGzipMimeType files
+        if (customMimeTypeFormat != null) {
+            bitstreamFormatService.delete(context, customMimeTypeFormat);
+        }
 
         super.destroy();
     }
@@ -336,6 +349,11 @@ public class PreviewContentServiceImplIT extends AbstractControllerIntegrationTe
     @Test
     public void testXzContent() throws Exception {
         assertFileInfo(xzFile, "logos", 24);
+    }
+
+    @Test
+    public void testTgzContentWithGzipMimetype() throws Exception {
+        assertFileInfos(tgzFileWithGzipMimeType);
     }
 
     @Test
