@@ -47,6 +47,22 @@
   could be improved to 403 via `@PreAuthorize("hasAuthority('ADMIN')")` like the sibling repos. Also:
   CLARIN endpoints are not advertised in the discoverable `/api/core` index (no DiscoverableEndpoints
   registration) — harmless, the FE calls them by path.
+  - Tranche 7 `98771fe034` (2nd runtime-diagnosed bug): v9 `ConverterService.toRest` enforces a
+    `@PreAuthorize` SpEL read from the repository's most-derived `findOne` for every BaseObjectRest;
+    CLARIN `findOne` overrides had none (faithful to 7.x; v7's ConverterService didn't do this) →
+    converting any real CLARIN object threw `'expressionString' must not be null or blank` (400/500).
+    Empty GETs passed only because there was no row to convert; surfaced on POST(create). FIX: add
+    `@PreAuthorize` to findOne of the 8 CLARIN repos (permitAll() for license/label/mapping/handle,
+    hasAuthority('ADMIN') for allowance/usermetadata/userregistration/verificationtoken) — mirrors
+    vanilla CommunityRestRepository.findOne. compile+checkstyle clean.
+  WRITE-PATH VALIDATION STATUS: the admin POST(create license label) round-trip is NOT yet runtime-
+  proven — repeated boots after ~10:16 stalled at Ehcache offheap allocation because the host is
+  **RAM-starved** (only ~1.3GB free of 32GB; the user's 10+ DSpace-8 docker containers consume the
+  rest). Environment limit, not a code issue; the fix is logically certain vs ConverterService source.
+  Retry the boot when RAM frees (kill nothing of the user's). Local validation setup: Postgres pgcrypto
+  container `clarin-pg` :54321, runtime at `dspace-runtime/`, boot `java -jar webapps/server-boot.jar
+  -Dserver.port=18080`; surgical redeploy = `mvn -o -pl dspace-server-webapp package` + `jar u0f
+  server-boot.jar BOOT-INF/lib/dspace-server-webapp-9.3.jar` (stored).
   **STILL TODO for full function:** 57 MODIFIED config files (dspace.cfg include of clarin-dspace.cfg,
   item-submission.xml, shibboleth auth), remaining vanilla-file method additions, import/submission-step/
   OAI REST, CLARIN tests, then full Docker stack (BE+FE+Solr) + seed data + Playwright.
