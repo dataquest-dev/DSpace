@@ -63,6 +63,20 @@
   container `clarin-pg` :54321, runtime at `dspace-runtime/`, boot `java -jar webapps/server-boot.jar
   -Dserver.port=18080`; surgical redeploy = `mvn -o -pl dspace-server-webapp package` + `jar u0f
   server-boot.jar BOOT-INF/lib/dspace-server-webapp-9.3.jar` (stored).
+  - Tranche 8 `02f123fd9`: 26 more REST files — ConfigFile REST, authorization (CanManageLicense +
+    test controller), ClarinAutoRegistration/UserInfo controllers, License/Handle import controllers,
+    submission steps (ClarinLicenseDistribution/Resource/Notice + 2 validations + SubmissionUtils),
+    refbox DTOs, ClarinDataLicense, BigMultipartFile. javax.mail->jakarta.mail. clean compile+checkstyle.
+    DEFERRED 14 (need unported vanilla methods Util.replaceLast/normalizeDiscoverQuery + libs
+    org.json.simple/com.hp.hpl.jena, in `_deferred/`): ClarinUserMetadataRestController,
+    Clarin{Item,EPerson,UserMetadata}ImportController, ClarinGroupRestController, SubmissionController,
+    SuggestionRestController, ClarinRefBoxController, ClarinShibbolethLoginFilter, SolrOAIReindexer,
+    Authrn{Rest,Resource}+AuthorizationRestController, DBConnectionStatisticsController.
+  - Tranche 9 `33172a376`: vanilla-file methods — Item.isHidden()+isDiscoverable() tweak,
+    WorkspaceItemService.findByShareToken (+Impl/DAO/DAOImpl). clean compile+checkstyle on dspace-api.
+  - LESSON LEARNED: tranche 7 first pushed a duplicate-@PreAuthorize (7 of 8 CLARIN repos ALREADY had
+    findOne @PreAuthorize in 7.x; only ClarinLicenseLabel lacked it) — a STALE incremental compile
+    masked it -> CI red. Fixed `d28db8cab` by restoring originals. ALWAYS verify with `clean compile`.
   **STILL TODO for full function:** 57 MODIFIED config files (dspace.cfg include of clarin-dspace.cfg,
   item-submission.xml, shibboleth auth), remaining vanilla-file method additions, import/submission-step/
   OAI REST, CLARIN tests, then full Docker stack (BE+FE+Solr) + seed data + Playwright.
