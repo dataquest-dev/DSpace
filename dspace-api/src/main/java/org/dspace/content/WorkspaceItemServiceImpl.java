@@ -318,4 +318,10 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
 
     }
 
+
+    @Override
+    public List<WorkspaceItem> findByShareToken(Context context, String shareToken) throws SQLException {
+        return workspaceItemDAO.findByShareToken(context, shareToken);
+    }
+
 }
