@@ -36,7 +36,6 @@ public class ClarinLicenseResourceUserAllowanceRestRepository
 
     @Override
     @PreAuthorize("hasAuthority('AUTHENTICATED')")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ClarinLicenseResourceUserAllowanceRest findOne(Context context, Integer integer)
             throws RESTAuthorizationException {
         ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance;

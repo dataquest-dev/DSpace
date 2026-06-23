@@ -41,7 +41,6 @@ public class ClarinVerificationTokenRestRepository extends DSpaceRestRepository<
 
     @Override
     @PreAuthorize("permitAll()")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ClarinVerificationTokenRest findOne(Context context, Integer integer) {
         ClarinVerificationToken clarinVerificationToken;
         try {

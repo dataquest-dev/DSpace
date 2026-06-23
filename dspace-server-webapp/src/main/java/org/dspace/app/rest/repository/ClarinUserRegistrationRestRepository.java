@@ -40,7 +40,6 @@ public class ClarinUserRegistrationRestRepository extends DSpaceRestRepository<C
 
     @Override
     @PreAuthorize("hasAuthority('AUTHENTICATED')")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ClarinUserRegistrationRest findOne(Context context, Integer idValue) {
         ClarinUserRegistration clarinUserRegistration;
         try {

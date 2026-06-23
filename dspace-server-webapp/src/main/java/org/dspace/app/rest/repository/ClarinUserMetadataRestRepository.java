@@ -33,7 +33,6 @@ public class ClarinUserMetadataRestRepository extends DSpaceRestRepository<Clari
 
     @Override
     @PreAuthorize("hasAuthority('AUTHENTICATED')")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ClarinUserMetadataRest findOne(Context context, Integer integer) {
         ClarinUserMetadata clarinUserMetadata;
         try {
