@@ -74,6 +74,7 @@ public class HandleRestRepository extends  DSpaceRestRepository<HandleRest, Inte
      */
     @Override
     @PreAuthorize("permitAll()")
+    @PreAuthorize("permitAll()")
     public HandleRest findOne(Context context, Integer id) {
         Handle handle;
         try {

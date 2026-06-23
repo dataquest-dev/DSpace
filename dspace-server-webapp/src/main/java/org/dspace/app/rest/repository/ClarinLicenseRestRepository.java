@@ -77,6 +77,7 @@ public class ClarinLicenseRestRepository extends DSpaceRestRepository<ClarinLice
 
     @Override
     @PreAuthorize("permitAll()")
+    @PreAuthorize("permitAll()")
     public ClarinLicenseRest findOne(Context context, Integer idValue) {
         ClarinLicense clarinLicense;
         try {

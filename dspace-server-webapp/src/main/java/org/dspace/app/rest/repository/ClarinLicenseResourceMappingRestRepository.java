@@ -34,6 +34,7 @@ public class ClarinLicenseResourceMappingRestRepository
 
     @Override
     @PreAuthorize("permitAll()")
+    @PreAuthorize("permitAll()")
     public ClarinLicenseResourceMappingRest findOne(Context context, Integer integer) {
         ClarinLicenseResourceMapping clarinLicenseResourceMapping;
         try {

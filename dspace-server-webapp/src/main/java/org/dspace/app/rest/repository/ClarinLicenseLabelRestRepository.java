@@ -40,6 +40,7 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
     ClarinLicenseLabelService clarinLicenseLabelService;
 
     @Override
+    @PreAuthorize("permitAll()")
     public ClarinLicenseLabelRest findOne(Context context, Integer id) {
         ClarinLicenseLabel clarinLicenseLabel;
         try {
