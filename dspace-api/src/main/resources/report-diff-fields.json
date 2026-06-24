@@ -26,6 +26,7 @@
     "/checks/[name=License summary]/report/licenses": "Licenses",
     "/checks/[name=Metadata check]/report/errorCount": "Metadata Errors",
     "/checks/[name=Metadata check]/report/warningCount": "Metadata Warnings"
+
   },
   "fieldOrder": [
     "/checks/[name=General Information]/report/directoryStats/0/size_bytes",
