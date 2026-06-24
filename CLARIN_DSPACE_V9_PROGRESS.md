@@ -55,14 +55,16 @@
     `@PreAuthorize` to findOne of the 8 CLARIN repos (permitAll() for license/label/mapping/handle,
     hasAuthority('ADMIN') for allowance/usermetadata/userregistration/verificationtoken) — mirrors
     vanilla CommunityRestRepository.findOne. compile+checkstyle clean.
-  WRITE-PATH VALIDATION STATUS: the admin POST(create license label) round-trip is NOT yet runtime-
-  proven — repeated boots after ~10:16 stalled at Ehcache offheap allocation because the host is
-  **RAM-starved** (only ~1.3GB free of 32GB; the user's 10+ DSpace-8 docker containers consume the
-  rest). Environment limit, not a code issue; the fix is logically certain vs ConverterService source.
-  Retry the boot when RAM frees (kill nothing of the user's). Local validation setup: Postgres pgcrypto
-  container `clarin-pg` :54321, runtime at `dspace-runtime/`, boot `java -jar webapps/server-boot.jar
-  -Dserver.port=18080`; surgical redeploy = `mvn -o -pl dspace-server-webapp package` + `jar u0f
-  server-boot.jar BOOT-INF/lib/dspace-server-webapp-9.3.jar` (stored).
+  WRITE-PATH VALIDATION: **PROVEN 2026-06-24** (full BE built clean -> deployed -> booted v9.3 on :18080
+  against Postgres :54321). Admin login (XSRF + JWT) OK; **POST /server/api/core/clarinlicenselabels ->
+  201 Created** (id 23, returned HAL with type clarinlicenselabel); **GET back -> totalElements 1**
+  (persisted "PUB | Publicly Available"). Full CRUD cycle works: auth -> create -> Postgres -> converter
+  serialize -> read. Runtime-proves the findOne @PreAuthorize fix (tranche 7) on a real object. (Earlier
+  attempts had stalled only because the host was RAM-starved by the user's docker stack; RAM freed
+  overnight -> 8GB.) Local validation setup persists: pg container `clarin-pg` :54321 (pwd dspace, admin
+  admin@clarin.test/adminpass), runtime `dspace-runtime/`, boot `java -Xmx2g -Ddspace.dir=... -jar
+  webapps/server-boot.jar -Dserver.port=18080`; redeploy via full `mvn -o package` then cp
+  dspace/target/dspace-installer/webapps/server-boot.jar to dspace-runtime/webapps/.
   - Tranche 8 `02f123fd9`: 26 more REST files — ConfigFile REST, authorization (CanManageLicense +
     test controller), ClarinAutoRegistration/UserInfo controllers, License/Handle import controllers,
     submission steps (ClarinLicenseDistribution/Resource/Notice + 2 validations + SubmissionUtils),
