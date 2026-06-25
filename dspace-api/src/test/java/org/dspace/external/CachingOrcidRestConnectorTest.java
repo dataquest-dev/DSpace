@@ -19,7 +19,10 @@ import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.dspace.AbstractDSpaceTest;
 import org.dspace.external.provider.orcid.xml.ExpandedSearchConverter;
 import org.dspace.utils.DSpace;
@@ -52,6 +55,19 @@ public class CachingOrcidRestConnectorTest extends AbstractDSpaceTest {
         InputStream is = getClass().getClassLoader().getResourceAsStream(resource);
         assertNotNull("Missing test resource: " + resource, is);
         return is;
+    }
+
+    /**
+     * Build a canned 200 OK ORCID "expanded-search" response for the mock HTTP server, so the cache-aware
+     * tests below exercise the real Spring {@code @Cacheable} bean without depending on the live ORCID sandbox.
+     */
+    private MockResponse cannedOrcidResponse() throws IOException {
+        try (InputStream is = cannedResponse(EXPANDED_SEARCH_XML)) {
+            return new MockResponse()
+                    .setResponseCode(200)
+                    .setHeader("Content-Type", "application/vnd.orcid+xml")
+                    .setBody(new String(is.readAllBytes(), StandardCharsets.UTF_8));
+        }
     }
 
     @Before
@@ -137,7 +153,7 @@ public class CachingOrcidRestConnectorTest extends AbstractDSpaceTest {
 
     @Ignore
     @Test
-    public void testCachable() {
+    public void testCachable() throws IOException {
         CachingOrcidRestConnector c = new DSpace().getServiceManager().getServiceByName(
                 "CachingOrcidRestConnector", CachingOrcidRestConnector.class);
 
@@ -151,44 +167,57 @@ public class CachingOrcidRestConnectorTest extends AbstractDSpaceTest {
         verify(c, times(1)).getLabel(orcid);
         */
 
-        c.setApiURL("https://pub.sandbox.orcid.org/v3.0");
-        c.forceAccessToken(sandboxToken);
+        // Drive the real Spring @Cacheable bean against a local mock HTTP server instead of the live ORCID
+        // sandbox, whose dataset is periodically reset and previously caused intermittent CI failures.
+        try (MockWebServer server = new MockWebServer()) {
+            // Two responses are enqueued, but with caching working only the FIRST getLabel() hits the server;
+            // the second is served from the "orcid-labels" cache (asserted via getRequestCount() below).
+            server.enqueue(cannedOrcidResponse());
+            server.enqueue(cannedOrcidResponse());
 
-        String r1 = c.getLabel(orcid);
-        assertEquals(expectedLabel, r1);
-        String r2 = c.getLabel(orcid);
-        assertEquals(expectedLabel, r2);
-        //get the orcid-labels cache and verify that the label is there
-        assertEquals(expectedLabel, cache.get(orcid).get());
+            c.setApiURL(server.url("/v3.0").toString());
+            c.forceAccessToken(sandboxToken);
+
+            String r1 = c.getLabel(orcid);
+            assertEquals(expectedLabel, r1);
+            String r2 = c.getLabel(orcid);
+            assertEquals(expectedLabel, r2);
+            //get the orcid-labels cache and verify that the label is there
+            assertEquals(expectedLabel, cache.get(orcid).get());
+            //caching means two getLabel() calls produced a single ORCID API request
+            assertEquals("Expected getLabel to be cached after the first call", 1, server.getRequestCount());
+        }
     }
 
     @Ignore
     @Test
-    public void testCacheableWithError() {
+    public void testCacheableWithError() throws IOException {
         CachingOrcidRestConnector c = new DSpace().getServiceManager().getServiceByName(
                 "CachingOrcidRestConnector", CachingOrcidRestConnector.class);
 
         Cache cache = prepareCache();
         assertNull(cache.get(orcid));
 
-        //skip init
-        c.forceAccessToken(sandboxToken);
-        //set bad ApiURL to provoke an error
-        c.setApiURL("https://api.sandbox.orcid.org/");
-        String r1 = c.getLabel(orcid);
-        //on error, getLabel should return null
-        assertNull(r1);
-        //the cache should not contain a value for this id
-        assertNull(cache.get(orcid));
+        try (MockWebServer server = new MockWebServer()) {
+            //the (mock) ORCID API returns an error first, then a valid response
+            server.enqueue(new MockResponse().setResponseCode(500));
+            server.enqueue(cannedOrcidResponse());
 
-        //fix the error
-        c.setApiURL("https://pub.sandbox.orcid.org/v3.0");
-        // the error flipped the initialized flag, this reset it
-        c.forceAccessToken(sandboxToken);
-        String r2 = c.getLabel(orcid);
-        assertEquals(expectedLabel, r2);
-        //the cache should now contain a value for this id
-        assertEquals(expectedLabel, cache.get(orcid).get());
+            //skip init (force a token so getAccessToken/init never reaches out to the network)
+            c.forceAccessToken(sandboxToken);
+            c.setApiURL(server.url("/v3.0").toString());
+            String r1 = c.getLabel(orcid);
+            //on error, getLabel should return null
+            assertNull(r1);
+            //a null result must NOT be cached (see @Cacheable(unless = "#result == null"))
+            assertNull(cache.get(orcid));
+
+            //the second call gets the valid (200) response; the error never cleared the token, so no re-init needed
+            String r2 = c.getLabel(orcid);
+            assertEquals(expectedLabel, r2);
+            //the cache should now contain a value for this id
+            assertEquals(expectedLabel, cache.get(orcid).get());
+        }
     }
 
     private Cache prepareCache() {
