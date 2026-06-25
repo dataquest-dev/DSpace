@@ -282,18 +282,26 @@ public class HdlResolverRestControllerIT extends AbstractControllerIntegrationTe
 
     @Test
     public void givenMappedPrefixWhenNoAdditionalPrefixesConfThenReturnsHandlePrefix() throws Exception {
-        String handlePrefix = this.configurationService.getProperty("handle.prefix");
-        ResultMatcher matchHandleResponse =
-            jsonPath("$[*]",
-                    allOf(
-                            containsInAnyOrder(handlePrefix)
-                    )
-            );
+        // CLARIN sets handle.additional.prefixes in dspace.cfg, so this "no additional prefixes"
+        // scenario must clear it explicitly to remain deterministic.
+        String[] defaultAdditionalPrefixes = this.configurationService.getArrayProperty("handle.additional.prefixes");
+        this.configurationService.setProperty("handle.additional.prefixes", null);
+        try {
+            String handlePrefix = this.configurationService.getProperty("handle.prefix");
+            ResultMatcher matchHandleResponse =
+                jsonPath("$[*]",
+                        allOf(
+                                containsInAnyOrder(handlePrefix)
+                        )
+                );
 
-        getClient()
-            .perform(get(HdlResolverRestController.LISTPREFIXES))
-            .andExpect(status().isOk())
-            .andExpect(matchHandleResponse);
+            getClient()
+                .perform(get(HdlResolverRestController.LISTPREFIXES))
+                .andExpect(status().isOk())
+                .andExpect(matchHandleResponse);
+        } finally {
+            this.configurationService.setProperty("handle.additional.prefixes", defaultAdditionalPrefixes);
+        }
     }
 
     @Test
