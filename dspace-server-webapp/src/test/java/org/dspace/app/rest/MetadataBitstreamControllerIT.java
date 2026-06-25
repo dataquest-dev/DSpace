@@ -89,14 +89,18 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
         // and the test happened to build their entries in different time buckets. Assert the meaningful payload
         // instead: the archive must contain exactly the item's bitstream, with the expected content.
         Map<String, String> entries = new HashMap<>();
+        int entryCount = 0;
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
+                entryCount++;
                 entries.put(entry.getName(), new String(IOUtils.toByteArray(zis), StandardCharsets.UTF_8));
                 zis.closeEntry();
             }
         }
 
+        // count tracked separately so a duplicate entry name can't be masked by the map
+        assertEquals(1, entryCount);
         assertEquals(Set.of(bts.getName()), entries.keySet());
         assertEquals(BITSTREAM_CONTENT, entries.get(bts.getName()));
     }
