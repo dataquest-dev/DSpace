@@ -40,7 +40,6 @@ import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.ReportResult;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
@@ -399,108 +398,109 @@ public class HealthReportIT extends AbstractIntegrationTestWithDatabase {
         configurationService.setProperty("healthcheck.metadata.max-errors-to-show", 8);
         configurationService.setProperty("healthcheck.metadata.error-dispersion-quota", 1);
 
-        Community community = CommunityBuilder.createCommunity(context)
-                .withName("Community")
-                .build();
-
-        Collection collection = CollectionBuilder.createCollection(context, community)
-                .withName("Collection")
-                .withSubmitterGroup(eperson)
-                .build();
-
-        Item item1 = ItemBuilder.createItem(context, collection)
-                .withTitle("Test item 1")
-                .withType("corpus")
-                .withSubject("Test subject")
-                .withMetadata("local", "branding", null, "Community")
-                .build();
-
-        Item item2 = ItemBuilder.createItem(context, collection)
-                .withTitle("Test item 2")
-                .withType("toolService")
-                .withSubject("Test subject")
-                .withMetadata("local", "branding", null, "Community")
-                .withMetadata("dc", "relation", "replaces", findItemUri(item1))
-                .build();
-
-        ItemBuilder.createItem(context, collection)
-                .withTitle("Test item 3")
-                .withType("toolService")
-                .withSubject("Test subject")
-                .withMetadata("local", "branding", null, "Community")
-                .withMetadata("dc", "relation", "isreplacedby", findItemUri(item2))
-                .build();
-
-        // create 4 items with missing title
-        for (int i = 0; i < 4; i++) {
-            ItemBuilder.createItem(context, collection)
-                    .withType("toolService")
-                    .withSubject("Test subject")
-                    .withMetadata("local", "branding", null, "Community")
+        try {
+            Community community = CommunityBuilder.createCommunity(context)
+                    .withName("Community")
                     .build();
-        }
 
-        // create 4 items with missing type
-        for (int i = 4; i < 8; i++) {
-            ItemBuilder.createItem(context, collection)
-                    .withTitle("Test Item " + i)
-                    .withSubject("Test subject")
-                    .withMetadata("local", "branding", null, "Community")
+            Collection collection = CollectionBuilder.createCollection(context, community)
+                    .withName("Collection")
+                    .withSubmitterGroup(eperson)
                     .build();
-        }
 
-        // create 4 items with duplicate type
-        for (int i = 8; i < 12; i++) {
-            ItemBuilder.createItem(context, collection)
-                    .withTitle("Test Item " + i)
-                    .withType("toolService")
+            Item item1 = ItemBuilder.createItem(context, collection)
+                    .withTitle("Test item 1")
                     .withType("corpus")
                     .withSubject("Test subject")
                     .withMetadata("local", "branding", null, "Community")
                     .build();
+
+            Item item2 = ItemBuilder.createItem(context, collection)
+                    .withTitle("Test item 2")
+                    .withType("toolService")
+                    .withSubject("Test subject")
+                    .withMetadata("local", "branding", null, "Community")
+                    .withMetadata("dc", "relation", "replaces", findItemUri(item1))
+                    .build();
+
+            ItemBuilder.createItem(context, collection)
+                    .withTitle("Test item 3")
+                    .withType("toolService")
+                    .withSubject("Test subject")
+                    .withMetadata("local", "branding", null, "Community")
+                    .withMetadata("dc", "relation", "isreplacedby", findItemUri(item2))
+                    .build();
+
+            // create 4 items with missing title
+            for (int i = 0; i < 4; i++) {
+                ItemBuilder.createItem(context, collection)
+                        .withType("toolService")
+                        .withSubject("Test subject")
+                        .withMetadata("local", "branding", null, "Community")
+                        .build();
+            }
+
+            // create 4 items with missing type
+            for (int i = 4; i < 8; i++) {
+                ItemBuilder.createItem(context, collection)
+                        .withTitle("Test Item " + i)
+                        .withSubject("Test subject")
+                        .withMetadata("local", "branding", null, "Community")
+                        .build();
+            }
+
+            // create 4 items with duplicate type
+            for (int i = 8; i < 12; i++) {
+                ItemBuilder.createItem(context, collection)
+                        .withTitle("Test Item " + i)
+                        .withType("toolService")
+                        .withType("corpus")
+                        .withSubject("Test subject")
+                        .withMetadata("local", "branding", null, "Community")
+                        .build();
+            }
+
+            TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
+
+            // with "health-report -c 5", only Metadata check is running
+            String[] args = new String[]{"health-report", "-c", "5"};
+            ScriptLauncher.handleScript(args,
+                    ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+
+            assertThat(testDSpaceRunnableHandler.getErrorMessages(), empty());
+            List<String> messages = testDSpaceRunnableHandler.getInfoMessages();
+
+            assertThat(messages, hasSize(1));
+            assertThat(messages.get(0), containsString("dc.relation issues:  " + " ".repeat(15) + "2"));
+            assertThat(messages.get(0), containsString("dc.title issues:     " + " ".repeat(15) + "4"));
+            assertThat(messages.get(0), containsString("dc.type issues:      " + " ".repeat(15) + "4"));
+            assertThat(messages.get(0), containsString("duplicate value issues:" + " ".repeat(13) + "4"));
+            assertThat(messages.get(0), containsString("Error count total:   " + " ".repeat(14) + "14"));
+
+            assertThat(messages.get(0), containsString("Errors:"));
+
+            // check if dc.type error is present exactly 2 times
+            assertThat(StringUtils.countMatches(messages.get(0), "Does not have dc.type metadata"), is(2));
+            // check if dc.title error is present exactly 2 times
+            assertThat(StringUtils.countMatches(messages.get(0), "Item has no dc.title metadata"), is(2));
+            // check if duplicate value error is present exactly 2 times
+            assertThat(StringUtils.countMatches(messages.get(0), "value [dc.type] is present multiple times"), is(2));
+
+            // check if all dc.relation errors are present
+            assertThat(StringUtils.countMatches(
+                    messages.get(0), "does not refer back via dc.relation.replaces"), is(1));
+            assertThat(StringUtils.countMatches(
+                    messages.get(0), "does not refer back via dc.relation.isreplacedby"), is(1));
+            assertThat(messages.get(0), containsString("and more..."));
+        } finally {
+            configurationService.setProperty("healthcheck.metadata.max-errors-to-show", null);
+            configurationService.setProperty("healthcheck.metadata.error-dispersion-quota", null);
         }
-
-        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-
-        // with "health-report -c 5", only Metadata check is running
-        String[] args = new String[]{"health-report", "-c", "5"};
-        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
-
-        assertThat(testDSpaceRunnableHandler.getErrorMessages(), empty());
-        List<String> messages = testDSpaceRunnableHandler.getInfoMessages();
-
-        assertThat(messages, hasSize(1));
-        assertThat(messages.get(0), containsString("dc.relation issues:  " + " ".repeat(15) + "2"));
-        assertThat(messages.get(0), containsString("dc.title issues:     " + " ".repeat(15) + "4"));
-        assertThat(messages.get(0), containsString("dc.type issues:      " + " ".repeat(15) + "4"));
-        assertThat(messages.get(0), containsString("duplicate value issues:" + " ".repeat(13) + "4"));
-        assertThat(messages.get(0), containsString("Error count total:   " + " ".repeat(14) + "14"));
-
-        assertThat(messages.get(0), containsString("Errors:"));
-
-        // check if dc.type error is present exactly 2 times
-        assertThat(StringUtils.countMatches(messages.get(0), "Does not have dc.type metadata"), is(2));
-        // check if dc.title error is present exactly 2 times
-        assertThat(StringUtils.countMatches(messages.get(0), "Item has no dc.title metadata"), is(2));
-        // check id duplicate value error is present exactly 2 times
-        assertThat(StringUtils.countMatches(messages.get(0), "value [dc.type] is present multiple times"), is(2));
-
-        // check if all dc.relation errors are present
-        assertThat(StringUtils.countMatches(messages.get(0), "does not refer back via dc.relation.replaces"), is(1));
-        assertThat(
-                StringUtils.countMatches(messages.get(0), "does not refer back via dc.relation.isreplacedby"), is(1));
-        assertThat(messages.get(0), containsString("and more..."));
-
-        configurationService.setProperty("healthcheck.metadata.max-errors-to-show", null);
-        configurationService.setProperty("healthcheck.metadata.error-dispersion-quota", null);
     }
 
     private String findItemUri(Item item) {
-        return item.getMetadata().stream()
-                .filter(metadataValue -> "dc_identifier_uri".equals(metadataValue.getMetadataField().toString()))
-                .findFirst()
-                .map(MetadataValue::getValue)
-                .orElse(null);
+        return ContentServiceFactory.getInstance().getItemService()
+                .getMetadataFirstValue(item, "dc", "identifier", "uri", Item.ANY);
     }
 
     ReportResult findLastReportResult(List<ReportResult> reportResults) {

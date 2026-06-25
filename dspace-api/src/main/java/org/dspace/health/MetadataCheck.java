@@ -385,14 +385,19 @@ public class MetadataCheck extends Check {
          *                        comparing to the frequency of the new message
          */
         private void replaceMessage(Message message, StoredMessagesInfo storedMessagesInfo, int dispersionQuota) {
-            int highestMessageFrequency = storedMessagesInfo.getHighestFrequency();
+            Map<String, List<String>> storedMessages = storedMessagesInfo.getStoredMessages();
+
+            // calculate the highest frequency of messages for any short message in stored messages,
+            String messageKeyWithHighestFrequency = Objects.requireNonNull(getMessageWithHighestCount(storedMessages));
+            int highestMessageFrequency = storedMessages.get(messageKeyWithHighestFrequency).size();
+
+            // int highestMessageFrequency = storedMessagesInfo.getHighestFrequency();
             if (highestMessageFrequency <= 1) {
                 // no replacement, as there are no messages with the frequency higher than 1, so the replacement
                 // of any message would not increase the diversity of messages in stored messages
                 return;
             }
             String messageKey = message.getMessageKey();
-            Map<String, List<String>> storedMessages = storedMessagesInfo.getStoredMessages();
             List<String> storedMessagesForMessageKey = storedMessages.get(messageKey);
 
             if (storedMessagesForMessageKey != null &&
@@ -402,11 +407,10 @@ public class MetadataCheck extends Check {
                 return;
             }
 
-            // recalculate the highest frequency of messages for any short message in storedmessages,
+            // recalculate the highest frequency of messages for any short message in stored messages,
             // because it can be changed after each replacement
-            String messageKeyWithHighestFrequency = Objects.requireNonNull(getMessageWithHighestCount(storedMessages));
+            messageKeyWithHighestFrequency = Objects.requireNonNull(getMessageWithHighestCount(storedMessages));
             highestMessageFrequency = storedMessages.get(messageKeyWithHighestFrequency).size();
-            storedMessagesInfo.setHighestFrequency(highestMessageFrequency);
 
             if (highestMessageFrequency <= 1) {
                 // no replacement, as there are no messages with the frequency higher than 1 anymore
@@ -455,25 +459,15 @@ public class MetadataCheck extends Check {
      */
     private static class StoredMessagesInfo {
         private int count;
-        private int highestFrequency;
         private final Map<String, List<String>> storedMessages;
 
         StoredMessagesInfo() {
             this.count = 0;
-            this.highestFrequency = Integer.MAX_VALUE;
             storedMessages = new TreeMap<>();
         }
 
         public int getCount() {
             return count;
-        }
-
-        public int getHighestFrequency() {
-            return highestFrequency;
-        }
-
-        public void setHighestFrequency(int highestFrequency) {
-            this.highestFrequency = highestFrequency;
         }
 
         public Map<String, List<String>> getStoredMessages() {
