@@ -57,6 +57,7 @@ public class ClarinVerificationTokenRestRepository extends DSpaceRestRepository<
     }
 
     @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Page<ClarinVerificationTokenRest> findAll(Context context, Pageable pageable) {
         try {
             List<ClarinVerificationToken> clarinVerificationTokenList = clarinVerificationTokenService.findAll(context);
