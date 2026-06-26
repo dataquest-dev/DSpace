@@ -709,3 +709,31 @@ BE d6fd7e2a92, d41b3e1a8b, 1ef08565a9, ffdea5e93e.
    verification/autoreg; clarin-license-distribution override) together with their matching e2e/IT
    updates (dtq-dev disables/adapts the vanilla tests when these are active).
 3. Independent review pass vs wiki/PRs/manual tests.
+
+## 13. Docker stack progress (2026-06-26)
+Brought up an isolated local v9 stack (project `clarinv9`, override file docker-compose.clarinv9.yml:
+unique container_names, subnet 172.30.0.0/16, ports 18080/15432/18983 — other 8.x stacks already
+occupy the defaults). Steps that WORK:
+- `docker compose build dspacesolr` -> built dspace/dspace-solr:dspace-9_x from source (Solr 9.8, v9
+  cores: authority/oai/qaevent/search/statistics/suggestion). Solr admin reachable on :18983.
+- `up -d dspacedb dspacesolr` -> postgres:15 (:15432) + v9 Solr (:18983) running.
+- Booted the prebuilt BE jar (dspace-runtime/webapps/server-boot.jar) on :18080 -> REST root serves
+  "DSpace 9.3" and registers all 7 CLARIN endpoints (clarinlicenses, clarinlicenselabels,
+  clarinlicenseresourcemappings, clarinlruallowances, clarinusermetadatas, clarinuserregistrations,
+  clarinverificationtokens).
+- `ScriptLauncher database migrate` (java -cp "config;lib/*" ...; the bin/dspace bash script fails on
+  Windows path globs) -> migrated the fresh DB to 76 tables incl. the 6 CLARIN tables (clarin_token,
+  license_definition, license_label, license_label_extended_mapping, license_resource_mapping,
+  license_resource_user_allowance). Flyway history table is `schema_version`.
+
+KNOWN ISSUE (not a code bug): the dspace-runtime jar is from 2026-06-24 and PREDATES several BE fixes
+pushed today (notably MetadataExposureServiceImpl handling `metadata.hide.*=submitter`). The stale jar
+throws on DB-object metadata serialization, so `core/communities`, `core/clarinlicenses` etc. return 500.
+The current PR code is correct — the BE Integration Tests are green. To validate the live stack: rebuild
+the BE (mvn package / docker compose build dspace) so the runtime jar matches the PR HEAD, then re-run.
+
+### Docker stack — remaining
+- Rebuild BE jar/image from PR HEAD; restart; confirm CLARIN + core endpoints 200.
+- Build + run the FE (dspace-angular) image/dist pointed at http://localhost:18080/server; serve on 14000.
+- Configure dspace-ui-tests (config.json is empty: set baseURL + creds) and run Playwright vs the stack.
+- Manual specs dspace-customers#55 / #411.
