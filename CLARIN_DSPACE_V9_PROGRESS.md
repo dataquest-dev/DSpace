@@ -776,3 +776,22 @@ Notable deviations (documented, not silent):
 - FE: file-preview cluster (clarin-files-section -> preview-section -> file-description ->
   file-tree-view, ~500 lines, 4 standalone components + item-page wiring) — BE now serves it via
   MetadataBitstreamController; license-distribution override (S6) re-wire + matching e2e changes.
+
+### 2026-06-26 (cont.) — FE file-preview cluster DONE + shib decision
+- **FE file-preview cluster ported + pushed** (PR #1316, 54b1b5ae41): clarin-files-section ->
+  preview-section -> file-description -> file-tree-view (v9 standalone, @if/@for), wired into simple +
+  full item-page (base AND themes/custom imports[]), RegistryService.getMetadataBitstream added.
+  Fixed clarin-license-info (orphan-until-now: getCurrentLanguageCode is Observable<string> in v9 ->
+  subscribe into currentLangCode field; +NgClass/NgbTooltipModule/NgbCollapseModule/FileSizePipe).
+  npm run build = clean; scoped eslint incl. templates = 0 errors. FE CI running. => Preview (I2) is
+  now COMPLETE end-to-end (BE + FE).
+- All 5 BE features (preview, versioning, PID, matomo, metadatabitstream+zip) CONFIRMED CI-GREEN.
+- **Shibboleth filter wiring (A1/A2) — investigated, deliberately deferred (NOT silently skipped):**
+  ClarinShibbolethLoginFilter is ported + config-driven (reads authentication-shibboleth.email-header,
+  not hardcoded). Wiring = a 1-line swap in WebSecurityConfiguration.java:160
+  (new ShibbolethLoginFilter(url, GET, am, ras) -> new ClarinShibbolethLoginFilter(url, am, ras) — the
+  Clarin ctor hardcodes GET internally, so drop the HttpMethod arg). BLOCKER: v9 has
+  ShibbolethLoginFilterIT (app/rest/security/) + AuthenticationRestControllerIT shib tests; the Clarin
+  filter's verification-token/autoregistration/missing-headers behaviour DIFFERS from vanilla v9's, so
+  wiring risks those ITs. Must wire + RUN those 2 ITs locally (or port dtq-dev's matching test changes)
+  before pushing — do NOT push-and-hope (would risk the now-green BE PR). Next-session step.
