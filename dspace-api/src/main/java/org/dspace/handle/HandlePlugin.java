@@ -13,8 +13,10 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import net.cnri.util.StreamTable;
@@ -24,7 +26,13 @@ import net.handle.hdllib.HandleStorage;
 import net.handle.hdllib.HandleValue;
 import net.handle.hdllib.ScanCallback;
 import net.handle.hdllib.Util;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
@@ -66,6 +74,7 @@ public class HandlePlugin implements HandleStorage {
      * used by external handle resolution ({@link org.dspace.handle.external.Handle}).
      */
     private static String repositoryName;
+    private static String repositoryEmail;
     private static String canonicalHandlePrefix;
 
     /**
@@ -436,6 +445,49 @@ public class HandlePlugin implements HandleStorage {
         }
         repositoryName = name.trim();
         return repositoryName;
+    }
+
+    /**
+     * CLARIN: repository help/contact e-mail ({@code help.mail}), cached. Used for PID metadata.
+     */
+    public static String getRepositoryEmail() {
+        if (Objects.nonNull(repositoryEmail)) {
+            return repositoryEmail;
+        }
+        ConfigurationService cfg = DSpaceServicesFactory.getInstance().getConfigurationService();
+        if (Objects.isNull(cfg)) {
+            return null;
+        }
+        String email = cfg.getProperty("help.mail");
+        if (Objects.isNull(email)) {
+            repositoryEmail = null;
+            return repositoryEmail;
+        }
+        repositoryEmail = email.trim();
+        return repositoryEmail;
+    }
+
+    /**
+     * CLARIN: build the metadata map (title/repository/submitdate/reportemail) registered with the
+     * external PID (EPIC) service for an Item. Returns an empty map for non-Items or null input.
+     */
+    public static Map<String, String> extractMetadata(DSpaceObject dso) {
+        Map<String, String> map = new LinkedHashMap<>();
+        if (Objects.isNull(dso) || !(dso instanceof Item)) {
+            return map;
+        }
+        ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+        List<MetadataValue> mds = itemService.getMetadataByMetadataString((Item) dso, "dc.title");
+        if (CollectionUtils.isNotEmpty(mds)) {
+            map.put(AbstractPIDService.HANDLE_FIELDS.TITLE.toString(), mds.get(0).getValue());
+        }
+        map.put(AbstractPIDService.HANDLE_FIELDS.REPOSITORY.toString(), getRepositoryName());
+        mds = itemService.getMetadataByMetadataString((Item) dso, "dc.date.accessioned");
+        if (CollectionUtils.isNotEmpty(mds)) {
+            map.put(AbstractPIDService.HANDLE_FIELDS.SUBMITDATE.toString(), mds.get(0).getValue());
+        }
+        map.put(AbstractPIDService.HANDLE_FIELDS.REPORTEMAIL.toString(), getRepositoryEmail());
+        return map;
     }
 
     /**

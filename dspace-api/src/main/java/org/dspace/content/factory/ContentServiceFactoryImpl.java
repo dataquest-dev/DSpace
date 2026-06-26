@@ -18,6 +18,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
 import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.DspaceObjectClarinService;
 import org.dspace.content.service.DuplicateDetectionService;
 import org.dspace.content.service.EntityService;
 import org.dspace.content.service.EntityTypeService;
@@ -51,6 +52,8 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private BitstreamFormatService bitstreamFormatService;
     @Autowired(required = true)
     private BitstreamService bitstreamService;
+    @Autowired(required = true)
+    private DspaceObjectClarinService dspaceObjectClarinService;
     @Autowired(required = true)
     private PreviewContentService previewContentService;
     @Autowired(required = true)
@@ -106,6 +109,11 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     @Override
     public BitstreamService getBitstreamService() {
         return bitstreamService;
+    }
+
+    @Override
+    public DspaceObjectClarinService getDspaceObjectClarinService() {
+        return dspaceObjectClarinService;
     }
 
     @Override

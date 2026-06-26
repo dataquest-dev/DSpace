@@ -20,6 +20,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
 import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.DspaceObjectClarinService;
 import org.dspace.content.service.DuplicateDetectionService;
 import org.dspace.content.service.EntityService;
 import org.dspace.content.service.EntityTypeService;
@@ -54,6 +55,8 @@ public abstract class ContentServiceFactory {
     public abstract BitstreamFormatService getBitstreamFormatService();
 
     public abstract BitstreamService getBitstreamService();
+
+    public abstract DspaceObjectClarinService getDspaceObjectClarinService();
 
     public abstract PreviewContentService getPreviewContentService();
 
