@@ -645,3 +645,44 @@ surefire `*-output.txt` for the real `Schema-validation:` cause.)
 - Manual test specs: dataquest-dev/dspace-customers#55 · #411
 - Playwright: https://github.com/dataquest-dev/dspace-ui-tests
 - Target PRs: dataquest-dev/DSpace#1339 (BE) · dataquest-dev/dspace-angular#1316 (FE)
+
+## 12. CI recovery log (2026-06-26) — making both PRs green
+
+Discovery: prior "green" claims were based on local `build`+`lint` only; the actual GitHub Actions
+were RED. Diagnosed from real CI logs/artifacts and fixed:
+
+### FE PR #1316 (dataquest-dev/dspace-angular)
+1. `npm clean-install` failed — my earlier `npm install --legacy-peer-deps` corrupted package-lock.json
+   (flattened vanilla mirador/react peer nesting; dropped chokidar/readdirp/clsx/yaml; downgraded
+   ngx-mask 16->13; added unused chart.js/ng2-charts/lindat-common/sanitize-html). FIX (f9b8fb62ac):
+   reverted ngx-mask to ^16, removed the 4 unused deps (kept d3/@types/d3/@nth-cloud/ng-toggle/
+   @popperjs/core), regenerated the lock onto the working vanilla lock via
+   `npm install --package-lock-only` (NO legacy-peer-deps). Verified `npm clean-install` exit 0.
+2. `Check for circular dependencies` (madge) failed — 3 cycles from constants defined in component
+   files. FIX (77a825237a): extracted HELP_DESK_PROPERTY -> tombstone.constants.ts (9 importers) and
+   DOI/HANDLE_METADATA_FIELD -> clarin-generic-item-field.constants.ts. madge w/ CI exclude = 0 cycles.
+3. `Run build` (build:prod) failed — `@import "ufal-theme.css"` not found; the co-located file matched
+   .gitignore `*.css` so it was never committed. FIX (558a8cc5c6): `git add -f ufal-theme.css`.
+4. item.component APP_CONFIG inject made optional (364dd53394) so item-type specs don't crash.
+
+### BE PR #1339 (dataquest-dev/DSpace)
+Integration Tests failed (Unit Tests always passed). Root cause: my CLARIN config changes broke
+vanilla ITs that assert defaults. Fixes:
+- LanguageSupportIT: Content-Language en -> en,cs (d6fd7e2a92)
+- HdlResolverRestControllerIT: clear handle.additional.prefixes in the "no prefixes" test (d6fd7e2a92)
+- ShibbolethLoginFilterIT (15) + AuthenticationRestControllerIT (12): reverted authentication-
+  shibboleth.cfg header names to vanilla SHIB-* (the wired filter is the vanilla ShibbolethLoginFilter;
+  IdP attr header mapping is deployment config) (d41b3e1a8b)
+- ResourcePolicyRestRepositoryIT 500: `metadata.hide.local.submission.note = submitter` is non-boolean;
+  ported the CLARIN MetadataExposureServiceImpl (init() accepts "submitter"; +isHidden(...,Item) submitter
+  override) (1ef08565a9)
+
+### Known gap (NOT silently skipped)
+- ClarinShibbolethLoginFilter (verification-token + autoregistration flow) is ported but NOT wired into
+  WebSecurityConfiguration (vanilla ShibbolethLoginFilter is active). Wiring it + its REST/verification
+  services is a remaining feature task. The CLARIN IdP header mapping (eppn/mail) is applied via
+  deployment/runtime config, not the committed default (which stays vanilla so ITs pass).
+
+### Verification method going forward
+Always check `gh pr checks <PR>` (real CI), not just local build/lint. FE gates: npm clean-install,
+build:lint, test:lint:nobuild, lint:nobuild, check-circ-deps, build:prod, test:headless. BE: unit + IT.
