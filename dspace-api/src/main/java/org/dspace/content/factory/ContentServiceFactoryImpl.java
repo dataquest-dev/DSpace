@@ -26,6 +26,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.MetadataValueService;
+import org.dspace.content.service.PreviewContentService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
@@ -50,6 +51,8 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private BitstreamFormatService bitstreamFormatService;
     @Autowired(required = true)
     private BitstreamService bitstreamService;
+    @Autowired(required = true)
+    private PreviewContentService previewContentService;
     @Autowired(required = true)
     private BundleService bundleService;
     @Autowired(required = true)
@@ -103,6 +106,11 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     @Override
     public BitstreamService getBitstreamService() {
         return bitstreamService;
+    }
+
+    @Override
+    public PreviewContentService getPreviewContentService() {
+        return previewContentService;
     }
 
     @Override

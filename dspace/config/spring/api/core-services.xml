@@ -177,6 +177,7 @@
 
     <!-- CLARIN/LINDAT (UFAL) services (ported for DSpace 9; bitstream-sync/preview/report/matomo-runtime deferred) -->
     <bean class="org.dspace.content.DspaceObjectClarinServiceImpl"/>
+    <bean class="org.dspace.content.PreviewContentServiceImpl"/>
     <bean class="org.dspace.content.clarin.ClarinLicenseServiceImpl"/>
     <bean class="org.dspace.content.clarin.ClarinLicenseLabelServiceImpl"/>
     <bean class="org.dspace.content.clarin.ClarinLicenseResourceMappingServiceImpl"/>

@@ -101,4 +101,8 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkaccesscontrol.BulkAccessControlCli"/>
     </bean>
 
+    <bean id="file-preview" class="org.dspace.scripts.filepreview.FilePreviewConfiguration" primary="true">
+        <property name="description" value="Generate the file preview"/>
+        <property name="dspaceRunnableClass" value="org.dspace.scripts.filepreview.FilePreview"/>
+    </bean>
 </beans>
