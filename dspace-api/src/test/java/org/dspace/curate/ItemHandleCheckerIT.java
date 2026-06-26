@@ -88,6 +88,9 @@ public class ItemHandleCheckerIT extends AbstractIntegrationTestWithDatabase {
 
     // Local stand-in for the handle resolver. Started in setUp(); its base URL becomes handle.canonical.prefix.
     private MockWebServer mockHandleServer;
+    // Previous handle.canonical.prefix, captured in setUp and restored in destroy so the shared config is not
+    // left pointing at the now-closed mock server for later tests in the same JVM.
+    private String originalHandlePrefix;
     // URLs that point at the mock server (computed from its dynamic port in setUp).
     private String handleUrlReal;
     private String handleUrlRedirectTarget;
@@ -125,6 +128,7 @@ public class ItemHandleCheckerIT extends AbstractIntegrationTestWithDatabase {
 
             //we have to create a new community in the database
             context.turnOffAuthorisationSystem();
+            originalHandlePrefix = cfg.getProperty("handle.canonical.prefix");
             cfg.setProperty("handle.canonical.prefix", baseUrl);
             cfg.setProperty("curate.checklist.ignore", HANDLE_IGNORED_1 + "," + HANDLE_IGNORED_2);
 
@@ -234,6 +238,10 @@ public class ItemHandleCheckerIT extends AbstractIntegrationTestWithDatabase {
     public void destroy() throws Exception {
         if (mockHandleServer != null) {
             mockHandleServer.close();
+        }
+        // restore the shared config so a later test is not left pointing at the now-closed mock server
+        if (originalHandlePrefix != null) {
+            cfg.setProperty("handle.canonical.prefix", originalHandlePrefix);
         }
         // remove all registered handles properly
         identifierService.delete(context, item1, HANDLE_ITEM1);
