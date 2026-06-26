@@ -99,6 +99,9 @@ jobs:
       # Retry action: https://github.com/marketplace/actions/retry-action
       # Codecov action: https://github.com/codecov/codecov-action
       - name: Upload coverage to Codecov.io
+        # Best-effort: a Codecov upload failure (e.g. missing CODECOV_TOKEN on this branch/fork)
+        # must not fail the build — required unit + integration tests determine status.
+        continue-on-error: true
         uses: Wandalen/wretry.action@v3.8.0
         with:
           action: codecov/codecov-action@v4
