@@ -686,3 +686,26 @@ vanilla ITs that assert defaults. Fixes:
 ### Verification method going forward
 Always check `gh pr checks <PR>` (real CI), not just local build/lint. FE gates: npm clean-install,
 build:lint, test:lint:nobuild, lint:nobuild, check-circ-deps, build:prod, test:headless. BE: unit + IT.
+
+### RESULT (2026-06-26) — both PRs GREEN / MERGEABLE
+After the fixes above + the FE e2e fixes:
+- BE PR #1339: Run Unit Tests PASS, Run Integration Tests PASS (both 20.x/22.x matrix). mergeable=MERGEABLE.
+- FE PR #1316: tests (20.x) + tests (22.x) PASS (lint, check-circ-deps, build:prod, unit specs, AND the
+  57-spec Cypress e2e suite all green). mergeable=MERGEABLE.
+  - last e2e fixes (d563a12e4c): reverted the SectionsType.License override (kept vanilla license so
+    submission/my-dspace e2e find input#granted); navbar #repository_path got aria-hidden (header.cy.ts
+    axe link-name).
+- ONLY remaining red: `codecov` on BE (isRequired=null, NON-blocking) — fork PRs have no CODECOV_TOKEN
+  secret so `fail_ci_if_error:true` flags an empty-token upload; same on vanilla DSpace fork PRs; not
+  fixable from code.
+
+Commits this recovery: FE f9b8fb62ac, 77a825237a, 364dd53394, 558a8cc5c6, d563a12e4c;
+BE d6fd7e2a92, d41b3e1a8b, 1ef08565a9, ffdea5e93e.
+
+### Remaining (Definition-of-Done) work after green CI
+1. Full CLARIN-DSpace 9 Docker stack locally (dataquest dev images per user) + Playwright
+   (dataquest-dev/dspace-ui-tests) against it; manual specs dspace-customers#55 / #411.
+2. Wire the deferred CLARIN features that replace vanilla behavior (ClarinShibbolethLoginFilter +
+   verification/autoreg; clarin-license-distribution override) together with their matching e2e/IT
+   updates (dtq-dev disables/adapts the vanilla tests when these are active).
+3. Independent review pass vs wiki/PRs/manual tests.
