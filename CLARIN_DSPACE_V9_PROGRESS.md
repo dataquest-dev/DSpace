@@ -737,3 +737,42 @@ the BE (mvn package / docker compose build dspace) so the runtime jar matches th
 - Build + run the FE (dspace-angular) image/dist pointed at http://localhost:18080/server; serve on 14000.
 - Configure dspace-ui-tests (config.json is empty: set baseURL + creds) and run Playwright vs the stack.
 - Manual specs dspace-customers#55 / #411.
+
+---
+
+## 2026-06-26 — CLARIN feature ports (resuming the deferred list)
+
+Docker validation FIRST (resolved the earlier 500): rebuilt the BE image from PR HEAD and ran the
+full stack in Docker (Linux). All core + 7 CLARIN endpoints respond (200/401/403). The earlier
+host-jar 500 was purely the Windows `dspace.dir=C:/...` `MalformedURLException: unknown protocol: c`
+bug — gone in the Linux container. Found+fixed a real bug: `clarinverificationtokens.findAll` returned
+500 (missing `@PreAuthorize(ADMIN)`) -> 403.
+
+Then worked through the deferred CLARIN backend features (each: clean compile + checkstyle + license +
+test-compile; CI-safe fallbacks so inherited vanilla ITs stay green):
+
+| Feature | Commit | CI |
+|---|---|---|
+| verification-token 500 fix | d43578f452 | green |
+| **Preview (I2)** — PreviewContent entity/service/DAO/REST + FilePreview CLI + bitstream `retrieveFile`/`getFile` chain | 5b673ec586 | **green** |
+| **Versioning (I5)** — ClarinVersionedHandleIdentifierProvider (active in deployment config; test config stays vanilla) | 7482eb0ebe | **green** |
+| **PID/EPIC (P1/P2)** — PIDService/EPICv2/Configuration + HandleServiceImpl per-community minting + HandlePlugin.extractMetadata + DSpaceApi | a4821e98c6 | unit green, ITs running |
+| **Matomo (M1, tracking)** + **MetadataBitstreamController** + **ZIP download (I4)** | 1c02798e97 | local (pending push behind PID) |
+
+Notable deviations (documented, not silent):
+- BitStoreService.getFile is a default (unsupported) method; only DSBitStoreService (local assetstore)
+  overrides it. S3 getFile uses AWS SDK v1 in dtq-dev; v9 is on SDK v2, so S3 preview is follow-up.
+- PID getOwningCommunity resolves directly via ClarinItemService (the install-time
+  SET_OWNING_COLLECTION_EVENT_DETAIL event hook is not ported); falls back to the default prefix.
+- Matomo tracker bean uses a default host url + getMatomoTracker is @Autowired(required=false) so the
+  spring context loads when matomo is unconfigured (tracking no-ops).
+
+### Still deferred (accurate remaining list)
+- BE: Matomo report-subscription REST + MatomoPDFExporter (+ migration); Health/Report (M2:
+  HealthReport, ReportDiff, ReportResult, reporters); ClarinShibbolethLoginFilter wiring + autoreg
+  (A1/A2, test-coupled — needs the matching ShibbolethLoginFilterIT/AuthenticationRestControllerIT
+  changes); S3 SDK-v2 getFile (O1); CLI scripts (O4: ItemVersionLinker, file-preview, health-report,
+  report-diff); DiscoJuice feeds; ClarinBitstreamImportController/ClarinLogoImportController.
+- FE: file-preview cluster (clarin-files-section -> preview-section -> file-description ->
+  file-tree-view, ~500 lines, 4 standalone components + item-page wiring) — BE now serves it via
+  MetadataBitstreamController; license-distribution override (S6) re-wire + matching e2e changes.
