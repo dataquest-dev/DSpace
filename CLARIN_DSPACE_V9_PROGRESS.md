@@ -814,3 +814,39 @@ Notable deviations (documented, not silent):
   shib ITs (dtq-dev has ClarinShibbolethLoginFilter + ClarinAuthenticationRestControllerIT variants) is
   follow-up. Verified locally: fresh compile + test-compile + checkstyle + license pass; the shib ITs
   themselves can't be run reliably on Windows (the dspace.dir path bug) — relying on CI (Linux).
+
+---
+
+## 2026-06-29 — Feature completion status (continue-until-done pass)
+
+CLARIN features ported to v9 this overall effort (each CI-verified unless noted):
+- Licenses: license info/contract (earlier), bitstream-download-with-license (earlier),
+  license-distribution submission override (S6, FE e2e-green), CLARIN license framework (earlier).
+- Preview (I2): BE entity/service/DAO/REST + FilePreview CLI + bitstream retrieveFile/getFile chain
+  (DS+JCloud+S3 getFile, O1) + FE cluster (clarin-files-section/preview-section/file-description/
+  file-tree-view) — END-TO-END green.
+- PID/EPIC (P1/P2): per-community handle minting, PIDService/EPICv2, HandlePlugin metadata.
+- Versioning (I5): ClarinVersionedHandleIdentifierProvider.
+- Matomo (M1): tracking (ClarinMatomo* trackers) + report-subscription REST + MatomoPDFExporter.
+- MetadataBitstreamController + ZIP download (I4).
+- Shibboleth (A1/A2): ClarinShibbolethLoginFilter wired (vanilla shib ITs disabled per dtq-dev);
+  DiscoJuice WAYF feeds (CI-safe graceful guard).
+- Health/Report (M2): ReportResult entity/service/DAO + LicenseCheck/EmbargoInfoCheck (healthcheck.cfg)
+  + Check accessors. (Scripts deferred — see below.)
+- verification-token 500->403 fix.
+
+DEFERRED (documented, not silently skipped):
+- health-report / report-diff / item-version-linker CLI **script registrations**: registering these
+  DSpaceRunnable scripts makes ScriptRestRepositoryIT.findAllScriptsTest fail (the @Autowired
+  ScriptConfiguration bean list no longer matches /api/system/scripts for these scripts) — even though
+  the identical pattern works for the file-preview script. Root cause is only reproducible by running
+  that IT, which the Windows host cannot do reliably (dspace.dir path bug). The script CLASSES +
+  Health/Report data layer are committed; only the <bean> registrations are withheld. FOLLOW-UP: run
+  ScriptRestRepositoryIT on Linux, reconcile, re-enable.
+- CLARIN submission-config (clarinLicense / clarinNotice steps in item-submission.xml): the section
+  components are wired (sections-decorator), but adding the steps to the vanilla submission config
+  changes the submission flow and needs matching FE e2e updates — follow-up.
+- S3 getFile uses SDK v2 (done); other deep BE bits (full handle-server install-event hook) noted earlier.
+
+REMAINING for DoD: full Docker stack (BE+FE) end-to-end + Playwright (dspace-ui-tests) + manual specs
+dataquest-customers #55/#411 + independent review pass. BE stack was Docker-validated earlier.
