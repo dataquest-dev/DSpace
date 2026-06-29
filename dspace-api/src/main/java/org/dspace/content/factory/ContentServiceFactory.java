@@ -33,6 +33,7 @@ import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.PreviewContentService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
+import org.dspace.content.service.ReportResultService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
@@ -55,6 +56,8 @@ public abstract class ContentServiceFactory {
     public abstract BitstreamFormatService getBitstreamFormatService();
 
     public abstract BitstreamService getBitstreamService();
+
+    public abstract ReportResultService getReportResultService();
 
     public abstract DspaceObjectClarinService getDspaceObjectClarinService();
 

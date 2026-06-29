@@ -30,6 +30,7 @@ import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.PreviewContentService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
+import org.dspace.content.service.ReportResultService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
@@ -52,6 +53,8 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private BitstreamFormatService bitstreamFormatService;
     @Autowired(required = true)
     private BitstreamService bitstreamService;
+    @Autowired(required = true)
+    private ReportResultService reportResultService;
     @Autowired(required = true)
     private DspaceObjectClarinService dspaceObjectClarinService;
     @Autowired(required = true)
@@ -109,6 +112,11 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     @Override
     public BitstreamService getBitstreamService() {
         return bitstreamService;
+    }
+
+    @Override
+    public ReportResultService getReportResultService() {
+        return reportResultService;
     }
 
     @Override
