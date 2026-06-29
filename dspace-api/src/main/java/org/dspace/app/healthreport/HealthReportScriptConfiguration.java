@@ -39,10 +39,9 @@ public class HealthReportScriptConfiguration<T extends HealthReport> extends Scr
                     "Send report to this email address.");
             options.getOption("e").setType(String.class);
             Option checkOption = Option.builder("c").longOpt("check").hasArgs()
-                    .desc(String.format("Perform specific check(s) by index (0 to %d). " +
+                    .desc("Perform specific check(s) by index. " +
                             "Repeat the flag (e.g. -c 1 -c 3) to run multiple checks. " +
-                            "Default: All checks.",
-                            HealthReport.getNumberOfChecks() - 1))
+                            "Default: All checks.")
                     .type(String.class)
                     .build();
             options.addOption(checkOption);
