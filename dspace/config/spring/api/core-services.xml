@@ -196,7 +196,7 @@
     <bean class="org.dspace.handle.EpicHandleServiceImpl"/>
     <bean class="org.dspace.core.ProvenanceServiceImpl"/>
     <bean class="org.matomo.java.tracking.MatomoTracker">
-        <constructor-arg value="${matomo.tracker.url}"/>
+        <constructor-arg value="${matomo.tracker.url}/matomo.php"/>
     </bean>
 
 </beans>

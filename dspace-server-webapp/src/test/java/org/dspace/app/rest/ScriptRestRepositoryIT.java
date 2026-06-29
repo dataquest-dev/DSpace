@@ -95,7 +95,11 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
     public void findAllScriptsTest() throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
 
-        getClient(token).perform(get("/api/system/scripts"))
+        // Request a page large enough to hold every registered script. Without an explicit size the
+        // endpoint returns the default page of 20; once CLARIN adds enough scripts the total exceeds
+        // 20 and the overflow scripts fall onto page 2, breaking the containsInAnyOrder match.
+        getClient(token).perform(get("/api/system/scripts")
+                            .param("size", String.valueOf(scriptConfigurations.size())))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$._embedded.scripts", containsInAnyOrder(
                             scriptConfigurations

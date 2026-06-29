@@ -86,9 +86,9 @@
         <mapping class="org.dspace.versioning.Version"/>
         <mapping class="org.dspace.versioning.VersionHistory"/>
 
-        <!-- CLARIN/LINDAT (UFAL) entities ported for DSpace 9 upgrade.
-             NOTE: PreviewContent and ReportResult are temporarily deferred (preview/report
-             features not yet ported) and must be added here when those features land. -->
+        <!-- CLARIN/LINDAT (UFAL) entities ported for DSpace 9 upgrade. -->
+        <mapping class="org.dspace.content.PreviewContent"/>
+        <mapping class="org.dspace.content.ReportResult"/>
         <mapping class="org.dspace.content.clarin.ClarinLicense"/>
         <mapping class="org.dspace.content.clarin.ClarinLicenseLabel"/>
         <mapping class="org.dspace.content.clarin.ClarinLicenseResourceMapping"/>

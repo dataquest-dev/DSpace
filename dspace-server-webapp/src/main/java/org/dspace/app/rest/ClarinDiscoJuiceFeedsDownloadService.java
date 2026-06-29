@@ -88,6 +88,10 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
         }
         locationService = service;
 
+        // Read this before the rewriteCountries guard below so the self-signed-cert bypass still
+        // applies to the scheduled feed download (cronJobSch) even when country-rewriting is unconfigured.
+        disableSSL = configurationService.getBooleanProperty("disable.ssl.check.specific.requests", false);
+
         rewriteCountries = new HashSet<String>();
         String[] propRewriteCountries = configurationService.getArrayProperty("discojuice.rewriteCountries");
 
@@ -102,8 +106,6 @@ public class ClarinDiscoJuiceFeedsDownloadService implements InitializingBean {
         for (String country : propRewriteCountries) {
             rewriteCountries.add(country.trim());
         }
-
-        disableSSL = configurationService.getBooleanProperty("disable.ssl.check.specific.requests", false);
     }
 
     public String createFeedsContent() {

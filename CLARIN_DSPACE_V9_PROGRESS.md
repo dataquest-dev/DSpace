@@ -850,3 +850,44 @@ DEFERRED (documented, not silently skipped):
 
 REMAINING for DoD: full Docker stack (BE+FE) end-to-end + Playwright (dspace-ui-tests) + manual specs
 dataquest-customers #55/#411 + independent review pass. BE stack was Docker-validated earlier.
+
+---
+
+## 2026-06-29 (cont.) — DoD: findAllScriptsTest diagnosis + independent review fixes
+
+### #1 findAllScriptsTest ROOT CAUSE (diagnosed via Linux IT in a maven Docker container)
+NOT serialization (my earlier getOptions/static-checks hypotheses were wrong). It is **pagination**:
+ScriptRestRepositoryIT.findAllScriptsTest did `GET /api/system/scripts` with no `size` param → default
+page of 20 → compared against ALL @Autowired ScriptConfiguration beans. file-preview kept the total ≤20;
+health-report + report-diff pushed it to 22, so the overflow scripts (solr-database-resync,
+type-conversion-test) fell to page 2 and the containsInAnyOrder match failed. FIX (matches dtq-dev
+exactly): add `.param("size", String.valueOf(scriptConfigurations.size()))` to the GET. The
+health-report/report-diff (and item-version-linker) scripts can now be re-registered.
+Harness note: to run a DSpace webapp IT standalone in a Linux container you need
+`mvn -pl dspace,dspace-server-webapp -am install` (the `dspace` module builds+installs the
+testEnvironment.zip that dspace.dir unpacks); errorprone 2.42 crashes on generated JPA metamodel on a
+RAM-constrained host so disable `-Xplugin:ErrorProne` for the local run (compile-time only).
+
+### #3 Independent review (two agents) — fixes applied
+CRITICAL (caught real shipped bugs):
+- hibernate.cfg.xml used explicit <mapping> (no package scan) and did NOT map PreviewContent /
+  ReportResult → MappingException at runtime when preview/health-report/report-diff are exercised
+  (uncaught because their ITs weren't ported). FIXED: added both mappings.
+- clarin-dspace.cfg was orphaned (no include in dspace.cfg) → ALL CLARIN props (PID prefixes, matomo,
+  shib groups, discojuice) silently unset. FIXED: added `include = ${module_dir}/../clarin-dspace.cfg`.
+MAJOR fixed: Matomo tracker bean URL `${matomo.tracker.url}` → `${matomo.tracker.url}/matomo.php`;
+DiscoJuice afterPropertiesSet now reads disableSSL before the rewriteCountries empty-guard.
+FE review: port is SOUND (full AOT build clean, no critical/major). 4 MINOR items noted.
+
+### Still-deferred MAJOR re-ports (documented from the review, follow-up):
+- HandleServiceImpl.createId per-community prefix uses owning-collection which isn't set yet at install
+  (the transient SET_OWNING_COLLECTION_EVENT branch wasn't ported) — multi-prefix deployments only.
+- HandlePlugin external/magic-URL handle resolution + alternative-prefix fallback stripped to vanilla.
+- Matomo single-file download tracking (BitstreamRestController) + OAI tracking (ClarinMatomoOAITracker
+  consumer) not ported (only ZIP-download tracking wired).
+- Dropped ITs: ClarinShibbolethLoginFilterIT (+2groups), PreviewContentServiceImplIT (the latter would
+  have caught the hibernate mapping bug). Re-port for coverage.
+- FE minor: metadata-bitstream-data.service super(linkName) latent trap; dropped
+  clarin-license-distribution spec; preview-section RemoteData subscribe; unguarded values[0].
+- JCloud getFile returns a local path (no download) — file-preview on a jclouds backend; S3 temp-file
+  not deleted by the preview caller.
