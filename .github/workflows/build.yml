@@ -3,8 +3,14 @@
 # https://docs.github.com/en/free-pro-team@latest/actions/guides/building-and-testing-java-with-maven
 name: Build
 
-# Run this Build for all pushes / PRs to current branch
-on: [push, pull_request]
+# Run this Build for pushes to our main and all PRs
+on:
+  push:
+    branches:
+      - dtq-dev
+      - customer/*
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read  #  to fetch code (actions/checkout)
@@ -81,9 +87,6 @@ jobs:
   # Codecov upload is a separate job in order to allow us to restart this separate from the entire build/test
   # job above. This is necessary because Codecov uploads seem to randomly fail at times.
   # See https://community.codecov.com/t/upload-issues-unable-to-locate-build-via-github-actions-api/3954
-  # Codecov upload disabled for the JCU fork: the repository is not configured with a
-  # CODECOV_TOKEN and the project-level coverage check fails on customization commits.
-  # Coverage is still produced and uploaded as a build artifact by the 'tests' job above.
   #  codecov:
   #    # Must run after 'tests' job above
   #    needs: tests
