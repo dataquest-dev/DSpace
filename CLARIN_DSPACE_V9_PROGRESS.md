@@ -930,3 +930,17 @@ default PIDCommunityConfiguration); the extra MODIFY event is consumed at instal
 Still-deferred (lower value / env-gated): FE manual run + Playwright (need seeded LINDAT data),
 ItemVersionLinker re-port, FE 4 minor robustness items, dropped CLARIN ITs (PreviewContentServiceImplIT,
 Clarin Shibboleth ITs), Matomo report-subscription PDF end-to-end test.
+
+### ItemVersionLinker (O4) — ATTEMPTED, REVERTED (commit 73e8e1891d reverted by 02414efb0b)
+The script + config compiled (Unit green) and the LINK tests passed, but ItemVersionLinkerIT's UNLINK
+tests failed in CI (6 failures + 6 errors), so it was reverted to keep the branch green. Root causes
+are genuine v9 differences that need real adaptation (not a mechanical port):
+1. v9 version-deletion semantics differ: after unlinking the only item in a history,
+   testUnlinkSingleItemInHistory expects the VersionHistory to be gone (null) but it remained — the
+   7.x deleteVersion→v9 delete(Context,Version) rename is not behaviour-equivalent for history cleanup.
+2. v9 mints handles earlier in the lifecycle, so the unlink log messages show the item handle
+   (e.g. '123456789/93') where the 7.x test expected '[null]', and produce a different message COUNT
+   (IndexOutOfBounds in the test helpers) — the IT's expected-message assertions are 7.x-specific.
+To finish: study v9 VersioningServiceImpl.delete history-cleanup behaviour, adjust the script's unlink
+flow accordingly, and rewrite ItemVersionLinkerIT's expected messages for v9. Linking half works; the
+feature is niche (admin CLI) so it was deferred rather than shipped half-broken.
