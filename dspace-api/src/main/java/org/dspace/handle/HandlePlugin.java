@@ -7,7 +7,9 @@
  */
 package org.dspace.handle;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.dspace.handle.external.ExternalHandleConstants.DEFAULT_CANONICAL_HANDLE_PREFIX;
+import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
 
 import java.sql.SQLException;
 import java.util.Collections;
@@ -28,13 +30,16 @@ import net.handle.hdllib.ScanCallback;
 import net.handle.hdllib.Util;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.handle.factory.HandleClarinServiceFactory;
 import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleClarinService;
 import org.dspace.handle.service.HandleService;
 import org.dspace.servicemanager.DSpaceKernelImpl;
 import org.dspace.servicemanager.DSpaceKernelInit;
@@ -80,8 +85,10 @@ public class HandlePlugin implements HandleStorage {
     /**
      * References to DSpace Services
      **/
-    protected HandleService handleService;
-    protected ConfigurationService configurationService;
+    protected static HandleService handleService;
+    protected static HandleClarinService handleClarinService;
+    protected static ConfigurationService configurationService;
+    protected static ItemService itemService;
 
     ////////////////////////////////////////
     // Non-Resolving methods -- unimplemented
@@ -122,9 +129,8 @@ public class HandlePlugin implements HandleStorage {
             throw new IllegalStateException(message, e);
         }
 
-        // Get a reference to the HandleService & ConfigurationService
-        handleService = HandleServiceFactory.getInstance().getHandleService();
-        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        // Get references to the DSpace services used for handle resolution.
+        loadServices();
     }
 
     /**
@@ -243,6 +249,54 @@ public class HandlePlugin implements HandleStorage {
     ////////////////////////////////////////
 
     /**
+     * Resolve the given handle to DSpace object.
+     *
+     * @param context the context
+     * @param handle the handle to resolve
+     * @return the resolved DSpaceObject
+     * @throws HandleException if an error occurs during resolution
+     */
+    private static DSpaceObject resolveHandleToObject(Context context, String handle) throws HandleException {
+        try {
+            return handleClarinService.resolveToObject(context, handle);
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Exception in resolveHandleToObject", e);
+            }
+            throw new HandleException(HandleException.INTERNAL_ERROR);
+        }
+    }
+
+    /**
+     * Retrieves handle values as a map.
+     *
+     * @param handle the handle to resolve
+     * @return a map containing the handle values
+     * @throws HandleException if an error occurs during handle resolution
+     */
+    public static Map<String, String> getMapHandleValues(String handle) throws HandleException {
+        if (log.isInfoEnabled()) {
+            log.info("Called getMapHandleValues");
+        }
+        loadServices();
+        Context context = new Context();
+        try {
+            DSpaceObject dso = null;
+            boolean resolveMetadata = configurationService.getBooleanProperty("lr.pid.resolvemetadata", true);
+            if (resolveMetadata) {
+                dso = resolveHandleToObject(context, handle);
+            }
+            return extractMetadata(dso);
+        } finally {
+            try {
+                context.complete();
+            } catch (SQLException sqle) {
+                // ignore
+            }
+        }
+    }
+
+    /**
      * Return the raw values for this handle. This implementation returns a
      * single URL value.
      *
@@ -260,6 +314,9 @@ public class HandlePlugin implements HandleStorage {
             log.info("Called getRawHandleValues");
         }
 
+        // Configuration, HandleClarin, Handle service
+        loadServices();
+
         Context context = null;
 
         try {
@@ -270,41 +327,60 @@ public class HandlePlugin implements HandleStorage {
             String handle = Util.decodeString(theHandle);
 
             context = new Context();
+            String url = handleClarinService.resolveToURL(context, handle);
+            if (Objects.isNull(url)) {
+                // try with old prefix
 
-            String url = handleService.resolveToURL(context, handle);
+                String[] handle_parts = handleClarinService.splitHandle(handle);
 
-            if (url == null) {
-                return null;
+                String[] alternativePrefixes = PIDConfiguration.getAlternativePrefixes(handle_parts[0]);
+
+                for (String alternativePrefix : alternativePrefixes) {
+                    String alternativeHandle = handleClarinService.completeHandle(
+                            alternativePrefix, handle_parts[1]);
+                    url = handleClarinService.resolveToURL(context, alternativeHandle);
+                    if (Objects.nonNull(url)) {
+                        break;
+                    }
+                }
+
+                // still no match
+                if (Objects.isNull(url)) {
+                    // <UFAL>
+                    log.warn(String.format("Unable to resolve [%s]", handle));
+                    // </UFAL>
+                    return null;
+                }
             }
 
-            HandleValue value = new HandleValue();
-
-            value.setIndex(100);
-            value.setType(Util.encodeString("URL"));
-            value.setData(Util.encodeString(url));
-            value.setTTLType((byte) 0);
-            value.setTTL(100);
-            value.setTimestamp(100);
-            value.setReferences(null);
-            value.setAdminCanRead(true);
-            value.setAdminCanWrite(false);
-            value.setAnyoneCanRead(true);
-            value.setAnyoneCanWrite(false);
-
-            List<HandleValue> values = new LinkedList<HandleValue>();
-
-            values.add(value);
-
-            byte[][] rawValues = new byte[values.size()][];
-
-            for (int i = 0; i < values.size(); i++) {
-                HandleValue hvalue = values.get(i);
-
-                rawValues[i] = new byte[Encoder.calcStorageSize(hvalue)];
-                Encoder.encodeHandleValue(rawValues[i], 0, hvalue);
+            ResolvedHandle rh = null;
+            if (url.startsWith(MAGIC_BEAN)) {
+                String[] splits = url.split(MAGIC_BEAN, 10);
+                if (splits.length < 8) {
+                    throw new RuntimeException("Cannot resolve external handle with magicLindat string, " +
+                            "because the external handle do not have enough information.");
+                }
+                url = splits[splits.length - 1];
+                // EMPTY, String title, String repository, String submitdate, String reportemail,
+                // String dataset_name, String dataset_version, String query, token is splits[8] but don't show that
+                rh = new ResolvedHandle(url, splits[1], splits[2], splits[3], splits[4], splits[5], splits[6],
+                        splits[7]);
+            } else {
+                DSpaceObject dso = null;
+                boolean resolveMetadata = configurationService.getBooleanProperty("lr.pid.resolvemetadata", true);
+                if (resolveMetadata) {
+                    dso = resolveHandleToObject(context, handle);
+                }
+                rh = new ResolvedHandle(url, dso);
+            }
+            log.info(String.format("Handle [%s] resolved to [%s]", handle, url));
+            if (handleClarinService.isDead(context, handle)) {
+                //dead_since
+                String deadSince = handleClarinService.getDeadSince(context, handle);
+                rh.setDead(handle, deadSince);
             }
 
-            return rawValues;
+            return rh.toRawValue();
         } catch (HandleException he) {
             throw he;
         } catch (Exception e) {
@@ -315,7 +391,7 @@ public class HandlePlugin implements HandleStorage {
             // Stack loss as exception does not support cause
             throw new HandleException(HandleException.INTERNAL_ERROR);
         } finally {
-            if (context != null) {
+            if (Objects.nonNull(context)) {
                 try {
                     context.complete();
                 } catch (SQLException sqle) {
@@ -337,6 +413,7 @@ public class HandlePlugin implements HandleStorage {
         if (log.isInfoEnabled()) {
             log.info("Called haveNA");
         }
+        loadServices();
 
         /*
          * Naming authority Handles are in the form: 0.NA/1721.1234
@@ -385,7 +462,7 @@ public class HandlePlugin implements HandleStorage {
     public Enumeration getHandlesForNA(byte[] theNAHandle)
         throws HandleException {
         String naHandle = Util.decodeString(theNAHandle);
-
+        loadServices();
         if (log.isInfoEnabled()) {
             log.info("Called getHandlesForNA for NA " + naHandle);
         }
@@ -425,58 +502,123 @@ public class HandlePlugin implements HandleStorage {
     }
 
     /**
-     * CLARIN: the configured repository name ({@code dspace.name}), cached after first lookup.
-     * Used by external handle (magic URL) resolution.
-     *
-     * @return the trimmed repository name, or {@code null} if unavailable
+     * Initialize Handle, Configuration and Item service
      */
-    public static String getRepositoryName() {
-        if (Objects.nonNull(repositoryName)) {
-            return repositoryName;
+    private static void loadServices() {
+        // services are loaded
+        if (Objects.isNull(handleService)) {
+            handleService = HandleServiceFactory.getInstance().getHandleService();
         }
-        ConfigurationService cfg = DSpaceServicesFactory.getInstance().getConfigurationService();
-        if (Objects.isNull(cfg)) {
-            return null;
+
+        if (Objects.isNull(configurationService)) {
+            configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         }
-        String name = cfg.getProperty("dspace.name");
-        if (Objects.isNull(name)) {
-            repositoryName = null;
-            return repositoryName;
+
+        if (Objects.isNull(itemService)) {
+            itemService = ContentServiceFactory.getInstance().getItemService();
         }
-        repositoryName = name.trim();
-        return repositoryName;
+
+        if (Objects.isNull(handleClarinService)) {
+            handleClarinService = HandleClarinServiceFactory.getInstance().getHandleClarinService();
+        }
     }
 
     /**
-     * CLARIN: repository help/contact e-mail ({@code help.mail}), cached. Used for PID metadata.
+     * Load the repository email from the configuration. The mail is in the property `help.mail`.
+     *
+     * @return configured repository mail as String or return null if it is not configured
      */
     public static String getRepositoryEmail() {
         if (Objects.nonNull(repositoryEmail)) {
             return repositoryEmail;
         }
-        ConfigurationService cfg = DSpaceServicesFactory.getInstance().getConfigurationService();
-        if (Objects.isNull(cfg)) {
+
+        // Handle and Configuration Service
+        loadServices();
+
+        // Cannot load services
+        if (Objects.isNull(configurationService)) {
             return null;
         }
-        String email = cfg.getProperty("help.mail");
+
+        String email = configurationService.getProperty(
+                "help.mail");
+
+        // the email is not configured
         if (Objects.isNull(email)) {
             repositoryEmail = null;
             return repositoryEmail;
         }
+
         repositoryEmail = email.trim();
         return repositoryEmail;
     }
 
     /**
-     * CLARIN: build the metadata map (title/repository/submitdate/reportemail) registered with the
-     * external PID (EPIC) service for an Item. Returns an empty map for non-Items or null input.
+     * Load the repository name from the configuration. The name is in the property `dspace.name`.
+     *
+     * @return configured repository name as String or return null if it is not configured
      */
+    public static String getRepositoryName() {
+        if (Objects.nonNull(repositoryName)) {
+            return repositoryName;
+        }
+
+        // Handle and Configuration Service
+        loadServices();
+
+        // Cannot load services
+        if (Objects.isNull(configurationService)) {
+            return null;
+        }
+
+        String name = configurationService.getProperty(
+                "dspace.name");
+        if (Objects.isNull(name)) {
+            repositoryName = null;
+            return repositoryName;
+        }
+
+        repositoryName = name.trim();
+        return repositoryName;
+    }
+
+    /**
+     * Load the canonical handle prefix from the configuration. The prefix is in the property `handle.canonical.prefix`.
+     *
+     * @return canonical handle prefix as String or return DEFAULT_CANONICAL_HANDLE_PREFIX = `http://hdl.handle.net/`
+     */
+    public static String getCanonicalHandlePrefix() {
+        if (Objects.nonNull(canonicalHandlePrefix)) {
+            return canonicalHandlePrefix;
+        }
+        // Handle and Configuration Service
+        loadServices();
+
+        // Cannot load services
+        if (Objects.isNull(configurationService)) {
+            canonicalHandlePrefix = DEFAULT_CANONICAL_HANDLE_PREFIX;
+        } else {
+            canonicalHandlePrefix = configurationService.getProperty(
+                    "handle.canonical.prefix", DEFAULT_CANONICAL_HANDLE_PREFIX);
+        }
+
+        return canonicalHandlePrefix;
+    }
+
     public static Map<String, String> extractMetadata(DSpaceObject dso) {
         Map<String, String> map = new LinkedHashMap<>();
-        if (Objects.isNull(dso) || !(dso instanceof Item)) {
+        if (Objects.isNull(dso)) {
             return map;
         }
-        ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
+        if (!(dso instanceof Item)) {
+            return map;
+        }
+        // load ItemService
+        loadServices();
+
+        // load the DSpaceObject metadata
         List<MetadataValue> mds = itemService.getMetadataByMetadataString((Item) dso, "dc.title");
         if (CollectionUtils.isNotEmpty(mds)) {
             map.put(AbstractPIDService.HANDLE_FIELDS.TITLE.toString(), mds.get(0).getValue());
@@ -489,24 +631,164 @@ public class HandlePlugin implements HandleStorage {
         map.put(AbstractPIDService.HANDLE_FIELDS.REPORTEMAIL.toString(), getRepositoryEmail());
         return map;
     }
+}
 
-    /**
-     * CLARIN: the canonical handle prefix ({@code handle.canonical.prefix}, default
-     * {@link org.dspace.handle.external.ExternalHandleConstants#DEFAULT_CANONICAL_HANDLE_PREFIX}),
-     * cached after first lookup. Used by external handle resolution.
-     *
-     * @return the canonical handle prefix
-     */
-    public static String getCanonicalHandlePrefix() {
-        if (Objects.nonNull(canonicalHandlePrefix)) {
-            return canonicalHandlePrefix;
+class ResolvedHandle {
+    List<HandleValue> values;
+    private int idx = -1;
+    private int timestamp = 100;
+
+    public ResolvedHandle(String url, String title, String repository, String submitdate, String reportemail,
+                          String datasetName, String datasetVersion, String query) {
+        init(url, title, repository, submitdate, reportemail, datasetName, datasetVersion, query);
+    }
+
+
+    public ResolvedHandle(String url, DSpaceObject dso) {
+        String title = null;
+        String repository = null;
+        String submitdate = null;
+        String reportemail = null;
+        if (null != dso) {
+            Map<String, String> map = HandlePlugin.extractMetadata(dso);
+            String key
+                    = AbstractPIDService.HANDLE_FIELDS.TITLE.toString();
+            title = getOrDefault(map, key, "");
+
+            key = AbstractPIDService.HANDLE_FIELDS.REPOSITORY.toString();
+            repository = getOrDefault(map, key, "");
+
+            key = AbstractPIDService.HANDLE_FIELDS.SUBMITDATE.toString();
+            submitdate = getOrDefault(map, key, "");
+
+            key = AbstractPIDService.HANDLE_FIELDS.REPORTEMAIL.toString();
+            reportemail = getOrDefault(map, key, "");
         }
-        ConfigurationService cfg = DSpaceServicesFactory.getInstance().getConfigurationService();
-        if (Objects.isNull(cfg)) {
-            canonicalHandlePrefix = DEFAULT_CANONICAL_HANDLE_PREFIX;
+        init(url, title, repository, submitdate, reportemail);
+    }
+
+    private <K, V> V getOrDefault(Map<K, V> map, K key, V defaultValue) {
+        if (map.containsKey(key)) {
+            return map.get(key);
         } else {
-            canonicalHandlePrefix = cfg.getProperty("handle.canonical.prefix", DEFAULT_CANONICAL_HANDLE_PREFIX);
+            return defaultValue;
         }
-        return canonicalHandlePrefix;
+    }
+
+    private void init(String url, String title, String repository, String submitdate, String reportemail) {
+        init(url, title, repository, submitdate, reportemail, null, null, null);
+    }
+
+    private void init(String url, String title, String repository, String submitdate, String reportemail,
+                      String datasetName, String datasetVersion, String query) {
+        idx = 11800;
+        values = new LinkedList<>();
+        //set timestamp, use submitdate for now
+        if (submitdate != null) {
+            try {
+                long stamp = new DCDate(submitdate).toDate().toInstant().toEpochMilli() / 1000;
+                if (stamp < Integer.MAX_VALUE && stamp > Integer.MIN_VALUE) {
+                    timestamp = (int) stamp;
+                }
+            } catch (Exception e) {
+                //in case the submitdate is malformed, ie. some junk was in the url we split
+                timestamp = 100;
+            }
+        }
+        setResolvedUrl(url);
+        String key;
+        if (null != title) {
+            key = AbstractPIDService.HANDLE_FIELDS.TITLE.toString();
+            setValue(key, title);
+        }
+
+        if (null != repository) {
+            key = AbstractPIDService.HANDLE_FIELDS.REPOSITORY.toString();
+            setValue(key, repository);
+        }
+
+        if (null != submitdate) {
+            key = AbstractPIDService.HANDLE_FIELDS.SUBMITDATE.toString();
+            setValue(key, submitdate);
+        }
+        if (null != reportemail) {
+            key = AbstractPIDService.HANDLE_FIELDS.REPORTEMAIL.toString();
+            setValue(key, reportemail);
+        }
+        if (isNotBlank(datasetName)) {
+            key = AbstractPIDService.HANDLE_FIELDS.DATASETNAME.toString();
+            setValue(key, datasetName);
+        }
+        if (isNotBlank(datasetVersion)) {
+            key = AbstractPIDService.HANDLE_FIELDS.DATASETVERSION.toString();
+            setValue(key, datasetVersion);
+        }
+        if (isNotBlank(query)) {
+            key = AbstractPIDService.HANDLE_FIELDS.QUERY.toString();
+            setValue(key, query);
+        }
+    }
+
+    private void setResolvedUrl(String url) {
+        HandleValue value = new HandleValue();
+        value.setIndex(100);
+        value.setType(Util.encodeString("URL"));
+        value.setData(Util.encodeString(url));
+        value.setTTLType((byte) 0);
+        value.setTTL(100);
+        value.setTimestamp(timestamp);
+        value.setReferences(null);
+        value.setAdminCanRead(true);
+        value.setAdminCanWrite(false);
+        value.setAnyoneCanRead(true);
+        value.setAnyoneCanWrite(false);
+        values.add(value);
+    }
+
+    private void setValue(String key, String val) {
+        HandleValue hv = new HandleValue();
+        hv.setIndex(idx++);
+        hv.setType(Util.encodeString(key));
+        hv.setData(Util.encodeString(val));
+        hv.setTTLType((byte) 0);
+        hv.setTTL(100);
+        hv.setTimestamp(timestamp);
+        hv.setReferences(null);
+        hv.setAdminCanRead(true);
+        hv.setAdminCanWrite(false);
+        hv.setAnyoneCanRead(true);
+        hv.setAnyoneCanWrite(false);
+        values.add(hv);
+    }
+
+    public byte[][] toRawValue() throws HandleException {
+        byte[][] rawValues = new byte[values.size()][];
+
+        for (int i = 0; i < values.size(); i++) {
+            HandleValue hvalue = values.get(i);
+
+            rawValues[i] = new byte[Encoder.calcStorageSize(hvalue)];
+            Encoder.encodeHandleValue(rawValues[i], 0, hvalue);
+        }
+        return rawValues;
+    }
+
+    public void setDead(String handle, String deadSince) {
+        //find URL field
+        for (HandleValue hv : values) {
+            if (hv.hasType(Util.encodeString("URL"))) {
+                //duplicate old url as last working URL
+                HandleValue deadURL = hv.duplicate();
+                deadURL.setType(Util.encodeString("ORIG_URL"));
+                deadURL.setIndex(idx++);
+                values.add(deadURL);
+                //change url to our display page
+                hv.setData(Util.encodeString("http://hdl.handle.net/11346/SHORTREF-PR6O#hdl=" + handle));
+                break;
+            }
+        }
+        if (deadSince != null) {
+            setValue("DEAD_SINCE", deadSince);
+        }
     }
 }
