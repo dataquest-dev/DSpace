@@ -7,10 +7,13 @@
  */
 package org.dspace.handle;
 
+import static org.dspace.content.InstallItemServiceImpl.SET_OWNING_COLLECTION_EVENT_DETAIL;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -18,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,6 +33,7 @@ import org.dspace.content.service.SiteService;
 import org.dspace.content.service.clarin.ClarinItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.event.Event;
 import org.dspace.handle.dao.HandleDAO;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
@@ -480,14 +485,47 @@ public class HandleServiceImpl implements HandleService {
 
     /**
      * CLARIN: resolve the owning community of a DSpaceObject, used to choose the per-community
-     * PID prefix/subprefix in createId(Context, DSpaceObject). NOTE: upstream CLARIN also consults
-     * a transient "set owning collection" event published during item install
-     * (InstallItemServiceImpl.SET_OWNING_COLLECTION_EVENT_DETAIL); that install-time event hook is
-     * not ported to v9, so this resolves the owning community directly. During a fresh install where
-     * the owning collection is not yet persisted this returns null and createId(...) falls back to
-     * the default handle.prefix id (handled by the null PIDCommunityConfiguration branch).
+     * PID prefix/subprefix in createId(Context, DSpaceObject). During item install the handle is
+     * minted before setOwningCollection persists the collection, so the owning collection is taken
+     * from the transient "set owning collection" event published by WorkspaceItemServiceImpl
+     * (InstallItemServiceImpl.SET_OWNING_COLLECTION_EVENT_DETAIL); otherwise it falls back to the
+     * persisted owning collection. If neither is available createId(...) uses the default handle.prefix.
      */
     private Community getOwningCommunity(Context context, DSpaceObject dso) throws SQLException {
+        // The owning collection UUID may be stored as a transient event in the context (set at submission
+        // time, before the collection is persisted on the item).
+        Event setOwningCollectionEvent = getClarinSetOwningCollectionEvent(context);
+
+        String detail = Objects.isNull(setOwningCollectionEvent) ? "" : setOwningCollectionEvent.getDetail();
+        if (StringUtils.isNotBlank(detail)) {
+            int searchingCharIndex = detail.indexOf(":");
+            detail = detail.substring(searchingCharIndex + 1);
+            return clarinItemService.getOwningCommunity(context, UUID.fromString(detail));
+        }
+
         return clarinItemService.getOwningCommunity(context, dso);
+    }
+
+    /**
+     * The context holds a list of events; fetch (and consume) the one carrying the owning-collection UUID
+     * published at submission time, identified by its special detail prefix.
+     *
+     * @param context DSpace context
+     * @return the "set owning collection" event, or null if none is present
+     */
+    private Event getClarinSetOwningCollectionEvent(Context context) {
+        int index = -1;
+        LinkedList<Event> allEvents = context.getEvents();
+        for (Event event : ListUtils.emptyIfNull(allEvents)) {
+            index++;
+            if (StringUtils.isBlank(event.getDetail())) {
+                continue;
+            }
+            if (event.getDetail().startsWith(SET_OWNING_COLLECTION_EVENT_DETAIL)) {
+                context.getEvents().remove(index);
+                return event;
+            }
+        }
+        return null;
     }
 }

@@ -41,6 +41,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class InstallItemServiceImpl implements InstallItemService {
 
+    // CLARIN: detail prefix of the transient event published when a workspace item's owning collection
+    // is set, so HandleServiceImpl can choose the per-community PID prefix at install time (the handle is
+    // minted before setOwningCollection persists the collection on multi-prefix deployments).
+    public static final String SET_OWNING_COLLECTION_EVENT_DETAIL = "setCollection:";
+
     @Autowired(required = true)
     protected ContentServiceFactory contentServiceFactory;
     @Autowired(required = true)
