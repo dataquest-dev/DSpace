@@ -891,3 +891,42 @@ FE review: port is SOUND (full AOT build clean, no critical/major). 4 MINOR item
   clarin-license-distribution spec; preview-section RemoteData subscribe; unguarded values[0].
 - JCloud getFile returns a local path (no download) — file-preview on a jclouds backend; S3 temp-file
   not deleted by the preview caller.
+
+---
+
+## 2026-06-30 — MAJOR functional gaps from the review (user: "for Matomo, prefer vanilla")
+
+### Matomo → native DSpace 9 integration (commits b865b7a2fc / 41d2ed4e1d)
+DSpace 9 ships a NATIVE Matomo integration (org.dspace.matomo: MatomoEventListener +
+MatomoUsageEventHandler + org.dspace.matomo.client.*, config in modules/matomo.cfg `matomo.enabled`),
+which tracks bitstream downloads via the standard UsageEvent pipeline. The CLARIN 7.x custom trackers
+predated this and are now redundant. Per the user's direction, removed the CLARIN tracking layer and
+rely on vanilla:
+- Deleted ClarinMatomoTracker / ClarinMatomoBitstreamTracker / ClarinMatomoOAITracker + their
+  core-services.xml beans (incl. the raw org.matomo.java.tracking.MatomoTracker bean) +
+  ClarinServiceFactory.getMatomoTracker + the org.piwik.java.tracking:matomo-java-tracker-java11 dep.
+- MetadataBitstreamController (CLARIN "download all as ZIP") now fires a vanilla UsageEvent per file
+  (Solr stats + native Matomo), matching vanilla BitstreamRestController. So single-file (native) AND
+  ZIP (this) downloads are tracked.
+- KEPT the CLARIN-specific Matomo report-subscription feature (MatomoReportSubscription + MatomoHelper +
+  MatomoPDFExporter), which queries the Matomo reporting API via lr.statistics.* and is independent of
+  tracking. clarin-dspace.cfg tracker keys commented out, pointing to modules/matomo.cfg.
+
+### HandlePlugin external/magic-URL resolution (commit ef90e49ad2)
+The handle.net server plugin had been ported as vanilla-only; CLARIN external handles (created via the
+already-ported ExternalHandleRestRepository) did not resolve. Re-ported from dtq-dev: getRawHandleValues
+(MAGIC_BEAN external-URL handles → ResolvedHandle, PIDConfiguration.getAlternativePrefixes old-prefix
+fallback, dead-handle via HandleClarinService.isDead/getDeadSince), getMapHandleValues, loadServices,
+and the ResolvedHandle class. v9: HandleClarinServiceFactory accessor; DCDate.toDate() returns
+ZonedDateTime → .toInstant().toEpochMilli(). HandlePlugin runs only in the handle server (no ITs).
+
+### HandleServiceImpl install-time owning-collection signal (commit bd972cd2ed)
+Multi-prefix PID minting picked the per-community prefix from the owning collection, but the handle is
+minted before setOwningCollection persists it → items got the default prefix. Re-ported the transient
+event: InstallItemServiceImpl.SET_OWNING_COLLECTION_EVENT_DETAIL + WorkspaceItemServiceImpl publishes it
++ HandleServiceImpl.getOwningCommunity consumes it. Test-safe: single-prefix result is unchanged (same
+default PIDCommunityConfiguration); the extra MODIFY event is consumed at install or deduped by discovery.
+
+Still-deferred (lower value / env-gated): FE manual run + Playwright (need seeded LINDAT data),
+ItemVersionLinker re-port, FE 4 minor robustness items, dropped CLARIN ITs (PreviewContentServiceImplIT,
+Clarin Shibboleth ITs), Matomo report-subscription PDF end-to-end test.
