@@ -175,11 +175,12 @@
     <bean class="org.dspace.correctiontype.service.impl.CorrectionTypeServiceImpl"/>
 
 
-    <!-- CLARIN/LINDAT (UFAL) services (ported for DSpace 9; bitstream-sync/preview/report/matomo-runtime deferred) -->
+    <!-- CLARIN/LINDAT (UFAL) services (ported for DSpace 9; bitstream-sync deferred).
+         Matomo tracking uses the native DSpace 9 MatomoEventListener (config/modules/matomo.cfg),
+         not a CLARIN-specific tracker; only the CLARIN Matomo report-subscription feature is kept. -->
     <bean class="org.dspace.content.DspaceObjectClarinServiceImpl"/>
     <bean class="org.dspace.content.PreviewContentServiceImpl"/>
     <bean class="org.dspace.content.ReportResultServiceImpl"/>
-    <bean class="org.dspace.app.statistics.clarin.ClarinMatomoBitstreamTracker"/>
     <bean class="org.dspace.content.clarin.ClarinLicenseServiceImpl"/>
     <bean class="org.dspace.content.clarin.ClarinLicenseLabelServiceImpl"/>
     <bean class="org.dspace.content.clarin.ClarinLicenseResourceMappingServiceImpl"/>
@@ -195,9 +196,6 @@
     <bean class="org.dspace.handle.HandleClarinServiceImpl"/>
     <bean class="org.dspace.handle.EpicHandleServiceImpl"/>
     <bean class="org.dspace.core.ProvenanceServiceImpl"/>
-    <bean class="org.matomo.java.tracking.MatomoTracker">
-        <constructor-arg value="${matomo.tracker.url}/matomo.php"/>
-    </bean>
 
 </beans>
 

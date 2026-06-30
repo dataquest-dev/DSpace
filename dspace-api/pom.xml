@@ -325,12 +325,6 @@
     <dependencies>
         <!-- CLARIN/LINDAT (UFAL) feature dependencies (ported from dtq-dev for DSpace 9 upgrade) -->
         <dependency>
-            <!-- Matomo analytics tracking (ClarinMatomo* trackers, report subscriptions) -->
-            <groupId>org.piwik.java.tracking</groupId>
-            <artifactId>matomo-java-tracker-java11</artifactId>
-            <version>3.4.0</version>
-        </dependency>
-        <dependency>
             <!-- PDF generation for Matomo report exporter -->
             <groupId>com.itextpdf</groupId>
             <artifactId>itextpdf</artifactId>

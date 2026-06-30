@@ -28,7 +28,6 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.utils.ContextUtil;
-import org.dspace.app.statistics.clarin.ClarinMatomoBitstreamTracker;
 import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -40,7 +39,9 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.EventService;
 import org.dspace.services.RequestService;
+import org.dspace.usage.UsageEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,7 +74,7 @@ public class MetadataBitstreamController {
     @Autowired
     private RequestService requestService;
     @Autowired
-    ClarinMatomoBitstreamTracker matomoBitstreamTracker;
+    EventService eventService;
 
     /**
      * Download all Item's bitstreams as single ZIP file.
@@ -112,8 +113,6 @@ public class MetadataBitstreamController {
         }
 
         Item item = (Item) dso;
-        // This bitstream is used to get it's item in the statistics tracker
-        Bitstream bitstreamForStatistics = null;
         name = item.getName() + ".zip";
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment;filename=\"%s\"", name));
         response.setContentType("application/zip");
@@ -134,13 +133,13 @@ public class MetadataBitstreamController {
                 IOUtils.copy(is, zip);
                 zip.closeArchiveEntry();
                 is.close();
-                if (bitstreamForStatistics == null) {
-                    bitstreamForStatistics = bitstream;
-                }
+                // Track each downloaded file through the standard DSpace usage-event pipeline
+                // (Solr statistics + the vanilla Matomo MatomoEventListener when matomo.enabled=true),
+                // instead of a CLARIN-specific tracker.
+                eventService.fireEvent(new UsageEvent(UsageEvent.Action.VIEW, request, context, bitstream));
             }
         }
         zip.close();
-        matomoBitstreamTracker.trackBitstreamDownload(context, request, bitstreamForStatistics, true);
         response.getOutputStream().flush();
     }
 }
