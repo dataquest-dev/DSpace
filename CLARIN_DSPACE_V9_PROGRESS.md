@@ -1115,3 +1115,34 @@ The visual-parity changes (BS4->5 sweep, d-flex rows, lindat footer/header resto
 properties, homepage discovery configuration incl. iso_language + lang_codes.txt) are fully
 CI-validated. Local instance renders the production LINDAT home (same quick-link facet values,
 item-box composition, footer) at http://localhost:14000.
+
+### 2026-07-04 (cont.) — Page-by-page production parity (user: "Item View vobec nevyzera ako v7")
+
+Multi-agent workflow compared 7 page types against the production LINDAT UI. Findings + fixes
+(FE 0337deaea0, BE 070bc57098, both pushed):
+- **Item view was VANILLA** - the CLARIN untyped-item template was never ported. Ported it
+  (citation ref-box + BIBTEX/CMDI + copy, share row, 15 icon-labelled clarin-generic-item-field
+  rows incl. sponsor/acknowledgement, subject chips, collections, 'Show full item record');
+  root-caused two build cascades: missing NgbTooltipModule imports (4 components) and the
+  THEMED-OVERRIDE gotcha (custom theme untyped-item + full-item reuse the base template and must
+  mirror its imports[]).
+- **Full item record**: ref-box, makeLinks+dsReplace on values, admin-only language column,
+  CLARIN frame, duplicate vanilla file section removed.
+- **Search page**: BE defaultConfiguration now ships the CLARIN facet set (author, subject,
+  rights, language, type, has-files, entityType, items_owning_community = production) + title/date
+  sorts both directions; 'Limit your search' heading + 'x out of y results' + 8 more i18n values
+  synced; view-mode switch defaults to list-only (hides itself, as prod).
+- **Community/collection pages**: land on the subcommunity/collection lists
+  (community.defaultBrowseTab=comcols) / plain item list (searchSection.showSidebar=false);
+  'By Language' browse tab restored (webui.browse.index.5 = language:metadata:local.language.name);
+  browse label back to h5 size; comcol handle falls back to the REST handle field (CLARIN-era
+  data has no dc.identifier.uri on comcols).
+- **Login page**: CLARIN logo added. (The DiscoJuice picker on the login-page shibboleth button is
+  an SP-side WAYF redirect on production - env-gated, not FE.)
+- DiscoveryRestControllerIT facet assertions switched to the config-generated defaultFacetMatchers;
+  cypress search-page grid test disabled with a note (list-only).
+- Playwright after everything: 17/17 non-skipped (search 'not empty' needed a local-env result_card
+  override - the local index returns collections first on empty query, same data as dev-5 but
+  different index order).
+Env-gated visual leftovers (documented): No-Thumbnail placeholders (assetstore not imported),
+Statistics button (statistics.cache-server.uri unset), citation shows local dspace.name value.
