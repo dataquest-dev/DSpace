@@ -944,3 +944,138 @@ are genuine v9 differences that need real adaptation (not a mechanical port):
 To finish: study v9 VersioningServiceImpl.delete history-cleanup behaviour, adjust the script's unlink
 flow accordingly, and rewrite ItemVersionLinkerIT's expected messages for v9. Linking half works; the
 feature is niche (admin CLI) so it was deferred rather than shipped half-broken.
+
+---
+
+## 2026-07-02/03 — Local run: Playwright green + LINDAT production look (FE)
+
+### Stack (local Docker, compose project `clarinv9`)
+BE image `dspace/dspace:dspace-9_x-test` (restored from `_saved/clarinv9_be_image.tar`), fresh
+postgres:15 + dspace-solr:dspace-9_x, DB = `_saved/clarinv9_migrated_v9.sql` (dev-5 7.6.5 data
+migrated to v9; 3270 items), `index-discovery -b`. FE served from `dspace-angular/dist` at
+http://localhost:14000 (`MSYS_NO_PATHCONV=1 ... node dist/server/main.js`, UI port MUST be 14000).
+If Docker Desktop is down: launch it, then `COMPOSE_PROJECT_NAME=clarinv9 docker compose -f
+docker-compose.yml -f docker-compose.clarinv9.yml up -d` (volumes persist).
+
+### Playwright (dataquest-dev/dspace-ui-tests, chromium)
+**17 passed / 0 failed / 0 flaky / 20 skipped** (skips = lindat_specific_tests: external Shibboleth
+IdP, assetstore files not imported, dev-5.pc URLs). Test env: `.env` HOME_URL=http://localhost:14000/,
+`customer-constants/local.json` overrides profile/logout locators for the `/` namespace; admin
+`dspace.admin.dev@dataquest.sk` end-user agreement accepted via DB (metadatavalue field 262).
+
+### Fixes that got the suite green (FE commits, local branch ufal/clarin-dspace-upgrade-v9)
+- 44b500a7ee: title `prefix + ' ' + title` (LINDAT title), CLARIN search-result box view
+  (object-list showClarinViewBox → ds-clarin-item-box-view), home CSR + HAL root retry, DiscoJuice
+  login fixes (aai.js namespace from <base href>, signon gated on scriptsReady), **SSR disabled**
+  (environment.production.ts — CLARIN-port SSR crashes app-wide: early HAL root call races SSR HTTP
+  bootstrap, cached error poisons the render → 500 on item/login/register; app is fully functional
+  CSR; re-enabling SSR = documented follow-up).
+- c4a2f27012: admin sidebar aria-label uses accessibilityHandle (fixes 'Toggle New section');
+  dso-selector.placeholder = "Search for a {{ type }}" (CLARIN i18n).
+- e8fb627cc3: language-selector flags en.png/cs.png (were broken imgs).
+- **BUILD GOTCHA (critical)**: FE prod build MUST be `npm run build:prod` (sets NODE_ENV=production).
+  A bare `ng build --configuration production` writes i18n as `en.json` while the loader requests
+  hashed `en.<hash>.json` → SPA-fallback HTML → the WHOLE app renders raw i18n keys.
+
+### LINDAT production look (commit 0875f371d5)
+Reference = `origin/lindat-merge-dtq-dev-2025-03-07` (branch dev-5/production runs; dated 3 days
+before the imported dump). Finding: the LINDAT look lives in the **dspace theme** (active default),
+NOT the custom theme; v9's dspace theme already ships the LINDAT palette (primary #43515f, green
+#92c642, Nunito). Ported: dark lindat-common header (LINDAT/CLARIAH-CZ logo, Catalog/Repository/
+Education/Projects/Tools/Services/About menu, DARIAH+CLARIN logos, 773-line stylesheet) + CLARIN
+top bar (flags + DiscoJuice sign-on overlay), wrapper renders header only (production parity: no
+separate white DSpace navbar row), LINDAT favicon, _global-styles extras, cs navbar.* keys.
+Home/search/footer verified visually: carousel hero, color line, purple search, item boxes with
+license bars, blue LINDAT/CLARIAH-CZ footer with partners + CLARIN B/K + CoreTrustSeal.
+
+### Remaining / follow-ups
+- Re-enable SSR after fixing the root-endpoint bootstrap race (source-level fix).
+- Push FE local commits to PR #1316 after `npm run lint:nobuild` (BE PR #1339 already green).
+- 20 skipped Playwright tests need env this sandbox can't provide (external IdP, assetstore files).
+- Vanilla submission-config steps (clarinLicense/clarinNotice in item-submission.xml) still vanilla.
+
+### 2026-07-03 (cont.) — SSR re-enabled, review findings resolved, FE PUSHED to PR #1316
+
+**SSR IS BACK ON** (`environment.production.ts` ssr.enabled=true, commit 151ec1bc41): the HAL
+root-endpoint retry (hal-endpoint.service getEndpointMapAt, fresh uncached re-request on a
+payload-less response) turned out to fix the SSR render-poisoning entirely. /home, /login,
+/register verified rendering full LINDAT markup + title server-side. The temporary CSR carve-out
+for /home in server.ts and the baked-title hack were removed.
+
+**Independent review workflow (3 reviewers + adversarial verifiers, 25 agents)** found 22 issues;
+all actionable ones resolved in 151ec1bc41:
+- lint errors (12): control-flow @for/@if in home-page, import-newlines, no-unsafe-enum-comparison
+  (Context.Search), rxjs alias imports
+- karma spec breaks: head-tag.service.spec (title 'prefix + space + title'), hal-endpoint.service.spec
+  (retry delays undefined by 600 virtual ms) — 37/37 + object-list 10/10 verified locally via
+  test:headless with CHROME_BIN=playwright chromium
+- cypress specs adapted to the LINDAT UI (reference-branch pattern of disabling removed-UI tests
+  with a note): homepage (title = LINDAT, news section removed), header (no vanilla lang-switch),
+  login-modal + search-navbar (suites disabled - login via DiscoJuice, no navbar search),
+  statistics x4 (navigate directly, no public navbar), search-page (results = ds-clarin-item-box-view)
+- UX bugs: About dropdown navigated away on click (routerLink removed from toggle);
+  ds-impersonate-navbar restored to header; object-list renders non-Item search results via the
+  standard list element (were invisible); footer badges point at bundled assets (were hotlinking
+  production); cs.json5 language.english/czech; home-page facet-link undefined guard
+- known accepted gaps (documented): lindat menu routerLinks (education/projects/...) 404 inside the
+  repository app (same as the v7 reference; production serves them from the website); a11y of the
+  ported v7 lindat-common markup not asserted (reference disabled those tests too); jQuery from CDN
+
+**Playwright after everything (SSR on): 17 passed / 0 failed / 0 flaky / 20 skipped.**
+**FE pushed**: 6 commits (c4883b0b2c..151ec1bc41) to PR #1316, head=151ec1bc41, MERGEABLE, CI running
+(tests 20.x/22.x). madge circular-deps clean. Full `npm run lint:nobuild` had 12 errors -> fixed -> 0
+(targeted verification; warnings are pre-existing and allowed).
+
+### 2026-07-03 (cont. 2) — CI e2e round 1 diagnosed + fixed (commit e19c99773b, pushed)
+
+First CI run on 151ec1bc41: lint+unit+build GREEN, cypress e2e RED on both node versions with the
+SAME 7 specs (deterministic). Root causes and fixes:
+- axe `landmark-no-duplicate-banner` (collection/community pages): the ported lindat-common header
+  nested `<header>` inside `<header>` -> inner element is now a `<div>` (visually identical).
+- axe `landmark-contentinfo-*`/`landmark-unique` (footer): same for the nested `<footer>` -> `<div>`.
+- axe `list` (search/collection/community + footer): `<ul>` must contain only `<li>` - the CLARIN
+  box view now renders inside an `<li>`; the footer `<br/>` group separators became a styled
+  spacer `<li aria-hidden="true">`.
+- axe `link-name` (search/collection/item pages): anchors whose text can be empty (owning
+  community while loading, missing dc.publisher, missing license name) are now rendered only when
+  the text exists (clarin-item-box-view, clarin-license-info).
+- collection/community/item-statistics specs: my previous adaptation navigated to /statistics but
+  the vanilla navbar link led to the OBJECT's statistics page -> visit
+  /statistics/{collections|communities|entities/publication}/<id> directly.
+- my-dspace 'take task from workflow': `[...$items]` broke because the page now ships jQuery 2.1.4
+  (DiscoJuice dependency, identical to the v7 reference) which lacks Symbol.iterator ->
+  `$items.toArray()`.
+Validated locally: build:prod clean, eslint clean, Playwright home/search/login sanity 9 passed.
+CI run 2 (e19c99773b) monitored.
+
+### 2026-07-03 (cont. 3) — CI run 2: e2e GREEN, Verify-SSR title assert fixed (44ae6be875)
+
+CI run 2 (e19c99773b): lint, unit, build, and ALL cypress e2e specs GREEN (the 7 previous failures
+fixed). The job then failed on the 'Verify SSR on Homepage' step, which grepped the SSR
+<meta name="title"> for the literal 'DSpace' — our homepage title is 'LINDAT/CLARIAH-CZ Repository
+Home'. Fixed the workflow step to accept LINDAT|DSpace (commit 44ae6be875, pushed; CI run 3
+monitored). Pre-verified the remaining (previously skipped) Verify steps locally against the LINDAT
+stack: community-page h1 renders the name in SSR, item pages render <meta name="title"> with the
+item name, /handle returns 301, /403 /404 /500 return their codes — all matching the CI grep
+patterns (those steps use CI demo-data names, which exist on the CI backend).
+
+### 2026-07-03 — ✅ BOTH PRs GREEN + MERGEABLE
+
+CI run 3 (44ae6be875): **tests (20.x) PASS, tests (22.x) PASS** — full pipeline green (lint, unit
+tests, build:prod, all cypress e2e, all Verify-SSR steps). FE PR #1316 head 44ae6be875 MERGEABLE.
+BE PR #1339 head 374b88356b MERGEABLE, all checks PASS.
+
+Definition-of-done status:
+- [x] Full CLARIN-DSpace 9 stack runs locally in Docker (BE :18080, FE :14000, dev-5 data)
+- [x] UI matches the v7 LINDAT production look (lindat-common header/footer, DiscoJuice sign-on,
+      CLARIN item boxes, carousel homepage; SSR enabled)
+- [x] LINDAT Playwright suite: 17 passed / 0 failed / 0 flaky (20 skipped = env-gated: external
+      Shibboleth IdP, assetstore files not imported, dev-5.pc-only URLs - documented)
+- [x] Both PRs mergeable and all CI checks green
+- [x] Independent review (multi-agent) run; all actionable findings resolved; accepted gaps
+      documented (lindat website menu links 404 in-app as on dev-5; a11y of v7 markup relaxed
+      exactly where the reference branch did; jQuery CDN parity with v7)
+- [ ] Env-gated leftovers for a full production deployment: assetstore import, Shibboleth IdP
+      integration, CLARIN submission-config steps (clarinLicense/clarinNotice in
+      item-submission.xml), ItemVersionLinker CLI re-port, deferred BE items (Matomo
+      report-subscription PDF e2e, dropped CLARIN ITs) - all tracked above with reasons.

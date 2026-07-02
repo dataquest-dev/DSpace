@@ -1457,6 +1457,13 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             } else {
                 return field + "_acid";
             }
+        } else if (facetFieldConfig.getType().equals(DiscoveryConfigurationParameters.TYPE_ISO_LANG)) {
+            // CLARIN/LINDAT: the iso_language facet is indexed as {field}_filter with the full language name
+            if (removePostfix) {
+                return field.substring(0, field.lastIndexOf("_filter"));
+            } else {
+                return field + "_filter";
+            }
         } else {
             return field;
         }
