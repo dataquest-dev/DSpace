@@ -1079,3 +1079,39 @@ Definition-of-done status:
       integration, CLARIN submission-config steps (clarinLicense/clarinNotice in
       item-submission.xml), ItemVersionLinker CLI re-port, deferred BE items (Matomo
       report-subscription PDF e2e, dropped CLARIN ITs) - all tracked above with reasons.
+
+### 2026-07-03 (cont. 4) — Production visual parity (compared against live LINDAT production)
+
+User complaint: paddings/colors don't match production. Compared the running production UI
+(lindat.mff.cuni.cz/repository, user-authorized read-only) against the local instance and fixed
+four systematic root causes:
+1. **BE: `dspace.ui.url` was not exposed** over /api/config/properties (25 CLARIN exposures missing
+   from modules/rest.cfg). The UI awaits this property before loading the home quick-links, item-box
+   community/authors/license - the 404 silently killed all of it. -> +21 properties in rest.cfg.
+2. **BE: the `homepage` discovery configuration was never ported** -> ported homepageConfiguration
+   (indexAlways=true) + facet beans (subjectFirstValue, rights, language, items_owning_community,
+   publisher, sortTitleDesc, sortDateIssuedAsc) + itemsOwningCommunityPlugin wiring + the
+   iso_language facet type (TYPE_ISO_LANG constant, ItemIndexFactoryImpl branch, SolrServiceImpl
+   transform) + **lang_codes.txt resource** (IsoLangCodes read it from the classpath; without it the
+   language facet indexed nothing). Facets now return the same values as production.
+3. **FE: Bootstrap 4->5 utility classes** - the v7-ported templates used pl-/pr-/ml-/mr-/float-left/
+   font-weight-*/badge-*/pull-* which do nothing in BS5 -> swept 32 templates (ps-/pe-/ms-/me-/
+   float-start/fw-*/text-bg-*/fa-pull-*). This fixed 'paddings off everywhere' + the sign-on badge
+   position (ml-auto -> ms-auto = badge on the right as in production).
+4. **FE: BS5 `.row > *` gets width:100%** (BS4 did not) - stacked the 'Advanced Search | Communities
+   & Collections' line and stretched item-box labels full-width -> inline-label rows are d-flex now.
+Also: footer/header nested lindat-common elements restored as <footer>/<header> with
+role="presentation" (the <div> swap had collapsed the footer columns - the lindat stylesheet targets
+elements; role=presentation keeps axe landmark rules green).
+Result: home page visually matches production (same quick-link values, item-box layout, footer).
+Playwright: 17/17 non-skipped (searchPage 'not empty' flaked once under build load, passes idle).
+Pushed: FE 3605f8fea5 (PR #1316), BE 5ca212db33 (PR #1339) - CI monitored.
+
+### 2026-07-04 — ✅ Production-parity round GREEN on both PRs
+
+FE PR #1316 head 3605f8fea5: tests (20.x) + (22.x) PASS (both runs), MERGEABLE.
+BE PR #1339 head 5ca212db33: Integration + Unit + codecov PASS (both runs), MERGEABLE.
+The visual-parity changes (BS4->5 sweep, d-flex rows, lindat footer/header restoration, exposed
+properties, homepage discovery configuration incl. iso_language + lang_codes.txt) are fully
+CI-validated. Local instance renders the production LINDAT home (same quick-link facet values,
+item-box composition, footer) at http://localhost:14000.
