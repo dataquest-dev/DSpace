@@ -106,9 +106,9 @@ public class StatelessAuthenticationFilter extends BasicAuthenticationFilter {
         try {
             chain.doFilter(req, res);
         } finally {
-            // Complete the context to avoid transactions getting stuck in the connection pool in the
-            // `idle in transaction` state.
-            // TODO add the issue url
+            // Abort the request-scoped DSpace Context if it is still open, so a leaked, dirty
+            // Hibernate session is not left bound to the worker thread (prevents orphaned items).
+            // See https://github.com/dataquest-dev/DSpace/issues/1353
             Context context = (Context) req.getAttribute(ContextUtil.DSPACE_CONTEXT);
             // Ensure the context is cleared after the request is done
             if (context != null && context.isValid()) {
