@@ -10,20 +10,19 @@ package org.dspace.curate;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
-import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.io.output.NullOutputStream;
 import org.dspace.app.util.DSpaceObjectUtilsImpl;
 import org.dspace.app.util.service.DSpaceObjectUtils;
 import org.dspace.authorize.AuthorizeException;
@@ -31,6 +30,9 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.curate.reporters.DoNothingReporter;
+import org.dspace.curate.reporters.FilePrinterReporter;
+import org.dspace.curate.reporters.SystemOutReporter;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
@@ -38,6 +40,7 @@ import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.storage.secure.SecureFileAccess;
 import org.dspace.utils.DSpace;
 
 /**
@@ -53,6 +56,7 @@ public class Curation extends DSpaceRunnable<CurationScriptConfiguration> {
     HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
     protected Context context;
     private CurationClientOptions curationClientOptions;
+    private Reporter outputReporter;
 
     private String task;
     private String taskFile;
@@ -112,8 +116,16 @@ public class Curation extends DSpaceRunnable<CurationScriptConfiguration> {
         } else if (commandLine.hasOption('T')) {
             // load taskFile
             BufferedReader reader = null;
+            // in this case, Curation CLI expects to calculate the -T parameter from the user's current working dir
+            String taskFilePath = SecureFileAccess.calculateAbsolutePathUsingCwd(this.taskFile);
             try {
-                reader = new BufferedReader(new FileReader(this.taskFile));
+                String dspaceDir = DSpaceServicesFactory.getInstance()
+                    .getConfigurationService().getProperty("dspace.dir");
+                List<String> allowedTaskFileBasePath = new ArrayList<>(
+                        Arrays.asList(DSpaceServicesFactory.getInstance().getConfigurationService()
+                        .getArrayProperty("curate.taskfile.base", new String[]{dspaceDir})));
+                reader = SecureFileAccess.getBufferedReader(taskFilePath, allowedTaskFileBasePath,
+                        "curation-taskfile", StandardCharsets.UTF_8);
                 while ((taskName = reader.readLine()) != null) {
                     if (verbose) {
                         super.handler.logInfo("Adding task: " + taskName);
@@ -173,10 +185,20 @@ public class Curation extends DSpaceRunnable<CurationScriptConfiguration> {
      * @throws SQLException If DSpace context can't complete
      */
     private void endScript(long timeRun) throws SQLException {
-        context.complete();
-        if (verbose) {
-            long elapsed = System.currentTimeMillis() - timeRun;
-            this.handler.logInfo("Ending curation. Elapsed time: " + elapsed);
+        try {
+            context.complete();
+            if (verbose) {
+                long elapsed = System.currentTimeMillis() - timeRun;
+                this.handler.logInfo("Ending curation. Elapsed time: " + elapsed);
+            }
+        } finally {
+            if (outputReporter != null) {
+                try {
+                    outputReporter.close();
+                } catch (Exception e) {
+                    handler.handleException("Something went wrong trying to close the reporter", e);
+                }
+            }
         }
     }
 
@@ -188,16 +210,27 @@ public class Curation extends DSpaceRunnable<CurationScriptConfiguration> {
      */
     private Curator initCurator() throws FileNotFoundException {
         Curator curator = new Curator(handler);
-        OutputStream reporterStream;
+        String dspaceDir = DSpaceServicesFactory.getInstance()
+            .getConfigurationService().getProperty("dspace.dir");
+        List<String> allowedReporterBasePaths = new ArrayList<>(Arrays.asList(DSpaceServicesFactory.getInstance()
+                .getConfigurationService().getArrayProperty("curate.reporter.base",
+                        new String[]{dspaceDir + File.separatorChar + "log"})));
         if (null == this.reporter) {
-            reporterStream = NullOutputStream.NULL_OUTPUT_STREAM;
+            outputReporter = new DoNothingReporter();
         } else if ("-".equals(this.reporter)) {
-            reporterStream = System.out;
+            outputReporter = new SystemOutReporter();
         } else {
-            reporterStream = new PrintStream(this.reporter);
+            // Reporter param comes from CLI execution. Calculate abs path from user's current working dir
+            String reporterFilePath = SecureFileAccess.calculateAbsolutePathUsingCwd(this.reporter);
+            try {
+                Path validatedReporterPath = SecureFileAccess.validatePathForWrite(
+                    reporterFilePath, allowedReporterBasePaths, "curation-reporter");
+                outputReporter = new FilePrinterReporter(validatedReporterPath.toString());
+            } catch (IOException e) {
+                throw new FileNotFoundException(e.getLocalizedMessage());
+            }
         }
-        Writer reportWriter = new OutputStreamWriter(reporterStream);
-        curator.setReporter(reportWriter);
+        curator.setReporter(outputReporter);
 
         if (this.scope != null) {
             Curator.TxScope txScope = Curator.TxScope.valueOf(this.scope.toUpperCase());
