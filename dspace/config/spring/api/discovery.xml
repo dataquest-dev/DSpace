@@ -197,11 +197,14 @@
             <list>
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterSubject" />
-                <ref bean="searchFilterIssued" />
+                <!-- CLARIN/LINDAT facet set (production parity) -->
+                <ref bean="searchFilterRights" />
+                <ref bean="searchFilterLanguage" />
+                <ref bean="searchFilterType"/>
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <!-- <ref bean="searchFilterHasGeospatialMetadata"/> -->
                 <ref bean="searchFilterEntityType"/>
-                <ref bean="searchFilterAccessStatus" />
+                <ref bean="searchFilterItemsCommunity"/>
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -225,6 +228,12 @@
                 <ref bean="searchFilterIsPublicationOfJournalIssueRelation"/>
                 <ref bean="searchFilterIsJournalOfPublicationRelation"/>
                 <ref bean="searchFilterGeospatialPoint"/>
+                <!-- CLARIN/LINDAT search filters (production parity) -->
+                <ref bean="searchFilterRights" />
+                <ref bean="searchFilterLanguage" />
+                <ref bean="searchFilterType"/>
+                <ref bean="searchFilterItemsCommunity"/>
+                <ref bean="searchFilterPublisher"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -234,8 +243,9 @@
                     <list>
                         <ref bean="sortScore" />
                         <ref bean="sortTitle" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssued" />
-                        <ref bean="sortDateAccessioned"/>
                     </list>
                 </property>
             </bean>

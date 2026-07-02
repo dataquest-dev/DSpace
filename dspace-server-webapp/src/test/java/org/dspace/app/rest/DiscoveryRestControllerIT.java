@@ -3226,12 +3226,9 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                         SearchResultMatcher.match(),
                         SearchResultMatcher.match()
                 )))
+                // the facet set follows the (CLARIN) defaultConfiguration; matchers are generated from it
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.authorFacetWithMinMax("Doe, Jane", "Testing, Works"),
-                        FacetEntryMatcher.entityTypeFacet(),
-                        FacetEntryMatcher.subjectFacet(),
-                        FacetEntryMatcher.dateIssuedFacetWithMinMax("1990-02-13", "2010-10-17"),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet()
+                        FacetEntryMatcher.defaultFacetMatchers
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3296,12 +3293,9 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(status().isOk())
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
+                // the facet set follows the (CLARIN) defaultConfiguration; matchers are generated from it
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.authorFacetWithMinMax("Doe, Jane", "Testing, Works"),
-                        FacetEntryMatcher.entityTypeFacet(),
-                        FacetEntryMatcher.subjectFacet(),
-                        FacetEntryMatcher.dateIssuedFacetWithMinMax("1990-02-13", "2010-10-17"),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet()
+                        FacetEntryMatcher.defaultFacetMatchers
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/facets")))
