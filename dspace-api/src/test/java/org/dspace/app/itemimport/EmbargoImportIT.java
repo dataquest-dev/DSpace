@@ -15,6 +15,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,9 +53,13 @@ import org.junit.Test;
  */
 public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
 
-    private static final String EMBARGOEND_DATE_FUTURE = "2026-06-30";
+    // Embargo end date must be in the future at test run time, so compute it relative to "now".
+    // A hardcoded date here becomes a time bomb: the import logic correctly refuses to apply
+    // an embargo whose end date has already passed (see testPastEmbargoDateNoPolicy).
+    private static final LocalDate EMBARGO_END_FUTURE = LocalDate.now().plusYears(1);
+    private static final String EMBARGOEND_DATE_FUTURE = EMBARGO_END_FUTURE.toString();
     // The resource policy start date should be embargoend + 1 day
-    private static final String EXPECTED_POLICY_START_DATE = "2026-07-01";
+    private static final String EXPECTED_POLICY_START_DATE = EMBARGO_END_FUTURE.plusDays(1).toString();
     private static final String EMBARGOEND_DATE_PAST = "2020-01-01";
     private static final String ITEM_TITLE = "Test Embargo Item";
 
