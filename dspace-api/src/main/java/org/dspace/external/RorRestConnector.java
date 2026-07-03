@@ -159,11 +159,14 @@ public class RorRestConnector {
     }
 
     public Choices getBestMatch(String text, String locale) {
+        if (text == null || text.trim().isEmpty()) {
+            return new Choices(true);
+        }
         try (Response response = getByQuery(sanitizeQuery(text))) {
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 try (InputStream is = response.readEntity(InputStream.class)) {
                     RorItems rorItems = OBJECT_MAPPER.readValue(is, RorItems.class);
-                    List<RorItem> items = rorItems.getItems();
+                    List<RorItem> items = Optional.ofNullable(rorItems.getItems()).orElse(List.of());
                     if (items.isEmpty()) {
                         return new Choices(false);
                     }
