@@ -102,7 +102,23 @@ public class StatelessAuthenticationFilter extends BasicAuthenticationFilter {
         if (authentication != null) {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        chain.doFilter(req, res);
+
+        try {
+            chain.doFilter(req, res);
+        } finally {
+            // Abort the request-scoped DSpace Context if it is still open, so a leaked, dirty
+            // Hibernate session is not left bound to the worker thread (prevents orphaned items).
+            // See https://github.com/dataquest-dev/DSpace/issues/1353
+            Context context = (Context) req.getAttribute(ContextUtil.DSPACE_CONTEXT);
+            // Ensure the context is cleared after the request is done
+            if (context != null && context.isValid()) {
+                try {
+                    context.abort();
+                } catch (Exception e) {
+                    log.error("{} occurred while trying to close", e.getMessage(), e);
+                }
+            }
+        }
     }
 
     /**
