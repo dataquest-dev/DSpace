@@ -54,8 +54,6 @@ import org.junit.Test;
 public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
 
     // Embargo end date must be in the future at test run time, so compute it relative to "now".
-    // A hardcoded date here becomes a time bomb: the import logic correctly refuses to apply
-    // an embargo whose end date has already passed (see testPastEmbargoDateNoPolicy).
     private static final LocalDate EMBARGO_END_FUTURE = LocalDate.now().plusYears(1);
     private static final String EMBARGOEND_DATE_FUTURE = EMBARGO_END_FUTURE.toString();
     // The resource policy start date should be embargoend + 1 day
