@@ -75,7 +75,7 @@ public class RorRestConnector {
     }
 
     public Response getByID(String rorID) {
-        if (rorID.matches(ROR_ID_PATTERN)) {
+        if (rorID != null && rorID.matches(ROR_ID_PATTERN)) {
             return client.target(apiUrl).path(rorID)
                     .request()
                     .header("Client-Id", clientId)
