@@ -905,7 +905,10 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         //** WHEN **
         //An anonymous user browses this endpoint to find the dateIssued results by the facet
-        getClient().perform(get("/api/discover/facets/dateIssued"))
+        // The CLARIN default configuration does not expose the dateIssued facet;
+        // use the (unchanged) default-relationships configuration to keep testing date facets.
+        getClient().perform(get("/api/discover/facets/dateIssued")
+                .param("configuration", "default-relationships"))
 
                 //** THEN **
                 //The status has to be 200 OK
@@ -1112,8 +1115,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //** WHEN **
         //An anonymous user browses this endpoint to find the dateIssued results by the facet
         //And a size of 2
+        // The CLARIN default configuration does not expose the dateIssued facet;
+        // use the (unchanged) default-relationships configuration to keep testing date facets.
         getClient().perform(get("/api/discover/facets/dateIssued")
-                .param("size", "2"))
+                .param("size", "2")
+                .param("configuration", "default-relationships"))
 
                 //** THEN **
                 //The status has to be 200 OK
@@ -1129,7 +1135,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/dateIssued")))
                 //Seeing as we've entered a size of two and there are more dates than just two, we'll need a next
                 // link to go to the next page to see the rest of the dates
-                .andExpect(jsonPath("$._links.next.href", containsString("api/discover/facets/dateIssued?page")))
+                .andExpect(jsonPath("$._links.next.href", containsString("api/discover/facets/dateIssued?")))
+                .andExpect(jsonPath("$._links.next.href", containsString("page=1")))
                 //The page object needs to look like this because we've entered a size of 2 and we didn't specify
                 // a starting page so it defaults to 0
                 .andExpect(jsonPath("$.page",
@@ -1191,9 +1198,12 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //An anonymous user browses this endpoint to find the dateIssued results by the facet
         //With a query stating that the title needs to contain 'test'
         //And a size of 2
+        // The CLARIN default configuration does not expose the dateIssued facet;
+        // use the (unchanged) default-relationships configuration to keep testing date facets.
         getClient().perform(get("/api/discover/facets/dateIssued")
                 .param("f.title", "test,contains")
-                .param("size", "2"))
+                .param("size", "2")
+                .param("configuration", "default-relationships"))
 
                 //** THEN **
                 //The status has to be 200 OK
@@ -1242,16 +1252,18 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    //There needs to be a section where these filters as specified as they're the default filters
                    // given in the configuration
                    .andExpect(jsonPath("$.filters", containsInAnyOrder(searchFilterMatchers)))
-                   //These sortOptions need to be present as it's the default in the configuration
+                   //These sortOptions need to be present as it's the (CLARIN) default in the configuration
                    .andExpect(jsonPath("$.sortOptions", contains(
             SortOptionMatcher.sortOptionMatcher(
                 "score", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
             SortOptionMatcher.sortOptionMatcher(
                 "dc.title", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
             SortOptionMatcher.sortOptionMatcher(
-                "dc.date.issued", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
+                "dc.title", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
             SortOptionMatcher.sortOptionMatcher(
-                "dc.date.accessioned", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name())
+                "dc.date.issued", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
+            SortOptionMatcher.sortOptionMatcher(
+                "dc.date.issued", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name())
                    )));
     }
 
@@ -3226,9 +3238,12 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                         SearchResultMatcher.match(),
                         SearchResultMatcher.match()
                 )))
-                // the facet set follows the (CLARIN) defaultConfiguration; matchers are generated from it
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.defaultFacetMatchers
+                        FacetEntryMatcher.authorFacetWithMinMax("Doe, Jane", "Testing, Works"),
+                        FacetEntryMatcher.entityTypeFacet(),
+                        FacetEntryMatcher.subjectFacet(),
+                        FacetEntryMatcher.dateIssuedFacetWithMinMax("1990-02-13", "2010-10-17"),
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet()
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3293,9 +3308,12 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(status().isOk())
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
-                // the facet set follows the (CLARIN) defaultConfiguration; matchers are generated from it
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.defaultFacetMatchers
+                        FacetEntryMatcher.authorFacetWithMinMax("Doe, Jane", "Testing, Works"),
+                        FacetEntryMatcher.entityTypeFacet(),
+                        FacetEntryMatcher.subjectFacet(),
+                        FacetEntryMatcher.dateIssuedFacetWithMinMax("1990-02-13", "2010-10-17"),
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet()
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/facets")))
@@ -5859,8 +5877,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         context.restoreAuthSystemState();
 
+        // The CLARIN default configuration does not expose the dateIssued facet;
+        // use the (unchanged) default-relationships configuration to keep testing date facets.
         getClient().perform(get("/api/discover/facets/dateIssued")
-                   .param("dsoType", "Item"))
+                   .param("dsoType", "Item")
+                   .param("configuration", "default-relationships"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.type", is("discover")))
                    .andExpect(jsonPath("$.name", is("dateIssued")))
@@ -5871,7 +5892,9 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    .andExpect(jsonPath("$._embedded.values[0].label", is("2017 - 2020")))
                    .andExpect(jsonPath("$._embedded.values[0].count", is(3)))
                    .andExpect(jsonPath("$._embedded.values[0]._links.search.href",
-                        containsString("api/discover/search/objects?dsoType=Item&f.dateIssued=" +
+                        containsString("api/discover/search/objects?dsoType=Item")))
+                   .andExpect(jsonPath("$._embedded.values[0]._links.search.href",
+                        containsString("f.dateIssued=" +
                                 urlPathSegmentEscaper().escape("[2017 TO 2020],equals")
                         )))
                    .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(1)));
