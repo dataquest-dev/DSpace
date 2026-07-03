@@ -86,7 +86,8 @@ public class RorRestConnector {
         }
     }
 
-    @Cacheable(cacheNames = "ror-labels", key = "#rorID + '_' + #locale", unless = "#result == null")
+    @Cacheable(cacheNames = "ror-labels", key = "#rorID + '_' + #locale",
+            unless = "#result == null || #result.equals(#rorID)")
     public String getLabel(String rorID, String locale) {
         Choice choice = getChoice(rorID, locale);
         return choice != null ? choice.label : rorID;
