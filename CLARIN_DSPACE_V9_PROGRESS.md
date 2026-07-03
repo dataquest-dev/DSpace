@@ -1146,3 +1146,28 @@ Multi-agent workflow compared 7 page types against the production LINDAT UI. Fin
   different index order).
 Env-gated visual leftovers (documented): No-Thumbnail placeholders (assetstore not imported),
 Statistics button (statistics.cache-server.uri unset), citation shows local dspace.name value.
+
+### 2026-07-03 — CI red round: strict-null regression + IT adaptations (FE e3475f2a32+9bca26f820, BE 701473a9c4)
+
+- **FE systematic bug found while checking Size row ("17945 items" empty locally):** the *ngIf->@if
+  migration had turned the fork's loose null checks (`x == null`) into strict ones; for
+  undefined-not-null values the branches flipped. Impact: item-page Size row empty, withdrawn items
+  would render the REPLACED tombstone, wrong branches in navbar login state, license table/agreement,
+  handle table, autoregistration, item-box license badge. Fixed in 12 templates - but
+  @angular-eslint/template/eqeqeq forbids == in templates, so the final form uses truthiness (strings/
+  objects), explicit `=== null || === undefined` (numeric resourceTypeID, 0 valid) and
+  `((obs | async) ?? null) === null` (no-negated-async). ng lint 0 errors; karma 5597 pass
+  (2 LocaleService fails are local-env-only, pass on CI).
+- **FE unit specs for the CLARIN item pages:** untyped-item + full-item specs now remove the CLARIN
+  child components in overrideComponent (ClarinRefBox pulls HardRedirectService/ConfigurationDataService
+  -> Store) and assert ds-clarin-ref-box / 10+ ds-clarin-generic-item-field / collections field.
+- **BE Discovery IT adaptations after the CLARIN default config (7 CI failures):** the two
+  minAndMaxTests assertions reverted to hardcoded matchers (they use configuration=minAndMaxTests,
+  not default); the 4 dateIssued facet tests pass configuration=default-relationships (still exposes
+  the facet; machinery stays covered) with order-independent link substring asserts;
+  discoverSearchTest expects the CLARIN sorts (score/title asc+desc/date issued asc+desc) - the same
+  expectation the v7 fork used in ClarinDiscoveryRestControllerIT (they hide dc.date.accessioned).
+  7/7 green locally and BE CI GREEN (unit+IT) on 701473a9c4.
+- **Local-env gotchas learned:** dspace-server-webapp ITs unpack dspace-parent-testEnvironment.zip
+  from .m2 - after config/spring changes run full-reactor `mvn install` first or target/testing is
+  stale; `npm run lint | tail` masks the exit code (pipe) - capture eslint's own exit.
