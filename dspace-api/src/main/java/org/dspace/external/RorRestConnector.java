@@ -166,7 +166,7 @@ public class RorRestConnector {
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 try (InputStream is = response.readEntity(InputStream.class)) {
                     RorItems rorItems = OBJECT_MAPPER.readValue(is, RorItems.class);
-                    List<RorItem> items = Optional.ofNullable(rorItems.getItems()).orElse(List.of());
+                    List<RorItem> items = rorItems.getItems();
                     if (items.isEmpty()) {
                         return new Choices(false);
                     }
@@ -224,7 +224,7 @@ public class RorRestConnector {
             // 4 - locale label from labels, 3 - locale label from aliases, 2 - english label, 1 - any other label
             int labelQuality = 0;
             // the enLabelQuality is the following:
-            // 2 - english label from labels, 1 - english label from aliasses
+            // 2 - english label from labels, 1 - english label from aliases
             int enLabelQuality = 0;
 
             for (RorItem.Name name : names) {
@@ -274,7 +274,7 @@ public class RorRestConnector {
             }
 
             String value;
-            // set tha value based on the configuration of the name selection type
+            // set the value based on the configuration of the name selection type
             switch (storedNameType) {
                 case ROR_DISPLAY : {
                     value = (rorDisplay != null) ? rorDisplay : label;
