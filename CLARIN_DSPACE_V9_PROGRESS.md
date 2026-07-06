@@ -1171,3 +1171,41 @@ Statistics button (statistics.cache-server.uri unset), citation shows local dspa
 - **Local-env gotchas learned:** dspace-server-webapp ITs unpack dspace-parent-testEnvironment.zip
   from .m2 - after config/spring changes run full-reactor `mvn install` first or target/testing is
   stale; `npm run lint | tail` masks the exit code (pipe) - capture eslint's own exit.
+
+### 2026-07-06 — Pixel-parity round (user: "stale sa to lisi - paddingy, zarovnania")
+
+Independent designer-critic panel (9 agents, one per page pair at 1600px) reviewed home, item,
+full item, search, browse, community-list, community, collection and login against production,
+twice (find round + verify round). FE cec07862dc, BE a2ece07ccc, both pushed.
+
+Root causes found and fixed:
+- Bootstrap 5 drift: xxl container 1320px (prod designed for BS4 1140px), 24px gutters (BS4 30px),
+  lighter input borders, smaller list-group/table/card/alert paddings, darker card borders,
+  columns lost position:relative and max-width, .row > * gained universal gutter padding.
+  All restored via _bootstrap_variables.scss + targeted px-0/position-relative.
+- The CLARIN item-page card frame + row separators + italic links only existed in the home page's
+  :host scope / on customer/lindat - ported to the item pages' SCSS properly.
+- Item boxes: BS4 negative row margins (badges flush with the card border) were lost in the
+  d-flex migration - restored with .clarin-corner-row.
+- Search: empty ds-search-switch-configuration (height 0, margin 32px) pushed the sidebar down
+  via margin collapse; view-mode switch, funnel icon, RSS placement returned to v7 behavior.
+- Comcol: v7 tab sets (collection = 'Recent Submissions' landing at root @ 20/page sorted by
+  accession date, community = no Search tab), vanilla list renderer on landings (context Any),
+  RSS on sub-list toolbars, h2 headings, canonical handle URL, BreadcrumbsService gotcha
+  (a leaf route without breadcrumb data hides the WHOLE trail -> showBreadcrumbs: true).
+- BE: subjectFirstValue was never indexed (filters index only via the item's own configurations;
+  indexAlways configs after the first unnamed one are skipped by id-dedup) -> registered in the
+  default configuration like the v7 fork + homepage config got an id; author facet includes
+  dc.contributor.other; all facets collapsed (v7 BE never serialized openByDefault);
+  ClarinLicense labels sorted by id (order was random per Hibernate session - even on prod).
+
+Verify round verdicts after fixes: community=match; home/search/browse/community-list=minor
+(sub-pixel/low leftovers); item/fullitem/collection fixed in the same round (ref-box insets,
+bottom link alignment, card frame import, 20/page landing). Playwright 17/17 three times,
+ng lint clean, affected karma specs green.
+
+Documented low-severity leftovers: breadcrumb text 4px left of prod, license-box content ~6px
+off-center, login form ~22px wider (prod measured under the DiscoJuice overlay), item-type badge
+~8px wider. Env-gated (not code): thumbnails/files (assetstore not imported), citation
+repository name (dspace.name), prod yellow banner, DiscoJuice WAYF (SP-side), carousel slide
+rotation, statistics counts.
