@@ -1209,3 +1209,20 @@ off-center, login form ~22px wider (prod measured under the DiscoJuice overlay),
 ~8px wider. Env-gated (not code): thumbnails/files (assetstore not imported), citation
 repository name (dspace.name), prod yellow banner, DiscoJuice WAYF (SP-side), carousel slide
 rotation, statistics counts.
+
+### 2026-07-06 (cont.) — Final polish (FE 31d214c58e) — verified against measured production values
+
+The final critic verification (item/fullitem/home = minor) left three real items, all fixed and
+verified live against values measured DIRECTLY on production at 1600px:
+- containers/breadcrumb: production uses 1rem side padding (BS5 computes 12px) - pinned in
+  _clarin-styles.scss + breadcrumbs.component.scss; this was the shared root cause of the
+  4px offsets (breadcrumb trail, Statistics button, license-box centering)
+- comcol landing 20/page: the field-initializer override of defaultPagination was ineffective
+  (the parent constructor captures it before subclass initializers run) - now overridden in the
+  constructor + re-initialized; verified 20 rows on the collection landing
+- login form 280px (was 302) - login-page-scoped max-width on .login-container
+
+FE CI green on 31d214c58e (both matrix runs). Playwright 17/17 (4th consecutive full run).
+Remaining acknowledged deltas are sub-pixel (1-2px antialiasing/rounding: footer badge 1px,
+license-box center 2px) or env-gated (assetstore/thumbnails, dspace.name, prod banner,
+DiscoJuice WAYF, statistics counts, carousel rotation).
