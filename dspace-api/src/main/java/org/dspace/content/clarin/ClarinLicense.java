@@ -10,6 +10,7 @@ package org.dspace.content.clarin;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -137,6 +138,9 @@ public class ClarinLicense implements ReloadableEntity<Integer> {
 
     public List<ClarinLicenseLabel> getLicenseLabels() {
         ClarinLicenseLabel[] output = clarinLicenseLabels.toArray(new ClarinLicenseLabel[] {});
+        // the labels live in an unordered set - sort by id so every REST response (and the
+        // license icons rendered from it) has a stable order
+        Arrays.sort(output, Comparator.comparing(ClarinLicenseLabel::getID));
         return Arrays.asList(output);
     }
 

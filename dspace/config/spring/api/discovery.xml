@@ -228,7 +228,10 @@
                 <ref bean="searchFilterIsPublicationOfJournalIssueRelation"/>
                 <ref bean="searchFilterIsJournalOfPublicationRelation"/>
                 <ref bean="searchFilterGeospatialPoint"/>
-                <!-- CLARIN/LINDAT search filters (production parity) -->
+                <!-- CLARIN/LINDAT search filters (production parity). subjectFirstValue MUST be
+                     registered here: filters are only indexed via the item's own configurations, and the
+                     v7 fork likewise kept it in the default configuration's searchFilters. -->
+                <ref bean="searchFilterSubjectFirstValue"/>
                 <ref bean="searchFilterRights" />
                 <ref bean="searchFilterLanguage" />
                 <ref bean="searchFilterType"/>
@@ -376,6 +379,8 @@
         <!--The sort filters for the discovery search-->
         <property name="searchSortConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!-- CLARIN/LINDAT: the collection landing lists recent submissions (accession date desc) -->
+                <property name="defaultSortField" ref="sortDateAccessioned" />
                 <property name="sortFields">
                     <list>
                         <ref bean="sortDateAccessioned"/>
@@ -2637,12 +2642,15 @@
             <list>
                 <value>dc.contributor.author</value>
                 <value>dc.creator</value>
+                <!-- CLARIN/LINDAT: other contributors count as authors (production parity) -->
+                <value>dc.contributor.other</value>
             </list>
         </property>
         <property name="facetLimit" value="5"/>
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
-        <property name="isOpenByDefault" value="true"/>
+        <!-- CLARIN/LINDAT: all sidebar facets start collapsed (production parity) -->
+        <property name="isOpenByDefault" value="false"/>
         <property name="pageSize" value="10"/>
         <property name="exposeMinAndMaxValue" value="true"/>
     </bean>
@@ -3520,6 +3528,10 @@
     <!-- =============================================================== -->
 
     <bean id="homepageConfiguration" class="org.dspace.discovery.configuration.DiscoveryConfiguration" scope="prototype">
+        <!-- the explicit id is REQUIRED: ItemIndexFactoryImpl#addDiscoveryFields dedups configurations by id,
+             and all unnamed (null-id) configurations after the first are silently skipped - without it the
+             indexAlways facets below (subjectFirstValue, ...) never get indexed -->
+        <property name="id" value="homepage"/>
         <!-- index the homepage facets (language, subjectFirstValue, items_owning_community, ...) for every item -->
         <property name="indexAlways" value="true"/>
         <!--Which sidebar facets are to be displayed-->
