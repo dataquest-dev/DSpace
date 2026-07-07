@@ -7,9 +7,12 @@
  */
 package org.dspace.health;
 
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
+import static java.util.Calendar.DAY_OF_MONTH;
+import static java.util.Calendar.MONTH;
+import static java.util.Calendar.YEAR;
+
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * Information about a report run accessible by each check.
@@ -19,14 +22,17 @@ import java.time.temporal.ChronoUnit;
 public class ReportInfo {
 
     private boolean verbose_;
-    private LocalDate from_;
-    private LocalDate till_;
+    private GregorianCalendar from_ = null;
+    private GregorianCalendar till_ = null;
 
     public ReportInfo(int for_last_n_days) {
-        till_ = LocalDate.now(ZoneOffset.UTC);
-
+        GregorianCalendar cal = new GregorianCalendar();
+        till_ = new GregorianCalendar(
+            cal.get(YEAR), cal.get(MONTH), cal.get(DAY_OF_MONTH)
+        );
         // get info from the last n days
-        from_ = till_.minus(for_last_n_days, ChronoUnit.DAYS);
+        from_ = (GregorianCalendar) till_.clone();
+        from_.add(DAY_OF_MONTH, -for_last_n_days);
         // filter output
         verbose_ = false;
     }
@@ -39,11 +45,11 @@ public class ReportInfo {
         return verbose_;
     }
 
-    public LocalDate from() {
-        return from_;
+    public Date from() {
+        return from_.getTime();
     }
 
-    public LocalDate till() {
-        return till_;
+    public Date till() {
+        return till_.getTime();
     }
 }

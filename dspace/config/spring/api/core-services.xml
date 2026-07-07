@@ -95,6 +95,8 @@
         </property>
     </bean>
 
+    <bean class="org.dspace.content.ReportResultServiceImpl"/>
+
     <bean class='org.dspace.curate.XmlWorkflowCuratorServiceImpl'/>
 
     <bean class="org.dspace.disseminate.CitationDocumentServiceImpl"/>
