@@ -1226,3 +1226,21 @@ FE CI green on 31d214c58e (both matrix runs). Playwright 17/17 (4th consecutive 
 Remaining acknowledged deltas are sub-pixel (1-2px antialiasing/rounding: footer badge 1px,
 license-box center 2px) or env-gated (assetstore/thumbnails, dspace.name, prod banner,
 DiscoJuice WAYF, statistics counts, carousel rotation).
+
+### 2026-07-07 — Independent code review of the parity commits (FE 1eec12991c, BE 326047b0f9)
+
+Review workflow (4 dimension reviewers + adversarial verification) over the session diffs.
+Fixed:
+- comcol /search deep links kept their query box (searchEnabled now comes from route data;
+  the landing stays a plain list) - verified live on both routes
+- full-item metadata table null-guards mdValue.value before split (one null value would have
+  blanked the whole /full render)
+- ClarinLicense label sort is null-safe (nullsLast) for unsaved labels
+
+Accepted as intentional v7-fork behavior (verified against origin/customer/lindat):
+- the view-mode switch is hidden everywhere (admin/mydspace/workflow included) - the v7 fork
+  sets the same global default, production never shows it
+- the workflow/workspace 'view full item' page uses the handle-based CLARIN files section
+  (in-progress items without handles show no file list) - identical to the v7 fork's template
+
+Both PRs MERGEABLE (mergeStateStatus CLEAN once CI finishes).
