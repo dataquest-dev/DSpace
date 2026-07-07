@@ -1244,3 +1244,12 @@ Accepted as intentional v7-fork behavior (verified against origin/customer/linda
   (in-progress items without handles show no file list) - identical to the v7 fork's template
 
 Both PRs MERGEABLE (mergeStateStatus CLEAN once CI finishes).
+
+### 2026-07-07 (cont.) — C3 closed: CLARIN admin sidebar entries (FE dddddf35ce)
+
+Ported the v7 fork's admin menu entries as a v9 menu provider (shared/menu/providers/
+clarin-admin.menu.ts, registered in app.menus.ts): Manage Handles (/handle-table),
+ePIC Handles (/epic-handle-table/prefix), License Administration (/licenses/manage-table),
+all site-admin-only. Verified live in the admin sidebar after admin login. This closes the
+C3 review item from the tranche-review table (rows above) - the routes existed but were
+unreachable through the UI.
