@@ -120,9 +120,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             return; // Already loaded
         }
 
-        try {
-            InputStream configStream = Thread.currentThread()
-                    .getContextClassLoader().getResourceAsStream(REPORT_DIFF_FIELDS);
+        try (InputStream configStream = Thread.currentThread()
+                    .getContextClassLoader().getResourceAsStream(REPORT_DIFF_FIELDS)) {
             if (configStream != null) {
                 JsonNode config = mapper.readTree(configStream);
 

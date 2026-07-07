@@ -45,6 +45,12 @@ public class EmbargoInfoCheck extends Check {
     @Override
     public String run(ReportInfo ri) {
         StringBuilder sb = new StringBuilder();
+        // Clear any results collected by a previous run to avoid accumulating stale data / double counts.
+        embItems.clear();
+        embBitstreams.clear();
+        embBundles.clear();
+        embComs.clear();
+        embCols.clear();
 
         ItemService itemService = ContentServiceFactory.getInstance().getItemService();
         CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
