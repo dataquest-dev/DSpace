@@ -1253,3 +1253,14 @@ ePIC Handles (/epic-handle-table/prefix), License Administration (/licenses/mana
 all site-admin-only. Verified live in the admin sidebar after admin login. This closes the
 C3 review item from the tranche-review table (rows above) - the routes existed but were
 unreachable through the UI.
+
+### 2026-07-07 (cont.) — Local env: production dspace.name
+
+The local citation box now shows the production repository name. Local-env only (nothing
+committed): the compose file already parameterizes it, so the value was baked into the
+container via `dspace__P__name="LINDAT/CLARIAH-CZ digital library at the Institute of Formal
+and Applied Linguistics (ÚFAL)" docker compose -p clarinv9 -f docker-compose.yml -f
+docker-compose.clarinv9.yml up -d dspace`. NOTE: recreating the dspace container without that
+env var reverts to 'DSpace Started with Docker Compose' - re-run the command above (or add the
+var to an ignored env file) after a recreate. Verified via /api/config/properties/dspace.name
+and the item-page citation box.
