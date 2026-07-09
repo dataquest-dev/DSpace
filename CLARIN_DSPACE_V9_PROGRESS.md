@@ -1494,3 +1494,76 @@ All claims below have concrete evidence (log file / probe output / commit sha no
   never compiled — FacetEntryMatcher API drift; ECJ jar poisoning had masked it). Deferral tracked
   here: needs test-discovery.xml 368-line hand-merge + matcher adaptation; live discovery facets
   verified earlier.
+
+## 2026-07-10 — Tranche E landed; full local test matrix green; cold-pass green
+- BE fix tranche E pushed: 02584beeb8 -> 4e6f5734cc (62 files). FE PR #1316 CI is FULLY GREEN
+  (karma 4/4 jobs pass after 9c628b6a20; zero non-pass checks).
+- Authoritative local test runs (rerun-fixed-suites7.log + preview-fix-verify.log):
+  api batch green (BundleClarinTest, EpicHandleServiceTest, InstallItemTest, FilePreviewIT 6/6,
+  HandleClarinServiceImplIT, ItemMetadataQACheckerIT 16/16, ClarinVersionedHandleIdentifierProviderIT,
+  HealthReportIT); webapp batch 662 ITs -> 661 green in chain 7 + the last
+  (PreviewContentServiceImplIT.testFindRootByBitstream) green after getPreview was rewritten from
+  native SQL to JPQL (Hibernate 6 auto-flush; 12/12 + FilePreviewIT 6/6 re-verified).
+- Diagnostic panel (8 read-only agents, wf_98f5ae27) verdicts all applied:
+  4 main-code fixes (MetadataConverter place-preserving call site, EpicHandleRestController
+  @PreAuthorize on findOne, DOIIdentifierProvider empty-remainder guard, PreviewContentDAO JPQL)
+  + 5 dtq-mirroring test adaptations (Version title "(yyyy-MM-dd)" asserts, submitterCanCreateNewVersion
+  toggle, distribution-license validation toggle, PatchMetadataIT metadata count 12,
+  item-metadata-patch-suite.json + provenance timestamp stripping in MetadataPatchSuite).
+- Final deploy: boot jar 270,714,938 B + dspace-api/dspace-oai lib jars docker-cp'd, restart, API 200.
+- COLD-PASS against the final jar (all anonymous unless noted):
+  C1 byHandle 20.500.12801/3901501-07 -> 3 rows;
+  C2 /content on license-gated bitstream (11234/1-3039) -> 401 (no 500 bypass); /content on open
+  MIT-licensed item 123456789/2-5969 -> 200 (real asset, preview click verified end-to-end);
+  C3 authrn -> 401 restricted / 200 open; pid/find -> 302 redirect to item;
+  C4 /static/about|cite|faq -> 200;
+  C5 OAI ListMetadataFormats -> 18 prefixes incl. cmdi/elg/olac/oai_metasharev2/bibtex;
+  GetRecord cmdi on 11234/1-3039 OK; refbox bibtex -> real citation JSON.
+- In flight: full Playwright suite on the final stack; BE PR CI after tranche E.
+
+## 2026-07-10 (cont.) — Tranche F, §9b verification panel, decisions record
+### Decisions (append to §9)
+- D9 REQUEST-A-COPY vs CLARIN LICENSE GATE (recorded, decision DEFERRED to product owner):
+  vanilla v9's request-a-copy accessToken path (BitstreamRestController -> BitstreamResourceAccessByToken)
+  calls turnOffAuthorisationSystem(), which makes isAdmin true and SKIPS the CLARIN
+  distribution-license gate (AuthorizeServiceImpl hook is guarded by !isAdmin). A valid
+  request-a-copy token therefore downloads a license-gated bitstream WITHOUT agreeing to the
+  license. This capability did not exist in CLARIN 7.x. Current state = DOCUMENTED BYPASS.
+  Options for the owner: (a) request.item.enabled=false, (b) inject the license check into
+  authorizeAccessByAccessToken, (c) formally accept. TEST-REQCOPY-COEXIST ran
+  RequestItemRepositoryIT 17/17 + AuthorizationRestControllerIT 8/8 (both paths coexist without
+  500s), but no IT yet asserts token-download-on-gated-bitstream semantics — tracked with
+  TEST-MATOMO-COLLISION as the two remaining decision-gated ITs.
+
+### Tranche F (549a849ed1) + follow-ups (3c2ae63bd2 Saxon pin, 6d544e9a0d unit-test mock)
+- CI-only failures diagnosed by a 2-agent evidence panel (wf_b6efa316) + fixed:
+  RequiredMetadata.java was vanilla while its dtq-only IT curates a workspace item ->
+  dtq getCollection() fallback ported (1/1 green); VersioningWithRelationshipsIT needed dtq's
+  13-hunk adaptation (authority args + title-date asserts; 9/9 green after a clean javac build —
+  the intermediate local failure was IDE-ECJ class poisoning, proven by javap overload
+  comparison: ECJ binds containsInAnyOrder(List) to the varargs overload, javac to the
+  Collection overload); HandleDAOImplTest dtq adaptation (CLARIN subprefix renumbering 2-3);
+  pom test.argLine 1024m->2048m (unit CI OOM cascade: AccessStatusServiceTest heap-space pre-E,
+  3-suite cascade post-E; post-bump CI unit log has 0 OutOfMemoryError lines).
+- EPersonRestAuthenticationProviderTest: dtq mock for configurationService
+  (clarin.custom.groups read) — was the last real unit failure at HEAD; 2/2 green (6d544e9a0d).
+- Saxon-HE 9.9.1-8 declared explicitly in dspace-oai/pom.xml (AC BE-OAI-1).
+- FE: 4 dtq specs ported + adapted to Angular 19 standalone (clarin-name-field-parser,
+  share-submission-page, ds-dynamic-autocomplete, ds-dynamic-sponsor-autocomplete + 2 mocks) —
+  17/17 karma; first push (6290b78f50) FAILED CI lint (karma-only local check — lesson recorded),
+  eslint --fix + re-verified 17/17, pushed 30b524a97f.
+
+### §9b acceptance verification panel (wf_3eeb2959, 5 adversarial read-only agents)
+- Gate (a) live stack: PASS 9/9 (byHandle rows on both pinned handles, gated /content 401 +
+  authrn 401/200, open real-asset /content 200 with exact bytes, pid/find 302, static EN+CS
+  pages 200, OAI 18 prefixes + cmdi GetRecord CMD root + real sampleIdentifier, refbox real
+  bibtex, FE home 0 raw i18n keys).
+- Gates (b)+(c): PASS 7/7 — chain-7 662-test webapp run + preview/tranche-F verify logs
+  cross-checked line-by-line; CLARIN test inventory 50 files / ~229 executed CLARIN test methods.
+- Gate (d): BE shas == PR heads, ls-files proofs PASS, no critical untracked files; CI pending
+  at panel time -> then: FE lint red found+fixed (above), BE unit red found+fixed (above).
+- Addendum: Matomo governance PASS (source matches recorded decision), captcha/CORS PASS,
+  PLURAL_NAME live endpoint probes PASS 7/7 (incl. negative control singular->404),
+  oai_openaire.xsl guard PASS, Saxon PASS; request-a-copy decision was NOT recorded -> now D9.
+- Gates (e)+(f): 13 spot-checks PASS (shas, logs, live codes byte-exact); flagged the FE lint
+  red as unrecorded -> now recorded; deferred inventory confirmed explicit.
