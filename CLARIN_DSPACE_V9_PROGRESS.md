@@ -1264,3 +1264,96 @@ docker-compose.clarinv9.yml up -d dspace`. NOTE: recreating the dspace container
 env var reverts to 'DSpace Started with Docker Compose' - re-run the command above (or add the
 var to an ignored env file) after a recreate. Verified via /api/config/properties/dspace.name
 and the item-page citation box.
+
+---
+
+## 2026-07-08 — CORRECTION: independent audit says upgrade is NOT done (retract earlier "done" claims)
+
+An independent adversarial audit (8 auditors + verifiers, 57 agents) + a hard final evaluator
+re-checked the "done" claims against the LIVE stack. **Verdict: NOT DONE — major gaps.** Several
+headline claims in the sections above are FALSE/misleading and are retracted here:
+
+- **RETRACTED "Preview (I2) COMPLETE end-to-end / END-TO-END green" (lines ~787/827):** the
+  item Files box was DEAD on every item — `MetadataBitstreamRestRepository` (+ wrapper/converter/
+  resource/model) was never ported (only the allzip `MetadataBitstreamController` was), so
+  `/api/core/metadatabitstreams/search/byHandle` -> 404 and every item rendered "This item
+  contains no files" (reproduced on a freshly deposited item with a real, downloadable file).
+  FIXED 2026-07-08 in the working tree (see below) but the earlier claim was untrue.
+- **RETRACTED "ref-box BIBTEX/CMDI ported" (line ~1124):** the whole CLARIN dspace-oai layer (28
+  classes) is unported; OAI serves no cmdi/olac/bibtex; the ref-box BIBTEX button returns a raw
+  "Unknown metadata format" OAI error. Feature I6/O7 = not started.
+- **RETRACTED the "[x] Full stack runs / [x] independent review, all findings resolved" DoD ticks
+  (lines ~1069-1077):** the stack boots but file listing/preview/download-gate/OAI/admin GUIs
+  (license manage-table, handle-table) / static pages were broken; criticals remain.
+- **CLARIFIED "17/17 Playwright":** reproduced, but the 17 CLARIN-specific tests are GATED OFF by
+  `lindat_specific_tests` (default false); enabled -> 3 pass / 14 fail. 3 of the "17 passed" hit
+  remote dev-5.pc, not the local stack.
+
+Confirmed critical/major gaps (deduplicated): C1 file listing (fixed 2026-07-08, below),
+C2 license/token download gate not enforced (anonymous /content bypasses it), C3 restricted-item
+anon access -> 500 NPE, C4 ~82 static pages 404, C5 OAI/CMDI/BibTeX layer absent; M1 license
+manage-table blank (NG0201), M2 handle-table 0 rows, M3 ePIC bean-name, M4 ISO facet empty, M5
+share-submission button unported, M6 item-edit license tab, M7 PAT auth, M8 EPerson->user_registration
+hook, M9 default.license vanilla, M10 ~94 modified vanilla .java unapplied, M11 dtq-dev CI/Docker
+absent, M12 empty registries, M13 clarin-dspace.cfg only via untracked local.cfg. Full evidence:
+the audit output + digest in the scratchpad; full write-up in the two new plan files.
+
+### THE PLAN to actually finish (source of truth going forward)
+- **`CLARIN_V9_REMEDIATION_PLAN.md`** — 6 phases, 86 work items, each mapped to the exact
+  `origin/dtq-dev` source to REUSE + v9 adaptation; native-DSpace-9 adoption table; evaluator
+  gap-closures GAP-1..5.
+- **`CLARIN_V9_ACCEPTANCE_CRITERIA.md`** — 295 machine-checkable acceptance checks + the
+  Definition-of-Done gates. The upgrade is "done" only when these pass. Do NOT declare done on
+  green CI alone (that is exactly what masked these gaps).
+
+### C1 preview/file-listing — FIXED 2026-07-08 (working tree, NOT yet committed/pushed)
+Reproduced: created workspace item 5696 in "Collection for testing", uploaded preview-sample.txt
+(bitstream 3f0f5f35, `/content` -> 200), deposited -> archived item d2400ee1 (handle
+123456789/2-5977); UI showed "This item contains no files". Root cause: `MetadataBitstreamRestRepository`
+absent + the v9 PLURAL_NAME bean gotcha (FE calls plural `/metadatabitstreams`, bean was singular).
+FIX (reuse from origin/dtq-dev, adapted): ported 6 webapp files (`MetadataBitstreamRestRepository`,
+`MetadataBitstreamWrapperConverter`, `MetadataBitstreamWrapperRest` [+PLURAL_NAME + getTypePlural,
+@Component uses PLURAL_NAME], `MetadataBitstreamWrapper`, hateoas `MetadataBitstreamWrapperResource`,
+and a stripped `BitstreamByHandleRestController` with S3/matomo deps removed, native UsageEvent kept).
+Dropped the 5 BitstreamChecksum*/link-repo files (depend on deferred SyncBitstreamStorageServiceImpl).
+Verified: mvn compile + checkstyle clean; rebuilt server-boot.jar, docker cp into clarinv9-dspace,
+restart. Live: search/byHandle -> 200 with the file; download-by-handle -> 200 with exact bytes; UI
+files-section shows the file card (name/size/format/MD5, Download+Preview); home box shows "contains
+1 file (76 B)". REMAINING: inline Preview button still routes to /home (needs PreviewContent tree via
+file-preview CLI + FE preview-action fix = plan GAP-3); port MetadataBitstreamRestRepositoryIT before
+pushing to PR #1339. These 6 files are UNTRACKED — plan item BE-BASE-0 = commit them (a git clean
+would lose the fix).
+
+---
+
+## 2026-07-08 — INDEPENDENT DONENESS AUDIT: verdict NOT DONE (supersedes the §"2026-07-03 BOTH PRs GREEN" DoD self-assessment)
+
+An adversarial multi-agent audit (8 auditors + verifiers, 57 agents, plus an independent
+final judge; findings reproduced first-hand via curl/git/Playwright) assessed whether this
+upgrade meets the mandate's Definition of Done. **Verdict: NOT DONE — major gaps.** Only
+DoD criterion (d) "PRs mergeable + CI green" is cleanly MET. Several earlier completion
+claims in this file are corrected below (they were made in good faith from CI/build signals
+but do not hold on the live stack):
+
+- **CORRECTION** "Preview (I2) COMPLETE end-to-end / END-TO-END green" (2026-06-26): FALSE at
+  the time — only the allzip controller was ported; `/api/core/metadatabitstreams` 404'd and
+  every item page showed "This item contains no files" (listing needs no assetstore).
+- **CORRECTION** "ref-box BIBTEX/CMDI ported" (2026-07-04): buttons render but export returns
+  a raw OAI error — the CLARIN dspace-oai layer (28 classes + xoai.xml wiring) is unported.
+- **CORRECTION** "17/17 Playwright" framing: the 17 CLARIN-specific tests are gated OFF by
+  `lindat_specific_tests`; with the gate ON they run 3 pass / 14 fail (7 product bugs +
+  6 documented config deferrals + 1 dev-5-only assertion); 3 of the 17 baseline passes hit
+  remote dev-5 URLs, not the local stack.
+- Other confirmed criticals/majors: license-agreement gate not enforced on
+  /core/bitstreams/{id}/content (AuthorizeServiceImpl hook unported — silent security gap);
+  anon restricted-item access → 500 NPE instead of 401; ~82 static HTML pages 404
+  (src/static-files/ + angular.json asset unported); /licenses/manage-table blank (NG0201);
+  /handle-table renders 0 rows (Handle model not in provide-core models[]); ePIC GUI broken
+  (singular bean name); ISO-language facet empty (FE half unported); share-submission button
+  unported; item-edit license tab dead; PAT auth broken; EPerson-create user_registration
+  hook unported; default.license vanilla; registries (local-types etc.) vanilla;
+  clarin-dspace.cfg loaded only via untracked gitignored local.cfg; ALL dtq-dev CI/CD +
+  Docker customizations absent in both repos; ~94 modified-vanilla .java + 49/61 modified
+  config files still byte-vanilla; ~120 CLARIN test classes unported.
+
+### 2026-07-08 — C1 
