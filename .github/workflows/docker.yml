@@ -24,7 +24,7 @@ jobs:
   ####################################################
   dspace-dependencies:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dataquest-dev/dspace'
+    if: github.repository == 'dataquest-dev/dspace' && github.event_name != 'pull_request'
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-dependencies
@@ -39,7 +39,7 @@ jobs:
   #######################################
   dspace:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dataquest-dev/dspace'
+    if: github.repository == 'dataquest-dev/dspace' && github.event_name != 'pull_request'
     # Must run after 'dspace-dependencies' job above
     needs: dspace-dependencies
     uses: ./.github/workflows/reusable-docker-build.yml
@@ -61,7 +61,7 @@ jobs:
   #############################################################
   dspace-test:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dataquest-dev/dspace'
+    if: github.repository == 'dataquest-dev/dspace' && github.event_name != 'pull_request'
     # Must run after 'dspace-dependencies' job above
     needs: dspace-dependencies
     uses: ./.github/workflows/reusable-docker-build.yml
@@ -81,7 +81,7 @@ jobs:
   ###########################################
   dspace-cli:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dataquest-dev/dspace'
+    if: github.repository == 'dataquest-dev/dspace' && github.event_name != 'pull_request'
     # Must run after 'dspace-dependencies' job above
     needs: dspace-dependencies
     uses: ./.github/workflows/reusable-docker-build.yml
@@ -98,7 +98,7 @@ jobs:
   ###########################################
   dspace-solr:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dataquest-dev/dspace'
+    if: github.repository == 'dataquest-dev/dspace' && github.event_name != 'pull_request'
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-solr
@@ -119,7 +119,7 @@ jobs:
   ########################################################
   dspace-postgres-loadsql:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dataquest-dev/dspace'
+    if: github.repository == 'dataquest-dev/dspace' && github.event_name != 'pull_request'
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-postgres-loadsql
@@ -136,7 +136,7 @@ jobs:
   #################################################################################
   docker-deploy:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dataquest-dev/dspace'
+    if: github.repository == 'dataquest-dev/dspace' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     # Must run after all major images are built
     needs: [dspace, dspace-test, dspace-cli, dspace-solr]
