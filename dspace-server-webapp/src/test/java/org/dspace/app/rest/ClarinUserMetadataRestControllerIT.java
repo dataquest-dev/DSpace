@@ -511,7 +511,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
 
 
         // Get created User Metadata - there should be 2 records
-        getClient(adminToken).perform(get("/api/core/clarinusermetadata")
+        getClient(adminToken).perform(get("/api/core/clarinusermetadatas")
                         .contentType(contentType))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(2)));
@@ -533,7 +533,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(jsonPath("$.page.totalElements", is(2)));
 
         // Get created User Metadata - there should be 4 records
-        getClient(adminToken).perform(get("/api/core/clarinusermetadata")
+        getClient(adminToken).perform(get("/api/core/clarinusermetadatas")
                         .contentType(contentType))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(4)));
@@ -549,7 +549,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
 
         // Check that the user registration for test data full user has been created
         // Test /api/core/clarinusermetadatas search by userRegistrationAndBitstream endpoint
-        getClient(adminToken).perform(get("/api/core/clarinusermetadata/search/byUserRegistrationAndBitstream")
+        getClient(adminToken).perform(get("/api/core/clarinusermetadatas/search/byUserRegistrationAndBitstream")
                 .param("userRegUUID", String.valueOf(clarinUserRegistration.getID()))
                 .param("bitstreamUUID", String.valueOf(bitstream2.getID()))
                 .contentType(contentType))
@@ -586,7 +586,7 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                 .andExpect(jsonPath("$.page.totalElements", is(3)));
 
         // Get created User Metadata from the new transaction - there should be 2 records
-        getClient(adminToken).perform(get("/api/core/clarinusermetadata/search/byUserRegistrationAndBitstream")
+        getClient(adminToken).perform(get("/api/core/clarinusermetadatas/search/byUserRegistrationAndBitstream")
                         .param("userRegUUID", String.valueOf(clarinUserRegistration.getID()))
                         .param("bitstreamUUID", String.valueOf(bitstream2.getID()))
                         .contentType(contentType))

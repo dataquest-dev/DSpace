@@ -50,14 +50,14 @@ public class PreviewContentDAOImpl extends AbstractHibernateDAO<PreviewContent> 
 
     @Override
     public List<PreviewContent> getPreview(Context context, Bitstream bitstream) throws SQLException {
-        // select only data from the previewcontent table whose ID is not a child in the preview2preview table
-        Query query = getHibernateSession(context).createNativeQuery(
-                "SELECT pc.* FROM previewcontent pc " +
-                        "JOIN bitstream b ON pc.bitstream_id = b.uuid " +
-                        "WHERE b.uuid = :bitstream_id " +
-                        "AND NOT EXISTS (SELECT 1 FROM preview2preview p2p WHERE pc.previewcontent_id = p2p.child_id)",
-                PreviewContent.class
-        );
+        // select only previewcontent rows that are not a child in the preview2preview join table
+        // (JPQL instead of the fork's native SQL: Hibernate 6 does not auto-flush pending changes
+        // before an unsynchronized native query, which left this query blind to just-created rows)
+        Query query = createQuery(context,
+                "SELECT pc FROM " + PreviewContent.class.getSimpleName() + " pc " +
+                        "WHERE pc.bitstream.id = :bitstream_id " +
+                        "AND NOT EXISTS (SELECT 1 FROM " + PreviewContent.class.getSimpleName() + " parent " +
+                        "JOIN parent.sub child WHERE child.id = pc.id)");
         query.setParameter("bitstream_id", bitstream.getID());
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
         return findMany(context, query);

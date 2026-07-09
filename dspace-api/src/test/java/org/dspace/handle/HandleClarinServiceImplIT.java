@@ -19,7 +19,6 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.handle.factory.HandleClarinServiceFactory;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.services.ConfigurationService;

@@ -104,7 +104,7 @@ public class ClarinBitstreamImportControllerIT extends AbstractEntityIntegration
 
         //create bitstream and store file
         MvcResult mvcResult = getClient(token)
-                .perform(MockMvcRequestBuilders.fileUpload("/api/core/bundles/" +
+                .perform(MockMvcRequestBuilders.multipart("/api/core/bundles/" +
                                 bundle.getID() + "/bitstreams")
                         .file(file))
                 .andExpect(status().isCreated())

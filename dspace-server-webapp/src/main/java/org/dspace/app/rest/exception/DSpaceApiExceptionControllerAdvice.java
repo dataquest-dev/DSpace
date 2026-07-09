@@ -233,7 +233,13 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
         } else {
             returnCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         }
-        sendErrorResponse(request, response, ex, "An exception has occurred", returnCode);
+        if (HttpStatus.valueOf(returnCode).is4xxClientError()) {
+            // CLARIN: expose the exception message to REST clients for 4xx errors
+            sendErrorResponse(request, response, ex,
+                    ex.getMessage() != null ? ex.getMessage() : "An exception has occurred", returnCode);
+        } else {
+            sendErrorResponse(request, response, ex, "An exception has occurred", returnCode);
+        }
 
     }
 

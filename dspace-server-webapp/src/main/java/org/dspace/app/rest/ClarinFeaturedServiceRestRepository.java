@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
-@Component(ClarinFeaturedServiceRest.CATEGORY + "." + ClarinFeaturedServiceRest.NAME)
+@Component(ClarinFeaturedServiceRest.CATEGORY + "." + ClarinFeaturedServiceRest.PLURAL_NAME)
 public class ClarinFeaturedServiceRestRepository extends DSpaceRestRepository<ClarinFeaturedServiceRest, Integer> {
     @Override
     @PreAuthorize("permitAll()")

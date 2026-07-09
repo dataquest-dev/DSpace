@@ -10,7 +10,6 @@ package org.dspace.builder;
 import java.sql.SQLException;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.handle.Handle;
 import org.dspace.handle.factory.HandleClarinServiceFactory;

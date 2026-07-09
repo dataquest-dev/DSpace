@@ -110,6 +110,10 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
     public ClarinShibbolethLoginFilter(String url, AuthenticationManager authenticationManager,
                                  RestAuthenticationService restAuthenticationService) {
         super(url, HttpMethod.GET.name(), authenticationManager, restAuthenticationService);
+        // CLARIN: the verification-token flow POSTs to this endpoint, so match ANY method
+        // (dtq-dev used the v7 AntPathRequestMatcher(url) which was method-agnostic)
+        setRequiresAuthenticationRequestMatcher(
+                new org.springframework.security.web.util.matcher.AntPathRequestMatcher(url));
     }
 
     @Override

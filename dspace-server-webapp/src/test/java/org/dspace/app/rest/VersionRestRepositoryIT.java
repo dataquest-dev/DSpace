@@ -376,6 +376,9 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void createFirstVersionItemForbiddenTest() throws Exception {
+        // CLARIN config enables versioning.submitterCanCreateNewVersion; this test's eperson IS the
+        // submitter, so disable it to exercise the forbidden path (mirrors dtq-dev's adaptation).
+        configurationService.setProperty("versioning.submitterCanCreateNewVersion", false);
         String epersonToken = getAuthToken(eperson.getEmail(), password);
         getClient(epersonToken).perform(post("/api/versioning/versions")
                                .param("summary", "test summary!")

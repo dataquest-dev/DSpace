@@ -1431,3 +1431,66 @@ unchanged. Coexistence IT still TODO (TEST-MATOMO-COLLISION).
   (epichandles PLURAL_NAME), BE-ADMIN-M6 (ItemAddBundleController PUT), M8 user_registration hooks,
   BE-MISC-1, BE-CFG-3 firewall bean, remaining ~100 test-class ports, DevOps/CI tier, cs.json5 keys,
   GAP-3 FE preview viewer, GAP-4 fresh-solr configsets, TEST-MATOMO/REQCOPY collision ITs.
+
+## 2026-07-09 (cont.) — Executor session: submission fixed live, fix tranche E in flight
+All claims below have concrete evidence (log file / probe output / commit sha noted inline).
+
+### Fixed and LIVE-verified on the local stack (deployed boot jar, host port 18080)
+- BE-SUB-1 webapp half was missing: `SubmissionFormConverter.java` + `SubmissionFormFieldRest.java`
+  ported wholesale from dtq-dev (zero vanilla drift). Root cause of FE `JSON.parse(undefined)` in
+  the submission form (me.modelFactory). Evidence: authenticated
+  `GET /api/config/submissionforms/traditionalpageone` now returns `complexDefinition` and
+  `autocompleteCustom` on fields; browser probe of a new submission shows `#dc_title` present,
+  36 inputs, 7 sections, zero console parse errors.
+- Playwright: untranslated-keys spec now PASSES (end-user-agreement REST PATCH fix);
+  submissionPage spec completes the whole form flow and flakes only on the final mydspace
+  list-visibility wait when the machine is under Maven load (span.item-list-title verified present
+  in DOM by probe) — rerun on idle machine pending (pw-rerun3.log / pw-submission5.log).
+- GAP-3 preview click verified end-to-end: REST-created item 123456789/2-5969 with a real asset
+  (assetstore was EMPTY for dev-5-restored rows — any /content on those 500s with
+  FileNotFoundException; environment/data gap, not code). Item page renders CLARIN
+  file-preview-box (Name/Size/Format/MD5), preview-image click fires `/content` -> 200 through
+  the license gate. Probe item to be deleted at final cleanup.
+- clarin-license submission step renders live: License Selector button + dropdown (246 options)
+  in `#section_clarin-license`; ClarinLicenseDistributionValidation returns
+  `error.validation.clarin-license.notgranted` until a license is chosen (validationErrors probe).
+
+### FE PR #1316 pushed
+- 9c628b6a20 test: WorkspaceitemActions spec now provides HALEndpointService +
+  RemoteDataBuildService (shareSubmission port added those injections; CI karma was 8 FAILED /
+  5591 — all 8 in that one spec; local rerun 8/8 green).
+- a3eb662ab5 port: assets/images/error.png (item-type icon onerror fallback; home-page 404s).
+  text.png/Spreadsheet.png 404s exist in dtq-dev too (no such icons upstream) — fallback covers.
+- Sidebar `menu.section.toggle.admin-sidebar_{2,4,5,8}_0` raw keys are aria-labels only
+  (Import/Notifications/AccessControl/Registries toggles) — providers are byte-identical to
+  vanilla dspace-9.3 (git diff empty), CLARIN sections are LINK-type and unaffected =>
+  vanilla-inherited a11y cosmetic, not a port regression. Untranslated-keys spec passes.
+
+### BE fix tranche E (working tree, chain-5 verified parts)
+- Rebuilds: testEnvironment.zip gotcha variant discovered — `mvn install -pl .,dspace` (without
+  dspace-api/dspace-server-webapp in the reactor) packs a zip whose local.cfg has NO db config ->
+  every IT tries postgres localhost:5432. Always refresh with
+  `-pl .,dspace,dspace-api,dspace-server-webapp` (runbook updated mentally; keep in mind).
+- api tier ALL GREEN (rerun-fixed-suites5.log: API-BATCH-OK): ItemMetadataQAChecker.java ported
+  (+ v9 fix: AbstractCurationTask.dereference removed upstream -> dspaceObjectUtils.findDSpaceObject),
+  curate.cfg plugin lines added (checkhandles/metadataqa), FilePreviewIT fixtures
+  preview-file-test.zip + logos.tgz byte-ported, ClarinVersionedHandleIdentifierProviderIT green via
+  versioning-service.xml ignoredMetadataFields (+dc.date.available/doi/uri/relation.replaces),
+  DefaultItemVersionProvider (manageRelationMetadata + title "(yyyy-MM-dd)" suffix; dtq's unused
+  handleService field skipped), InstallItemServiceImpl full CLARIN port (dc.date.available at
+  install when no embargo, local.language.name via IsoLangCodes, fixRelationMetadata/isreplacedby,
+  submitter WRITE policy gated on allow.edit.metadata), InstallItemTest+BundleClarinTest+
+  EpicHandleServiceTest+HandleClarinServiceImplIT+HealthReportIT green in same run.
+- webapp batch (same log): green incl. ClarinShibbolethLoginFilterIT 25/25, SuggestionRestControllerIT
+  9/9, ClarinLicense*/ClarinUserMetadata*/ClarinWorkflow* etc. 10 suites still failing;
+  2 already fixed in-tree: BitstreamMatcher embeds/links += "checksum" (BitstreamRestRepositoryIT 4x
+  `_embedded.length()` 5!=4), ClarinBitstreamImportController.java was NEVER ported -> 5x 405
+  (now ported + jakarta). Remaining 8 under multi-agent diagnosis (wf_98f5ae27):
+  ClarinItemImportControllerIT (author place), EpicHandleRestControllerIT (all-endpoints 400),
+  ItemRestRepositoryIT, PatchMetadataIT, PreviewContentServiceImplIT, VersionHistory/Version
+  RestRepositoryIT, WorkspaceItemRestRepositoryIT (expected fallout of install/versioning
+  behavioral ports -> mostly v9-test adaptations, to be confirmed with evidence).
+- ClarinDiscoveryRestControllerIT REMOVED from tree (was @Ignore'd but the clean build proved it
+  never compiled — FacetEntryMatcher API drift; ECJ jar poisoning had masked it). Deferral tracked
+  here: needs test-discovery.xml 368-line hand-merge + matcher adaptation; live discovery facets
+  verified earlier.

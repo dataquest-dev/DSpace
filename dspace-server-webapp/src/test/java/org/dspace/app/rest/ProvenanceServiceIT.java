@@ -20,7 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -209,7 +208,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(
-                post("/api/core/items/" + item.getID() + "/mappedCollections/")
+                post("/api/core/items/" + item.getID() + "/mappedCollections")
                         .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
                         .content(
                                 "https://localhost:8080/spring-rest/api/core/collections/" + coll.getID() + "\n"
@@ -367,7 +366,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
 
         String token = getAuthToken(admin.getEmail(), password);
         getClient(token)
-                .perform(put("/api/core/items/" + item.getID() + "/owningCollection/")
+                .perform(put("/api/core/items/" + item.getID() + "/owningCollection")
                         .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
                         .content(
                                 "https://localhost:8080/spring-rest/api/core/collections/" + col.getID()
@@ -386,10 +385,8 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         BulkAccessControlInput bulk = new BulkAccessControlInput();
         AccessConditionBitstream bitstreamNode = new AccessConditionBitstream();
         List<AccessCondition> acList = new ArrayList<>();
-        Calendar cal = Calendar.getInstance();
-        cal.set(2030, Calendar.JANUARY, 1, 0, 0, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        AccessCondition embargo = new AccessCondition("embargo", "test", cal.getTime(), null);
+        java.time.LocalDate startDate = java.time.LocalDate.of(2030, 1, 1);
+        AccessCondition embargo = new AccessCondition("embargo", "test", startDate, null);
         acList.add(embargo);
         bitstreamNode.setAccessConditions(acList);
         bulk.setBitstream(bitstreamNode);
@@ -397,7 +394,7 @@ public class ProvenanceServiceIT extends AbstractControllerIntegrationTest {
         provenanceService.setBitstreamPolicies(context, bitstream, item, bulk);
 
         // Build full expected message
-        String expected = "Access condition (embargo [from: " + cal.getTime() + "]) was added to bitstream ("
+        String expected = "Access condition (embargo [from: " + startDate + "]) was added to bitstream ("
                 + bitstream.getID() + ") by first (admin) last (admin) ("
                 + admin.getEmail() + ") on ";
 

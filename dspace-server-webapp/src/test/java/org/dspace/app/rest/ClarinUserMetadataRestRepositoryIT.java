@@ -45,15 +45,15 @@ public class ClarinUserMetadataRestRepositoryIT extends AbstractControllerIntegr
                 .build();
         context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/core/clarinusermetadata"))
+        getClient().perform(get("/api/core/clarinusermetadatas"))
                 .andExpect(status().isUnauthorized());
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        getClient(adminToken).perform(get("/api/core/clarinusermetadata"))
+        getClient(adminToken).perform(get("/api/core/clarinusermetadatas"))
                 .andExpect(status().isOk());
 
         String userToken = getAuthToken(eperson.getEmail(), password);
-        getClient(userToken).perform(get("/api/core/clarinusermetadata"))
+        getClient(userToken).perform(get("/api/core/clarinusermetadatas"))
                 .andExpect(status().isForbidden());
     }
 
@@ -79,18 +79,18 @@ public class ClarinUserMetadataRestRepositoryIT extends AbstractControllerIntegr
         context.restoreAuthSystemState();
 
         // Test that the user registration is not visible to anonymous users
-        getClient().perform(get("/api/core/clarinusermetadata/" + clarinUserMetadata.getID()))
+        getClient().perform(get("/api/core/clarinusermetadatas/" + clarinUserMetadata.getID()))
                 .andExpect(status().isUnauthorized());
 
         // Test that the user registration is visible to admin
         String adminToken = getAuthToken(admin.getEmail(), password);
-        getClient(adminToken).perform(get("/api/core/clarinusermetadata/" +
+        getClient(adminToken).perform(get("/api/core/clarinusermetadatas/" +
                         clarinUserMetadata.getID()))
                 .andExpect(status().isOk());
 
         // Test that the user registration is visible to authenticated users
         String userToken = getAuthToken(eperson.getEmail(), password);
-        getClient(userToken).perform(get("/api/core/clarinusermetadata/" +
+        getClient(userToken).perform(get("/api/core/clarinusermetadatas/" +
                         clarinUserMetadata.getID()))
                 .andExpect(status().isOk());
 
@@ -112,12 +112,12 @@ public class ClarinUserMetadataRestRepositoryIT extends AbstractControllerIntegr
 
         String otherUserToken = getAuthToken(otherEPerson.getEmail(), password);
         // Check the new user can see their own user registration
-        getClient(otherUserToken).perform(get("/api/core/clarinusermetadata/" +
+        getClient(otherUserToken).perform(get("/api/core/clarinusermetadatas/" +
                         otherClarinUserMetadata.getID()))
                 .andExpect(status().isOk());
 
         // Test that the user registration is not visible to other users
-        getClient(userToken).perform(get("/api/core/clarinusermetadata/" +
+        getClient(userToken).perform(get("/api/core/clarinusermetadatas/" +
                         otherClarinUserMetadata.getID()))
                 .andExpect(status().isForbidden());
     }

@@ -62,6 +62,9 @@ public class EpicHandleRestController extends DSpaceRestRepository<EpicHandleRes
     @Autowired
     private Utils utils;
 
+    // v9: DSpaceRestRepository.findOne no longer carries a base-class @PreAuthorize; without one here
+    // the converter's security evaluation gets a null expression and every conversion 400s.
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Override
     public EpicHandleRest findOne(Context context, String s) {
         throw new RepositoryMethodNotImplementedException("Method not allowed!", "findOne");

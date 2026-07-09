@@ -322,6 +322,10 @@ public class ClarinEPersonImportControllerIT  extends AbstractControllerIntegrat
         }
     }
 
+    private String getStringFromDate(java.time.Instant value) throws ParseException {
+        return getStringFromDate(Date.from(value));
+    }
+
     private String getStringFromDate(Date value) throws ParseException {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
         return df.format(value);
