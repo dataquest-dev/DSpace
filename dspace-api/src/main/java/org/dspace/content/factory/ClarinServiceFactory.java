@@ -19,6 +19,7 @@ import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.content.service.clarin.MatomoReportSubscriptionService;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.matomo.java.tracking.MatomoTracker;
 
 /**
  * Abstract factory to get services for the clarin package, use ClarinServiceFactory.getInstance() to retrieve an
@@ -47,6 +48,8 @@ public abstract class ClarinServiceFactory {
     public abstract ClarinItemService getClarinItemService();
 
     public abstract MatomoReportSubscriptionService getMatomoReportService();
+
+    public abstract MatomoTracker getMatomoTracker();
 
     public abstract ClarinTokenService getClarinTokenService();
 

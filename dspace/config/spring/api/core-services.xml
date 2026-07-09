@@ -178,6 +178,14 @@
     <!-- CLARIN/LINDAT (UFAL) services (ported for DSpace 9; bitstream-sync deferred).
          Matomo tracking uses the native DSpace 9 MatomoEventListener (config/modules/matomo.cfg),
          not a CLARIN-specific tracker; only the CLARIN Matomo report-subscription feature is kept. -->
+    <!-- Matomo statistics: native MatomoEventListener owns bitstream-download tracking;
+         only the CLARIN OAI harvest tracker is kept (no native equivalent).
+         ClarinMatomoBitstreamTracker is intentionally NOT registered (double-count guard). -->
+    <bean class="org.matomo.java.tracking.MatomoTracker">
+        <constructor-arg value="${matomo.tracker.host.url}"/>
+    </bean>
+    <bean class="org.dspace.app.statistics.clarin.ClarinMatomoOAITracker"/>
+
     <bean class="org.dspace.content.ClarinBitstreamServiceImpl"/>
     <bean class="org.dspace.content.DspaceObjectClarinServiceImpl"/>
     <bean class="org.dspace.content.PreviewContentServiceImpl"/>
