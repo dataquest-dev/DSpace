@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping({EpicHandleRest.URI_PREFIX, EpicHandleRest.URI_PREFIX_PLURAL})
-@Component(EpicHandleRest.CATEGORY + "." + EpicHandleRest.NAME)
+@Component(EpicHandleRest.CATEGORY + "." + EpicHandleRest.PLURAL_NAME)
 public class EpicHandleRestController extends DSpaceRestRepository<EpicHandleRest, String> {
     private static final int DEFAULT_PAGE_SIZE = 10;
 

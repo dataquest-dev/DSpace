@@ -18,6 +18,7 @@ import org.dspace.app.rest.RestResourceController;
 public class EpicHandleRest extends BaseObjectRest<String> {
 
     public static final String NAME = "epichandle";
+    public static final String PLURAL_NAME = NAME + "s";
     public static final String CATEGORY = RestAddressableModel.CORE;
     public static final String URI_PREFIX = "/api/" + CATEGORY + "/" + NAME;
     public static final String URI_PREFIX_PLURAL = URI_PREFIX + "s";
@@ -40,7 +41,7 @@ public class EpicHandleRest extends BaseObjectRest<String> {
 
     @Override
     public String getTypePlural() {
-        return NAME + "s";
+        return PLURAL_NAME;
     }
 
     @Override

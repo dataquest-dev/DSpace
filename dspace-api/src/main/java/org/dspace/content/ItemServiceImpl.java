@@ -1199,7 +1199,12 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     @Override
     public boolean hasUploadedFiles(Item item) throws SQLException {
-        List<Bundle> bundles = getBundles(item, "ORIGINAL");
+        return hasUploadedFiles(item, "ORIGINAL");
+    }
+
+    @Override
+    public boolean hasUploadedFiles(Item item, String bundleName) throws SQLException {
+        List<Bundle> bundles = getBundles(item, bundleName);
         for (Bundle bundle : bundles) {
             if (CollectionUtils.isNotEmpty(bundle.getBitstreams())) {
                 return true;

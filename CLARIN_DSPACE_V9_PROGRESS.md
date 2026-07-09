@@ -1357,3 +1357,77 @@ but do not hold on the live stack):
   config files still byte-vanilla; ~120 CLARIN test classes unported.
 
 ### 2026-07-08 — C1 
+
+---
+
+## 2026-07-09 — EXECUTOR SESSION: environment restored; C1–C5 criticals closed with live evidence
+
+### Environment event (context for everything below)
+Docker Desktop was found WIPED at session start (no containers/images/volumes on either engine;
+all 4 ports dead). Restored per `_saved/RESTORE.md`: BE image from `_saved/clarinv9_be_image.tar`,
+fresh postgres+solr volumes, dev-5 v9 DB from `_saved/clarinv9_migrated_v9.sql` (0 load errors),
+`index-discovery -b` (discovery serves 2293 objects), `dspace oai import` (oai core 2953 docs),
+FE served from `dspace-angular/dist` on :14000. Assetstore volume is EMPTY (was ~1 file before
+the wipe) — positive byte-delivery stays env-gated/IT-proven as before; negative gates unaffected.
+NOTE: `/dspace/config` is a BIND MOUNT of the repo's `dspace/config` — config edits apply on
+container restart; Java changes require boot-jar rebuild + `docker cp` + restart, and the
+in-container CLI additionally needs `/dspace/lib/*.jar` refreshed (done for dspace-api,
+dspace-oai, matomo-java-tracker*).
+
+### Commits pushed to BE PR #1339 (branch ufal/clarin-dspace-upgrade-v9)
+- 7c28baeb07 BE-BASE-0: the 6 C1 metadata-bitstream REST files committed (were untracked) + plan/AC docs.
+- dc048d43a7 Phase 0+1: C2 gate hook (AuthorizeServiceImpl+AuthorizationBitstreamUtils, !isAdmin-guarded),
+  C3 null guard (IdentifierRestRepository 401-not-500 + new regression test), GAP-1
+  ClarinBitstreamService(+Impl, S3-sync replaced by vanilla computeChecksum/retrieveFile),
+  BE-WSI-1 WorkspaceItemRestRepository license PATCH ops (jakarta+PLURAL_NAME), DCInput pipeline
+  (ComplexDefinitions/ACL/autocomplete, v9-adapted), registries (local-types 20, bitstream-formats 97,
+  dc.rights.label; openalex kept), config-definition includes clarin-dspace.cfg (M13), LINDAT
+  default.license (M9), ORCID CachingOrcidRestConnector bean (BE-CFG-5), CLARIN test builders +
+  AbstractBuilder delta + archive IT assets, ported ITs.
+- 5f0408f570 OAI/C5 + submission wiring + config: 28 OAI classes + ItemUtils/XOAI hand-reconcile +
+  xoai.xml/oai.cfg/description.xml/oai_dc.xsl merges (vanilla rioxx/openaire4/oai_openaire kept),
+  CMDIRestController, Matomo governance (native handler = sole download emitter; CLARIN OAI tracker
+  re-ported, gated matomo.track.enabled=false; matomo-java-tracker dep restored), submission-forms.dtd,
+  submission-forms.xml merge (CLARIN forms + complex defs + value-pairs; v9 lowercase openaire kept),
+  item-submission.xml (clarin-notice/clarin-license/specialFields + clariah/teaching processes),
+  clarin-token launcher (M7), PAT secret placeholders (BE-CFG-2), Shibboleth mapping (BE-CFG-6),
+  email dspace.shortname branding (BE-CFG-7; v9-only templates kept).
+
+### Critical items — objective status (probes run 2026-07-09 against localhost, deployed jar == PR HEAD)
+- C1 file listing: PASS live. `GET /api/core/metadatabitstreams/search/byHandle?handle=11858/00-097C-0000-0023-119E-8`
+  -> 200 with 2 rows (syn2005.gz + license.txt; no fileGrpType param = FE call shape). ITs:
+  MetadataBitstreamRestRepositoryIT 11/11, BitstreamByHandleRestControllerIT 16/16 (0 failures).
+- C2 license gate: PASS. Live negative gates: gated faf919b4 `/content` -> 401 (was 500-bypass);
+  `/api/authrn/faf919b4` -> 401; open f15230ca `/api/authrn` -> 200. Positive token/user-metadata
+  paths proven by AuthorizationRestControllerIT 8/8 (valid token 200, expired denied, metadata
+  flow allow/deny). Open `/content` -> 500 on file read = EMPTY-ASSETSTORE ENV GATE (documented;
+  positive bytes proven in-IT via test assetstore), not a code defect.
+- C3 pid/find: PASS by IT (IdentifierRestRepositoryIT 8/8 incl. new
+  testRestrictedIdentifierAnonymousUnauthorized: anon on restricted item -> 401 not 500).
+  Live curl not decisive on this dataset (public handle -> 302), as the AC addendum specifies.
+- C4 static pages: PASS live. 82 html in dist; raw `/static-files/about.html` 200; rendered
+  `/static/about.html` 200 with real content; `/static-files/cs/faq.html` 200; both
+  deep-sequoia-licence.html + theaitre-license.html 200. (FE changes not yet pushed to #1316 — see below.)
+- C5 OAI/CMDI/BibTeX: PASS live after `oai import -c` (2953 docs). ListMetadataFormats includes
+  cmdi/olac/oai_metasharev2/bibtex/elg (+vanilla set incl. rioxx). GetRecord cmdi+olac on pinned
+  11234/1-3039 -> 200, CMD root, restrictedAccess=true in xoai, itemId/owningCollection present,
+  lindat /bitstream/{handle}/{sid}/{name} URLs. ColComFilter verified excluding a DH-community item
+  (cannotDisseminateFormat by design). Refbox `type=bibtex` -> 200 with real `@misc{...}` citation.
+
+### Matomo / GAP-5 decision (recorded)
+Native DSpace 9 MatomoEventListener remains the ONLY bitstream-download emitter (CLARIN
+ClarinMatomoBitstreamTracker intentionally NOT ported -> no double count). CLARIN
+ClarinMatomoOAITracker IS re-ported for OAI harvest stats (no native equivalent; zero-regression),
+inert unless matomo.track.enabled=true. Reporting layer (MatomoHelper, lr.statistics.api.site_id=5)
+unchanged. Coexistence IT still TODO (TEST-MATOMO-COLLISION).
+
+### In working tree, NOT yet committed
+- FE (PR #1316 pending lint+build gate): static-files (82) + angular.json assets, provide-core
+  models[] += Handle + MetadataBitstream (value imports), ClarinLicenseTableComponent
+  providers:[NgbActiveModal] (M1), FilterType.isoLanguage + filterTypeMap (M4), item-edit license
+  tab (FeatureID.CanManageLicense + functional itemPageLicenseMapperGuard + route) — i18n keys and
+  karma/lint run still pending before push.
+- BE remaining (next tranches): BE-SUB-2/6/7, BE-OAI-7, BE-CHK-5 checksum tier, BE-ADMIN-M3
+  (epichandles PLURAL_NAME), BE-ADMIN-M6 (ItemAddBundleController PUT), M8 user_registration hooks,
+  BE-MISC-1, BE-CFG-3 firewall bean, remaining ~100 test-class ports, DevOps/CI tier, cs.json5 keys,
+  GAP-3 FE preview viewer, GAP-4 fresh-solr configsets, TEST-MATOMO/REQCOPY collision ITs.
