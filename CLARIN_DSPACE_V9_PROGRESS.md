@@ -1567,3 +1567,20 @@ All claims below have concrete evidence (log file / probe output / commit sha no
   oai_openaire.xsl guard PASS, Saxon PASS; request-a-copy decision was NOT recorded -> now D9.
 - Gates (e)+(f): 13 spot-checks PASS (shas, logs, live codes byte-exact); flagged the FE lint
   red as unrecorded -> now recorded; deferred inventory confirmed explicit.
+
+## 2026-07-10 (cont. 2) — Tranche G: full-CI vanilla-suite greens (19a9dabdc1)
+The first FULL CI IT run (3653 tests) exposed 13 vanilla suites (27 fails) outside the targeted
+local batches. 13-agent evidence panel (wf_a723ef56) verdicts, all applied + locally verified
+(tranche-g-verify.log: 15 suites, 349 tests, 0 failures incl. Swordv1 5/5 + Swordv2 12/12):
+- 11 dtq-mirroring test adaptations (registry count 95, CCLicense no-license builder, versioned
+  title suffix, EPerson local ObjectMapper [shared-Spring-mapper mutation poisoned later POSTs],
+  relationship metadata counts +1 [install dc.date.available], Statistics setup ordering vs
+  CLARIN addBitstream hooks, 11 submission sections, SubmissionForms admin-token + 2 dtq ACL
+  tests, CanCreateVersion property toggles).
+- 1 real main-code find (NOT in dtq, v9-environment interaction): CLARIN EPIC code registered a
+  JVM-GLOBAL java.net.Authenticator with BLANK lr.pid credentials; under Boot 3's JDK request
+  factory it auto-answered every 401 Basic challenge ('':'') -> SWORD 401s became 403/500.
+  Guarded Authenticator.setDefault on non-blank creds in EpicHandleServiceImpl +
+  AbstractPIDService (production-neutral). Latent (ticket-worthy, unchanged): Saxon-HE as JAXP
+  default makes sword ErrorDocument.writeTo 500 on accessExternalDTD — unreachable once 401s
+  short-circuit; noted for upstream.
