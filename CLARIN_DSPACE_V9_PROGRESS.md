@@ -1584,3 +1584,16 @@ local batches. 13-agent evidence panel (wf_a723ef56) verdicts, all applied + loc
   AbstractPIDService (production-neutral). Latent (ticket-worthy, unchanged): Saxon-HE as JAXP
   default makes sword ErrorDocument.writeTo 500 on accessExternalDTD — unreachable once 401s
   short-circuit; noted for upstream.
+
+## 2026-07-10 — FINAL: both PRs CI-GREEN at HEAD
+- BE PR #1339 @ ca39f578b1: run 29062199800 completed SUCCESS — Run Unit Tests pass (13m),
+  Run Integration Tests pass (31m48s, the full 3653-IT job that was red before tranche G),
+  codecov pass. FE PR #1316 @ 30b524a97f: all checks pass (tests 20.x/22.x both runs,
+  docker builds); zero non-pass checks on either PR (docker-deploy/codecov skips are by design).
+- Final local stack: boot jar + dspace-api lib with tranche G deployed, restart, API 200,
+  byHandle smoke green.
+- Gates summary: (a) cold-pass 9/9 live probes PASS (§9b panel, this file 2026-07-10);
+  (b)(c) api+webapp+karma+Playwright matrices green with named logs; (d) both PRs green AND
+  git ls-files proofs verified by the panel; (e) C1–C5 closed with live evidence, remaining
+  decision items D9 request-a-copy + TEST-MATOMO-COLLISION explicitly deferred-documented;
+  (f) this file's claims spot-checked 13/13 by the adversarial panel.
