@@ -25,6 +25,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.commons.lang3.function.FailableFunction;
@@ -103,6 +105,9 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
 
     protected Community community;
 
+    // CLARIN versioning appends " (yyyy-MM-dd)" to new version titles
+    private String formattedDate;
+
     @Override
     @Before
     public void setUp() throws Exception {
@@ -115,6 +120,8 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             .build();
 
         context.restoreAuthSystemState();
+
+        formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
     @Override
@@ -1330,7 +1337,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -1499,7 +1506,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -1508,7 +1515,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_2 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -1658,7 +1665,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "project-relationships",
             (r) -> r.param("f.isPublicationOfProject", idPub1_2 + ",equals"),
             List.of(
-                matchSearchResult(pro1_2, "project 1")
+                matchSearchResult(pro1_2, "project 1 (" + formattedDate + ")")
             )
         );
 
@@ -1667,7 +1674,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -1676,7 +1683,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_2 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
     }
@@ -1917,7 +1924,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -2093,7 +2100,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -2102,7 +2109,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_2 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -2252,7 +2259,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "project-relationships",
             (r) -> r.param("f.isPublicationOfProject", idPub1_2 + ",equals"),
             List.of(
-                matchSearchResult(pro1_2, "project 1")
+                matchSearchResult(pro1_2, "project 1 (" + formattedDate + ")")
             )
         );
 
@@ -2261,7 +2268,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_1 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
 
@@ -2270,7 +2277,7 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             null, "publication-relationships",
             (r) -> r.param("f.isProjectOfPublication", idPro1_2 + ",equals"),
             List.of(
-                matchSearchResult(pub1_2, "publication 1")
+                matchSearchResult(pub1_2, "publication 1 (" + formattedDate + ")")
             )
         );
     }

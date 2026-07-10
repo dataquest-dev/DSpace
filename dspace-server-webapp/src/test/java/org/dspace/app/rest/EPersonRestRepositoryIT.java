@@ -111,8 +111,9 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
     @Autowired
     private MetadataFieldService metadataFieldService;
 
-    @Autowired
-    private ObjectMapper mapper;
+    // CLARIN/dtq parity: a local mapper — the tests call setAnnotationIntrospector, which must not
+    // mutate the server's shared Spring mapper (poisoned serialization made later POSTs 400)
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     public void createTest() throws Exception {

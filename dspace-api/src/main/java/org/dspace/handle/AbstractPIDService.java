@@ -11,6 +11,7 @@ import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
 import org.springframework.stereotype.Component;
@@ -66,7 +67,11 @@ public abstract class AbstractPIDService {
             throw new Exception("PIDService URL not configured.");
         }
         authenticator = new PIDServiceAuthenticator();
-        Authenticator.setDefault(authenticator);
+        // Same guard as EpicHandleServiceImpl: a JVM-global Authenticator with blank credentials
+        // auto-answers every 401 Basic challenge in the JVM (breaks SWORD 401 responses).
+        if (StringUtils.isNotBlank(PIDServiceUSER) && StringUtils.isNotBlank(PIDServicePASS)) {
+            Authenticator.setDefault(authenticator);
+        }
     }
 
     public abstract String sendPIDCommand(HTTPMethod method, Map<String, Object> params) throws Exception;

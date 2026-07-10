@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.handle.service.EpicHandleService;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +55,12 @@ public class EpicHandleServiceImpl implements EpicHandleService {
         }
         pidServiceUser = configurationService.getProperty("lr.pid.service.user");
         pidServicePassword = configurationService.getProperty("lr.pid.service.pass");
-        Authenticator authenticator = new EpicHandleServiceAuthenticator();
-        Authenticator.setDefault(authenticator);
+        // Never register a JVM-global Authenticator with blank credentials: it makes every
+        // HttpURLConnection in the JVM auto-answer 401 Basic challenges with "":"" (e.g. breaking
+        // the SWORD endpoints' 401 responses). Blank credentials can never authenticate anyway.
+        if (StringUtils.isNotBlank(pidServiceUser) && StringUtils.isNotBlank(pidServicePassword)) {
+            Authenticator.setDefault(new EpicHandleServiceAuthenticator());
+        }
     }
 
     @Override
