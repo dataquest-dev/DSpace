@@ -36,6 +36,7 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.ReportResultService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.ProvenanceService;
 import org.dspace.eperson.service.SubscribeService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
@@ -129,6 +130,13 @@ public abstract class ContentServiceFactory {
      * @return the DuplicateDetectionService
      */
     public abstract DuplicateDetectionService getDuplicateDetectionService();
+
+    /**
+     * Return the implementation of the ProvenanceService interface
+     *
+     * @return the ProvenanceService
+     */
+    public abstract ProvenanceService getProvenanceService();
 
     public <T extends DSpaceObject> DSpaceObjectService<T> getDSpaceObjectService(T dso) {
         return getDSpaceObjectService(dso.getType());

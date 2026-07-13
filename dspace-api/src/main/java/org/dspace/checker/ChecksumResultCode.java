@@ -24,5 +24,9 @@ public enum ChecksumResultCode {
     CHECKSUM_MATCH,
     CHECKSUM_NO_MATCH,
     CHECKSUM_PREV_NOT_FOUND,
-    CHECKSUM_ALGORITHM_INVALID
+    CHECKSUM_ALGORITHM_INVALID,
+    // Inserted by migration V7.6_2024.01.25__insert_checksum_result.sql; the S3 synchronized dual-store
+    // tier that produces this result is deferred (O1), but the constant must exist so @Enumerated(STRING)
+    // mapping of the checksum_results row does not fail.
+    CHECKSUM_SYNC_NO_MATCH
 }

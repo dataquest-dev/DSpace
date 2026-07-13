@@ -147,9 +147,9 @@ public class VersioningServiceImpl implements VersioningService {
                             workflowItemService.delete(c, wfi);
                         }
                     }
-                } else {
-                    itemService.delete(c, item);
                 }
+                // item must be deleted regardless of whether the item is archived or not
+                itemService.delete(c, item);
             }
         } catch (Exception e) {
             c.abort();
@@ -268,4 +268,9 @@ public class VersioningServiceImpl implements VersioningService {
         return versionDAO.countVersionsByHistoryWithItem(context, versionHistory);
     }
 
+
+    @Override
+    public void deleteVersion(Context c, Version version) throws SQLException {
+        versionDAO.delete(c, version);
+    }
 }
