@@ -90,7 +90,6 @@ public class VersioningTest extends AbstractUnitTest {
 
             versionedItem = installItemService.installItem(context, wsi);
 
-            context.commit();
             context.restoreAuthSystemState();
         } catch (AuthorizeException ex) {
             log.error("Authorization Error in init", ex);
