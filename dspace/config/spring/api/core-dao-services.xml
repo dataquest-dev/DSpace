@@ -23,6 +23,7 @@
     <bean class="org.dspace.content.dao.impl.BundleDAOImpl"/>
     <bean class="org.dspace.content.dao.impl.CommunityDAOImpl"/>
     <bean class="org.dspace.content.dao.impl.ItemDAOImpl"/>
+    <bean class="org.dspace.content.dao.impl.ReportResultDAOImpl"/>
     <bean class="org.dspace.content.dao.impl.MetadataFieldDAOImpl"/>
     <bean class="org.dspace.content.dao.impl.MetadataSchemaDAOImpl"/>
     <bean class="org.dspace.content.dao.impl.MetadataValueDAOImpl"/>

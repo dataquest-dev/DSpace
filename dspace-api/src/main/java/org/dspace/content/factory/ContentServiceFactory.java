@@ -31,6 +31,7 @@ import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
+import org.dspace.content.service.ReportResultService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
@@ -120,6 +121,13 @@ public abstract class ContentServiceFactory {
      * @return the DuplicateDetectionService
      */
     public abstract DuplicateDetectionService getDuplicateDetectionService();
+
+    /**
+     * Return the implementation of the ReportResultService interface
+     *
+     * @return the ReportResultService
+     */
+    public abstract ReportResultService getReportResultService();
 
     public <T extends DSpaceObject> DSpaceObjectService<T> getDSpaceObjectService(T dso) {
         return getDSpaceObjectService(dso.getType());
