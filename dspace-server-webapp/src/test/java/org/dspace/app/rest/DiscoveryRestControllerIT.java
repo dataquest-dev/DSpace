@@ -1286,8 +1286,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                                          DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
                        SortOptionMatcher.sortOptionMatcher("organization.foundingDate",
                                          DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
-                       SortOptionMatcher.sortOptionMatcher("dc.date.accessioned",
-                                         DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
+                       // dc.date.accessioned is intentionally hidden via `sort.options.filtered` (clarin-dspace.cfg)
                        SortOptionMatcher.sortOptionMatcher("person.familyName",
                                          DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
                        SortOptionMatcher.sortOptionMatcher("person.givenName",

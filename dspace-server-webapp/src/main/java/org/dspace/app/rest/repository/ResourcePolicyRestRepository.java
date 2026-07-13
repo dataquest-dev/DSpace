@@ -321,6 +321,7 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             } catch (SQLException excSQL) {
                 throw new RuntimeException(excSQL.getMessage(), excSQL);
             }
+            reindexSolrOAI(resourcePolicy.getdSpaceObject());
         } else {
             try {
                 UUID groupUuid = UUID.fromString(groupUuidStr);
@@ -332,6 +333,7 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             } catch (SQLException excSQL) {
                 throw new RuntimeException(excSQL.getMessage(), excSQL);
             }
+            reindexSolrOAI(resourcePolicy.getdSpaceObject());
         }
 
         if (resourcePolicy != null) {
@@ -345,7 +347,6 @@ public class ResourcePolicyRestRepository extends DSpaceRestRepository<ResourceP
             resourcePolicy.setEndDate(resourcePolicyRest.getEndDate());
             resourcePolicyService.update(context, resourcePolicy);
             provenanceService.createResourcePolicy(context, resourcePolicy);
-            reindexSolrOAI(resourcePolicy.getdSpaceObject());
             return converter.toRest(resourcePolicy, utils.obtainProjection());
         } else {
             throw new UnprocessableEntityException("A resource policy must contain a valid eperson or group");

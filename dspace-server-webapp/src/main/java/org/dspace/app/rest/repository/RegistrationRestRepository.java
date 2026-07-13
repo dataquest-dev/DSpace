@@ -184,7 +184,7 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
                     accountService.sendForgotPasswordInfo(context, registrationRest.getEmail());
                 }  catch (SQLException | IOException | MessagingException | AuthorizeException e) {
                     log.error("Something went wrong with sending forgot password info email: "
-                            + registrationRest.getEmail(), e);
+                            + org.dspace.core.Utils.maskEmail(registrationRest.getEmail()), e);
                 }
             }
         }
