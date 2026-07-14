@@ -927,14 +927,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     protected void removeVersion(Context context, Item item) throws AuthorizeException, SQLException {
-        Version version = versioningService.getVersion(context, item);
-        if (version != null) {
-            // This runs from rawDelete while `item` is already being deleted, so only remove its version row from
-            // the history. Running the full versioningService.removeVersion()/delete() here would re-delete the
-            // item (and re-run identifier deletion), double-deleting its metadata and failing on the next Hibernate
-            // flush with a StaleStateException (see HandleDAOImplTest.updateHandlesWithNewPrefix). The public
-            // versioningService.delete(version) path used by REST/CLI/tests is unchanged.
-            versioningService.deleteVersion(context, version);
+        if (versioningService.getVersion(context, item) != null) {
+            versioningService.removeVersion(context, item);
         } else {
             try {
                 identifierService.delete(context, item);
