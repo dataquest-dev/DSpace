@@ -928,7 +928,9 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     protected void removeVersion(Context context, Item item) throws AuthorizeException, SQLException {
         if (versioningService.getVersion(context, item) != null) {
-            versioningService.removeVersion(context, item);
+            // The item is already being deleted here (this runs from rawDelete), so do not let the version
+            // cleanup delete it again — that would double-delete its metadata (StaleStateException on flush).
+            versioningService.removeVersion(context, item, false);
         } else {
             try {
                 identifierService.delete(context, item);

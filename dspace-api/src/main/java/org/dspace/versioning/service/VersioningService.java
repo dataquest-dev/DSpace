@@ -66,6 +66,18 @@ public interface VersioningService {
 
     void removeVersion(Context c, Item item) throws SQLException;
 
+    /**
+     * Remove the version associated with the given item.
+     *
+     * @param c           context
+     * @param item        the item whose version should be removed
+     * @param deleteItem  when {@code false}, the item itself is not deleted here (used while the item is already
+     *                    being deleted, to avoid a double-delete of its metadata); when {@code true} the item is
+     *                    deleted as well.
+     * @throws SQLException if database error
+     */
+    void removeVersion(Context c, Item item, boolean deleteItem) throws SQLException;
+
     Version getVersion(Context c, int versionID) throws SQLException;
 
     Version restoreVersion(Context c, Version version);
