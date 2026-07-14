@@ -100,16 +100,6 @@ public class VersioningServiceImpl implements VersioningService {
 
     @Override
     public void delete(Context c, Version version) throws SQLException {
-        delete(c, version, null);
-    }
-
-    /**
-     * Delete a version. When invoked as part of the deletion of {@code cascadeDeletingItem} (i.e. from
-     * {@link #removeVersion(Context, Item)} which is only called while an item is already being deleted),
-     * that item is NOT re-deleted here, otherwise its metadata would be deleted twice and the next Hibernate
-     * flush would fail with a StaleStateException ("delete from metadatavalue ... row count 0").
-     */
-    protected void delete(Context c, Version version, Item cascadeDeletingItem) throws SQLException {
         try {
             // we will first delete the version and then the item
             // after deletion of the version we cannot find the item anymore
@@ -117,11 +107,8 @@ public class VersioningServiceImpl implements VersioningService {
             Item item = version.getItem();
 
             VersionHistory history = version.getVersionHistory();
-            if (item != null && !item.equals(cascadeDeletingItem)) {
-                // take care of the item identifiers.
-                // Skipped when the item is already being deleted by the caller (rawDelete): rawDelete removes the
-                // item and its identifiers itself, so deleting the identifiers (and their dc.identifier.* metadata)
-                // here as well would double-delete that metadata -> StaleStateException on the next flush.
+            if (item != null) {
+                // take care of the item identifiers
                 provider.deleteVersionedItem(c, version, history);
             }
 
@@ -161,12 +148,8 @@ public class VersioningServiceImpl implements VersioningService {
                         }
                     }
                 }
-                // item must be deleted regardless of whether the item is archived or not,
-                // unless it is the item whose ongoing deletion triggered this version cleanup
-                // (re-deleting it here would double-delete its metadata).
-                if (!item.equals(cascadeDeletingItem)) {
-                    itemService.delete(c, item);
-                }
+                // item must be deleted regardless of whether the item is archived or not
+                itemService.delete(c, item);
             }
         } catch (Exception e) {
             c.abort();
@@ -176,18 +159,9 @@ public class VersioningServiceImpl implements VersioningService {
 
     @Override
     public void removeVersion(Context c, Item item) throws SQLException {
-        // Standalone removal (e.g. REST/CLI, tests): the item itself must be deleted too.
-        removeVersion(c, item, true);
-    }
-
-    @Override
-    public void removeVersion(Context c, Item item, boolean deleteItem) throws SQLException {
         Version version = versionDAO.findByItem(c, item);
         if (version != null) {
-            // When invoked from ItemServiceImpl.rawDelete the item is already being deleted, so pass it as the
-            // "already being deleted" item (deleteItem == false) to keep delete() from re-entering
-            // itemService.delete() for it, which would double-delete its metadata (StaleStateException on flush).
-            delete(c, version, deleteItem ? null : item);
+            delete(c, version);
         }
     }
 
