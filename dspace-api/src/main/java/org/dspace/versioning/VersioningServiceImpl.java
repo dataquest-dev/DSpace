@@ -117,8 +117,11 @@ public class VersioningServiceImpl implements VersioningService {
             Item item = version.getItem();
 
             VersionHistory history = version.getVersionHistory();
-            if (item != null) {
-                // take care of the item identifiers
+            if (item != null && !item.equals(cascadeDeletingItem)) {
+                // take care of the item identifiers.
+                // Skipped when the item is already being deleted by the caller (rawDelete): rawDelete removes the
+                // item and its identifiers itself, so deleting the identifiers (and their dc.identifier.* metadata)
+                // here as well would double-delete that metadata -> StaleStateException on the next flush.
                 provider.deleteVersionedItem(c, version, history);
             }
 
