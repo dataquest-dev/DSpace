@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.InputStream;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
@@ -55,7 +56,6 @@ public class ClarinShibbolethSpecialGroupsIT extends AbstractControllerIntegrati
     public static final String[] SHIB_ONLY = {"org.dspace.authenticate.clarin.ClarinShibAuthentication"};
     private static final String NET_ID_TEST_EPERSON = "123456789";
     private static final String IDP_TEST_EPERSON = "Test Idp";
-    private static final String AUTHORIZATION_TYPE = "Bearer ";
 
     private EPerson clarinEperson;
     private Bitstream restrictedBitstream;
@@ -146,10 +146,11 @@ public class ClarinShibbolethSpecialGroupsIT extends AbstractControllerIntegrati
                 .andExpect(status().isOk());
 
         // Refresh the login token on a stateless request (no shibboleth session/headers)
-        String refreshedToken = getClient(loginToken).perform(post("/api/authn/login"))
+        String refreshedAuthHeader = getClient(loginToken).perform(post("/api/authn/login"))
                 .andExpect(status().isOk())
-                .andReturn().getResponse().getHeader("Authorization")
-                .replace(AUTHORIZATION_TYPE, "");
+                .andReturn().getResponse().getHeader(AUTHORIZATION_HEADER);
+        assertNotNull("The token refresh must return the Authorization header", refreshedAuthHeader);
+        String refreshedToken = refreshedAuthHeader.replace(AUTHORIZATION_TYPE, "");
 
         // The restricted bitstream must still be readable with the refreshed token
         getClient(refreshedToken).perform(get("/api/core/bitstreams/" + restrictedBitstream.getID() + "/content"))
@@ -162,7 +163,7 @@ public class ClarinShibbolethSpecialGroupsIT extends AbstractControllerIntegrati
                         .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
                         .header("SHIB-NETID", NET_ID_TEST_EPERSON))
                 .andExpect(status().is3xxRedirection())
-                .andReturn().getResponse().getHeader("Authorization");
+                .andReturn().getResponse().getHeader(AUTHORIZATION_HEADER);
         assertNotNull("The shibboleth login must return the Authorization header", authHeader);
         return authHeader.replace(AUTHORIZATION_TYPE, "");
     }
@@ -173,6 +174,8 @@ public class ClarinShibbolethSpecialGroupsIT extends AbstractControllerIntegrati
                 .andExpect(status().isOk())
                 .andReturn();
         String content = mvcResult.getResponse().getContentAsString();
-        return mapper.readTree(content).get("token").asText();
+        JsonNode token = mapper.readTree(content).get("token");
+        assertNotNull("The shortlivedtokens response must contain the token field", token);
+        return token.asText();
     }
 }
