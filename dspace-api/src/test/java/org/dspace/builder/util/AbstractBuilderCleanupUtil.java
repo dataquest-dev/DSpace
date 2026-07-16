@@ -31,6 +31,7 @@ import org.dspace.builder.OrcidHistoryBuilder;
 import org.dspace.builder.OrcidQueueBuilder;
 import org.dspace.builder.OrcidTokenBuilder;
 import org.dspace.builder.PoolTaskBuilder;
+import org.dspace.builder.PreviewContentBuilder;
 import org.dspace.builder.ProcessBuilder;
 import org.dspace.builder.RelationshipBuilder;
 import org.dspace.builder.RelationshipTypeBuilder;
@@ -87,6 +88,7 @@ public class AbstractBuilderCleanupUtil {
         map.put(MetadataSchemaBuilder.class.getName(), new ArrayList<>());
         map.put(SiteBuilder.class.getName(), new ArrayList<>());
         map.put(ProcessBuilder.class.getName(), new ArrayList<>());
+        map.put(PreviewContentBuilder.class.getName(), new ArrayList<>());
     }
 
     /**

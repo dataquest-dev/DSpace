@@ -345,4 +345,11 @@
             <class>org.dspace.iiif.canvasdimension.CanvasDimensionCLI</class>
         </step>
     </command>
+    <command>
+        <name>clarin-token</name>
+        <description>Clarin Token Administrator</description>
+        <step>
+            <class>org.dspace.administer.ClarinTokenAdministrator</class>
+        </step>
+    </command>
 </commands>

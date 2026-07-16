@@ -13,7 +13,10 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lyncode.xoai.dataprovider.xml.xoai.Element;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
@@ -33,10 +36,13 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.clarin.ClarinLicenseResourceMapping;
+import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
@@ -49,6 +55,9 @@ import org.dspace.xoai.data.DSpaceItem;
  */
 @SuppressWarnings("deprecation")
 public class ItemUtils {
+
+    private static final ClarinLicenseResourceMappingService clarinLicenseResourceMappingService
+            = ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
     private static final Logger log = LogManager.getLogger(ItemUtils.class);
 
     private static final MetadataExposureService metadataExposureService
@@ -98,13 +107,57 @@ public class ItemUtils {
         return e;
     }
 
-    private static Element createBundlesElement(Context context, Item item) throws SQLException {
+    /**
+     * Default list of bundle names excluded from OAI-PMH exposure.
+     * These are typically derivative bundles produced by {@code dspace filter-media}
+     * (extracted plain-text for indexing, generated thumbnails) or internal bundles
+     * such as the SWORD deposit package. Exposing them may leak content that is not
+     * intended to be a first-class resource of the item.
+     * The {@code oai.bundle.excluded} configuration property, when set, overrides
+     * this default list with a comma-separated list of bundle names.
+     */
+    private static final String[] DEFAULT_EXCLUDED_BUNDLES = new String[] {
+        "TEXT", "THUMBNAIL", "SWORD"
+    };
+
+    /**
+     * @return the effective names of bundles excluded from OAI-PMH exposure,
+     * using {@code oai.bundle.excluded} when configured, or the default
+     * excluded bundle list otherwise.
+     */
+    private static Set<String> getExcludedBundleNames() {
+        String[] configured = configurationService
+                .getArrayProperty("oai.bundle.excluded");
+        String[] effective = (configured != null && configured.length > 0)
+                ? configured
+                : DEFAULT_EXCLUDED_BUNDLES;
+        Set<String> excluded = new HashSet<>();
+        for (String name : effective) {
+            if (name != null) {
+                String trimmed = name.trim();
+                if (!trimmed.isEmpty()) {
+                    excluded.add(trimmed);
+                }
+            }
+        }
+        return excluded;
+    }
+
+    private static Element createBundlesElement(Context context, Item item, AtomicBoolean restricted)
+            throws SQLException {
         Element bundles = create("bundles");
 
         List<Bundle> bs;
 
+        Set<String> excludedBundleNames = getExcludedBundleNames();
+
         bs = item.getBundles();
         for (Bundle b : bs) {
+            // Skip bundles that must not be exposed via OAI-PMH (e.g. TEXT/THUMBNAIL
+            // bundles produced by `dspace filter-media`).
+            if (b.getName() != null && excludedBundleNames.contains(b.getName())) {
+                continue;
+            }
             Element bundle = create("bundle");
             bundles.getElement().add(bundle);
             bundle.getField().add(createValue("name", b.getName()));
@@ -131,8 +184,32 @@ public class ItemUtils {
                 Element bitstream = create("bitstream");
                 bitstreams.getElement().add(bitstream);
 
+                String url = "";
+                String bsName = bit.getName();
+                String sid = String.valueOf(bit.getSequenceID());
                 String baseUrl = configurationService.getProperty("oai.bitstream.baseUrl");
-                String url = baseUrl + "/bitstreams/" + bit.getID().toString() + "/download";
+                String handle = null;
+                // get handle of parent Item of this bitstream, if there
+                // is one:
+                List<Bundle> bn = bit.getBundles();
+                if (!bn.isEmpty()) {
+                    List<Item> bi = bn.get(0).getItems();
+                    if (!bi.isEmpty()) {
+                        handle = bi.get(0).getHandle();
+                    }
+                }
+                if (bsName == null) {
+                    List<String> ext = bit.getFormat(context).getExtensions();
+                    bsName = "bitstream_" + sid + (ext.isEmpty() ? "" : ext.get(0));
+                }
+                if (handle != null && baseUrl != null) {
+                    url = baseUrl + "/bitstream/"
+                            + handle + "/"
+                            + sid + "/"
+                            + URLUtils.encode(bsName);
+                } else {
+                    url = URLUtils.encode(bsName);
+                }
 
                 String cks = bit.getChecksum();
                 String cka = bit.getChecksumAlgorithm();
@@ -158,8 +235,20 @@ public class ItemUtils {
                 bitstream.getField().add(createValue("checksum", cks));
                 bitstream.getField().add(createValue("checksumAlgorithm", cka));
                 bitstream.getField().add(createValue("sid", bit.getSequenceID() + ""));
+                bitstream.getField().add(createValue("id", bit.getID().toString()));
                 // Add primary bitstream field to allow locating easily the primary bitstream information
                 bitstream.getField().add(createValue("primary", primary + ""));
+                if (!restricted.get()) {
+                    List<ClarinLicenseResourceMapping> clarinLicenseResourceMappingList =
+                            clarinLicenseResourceMappingService.findByBitstreamUUID(context, bit.getID());
+                    for (ClarinLicenseResourceMapping clrm : clarinLicenseResourceMappingList) {
+                        if (clrm.getLicense().getRequiredInfo() != null
+                                && clrm.getLicense().getRequiredInfo().length() > 0) {
+                            restricted.set(true);
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -340,8 +429,12 @@ public class ItemUtils {
 
         // Done! Metadata has been read!
         // Now adding bitstream info
+
+        //indicate restricted bitstreams -> restricted access
+        AtomicBoolean restricted = new AtomicBoolean(false);
+
         try {
-            Element bundles = createBundlesElement(context, item);
+            Element bundles = createBundlesElement(context, item, restricted);
             metadata.getElement().add(bundles);
         } catch (SQLException e) {
             log.warn(e.getMessage(), e);
@@ -353,6 +446,15 @@ public class ItemUtils {
         other.getField().add(createValue("handle", item.getHandle()));
         other.getField().add(createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
         other.getField().add(createValue("lastModifyDate", item.getLastModified().toString()));
+
+        if (restricted.get()) {
+            other.getField().add(createValue("restrictedAccess", "true"));
+        }
+        // Because we reindex Solr, which is not done in vanilla
+        // The owning collection for workspace items is null
+        other.getField().add(createValue("owningCollection",
+                item.getOwningCollection() != null ? item.getOwningCollection().getName() : null));
+        other.getField().add(createValue("itemId", item.getID().toString()));
         metadata.getElement().add(other);
 
         // Repository Info

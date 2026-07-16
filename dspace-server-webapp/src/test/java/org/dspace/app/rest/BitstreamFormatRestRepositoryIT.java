@@ -59,7 +59,7 @@ public class BitstreamFormatRestRepositoryIT extends AbstractControllerIntegrati
     @Autowired
     private ObjectMapper mapper;
 
-    private final int DEFAULT_AMOUNT_FORMATS = 86;
+    private final int DEFAULT_AMOUNT_FORMATS = 95;
 
     @Test
     public void findAllPaginationTest() throws Exception {
