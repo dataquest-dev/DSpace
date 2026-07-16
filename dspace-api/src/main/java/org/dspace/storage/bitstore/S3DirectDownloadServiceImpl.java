@@ -10,6 +10,7 @@ package org.dspace.storage.bitstore;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.time.Instant;
 import java.util.Date;
 
@@ -79,20 +80,60 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
                 .withMethod(HttpMethod.GET)
                 .withExpiration(expiration);
         // Add custom response header for filename - to download the file with the desired name
-        // Remove CRLF and quotes to prevent header injection
-        String safeName = desiredFilename.replaceAll("[\\r\\n\"]", "_");
-        // RFC-5987: percent-encode UTF-8, e.g. filename*=UTF-8''%E2%82%ACrates.txt
-        String encoded = URLEncoder.encode(desiredFilename, StandardCharsets.UTF_8);
-        String contentDisposition = String.format(
-                "attachment; filename=\"%s\"; filename*=UTF-8''%s",
-                safeName, encoded);
-
-        request.addRequestParameter("response-content-disposition", contentDisposition);
+        request.addRequestParameter("response-content-disposition",
+                buildContentDisposition(desiredFilename));
         try {
             return s3Client.generatePresignedUrl(request).toString();
         } catch (Exception e) {
             log.error("Failed to generate presigned URL for bucket: {}, key: {}", bucket, key, e);
             throw new RuntimeException("Failed to generate presigned URL", e);
         }
+    }
+
+    /**
+     * Build the Content-Disposition value the way vanilla's HttpHeadersInitializer does: an ASCII
+     * fallback in {@code filename} for clients that predate RFC 5987, plus the real UTF-8 name in
+     * {@code filename*} for everyone else. S3 direct download has no upstream counterpart, so the
+     * logic is copied from vanilla rather than shared.
+     */
+    private String buildContentDisposition(String name) {
+        return String.format("attachment; filename=\"%s\"; filename*=UTF-8''%s",
+                createFallbackAsciiName(name), createEncodedUtf8Name(name));
+    }
+
+    /**
+     * Creates a safe ASCII-only fallback filename by removing diacritics (accents)
+     * and replacing any remaining non-ASCII characters.
+     * E.g., "ä-ö-é.pdf" becomes "a-o-e.pdf".
+     * @param originalFilename The original filename.
+     * @return A string containing only ASCII characters.
+     */
+    private String createFallbackAsciiName(String originalFilename) {
+        if (originalFilename == null) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(originalFilename, Normalizer.Form.NFD);
+        String withoutAccents = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        // Two deviations from vanilla, both of them behaviour this class already had: CR/LF are
+        // dropped so a crafted name cannot inject a header, and \ and " are escaped so a name
+        // containing a quote cannot close the quoted-string early.
+        return withoutAccents.replaceAll("[^\\x00-\\x7F]", "")
+                .replaceAll("[\\r\\n]", "")
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
+    }
+
+    /**
+     * Creates a percent-encoded UTF-8 filename according to RFC 5987.
+     * This is for the `filename*` parameter.
+     * E.g., "ä ö é.pdf" becomes "%C3%A4%20%C3%B6%20%C3%A9.pdf".
+     * @param originalFilename The original filename.
+     * @return A percent-encoded string.
+     */
+    private String createEncodedUtf8Name(String originalFilename) {
+        if (originalFilename == null) {
+            return "";
+        }
+        return URLEncoder.encode(originalFilename, StandardCharsets.UTF_8).replace("+", "%20");
     }
 }

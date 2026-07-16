@@ -139,6 +139,19 @@ public class S3DirectDownloadServiceTest extends AbstractUnitTest {
         assertTrue(cd.contains("UTF-8"));
     }
 
+    // Spaces must be %20 in filename*, not '+' — URLEncoder is form-encoding and differs from RFC 5987 here
+    @Test
+    public void spacesAndDiacriticsInFilename() throws Exception {
+        URL fake = new URL("https://spaces");
+        when(amazonS3.generatePresignedUrl(any(GeneratePresignedUrlRequest.class))).thenReturn(fake);
+
+        s3DirectDownloadService.generatePresignedUrl("b", "k", 60, "Příliš žluťoučký kůň.txt");
+        String cd = captureRequest().getRequestParameters().get("response-content-disposition");
+
+        assertEquals("attachment; filename=\"Prilis zlutoucky kun.txt\"; "
+                + "filename*=UTF-8''P%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD%20k%C5%AF%C5%88.txt", cd);
+    }
+
     // Underlying AmazonS3 throws → IllegalArgumentException
     @Test(expected = IllegalArgumentException.class)
     public void nullFilename() throws Exception {
