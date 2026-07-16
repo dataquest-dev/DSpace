@@ -7,12 +7,12 @@
  */
 package org.dspace.app.rest.security;
 
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.InputStream;
-import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.CharEncoding;
@@ -163,6 +163,7 @@ public class ClarinShibbolethSpecialGroupsIT extends AbstractControllerIntegrati
                         .header("SHIB-NETID", NET_ID_TEST_EPERSON))
                 .andExpect(status().is3xxRedirection())
                 .andReturn().getResponse().getHeader("Authorization");
+        assertNotNull("The shibboleth login must return the Authorization header", authHeader);
         return authHeader.replace(AUTHORIZATION_TYPE, "");
     }
 
@@ -172,7 +173,6 @@ public class ClarinShibbolethSpecialGroupsIT extends AbstractControllerIntegrati
                 .andExpect(status().isOk())
                 .andReturn();
         String content = mvcResult.getResponse().getContentAsString();
-        Map<String, Object> map = mapper.readValue(content, Map.class);
-        return String.valueOf(map.get("token"));
+        return mapper.readTree(content).get("token").asText();
     }
 }
