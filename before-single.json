@@ -1,0 +1,10 @@
+{
+  "label": "before-single",
+  "url": "http://localhost:8080/server/api/core/bitstreams/db21729c-a8a3-4caa-bc10-34a6a613ea03/content",
+  "status": 200,
+  "rawContentDisposition": "attachment;filename=\"=?UTF-8?Q?P=C5=99=C3=ADli=C5=A1_=C5=BElu=C5=A5o?= =?UTF-8?Q?u=C4=8Dk=C3=BD_k=C5=AF=C5=88.bin?=\"",
+  "suggestedFilename": "Příliš žluťoučký kůň.bin",
+  "savedAs": "C:\\Users\\MILANM~1\\AppData\\Local\\Temp\\claude\\C--Users-MilanMajchr-k\\0e487968-b206-4325-9908-fdedb7c9bdc5\\scratchpad\\demo\\out\\before-single__50c599c3ad6c69c5.bin",
+  "error": null,
+  "suggestedFilenameHex": "50c599c3ad6c69c5a120c5be6c75c5a56f75c48d6bc3bd206bc5afc5882e62696e"
+}

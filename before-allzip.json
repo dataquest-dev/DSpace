@@ -1,0 +1,10 @@
+{
+  "label": "before-allzip",
+  "url": "http://localhost:8080/server/api/core/items/6af84648-ccb0-4f02-86f8-436bae480b71/allzip?handleId=123456789%2F2-3",
+  "status": 200,
+  "rawContentDisposition": null,
+  "suggestedFilename": "allzip.zip",
+  "savedAs": "C:\\Users\\MILANM~1\\AppData\\Local\\Temp\\claude\\C--Users-MilanMajchr-k\\0e487968-b206-4325-9908-fdedb7c9bdc5\\scratchpad\\demo\\out\\before-allzip__616c6c7a69702e7a.bin",
+  "error": null,
+  "suggestedFilenameHex": "616c6c7a69702e7a6970"
+}
