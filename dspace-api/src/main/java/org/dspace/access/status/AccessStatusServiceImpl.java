@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.Date;
 
 import org.dspace.access.status.service.AccessStatusService;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.service.PluginService;
@@ -67,5 +68,15 @@ public class AccessStatusServiceImpl implements AccessStatusService {
     @Override
     public String getEmbargoFromItem(Context context, Item item) throws SQLException {
         return helper.getEmbargoFromItem(context, item, forever_date);
+    }
+
+    @Override
+    public String getAccessStatus(Context context, Bitstream bitstream) throws SQLException {
+        return helper.getAccessStatusFromBitstream(context, bitstream, forever_date);
+    }
+
+    @Override
+    public String getEmbargoFromBitstream(Context context, Bitstream bitstream) throws SQLException {
+        return helper.getEmbargoFromBitstream(context, bitstream, forever_date);
     }
 }
