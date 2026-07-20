@@ -29,6 +29,8 @@ public class MetadataBitstreamWrapperRest extends BaseObjectRest<String> {
     private String format;
     private String href;
     private boolean canPreview;
+    private String status;
+    private String embargoDate;
 
     public MetadataBitstreamWrapperRest(String name, String description, long fileSize, String checksum,
                                         List<FileInfo> fileInfo, String format, String href, boolean canPreview) {
@@ -107,6 +109,22 @@ public class MetadataBitstreamWrapperRest extends BaseObjectRest<String> {
 
     public void setChecksum(String checksum) {
         this.checksum = checksum;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getEmbargoDate() {
+        return embargoDate;
+    }
+
+    public void setEmbargoDate(String embargoDate) {
+        this.embargoDate = embargoDate;
     }
 
     @Override
