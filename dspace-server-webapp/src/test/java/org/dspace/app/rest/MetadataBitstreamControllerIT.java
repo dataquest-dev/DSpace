@@ -154,9 +154,9 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
         getClient(token).perform(get(METADATABITSTREAM_ENDPOINT + "/" + itemWithDiacritics.getID() +
                         "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, itemWithDiacritics.getHandle()))
                 .andExpect(status().isOk())
-                // Non-ASCII chars replaced with _ in filename, full UTF-8 in filename*
+                // fallback transliterates the diacritics away; filename* carries the real name
                 .andExpect(header().string("Content-Disposition",
-                        "attachment; filename=\"P__li_ _lu_ou_k_ k__.zip\";"
+                        "attachment; filename=\"Prilis zlutoucky kun.zip\";"
                         + " filename*=UTF-8''P%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD"
                         + "%20k%C5%AF%C5%88.zip"));
     }
