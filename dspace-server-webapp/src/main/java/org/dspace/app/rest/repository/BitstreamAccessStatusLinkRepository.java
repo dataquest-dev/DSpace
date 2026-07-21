@@ -54,7 +54,7 @@ public class BitstreamAccessStatusLinkRepository extends AbstractDSpaceRestRepos
             }
             AccessStatusRest accessStatusRest = new AccessStatusRest();
             String status = accessStatusService.getAccessStatus(context, bitstream);
-            if (status.equals(DefaultAccessStatusHelper.EMBARGO)) {
+            if (DefaultAccessStatusHelper.EMBARGO.equals(status)) {
                 String embargoDate = accessStatusService.getEmbargoFromBitstream(context, bitstream);
                 accessStatusRest.setEmbargoDate(embargoDate);
             }

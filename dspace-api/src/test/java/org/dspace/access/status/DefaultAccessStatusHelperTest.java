@@ -15,6 +15,7 @@ import static org.junit.Assert.fail;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -290,11 +291,13 @@ public class DefaultAccessStatusHelperTest  extends AbstractUnitTest {
         String status = helper.getAccessStatusFromItem(context, itemWithEmbargo, threshold);
         assertThat("testWithEmbargo 0", status, equalTo(DefaultAccessStatusHelper.EMBARGO));
         String embargoDate = helper.getEmbargoFromItem(context, itemWithEmbargo, threshold);
-        assertThat("testWithEmbargo 1", embargoDate, equalTo(policy.getStartDate().toString()));
+        assertThat("testWithEmbargo 1", embargoDate,
+                equalTo(new SimpleDateFormat("yyyy-MM-dd").format(policy.getStartDate())));
         String bitstreamStatus = helper.getAccessStatusFromBitstream(context, bitstream, threshold);
         assertThat("testWithEmbargo 2", bitstreamStatus, equalTo(DefaultAccessStatusHelper.EMBARGO));
         String bitstreamEmbargoDate = helper.getEmbargoFromBitstream(context, bitstream, threshold);
-        assertThat("testWithEmbargo 3", bitstreamEmbargoDate, equalTo(policy.getStartDate().toString()));
+        assertThat("testWithEmbargo 3", bitstreamEmbargoDate,
+                equalTo(new SimpleDateFormat("yyyy-MM-dd").format(policy.getStartDate())));
     }
 
     /**
@@ -414,7 +417,8 @@ public class DefaultAccessStatusHelperTest  extends AbstractUnitTest {
         String status = helper.getAccessStatusFromItem(context, itemWithPrimaryAndMultipleBitstreams, threshold);
         assertThat("testWithPrimaryAndMultipleBitstreams 0", status, equalTo(DefaultAccessStatusHelper.EMBARGO));
         String embargoDate = helper.getEmbargoFromItem(context, itemWithPrimaryAndMultipleBitstreams, threshold);
-        assertThat("testWithPrimaryAndMultipleBitstreams 1", embargoDate, equalTo(policy.getStartDate().toString()));
+        assertThat("testWithPrimaryAndMultipleBitstreams 1", embargoDate,
+                equalTo(new SimpleDateFormat("yyyy-MM-dd").format(policy.getStartDate())));
         String primaryBitstreamStatus = helper.getAccessStatusFromBitstream(context, primaryBitstream, threshold);
         assertThat("testWithPrimaryAndMultipleBitstreams 2", primaryBitstreamStatus,
                 equalTo(DefaultAccessStatusHelper.EMBARGO));

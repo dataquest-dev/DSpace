@@ -8,6 +8,7 @@
 package org.dspace.access.status;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -46,6 +47,11 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
     public static final String OPEN_ACCESS = "open.access";
     public static final String RESTRICTED = "restricted";
     public static final String UNKNOWN = "unknown";
+
+    // REST date fields use a plain ISO calendar date (e.g. "2050-01-01"), matching the format used
+    // elsewhere in the REST API (see ResourcePolicyRest). Date#toString() is locale/timezone-dependent
+    // and must not be used for values exposed over REST.
+    private static final String REST_DATE_FORMAT = "yyyy-MM-dd";
 
     protected ItemService itemService =
             ContentServiceFactory.getInstance().getItemService();
@@ -208,7 +214,7 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
 
         embargoDate = this.retrieveShortestEmbargo(context, bitstream);
 
-        return embargoDate != null ? embargoDate.toString() : null;
+        return formatEmbargoDate(embargoDate);
     }
 
     /**
@@ -254,7 +260,19 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
         }
         Date embargoDate = this.retrieveShortestEmbargo(context, bitstream);
 
-        return embargoDate != null ? embargoDate.toString() : null;
+        return formatEmbargoDate(embargoDate);
+    }
+
+    /**
+     * Format an embargo date for REST exposure as a plain ISO calendar date (yyyy-MM-dd),
+     * matching the format used elsewhere in the REST API. SimpleDateFormat is not thread-safe,
+     * so a new instance is created per call.
+     *
+     * @param date the date to format, may be null
+     * @return the formatted date, or null if the given date is null
+     */
+    private String formatEmbargoDate(Date date) {
+        return date != null ? new SimpleDateFormat(REST_DATE_FORMAT).format(date) : null;
     }
 
     /**
