@@ -162,9 +162,10 @@ public class MetadataBitstreamController {
         }
         String normalized = Normalizer.normalize(originalFilename, Normalizer.Form.NFD);
         String withoutAccents = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-        // Deviates from vanilla by escaping \ and ": the value is a quoted-string, and an item name
-        // containing a quote closes it early. That is the bug #1267 fixed; vanilla still has it.
-        return withoutAccents.replaceAll("[^\\x00-\\x7F]", "")
+        // Deviates from vanilla: restrict to printable ASCII and escape \ and ". The value is a
+        // quoted-string, so control chars could inject a header and a quote would close it early.
+        // That is the bug #1267 fixed; vanilla still has it.
+        return withoutAccents.replaceAll("[^\\x20-\\x7E]", "")
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"");
     }

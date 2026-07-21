@@ -282,7 +282,12 @@ public class HttpHeadersInitializer {
         }
         String normalized = Normalizer.normalize(originalFilename, Normalizer.Form.NFD);
         String withoutAccents = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-        return withoutAccents.replaceAll("[^\\x00-\\x7F]", "");
+        // Deviates from vanilla: restrict to printable ASCII and escape \ and ". The value is a
+        // quoted-string, so control chars could inject a header and a quote would close it early.
+        // Kept consistent with MetadataBitstreamController.createFallbackAsciiName.
+        return withoutAccents.replaceAll("[^\\x20-\\x7E]", "")
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
     }
 
     /**
