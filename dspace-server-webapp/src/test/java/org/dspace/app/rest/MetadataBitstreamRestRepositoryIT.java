@@ -10,6 +10,7 @@ package org.dspace.app.rest;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -22,6 +23,7 @@ import java.sql.SQLException;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.access.status.DefaultAccessStatusHelper;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.service.AuthorizeService;
@@ -124,9 +126,37 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].checksum")
                         .value(Matchers.containsInAnyOrder(Matchers.containsString(bts.getChecksum()))))
                 .andExpect(jsonPath("$._embedded.metadatabitstreams[*].href")
-                        .value(Matchers.containsInAnyOrder(Matchers.containsString(url))));
+                        .value(Matchers.containsInAnyOrder(Matchers.containsString(url))))
+                .andExpect(jsonPath("$._embedded.metadatabitstreams[*].status")
+                        .value(Matchers.containsInAnyOrder(DefaultAccessStatusHelper.OPEN_ACCESS)))
+                .andExpect(jsonPath("$._embedded.metadatabitstreams[0].embargoDate").value(nullValue()));
 
 
+    }
+
+    @Test
+    public void findByHandleEmbargoedBitstream() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Bitstream embargoedBitstream;
+        String bitstreamContent = "ThisIsSomeEmbargoedText";
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            embargoedBitstream = BitstreamBuilder.createBitstream(context, publicItem, is)
+                    .withName("Embargoed Bitstream")
+                    .withDescription("Embargoed description")
+                    .withMimeType("application/x-gzip")
+                    .withEmbargoPeriod("3 months")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        getClient().perform(get(METADATABITSTREAM_SEARCH_BY_HANDLE_ENDPOINT)
+                        .param("handle", publicItem.getHandle())
+                        .param("fileGrpType", FILE_GRP_TYPE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.metadatabitstreams[?(@.name == '" + embargoedBitstream.getName()
+                        + "')].status", Matchers.contains(DefaultAccessStatusHelper.EMBARGO)))
+                .andExpect(jsonPath("$._embedded.metadatabitstreams[?(@.name == '" + embargoedBitstream.getName()
+                        + "')].embargoDate", Matchers.contains(notNullValue())));
     }
 
     @Test

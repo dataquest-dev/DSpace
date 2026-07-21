@@ -103,7 +103,8 @@ public class BitstreamMatcher {
                 "bundle",
                 "format",
                 "thumbnail",
-                "checksum"
+                "checksum",
+                "accessStatus"
         );
     }
 
@@ -117,7 +118,8 @@ public class BitstreamMatcher {
                 "format",
                 "self",
                 "thumbnail",
-                "checksum"
+                "checksum",
+                "accessStatus"
         );
     }
 

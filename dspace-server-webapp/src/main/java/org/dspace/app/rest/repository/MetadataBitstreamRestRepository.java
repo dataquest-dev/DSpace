@@ -419,6 +419,11 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             return true;
         } catch (MissingLicenseAgreementException e) {
             return false;
+        } catch (AuthorizeException e) {
+            // The requesting user (e.g. anonymous) doesn't have READ on this bitstream at all -
+            // e.g. it's under embargo. Same "can't preview" outcome as the license case above;
+            // this used to propagate uncaught and 500 the entire file listing for the item.
+            return false;
         }
     }
 
