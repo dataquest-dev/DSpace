@@ -53,7 +53,7 @@ public class ItemAccessStatusLinkRepository extends AbstractDSpaceRestRepository
             }
             AccessStatusRest accessStatusRest = new AccessStatusRest();
             String accessStatus = accessStatusService.getAccessStatus(context, item);
-            if (accessStatus.equals(DefaultAccessStatusHelper.EMBARGO)) {
+            if (DefaultAccessStatusHelper.EMBARGO.equals(accessStatus)) {
                 String embargoDate = accessStatusService.getEmbargoFromItem(context, item);
                 accessStatusRest.setEmbargoDate(embargoDate);
             }
