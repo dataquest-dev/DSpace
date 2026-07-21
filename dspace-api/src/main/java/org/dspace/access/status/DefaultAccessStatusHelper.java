@@ -8,6 +8,7 @@
 package org.dspace.access.status;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -47,6 +48,11 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
     public static final String RESTRICTED = "restricted";
     public static final String UNKNOWN = "unknown";
 
+    // REST date fields use a plain ISO calendar date (e.g. "2050-01-01"), matching the format used
+    // elsewhere in the REST API (see ResourcePolicyRest). Date#toString() is locale/timezone-dependent
+    // and must not be used for values exposed over REST.
+    private static final String REST_DATE_FORMAT = "yyyy-MM-dd";
+
     protected ItemService itemService =
             ContentServiceFactory.getInstance().getItemService();
     protected ResourcePolicyService resourcePolicyService =
@@ -59,7 +65,7 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
     }
 
     /**
-     * Look at the item's policies to determine an access status value.
+     * Look at the item policies to determine an access status value.
      * It is also considering a date threshold for embargoes and restrictions.
      *
      * If the item is null, simply returns the "unknown" value.
@@ -96,7 +102,7 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
     }
 
     /**
-     * Look at the DSpace object's policies to determine an access status value.
+     * Look at the DSpace object policies to determine an access status value.
      *
      * If the object is null, returns the "metadata.only" value.
      * If any policy attached to the object is valid for the anonymous group,
@@ -170,7 +176,8 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
      *
      * @param context     the DSpace context
      * @param item        the item to embargo
-     * @return an access status value
+     * @param threshold   the embargo threshold date
+     * @return an embargo date
      */
     @Override
     public String getEmbargoFromItem(Context context, Item item, Date threshold)
@@ -207,11 +214,73 @@ public class DefaultAccessStatusHelper implements AccessStatusHelper {
 
         embargoDate = this.retrieveShortestEmbargo(context, bitstream);
 
-        return embargoDate != null ? embargoDate.toString() : null;
+        return formatEmbargoDate(embargoDate);
     }
 
     /**
+     * Look at the policies attached directly to the bitstream to determine an access status value.
+     * It is also considering a date threshold for embargoes and restrictions.
      *
+     * If the bitstream is null, simply returns the "unknown" value.
+     *
+     * @param context     the DSpace context
+     * @param bitstream   the bitstream to check for embargoes
+     * @param threshold   the embargo threshold date
+     * @return an access status value
+     */
+    @Override
+    public String getAccessStatusFromBitstream(Context context, Bitstream bitstream, Date threshold)
+            throws SQLException {
+        if (bitstream == null) {
+            return UNKNOWN;
+        }
+        return calculateAccessStatusForDso(context, bitstream, threshold);
+    }
+
+    /**
+     * Look at the policies of the bitstream to retrieve its embargo.
+     *
+     * If the bitstream is null, simply returns no embargo date.
+     *
+     * @param context     the DSpace context
+     * @param bitstream   the bitstream to embargo
+     * @param threshold   the embargo threshold date
+     * @return an embargo date
+     */
+    @Override
+    public String getEmbargoFromBitstream(Context context, Bitstream bitstream, Date threshold)
+            throws SQLException {
+        if (bitstream == null) {
+            return null;
+        }
+        // If Bitstream status is not "embargo" then return a null embargo date.
+        String accessStatus = getAccessStatusFromBitstream(context, bitstream, threshold);
+        if (!accessStatus.equals(EMBARGO)) {
+            return null;
+        }
+        Date embargoDate = this.retrieveShortestEmbargo(context, bitstream);
+
+        return formatEmbargoDate(embargoDate);
+    }
+
+    /**
+     * Format an embargo date for REST exposure as a plain ISO calendar date (yyyy-MM-dd),
+     * matching the format used elsewhere in the REST API. SimpleDateFormat is not thread-safe,
+     * so a new instance is created per call.
+     *
+     * @param date the date to format, may be null
+     * @return the formatted date, or null if the given date is null
+     */
+    private String formatEmbargoDate(Date date) {
+        return date != null ? new SimpleDateFormat(REST_DATE_FORMAT).format(date) : null;
+    }
+
+    /**
+     * Look at the read policies of a bitstream to retrieve the shortest active embargo date.
+     *
+     * @param context     the DSpace context
+     * @param bitstream   the bitstream
+     * @return the shortest embargo date, or null if there is none
      */
     private Date retrieveShortestEmbargo(Context context, Bitstream bitstream) throws SQLException {
         Date embargoDate = null;
