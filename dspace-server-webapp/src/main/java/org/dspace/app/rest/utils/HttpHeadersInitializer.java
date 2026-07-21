@@ -282,7 +282,11 @@ public class HttpHeadersInitializer {
         }
         String normalized = Normalizer.normalize(originalFilename, Normalizer.Form.NFD);
         String withoutAccents = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-        return withoutAccents.replaceAll("[^\\x00-\\x7F]", "");
+        // Escape \ and ": the value is placed in a quoted-string, so a filename containing a quote
+        // would close it early and break the header. Mirrors MetadataBitstreamController (bug #1267).
+        return withoutAccents.replaceAll("[^\\x00-\\x7F]", "")
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
     }
 
     /**
@@ -296,14 +300,7 @@ public class HttpHeadersInitializer {
         if (originalFilename == null) {
             return "";
         }
-        try {
-            String encoded = URLEncoder.encode(originalFilename, StandardCharsets.UTF_8.toString());
-            return encoded.replace("+", "%20");
-        } catch (java.io.UnsupportedEncodingException e) {
-            // Fallback to a simple ASCII name if encoding fails.
-            log.error("UTF-8 encoding not supported, which should not happen.", e);
-            return createFallbackAsciiName(originalFilename);
-        }
+        return URLEncoder.encode(originalFilename, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
 }
