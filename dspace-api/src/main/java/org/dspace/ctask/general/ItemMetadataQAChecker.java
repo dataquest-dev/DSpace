@@ -87,6 +87,7 @@ public class ItemMetadataQAChecker extends AbstractCurationTask {
                     "dc.rights.label",
                     "dc.date.available",
                     "dc.source.uri",
+                    "dc.identifier.doi",
                     "metashare.ResourceInfo#DistributionInfo#LicenseInfo.license"
                 });
         strangeMetadata = configurationService.getArrayProperty("lr.curation.metadata.strange", new String[]{
