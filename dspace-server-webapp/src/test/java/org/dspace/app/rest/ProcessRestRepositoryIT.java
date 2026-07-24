@@ -55,6 +55,7 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Before
     public void setup() throws SQLException {
+        context.setCurrentUser(admin);
         CollectionUtils.emptyIfNull(processService.findAll(context)).stream().forEach(process -> {
             try {
                 processService.delete(context, process);
@@ -66,6 +67,7 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         parameters.add(new DSpaceCommandLineParameter("-i", null));
 
         process = ProcessBuilder.createProcess(context, admin, "mock-script", parameters).build();
+        context.setCurrentUser(eperson);
     }
 
     @Test
@@ -84,7 +86,9 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
     public void getProcessAdminEmptyParam() throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
 
+        context.setCurrentUser(admin);
         Process process = ProcessBuilder.createProcess(context, admin, "mock-script", new LinkedList<>()).build();
+        context.setCurrentUser(eperson);
 
         getClient(token).perform(get("/api/system/processes/" + process.getID()))
                         .andExpect(status().isOk())
@@ -128,41 +132,6 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void deleteProcessAdmin() throws Exception {
-        // "process" (from setup) is SCHEDULED with no bitstreams - the exact shape that
-        // previously bypassed authorization entirely.
-        String token = getAuthToken(admin.getEmail(), password);
-
-        getClient(token).perform(delete("/api/system/processes/" + process.getID()))
-                        .andExpect(status().isNoContent());
-
-        getClient(token).perform(get("/api/system/processes/" + process.getID()))
-                        .andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void deleteProcessAnonymousUnauthorizedException() throws Exception {
-        getClient().perform(delete("/api/system/processes/" + process.getID()))
-                   .andExpect(status().isUnauthorized());
-
-        String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get("/api/system/processes/" + process.getID()))
-                        .andExpect(status().isOk());
-    }
-
-    @Test
-    public void deleteProcessForDifferentUserForbiddenException() throws Exception {
-        String token = getAuthToken(eperson.getEmail(), password);
-
-        getClient(token).perform(delete("/api/system/processes/" + process.getID()))
-                        .andExpect(status().isForbidden());
-
-        String adminToken = getAuthToken(admin.getEmail(), password);
-        getClient(adminToken).perform(get("/api/system/processes/" + process.getID()))
-                             .andExpect(status().isOk());
-    }
-
-    @Test
     public void getProcessNotExisting() throws Exception {
         String token = getAuthToken(eperson.getEmail(), password);
 
@@ -189,9 +158,11 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         Process newProcess4 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
         Process newProcess5 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
         Process newProcess6 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
+        context.setCurrentUser(admin);
         Process newProcess7 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters).build();
         Process newProcess8 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters).build();
         Process newProcess9 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters).build();
+        context.setCurrentUser(eperson);
 
         String token = getAuthToken(admin.getEmail(), password);
 
@@ -246,9 +217,11 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         Process newProcess4 = ProcessBuilder.createProcess(context, eperson, "mock-script", new LinkedList<>()).build();
         Process newProcess5 = ProcessBuilder.createProcess(context, eperson, "mock-script", new LinkedList<>()).build();
         Process newProcess6 = ProcessBuilder.createProcess(context, eperson, "mock-script", new LinkedList<>()).build();
+        context.setCurrentUser(admin);
         Process newProcess7 = ProcessBuilder.createProcess(context, admin, "mock-script", new LinkedList<>()).build();
         Process newProcess8 = ProcessBuilder.createProcess(context, admin, "mock-script", new LinkedList<>()).build();
         Process newProcess9 = ProcessBuilder.createProcess(context, admin, "mock-script", new LinkedList<>()).build();
+        context.setCurrentUser(eperson);
 
         String token = getAuthToken(eperson.getEmail(), password);
 
@@ -345,9 +318,11 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void getProcessFilesTypesForbidden() throws Exception {
+        context.setCurrentUser(admin);
         try (InputStream is = IOUtils.toInputStream("Test File For Process", CharEncoding.UTF_8)) {
             processService.appendFile(context, process, is, "inputfile", "test.csv");
         }
+        context.setCurrentUser(eperson);
 
         List<String> fileTypesToCheck = new LinkedList<>();
         fileTypesToCheck.add("inputfile");
@@ -362,9 +337,11 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void getProcessFilesTypesUnAuthorized() throws Exception {
+        context.setCurrentUser(admin);
         try (InputStream is = IOUtils.toInputStream("Test File For Process", CharEncoding.UTF_8)) {
             processService.appendFile(context, process, is, "inputfile", "test.csv");
         }
+        context.setCurrentUser(eperson);
 
         List<String> fileTypesToCheck = new LinkedList<>();
         fileTypesToCheck.add("inputfile");
@@ -376,9 +353,11 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void getProcessFilesTypesRandomProcessId() throws Exception {
+        context.setCurrentUser(admin);
         try (InputStream is = IOUtils.toInputStream("Test File For Process", CharEncoding.UTF_8)) {
             processService.appendFile(context, process, is, "inputfile", "test.csv");
         }
+        context.setCurrentUser(eperson);
 
         List<String> fileTypesToCheck = new LinkedList<>();
         fileTypesToCheck.add("inputfile");
@@ -415,9 +394,11 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         Process newProcess4 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
         Process newProcess5 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
         Process newProcess6 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
+        context.setCurrentUser(admin);
         Process newProcess7 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters).build();
         Process newProcess8 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters).build();
         Process newProcess9 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters).build();
+        context.setCurrentUser(eperson);
 
         String token = getAuthToken(admin.getEmail(), password);
 
@@ -481,11 +462,13 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         Process newProcess4 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
         Process newProcess5 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
         Process newProcess6 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
+        context.setCurrentUser(admin);
         Process newProcess7 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters)
                                             .withProcessStatus(ProcessStatus.FAILED).build();
         Process newProcess8 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters).build();
         Process newProcess9 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters)
                                             .withProcessStatus(ProcessStatus.FAILED).build();
+        context.setCurrentUser(eperson);
 
         String token = getAuthToken(admin.getEmail(), password);
 
@@ -513,11 +496,13 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         Process newProcess4 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
         Process newProcess5 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
         Process newProcess6 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
+        context.setCurrentUser(admin);
         Process newProcess7 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters)
                                             .withProcessStatus(ProcessStatus.FAILED).build();
         Process newProcess8 = ProcessBuilder.createProcess(context, admin, "another-mock-script", parameters).build();
         Process newProcess9 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters)
                                             .withProcessStatus(ProcessStatus.FAILED).build();
+        context.setCurrentUser(eperson);
 
         String token = getAuthToken(admin.getEmail(), password);
 
@@ -542,11 +527,13 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         Process newProcess4 = ProcessBuilder.createProcess(context, eperson, "another-mock-script", parameters).build();
         Process newProcess5 = ProcessBuilder.createProcess(context, eperson, "another-mock-script", parameters).build();
         Process newProcess6 = ProcessBuilder.createProcess(context, eperson, "another-mock-script", parameters).build();
+        context.setCurrentUser(admin);
         Process newProcess7 = ProcessBuilder.createProcess(context, admin, "another-mock-script", parameters)
                                             .withProcessStatus(ProcessStatus.FAILED).build();
         Process newProcess8 = ProcessBuilder.createProcess(context, admin, "another-mock-script", parameters).build();
         Process newProcess9 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters)
                                             .withProcessStatus(ProcessStatus.FAILED).build();
+        context.setCurrentUser(eperson);
 
         String token = getAuthToken(admin.getEmail(), password);
 
@@ -576,11 +563,13 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         Process newProcess4 = ProcessBuilder.createProcess(context, eperson, "another-mock-script", parameters).build();
         Process newProcess5 = ProcessBuilder.createProcess(context, eperson, "another-mock-script", parameters).build();
         Process newProcess6 = ProcessBuilder.createProcess(context, eperson, "another-mock-script", parameters).build();
+        context.setCurrentUser(admin);
         Process newProcess7 = ProcessBuilder.createProcess(context, admin, "another-mock-script", parameters).build();
         Process newProcess8 = ProcessBuilder.createProcess(context, admin, "another-mock-script", parameters)
                                             .withProcessStatus(ProcessStatus.FAILED).build();
         Process newProcess9 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters)
                                             .withProcessStatus(ProcessStatus.FAILED).build();
+        context.setCurrentUser(eperson);
 
         String token = getAuthToken(admin.getEmail(), password);
 
@@ -611,10 +600,12 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         Process newProcess4 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
         Process newProcess5 = ProcessBuilder.createProcess(context, eperson, "another-mock-script", parameters).build();
         Process newProcess6 = ProcessBuilder.createProcess(context, eperson, "another-mock-script", parameters).build();
+        context.setCurrentUser(admin);
         Process newProcess7 = ProcessBuilder.createProcess(context, admin, "another-mock-script", parameters).build();
         Process newProcess8 = ProcessBuilder.createProcess(context, admin, "another-mock-script", parameters)
                                             .withProcessStatus(ProcessStatus.FAILED).build();
         Process newProcess9 = ProcessBuilder.createProcess(context, admin, "mock-script", parameters).build();
+        context.setCurrentUser(eperson);
 
         String token = getAuthToken(admin.getEmail(), password);
 
@@ -855,9 +846,11 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         Process process1 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters)
             .withStartAndEndTime("10/01/1990", "20/01/1990")
             .build();
+        context.setCurrentUser(admin);
         ProcessBuilder.createProcess(context, admin, "mock-script", parameters)
             .withStartAndEndTime("11/01/1990", "19/01/1990")
             .build();
+        context.setCurrentUser(eperson);
         Process process3 = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters)
             .withStartAndEndTime("12/01/1990", "18/01/1990")
             .build();
@@ -912,5 +905,55 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .andExpect(jsonPath("$.metadata['dspace.process.filetype'][0].value",
                                             is("script_output")));
 
+    }
+
+    @Test
+    public void deleteProcessByAdmin() throws Exception {
+        // Admin should be able to delete any process
+        Process processToDelete = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
+        int processId = processToDelete.getID();
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/system/processes/" + processId))
+                             .andExpect(status().isOk());
+        getClient(adminToken).perform(delete("/api/system/processes/" + processId))
+                             .andExpect(status().isNoContent());
+        getClient(adminToken).perform(get("/api/system/processes/" + processId))
+                             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void deleteProcessByOwner() throws Exception {
+        // The user who started the process should be able to delete it
+        Process processToDelete = ProcessBuilder.createProcess(context, eperson, "mock-script", parameters).build();
+        int processId = processToDelete.getID();
+        String ownerToken = getAuthToken(eperson.getEmail(), password);
+        getClient(ownerToken).perform(get("/api/system/processes/" + processId))
+                             .andExpect(status().isOk());
+        getClient(ownerToken).perform(delete("/api/system/processes/" + processId))
+                             .andExpect(status().isNoContent());
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/system/processes/" + processId))
+                             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void deleteProcessByOtherUserForbidden() throws Exception {
+        // A user who did not start the process (and is not admin) should get 403
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+        getClient(epersonToken).perform(delete("/api/system/processes/" + process.getID()))
+                               .andExpect(status().isForbidden());
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/system/processes/" + process.getID()))
+                             .andExpect(status().isOk());
+    }
+
+    @Test
+    public void deleteProcessByAnonymousUnauthorized() throws Exception {
+        // Anonymous users should get 401
+        getClient().perform(delete("/api/system/processes/" + process.getID()))
+                   .andExpect(status().isUnauthorized());
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/system/processes/" + process.getID()))
+                             .andExpect(status().isOk());
     }
 }
