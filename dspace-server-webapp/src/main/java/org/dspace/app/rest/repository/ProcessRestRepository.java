@@ -164,6 +164,7 @@ public class ProcessRestRepository extends DSpaceRestRepository<ProcessRest, Int
     }
 
     @Override
+    @PreAuthorize("hasPermission(#integer, 'PROCESS', 'DELETE')")
     protected void delete(Context context, Integer integer)
         throws AuthorizeException, RepositoryMethodNotImplementedException {
         try {
