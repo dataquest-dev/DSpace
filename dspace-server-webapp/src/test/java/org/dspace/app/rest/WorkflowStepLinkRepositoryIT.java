@@ -148,4 +148,21 @@ public class WorkflowStepLinkRepositoryIT extends AbstractControllerIntegrationT
         getClient(adminToken).perform(get(stepPath)).andExpect(status().isOk());
     }
 
+    @Test
+    public void workflowItemStepWithUnknownIdIsNotFound() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        EPerson ePerson = EPersonBuilder.createEPerson(context)
+                .withEmail("lookup-step@example.com").withPassword(password).build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(ePerson.getEmail(), password);
+
+        // an authenticated (non-admin) user requesting an unknown workflow item id must get 404, not a 500
+        // caused by an unchecked null in the WORKFLOWITEM permission evaluator
+        getClient(token).perform(get("/api/workflow/workflowitems/" + Integer.MAX_VALUE + "/step"))
+                .andExpect(status().isNotFound());
+    }
+
 }
