@@ -113,6 +113,10 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
         "org.dspace.authenticate.ShibAuthentication",
         "org.dspace.authenticate.PasswordAuthentication"
     };
+    public static final String[] PASS_AND_SHIB = {
+        "org.dspace.authenticate.PasswordAuthentication",
+        "org.dspace.authenticate.ShibAuthentication"
+    };
     public static final String[] SHIB_AND_IP = {
         "org.dspace.authenticate.IPAuthentication",
         "org.dspace.authenticate.ShibAuthentication"
@@ -1860,7 +1864,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .withName("Member")
                 .build();
 
-        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", SHIB_ONLY);
+        setAuthenticationMethodSequence(SHIB_ONLY);
         configurationService.setProperty("authentication-shibboleth.role.staff", "Staff, Member");
         configurationService.setProperty("authentication-shibboleth.default-roles", "staff");
         configurationService.setProperty("authentication-shibboleth.netid-header", "mail");
@@ -1911,8 +1915,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .build();
 
 
-        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod",
-                "org.dspace.authenticate.PasswordAuthentication, org.dspace.authenticate.ShibAuthentication");
+        setAuthenticationMethodSequence(PASS_AND_SHIB);
         configurationService.setProperty("authentication-shibboleth.role.staff", "Staff, Member");
         configurationService.setProperty("authentication-shibboleth.default-roles", "staff");
         configurationService.setProperty("authentication-shibboleth.netid-header", "mail");
