@@ -53,8 +53,11 @@ public class HarvestedCollectionConverter implements DSpaceConverter<HarvestedCo
             harvestedCollectionRest.setHarvestMessage(obj.getHarvestMessage());
             harvestedCollectionRest.setHarvestStartTime(obj.getHarvestStartTime());
             harvestedCollectionRest.setLastHarvested(obj.getHarvestDate());
+            harvestedCollectionRest.setAllowExternalUrls(obj.isAllowExternalUrls());
         } else {
             harvestedCollectionRest.setHarvestType(HarvestTypeEnum.NONE);
+            // Not harvesting (yet): report the secure default rather than null, so the UI can bind a checkbox.
+            harvestedCollectionRest.setAllowExternalUrls(Boolean.FALSE);
         }
 
         return harvestedCollectionRest;

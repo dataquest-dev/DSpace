@@ -48,6 +48,9 @@ public class HarvestScriptConfiguration<T extends Harvest> extends ScriptConfigu
         options.addOption("m", "metadata_format", true,
                           "the name of the desired metadata format for harvesting, resolved to namespace and " +
                                   "crosswalk in dspace.cfg");
+        options.addOption("x", "allow-external-urls", false,
+                          "allow ORE ingest to fetch files from hosts other than the OAI-PMH server; " +
+                                  "internal and private addresses remain blocked");
 
         options.addOption("h", "help", false, "help");
 

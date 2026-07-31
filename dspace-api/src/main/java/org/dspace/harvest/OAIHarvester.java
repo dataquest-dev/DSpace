@@ -62,6 +62,10 @@ import org.dspace.core.service.PluginService;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.harvest.factory.HarvestServiceFactory;
+import org.dspace.harvest.ore.HarvestPolicyAware;
+import org.dspace.harvest.ore.OreEgressPolicy;
+import org.dspace.harvest.ore.OreResourceRejectedException;
+import org.dspace.harvest.ore.RejectionReason;
 import org.dspace.harvest.service.HarvestedCollectionService;
 import org.dspace.harvest.service.HarvestedItemService;
 import org.dspace.services.ConfigurationService;
@@ -127,6 +131,12 @@ public class OAIHarvester {
     // Set in dspace.cfg as oai.harvester.metadataformats.{MetadataKey} = {MetadataNS},{Display Name}
     private Namespace metadataNS;
     private String metadataKey;
+
+    // Number of records dropped because the ORE egress policy refused one of their files
+    private int rejectedRecords;
+
+    // Number of records dropped because one of their files could not be downloaded at all
+    private int failedRecords;
 
     // DOMbuilder class for the DOM -> JDOM conversions
     private static final DOMBuilder db = new DOMBuilder();
@@ -445,9 +455,28 @@ public class OAIHarvester {
         Instant finishTime = Instant.now();
         long timeTaken = finishTime.toEpochMilli() - startTime.toEpochMilli();
         harvestRow.setHarvestStartTime(startTime);
-        harvestRow.setHarvestMessage("Harvest from " + oaiSource + " successful");
-        harvestRow.setHarvestStatus(HarvestedCollection.STATUS_READY);
-        harvestRow.setLastHarvested(startTime);
+        if (rejectedRecords + failedRecords > 0) {
+            // deliberately generic: the rejected URLs and the addresses they resolved to belong in the log only
+            StringBuilder message = new StringBuilder("Harvest from ").append(oaiSource)
+                .append(" completed, but ").append(rejectedRecords + failedRecords).append(" record(s) were skipped");
+            if (rejectedRecords > 0) {
+                message.append("; ").append(rejectedRecords)
+                       .append(" because a linked file was not allowed to be downloaded");
+            }
+            if (failedRecords > 0) {
+                message.append("; ").append(failedRecords)
+                       .append(" because a linked file could not be downloaded");
+            }
+            harvestRow.setHarvestMessage(message.toString());
+            harvestRow.setHarvestStatus(HarvestedCollection.STATUS_OAI_ERROR);
+            // lastHarvested deliberately not advanced: the skipped records fall outside the next incremental
+            // window otherwise and are never offered again; records already imported are skipped by the
+            // datestamp check in processRecord
+        } else {
+            harvestRow.setHarvestMessage("Harvest from " + oaiSource + " successful");
+            harvestRow.setHarvestStatus(HarvestedCollection.STATUS_READY);
+            harvestRow.setLastHarvested(startTime);
+        }
         log.info(
             "Harvest from " + oaiSource + " successful. The process took " + timeTaken + " milliseconds. Harvested "
                 + currentRecord + " items.");
@@ -523,6 +552,10 @@ public class OAIHarvester {
         if (harvestRow.getHarvestType() > 1) {
             oreREM = getMDrecord(harvestRow.getOaiSource(), itemOaiID, OREPrefix).get(0);
             ORExwalk = (IngestionCrosswalk) pluginService.getNamedPlugin(IngestionCrosswalk.class, this.ORESerialKey);
+            if (ORExwalk instanceof HarvestPolicyAware) {
+                ((HarvestPolicyAware) ORExwalk)
+                    .setOreEgressPolicy(OreEgressPolicy.from(harvestRow, configurationService));
+            }
         }
 
         // Ignore authorization
@@ -561,7 +594,14 @@ public class OAIHarvester {
             if (harvestRow.getHarvestType() == 3) {
                 log.info("Running ORE ingest on: " + item.getHandle());
                 itemService.removeAllBundles(ourContext, item);
-                ORExwalk.ingest(ourContext, item, oreREM, true);
+                try {
+                    ORExwalk.ingest(ourContext, item, oreREM, true);
+                } catch (OreResourceRejectedException ore) {
+                    // the metadata and the bundles are already gone at this point, so the whole record has to
+                    // go back rather than leave the existing item stripped of its files
+                    rejectRecord(itemOaiID, ore);
+                    return;
+                }
             }
         } else {
             // NOTE: did not find, so we create (presumably, there will never be a case where an item already
@@ -580,7 +620,12 @@ public class OAIHarvester {
             }
 
             if (harvestRow.getHarvestType() == 3) {
-                ORExwalk.ingest(ourContext, item, oreREM, true);
+                try {
+                    ORExwalk.ingest(ourContext, item, oreREM, true);
+                } catch (OreResourceRejectedException ore) {
+                    rejectRecord(itemOaiID, ore);
+                    return;
+                }
             }
 
             // see if a handle can be extracted for the item
@@ -660,6 +705,29 @@ public class OAIHarvester {
 
         // Stop ignoring authorization
         ourContext.restoreAuthSystemState();
+    }
+
+    /**
+     * Drop a record whose ORE ingest was refused by the egress policy. Everything this record wrote is still
+     * uncommitted, so rolling back restores the item exactly as it was before the ingest started.
+     *
+     * @param itemOaiID the OAI identifier of the record being dropped
+     * @param ore       the rejection
+     * @throws SQLException if the rollback fails
+     */
+    protected void rejectRecord(String itemOaiID, OreResourceRejectedException ore) throws SQLException {
+        // a remote server that would not serve the file is a transport problem, not a policy decision, and the
+        // administrator has to be told which of the two it was
+        if (ore.getReason() == RejectionReason.FETCH_FAILED) {
+            failedRecords++;
+        } else {
+            rejectedRecords++;
+        }
+        log.warn("Skipping record {} for collection {}: ORE file {} harvested from {} was rejected ({})",
+                 itemOaiID, targetCollection.getID(), ore.getUrl(), harvestRow.getOaiSource(), ore.getReason());
+        ourContext.restoreAuthSystemState();
+        ourContext.rollback();
+        reloadRequiredEntities();
     }
 
 
