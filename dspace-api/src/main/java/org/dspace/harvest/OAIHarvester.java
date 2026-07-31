@@ -477,9 +477,11 @@ public class OAIHarvester {
             harvestRow.setHarvestStatus(HarvestedCollection.STATUS_READY);
             harvestRow.setLastHarvested(startTime);
         }
+        int skippedRecords = rejectedRecords + failedRecords;
         log.info(
-            "Harvest from " + oaiSource + " successful. The process took " + timeTaken + " milliseconds. Harvested "
-                + currentRecord + " items.");
+            "Harvest from " + oaiSource + (skippedRecords > 0
+                ? " completed with " + skippedRecords + " skipped record(s)." : " successful.")
+                + " The process took " + timeTaken + " milliseconds. Harvested " + currentRecord + " items.");
         harvestedCollectionService.update(ourContext, harvestRow);
 
         ourContext.setMode(originalMode);
