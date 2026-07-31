@@ -83,7 +83,7 @@ public class OreUrlValidator {
         }
 
         // 4. host confinement, the only step the per-collection flag governs
-        if (!policy.allowExternalUrls() && !isHostConfined(uri, scheme, host, policy)) {
+        if (!policy.isAllowExternalUrls() && !isHostConfined(uri, scheme, host, policy)) {
             return Decision.reject(uri, RejectionReason.HOST_NOT_ALLOWED, "host " + host);
         }
 
@@ -99,7 +99,7 @@ public class OreUrlValidator {
         }
 
         // 6. every returned address must pass, whatever the flag says
-        if (policy.blockInternalAddresses() && !isHostExempt(host, policy)) {
+        if (policy.isBlockInternalAddresses() && !isHostExempt(host, policy)) {
             for (InetAddress address : addresses) {
                 String range = blockedAddresses.matchedRange(address);
                 if (range != null && !isAddressExempt(address, policy)) {
@@ -116,11 +116,11 @@ public class OreUrlValidator {
      * prefix. The port is deliberately not compared, so same-host-different-port setups keep working.
      */
     private boolean isHostConfined(URI uri, String scheme, String host, OreEgressPolicy policy) {
-        URI anchor = policy.anchor();
+        URI anchor = policy.getAnchor();
         if (anchor != null && host.equalsIgnoreCase(anchor.getHost()) && scheme.equals(lower(anchor.getScheme()))) {
             return true;
         }
-        for (String prefix : policy.allowedUrlPrefix()) {
+        for (String prefix : policy.getAllowedUrlPrefix()) {
             if (matchesAllowedPrefix(uri, host, prefix)) {
                 return true;
             }
@@ -150,7 +150,7 @@ public class OreUrlValidator {
     }
 
     private boolean isHostExempt(String host, OreEgressPolicy policy) {
-        for (String entry : policy.allowedInternalHosts()) {
+        for (String entry : policy.getAllowedInternalHosts()) {
             if (entry.indexOf('/') < 0 && entry.equalsIgnoreCase(host)) {
                 return true;
             }
@@ -159,7 +159,7 @@ public class OreUrlValidator {
     }
 
     private boolean isAddressExempt(InetAddress address, OreEgressPolicy policy) {
-        for (String entry : policy.allowedInternalHosts()) {
+        for (String entry : policy.getAllowedInternalHosts()) {
             if (entry.indexOf('/') >= 0 && cidrContains(entry, address)) {
                 return true;
             }
@@ -216,18 +216,18 @@ public class OreUrlValidator {
             return allowed;
         }
 
-        public RejectionReason reason() {
+        public RejectionReason getReason() {
             return reason;
         }
 
-        public URI uri() {
+        public URI getUri() {
             return uri;
         }
 
         /**
          * @return every address the host resolved to, empty when the URL was rejected
          */
-        public List<InetAddress> addresses() {
+        public List<InetAddress> getAddresses() {
             return addresses;
         }
 
@@ -235,7 +235,7 @@ public class OreUrlValidator {
          * @return a short explanation for the log; may name the blocked range, so keep it out of user-visible
          *         messages
          */
-        public String detail() {
+        public String getDetail() {
             return detail;
         }
     }

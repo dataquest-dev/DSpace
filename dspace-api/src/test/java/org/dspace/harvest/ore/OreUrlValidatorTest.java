@@ -149,7 +149,7 @@ public class OreUrlValidatorTest {
     public void rejectsAMissingUrl() {
         OreUrlValidator.Decision decision = validator.validate(null, policy(true, OAI_SOURCE));
         assertFalse(decision.isAllowed());
-        assertEquals(RejectionReason.MALFORMED_AUTHORITY, decision.reason());
+        assertEquals(RejectionReason.MALFORMED_AUTHORITY, decision.getReason());
     }
 
     @Test
@@ -168,14 +168,14 @@ public class OreUrlValidatorTest {
     private void assertRejected(RejectionReason expected, String url, OreEgressPolicy policy) {
         OreUrlValidator.Decision decision = validator.validate(URI.create(url), policy);
         assertFalse(url + " must be rejected", decision.isAllowed());
-        assertEquals(url, expected, decision.reason());
+        assertEquals(url, expected, decision.getReason());
     }
 
     private void assertAllowed(String url, OreEgressPolicy policy) {
         OreUrlValidator.Decision decision = validator.validate(URI.create(url), policy);
-        assertTrue(url + " must be allowed, was rejected as " + decision.reason(), decision.isAllowed());
+        assertTrue(url + " must be allowed, was rejected as " + decision.getReason(), decision.isAllowed());
         assertFalse("an allowed URL must carry the addresses it was validated against",
-                    decision.addresses().isEmpty());
+                    decision.getAddresses().isEmpty());
     }
 
     private OreEgressPolicy policy(boolean allowExternalUrls, String oaiSource) {

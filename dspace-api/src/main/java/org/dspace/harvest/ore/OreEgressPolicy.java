@@ -21,7 +21,7 @@ import org.dspace.services.ConfigurationService;
 /**
  * Immutable set of rules applied when the ORE ingest crosswalk fetches an aggregated resource.
  * <p>
- * Only {@link #allowExternalUrls()} is per collection; it widens the set of permitted public hosts and
+ * Only {@link #isAllowExternalUrls()} is per collection; it widens the set of permitted public hosts and
  * nothing else. Internal, private and reserved addresses stay blocked in both states.
  */
 public final class OreEgressPolicy {
@@ -79,7 +79,7 @@ public final class OreEgressPolicy {
                                    configurationService);
     }
 
-    public boolean allowExternalUrls() {
+    public boolean isAllowExternalUrls() {
         return allowExternalUrls;
     }
 
@@ -87,38 +87,38 @@ public final class OreEgressPolicy {
      * @return the oai_source this collection harvests from, or null when there is no harvest context or the
      *         configured value is not a usable absolute URL
      */
-    public URI anchor() {
+    public URI getAnchor() {
         return anchor;
     }
 
-    public boolean blockInternalAddresses() {
+    public boolean isBlockInternalAddresses() {
         return blockInternalAddresses;
     }
 
-    public List<String> allowedUrlPrefix() {
+    public List<String> getAllowedUrlPrefix() {
         return allowedUrlPrefix;
     }
 
-    public List<String> allowedInternalHosts() {
+    public List<String> getAllowedInternalHosts() {
         return allowedInternalHosts;
     }
 
-    public int maxRedirects() {
+    public int getMaxRedirects() {
         return maxRedirects;
     }
 
-    public int connectTimeoutMs() {
+    public int getConnectTimeoutMs() {
         return connectTimeoutMs;
     }
 
-    public int readTimeoutMs() {
+    public int getReadTimeoutMs() {
         return readTimeoutMs;
     }
 
     /**
      * @return the response size cap in bytes, or a negative value for unlimited
      */
-    public long maxBytes() {
+    public long getMaxBytes() {
         return maxBytes;
     }
 

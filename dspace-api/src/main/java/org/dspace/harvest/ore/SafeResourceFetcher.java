@@ -62,10 +62,11 @@ public class SafeResourceFetcher {
             while (true) {
                 OreUrlValidator.Decision decision = validator.validate(current, policy);
                 if (!decision.isAllowed()) {
-                    throw new OreResourceRejectedException(decision.reason(), current.toString(), decision.detail());
+                    throw new OreResourceRejectedException(decision.getReason(), current.toString(),
+                                                           decision.getDetail());
                 }
 
-                CloseableHttpResponse response = execute(client, current, decision.addresses());
+                CloseableHttpResponse response = execute(client, current, decision.getAddresses());
                 boolean responseReturned = false;
                 try {
                     int status = response.getStatusLine().getStatusCode();
@@ -76,7 +77,7 @@ public class SafeResourceFetcher {
                     InputStream body = openBody(current, response, policy);
                     responseReturned = true;
                     streamReturned = true;
-                    return new CappedStream(body, response, client, policy.maxBytes());
+                    return new CappedStream(body, response, client, policy.getMaxBytes());
                 } finally {
                     if (!responseReturned) {
                         response.close();
@@ -102,7 +103,7 @@ public class SafeResourceFetcher {
             throw new OreResourceRejectedException(RejectionReason.FETCH_FAILED, current.toString(),
                                                    "no response body");
         }
-        if (policy.maxBytes() >= 0 && entity.getContentLength() > policy.maxBytes()) {
+        if (policy.getMaxBytes() >= 0 && entity.getContentLength() > policy.getMaxBytes()) {
             throw new OreResourceRejectedException(RejectionReason.RESPONSE_TOO_LARGE, current.toString(),
                                                    "declared " + entity.getContentLength() + " bytes");
         }
@@ -112,9 +113,9 @@ public class SafeResourceFetcher {
     private CloseableHttpClient buildClient(OreEgressPolicy policy) {
         RequestConfig requestConfig = RequestConfig.custom()
                                                    .setRedirectsEnabled(false)
-                                                   .setConnectTimeout(policy.connectTimeoutMs())
-                                                   .setConnectionRequestTimeout(policy.connectTimeoutMs())
-                                                   .setSocketTimeout(policy.readTimeoutMs())
+                                                   .setConnectTimeout(policy.getConnectTimeoutMs())
+                                                   .setConnectionRequestTimeout(policy.getConnectTimeoutMs())
+                                                   .setSocketTimeout(policy.getReadTimeoutMs())
                                                    .build();
         // compression is off so that a compressed body cannot expand past the byte cap; builder(true) keeps the
         // configured egress proxy, which then owns the connect and therefore the address pinning
@@ -171,9 +172,9 @@ public class SafeResourceFetcher {
 
     private URI nextHop(URI current, CloseableHttpResponse response, OreEgressPolicy policy, int hop)
         throws OreResourceRejectedException {
-        if (hop >= policy.maxRedirects()) {
+        if (hop >= policy.getMaxRedirects()) {
             throw new OreResourceRejectedException(RejectionReason.TOO_MANY_REDIRECTS, current.toString(),
-                                                   "more than " + policy.maxRedirects() + " hops");
+                                                   "more than " + policy.getMaxRedirects() + " hops");
         }
         Header location = response.getFirstHeader("Location");
         if (location == null || StringUtils.isBlank(location.getValue())) {
