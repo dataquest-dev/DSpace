@@ -209,7 +209,9 @@ public class OREIngestionCrosswalk
                     throw transferFailed(href, ioe);
                 }
             } else {
-                throw new CrosswalkException("Entry did not contain link to resource: " + entryId);
+                // entryId is absent when the record carries no rel="alternate" link, so name it only if we have it
+                throw new CrosswalkException(entryId == null ? "Entry did not contain link to resource"
+                    : "Entry did not contain link to resource: " + entryId);
             }
 
             // ingest and update
