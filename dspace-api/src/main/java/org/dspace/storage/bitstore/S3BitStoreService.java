@@ -58,6 +58,7 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
  * Asset store using Amazon's Simple Storage Service (S3).
@@ -262,11 +263,18 @@ public class S3BitStoreService extends BaseBitStoreService {
             s3AsyncClient.headBucket(r -> r.bucket(bucketName)).join();
             return true;
         } catch (CompletionException ce) {
-            if (!(ce.getCause() instanceof NoSuchBucketException)) {
-                log.error("headBucket(" + bucketName + ")", ce.getCause());
+            Throwable cause = ce.getCause();
+            if (cause instanceof NoSuchBucketException
+                    || (cause instanceof S3Exception
+                        && ((S3Exception) cause).statusCode() == HttpStatusCode.NOT_FOUND)) {
+                return false;
             }
 
-            return false;
+            // CLARIN: only a genuinely absent bucket may answer "false". Reporting a 403 as "absent" makes
+            // init() try to create a bucket that already exists, which a least-privilege policy denies -
+            // and the assetstore then comes up dead. The v1 SDK's doesBucketExistV2 drew the same line.
+            log.error("headBucket(" + bucketName + ") failed for a reason other than an absent bucket", cause);
+            throw ce;
         }
     }
 

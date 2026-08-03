@@ -11,13 +11,16 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.sql.SQLException;
 
@@ -164,6 +167,58 @@ public class ClarinS3BitStoreServiceIT extends AbstractIntegrationTestWithDataba
     }
 
     /**
+     * The same path across a real part boundary. With the 50 MB production part size and a short fixture
+     * the loop only ever ran once, so the offset arithmetic, the ranged request body and the ordering of
+     * CompletedParts were never executed - a review found the loop untested even though it had just been
+     * rewritten. S3 requires every part but the last to be at least 5 MB, so the part size is lowered
+     * rather than the fixture made enormous.
+     */
+    @Test
+    public void syncStoreUploadsInMultipleParts() throws Exception {
+        int partSize = 5 * 1024 * 1024;
+        byte[] content = new byte[partSize + 4096];
+        for (int i = 0; i < content.length; i++) {
+            content[i] = (byte) (i % 251);
+        }
+
+        SyncS3BitStoreService store = initSyncStore(false, true);
+        store.setUploadPartSizeBytes(partSize);
+
+        Bitstream bitstream = createBitstream(content);
+        store.put(bitstream, new ByteArrayInputStream(content));
+
+        assertThat(bitstream.getSizeBytes(), is((long) content.length));
+        // read the object back byte for byte - a wrong offset would corrupt the second part silently
+        assertArrayEquals(content, FileUtils.readFileToByteArray(store.getFile(bitstream)));
+    }
+
+    /**
+     * The endpoint override and path-style flag are the fork's headline S3 delta, and every other test
+     * injects a ready-made client - so `amazonClientBuilderBy` never ran and a tripwire planted in it
+     * left all 21 S3 tests green. This builds a client through that method and uses it for real.
+     */
+    @Test
+    public void clientBuilderAppliesEndpointAndPathStyle() {
+        S3AsyncClient client = S3BitStoreService.amazonClientBuilderBy(
+                Region.of(localstackContainer.getRegion()),
+                StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                        localstackContainer.getAccessKey(), localstackContainer.getSecretKey())),
+                localstackContainer.getEndpoint().toString(),
+                10.0,
+                8 * 1024 * 1024L,
+                null,
+                true).get();
+
+        try {
+            // Only reachable if endpointOverride was applied - the default endpoint is real AWS.
+            client.createBucket(r -> r.bucket("clarin-builder-probe")).join();
+            assertTrue(new S3BitStoreService(client).doesBucketExist("clarin-builder-probe"));
+        } finally {
+            client.close();
+        }
+    }
+
+    /**
      * The reason SyncS3BitStoreService exists: every asset is also written to the local assetstore.
      */
     @Test
@@ -248,11 +303,19 @@ public class ClarinS3BitStoreServiceIT extends AbstractIntegrationTestWithDataba
     }
 
     private Bitstream createBitstream(String content) {
+        return createBitstream(toInputStream(content, UTF_8));
+    }
+
+    private Bitstream createBitstream(byte[] content) {
+        return createBitstream(new ByteArrayInputStream(content));
+    }
+
+    private Bitstream createBitstream(InputStream content) {
         context.turnOffAuthorisationSystem();
         try {
             Item item = ItemBuilder.createItem(context, collection).build();
             return BitstreamBuilder
-                .createBitstream(context, item, toInputStream(content, UTF_8))
+                .createBitstream(context, item, content)
                 .build();
         } catch (SQLException | AuthorizeException | IOException e) {
             throw new RuntimeException(e);

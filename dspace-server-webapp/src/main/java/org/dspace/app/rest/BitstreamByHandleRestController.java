@@ -12,8 +12,6 @@ import static org.dspace.core.Constants.CONTENT_BUNDLE_NAME;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
@@ -41,6 +39,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.EventService;
 import org.dspace.storage.bitstore.S3BitStoreService;
 import org.dspace.storage.bitstore.service.S3DirectDownloadService;
+import org.dspace.util.ContentDispositionUtils;
 import org.dspace.usage.UsageEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -288,16 +287,9 @@ public class BitstreamByHandleRestController {
      * @return the Content-Disposition header value
      */
     private String buildContentDisposition(String name) {
-        // RFC 5987 percent-encoding for filename*
-        String encoded = URLEncoder.encode(name, StandardCharsets.UTF_8)
-                .replace("+", "%20");
-        // ASCII fallback: replace non-ASCII chars with underscore, escape quotes.
-        // Modern clients use filename* (RFC 5987 / RFC 6266) with real UTF-8 name.
-        String asciiFallback = name.replaceAll("[^\\x20-\\x7E]", "_")
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"");
-        return String.format("attachment; filename=\"%s\"; filename*=UTF-8''%s",
-                asciiFallback, encoded);
+        // Delegates to the shared helper; this used to be one of two divergent copies of the same logic,
+        // and the other one - in the S3 presigned-URL path - was the incorrect one.
+        return ContentDispositionUtils.build(ContentDispositionUtils.ATTACHMENT, name);
     }
 
     /**

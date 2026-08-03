@@ -36,7 +36,7 @@
         <property name="subfolder" value="${assetstore.s3.subfolder}"/>
 
 <!--        Endpoint for other S3 providers than amazon AWS-->
-        <property name="endpoint" value="${assetstore.s3.endpoint}"/>
+        <property name="endpoint" value="${assetstore.s3.endpoint:}"/>
         <property name="pathStyleAccessEnabled" value="${assetstore.s3.pathStyleAccessEnabled}"/>
 
         <!-- The target throughput for transfer requests in Gbps. Higher value means more connections will be established with S3.  -->

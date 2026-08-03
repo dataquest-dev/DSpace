@@ -147,15 +147,51 @@ public class S3DirectDownloadServiceTest extends AbstractUnitTest {
         assertTrue(cd.contains("filename="));
         assertTrue(cd.contains("filename*="));
 
-        // Make sure the filename is sanitized, sanitized are only `\\r\\n\"`
+        // The ASCII fallback now drops every control character, not just CR/LF - the old sanitiser let a
+        // TAB through and, worse, did not escape a backslash, so a name ending in `\` terminated the
+        // quoted string early and swallowed the filename* parameter.
         String fallbackName = cd.split("filename=\"")[1].split("\"")[0];
-        assertTrue(fallbackName.contains("../"));
-        assertTrue(fallbackName.contains("\t"));
-        assertFalse(fallbackName.contains("\n"));
-        assertFalse(fallbackName.contains("\""));
+        assertTrue(fallbackName, fallbackName.contains("../"));
+        assertFalse(fallbackName, fallbackName.contains("\t"));
+        assertFalse(fallbackName, fallbackName.contains("\n"));
+        assertFalse(fallbackName, fallbackName.contains("\r"));
 
         // It's valid and desirable to include UTF-8
         assertTrue(cd.contains("UTF-8"));
+    }
+
+    // A trailing backslash used to escape the closing quote and swallow filename*
+    @Test
+    public void backslashInFilename() throws Exception {
+        presignReturns("https://backslash");
+
+        s3DirectDownloadService.generatePresignedUrl("b", "k", 60, "evil\\");
+        String cd = captureRequest().getObjectRequest().responseContentDisposition();
+
+        assertTrue(cd, cd.contains("filename=\"evil\\\\\""));
+        assertTrue(cd, cd.contains("filename*=UTF-8''evil%5C"));
+    }
+
+    // The caller's disposition has to win, otherwise enabling direct downloads kills inline preview
+    @Test
+    public void callerSuppliedDispositionIsUsedVerbatim() throws Exception {
+        presignReturns("https://inline");
+
+        String supplied = "inline; filename=\"paper.pdf\"; filename*=UTF-8''paper.pdf";
+        s3DirectDownloadService.generatePresignedUrl("b", "k", 60, "paper.pdf", supplied);
+
+        assertEquals(supplied, captureRequest().getObjectRequest().responseContentDisposition());
+    }
+
+    // ... and a blank override still falls back to attachment
+    @Test
+    public void blankDispositionFallsBackToAttachment() throws Exception {
+        presignReturns("https://fallback");
+
+        s3DirectDownloadService.generatePresignedUrl("b", "k", 60, "paper.pdf", null);
+
+        assertTrue(captureRequest().getObjectRequest().responseContentDisposition()
+                .startsWith("attachment; "));
     }
 
     // Null filename → IllegalArgumentException

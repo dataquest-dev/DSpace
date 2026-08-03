@@ -250,8 +250,11 @@ public class BitstreamRestController {
             // Generate a presigned URL for the bitstream with a configurable expiration time
             int expirationTime = configurationService.getIntProperty("s3.download.direct.expiration", 3600);
             log.debug("Generating presigned URL with expiration time of {} seconds", expirationTime);
-            String presignedUrl =
-                    s3DirectDownloadService.generatePresignedUrl(bucket, bitstreamPath, expirationTime, bitName);
+            // Serve the same Content-Disposition the non-redirect path would have sent, so that enabling
+            // direct downloads does not silently turn every inline preview into a forced download.
+            String contentDisposition = httpHeaders.getFirst(HttpHeaders.CONTENT_DISPOSITION);
+            String presignedUrl = s3DirectDownloadService.generatePresignedUrl(
+                    bucket, bitstreamPath, expirationTime, bitName, contentDisposition);
 
             if (StringUtils.isBlank(presignedUrl)) {
                 throw new InternalServerErrorException("Failed to generate presigned URL for bitstream: "

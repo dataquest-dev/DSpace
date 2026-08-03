@@ -19,11 +19,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,8 +28,10 @@ import org.dspace.content.Bitstream;
 import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.core.FileRequestBodyConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
@@ -52,8 +51,12 @@ public class SyncS3BitStoreService extends S3BitStoreService {
 
     /**
      * The uploading file is divided into parts and each part is uploaded separately. The size of the part is 50 MB.
+     *
+     * Settable so the multipart path can actually be exercised by a test: with the 50 MB default and a small
+     * fixture the loop only ever runs once, which leaves the offset arithmetic and the last-part handling
+     * unverified. S3 requires every part except the last to be at least 5 MB.
      */
-    private static final long UPLOAD_FILE_PART_SIZE = 50 * 1024 * 1024; // 50 MB
+    private long uploadPartSizeBytes = 50 * 1024 * 1024; // 50 MB
 
     /**
      * Upload large file by parts - check the checksum of every part
@@ -189,8 +192,15 @@ public class SyncS3BitStoreService extends S3BitStoreService {
      * @param scratchFile the file to upload
      */
     private void uploadFluently(String key, File scratchFile) {
-        s3AsyncClient.putObject(r -> r.bucket(getBucketName()).key(key),
-                AsyncRequestBody.fromFile(scratchFile)).join();
+        // `assetstore.s3.s3ChecksumAlgorithm` would otherwise be dead configuration for the fork:
+        // bitstore.xml wires this class, which overrides put(), so the parent's putObject never runs.
+        ChecksumAlgorithm algorithm = getS3ChecksumAlgorithm();
+        s3AsyncClient.putObject(r -> {
+            r.bucket(getBucketName()).key(key);
+            if (algorithm != null) {
+                r.checksumAlgorithm(algorithm);
+            }
+        }, AsyncRequestBody.fromFile(scratchFile)).join();
     }
 
     /**
@@ -217,7 +227,6 @@ public class SyncS3BitStoreService extends S3BitStoreService {
         // Create a list to hold the ETags for individual parts
         List<CompletedPart> completedParts = new ArrayList<>();
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
             // Upload parts
             long fileLength = scratchFile.length();
@@ -225,20 +234,24 @@ public class SyncS3BitStoreService extends S3BitStoreService {
             int partNumber = 1;
 
             while (remainingBytes > 0) {
-                long bytesToUpload = Math.min(UPLOAD_FILE_PART_SIZE, remainingBytes);
+                long bytesToUpload = Math.min(uploadPartSizeBytes, remainingBytes);
                 long offset = fileLength - remainingBytes;
 
                 // Calculate the checksum for the part
                 String partChecksum = calculatePartChecksum(scratchFile, offset, bytesToUpload, digest);
 
                 final int currentPartNumber = partNumber;
-                UploadPartResponse uploadPartResponse;
-                try (InputStream partStream = openPart(scratchFile, offset, bytesToUpload)) {
-                    // Upload the part
-                    uploadPartResponse = s3AsyncClient.uploadPart(
-                            r -> r.bucket(getBucketName()).key(key).uploadId(uploadId).partNumber(currentPartNumber),
-                            AsyncRequestBody.fromInputStream(partStream, bytesToUpload, executor)).join();
-                }
+                // A file-backed body, not a stream: the SDK re-reads it from the start when it retries a
+                // part. A non-resettable stream makes any transient S3 error permanent
+                // ("Request cannot be retried, because the request stream could not be reset"), which is
+                // what the v1 SDK avoided by taking the file plus an offset.
+                UploadPartResponse uploadPartResponse = s3AsyncClient.uploadPart(
+                        r -> r.bucket(getBucketName()).key(key).uploadId(uploadId).partNumber(currentPartNumber),
+                        AsyncRequestBody.fromFile(FileRequestBodyConfiguration.builder()
+                                .path(scratchFile.toPath())
+                                .position(offset)
+                                .numBytesToRead(bytesToUpload)
+                                .build())).join();
 
                 // Collect the ETag for the part
                 completedParts.add(CompletedPart.builder()
@@ -263,31 +276,40 @@ public class SyncS3BitStoreService extends S3BitStoreService {
             // Complete the multipart upload
             s3AsyncClient.completeMultipartUpload(r -> r.bucket(getBucketName()).key(key).uploadId(uploadId)
                     .multipartUpload(CompletedMultipartUpload.builder().parts(completedParts).build())).join();
+        } catch (IOException e) {
+            abortQuietly(key, uploadId);
+            throw e;
         } catch (SdkException | CompletionException e) {
-            log.error("Cannot upload the file by parts because: ", e);
-        } finally {
-            executor.shutdown();
+            // This used to be logged and swallowed, which let put() carry on and record a bitstream that
+            // S3 does not actually hold - silent data loss. Abort so the parts are not billed forever.
+            abortQuietly(key, uploadId);
+            throw new IOException("Multipart upload of " + key + " failed", e);
         }
     }
 
     /**
-     * Open a stream over exactly one part of the file, without loading it into memory.
+     * Abort a multipart upload, reporting but not rethrowing - the caller is already failing and the
+     * original cause is the one worth propagating.
      *
-     * @param file the uploading file
-     * @param offset the offset in the file
-     * @param length the length of the part
-     * @return a stream bounded to the requested part
-     * @throws IOException if an I/O error occurs
+     * @param key the bitstream's internalId
+     * @param uploadId the multipart upload to abort
      */
-    private static InputStream openPart(File file, long offset, long length) throws IOException {
-        FileInputStream fis = new FileInputStream(file);
+    private void abortQuietly(String key, String uploadId) {
         try {
-            fis.getChannel().position(offset);
-            return BoundedInputStream.builder().setInputStream(fis).setMaxCount(length).get();
-        } catch (IOException | RuntimeException e) {
-            fis.close();
-            throw e;
+            s3AsyncClient.abortMultipartUpload(
+                    r -> r.bucket(getBucketName()).key(key).uploadId(uploadId)).join();
+        } catch (SdkException | CompletionException e) {
+            log.error("Could not abort multipart upload " + uploadId + " for " + key
+                    + "; its parts will remain until a lifecycle rule removes them", e);
         }
+    }
+
+    public long getUploadPartSizeBytes() {
+        return uploadPartSizeBytes;
+    }
+
+    public void setUploadPartSizeBytes(long uploadPartSizeBytes) {
+        this.uploadPartSizeBytes = uploadPartSizeBytes;
     }
 
     /**
