@@ -20,9 +20,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -813,8 +815,8 @@ public class RestResourceController implements InitializingBean {
                     }
 
                     Link link = null;
-                    String querystring = request.getQueryString();
-                    if (querystring != null && querystring.length() > 0) {
+                    String querystring = removeEmbedParamsFromQueryString(request.getQueryString());
+                    if (StringUtils.isNotEmpty(querystring)) {
                         link = linkTo(this.getClass(), apiCategory, model).slash(uuid)
                             .slash(subpath + '?' + querystring).withSelfRel();
                     } else {
@@ -1024,6 +1026,29 @@ public class RestResourceController implements InitializingBean {
      * @param parameters
      * @return encoded uriString containing request parameters without embed parameter
      */
+    /**
+     * Remove the "embed" and "embed.*" parameters from a raw query string.
+     *
+     * Embedding a subresource doesn't change which resource was requested, so it doesn't belong in
+     * that resource's self link. The collection and search endpoints already leave these out, via
+     * {@link #getEncodedParameterStringFromRequestParams}; this does the same for the subresource
+     * lists, which build their self link from the raw query string. The remaining parameters are
+     * passed through untouched, so the client's own encoding is preserved.
+     *
+     * @param querystring the raw query string, may be null
+     * @return the query string without embed parameters, empty if nothing is left
+     */
+    private String removeEmbedParamsFromQueryString(String querystring) {
+        if (StringUtils.isEmpty(querystring)) {
+            return "";
+        }
+        return Arrays.stream(StringUtils.split(querystring, '&'))
+                     .filter(param -> !StringUtils.equals(param, "embed")
+                         && !StringUtils.startsWith(param, "embed=")
+                         && !StringUtils.startsWith(param, "embed."))
+                     .collect(Collectors.joining("&"));
+    }
+
     private String getEncodedParameterStringFromRequestParams(
             @RequestParam MultiValueMap<String, Object> parameters) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance();

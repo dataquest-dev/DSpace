@@ -223,6 +223,29 @@ public class BundleRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    public void getItemBundlesSelfLinkHasNoEmbedParams() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        bundle1 = BundleBuilder.createBundle(context, item).withName("testname").build();
+
+        context.restoreAuthSystemState();
+
+        // embedding a subresource doesn't change which resource was requested, so the embed params
+        // must not end up in its self link - the other params must survive untouched
+        getClient().perform(get("/api/core/items/" + item.getID() + "/bundles")
+                       .param("embed", "primaryBitstream")
+                       .param("embed.size", "bitstreams=5")
+                       .param("size", "10"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._links.self.href",
+                           Matchers.containsString("/api/core/items/" + item.getID() + "/bundles")))
+                   .andExpect(jsonPath("$._links.self.href", Matchers.not(Matchers.containsString("embed"))))
+                   .andExpect(jsonPath("$._links.self.href", Matchers.containsString("size=10")))
+        ;
+    }
+
+    @Test
     public void createBundleWithoutMetadata() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         BundleRest bundleRest = new BundleRest();
