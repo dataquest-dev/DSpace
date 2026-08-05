@@ -163,7 +163,10 @@
                     <input-type value-pairs-name="common_types">dropdown</input-type>
                     <hint>Select the type of content of the item.
                     </hint>
-                    <required>You must choose at least one type.</required>
+                    <!-- JCU: optional, as it was in the DSpace 6 input-forms.xml. Making it
+                         required blocks editing the ~46k legacy items and any workspace /
+                         workflow item migrated from v6 without a dc.type. -->
+                    <required></required>
                 </field>
             </row>
             <row>
@@ -1454,6 +1457,42 @@
                 <displayed-value>Working Paper</displayed-value>
                 <stored-value>Working Paper</stored-value>
             </pair>
+
+            <!-- JCU: types actually present in the repository. The stored-value must match the
+                 legacy string byte for byte, otherwise the dropdown renders empty when an
+                 existing item is edited and the value is silently dropped on save.
+                 Row counts from the 2026-07-02 production dump. -->
+            <pair>
+                <displayed-value>Bakalářská práce</displayed-value>
+                <stored-value>bakalářská práce</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Diplomová práce</displayed-value>
+                <stored-value>diplomová práce</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Disertační práce</displayed-value>
+                <stored-value>disertační práce</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Rigorózní práce</displayed-value>
+                <stored-value>rigorózní práce</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Habilitační práce</displayed-value>
+                <stored-value>habilitační práce</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Conference Object</displayed-value>
+                <stored-value>ConferenceObject</stored-value>
+            </pair>
+            <!-- Lower-case variant produced by a legacy import; kept selectable so those 357
+                 items stay editable. Prefer "Article" above for anything new. -->
+            <pair>
+                <displayed-value>Article (legacy import)</displayed-value>
+                <stored-value>article</stored-value>
+            </pair>
+
             <pair>
                 <displayed-value>Other</displayed-value>
                 <stored-value>Other</stored-value>
@@ -1464,50 +1503,108 @@
              "en_US", "en", "es", "de", "fr", "it", "ja", "zh", "other", ""
           -->
         <value-pairs value-pairs-name="common_iso_languages" dc-term="language_iso">
+            <!-- JCU: the code is shown in every label on purpose. Two schemes coexist here
+                 (see the 639-2/B block below), so a bare "German" next to "German (ger)"
+                 would give the submitter no way to tell which one to pick. -->
             <pair>
                 <displayed-value>N/A</displayed-value>
                 <stored-value></stored-value>
             </pair>
             <pair>
-                <displayed-value>English (United States)</displayed-value>
+                <displayed-value>English, United States (en_US)</displayed-value>
                 <stored-value>en_US</stored-value>
             </pair>
             <pair>
-                <displayed-value>English</displayed-value>
+                <displayed-value>English (en)</displayed-value>
                 <stored-value>en</stored-value>
             </pair>
             <pair>
-                <displayed-value>Spanish</displayed-value>
+                <displayed-value>Spanish (es)</displayed-value>
                 <stored-value>es</stored-value>
             </pair>
             <pair>
-                <displayed-value>German</displayed-value>
+                <displayed-value>German (de)</displayed-value>
                 <stored-value>de</stored-value>
             </pair>
             <pair>
-                <displayed-value>French</displayed-value>
+                <displayed-value>French (fr)</displayed-value>
                 <stored-value>fr</stored-value>
             </pair>
             <pair>
-                <displayed-value>Italian</displayed-value>
+                <displayed-value>Italian (it)</displayed-value>
                 <stored-value>it</stored-value>
             </pair>
             <pair>
-                <displayed-value>Japanese</displayed-value>
+                <displayed-value>Japanese (ja)</displayed-value>
                 <stored-value>ja</stored-value>
             </pair>
             <pair>
-                <displayed-value>Chinese</displayed-value>
+                <displayed-value>Chinese (zh)</displayed-value>
                 <stored-value>zh</stored-value>
             </pair>
             <pair>
-                <displayed-value>Portuguese</displayed-value>
+                <displayed-value>Portuguese (pt)</displayed-value>
                 <stored-value>pt</stored-value>
             </pair>
             <pair>
-                <displayed-value>Turkish</displayed-value>
+                <displayed-value>Turkish (tr)</displayed-value>
                 <stored-value>tr</stored-value>
             </pair>
+            <!-- JCU: 639-1 codes present in the data but missing from the vanilla list. -->
+            <pair>
+                <displayed-value>Slovak (sk)</displayed-value>
+                <stored-value>sk</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Russian (ru)</displayed-value>
+                <stored-value>ru</stored-value>
+            </pair>
+
+            <!-- JCU: the repository stores ISO 639-2/B codes, not the 639-1 codes above -
+                 43 186 of ~45 700 values are "cze" alone. Until a data migration to 639-1
+                 happens, both schemes have to be selectable or existing items cannot be
+                 edited. Row counts from the 2026-07-02 production dump.
+                 Note there is deliberately no 639-1 Czech ("cs"): new items should keep
+                 using "cze" so the field does not fragment further.
+                 Not listed on purpose: "xx" (223) and "ep" (31) - not valid codes in any
+                 scheme, they need cleaning up in the data, not a dropdown entry. -->
+            <pair>
+                <displayed-value>Czech (cze)</displayed-value>
+                <stored-value>cze</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>English (eng)</displayed-value>
+                <stored-value>eng</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Slovak (slo)</displayed-value>
+                <stored-value>slo</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>German (ger)</displayed-value>
+                <stored-value>ger</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>French (fre)</displayed-value>
+                <stored-value>fre</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Spanish (spa)</displayed-value>
+                <stored-value>spa</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Russian (rus)</displayed-value>
+                <stored-value>rus</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Italian (ita)</displayed-value>
+                <stored-value>ita</stored-value>
+            </pair>
+            <pair>
+                <displayed-value>Hungarian (hun)</displayed-value>
+                <stored-value>hun</stored-value>
+            </pair>
+
             <pair>
                 <displayed-value>(Other)</displayed-value>
                 <stored-value>other</stored-value>
