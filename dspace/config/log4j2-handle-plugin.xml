@@ -13,7 +13,7 @@
     <Appenders>
         <!-- A1 is for Handle Plugin activity -->
         <Appender name='A1'
-                  filePattern="${log.dir}/handle-plugin.log-%d{yyyy-MM-dd}"
+                  filePattern="${log.dir}/handle-plugin.log-%d{yyyy-MM-dd}.gz"
                   type='RollingFile'
                   fileName='${log.dir}/handle-plugin.log'
 
@@ -28,7 +28,7 @@
             <!-- Sample deletion policy:  keep last 30 archived files
             <DefaultRolloverStrategy>
                 <Delete basePath='${log.dir}'>
-                    <IfFileName glob='dspace.log-*'/>
+                    <IfFileName glob='handle-plugin.log-*.gz'/>
                     <IfAccumulatedFileCount exceeds='30'/>
                 </Delete>
             </DefaultRolloverStrategy>
