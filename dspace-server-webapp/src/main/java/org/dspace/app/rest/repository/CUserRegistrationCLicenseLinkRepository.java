@@ -27,7 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Component;
 
-@Component(ClarinUserRegistrationRest.CATEGORY + "." + ClarinUserRegistrationRest.NAME + "." +
+@Component(ClarinUserRegistrationRest.CATEGORY + "." + ClarinUserRegistrationRest.PLURAL_NAME + "." +
         ClarinUserRegistrationRest.CLARIN_LICENSES)
 public class CUserRegistrationCLicenseLinkRepository extends AbstractDSpaceRestRepository
         implements LinkRestRepository {
