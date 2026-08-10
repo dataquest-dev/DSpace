@@ -17,11 +17,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 import com.lyncode.xoai.dataprovider.xml.xoai.Element;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import com.lyncode.xoai.util.Base64Utils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.util.factory.UtilServiceFactory;
@@ -256,8 +256,21 @@ public class ItemUtils {
     }
 
     /**
-     * Sanitizes a string to remove characters that are invalid
-     * in XML 1.0 using the Apache Commons Text library.
+     * Matches the characters that XML 1.0 forbids outright: C0 controls other than tab, LF and CR,
+     * plus the two non-characters U+FFFE and U+FFFF. See https://www.w3.org/TR/xml/#charsets
+     */
+    private static final Pattern INVALID_XML10_CHARS =
+        Pattern.compile("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\uFFFE\\uFFFF]");
+
+    /**
+     * Sanitizes a string to remove characters that are invalid in XML 1.0.
+     * <P>
+     * NOTE: this deliberately REMOVES illegal characters rather than escaping the string. The value
+     * returned here is handed to the XOAI serializer, which performs XML escaping itself, so escaping
+     * here as well would double-escape every value containing &amp;, &lt;, &gt;, " or ' — a harvester
+     * would then read the literal text "&amp;lt;" instead of a "&lt;" character. That silently corrupts
+     * every OAI format built on the xoai document, including the cmdi and olac formats CLARIN/LINDAT
+     * is aggregated through.
      * @param value The string to sanitize.
      * @return A sanitized string, or null if the input was null.
      */
@@ -265,7 +278,7 @@ public class ItemUtils {
         if (value == null) {
             return null;
         }
-        return StringEscapeUtils.escapeXml10(value);
+        return INVALID_XML10_CHARS.matcher(value).replaceAll("");
     }
 
     /**
