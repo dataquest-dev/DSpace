@@ -256,21 +256,35 @@ public class ItemUtils {
     }
 
     /**
-     * Matches the characters that XML 1.0 forbids outright: C0 controls other than tab, LF and CR,
-     * plus the two non-characters U+FFFE and U+FFFF. See https://www.w3.org/TR/xml/#charsets
+     * Matches everything XML 1.0 forbids outright, in three alternations:
+     * <ol>
+     *   <li>C0 controls other than tab, LF and CR, plus the non-characters U+FFFE and U+FFFF;</li>
+     *   <li>a high surrogate not followed by a low surrogate;</li>
+     *   <li>a low surrogate not preceded by a high surrogate.</li>
+     * </ol>
+     * See https://www.w3.org/TR/xml/#charsets. Unpaired surrogates matter in practice: a truncated
+     * 4-byte character in ingested metadata makes the StAX writer throw "Broken surrogate pair", and
+     * because XOAI.index() catches that per item the record is silently dropped from the OAI index.
      */
-    private static final Pattern INVALID_XML10_CHARS =
-        Pattern.compile("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\uFFFE\\uFFFF]");
+    private static final Pattern INVALID_XML10_CHARS = Pattern.compile(
+        "[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\uFFFE\\uFFFF]"
+            + "|[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])"
+            + "|(?<![\\uD800-\\uDBFF])[\\uDC00-\\uDFFF]");
 
     /**
      * Sanitizes a string to remove characters that are invalid in XML 1.0.
      * <P>
      * NOTE: this deliberately REMOVES illegal characters rather than escaping the string. The value
-     * returned here is handed to the XOAI serializer, which performs XML escaping itself, so escaping
-     * here as well would double-escape every value containing &amp;, &lt;, &gt;, " or ' — a harvester
-     * would then read the literal text "&amp;lt;" instead of a "&lt;" character. That silently corrupts
-     * every OAI format built on the xoai document, including the cmdi and olac formats CLARIN/LINDAT
-     * is aggregated through.
+     * returned here is handed to the XOAI serializer, which performs XML escaping itself (every text
+     * event goes through {@code XMLStreamWriter.writeCharacters}), so escaping here as well would
+     * double-escape every value containing &amp;, &lt;, &gt;, " or ' — a harvester would then read the
+     * literal text "&amp;lt;" instead of a "&lt;" character. That silently corrupts every OAI format
+     * built on the xoai document, including the cmdi and olac formats CLARIN/LINDAT is aggregated
+     * through.
+     * <P>
+     * The removal set must stay equivalent to what {@code StringEscapeUtils.escapeXml10} removed —
+     * notably including unpaired surrogates — otherwise items carrying them fail to serialize and
+     * drop out of the OAI index entirely.
      * @param value The string to sanitize.
      * @return A sanitized string, or null if the input was null.
      */
