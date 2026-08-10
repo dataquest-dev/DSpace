@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 /**
  * CLRUA = ClarinLicenseResourceUserAllowance
  */
-@Component(ClarinLicenseResourceUserAllowanceRest.CATEGORY + "." + ClarinLicenseResourceUserAllowanceRest.NAME +
+@Component(ClarinLicenseResourceUserAllowanceRest.CATEGORY + "." + ClarinLicenseResourceUserAllowanceRest.PLURAL_NAME +
         "." + ClarinLicenseResourceUserAllowanceRest.USER_REGISTRATION)
 public class CLRUAUUserRegistrationLinkRepository extends AbstractDSpaceRestRepository
         implements LinkRestRepository {

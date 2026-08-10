@@ -24,7 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Component;
 
-@Component(ClarinLicenseResourceMappingRest.CATEGORY + "." + ClarinLicenseResourceMappingRest.NAME +
+@Component(ClarinLicenseResourceMappingRest.CATEGORY + "." + ClarinLicenseResourceMappingRest.PLURAL_NAME +
         "." + ClarinLicenseResourceMappingRest.CLARIN_LICENSE)
 public class ClarinResourceMappingCLicenseLinkRepository extends AbstractDSpaceRestRepository
         implements LinkRestRepository {
