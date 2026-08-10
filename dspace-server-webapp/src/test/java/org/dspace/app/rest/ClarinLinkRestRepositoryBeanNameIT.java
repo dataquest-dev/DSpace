@@ -10,6 +10,7 @@ package org.dspace.app.rest;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.dspace.app.rest.exception.RepositoryNotFoundException;
 import org.dspace.app.rest.model.ClarinLicenseResourceMappingRest;
 import org.dspace.app.rest.model.ClarinLicenseResourceUserAllowanceRest;
 import org.dspace.app.rest.model.ClarinUserRegistrationRest;
@@ -64,11 +65,21 @@ public class ClarinLinkRestRepositoryBeanNameIT extends AbstractControllerIntegr
 
         for (LinkRest linkRest : linksRest.links()) {
             String expectedBeanName = model.getCategory() + "." + model.getTypePlural() + "." + linkRest.name();
-            // Throws RepositoryNotFoundException (-> HTTP 404) when the bean is registered under
-            // the old singular name instead of the plural one.
-            LinkRestRepository repository =
-                    utils.getLinkResourceRepository(model.getCategory(), model.getTypePlural(), linkRest.name());
-            assertNotNull("No LinkRestRepository registered as '" + expectedBeanName + "'", repository);
+            try {
+                LinkRestRepository repository =
+                        utils.getLinkResourceRepository(model.getCategory(), model.getTypePlural(), linkRest.name());
+                assertNotNull("No LinkRestRepository registered as '" + expectedBeanName + "'", repository);
+            } catch (RepositoryNotFoundException e) {
+                // Translate the lookup failure into an actionable assertion. RepositoryNotFoundException
+                // reports only "<category>.<typePlural>" and never the rel, so on a model with several
+                // rels its own message cannot say which one is unregistered. It is also misleading here:
+                // it claims the repository *type* is missing when the main repository resolves fine and
+                // only the link repository bean is absent.
+                throw new AssertionError("No LinkRestRepository is registered as '" + expectedBeanName
+                        + "'. On DSpace 9 link repositories are looked up under the plural model name, so"
+                        + " the @Component of the repository serving this rel must be built from"
+                        + " PLURAL_NAME, not NAME.", e);
+            }
         }
     }
 
