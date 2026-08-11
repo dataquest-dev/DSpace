@@ -19,7 +19,7 @@ CREATE TABLE previewcontent (
    size varchar(256)
 );
 
-ALTER TABLE public.previewcontent OWNER TO dspace;
+ALTER TABLE previewcontent OWNER TO dspace;
 
 --
 -- Name: previewcontent_previewcontent_id_seq; Type: SEQUENCE; Schema: public; Owner: dspace
@@ -32,7 +32,7 @@ CREATE SEQUENCE previewcontent_previewcontent_id_seq
     NO MINVALUE
     CACHE 1;
 
-ALTER TABLE public.previewcontent_previewcontent_id_seq OWNER TO dspace;
+ALTER TABLE previewcontent_previewcontent_id_seq OWNER TO dspace;
 
 --
 -- Name: previewcontent_previewcontent_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dspace
@@ -64,7 +64,7 @@ CREATE TABLE preview2preview (
     name varchar(2000)
 );
 
-ALTER TABLE public.preview2preview OWNER TO dspace;
+ALTER TABLE preview2preview OWNER TO dspace;
 
 --
 -- Name: preview2preview_pkey; Type: CONSTRAINT; Schema: public; Owner: dspace; Tablespace:
