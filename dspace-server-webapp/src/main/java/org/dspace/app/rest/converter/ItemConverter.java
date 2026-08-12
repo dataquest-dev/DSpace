@@ -9,7 +9,6 @@ package org.dspace.app.rest.converter;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -96,8 +95,8 @@ public class ItemConverter
 
         MetadataValueRest dateRest = new MetadataValueRest(derivedValue);
         dateRest.setConfidence(-1);
-        dateRest.setPlace(0);
-        target.getMetadata().getMap().put("dc.date.issued", Collections.singletonList(dateRest));
+        // MetadataRest#put normalizes place and keeps Arrays.asList semantics consistent with other fields
+        target.getMetadata().put("dc.date.issued", dateRest);
     }
 
     /**

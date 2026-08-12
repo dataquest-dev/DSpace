@@ -229,10 +229,11 @@ public class ClarinItemServiceImpl implements ClarinItemService {
             return;
         }
 
-        // Skip the write when dc.date.issued already holds the derived value
+        // Skip the write only when dc.date.issued already holds exactly the single derived value.
+        // A multi-valued field must still be normalized down to the single derived value.
         List<MetadataValue> currentDateIssued =
                 itemService.getMetadata(item, "dc", "date", "issued", Item.ANY, false);
-        if (CollectionUtils.isNotEmpty(currentDateIssued)
+        if (currentDateIssued.size() == 1
                 && derivedDate.equals(currentDateIssued.get(0).getValue())) {
             return;
         }
