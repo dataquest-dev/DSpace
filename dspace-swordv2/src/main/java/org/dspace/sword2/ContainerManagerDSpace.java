@@ -797,7 +797,9 @@ public class ContainerManagerDSpace extends DSpaceSwordAPI
     }
 
     /**
-     * Check if the item is already deleted in the context.
+     * Returns true if a DELETE event for this item is already queued on the context
+     * (i.e. the item was deleted earlier in this transaction), so the caller can skip
+     * a second {@code itemService.delete()} that would otherwise fail.
      */
     private boolean isItemAlreadyDeleted(Context context, UUID itemUUID) {
         if (context.getEvents() == null) {
@@ -805,7 +807,9 @@ public class ContainerManagerDSpace extends DSpaceSwordAPI
         }
 
         for (Event event : context.getEvents()) {
-            if (event.getEventType() == Event.DELETE && event.getSubjectID().equals(itemUUID)) {
+            if (event.getEventType() == Event.DELETE
+                    && event.getSubjectType() == Constants.ITEM
+                    && itemUUID.equals(event.getSubjectID())) {
                 return true;
             }
         }
