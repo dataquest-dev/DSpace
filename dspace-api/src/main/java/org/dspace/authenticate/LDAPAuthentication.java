@@ -391,8 +391,9 @@ public class LDAPAuthentication implements AuthenticationMethod {
     private void setEpersonAttributes(Context context, EPerson eperson, SpeakerToLDAP ldap,
                                       Optional<String> netid, String email) throws SQLException {
 
-        // Set the e-mail: prefer the LDAP-provided address, otherwise the one the user logged in with,
-        // so an EPerson is never persisted with a null e-mail.
+        // Set the e-mail: prefer the LDAP-provided address, otherwise fall back to the
+        // login e-mail when one was supplied. If neither is available, the existing
+        // e-mail is left unchanged.
         if (StringUtils.isNotEmpty(ldap.ldapEmail)) {
             eperson.setEmail(ldap.ldapEmail);
         } else if (StringUtils.isNotEmpty(email)) {
@@ -746,7 +747,7 @@ public class LDAPAuthentication implements AuthenticationMethod {
      */
     private void assignGroups(String dn, ArrayList<String> group, Context context) {
         if (StringUtils.isNotBlank(dn)) {
-            log.info(LogHelper.getHeader(context, "assignGroups", "dn=" + dn));
+            log.debug(LogHelper.getHeader(context, "assignGroups", "dn=" + dn));
             int groupmapIndex = 1;
             String groupMap = configurationService.getProperty("authentication-ldap.login.groupmap." + groupmapIndex);
             boolean cmp;
