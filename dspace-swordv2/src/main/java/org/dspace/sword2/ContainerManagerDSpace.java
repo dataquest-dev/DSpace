@@ -757,16 +757,15 @@ public class ContainerManagerDSpace extends DSpaceSwordAPI
             WorkflowTools wft = new WorkflowTools();
             if (wft.isItemInWorkspace(swordContext.getContext(), item)) {
                 WorkspaceItem wsi = wft.getWorkspaceItem(context, item);
-                workspaceItemService.deleteAll(context, wsi);
-                // the item is deleted in the above call
+                // remove only the workspace wrapper row; the item itself is deleted below.
+                workspaceItemService.deleteWrapper(context, wsi);
             } else if (wft.isItemInWorkflow(context, item)) {
                 WorkflowItem wfi = wft.getWorkflowItem(context, item);
                 workflowItemService.deleteWrapper(context, wfi);
             }
 
-            // then delete the item, but only if it hasn't already been deleted by the methods above.
-            // the delete method is called in `workspaceItemService.deleteAll(context, wsi);`,
-            // so it should not be called again here, as that would throw an exception.
+            // then delete the item, unless an upstream method already queued its deletion
+            // in this transaction (safety net against a double itemService.delete()).
             if (!isItemAlreadyDeleted(context, item.getID())) {
                 itemService.delete(context, item);
             }
