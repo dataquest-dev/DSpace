@@ -756,11 +756,11 @@ public class LDAPAuthentication implements AuthenticationMethod {
             // groupmap contains the mapping of LDAP groups to DSpace groups
             // outer loop with the DSpace groups
             while (groupMap != null) {
-                String t[] = groupMap.split(":");
-                if (t.length < 2) {
+                String t[] = groupMap.split(":", 2);
+                if (t.length < 2 || StringUtils.isBlank(t[0]) || StringUtils.isBlank(t[1])) {
                     log.error(LogHelper.getHeader(context, "assignGroups",
                         "malformed groupmap entry at index " + groupmapIndex + ": " + groupMap +
-                        " - missing ':' separator"));
+                        " - expected '<ldapSearchFragment>:<dspaceGroupName>' with both parts non-empty"));
                     groupMap = configurationService.getProperty(
                             "authentication-ldap.login.groupmap." + ++groupmapIndex);
                     continue;
