@@ -322,7 +322,7 @@ public class LDAPAuthentication implements AuthenticationMethod {
                             log.info(LogHelper.getHeader(context,
                                                           "type=ldap-login", "type=ldap_but_already_email"));
                             context.turnOffAuthorisationSystem();
-                            setEpersonAttributes(context, eperson, ldap, Optional.of(netid));
+                            setEpersonAttributes(context, eperson, ldap, Optional.of(netid), email);
                             ePersonService.update(context, eperson);
                             context.dispatchEvents();
                             context.restoreAuthSystemState();
@@ -339,7 +339,7 @@ public class LDAPAuthentication implements AuthenticationMethod {
                                 try {
                                     context.turnOffAuthorisationSystem();
                                     eperson = ePersonService.create(context);
-                                    setEpersonAttributes(context, eperson, ldap, Optional.of(netid));
+                                    setEpersonAttributes(context, eperson, ldap, Optional.of(netid), email);
                                     eperson.setCanLogIn(true);
                                     authenticationService.initEPerson(context, request, eperson);
                                     ePersonService.update(context, eperson);
@@ -382,9 +382,22 @@ public class LDAPAuthentication implements AuthenticationMethod {
      */
     private void setEpersonAttributes(Context context, EPerson eperson, SpeakerToLDAP ldap, Optional<String> netid)
         throws SQLException {
+        setEpersonAttributes(context, eperson, ldap, netid, null);
+    }
 
+    /**
+     * Update eperson's attributes, falling back to the supplied login e-mail when LDAP has none.
+     */
+    private void setEpersonAttributes(Context context, EPerson eperson, SpeakerToLDAP ldap,
+                                      Optional<String> netid, String email) throws SQLException {
+
+        // Set the e-mail: prefer the LDAP-provided address, otherwise fall back to the
+        // login e-mail when one was supplied. If neither is available, the existing
+        // e-mail is left unchanged.
         if (StringUtils.isNotEmpty(ldap.ldapEmail)) {
             eperson.setEmail(ldap.ldapEmail);
+        } else if (StringUtils.isNotEmpty(email)) {
+            eperson.setEmail(email);
         }
         if (StringUtils.isNotEmpty(ldap.ldapGivenName)) {
             eperson.setFirstName(context, ldap.ldapGivenName);
@@ -734,7 +747,7 @@ public class LDAPAuthentication implements AuthenticationMethod {
      */
     private void assignGroups(String dn, ArrayList<String> group, Context context) {
         if (StringUtils.isNotBlank(dn)) {
-            System.out.println("dn:" + dn);
+            log.debug(LogHelper.getHeader(context, "assignGroups", "dn=" + dn));
             int groupmapIndex = 1;
             String groupMap = configurationService.getProperty("authentication-ldap.login.groupmap." + groupmapIndex);
             boolean cmp;
@@ -743,7 +756,16 @@ public class LDAPAuthentication implements AuthenticationMethod {
             // groupmap contains the mapping of LDAP groups to DSpace groups
             // outer loop with the DSpace groups
             while (groupMap != null) {
-                String t[] = groupMap.split(":");
+                String t[] = groupMap.split(":", 2);
+                if (t.length < 2 || StringUtils.isBlank(t[0]) || StringUtils.isBlank(t[1])) {
+                    log.error(LogHelper.getHeader(context, "assignGroups",
+                        "malformed groupmap entry at index " + groupmapIndex + ": " + groupMap +
+                        " - expected '<ldapSearchFragment>:<dspaceGroupName>' with both parts non-empty"));
+                    groupMap = configurationService.getProperty(
+                            "authentication-ldap.login.groupmap." + ++groupmapIndex);
+                    continue;
+                }
+
                 String ldapSearchString = t[0];
                 String dspaceGroupName = t[1];
 
