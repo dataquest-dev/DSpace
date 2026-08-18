@@ -500,7 +500,18 @@ public class ItemUpdate {
                 if (!isTest) {
                     Item item = itarch.getItem();
                     if (syncEmbargoPolicies) {
-                        this.syncEmbargoPolicies(context, item);
+                        try {
+                            this.syncEmbargoPolicies(context, item);
+                        } catch (Exception embargoFailure) {
+                            // The catch below only prints the exception, and a printed exception is an exit
+                            // code of 0. An embargo synchronisation that died half way has already re-dated
+                            // the surviving Anonymous READ policy of a bitstream - the duplicate deletion
+                            // that follows it is the last thing to run - and context.complete() commits that
+                            // state. Counting the failure is what stops a published file from being reported
+                            // as a successful run.
+                            embargoSyncFailures++;
+                            throw embargoFailure;
+                        }
                     }
                     itemService.update(context, item);  //need to update before commit
                     context.uncacheEntity(item);

@@ -26,6 +26,8 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.file.PathUtils;
@@ -460,6 +462,187 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     // -----------------------------------------------------------------------------------------------
+    // legacy dc.date.embargoend shapes
+    // -----------------------------------------------------------------------------------------------
+
+    /**
+     * The value shapes {@code DCDate} used to accept still have to work here, and have to mean the same day
+     * here as on the import path. {@code DCDate.toDate()} reported the <em>first</em> instant of a year or a
+     * month, so {@code 2099} has always meant 1 January 2099 and {@code 2027-05} 1 May 2027, never the end of
+     * the period; a timestamp was truncated to its UTC day.
+     *
+     * <p>The same SAF package is first fed to {@code dspace import} and later re-fed to {@code dspace
+     * itemupdate}, so a disagreement between the two tools is a file one of them closes and the other opens.
+     * The import-side mirror of this test is {@code EmbargoImportIT#testYearOnlyEmbargoEndIsFirstOfJanuary}
+     * and its two neighbours.</p>
+     */
+    @Test
+    public void legacyEmbargoEndShapesKeepTheirDcDateDay() throws Exception {
+        int nextYear = utcToday().getYear() + 1;
+        LocalDate tomorrow = utcToday().plusDays(1);
+
+        // a bare year is 1 January of it - not 31 December, which would extend embargoes operators live with
+        assertLegacyEmbargoEndClosesTheFileUntil(String.valueOf(nextYear), LocalDate.of(nextYear, 1, 1));
+        // a bare month is the 1st of it, for the same reason
+        assertLegacyEmbargoEndClosesTheFileUntil(nextYear + "-05", LocalDate.of(nextYear, 5, 1));
+        // the shape every DSpace export writes; the time of day is dropped, the UTC day is the last closed day
+        assertLegacyEmbargoEndClosesTheFileUntil(tomorrow + "T00:00:00Z", tomorrow);
+    }
+
+    /**
+     * A legacy shape whose day lies in the <em>past</em> publishes the file, and that is a decision, not an
+     * accident. {@code 2020} says the embargo ended in 2020, so the files are public - exactly as a written
+     * out {@code 2020-01-01} would be. Until the {@code DCDate} shapes were read again, such a value threw and
+     * the item was refused; that refusal was a side effect of strict parsing and not what the metadata says.
+     *
+     * <p>This is the one test in the class that watches a file being opened by a legacy value, so it asserts
+     * the whole outcome: one immediately effective policy, an anonymous visitor who really gets the file, and
+     * a run that reports no problem ({@link #runItemUpdate} checks the last part).</p>
+     */
+    @Test
+    public void legacyPastEmbargoEndPublishesOnPurpose() throws Exception {
+        LocalDate primingEnd = utcToday().plusYears(1);
+        int legacyPastYear = utcToday().getYear() - 5;
+        String legacyValue = String.valueOf(legacyPastYear);
+        LocalDate expectedEmbargoEnd = LocalDate.of(legacyPastYear, 1, 1);
+        LocalDate expectedStartDay = expectedEmbargoEnd.plusDays(1);
+        String scenario = "legacy dc.date.embargoend=" + legacyValue + " (DCDate day " + expectedEmbargoEnd + ")";
+
+        Item item = createItem("Legacy year-only embargo end in the past");
+        Bitstream bitstream = createOriginalBitstream(item, "legacy-past.pdf");
+        dump("STEP A - fresh SAF import, before any itemupdate", bitstream);
+        assertFreshImportBaseline(bitstream);
+
+        // The priming run is what makes this a publication rather than a no-op: it leaves the single dated
+        // policy that keeps the file closed, so opening it afterwards is a state change that can be observed.
+        runItemUpdate(item, dublinCore(item, "embargoedAccess", primingEnd.toString()));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+        dump("STEP B - after priming itemupdate with a FUTURE dc.date.embargoend=" + primingEnd, bitstream);
+        assertFalse("fixture precondition: after the priming run with dc.date.embargoend=" + primingEnd
+                        + " the file has to be closed, otherwise the legacy value below opens nothing."
+                        + diagnostics,
+                anonymousCanRead(bitstream));
+
+        runItemUpdate(item, dublinCore(item, "openAccess", legacyValue));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+        dump("STEP C - after itemupdate with " + scenario, bitstream);
+
+        assertEmbargoEndStored(item, legacyValue);
+
+        ResourcePolicy policy = assertExactlyOneAnonymousReadPolicy(scenario, bitstream);
+        assertNormalisedEmbargoPolicy(scenario, policy, expectedStartDay);
+
+        assertTrue("dc.date.embargoend=" + legacyValue + " is the year " + legacyPastYear + ", i.e. an embargo"
+                        + " that ended on " + expectedEmbargoEnd + ", so resource policy #" + policy.getID()
+                        + " (start=" + policy.getStartDate() + ") has to be date-valid already." + diagnostics,
+                resourcePolicyService.isDateValid(policy));
+        assertTrue("An embargo that ended in " + legacyPastYear + " publishes the file. This is the intended"
+                        + " reading of a bare year and not a parsing accident: the ORIGINAL bitstream has to be"
+                        + " readable by anonymous visitors." + diagnostics,
+                anonymousCanRead(bitstream));
+    }
+
+    /**
+     * Reading the {@code DCDate} shapes is not the same as swallowing what {@code DCDate} swallowed.
+     * {@code SimpleDateFormat} took {@code 2099garbage} for the year 2099, and {@code DCDate} ignored a numeric
+     * UTC offset instead of applying it - both move an embargo boundary silently. They are refused, and a
+     * refusal has to leave every policy exactly where it was and fail the run: an operator scripting
+     * {@code itemupdate} sees nothing but the exit code.
+     */
+    @Test
+    public void unparseableLegacyLookalikeLeavesPoliciesUntouched() throws Exception {
+        int nextYear = utcToday().getYear() + 1;
+
+        // trailing garbage after a year that SimpleDateFormat used to ignore
+        assertEmbargoEndIsRefused(nextYear + "garbage");
+        // a numeric UTC offset: DCDate read this as midnight UTC, i.e. two hours off, and never said so
+        assertEmbargoEndIsRefused(nextYear + "-05-01T00:00:00+02:00");
+    }
+
+    /**
+     * One legacy value that has to close the file until exactly the day {@code DCDate} mapped it to.
+     *
+     * @param legacyValue        raw {@code dc.date.embargoend} as a legacy SAF package writes it
+     * @param expectedEmbargoEnd last closed day {@code DCDate} mapped that value to; has to be in the future
+     */
+    private void assertLegacyEmbargoEndClosesTheFileUntil(String legacyValue, LocalDate expectedEmbargoEnd)
+            throws Exception {
+        LocalDate expectedStartDay = expectedEmbargoEnd.plusDays(1);
+        String scenario = "legacy dc.date.embargoend=" + legacyValue + " (DCDate day " + expectedEmbargoEnd + ")";
+
+        assertTrue("test bug [" + scenario + "]: the expected embargo end day has to lie in the future, or the"
+                        + " scenario silently turns into the expired-embargo one.",
+                expectedStartDay.isAfter(utcToday()));
+
+        Item item = createItem("Legacy embargo end " + legacyValue);
+        Bitstream bitstream = createOriginalBitstream(item, "legacy.pdf");
+        dump("STEP A [" + legacyValue + "] - fresh SAF import, before any itemupdate", bitstream);
+        assertFreshImportBaseline(bitstream);
+
+        runItemUpdate(item, dublinCore(item, "embargoedAccess", legacyValue));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+        dump("STEP B [" + legacyValue + "] - after itemupdate", bitstream);
+
+        assertEmbargoEndStored(item, legacyValue);
+
+        ResourcePolicy policy = assertExactlyOneAnonymousReadPolicy(scenario, bitstream);
+        assertNormalisedEmbargoPolicy(scenario, policy, expectedStartDay);
+
+        assertFalse("[" + scenario + "] resource policy #" + policy.getID() + " must not be date-valid yet."
+                        + diagnostics,
+                resourcePolicyService.isDateValid(policy));
+        assertFalse("[" + scenario + "] the embargo ends on " + expectedEmbargoEnd + ", which is in the future,"
+                        + " so an anonymous visitor must NOT be able to download the ORIGINAL bitstream."
+                        + diagnostics,
+                anonymousCanRead(bitstream));
+    }
+
+    /**
+     * One value that has to be refused: the policies of an embargoed file stay byte for byte what they were and
+     * the run counts a failure, so {@code ItemUpdate.main()} exits non-zero.
+     *
+     * @param rejectedValue raw {@code dc.date.embargoend} that no accepted shape matches
+     */
+    private void assertEmbargoEndIsRefused(String rejectedValue) throws Exception {
+        LocalDate primingEnd = utcToday().plusYears(1);
+        LocalDate primingStartDay = primingEnd.plusDays(1);
+        String scenario = "unparseable dc.date.embargoend=" + rejectedValue;
+
+        Item item = createItem("Unparseable embargo end " + rejectedValue);
+        Bitstream bitstream = createOriginalBitstream(item, "unparseable.pdf");
+        assertFreshImportBaseline(bitstream);
+
+        runItemUpdate(item, dublinCore(item, "embargoedAccess", primingEnd.toString()));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+        dump("STEP A [" + rejectedValue + "] - embargoed until " + primingEnd, bitstream);
+        assertFalse("fixture precondition [" + scenario + "]: the file has to be closed before the unparseable"
+                + " value is fed in." + diagnostics, anonymousCanRead(bitstream));
+
+        Set<Integer> idsBefore = allPolicyIds(bitstream);
+
+        String consoleOutput = runItemUpdate(item, dublinCore(item, "embargoedAccess", rejectedValue), 1);
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+        dump("STEP B [" + rejectedValue + "] - after itemupdate with the unparseable value", bitstream);
+
+        assertEquals("[" + scenario + "] the set of resource policy ids changed, so policies were deleted and/or"
+                        + " re-created although an unreadable date is no instruction at all. Console output"
+                        + " was:\n" + consoleOutput + diagnostics,
+                idsBefore, allPolicyIds(bitstream));
+
+        ResourcePolicy policy = assertExactlyOneAnonymousReadPolicy(scenario, bitstream);
+        assertEquals("[" + scenario + "] the surviving policy was re-dated although the value could not be read."
+                        + " Whatever the tool cannot parse it must not act on." + diagnostics,
+                primingStartDay, toLocalDate(policy.getStartDate()));
+        assertFalse("[" + scenario + "] the embargoed file became publicly readable after an unreadable"
+                + " dc.date.embargoend." + diagnostics, anonymousCanRead(bitstream));
+    }
+
+    // -----------------------------------------------------------------------------------------------
     // assertions
     // -----------------------------------------------------------------------------------------------
 
@@ -560,6 +743,18 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
                 context.turnOffAuthorisationSystem();
             }
         }
+    }
+
+    /**
+     * Every resource policy id of the bitstream, whatever the action. Comparing ids and not counts is the point:
+     * a policy deleted and immediately re-created keeps the count but loses its identity.
+     */
+    private Set<Integer> allPolicyIds(Bitstream bitstream) throws Exception {
+        Set<Integer> ids = new TreeSet<>();
+        for (ResourcePolicy policy : resourcePolicyService.find(context, bitstream)) {
+            ids.add(policy.getID());
+        }
+        return ids;
     }
 
     private List<ResourcePolicy> anonymousReadPolicies(Bitstream bitstream) throws Exception {
@@ -688,6 +883,17 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
      *         reaches the failsafe output file as well.
      */
     private String runItemUpdate(Item item, String dublinCoreContent) throws Exception {
+        return runItemUpdate(item, dublinCoreContent, 0);
+    }
+
+    /**
+     * Same run, for the scenarios {@code itemupdate} has to refuse.
+     *
+     * @param expectedEmbargoSyncFailures number of embargo problems the run has to count; anything but 0 means
+     *                                    {@code ItemUpdate.main()} would exit with 1
+     */
+    private String runItemUpdate(Item item, String dublinCoreContent, int expectedEmbargoSyncFailures)
+            throws Exception {
         Path sourceRoot = Files.createDirectory(tempDir.resolve("saf-" + System.nanoTime()));
         // Without suppress_undo, processArchive writes an undo archive as a SIBLING of the source directory.
         Files.createFile(sourceRoot.resolve(ItemUpdate.SUPPRESS_UNDO_FILENAME));
@@ -720,11 +926,12 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
         context.uncacheEntity(item);
         String consoleOutput = captured.toString(StandardCharsets.UTF_8.name());
 
-        assertEquals("this scenario is one itemupdate has to carry out, so it must not report an embargo"
-                        + " synchronisation problem - ItemUpdate.main() would exit with "
-                        + ItemUpdate.exitStatus(0, itemUpdate.embargoSyncFailures) + ". Console output was:\n"
+        assertEquals("wrong number of reported embargo synchronisation problems - ItemUpdate.main() would exit"
+                        + " with " + ItemUpdate.exitStatus(0, itemUpdate.embargoSyncFailures) + " instead of "
+                        + ItemUpdate.exitStatus(0, expectedEmbargoSyncFailures) + ", and the exit code is the"
+                        + " only thing an operator scripting itemupdate ever sees. Console output was:\n"
                         + consoleOutput,
-                0, itemUpdate.embargoSyncFailures);
+                expectedEmbargoSyncFailures, itemUpdate.embargoSyncFailures);
 
         return consoleOutput;
     }

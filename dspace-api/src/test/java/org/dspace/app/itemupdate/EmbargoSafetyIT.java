@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.file.PathUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
@@ -54,6 +55,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Constants;
+import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -457,6 +459,47 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
+     * The per-item {@code catch} of {@code processArchive} prints the exception and carries on, and a printed
+     * exception is an exit code of 0. That is harmless for an action that failed before it changed anything.
+     * It is not harmless for the embargo synchronisation, whose <em>last</em> step is deleting the duplicate
+     * Anonymous READ policies of a bitstream whose surviving policy has just been re-dated: if that step
+     * throws, {@code context.complete()} commits the re-dated policy anyway, so the file is open and the run
+     * reports success. The exit code is all the operator's script gets to see.
+     *
+     * <p>The failure is provoked by letting {@code applyEmbargoToItemBitstreams} throw <em>after</em> doing its
+     * work, which is exactly the state the duplicate deletion loop runs in.</p>
+     */
+    @Test
+    public void embargoSyncThatDiesHalfWayIsNotReportedAsSuccess() throws Exception {
+        Item item = createItem("Embargo sync dies half way");
+        Bitstream bitstream = createEmbargoedBitstream(item, "half-way.pdf");
+
+        assertFalse("fixture precondition: the embargoed file must not be publicly readable"
+                + describe(bitstream), anonymousCanRead(bitstream));
+
+        ItemUpdate itemUpdate = new ItemUpdate() {
+            @Override
+            protected void applyEmbargoToItemBitstreams(Context context, Item item, Date startDate)
+                    throws SQLException, AuthorizeException {
+                super.applyEmbargoToItemBitstreams(context, item, startDate);
+                throw new IllegalStateException("simulated failure while deleting the duplicate policies");
+            }
+        };
+
+        Run run = runItemUpdate(itemUpdate, item,
+                dublinCore(item, Collections.singletonList("openAccess"), pastDate()));
+
+        bitstream = context.reloadEntity(bitstream);
+
+        assertTrue("fixture precondition: the simulated failure has to strike AFTER the surviving policy was"
+                        + " re-dated, otherwise this test does not describe the dangerous case at all. The file"
+                        + " is readable now, and that is the state context.complete() would commit."
+                        + describe(bitstream),
+                anonymousCanRead(bitstream));
+        assertExitCode("embargo synchronisation that threw after re-dating a policy", 1, run);
+    }
+
+    /**
      * Runs one "ItemUpdate has to keep its hands off" scenario end to end and returns the reloaded item.
      *
      * <p>The fixture is the state the customer repository is in after an earlier itemupdate run with a
@@ -514,6 +557,14 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
      * @return the console output of the run and the number of embargo problems it counted
      */
     private Run runItemUpdate(Item item, String dublinCoreContent) throws Exception {
+        return runItemUpdate(new ItemUpdate(), item, dublinCoreContent);
+    }
+
+    /**
+     * The same run driven by a caller supplied {@link ItemUpdate}, so that a test can make one step of the
+     * synchronisation fail where a database error would.
+     */
+    private Run runItemUpdate(ItemUpdate itemUpdate, Item item, String dublinCoreContent) throws Exception {
         Path sourceRoot = Files.createDirectory(tempDir.resolve("saf-" + System.nanoTime()));
         // without this marker processArchive writes an undo archive next to the source directory
         Files.createFile(sourceRoot.resolve(ItemUpdate.SUPPRESS_UNDO_FILENAME));
@@ -521,7 +572,6 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         Path itemDir = Files.createDirectory(sourceRoot.resolve("item_000"));
         Files.writeString(itemDir.resolve("dublin_core.xml"), dublinCoreContent, StandardCharsets.UTF_8);
 
-        ItemUpdate itemUpdate = new ItemUpdate();
         DeleteMetadataAction deleteAction =
                 (DeleteMetadataAction) itemUpdate.actionMgr.getUpdateAction(DeleteMetadataAction.class);
         deleteAction.addTargetFields(new String[] { "dc.rights.access", "dc.date.embargoend" });

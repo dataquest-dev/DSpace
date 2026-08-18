@@ -2701,8 +2701,12 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         // Only process ORIGINAL bundles to avoid affecting system bundles
         List<Bundle> originalBundles = item.getBundles("ORIGINAL");
         if (originalBundles.isEmpty()) {
-            // Nothing to close. A package without ORIGINAL bitstreams discloses no file, however loudly its
-            // metadata claims an embargo, so this one really is a no-op and not a silent failure.
+            // Nothing this method could close: both SAF tools declare a scope of "ORIGINAL bitstreams only".
+            // Known limitation, deliberately left as it is: a contents file may route its files into another
+            // bundle with the "bundle:<name>" marker, and such a package is archived with the collection
+            // default READ policy on those bitstreams however loudly its metadata claims an embargo. So this
+            // is not the guarantee that no file is disclosed, only the end of what an ORIGINAL-scoped tool
+            // has to say about it.
             logInfo("Embargo: No ORIGINAL bundles found, no embargo applied");
             return;
         }
