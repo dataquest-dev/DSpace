@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.util.SafEmbargoConstants;
+import org.dspace.app.util.SafEmbargoDateParser;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -777,13 +778,15 @@ public class ItemUpdate {
 
         LocalDate embargoEndDay;
         try {
-            // Strict ISO parsing on purpose: DCDate rolls 2026-02-30 over into 2026-03-02 and would turn a
-            // typo into a real embargo date.
-            embargoEndDay = LocalDate.parse(embargoEndDateStr.trim());
+            // Strict parsing on purpose: DCDate rolls 2026-02-30 over into 2026-03-02 and would turn a typo
+            // into a real embargo date. The shapes DCDate accepted are still read, and read as the same day,
+            // so the SAF packages of this repository keep working - see SafEmbargoDateParser. The import side
+            // uses the same parser, or the same package would mean two different days in the two tools.
+            embargoEndDay = SafEmbargoDateParser.parseEmbargoEndDay(embargoEndDateStr);
         } catch (DateTimeParseException e) {
             prErr("Invalid " + EMBARGO_FIELD_DATE_END + " '" + embargoEndDateStr + "' on item "
-                      + itemLabel(item) + ", expected a strict ISO date (yyyy-MM-dd). Its bitstream policies"
-                      + " are left untouched.");
+                      + itemLabel(item) + ", expected " + SafEmbargoDateParser.ACCEPTED_FORMATS + ". Its"
+                      + " bitstream policies are left untouched.");
             embargoSyncFailures++;
             return;
         }

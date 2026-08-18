@@ -74,6 +74,7 @@ import org.dspace.app.itemimport.service.ItemImportService;
 import org.dspace.app.util.LocalSchemaFilenameFilter;
 import org.dspace.app.util.RelationshipUtils;
 import org.dspace.app.util.SafEmbargoConstants;
+import org.dspace.app.util.SafEmbargoDateParser;
 import org.dspace.app.util.XMLUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
@@ -818,7 +819,13 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         // moment it is approved (ItemServiceImpl.addDefaultPoliciesNotInPlace) and is public from then on.
         // The policy grants nothing while the item waits in the workflow - AuthorizeServiceImpl ignores
         // TYPE_CUSTOM policies on a bitstream that belongs to no installed item (DS-2614).
-        processEmbargoMetadata(c, myitem);
+        try {
+            processEmbargoMetadata(c, myitem);
+        } catch (EmbargoMetadataException e) {
+            // The operator gets the package directory, which is the thing they have to fix; the item id
+            // means nothing to them and the import is rolled back anyway.
+            throw new EmbargoMetadataException("SAF package '" + itemname + "': " + e.getMessage(), e);
+        }
 
         if (useWorkflow) {
             // don't process handle file
@@ -2552,93 +2559,114 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
     }
 
     /**
-     * Process embargo metadata and set up ResourcePolicy-based embargo.
-     * This method checks for embargo metadata fields and directly creates ResourcePolicy
-     * with embargo start date for Anonymous group READ access.
-     * 
-     * Handles two scenarios:
-     * 1. dc.rights.access="embargoedAccess" + dc.date.embargoend (standard embargo)
-     * 2. Only dc.date.embargoend present (special case with warning logs)
+     * Set up the ResourcePolicy based embargo of an item being imported, from its own metadata
+     * ({@code dc.rights.access}, {@code dc.date.embargoend}).
+     *
+     * <p>Every path out of this method is either "the embargo policy is written" or "the import fails". What
+     * it must never do is return quietly on a package that claims an embargo: {@code addItem} archives the
+     * item a few lines later, {@code installItem} clones the collection undated default READ policy onto
+     * every bitstream that has none - and the files are public although their own metadata says
+     * {@code embargoedAccess}, with exit code 0. That is why the blanket {@code catch (Exception)} this method
+     * used to end with is gone, and why the failure cases below throw instead of logging and returning.</p>
+     *
+     * <p>Two scenarios produce an embargo:</p>
+     * <ol>
+     *   <li>{@code dc.rights.access=embargoedAccess} together with {@code dc.date.embargoend}</li>
+     *   <li>{@code dc.date.embargoend} on its own - same policy, logged as a special case</li>
+     * </ol>
+     *
+     * @param c    DSpace context
+     * @param item item being imported, already carrying the metadata of the package
+     * @throws SQLException             if a database error occurs
+     * @throws AuthorizeException       if the policy may not be written
+     * @throws EmbargoMetadataException if the package claims an embargo that cannot be written. Never treat it
+     *                                  as "then there is no embargo" - the item must not be archived.
      */
-    protected void processEmbargoMetadata(Context c, Item item) throws SQLException, AuthorizeException {
-        try {
-            // Get embargo end date from dc.date.embargoend
-            List<MetadataValue> embargoEndDates = itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY);
-
-            if (embargoEndDates.isEmpty()) {
-                // No embargo date found, check if there's embargoedAccess without date
-                List<MetadataValue> accessRights = itemService.getMetadata(item, "dc", "rights", "access", Item.ANY);
-                for (MetadataValue accessRight : accessRights) {
-                    if ("embargoedAccess".equals(accessRight.getValue())) {
-                        logError("WARNING: Item has dc.rights.access=embargoedAccess but no dc.date.embargoend. " +
-                                "Cannot set embargo without end date.");
-                        break;
-                    }
-                }
-                return; // No embargo to process
-            }
-
-            String embargoEndDateStr = embargoEndDates.get(0).getValue();
-            if (StringUtils.isBlank(embargoEndDateStr)) {
-                logError("WARNING: dc.date.embargoend is empty. Cannot set embargo.");
-                return;
-            }
-
-            // Parse and validate embargo date. All arithmetic is done in UTC calendar days: neither
-            // Calendar.getInstance() (server time zone) nor DCDate (lenient, rolls 2026-02-30 over into
-            // 2026-03-02) can decide a day boundary reliably.
-            Date accessStartDate;
-            try {
-                LocalDate embargoEndDay = LocalDate.parse(embargoEndDateStr.trim());
-
-                // dc.date.embargoend is the inclusive last day of the embargo, so access starts the day after.
-                // The "already passed" test has to run on that start day and not on the end day, otherwise an
-                // embargo ending today would be dropped although the file must still be closed today.
-                LocalDate accessStartDay = embargoEndDay.plusDays(1);
-                if (!accessStartDay.isAfter(LocalDate.now(ZoneOffset.UTC))) {
-                    logInfo("Embargo: end date " + embargoEndDateStr + " has already passed, no embargo policy"
-                            + " is created. installItem applies the collection default policies, so the files"
-                            + " are as accessible as the collection says.");
-                    return;
-                }
-                accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
-            } catch (DateTimeParseException e) {
-                logError("ERROR: Invalid embargo end date format: " + embargoEndDateStr
-                        + ". Expected a strict ISO date (yyyy-MM-dd).");
-                return;
-            }
-
-            // Check embargo scenario
-            List<MetadataValue> accessRights = itemService.getMetadata(item, "dc", "rights", "access", Item.ANY);
-            boolean hasEmbargoedAccess = false;
-
-            for (MetadataValue accessRight : accessRights) {
-                if ("embargoedAccess".equals(accessRight.getValue())) {
-                    hasEmbargoedAccess = true;
-                    break;
-                }
-            }
-
-            try {
-                if (hasEmbargoedAccess) {
-                    // Scenario 1: Standard embargo (embargoedAccess + embargoend)
-                    logInfo("Embargo: Setting standard embargo on item until " + embargoEndDateStr);
-                } else {
-                    // Scenario 2: Only embargo end date present (special case)
-                    logInfo("Embargo: SPECIAL CASE - Found dc.date.embargoend without " +
-                            "dc.rights.access=embargoedAccess");
-                    logInfo("Embargo: Applying embargo based on end date only until " + embargoEndDateStr);
-                }
-                // Both scenarios produce the same policy. They used to differ only in the rpName, and one of
-                // those two names did not fit the 30 character rpname column at all.
-                applyEmbargoToItemBitstreams(c, item, accessStartDate, SafEmbargoConstants.EMBARGO_POLICY_NAME);
-            } catch (Exception e) {
-                logError("ERROR: Failed to apply embargo to bitstreams", e);
-            }
-
-        } catch (Exception e) {
-            logError("ERROR: Failed to process embargo metadata", e);
+    protected void processEmbargoMetadata(Context c, Item item)
+            throws SQLException, AuthorizeException, EmbargoMetadataException {
+        if (isTest || item == null) {
+            // A test run creates no item and loads no metadata, so there is nothing to read and no file that
+            // could be disclosed.
+            return;
         }
+
+        List<MetadataValue> embargoEndDates = itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY);
+        boolean hasEmbargoedAccess = hasEmbargoedAccess(item);
+
+        if (embargoEndDates.isEmpty()) {
+            if (hasEmbargoedAccess) {
+                throw new EmbargoMetadataException("dc.rights.access=embargoedAccess without a"
+                        + " dc.date.embargoend. An embargo cannot be set without an end date, and archiving"
+                        + " the item anyway would publish the files the package says are closed.");
+            }
+            // No embargo metadata at all: the package says nothing about access, the collection defaults decide.
+            return;
+        }
+
+        if (embargoEndDates.size() > 1) {
+            // Same rule as itemupdate: the first value wins and the operator is told, because two embargo
+            // end dates are a data error only they can resolve.
+            logError("WARNING: Multiple dc.date.embargoend values found. Using first value only.");
+        }
+
+        String embargoEndDateStr = embargoEndDates.get(0).getValue();
+        if (StringUtils.isBlank(embargoEndDateStr)) {
+            throw new EmbargoMetadataException("dc.date.embargoend is present but empty. The field is an"
+                    + " instruction to close the files, it cannot be carried out, and an item whose embargo"
+                    + " could not be written must not be archived.");
+        }
+
+        // All arithmetic is done in UTC calendar days: neither Calendar.getInstance() (server time zone) nor
+        // DCDate (lenient, rolls 2026-02-30 over into 2026-03-02) can decide a day boundary reliably. The
+        // shapes DCDate did accept are still accepted, see SafEmbargoDateParser.
+        LocalDate embargoEndDay;
+        try {
+            embargoEndDay = SafEmbargoDateParser.parseEmbargoEndDay(embargoEndDateStr);
+        } catch (DateTimeParseException e) {
+            throw new EmbargoMetadataException("Invalid dc.date.embargoend '" + embargoEndDateStr + "',"
+                    + " expected " + SafEmbargoDateParser.ACCEPTED_FORMATS + ". An end date nobody can read is"
+                    + " not the same as no embargo, so the package is refused instead of archived.", e);
+        }
+
+        // dc.date.embargoend is the inclusive last day of the embargo, so access starts the day after. The
+        // "already passed" test has to run on that start day and not on the end day, otherwise an embargo
+        // ending today would be dropped although the file must still be closed today.
+        LocalDate accessStartDay = embargoEndDay.plusDays(1);
+        if (!accessStartDay.isAfter(LocalDate.now(ZoneOffset.UTC))) {
+            logInfo("Embargo: end date " + embargoEndDateStr + " has already passed, no embargo policy"
+                    + " is created. installItem applies the collection default policies, so the files"
+                    + " are as accessible as the collection says.");
+            return;
+        }
+        Date accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
+
+        if (hasEmbargoedAccess) {
+            // Scenario 1: standard embargo (embargoedAccess + embargoend)
+            logInfo("Embargo: Setting standard embargo on item until " + embargoEndDateStr);
+        } else {
+            // Scenario 2: only the embargo end date is present
+            logInfo("Embargo: SPECIAL CASE - Found dc.date.embargoend without "
+                    + "dc.rights.access=embargoedAccess");
+            logInfo("Embargo: Applying embargo based on end date only until " + embargoEndDateStr);
+        }
+        // Both scenarios produce the same policy. They used to differ only in the rpName, and one of those two
+        // names did not fit the 30 character rpname column at all.
+        applyEmbargoToItemBitstreams(c, item, accessStartDate, SafEmbargoConstants.EMBARGO_POLICY_NAME);
+    }
+
+    /**
+     * Whether the item carries {@code dc.rights.access=embargoedAccess}.
+     *
+     * @param item item being imported
+     * @return true if at least one value says the item is embargoed
+     */
+    protected boolean hasEmbargoedAccess(Item item) {
+        for (MetadataValue accessRight : itemService.getMetadata(item, "dc", "rights", "access", Item.ANY)) {
+            if ("embargoedAccess".equals(StringUtils.trimToEmpty(accessRight.getValue()))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -2648,67 +2676,64 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
      * get one from the collection default when installItem runs - so the policy is created here. ItemUpdate
      * works on already archived items and mutates the existing policy instead; the two must not be merged.</p>
      *
+     * <p>Nothing here is caught and logged away. A bitstream whose policy could not be written is exactly the
+     * bitstream {@code installItem} then hands the collection undated default READ policy to, so a swallowed
+     * failure here is a published file.</p>
+     *
      * @param c                DSpace context
      * @param item             item being imported
      * @param accessStartDate  day the files become publicly readable (dc.date.embargoend + 1 day, midnight UTC)
      * @param policyReason     value for resourcepolicy.rpname, at most 30 characters
+     * @throws SQLException             if a database error occurs
+     * @throws AuthorizeException       if the policy may not be written
+     * @throws EmbargoMetadataException if the Anonymous group is missing, i.e. the policy cannot be created
      */
     protected void applyEmbargoToItemBitstreams(Context c, Item item, Date accessStartDate, String policyReason)
-            throws SQLException, AuthorizeException {
+            throws SQLException, AuthorizeException, EmbargoMetadataException {
 
-        try {
-            // Get Anonymous group
-            Group anonymousGroup = groupService.findByName(c, Group.ANONYMOUS);
-            if (anonymousGroup == null) {
-                logError("ERROR: Cannot find Anonymous group for embargo policy");
-                return;
-            }
-
-            int bitstreamsProcessed = 0;
-
-            // Only process ORIGINAL bundles to avoid affecting system bundles
-            List<Bundle> originalBundles = item.getBundles("ORIGINAL");
-            if (originalBundles.isEmpty()) {
-                logInfo("Embargo: No ORIGINAL bundles found, no embargo applied");
-                return;
-            }
-
-            for (Bundle bundle : originalBundles) {
-                for (Bitstream bitstream : bundle.getBitstreams()) {
-                    try {
-                        // Create ResourcePolicy for READ access with start date = embargo end date
-                        ResourcePolicy policy = resourcePolicyService.create(c, null, anonymousGroup);
-                        policy.setdSpaceObject(bitstream);
-                        policy.setAction(Constants.READ);
-                        policy.setStartDate(accessStartDate);
-                        policy.setRpName(policyReason);
-                        // TYPE_CUSTOM keeps the policy inert until the item is installed: AuthorizeServiceImpl
-                        // skips custom policies on a bitstream that belongs to no installed item (DS-2614), so
-                        // an item waiting in the workflow discloses nothing. What stops installItem from
-                        // cloning the collection's undated default READ policy next to this one is not the
-                        // type but ItemServiceImpl.addDefaultPoliciesNotInPlace ->
-                        // AuthorizeServiceImpl.isAnIdenticalPolicyAlreadyInPlace, which matches on
-                        // (dso, group, action) alone and therefore already sees this policy.
-                        policy.setRpType(ResourcePolicy.TYPE_CUSTOM);
-
-                        // Add policy to bitstream's existing policies
-                        bitstream.getResourcePolicies().add(policy);
-                        resourcePolicyService.update(c, policy);
-                        bitstreamsProcessed++;
-
-                    } catch (Exception e) {
-                        logError("ERROR: Failed to apply embargo policy to bitstream " + bitstream.getName(), e);
-                    }
-                }
-            }
-
-            logInfo("Embargo: Applied embargo policy to " + bitstreamsProcessed +
-                    " bitstreams, readable from " + accessStartDate.toString());
-
-        } catch (Exception e) {
-            logError("ERROR: Failed to apply embargo to item bitstreams", e);
-            throw e; // Re-throw to maintain method signature contract
+        Group anonymousGroup = groupService.findByName(c, Group.ANONYMOUS);
+        if (anonymousGroup == null) {
+            throw new EmbargoMetadataException("Group '" + Group.ANONYMOUS + "' not found, the embargo policy"
+                    + " cannot be created. Archiving the item anyway would leave it with the collection"
+                    + " default policies and no embargo at all.");
         }
+
+        // Only process ORIGINAL bundles to avoid affecting system bundles
+        List<Bundle> originalBundles = item.getBundles("ORIGINAL");
+        if (originalBundles.isEmpty()) {
+            // Nothing to close. A package without ORIGINAL bitstreams discloses no file, however loudly its
+            // metadata claims an embargo, so this one really is a no-op and not a silent failure.
+            logInfo("Embargo: No ORIGINAL bundles found, no embargo applied");
+            return;
+        }
+
+        int bitstreamsProcessed = 0;
+        for (Bundle bundle : originalBundles) {
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                // Create ResourcePolicy for READ access with start date = embargo end date + 1 day
+                ResourcePolicy policy = resourcePolicyService.create(c, null, anonymousGroup);
+                policy.setdSpaceObject(bitstream);
+                policy.setAction(Constants.READ);
+                policy.setStartDate(accessStartDate);
+                policy.setRpName(policyReason);
+                // TYPE_CUSTOM keeps the policy inert until the item is installed: AuthorizeServiceImpl
+                // skips custom policies on a bitstream that belongs to no installed item (DS-2614), so
+                // an item waiting in the workflow discloses nothing. What stops installItem from
+                // cloning the collection undated default READ policy next to this one is not the
+                // type but ItemServiceImpl.addDefaultPoliciesNotInPlace ->
+                // AuthorizeServiceImpl.isAnIdenticalPolicyAlreadyInPlace, which matches on
+                // (dso, group, action) alone and therefore already sees this policy.
+                policy.setRpType(ResourcePolicy.TYPE_CUSTOM);
+
+                // Add policy to bitstream existing policies
+                bitstream.getResourcePolicies().add(policy);
+                resourcePolicyService.update(c, policy);
+                bitstreamsProcessed++;
+            }
+        }
+
+        logInfo("Embargo: Applied embargo policy to " + bitstreamsProcessed +
+                " bitstreams, readable from " + accessStartDate.toString());
     }
 
 }

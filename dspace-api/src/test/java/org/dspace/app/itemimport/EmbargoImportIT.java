@@ -10,14 +10,25 @@ package org.dspace.app.itemimport;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +43,7 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.MetadataFieldBuilder;
 import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchema;
@@ -570,48 +582,311 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Test embargo with invalid date format
+     * The leak of this round, and the reason the old version of this test did not catch it: it asserted
+     * "no embargo policy", which is satisfied just as well by a bitstream that is wide open. An unparseable
+     * {@code dc.date.embargoend} used to be a log line and a {@code return}, after which the item was
+     * archived, {@code installItem} cloned the collection undated default READ policy onto the bitstream, and
+     * the file was public although its own metadata says {@code embargoedAccess} - with exit code 0.
+     *
+     * <p>The value here is one no date parser accepts. The values that {@code DCDate} <em>did</em> accept are
+     * a different story and are still imported, see the three format tests below.</p>
      */
     @Test
     public void testInvalidEmbargoDateFormat() throws Exception {
-        // Create SAF with invalid embargo date format
+        assertBrokenEmbargoPackageIsRefused("invalid-date-format", "an unparseable dc.date.embargoend");
+    }
+
+    /**
+     * {@code DCDate} is lenient and reads 30 February as 2 March, i.e. it turns a typo into a real embargo
+     * date. Rejecting the value is right, but rejecting it and archiving the item anyway is the leak above,
+     * so this pins down both halves on the import path.
+     */
+    @Test
+    public void testLenientRollOverEmbargoDateIsRefused() throws Exception {
+        int year = LocalDate.now(ZoneOffset.UTC).getYear() + 1;
+        assertBrokenEmbargoPackageIsRefused(year + "-02-30", "a dc.date.embargoend that does not exist");
+    }
+
+    /**
+     * {@code embargoedAccess} without an end date is self-contradictory metadata. Importing it archives an
+     * item that says its files are closed while the collection default policies make them public, which is
+     * exactly the contradiction resolved in the direction of disclosure.
+     */
+    @Test
+    public void testEmbargoedAccessWithoutEndDateIsRefused() throws Exception {
+        Path itemDir = safPackage("embargoedAccess", null, "TEST CONTENT NO END DATE");
+
+        Exception reported = runImport(itemDir.getParent());
+        assertNotNull("dc.rights.access=embargoedAccess without dc.date.embargoend has to be reported to the"
+                + " operator instead of being archived as a public item: " + describeArchived(ITEM_TITLE),
+                reported);
+        assertNoFileOfTheItemIsPublic("embargoedAccess without an end date");
+    }
+
+    /**
+     * A present but empty {@code dc.date.embargoend} is a broken export. The field is an instruction to close
+     * the files, and an instruction that cannot be carried out must not end as "no embargo".
+     */
+    @Test
+    public void testBlankEmbargoEndIsRefused() throws Exception {
+        assertBrokenEmbargoPackageIsRefused("", "an empty dc.date.embargoend");
+    }
+
+    /**
+     * Backwards compatibility, first of three. {@code DCDate} accepted a bare year and
+     * {@code DCDate.toDate()} returned its <em>first</em> instant, so the old code has always read
+     * {@code 2099} as "the embargo ends on 1 January 2099" - not on 31 December. Widening it now would extend
+     * embargoes the operators have been living with, so the day is kept and only the fail-open half changed.
+     */
+    @Test
+    public void testYearOnlyEmbargoEndIsFirstOfJanuary() throws Exception {
+        int year = LocalDate.now(ZoneOffset.UTC).getYear() + 1;
+        assertEmbargoIsAppliedFrom(String.valueOf(year), LocalDate.of(year, 1, 1).plusDays(1));
+    }
+
+    /**
+     * Backwards compatibility, second of three: {@code yyyy-MM} is the first day of that month, again because
+     * that is the instant {@code DCDate.toDate()} returned.
+     */
+    @Test
+    public void testYearMonthEmbargoEndIsFirstOfMonth() throws Exception {
+        YearMonth yearMonth = YearMonth.from(LocalDate.now(ZoneOffset.UTC).plusYears(1));
+        assertEmbargoIsAppliedFrom(yearMonth.toString(), yearMonth.atDay(1).plusDays(1));
+    }
+
+    /**
+     * Backwards compatibility, third of three: a full ISO timestamp. The time of day is dropped and the UTC
+     * day of the instant is the last closed day, which for the {@code T00:00:00Z} form every DSpace export
+     * writes is the same day and the same policy start date as before.
+     */
+    @Test
+    public void testIsoTimestampEmbargoEndIsTruncatedToUtcDay() throws Exception {
+        LocalDate embargoEndDay = LocalDate.now(ZoneOffset.UTC).plusYears(1);
+        assertEmbargoIsAppliedFrom(embargoEndDay + "T00:00:00Z", embargoEndDay.plusDays(1));
+    }
+
+    /**
+     * The same class of bug as the parse failure, one layer down: writing the policy fails and the failure is
+     * caught, logged and forgotten. The bitstream then reaches {@code installItem} without an Anonymous READ
+     * policy and gets the collection undated default cloned onto it, i.e. the file is published by the very
+     * code path that was supposed to close it.
+     *
+     * <p>The failure is injected instead of provoked: breaking the resourcepolicy table of a running test
+     * database would take the rest of the suite with it. The test class sits in the same package as the
+     * service, so the Spring-injected collaborators can be replaced by hand.</p>
+     */
+    @Test
+    public void testFailureToWriteThePolicyIsNotSwallowed() throws Exception {
+        Item item = importEmbargoedItem();
+
+        ItemImportServiceImpl service = serviceWithTestDependencies();
+        ResourcePolicyService failingPolicies = mock(ResourcePolicyService.class);
+        when(failingPolicies.create(any(), any(), any()))
+                .thenThrow(new SQLException("resource policy store is down"));
+        service.resourcePolicyService = failingPolicies;
+
+        try {
+            service.processEmbargoMetadata(context, item);
+            fail("an embargo policy that could not be written has to stop the import. The item is archived a"
+                    + " few lines later in addItem and installItem then hands its bitstreams the collection"
+                    + " undated default READ policy, so a swallowed failure here publishes the files.");
+        } catch (Exception expected) {
+            // fail closed: the exception is the whole point, the import is rolled back by ItemImport
+        }
+    }
+
+    /**
+     * Same again for the other collaborator: without the {@code Anonymous} group there is no embargo policy
+     * to create, and an item archived without one is public by collection default.
+     */
+    @Test
+    public void testMissingAnonymousGroupIsNotSwallowed() throws Exception {
+        Item item = importEmbargoedItem();
+
+        ItemImportServiceImpl service = serviceWithTestDependencies();
+        // a GroupService whose findByName answers null, which is the branch under test
+        service.groupService = mock(GroupService.class);
+
+        try {
+            service.processEmbargoMetadata(context, item);
+            fail("without the Anonymous group the embargo policy cannot be created, and archiving the item"
+                    + " anyway leaves it public under the collection default policies");
+        } catch (Exception expected) {
+            // fail closed
+        }
+    }
+
+    /**
+     * Writes a SAF package with the given access right and embargo end date into a fresh source directory.
+     *
+     * @param accessRight value of dc.rights.access, {@code null} to leave the field out
+     * @param embargoEnd  value of dc.date.embargoend, {@code null} to leave the field out
+     * @param content     payload of the single ORIGINAL bitstream
+     * @return the item directory; its parent is the source directory to hand to the import
+     */
+    private Path safPackage(String accessRight, String embargoEnd, String content) throws Exception {
         Path safDir = Files.createDirectory(Path.of(tempDir.toString() + "/test"));
         Path itemDir = Files.createDirectory(Path.of(safDir.toString() + "/item_000"));
 
-        String dublinCoreContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<dublin_core schema=\"dc\">\n" +
-                "    <dcvalue element=\"title\" qualifier=\"none\">" + ITEM_TITLE + "</dcvalue>\n" +
-                "    <dcvalue element=\"rights\" qualifier=\"access\">embargoedAccess</dcvalue>\n" +
-                "    <dcvalue element=\"date\" qualifier=\"embargoend\">invalid-date-format</dcvalue>\n" +
-                "</dublin_core>";
-        Files.writeString(Path.of(itemDir.toString() + "/dublin_core.xml"), dublinCoreContent);
+        StringBuilder dublinCore = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+                .append("<dublin_core schema=\"dc\">\n")
+                .append("    <dcvalue element=\"title\" qualifier=\"none\">").append(ITEM_TITLE)
+                .append("</dcvalue>\n");
+        if (accessRight != null) {
+            dublinCore.append("    <dcvalue element=\"rights\" qualifier=\"access\">").append(accessRight)
+                    .append("</dcvalue>\n");
+        }
+        if (embargoEnd != null) {
+            dublinCore.append("    <dcvalue element=\"date\" qualifier=\"embargoend\">").append(embargoEnd)
+                    .append("</dcvalue>\n");
+        }
+        dublinCore.append("</dublin_core>");
+        Files.writeString(Path.of(itemDir.toString() + "/dublin_core.xml"), dublinCore.toString());
 
-        // Add bitstream
-        Path contentsFile = Files.createFile(Path.of(itemDir.toString() + "/contents"));
-        Files.writeString(contentsFile, "test.txt");
-        Path bitstreamFile = Files.createFile(Path.of(itemDir.toString() + "/test.txt"));
-        Files.writeString(bitstreamFile, "TEST CONTENT INVALID DATE");
+        Files.writeString(Files.createFile(Path.of(itemDir.toString() + "/contents")), "test.txt");
+        Files.writeString(Files.createFile(Path.of(itemDir.toString() + "/test.txt")), content);
+        return itemDir;
+    }
 
-        // Perform import - should not fail but should not apply embargo
+    /**
+     * Runs {@code dspace import -a} on the source directory.
+     *
+     * @param safDir source directory holding the item directories
+     * @return the exception the script reported, or {@code null} when it ran through
+     */
+    private Exception runImport(Path safDir) throws Exception {
         String[] args = new String[] { "import", "-a", "-e", admin.getEmail(), "-c", collection.getID().toString(),
                 "-s", safDir.toString(), "-m", tempDir.toString() + "/mapfile.out" };
-        runDSpaceScript(args);
+        try {
+            runDSpaceScript(args);
+            return null;
+        } catch (Exception reported) {
+            return reported;
+        }
+    }
 
-        // Verify item was created (import should not fail)
+    /**
+     * Both halves of "fail closed" for a package whose {@code dc.date.embargoend} cannot be used: the
+     * operator is told (so the exit code is not 0), and no file of that package ends up readable. Asserting
+     * only the first half would pass on an import that leaves the files open, asserting only the second would
+     * pass on a silent import of nothing.
+     */
+    private void assertBrokenEmbargoPackageIsRefused(String embargoEnd, String what) throws Exception {
+        Path itemDir = safPackage("embargoedAccess", embargoEnd, "TEST CONTENT " + what);
+
+        Exception reported = runImport(itemDir.getParent());
+        assertNotNull(what + " has to be reported to the operator instead of being archived as a public item: "
+                + describeArchived(ITEM_TITLE), reported);
+        assertNoFileOfTheItemIsPublic(what);
+    }
+
+    /**
+     * No ORIGINAL bitstream of an archived item with this test title may be readable by an anonymous visitor.
+     * A refused import leaves no item at all, which is why the loop may legitimately find nothing.
+     */
+    private void assertNoFileOfTheItemIsPublic(String what) throws Exception {
+        Iterator<Item> items = itemService.findByMetadataField(context, "dc", "title", null, ITEM_TITLE);
+        while (items.hasNext()) {
+            Item item = items.next();
+            for (Bundle bundle : item.getBundles("ORIGINAL")) {
+                for (Bitstream bitstream : bundle.getBitstreams()) {
+                    assertFalse("the package says dc.rights.access=embargoedAccess and " + what + ", so this"
+                            + " file must not be readable by an anonymous visitor: " + describe(bitstream),
+                            anonymousCanRead(bitstream));
+                }
+            }
+        }
+    }
+
+    /**
+     * A {@code dc.date.embargoend} in one of the shapes {@code DCDate} accepted still produces an embargo, on
+     * the day {@code DCDate} mapped it to.
+     *
+     * @param embargoEnd       value written into dc.date.embargoend
+     * @param expectedStartDay UTC day the files are expected to open, i.e. embargo end day + 1
+     */
+    private void assertEmbargoIsAppliedFrom(String embargoEnd, LocalDate expectedStartDay) throws Exception {
+        Path itemDir = safPackage("embargoedAccess", embargoEnd, "TEST CONTENT " + embargoEnd);
+
+        assertNull("dc.date.embargoend=" + embargoEnd + " was accepted by DCDate, so the packages of this"
+                + " repository use it and the import must not fail on it", runImport(itemDir.getParent()));
+
         Item item = itemService.findByMetadataField(context, "dc", "title", null, ITEM_TITLE).next();
-        assertNotNull("Item should be created even with invalid date format", item);
+        assertNotNull("Item should be created", item);
+        Bitstream bitstream = item.getBundles("ORIGINAL").get(0).getBitstreams().get(0);
 
-        // Verify no embargo policies due to invalid date
-        List<Bitstream> bitstreams = item.getBundles("ORIGINAL").get(0).getBitstreams();
-        Bitstream bitstream = bitstreams.get(0);
-        List<ResourcePolicy> policies = resourcePolicyService.find(context, bitstream, Constants.READ);
+        List<ResourcePolicy> anonymousRead = anonymousReadPolicies(bitstream);
+        assertEquals("exactly one Anonymous READ policy may remain: " + describe(bitstream),
+                1, anonymousRead.size());
 
-        boolean hasEmbargoPolicy = policies.stream()
-                .anyMatch(p -> p.getGroup() != null &&
-                         p.getGroup().equals(anonymousGroup) &&
-                         p.getStartDate() != null);
+        ResourcePolicy embargoPolicy = anonymousRead.get(0);
+        assertNotNull("the embargo policy has to be dated", embargoPolicy.getStartDate());
+        assertEquals("dc.date.embargoend=" + embargoEnd + " has to mean the same day it meant with DCDate,"
+                        + " and the files open the day after it",
+                expectedStartDay.toString(), utcDay(embargoPolicy.getStartDate()));
+        assertEquals("the embargo policy has to carry the access condition name",
+                EMBARGO_POLICY_NAME, embargoPolicy.getRpName());
+        assertEquals("the embargo policy has to be TYPE_CUSTOM",
+                ResourcePolicy.TYPE_CUSTOM, embargoPolicy.getRpType());
+        assertFalse("an embargoed file must not be downloadable by an anonymous visitor: " + describe(bitstream),
+                anonymousCanRead(bitstream));
+    }
 
-        assertTrue("Should not have embargo policy with invalid date format", !hasEmbargoPolicy);
+    /**
+     * Imports one valid, still running embargo and returns the archived item.
+     */
+    private Item importEmbargoedItem() throws Exception {
+        Path itemDir = safPackage("embargoedAccess", EMBARGOEND_DATE_FUTURE, "TEST CONTENT FOR INJECTION");
+        assertNull("fixture precondition: the valid package has to import", runImport(itemDir.getParent()));
+
+        Item item = itemService.findByMetadataField(context, "dc", "title", null, ITEM_TITLE).next();
+        assertNotNull("fixture precondition: the item has to exist", item);
+        return item;
+    }
+
+    /**
+     * An {@code ItemImportServiceImpl} whose collaborators the test can replace one by one. Only the three the
+     * embargo code uses are wired; the service is never asked to import anything through this instance.
+     */
+    private ItemImportServiceImpl serviceWithTestDependencies() {
+        ItemImportServiceImpl service = new ItemImportServiceImpl();
+        service.itemService = itemService;
+        service.groupService = groupService;
+        service.resourcePolicyService = resourcePolicyService;
+        return service;
+    }
+
+    /**
+     * The policy start date as the UTC calendar day it is stored as. {@code SimpleDateFormat} would otherwise
+     * render midnight UTC in the time zone of the build machine and report the previous day west of Greenwich.
+     */
+    private String utcDay(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(date);
+    }
+
+    /**
+     * Every archived item with this title and the policies of its ORIGINAL bitstreams, for failure messages.
+     * "The import did not fail" is not enough to tell a refused package from a published one.
+     */
+    private String describeArchived(String title) throws Exception {
+        StringBuilder sb = new StringBuilder(System.lineSeparator());
+        Iterator<Item> items = itemService.findByMetadataField(context, "dc", "title", null, title);
+        if (!items.hasNext()) {
+            sb.append("      <no archived item with this title>").append(System.lineSeparator());
+        }
+        while (items.hasNext()) {
+            Item item = items.next();
+            sb.append("      item=").append(item.getID()).append(" archived=").append(item.isArchived())
+                    .append(System.lineSeparator());
+            for (Bundle bundle : item.getBundles("ORIGINAL")) {
+                for (Bitstream bitstream : bundle.getBitstreams()) {
+                    sb.append(describe(bitstream));
+                }
+            }
+        }
+        return sb.toString();
     }
 
     /**
