@@ -10,7 +10,6 @@ package org.dspace.app.itemupdate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -64,9 +63,8 @@ import org.junit.Test;
  */
 public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
-    /** rpNames written by the shipped implementation; the fix has to adopt and normalise them. */
+    /** rpName written by the shipped implementation; the fix has to adopt and normalise it. */
     private static final String STANDARD_EMBARGO = "Standard Embargo";
-    private static final String SPECIAL_CASE_EMBARGO = "Special Case Embargo";
 
     /** The single normalised rpName, matching the access condition name in access-conditions.xml. */
     private static final String EMBARGO_POLICY_NAME = "embargo";
@@ -121,6 +119,20 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
             PathUtils.deleteDirectory(tempDir);
         }
         super.destroy();
+    }
+
+    /**
+     * The embargo refusals are counted per item and never abort the run, so the exit code is the only place
+     * an operator's script can see them. Every test below asserts {@code embargoSyncFailures}; this one
+     * asserts the step that turns that counter into the process exit code, which is otherwise only reachable
+     * through {@code main()} and its {@code System.exit}.
+     */
+    @Test
+    public void embargoSyncFailuresDecideTheExitCode() {
+        assertEquals("a clean run has to exit 0", 0, ItemUpdate.exitStatus(0, 0));
+        assertEquals("a single unsynchronised bitstream has to fail the run", 1, ItemUpdate.exitStatus(0, 1));
+        assertEquals("several problems still fail the run once", 1, ItemUpdate.exitStatus(0, 7));
+        assertEquals("an already failed run stays failed", 1, ItemUpdate.exitStatus(1, 0));
     }
 
     @Test
@@ -195,6 +207,7 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         ItemUpdate itemUpdate = new ItemUpdate();
         itemUpdate.syncEmbargoPolicies(context, item);
+        assertEquals("setting a future embargo is not a failure", 0, itemUpdate.embargoSyncFailures);
 
         // Exactly one Anonymous READ policy has to be left behind. A second, undated one would silently
         // defeat the embargo, so counting is part of the assertion, not a detail.
@@ -217,6 +230,7 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         ItemUpdate itemUpdate = new ItemUpdate();
         itemUpdate.syncEmbargoPolicies(context, item);
+        assertEquals("setting a future embargo is not a failure", 0, itemUpdate.embargoSyncFailures);
 
         List<ResourcePolicy> anonymousRead = anonymousReadPolicies(bitstream);
         assertEquals(1, anonymousRead.size());
@@ -244,17 +258,24 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
     public void syncEmbargoPoliciesLeavesPoliciesUntouchedWhenEmbargoDateInvalid() throws Exception {
         Item item = createItem("Invalid Date Item", "date", "embargoend", "");
         Bitstream bitstream = createBitstream(item, "invalid.txt");
-        ResourcePolicy legacyPolicy = createAnonymousReadPolicy(bitstream,
+        ResourcePolicy legacyPolicy = replaceAnonymousReadPolicies(bitstream,
                 new Date(System.currentTimeMillis() + 86_400_000L), STANDARD_EMBARGO);
+        bitstream = context.reloadEntity(bitstream);
 
         List<Integer> idsBefore = policyIds(bitstream);
-        boolean readableBefore = anonymousCanRead(bitstream);
+        assertFalse("fixture precondition: the embargoed file must not be publicly readable, otherwise the"
+                        + " 'nothing changed' assertions below say nothing about a leak",
+                anonymousCanRead(bitstream));
 
         ItemUpdate itemUpdate = new ItemUpdate();
         itemUpdate.syncEmbargoPolicies(context, item);
 
+        // Spec row 7: a blank end date is broken input, and the run has to exit non-zero because of it.
+        assertEquals("a blank dc.date.embargoend has to fail the run", 1, itemUpdate.embargoSyncFailures);
+        assertEquals(1, ItemUpdate.exitStatus(0, itemUpdate.embargoSyncFailures));
         assertEquals(idsBefore, policyIds(bitstream));
-        assertEquals(readableBefore, anonymousCanRead(bitstream));
+        assertFalse("an unparseable dc.date.embargoend published an embargoed file",
+                anonymousCanRead(bitstream));
 
         // The dated policy the run could not validate is still there, unchanged, under its legacy name.
         ResourcePolicy reloadedLegacy = resourcePolicyService.find(context, legacyPolicy.getID());
@@ -277,7 +298,8 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         ResourcePolicy legacyPolicy = createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
         Integer legacyPolicyId = legacyPolicy.getID();
 
-        runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, "embargoedAccess", newEmbargoDate));
+        assertEquals("re-dating an embargo is not a failure", 0,
+                runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, "embargoedAccess", newEmbargoDate)));
 
         Item reloadedItem = context.reloadEntity(item);
         Bitstream reloadedBitstream = context.reloadEntity(bitstream);
@@ -318,17 +340,22 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         Date oldPolicyStart = Date.from(LocalDate.parse(oldEmbargoDate).plusDays(1)
                 .atStartOfDay(ZoneId.systemDefault()).toInstant());
-        ResourcePolicy legacyPolicy = createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+        ResourcePolicy legacyPolicy = replaceAnonymousReadPolicies(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+        bitstream = context.reloadEntity(bitstream);
 
         List<Integer> idsBefore = policyIds(bitstream);
-        boolean readableBefore = anonymousCanRead(bitstream);
+        assertFalse("fixture precondition: the embargoed file must not be publicly readable, otherwise the"
+                        + " 'nothing changed' assertions below say nothing about a leak",
+                anonymousCanRead(bitstream));
 
-        runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, "embargoedAccess", ""));
+        assertEquals("a blank dc.date.embargoend has to fail the run", 1,
+                runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, "embargoedAccess", "")));
 
         Bitstream reloadedBitstream = context.reloadEntity(bitstream);
 
         assertEquals(idsBefore, policyIds(reloadedBitstream));
-        assertEquals(readableBefore, anonymousCanRead(reloadedBitstream));
+        assertFalse("a blank dc.date.embargoend published an embargoed file",
+                anonymousCanRead(reloadedBitstream));
 
         ResourcePolicy reloadedLegacy = resourcePolicyService.find(context, legacyPolicy.getID());
         assertNotNull(reloadedLegacy);
@@ -336,12 +363,14 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Removing {@code dc.date.embargoend} is the only way an operator lifts an embargo, so the files have to
-     * become readable. The old assertion looked for the absence of a policy named "Standard Embargo", which
-     * a bitstream with zero policies - i.e. an unreadable one - passes just as well.
+     * A SAF package that does not carry {@code dc.date.embargoend} carries no instruction about the embargo,
+     * and an absent field must never open a file. {@code syncEmbargoPolicies} runs for every item of a batch
+     * whose target fields mention an embargo field, so reading "field missing" as "lift the embargo" would
+     * publish every embargoed item of a batch whose packages happen not to carry it. A file is opened by
+     * writing a {@code dc.date.embargoend} that lies in the past.
      */
     @Test
-    public void processArchiveUpdateRemovingEmbargoMetadataLiftsEmbargo() throws Exception {
+    public void processArchiveUpdateRemovingEmbargoMetadataLeavesPoliciesUntouched() throws Exception {
         String oldEmbargoDate = LocalDate.now().plusDays(10).toString();
 
         Item item = createItem("Remove Embargo Metadata Update",
@@ -351,10 +380,17 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         Date oldPolicyStart = Date.from(LocalDate.parse(oldEmbargoDate).plusDays(1)
                 .atStartOfDay(ZoneId.systemDefault()).toInstant());
-        ResourcePolicy legacyPolicy = createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+        // The collection default leaves an undated Anonymous READ policy on a new bitstream. It has to go,
+        // otherwise the file is readable throughout and the assertions below would prove nothing.
+        ResourcePolicy legacyPolicy = replaceAnonymousReadPolicies(bitstream, oldPolicyStart, STANDARD_EMBARGO);
         Integer legacyPolicyId = legacyPolicy.getID();
+        bitstream = context.reloadEntity(bitstream);
 
-        runEmbargoMetadataUpdate(item, dublinCore(item));
+        List<Integer> idsBefore = policyIds(bitstream);
+        assertFalse("fixture precondition: the embargoed file must not be publicly readable",
+                anonymousCanRead(bitstream));
+
+        int failures = runEmbargoMetadataUpdate(item, dublinCore(item));
 
         Item reloadedItem = context.reloadEntity(item);
         Bitstream reloadedBitstream = context.reloadEntity(bitstream);
@@ -362,18 +398,22 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         List<MetadataValue> rightsAccess = itemService.getMetadata(reloadedItem, "dc", "rights", "access", Item.ANY);
         List<MetadataValue> embargoDates = itemService.getMetadata(reloadedItem, "dc", "date", "embargoend", Item.ANY);
         assertTrue(rightsAccess.isEmpty());
-        assertTrue(embargoDates.isEmpty());
+        assertTrue("fixture precondition: dc.date.embargoend has to be gone from the item", embargoDates.isEmpty());
 
-        List<ResourcePolicy> anonymousRead = anonymousReadPolicies(reloadedBitstream);
-        assertEquals(1, anonymousRead.size());
+        // Nothing happened: same policy rows, same name, same start date, same answer to "can anyone read it".
+        assertEquals("removing dc.date.embargoend must not add or remove a single resource policy",
+                idsBefore, policyIds(reloadedBitstream));
+        assertEquals(1, anonymousReadPolicies(reloadedBitstream).size());
 
-        ResourcePolicy liftedPolicy = anonymousRead.get(0);
-        assertEquals(legacyPolicyId, liftedPolicy.getID());
-        assertNull(liftedPolicy.getStartDate());
-        assertFalse(STANDARD_EMBARGO.equals(liftedPolicy.getRpName())
-                || SPECIAL_CASE_EMBARGO.equals(liftedPolicy.getRpName()));
-        assertEquals(EMBARGO_POLICY_NAME, liftedPolicy.getRpName());
-        assertTrue(anonymousCanRead(reloadedBitstream));
+        ResourcePolicy untouchedPolicy = anonymousReadPolicies(reloadedBitstream).get(0);
+        assertEquals(legacyPolicyId, untouchedPolicy.getID());
+        assertNotNull("removing dc.date.embargoend must not clear the embargo start date",
+                untouchedPolicy.getStartDate());
+        assertEquals(STANDARD_EMBARGO, untouchedPolicy.getRpName());
+        assertFalse("removing dc.date.embargoend published an embargoed file", anonymousCanRead(reloadedBitstream));
+
+        // "No instruction" is not a failure - the batch has to keep its exit code 0.
+        assertEquals("a SAF package without dc.date.embargoend is not an error", 0, failures);
     }
 
     @Test
@@ -391,7 +431,8 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         ResourcePolicy legacyPolicy = createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
         Integer legacyPolicyId = legacyPolicy.getID();
 
-        runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, null, newEmbargoDate));
+        assertEquals("an embargo end date without dc.rights.access is not a failure", 0,
+                runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, null, newEmbargoDate)));
 
         Item reloadedItem = context.reloadEntity(item);
         Bitstream reloadedBitstream = context.reloadEntity(bitstream);
@@ -444,6 +485,18 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
                 .build();
         context.restoreAuthSystemState();
         return bitstream;
+    }
+
+    /**
+     * Leaves the bitstream with exactly one Anonymous READ policy: the collection's undated default is
+     * removed first. Without that step a "the file is embargoed" fixture is not embargoed at all.
+     */
+    private ResourcePolicy replaceAnonymousReadPolicies(Bitstream bitstream, Date startDate, String name)
+            throws Exception {
+        context.turnOffAuthorisationSystem();
+        authorizeService.removePoliciesActionFilter(context, bitstream, Constants.READ);
+        context.restoreAuthSystemState();
+        return createAnonymousReadPolicy(bitstream, startDate, name);
     }
 
     private ResourcePolicy createAnonymousReadPolicy(Bitstream bitstream, Date startDate, String name)
@@ -530,7 +583,11 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         return sb.toString();
     }
 
-    private void runEmbargoMetadataUpdate(Item item, String dublinCoreContent) throws Exception {
+    /**
+     * @return the number of embargo problems reported by the run; {@link ItemUpdate#exitStatus(int, int)} is
+     *         what turns it into the exit code of {@code dspace itemupdate}
+     */
+    private int runEmbargoMetadataUpdate(Item item, String dublinCoreContent) throws Exception {
         Path sourceRoot = Files.createDirectory(tempDir.resolve("update-source-" + System.nanoTime()));
         Files.createFile(sourceRoot.resolve(ItemUpdate.SUPPRESS_UNDO_FILENAME));
 
@@ -552,6 +609,7 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         // Force entity reload in caller assertions after update transaction.
         context.uncacheEntity(item);
+        return itemUpdate.embargoSyncFailures;
     }
 
     private String dublinCore(Item item) {

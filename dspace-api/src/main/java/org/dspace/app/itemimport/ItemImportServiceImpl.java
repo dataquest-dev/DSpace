@@ -73,6 +73,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.itemimport.service.ItemImportService;
 import org.dspace.app.util.LocalSchemaFilenameFilter;
 import org.dspace.app.util.RelationshipUtils;
+import org.dspace.app.util.SafEmbargoConstants;
 import org.dspace.app.util.XMLUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
@@ -148,14 +149,6 @@ import org.xml.sax.SAXException;
  */
 public class ItemImportServiceImpl implements ItemImportService, InitializingBean {
     private final Logger log = LogManager.getLogger();
-
-    /**
-     * Name written on the embargo resource policies created during import. It is the {@code name} of the
-     * {@code embargoed} access condition in access-conditions.xml and has to fit the resourcepolicy.rpname
-     * column (varchar(30)): the previous "Special Case Embargo - No access rights metadata" was 48 characters
-     * and aborted the whole import on PostgreSQL with "value too long for type character varying(30)".
-     */
-    private static final String EMBARGO_POLICY_NAME = "embargo";
 
     private DSpaceRunnableHandler handler;
 
@@ -819,6 +812,14 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         // non-standard permissions
         List<String> options = processContentsFile(c, myitem, itemPathDir, "contents");
 
+        // Check for embargo metadata and set up embargo terms if needed. This has to happen on the common
+        // path, before the workflow is started as well as before installItem: an embargoed submission that
+        // reaches the workflow without its policy is given the collection's undated default READ policy the
+        // moment it is approved (ItemServiceImpl.addDefaultPoliciesNotInPlace) and is public from then on.
+        // The policy grants nothing while the item waits in the workflow - AuthorizeServiceImpl ignores
+        // TYPE_CUSTOM policies on a bitstream that belongs to no installed item (DS-2614).
+        processEmbargoMetadata(c, myitem);
+
         if (useWorkflow) {
             // don't process handle file
             // start up a workflow
@@ -834,13 +835,6 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                 mapOutputString = itemname + " " + myitem.getID();
             }
         } else {
-            // Check for embargo metadata and set up embargo terms if needed.
-            // Only on this branch, and before installItem: a workflow item must not be given an Anonymous READ
-            // policy before it has been approved, and the TYPE_CUSTOM embargo policy written here is what stops
-            // installItem from cloning the collection's undated default READ policy next to it (see
-            // ItemServiceImpl.addDefaultPoliciesNotInPlace), which would defeat the embargo outright.
-            processEmbargoMetadata(c, myitem);
-
             // only process handle file if not using workflow system
             String myhandle = processHandleFile(c, myitem, itemPathDir, "handle");
 
@@ -2637,7 +2631,7 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                 }
                 // Both scenarios produce the same policy. They used to differ only in the rpName, and one of
                 // those two names did not fit the 30 character rpname column at all.
-                applyEmbargoToItemBitstreams(c, item, accessStartDate, EMBARGO_POLICY_NAME);
+                applyEmbargoToItemBitstreams(c, item, accessStartDate, SafEmbargoConstants.EMBARGO_POLICY_NAME);
             } catch (Exception e) {
                 logError("ERROR: Failed to apply embargo to bitstreams", e);
             }
@@ -2688,9 +2682,13 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                         policy.setAction(Constants.READ);
                         policy.setStartDate(accessStartDate);
                         policy.setRpName(policyReason);
-                        // TYPE_CUSTOM is load bearing twice: AuthorizeServiceImpl only skips policies on a
-                        // not-yet-installed item when they are custom, and installItem only clones the
-                        // collection default READ policy onto a bitstream that has no custom one yet.
+                        // TYPE_CUSTOM keeps the policy inert until the item is installed: AuthorizeServiceImpl
+                        // skips custom policies on a bitstream that belongs to no installed item (DS-2614), so
+                        // an item waiting in the workflow discloses nothing. What stops installItem from
+                        // cloning the collection's undated default READ policy next to this one is not the
+                        // type but ItemServiceImpl.addDefaultPoliciesNotInPlace ->
+                        // AuthorizeServiceImpl.isAnIdenticalPolicyAlreadyInPlace, which matches on
+                        // (dso, group, action) alone and therefore already sees this policy.
                         policy.setRpType(ResourcePolicy.TYPE_CUSTOM);
 
                         // Add policy to bitstream's existing policies

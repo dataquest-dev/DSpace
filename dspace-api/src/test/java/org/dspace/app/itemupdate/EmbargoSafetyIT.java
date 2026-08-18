@@ -178,11 +178,19 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         Set<Integer> idsBefore = policyIds(bitstream);
         List<String> policiesBefore = policyFingerprints(bitstream);
 
-        runItemUpdate(item, dublinCore(item, Collections.singletonList("openAccess"), pastDate()));
+        Run pastRun = runItemUpdate(item, dublinCore(item, Collections.singletonList("openAccess"), pastDate()));
 
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
+        // Which guard stopped the run has to be nailed down. ItemServiceImpl.withdraw() also clears
+        // archived, so the !isArchived guard alone would satisfy every policy assertion below and this test
+        // would keep passing after the withdrawal guard was deleted.
+        assertTrue("ItemUpdate has to refuse a withdrawn item because it is withdrawn. Nothing in the console"
+                        + " output says so, so some other guard stopped the run and the withdrawal guard is"
+                        + " untested. Console output was:" + System.lineSeparator() + pastRun.console,
+                pastRun.console.contains("is withdrawn"));
+        assertExitCode("withdrawn item, expired embargo", 0, pastRun);
         assertTrue("An expired embargo on a WITHDRAWN item created an action=READ policy."
                         + " Withdrawal must never be undone by itemupdate, only WITHDRAWN_READ may remain."
                         + describe(bitstream),
@@ -194,11 +202,16 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
 
         // Row 9 says "any end date". The past-date run above only ever reaches the early return, so on its own
         // it proves nothing about withdrawal; the future-date branch is the one that creates policies.
-        runItemUpdate(item, dublinCore(item, Collections.singletonList("embargoedAccess"), futureDate()));
+        Run futureRun =
+                runItemUpdate(item, dublinCore(item, Collections.singletonList("embargoedAccess"), futureDate()));
 
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
+        assertTrue("ItemUpdate has to refuse a withdrawn item because it is withdrawn. Console output was:"
+                        + System.lineSeparator() + futureRun.console,
+                futureRun.console.contains("is withdrawn"));
+        assertExitCode("withdrawn item, future embargo", 0, futureRun);
         assertTrue("A FUTURE dc.date.embargoend on a WITHDRAWN item created an action=READ policy. A withdrawn"
                         + " item must never gain one - only WITHDRAWN_READ may remain - otherwise the takedown"
                         + " undoes itself the moment the embargo lapses." + describe(bitstream),
@@ -216,7 +229,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void restrictedAccessWithStaleEmbargoEndIsUntouched() throws Exception {
         assertEmbargoSyncIsANoOp("dc.rights.access=restrictedAccess with a past embargo end",
-                Collections.singletonList("restrictedAccess"), pastDate());
+                Collections.singletonList("restrictedAccess"), pastDate(), 0);
     }
 
     /**
@@ -225,7 +238,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void metadataOnlyAccessIsUntouched() throws Exception {
         assertEmbargoSyncIsANoOp("dc.rights.access=metadataOnlyAccess with a past embargo end",
-                Collections.singletonList("metadataOnlyAccess"), pastDate());
+                Collections.singletonList("metadataOnlyAccess"), pastDate(), 0);
     }
 
     /**
@@ -235,7 +248,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void unknownAccessRightValueIsUntouched() throws Exception {
         assertEmbargoSyncIsANoOp("dc.rights.access=someAccessRightWeDoNotKnow with a past embargo end",
-                Collections.singletonList("someAccessRightWeDoNotKnow"), pastDate());
+                Collections.singletonList("someAccessRightWeDoNotKnow"), pastDate(), 0);
     }
 
     /**
@@ -246,7 +259,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void mixedAccessRightsWithOneDisallowedIsUntouched() throws Exception {
         assertEmbargoSyncIsANoOp("dc.rights.access=openAccess + restrictedAccess with a past embargo end",
-                Arrays.asList("openAccess", "restrictedAccess"), pastDate());
+                Arrays.asList("openAccess", "restrictedAccess"), pastDate(), 0);
     }
 
     /**
@@ -280,8 +293,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         Set<Integer> idsBefore = policyIds(bitstream);
         List<String> policiesBefore = policyFingerprints(bitstream);
 
-        String pastRunOutput =
-                runItemUpdate(item, dublinCore(item, Collections.singletonList("openAccess"), pastDate()));
+        Run pastRun = runItemUpdate(item, dublinCore(item, Collections.singletonList("openAccess"), pastDate()));
 
         bitstream = context.reloadEntity(bitstream);
 
@@ -295,7 +307,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
 
         // Row 11 says "any end date". A past date only reaches the early return; the future-date branch is the
         // one that creates policies, so it is where a group-restricted file can silently gain an Anonymous one.
-        String futureRunOutput = runItemUpdate(item,
+        Run futureRun = runItemUpdate(item,
                 dublinCore(item, Collections.singletonList("embargoedAccess"), futureDate()));
 
         bitstream = context.reloadEntity(bitstream);
@@ -314,11 +326,16 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         assertTrue("There is no Anonymous READ policy to re-date here, so ItemUpdate has to report the bitstream"
                         + " it could not synchronise and name '" + BULK_ACCESS_CONTROL_HINT + "' as the supported"
                         + " way to change access. Console output of the expired-embargo run was:"
-                        + System.lineSeparator() + pastRunOutput,
-                pastRunOutput.contains(BULK_ACCESS_CONTROL_HINT));
+                        + System.lineSeparator() + pastRun.console,
+                pastRun.console.contains(BULK_ACCESS_CONTROL_HINT));
         assertTrue("ItemUpdate stayed silent about a bitstream it could not synchronise. Console output of the"
-                        + " future-embargo run was:" + System.lineSeparator() + futureRunOutput,
-                futureRunOutput.contains(BULK_ACCESS_CONTROL_HINT));
+                        + " future-embargo run was:" + System.lineSeparator() + futureRun.console,
+                futureRun.console.contains(BULK_ACCESS_CONTROL_HINT));
+
+        // Spec row 11 requires a non-zero exit code: an unsynchronised bitstream that leaves the exit code at
+        // 0 is invisible to the operator who started the batch.
+        assertExitCode("bitstream without Anonymous READ, expired embargo", 1, pastRun);
+        assertExitCode("bitstream without Anonymous READ, future embargo", 1, futureRun);
     }
 
     /**
@@ -342,8 +359,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         assertFalse("fixture precondition: a bitstream without policies must not be readable"
                 + describe(bitstream), anonymousCanRead(bitstream));
 
-        String consoleOutput =
-                runItemUpdate(item, dublinCore(item, Collections.singletonList("openAccess"), pastDate()));
+        Run run = runItemUpdate(item, dublinCore(item, Collections.singletonList("openAccess"), pastDate()));
 
         bitstream = context.reloadEntity(bitstream);
 
@@ -356,8 +372,9 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
                 anonymousCanRead(bitstream));
         assertTrue("ItemUpdate stayed silent about a bitstream it could not synchronise. It has to report the"
                         + " failure and name '" + BULK_ACCESS_CONTROL_HINT + "' as the supported way to restore"
-                        + " access. Console output was:\n" + consoleOutput,
-                consoleOutput.contains(BULK_ACCESS_CONTROL_HINT));
+                        + " access. Console output was:\n" + run.console,
+                run.console.contains(BULK_ACCESS_CONTROL_HINT));
+        assertExitCode("bitstream with zero policies", 1, run);
     }
 
     /**
@@ -367,7 +384,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void blankEmbargoEndLeavesPoliciesUntouched() throws Exception {
         Item item = assertEmbargoSyncIsANoOp("blank dc.date.embargoend",
-                Collections.singletonList("openAccess"), "");
+                Collections.singletonList("openAccess"), "", 1);
 
         List<MetadataValue> storedEndDates = itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY);
         assertEquals("fixture precondition: the blank dc.date.embargoend has to be stored as an empty value."
@@ -390,7 +407,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
 
         for (String invalidEndDate : invalidEndDates) {
             assertEmbargoSyncIsANoOp("unparseable dc.date.embargoend=" + invalidEndDate,
-                    Collections.singletonList("openAccess"), invalidEndDate);
+                    Collections.singletonList("openAccess"), invalidEndDate, 1);
         }
     }
 
@@ -401,7 +418,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void embargoedAccessWithoutEndDateLeavesPoliciesUntouched() throws Exception {
         assertEmbargoSyncIsANoOp("dc.rights.access=embargoedAccess without dc.date.embargoend",
-                Collections.singletonList("embargoedAccess"), null);
+                Collections.singletonList("embargoedAccess"), null, 1);
     }
 
     /**
@@ -429,10 +446,11 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         Set<Integer> idsBefore = policyIds(bitstream);
         List<String> policiesBefore = policyFingerprints(bitstream);
 
-        runItemUpdate(item, dublinCore(item, Collections.singletonList("openAccess"), pastDate()));
+        Run run = runItemUpdate(item, dublinCore(item, Collections.singletonList("openAccess"), pastDate()));
 
         bitstream = context.reloadEntity(bitstream);
 
+        assertExitCode("item outside the archive", 0, run);
         assertUntouched("item outside the archive", idsBefore, policiesBefore, bitstream);
         assertFalse("A file of an item outside the archive became publicly readable." + describe(bitstream),
                 anonymousCanRead(bitstream));
@@ -445,7 +463,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
      * future end date: exactly one Anonymous READ policy, dated, currently blocking access. Any repair
      * that publishes, deletes or re-creates that policy is caught here.</p>
      */
-    private Item assertEmbargoSyncIsANoOp(String scenario, List<String> accessRights, String embargoEndDate)
+    private Item assertEmbargoSyncIsANoOp(String scenario, List<String> accessRights, String embargoEndDate,
+                                          int expectedFailures)
             throws Exception {
         Item item = createItem("Safety scenario: " + scenario);
         Bitstream bitstream = createEmbargoedBitstream(item, "thesis.pdf");
@@ -456,11 +475,12 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         Set<Integer> idsBefore = policyIds(bitstream);
         List<String> policiesBefore = policyFingerprints(bitstream);
 
-        runItemUpdate(item, dublinCore(item, accessRights, embargoEndDate));
+        Run run = runItemUpdate(item, dublinCore(item, accessRights, embargoEndDate));
 
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
+        assertExitCode(scenario, expectedFailures, run);
         assertUntouched(scenario, idsBefore, policiesBefore, bitstream);
         assertFalse("[" + scenario + "] the embargoed file became publicly readable, which is a data leak"
                 + describe(bitstream), anonymousCanRead(bitstream));
@@ -487,9 +507,13 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
      * -a dc.rights.access -a dc.date.embargoend}, i.e. an update whose target fields contain an embargo
      * field, which is what makes {@code processArchive} call {@code syncEmbargoPolicies}.
      *
-     * @return everything ItemUpdate printed on the operator console during the run
+     * <p>The {@link ItemUpdate} instance is kept, not thrown away: {@code embargoSyncFailures} is what
+     * {@code main()} turns into a non-zero exit code, and an operator scripting {@code itemupdate} sees
+     * nothing else. A refusal that leaves the exit code at 0 is a silent failure.</p>
+     *
+     * @return the console output of the run and the number of embargo problems it counted
      */
-    private String runItemUpdate(Item item, String dublinCoreContent) throws Exception {
+    private Run runItemUpdate(Item item, String dublinCoreContent) throws Exception {
         Path sourceRoot = Files.createDirectory(tempDir.resolve("saf-" + System.nanoTime()));
         // without this marker processArchive writes an undo archive next to the source directory
         Files.createFile(sourceRoot.resolve(ItemUpdate.SUPPRESS_UNDO_FILENAME));
@@ -529,7 +553,33 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         String consoleOutput = consoleBuffer.toString(StandardCharsets.UTF_8);
         // replay it so the failsafe -output.txt still holds the full ItemUpdate log
         System.out.println(consoleOutput);
-        return consoleOutput;
+        return new Run(consoleOutput, itemUpdate.embargoSyncFailures);
+    }
+
+    /**
+     * Everything a finished {@code itemupdate} run is judged by: what it told the operator, and what it would
+     * have exited with.
+     */
+    private static final class Run {
+        private final String console;
+        private final int embargoSyncFailures;
+
+        private Run(String console, int embargoSyncFailures) {
+            this.console = console;
+            this.embargoSyncFailures = embargoSyncFailures;
+        }
+    }
+
+    /**
+     * A run that refused to do something has to say so in its exit code, otherwise the operator's script
+     * treats a skipped item as a synchronised one.
+     */
+    private void assertExitCode(String scenario, int expectedFailures, Run run) {
+        assertEquals("[" + scenario + "] wrong number of reported embargo problems, so ItemUpdate.main() would"
+                        + " exit with " + ItemUpdate.exitStatus(0, run.embargoSyncFailures) + " instead of "
+                        + ItemUpdate.exitStatus(0, expectedFailures) + ". Console output was:"
+                        + System.lineSeparator() + run.console,
+                expectedFailures, run.embargoSyncFailures);
     }
 
     /**

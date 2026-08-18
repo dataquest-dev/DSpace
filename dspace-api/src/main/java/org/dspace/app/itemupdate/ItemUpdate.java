@@ -35,6 +35,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.util.SafEmbargoConstants;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -113,12 +114,6 @@ public class ItemUpdate {
     private static final String EMBARGO_FIELD_DATE_END = "dc.date.embargoend";
     private static final String OPEN_ACCESS = "openAccess";
     private static final String EMBARGOED_ACCESS = "embargoedAccess";
-
-    /**
-     * Name written on every embargo policy. It is the {@code name} of the {@code embargoed} access condition in
-     * access-conditions.xml and has to fit the resourcepolicy.rpname column (varchar(30)).
-     */
-    private static final String EMBARGO_POLICY_NAME = "embargo";
 
     /** The only supported way of changing access to a bitstream this tool refuses to touch. */
     private static final String BULK_ACCESS_CONTROL_HINT =
@@ -398,12 +393,7 @@ public class ItemUpdate {
             context.restoreAuthSystemState();
         }
 
-        // Embargo problems are reported per item and never abort the run, but they must not be reported as
-        // success either: an operator scripting itemupdate has to see them in the exit code.
-        if (iu.embargoSyncFailures > 0) {
-            prErr(iu.embargoSyncFailures + " embargo synchronisation problem(s) reported above.");
-            status = 1;
-        }
+        status = exitStatus(status, iu.embargoSyncFailures);
 
         if (isTest) {
             pr("***End of Test Run***");
@@ -412,6 +402,22 @@ public class ItemUpdate {
 
         }
         System.exit(status);
+    }
+
+    /**
+     * Exit code of a run. Embargo problems are reported per item and never abort the run, but they must not be
+     * reported as success either: an operator scripting {@code itemupdate} only ever sees the exit code.
+     *
+     * @param status              exit code the run has produced so far
+     * @param embargoSyncFailures number of bitstreams/items whose embargo could not be synchronised
+     * @return {@code 1} when anything went wrong, the unchanged status otherwise
+     */
+    protected static int exitStatus(int status, int embargoSyncFailures) {
+        if (embargoSyncFailures > 0) {
+            prErr(embargoSyncFailures + " embargo synchronisation problem(s) reported above.");
+            return 1;
+        }
+        return status;
     }
 
     /**
@@ -691,6 +697,11 @@ public class ItemUpdate {
      * before its replacement has been stored, which is why the existing policy is mutated rather than replaced:
      * a failure between a delete and a create would leave the file with no policy at all, i.e. HTTP 401.</p>
      *
+     * <p>Only a {@code dc.date.embargoend} that is actually present is an instruction. Its absence means the
+     * SAF package says nothing about the embargo of this item, and the policies are left exactly as they are -
+     * an embargo this tool never set is never lifted by it. A file is opened by writing a
+     * {@code dc.date.embargoend} that lies in the past.</p>
+     *
      * @param context DSpace context
      * @param item    item that has just been updated from the SAF archive
      * @throws SQLException       if a database error occurs
@@ -730,8 +741,6 @@ public class ItemUpdate {
         }
 
         // --- phase 2: validate and compute the target state ----------------------------------------------
-        // null means "no embargo", i.e. the file is readable immediately
-        Date accessStartDate;
         List<MetadataValue> embargoEndDates = itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY);
 
         if (embargoEndDates.isEmpty()) {
@@ -742,46 +751,53 @@ public class ItemUpdate {
                 embargoSyncFailures++;
                 return;
             }
-            // Removing dc.date.embargoend is how an operator lifts an embargo.
-            pr("Item " + itemLabel(item) + " has no " + EMBARGO_FIELD_DATE_END + ", lifting the embargo.");
-            accessStartDate = null;
-        } else {
-            if (embargoEndDates.size() > 1) {
-                prWarn("Multiple " + EMBARGO_FIELD_DATE_END + " values found. Using first value only.");
-            }
+            // A missing dc.date.embargoend is no instruction at all, and it is never read as "lift the
+            // embargo". The embargo of an item may well have been set outside this tool - the submission
+            // access condition and dspace bulk-access-control both write exactly the policy that would be
+            // reopened here (Anonymous/READ, TYPE_CUSTOM, rpName "embargo") - while syncEmbargoPolicies runs
+            // for every item of a batch whose -a/-d fields mention an embargo field. A single SAF package
+            // without the field would therefore publish every embargoed file of that batch.
+            // The supported way to open a file is a dc.date.embargoend that lies in the past.
+            pr("Item " + itemLabel(item) + " has no " + EMBARGO_FIELD_DATE_END + ", resource policies left"
+                   + " untouched. To end an embargo, set " + EMBARGO_FIELD_DATE_END + " to a date in the past.");
+            return;
+        }
 
-            String embargoEndDateStr = embargoEndDates.get(0).getValue();
-            if (StringUtils.isBlank(embargoEndDateStr)) {
-                prErr(EMBARGO_FIELD_DATE_END + " is empty on item " + itemLabel(item) + ", its bitstream policies"
-                          + " are left untouched.");
-                embargoSyncFailures++;
-                return;
-            }
+        if (embargoEndDates.size() > 1) {
+            prWarn("Multiple " + EMBARGO_FIELD_DATE_END + " values found. Using first value only.");
+        }
 
-            LocalDate embargoEndDay;
-            try {
-                // Strict ISO parsing on purpose: DCDate rolls 2026-02-30 over into 2026-03-02 and would turn a
-                // typo into a real embargo date.
-                embargoEndDay = LocalDate.parse(embargoEndDateStr.trim());
-            } catch (DateTimeParseException e) {
-                prErr("Invalid " + EMBARGO_FIELD_DATE_END + " '" + embargoEndDateStr + "' on item "
-                          + itemLabel(item) + ", expected a strict ISO date (yyyy-MM-dd). Its bitstream policies"
-                          + " are left untouched.");
-                embargoSyncFailures++;
-                return;
-            }
+        String embargoEndDateStr = embargoEndDates.get(0).getValue();
+        if (StringUtils.isBlank(embargoEndDateStr)) {
+            prErr(EMBARGO_FIELD_DATE_END + " is empty on item " + itemLabel(item) + ", its bitstream policies"
+                      + " are left untouched.");
+            embargoSyncFailures++;
+            return;
+        }
 
-            // dc.date.embargoend is the inclusive last day of the embargo, so access starts the day after, at
-            // midnight UTC. Calendar.getInstance() would use the server time zone and shift that boundary.
-            LocalDate accessStartDay = embargoEndDay.plusDays(1);
-            accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
+        LocalDate embargoEndDay;
+        try {
+            // Strict ISO parsing on purpose: DCDate rolls 2026-02-30 over into 2026-03-02 and would turn a
+            // typo into a real embargo date.
+            embargoEndDay = LocalDate.parse(embargoEndDateStr.trim());
+        } catch (DateTimeParseException e) {
+            prErr("Invalid " + EMBARGO_FIELD_DATE_END + " '" + embargoEndDateStr + "' on item "
+                      + itemLabel(item) + ", expected a strict ISO date (yyyy-MM-dd). Its bitstream policies"
+                      + " are left untouched.");
+            embargoSyncFailures++;
+            return;
+        }
 
-            if (!accessStartDay.isAfter(LocalDate.now(ZoneOffset.UTC))) {
-                // An expired embargo is a publication, not a deletion. The real - already passed - start date is
-                // written, which makes the policy effective immediately.
-                pr("Embargo of item " + itemLabel(item) + " already expired on " + embargoEndDay
-                       + ", its ORIGINAL bitstreams are public since " + accessStartDay + ".");
-            }
+        // dc.date.embargoend is the inclusive last day of the embargo, so access starts the day after, at
+        // midnight UTC. Calendar.getInstance() would use the server time zone and shift that boundary.
+        LocalDate accessStartDay = embargoEndDay.plusDays(1);
+        Date accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
+
+        if (!accessStartDay.isAfter(LocalDate.now(ZoneOffset.UTC))) {
+            // An expired embargo is a publication, not a deletion. The real - already passed - start date is
+            // written, which makes the policy effective immediately.
+            pr("Embargo of item " + itemLabel(item) + " already expired on " + embargoEndDay
+                   + ", its ORIGINAL bitstreams are public since " + accessStartDay + ".");
         }
 
         // --- phase 3: mutate -----------------------------------------------------------------------------
@@ -798,7 +814,8 @@ public class ItemUpdate {
      *
      * @param context   DSpace context
      * @param item      item whose ORIGINAL bitstreams are synchronised
-     * @param startDate day the files become publicly readable, or {@code null} to lift the embargo
+     * @param startDate day the files become publicly readable, never {@code null}; a day in the past makes the
+     *                  policy effective immediately
      * @throws SQLException       if a database error occurs
      * @throws AuthorizeException if the policy update is not permitted
      */
@@ -837,7 +854,7 @@ public class ItemUpdate {
                 ResourcePolicy survivor = selectSurvivorPolicy(anonymousReadPolicies);
                 survivor.setStartDate(startDate);
                 survivor.setRpType(ResourcePolicy.TYPE_CUSTOM);
-                survivor.setRpName(EMBARGO_POLICY_NAME);
+                survivor.setRpName(SafEmbargoConstants.EMBARGO_POLICY_NAME);
                 resourcePolicyService.update(context, survivor);
 
                 // Only now, with the replacement safely stored, may the duplicates go. Reference identity is

@@ -679,6 +679,11 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
      * <p>{@code ItemUpdate.main} is deliberately not used - it ends in {@code System.exit} and would kill the
      * failsafe JVM.</p>
      *
+     * <p>Every scenario in this class is one {@code itemupdate} is supposed to carry out, so the helper also
+     * asserts the exit code the run would have produced: {@code embargoSyncFailures} is the only thing
+     * {@code main()} turns into a non-zero status, and a refusal that keeps the status at 0 is a silent
+     * failure for the operator's script.</p>
+     *
      * @return everything {@code ItemUpdate.pr()} printed during the run; the stream is teed, so the output still
      *         reaches the failsafe output file as well.
      */
@@ -713,7 +718,15 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
         }
 
         context.uncacheEntity(item);
-        return captured.toString(StandardCharsets.UTF_8.name());
+        String consoleOutput = captured.toString(StandardCharsets.UTF_8.name());
+
+        assertEquals("this scenario is one itemupdate has to carry out, so it must not report an embargo"
+                        + " synchronisation problem - ItemUpdate.main() would exit with "
+                        + ItemUpdate.exitStatus(0, itemUpdate.embargoSyncFailures) + ". Console output was:\n"
+                        + consoleOutput,
+                0, itemUpdate.embargoSyncFailures);
+
+        return consoleOutput;
     }
 
     /**

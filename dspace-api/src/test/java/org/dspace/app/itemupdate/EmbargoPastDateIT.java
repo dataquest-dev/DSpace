@@ -287,6 +287,13 @@ public class EmbargoPastDateIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
 
         context.uncacheEntity(item);
+
+        // Both runs of this test are runs itemupdate has to carry out. embargoSyncFailures is what
+        // ItemUpdate.main() turns into a non-zero exit code, so a refusal that leaves it at 0 would be
+        // invisible to the operator's script.
+        assertEquals("itemupdate reported an embargo synchronisation problem, so ItemUpdate.main() would exit"
+                        + " with " + ItemUpdate.exitStatus(0, itemUpdate.embargoSyncFailures),
+                0, itemUpdate.embargoSyncFailures);
     }
 
     private String dublinCore(Item item, String rightsAccess, String embargoEndDate) {
