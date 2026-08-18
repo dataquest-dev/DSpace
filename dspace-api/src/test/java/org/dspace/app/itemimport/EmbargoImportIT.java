@@ -23,6 +23,7 @@ import org.apache.commons.io.file.PathUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -35,6 +36,7 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Constants;
+import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
@@ -64,6 +66,7 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     private ResourcePolicyService resourcePolicyService =
             AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+    private AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
     private ConfigurationService configurationService =
             DSpaceServicesFactory.getInstance().getConfigurationService();
@@ -183,7 +186,11 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Test that no embargo is applied when embargo date is in the past
+     * An embargo that has already expired must not be turned into a policy - but "no embargo policy" is only
+     * half the requirement. The original assertion ("no Anonymous policy carries a start date") is satisfied
+     * just as well by a bitstream that has no policy at all and answers HTTP 401, which is the failure mode
+     * this branch is fixing. The test therefore also asserts that the file really is publicly readable, which
+     * on the import path means the collection default policies installItem applies.
      */
     @Test
     public void testPastEmbargoDateNoPolicy() throws Exception {
@@ -226,6 +233,32 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
                          p.getStartDate() != null);
 
         assertTrue("Should not have embargo policy for past dates", !hasEmbargoPolicy);
+
+        // The point of not writing an expired embargo policy is that the file stays available. Zero policies
+        // would satisfy the assertion above and leave every download at HTTP 401.
+        assertTrue("An expired embargo end date must leave the bitstream readable, not policy-less",
+                anonymousCanRead(bitstream));
+    }
+
+    /**
+     * What an anonymous visitor gets, with the test's own turnOffAuthorisationSystem calls temporarily unwound.
+     */
+    private boolean anonymousCanRead(Bitstream bitstream) throws Exception {
+        EPerson savedUser = context.getCurrentUser();
+        int popped = 0;
+        while (context.ignoreAuthorization()) {
+            context.restoreAuthSystemState();
+            popped++;
+        }
+        context.setCurrentUser(null);
+        try {
+            return authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ);
+        } finally {
+            context.setCurrentUser(savedUser);
+            for (int i = 0; i < popped; i++) {
+                context.turnOffAuthorisationSystem();
+            }
+        }
     }
 
     /**

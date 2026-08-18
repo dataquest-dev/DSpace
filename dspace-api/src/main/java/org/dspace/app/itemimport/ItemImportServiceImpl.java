@@ -33,9 +33,11 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
@@ -80,7 +82,6 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
-import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
@@ -147,6 +148,14 @@ import org.xml.sax.SAXException;
  */
 public class ItemImportServiceImpl implements ItemImportService, InitializingBean {
     private final Logger log = LogManager.getLogger();
+
+    /**
+     * Name written on the embargo resource policies created during import. It is the {@code name} of the
+     * {@code embargoed} access condition in access-conditions.xml and has to fit the resourcepolicy.rpname
+     * column (varchar(30)): the previous "Special Case Embargo - No access rights metadata" was 48 characters
+     * and aborted the whole import on PostgreSQL with "value too long for type character varying(30)".
+     */
+    private static final String EMBARGO_POLICY_NAME = "embargo";
 
     private DSpaceRunnableHandler handler;
 
@@ -810,8 +819,6 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         // non-standard permissions
         List<String> options = processContentsFile(c, myitem, itemPathDir, "contents");
 
-        // Check for embargo metadata and set up embargo terms if needed
-        processEmbargoMetadata(c, myitem);
         if (useWorkflow) {
             // don't process handle file
             // start up a workflow
@@ -827,6 +834,13 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                 mapOutputString = itemname + " " + myitem.getID();
             }
         } else {
+            // Check for embargo metadata and set up embargo terms if needed.
+            // Only on this branch, and before installItem: a workflow item must not be given an Anonymous READ
+            // policy before it has been approved, and the TYPE_CUSTOM embargo policy written here is what stops
+            // installItem from cloning the collection's undated default READ policy next to it (see
+            // ItemServiceImpl.addDefaultPoliciesNotInPlace), which would defeat the embargo outright.
+            processEmbargoMetadata(c, myitem);
+
             // only process handle file if not using workflow system
             String myhandle = processHandleFile(c, myitem, itemPathDir, "handle");
 
@@ -2576,34 +2590,27 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                 return;
             }
 
-            // Parse and validate embargo date
-            DCDate embargoEndDate;
-            Date endDate;
+            // Parse and validate embargo date. All arithmetic is done in UTC calendar days: neither
+            // Calendar.getInstance() (server time zone) nor DCDate (lenient, rolls 2026-02-30 over into
+            // 2026-03-02) can decide a day boundary reliably.
+            Date accessStartDate;
             try {
-                embargoEndDate = new DCDate(embargoEndDateStr);
-                endDate = embargoEndDate.toDate();
+                LocalDate embargoEndDay = LocalDate.parse(embargoEndDateStr.trim());
 
-                if (endDate == null) {
-                    logError("ERROR: Invalid embargo end date format: " + embargoEndDateStr);
+                // dc.date.embargoend is the inclusive last day of the embargo, so access starts the day after.
+                // The "already passed" test has to run on that start day and not on the end day, otherwise an
+                // embargo ending today would be dropped although the file must still be closed today.
+                LocalDate accessStartDay = embargoEndDay.plusDays(1);
+                if (!accessStartDay.isAfter(LocalDate.now(ZoneOffset.UTC))) {
+                    logInfo("Embargo: end date " + embargoEndDateStr + " has already passed, no embargo policy"
+                            + " is created. installItem applies the collection default policies, so the files"
+                            + " are as accessible as the collection says.");
                     return;
                 }
-
-                if (endDate.before(new Date())) {
-                    logInfo("WARNING: Embargo end date is in the past: " + embargoEndDateStr +
-                            ". Embargo will not be applied.");
-                    return;
-                }
-
-                // Resource policy start date = embargoend + 1 day
-                // The embargo end date is the last day of the embargo,
-                // so the file becomes accessible the day after.
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(endDate);
-                cal.add(Calendar.DAY_OF_MONTH, 1);
-                endDate = cal.getTime();
-            } catch (Exception e) {
-                logError("ERROR: Failed to parse embargo end date: " + embargoEndDateStr +
-                        ". Error: " + e.getMessage());
+                accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
+            } catch (DateTimeParseException e) {
+                logError("ERROR: Invalid embargo end date format: " + embargoEndDateStr
+                        + ". Expected a strict ISO date (yyyy-MM-dd).");
                 return;
             }
 
@@ -2622,15 +2629,15 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                 if (hasEmbargoedAccess) {
                     // Scenario 1: Standard embargo (embargoedAccess + embargoend)
                     logInfo("Embargo: Setting standard embargo on item until " + embargoEndDateStr);
-                    applyEmbargoToItemBitstreams(c, item, endDate, "Standard Embargo");
                 } else {
                     // Scenario 2: Only embargo end date present (special case)
                     logInfo("Embargo: SPECIAL CASE - Found dc.date.embargoend without " +
                             "dc.rights.access=embargoedAccess");
                     logInfo("Embargo: Applying embargo based on end date only until " + embargoEndDateStr);
-                    applyEmbargoToItemBitstreams(c, item, endDate,
-                            "Special Case Embargo - No access rights metadata");
                 }
+                // Both scenarios produce the same policy. They used to differ only in the rpName, and one of
+                // those two names did not fit the 30 character rpname column at all.
+                applyEmbargoToItemBitstreams(c, item, accessStartDate, EMBARGO_POLICY_NAME);
             } catch (Exception e) {
                 logError("ERROR: Failed to apply embargo to bitstreams", e);
             }
@@ -2641,10 +2648,18 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
     }
 
     /**
-     * Apply embargo ResourcePolicy to all bitstreams in the item.
-     * Sets READ permission for Anonymous group with the embargo end date as start date.
+     * Apply an embargo ResourcePolicy to all ORIGINAL bitstreams of the item.
+     *
+     * <p>This is the import path, where the bitstreams do not have an Anonymous READ policy yet - they only
+     * get one from the collection default when installItem runs - so the policy is created here. ItemUpdate
+     * works on already archived items and mutates the existing policy instead; the two must not be merged.</p>
+     *
+     * @param c                DSpace context
+     * @param item             item being imported
+     * @param accessStartDate  day the files become publicly readable (dc.date.embargoend + 1 day, midnight UTC)
+     * @param policyReason     value for resourcepolicy.rpname, at most 30 characters
      */
-    protected void applyEmbargoToItemBitstreams(Context c, Item item, Date embargoEndDate, String policyReason)
+    protected void applyEmbargoToItemBitstreams(Context c, Item item, Date accessStartDate, String policyReason)
             throws SQLException, AuthorizeException {
 
         try {
@@ -2671,8 +2686,12 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                         ResourcePolicy policy = resourcePolicyService.create(c, null, anonymousGroup);
                         policy.setdSpaceObject(bitstream);
                         policy.setAction(Constants.READ);
-                        policy.setStartDate(embargoEndDate);
+                        policy.setStartDate(accessStartDate);
                         policy.setRpName(policyReason);
+                        // TYPE_CUSTOM is load bearing twice: AuthorizeServiceImpl only skips policies on a
+                        // not-yet-installed item when they are custom, and installItem only clones the
+                        // collection default READ policy onto a bitstream that has no custom one yet.
+                        policy.setRpType(ResourcePolicy.TYPE_CUSTOM);
 
                         // Add policy to bitstream's existing policies
                         bitstream.getResourcePolicies().add(policy);
@@ -2686,7 +2705,7 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
             }
 
             logInfo("Embargo: Applied embargo policy to " + bitstreamsProcessed +
-                    " bitstreams until " + embargoEndDate.toString());
+                    " bitstreams, readable from " + accessStartDate.toString());
 
         } catch (Exception e) {
             logError("ERROR: Failed to apply embargo to item bitstreams", e);

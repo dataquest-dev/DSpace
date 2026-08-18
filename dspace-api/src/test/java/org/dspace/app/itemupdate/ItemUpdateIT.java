@@ -10,6 +10,7 @@ package org.dspace.app.itemupdate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -18,15 +19,18 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.file.PathUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.CollectionBuilder;
@@ -45,6 +49,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Constants;
+import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
@@ -59,13 +64,18 @@ import org.junit.Test;
  */
 public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
+    /** rpNames written by the shipped implementation; the fix has to adopt and normalise them. */
     private static final String STANDARD_EMBARGO = "Standard Embargo";
     private static final String SPECIAL_CASE_EMBARGO = "Special Case Embargo";
+
+    /** The single normalised rpName, matching the access condition name in access-conditions.xml. */
+    private static final String EMBARGO_POLICY_NAME = "embargo";
 
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     private HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
     private ResourcePolicyService resourcePolicyService =
             AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+    private AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
     private MetadataSchemaService metadataSchemaService =
             ContentServiceFactory.getInstance().getMetadataSchemaService();
@@ -174,7 +184,7 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void syncEmbargoPoliciesCreatesStandardEmbargoAndRemovesImmediateAnonymousRead() throws Exception {
+    public void syncEmbargoPoliciesDatesTheAnonymousReadPolicyAndBlocksAccess() throws Exception {
         String futureDate = LocalDate.now().plusDays(14).toString();
         Item item = createItem("Standard Embargo Item",
                                "rights", "access", "embargoedAccess",
@@ -186,24 +196,21 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         ItemUpdate itemUpdate = new ItemUpdate();
         itemUpdate.syncEmbargoPolicies(context, item);
 
-        List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, bitstream, Constants.READ);
+        // Exactly one Anonymous READ policy has to be left behind. A second, undated one would silently
+        // defeat the embargo, so counting is part of the assertion, not a detail.
+        List<ResourcePolicy> anonymousRead = anonymousReadPolicies(bitstream);
+        assertEquals(1, anonymousRead.size());
 
-        boolean hasImmediateAnonymousRead = readPolicies.stream()
-                .anyMatch(policy -> isAnonymousPolicy(policy) && policy.getStartDate() == null);
-        assertFalse(hasImmediateAnonymousRead);
-
-        ResourcePolicy embargoPolicy = readPolicies.stream()
-                .filter(policy -> isAnonymousPolicy(policy)
-                        && STANDARD_EMBARGO.equals(policy.getRpName())
-                        && policy.getStartDate() != null)
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull(embargoPolicy);
+        ResourcePolicy embargoPolicy = anonymousRead.get(0);
+        assertEquals(EMBARGO_POLICY_NAME, embargoPolicy.getRpName());
+        assertEquals(ResourcePolicy.TYPE_CUSTOM, embargoPolicy.getRpType());
+        assertNotNull(embargoPolicy.getStartDate());
+        assertEquals(LocalDate.parse(futureDate).plusDays(1), toLocalDate(embargoPolicy.getStartDate()));
+        assertFalse(anonymousCanRead(bitstream));
     }
 
     @Test
-    public void syncEmbargoPoliciesCreatesSpecialCasePolicyWithoutAccessRightMetadata() throws Exception {
+    public void syncEmbargoPoliciesAppliesEmbargoWithoutAccessRightMetadata() throws Exception {
         String futureDate = LocalDate.now().plusDays(21).toString();
         Item item = createItem("Special Case Embargo Item", "date", "embargoend", futureDate);
         Bitstream bitstream = createBitstream(item, "special.txt");
@@ -211,35 +218,48 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         ItemUpdate itemUpdate = new ItemUpdate();
         itemUpdate.syncEmbargoPolicies(context, item);
 
-        List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, bitstream, Constants.READ);
+        List<ResourcePolicy> anonymousRead = anonymousReadPolicies(bitstream);
+        assertEquals(1, anonymousRead.size());
 
-        ResourcePolicy embargoPolicy = readPolicies.stream()
-                .filter(policy -> isAnonymousPolicy(policy)
-                        && SPECIAL_CASE_EMBARGO.equals(policy.getRpName())
-                        && policy.getStartDate() != null)
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull(embargoPolicy);
+        // The distinction between "standard" and "special case" embargo only ever existed in the rpName.
+        // Both are now written as the single access condition name from access-conditions.xml, which also
+        // keeps the value inside the 30 character resourcepolicy.rpname column.
+        ResourcePolicy embargoPolicy = anonymousRead.get(0);
+        assertEquals(EMBARGO_POLICY_NAME, embargoPolicy.getRpName());
+        assertEquals(ResourcePolicy.TYPE_CUSTOM, embargoPolicy.getRpType());
+        assertNotNull(embargoPolicy.getStartDate());
+        assertEquals(LocalDate.parse(futureDate).plusDays(1), toLocalDate(embargoPolicy.getStartDate()));
+        assertFalse(anonymousCanRead(bitstream));
     }
 
+    /**
+     * A blank {@code dc.date.embargoend} is a broken export, not an instruction to change anything.
+     *
+     * <p>This test used to assert only {@code assertFalse(hasSafEmbargoPolicy)}, which an empty policy table
+     * satisfies just as well as a correct one - and an empty policy table is exactly the customer bug (HTTP 401
+     * on every download). It now asserts what the operator actually cares about: not a single resource policy
+     * was touched.</p>
+     */
     @Test
-    public void syncEmbargoPoliciesClearsSafEmbargoPoliciesWhenEmbargoDateInvalid() throws Exception {
+    public void syncEmbargoPoliciesLeavesPoliciesUntouchedWhenEmbargoDateInvalid() throws Exception {
         Item item = createItem("Invalid Date Item", "date", "embargoend", "");
         Bitstream bitstream = createBitstream(item, "invalid.txt");
-        createAnonymousReadPolicy(bitstream, new Date(System.currentTimeMillis() + 86_400_000L), STANDARD_EMBARGO);
+        ResourcePolicy legacyPolicy = createAnonymousReadPolicy(bitstream,
+                new Date(System.currentTimeMillis() + 86_400_000L), STANDARD_EMBARGO);
+
+        List<Integer> idsBefore = policyIds(bitstream);
+        boolean readableBefore = anonymousCanRead(bitstream);
 
         ItemUpdate itemUpdate = new ItemUpdate();
         itemUpdate.syncEmbargoPolicies(context, item);
 
-        List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, bitstream, Constants.READ);
+        assertEquals(idsBefore, policyIds(bitstream));
+        assertEquals(readableBefore, anonymousCanRead(bitstream));
 
-        boolean hasSafEmbargoPolicy = readPolicies.stream()
-                .anyMatch(policy -> isAnonymousPolicy(policy)
-                        && (STANDARD_EMBARGO.equals(policy.getRpName())
-                        || SPECIAL_CASE_EMBARGO.equals(policy.getRpName())));
-
-        assertFalse(hasSafEmbargoPolicy);
+        // The dated policy the run could not validate is still there, unchanged, under its legacy name.
+        ResourcePolicy reloadedLegacy = resourcePolicyService.find(context, legacyPolicy.getID());
+        assertNotNull(reloadedLegacy);
+        assertEquals(STANDARD_EMBARGO, reloadedLegacy.getRpName());
     }
 
     @Test
@@ -254,7 +274,8 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         LocalDate oldPolicyDate = LocalDate.parse(oldEmbargoDate).plusDays(1);
         Date oldPolicyStart = Date.from(oldPolicyDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+        ResourcePolicy legacyPolicy = createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+        Integer legacyPolicyId = legacyPolicy.getID();
 
         runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, "embargoedAccess", newEmbargoDate));
 
@@ -266,23 +287,28 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         assertEquals(newEmbargoDate, embargoDates.get(0).getValue());
 
         LocalDate expectedPolicyDate = LocalDate.parse(newEmbargoDate).plusDays(1);
-        List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, reloadedBitstream, Constants.READ);
+        List<ResourcePolicy> anonymousRead = anonymousReadPolicies(reloadedBitstream);
+        assertEquals(1, anonymousRead.size());
 
-        boolean hasOldEmbargoPolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-                && STANDARD_EMBARGO.equals(policy.getRpName())
-                && policy.getStartDate() != null
-                && toLocalDate(policy.getStartDate()).equals(oldPolicyDate));
-        assertFalse(hasOldEmbargoPolicy);
-
-        boolean hasNewEmbargoPolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-                && STANDARD_EMBARGO.equals(policy.getRpName())
-                && policy.getStartDate() != null
-                && toLocalDate(policy.getStartDate()).equals(expectedPolicyDate));
-        assertTrue(hasNewEmbargoPolicy);
+        // The pre-existing policy is re-dated in place instead of being deleted and re-created. Between a
+        // delete and a create the file has no policy at all, which is the state the customer report was about.
+        ResourcePolicy embargoPolicy = anonymousRead.get(0);
+        assertEquals(legacyPolicyId, embargoPolicy.getID());
+        assertEquals(EMBARGO_POLICY_NAME, embargoPolicy.getRpName());
+        assertEquals(ResourcePolicy.TYPE_CUSTOM, embargoPolicy.getRpType());
+        assertNotNull(embargoPolicy.getStartDate());
+        assertFalse(toLocalDate(embargoPolicy.getStartDate()).equals(oldPolicyDate));
+        assertEquals(expectedPolicyDate, toLocalDate(embargoPolicy.getStartDate()));
+        assertFalse(anonymousCanRead(reloadedBitstream));
     }
 
+    /**
+     * Blanking {@code dc.date.embargoend} in the SAF archive is a broken export. Same reasoning as
+     * {@link #syncEmbargoPoliciesLeavesPoliciesUntouchedWhenEmbargoDateInvalid()}: the old
+     * {@code assertFalse(hasSafEmbargoPolicy)} was also satisfied by a bitstream stripped of every policy.
+     */
     @Test
-    public void processArchiveUpdateWithBlankEmbargoDateClearsSafEmbargoPolicies() throws Exception {
+    public void processArchiveUpdateWithBlankEmbargoDateLeavesPoliciesUntouched() throws Exception {
         String oldEmbargoDate = LocalDate.now().plusDays(12).toString();
 
         Item item = createItem("Blank Embargo Date Update",
@@ -292,21 +318,30 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         Date oldPolicyStart = Date.from(LocalDate.parse(oldEmbargoDate).plusDays(1)
                 .atStartOfDay(ZoneId.systemDefault()).toInstant());
-        createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+        ResourcePolicy legacyPolicy = createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+
+        List<Integer> idsBefore = policyIds(bitstream);
+        boolean readableBefore = anonymousCanRead(bitstream);
 
         runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, "embargoedAccess", ""));
 
         Bitstream reloadedBitstream = context.reloadEntity(bitstream);
-        List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, reloadedBitstream, Constants.READ);
 
-        boolean hasSafEmbargoPolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-                && (STANDARD_EMBARGO.equals(policy.getRpName())
-                || SPECIAL_CASE_EMBARGO.equals(policy.getRpName())));
-        assertFalse(hasSafEmbargoPolicy);
+        assertEquals(idsBefore, policyIds(reloadedBitstream));
+        assertEquals(readableBefore, anonymousCanRead(reloadedBitstream));
+
+        ResourcePolicy reloadedLegacy = resourcePolicyService.find(context, legacyPolicy.getID());
+        assertNotNull(reloadedLegacy);
+        assertEquals(STANDARD_EMBARGO, reloadedLegacy.getRpName());
     }
 
+    /**
+     * Removing {@code dc.date.embargoend} is the only way an operator lifts an embargo, so the files have to
+     * become readable. The old assertion looked for the absence of a policy named "Standard Embargo", which
+     * a bitstream with zero policies - i.e. an unreadable one - passes just as well.
+     */
     @Test
-    public void processArchiveUpdateRemovingEmbargoMetadataClearsPoliciesAndMetadata() throws Exception {
+    public void processArchiveUpdateRemovingEmbargoMetadataLiftsEmbargo() throws Exception {
         String oldEmbargoDate = LocalDate.now().plusDays(10).toString();
 
         Item item = createItem("Remove Embargo Metadata Update",
@@ -316,7 +351,8 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         Date oldPolicyStart = Date.from(LocalDate.parse(oldEmbargoDate).plusDays(1)
                 .atStartOfDay(ZoneId.systemDefault()).toInstant());
-        createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+        ResourcePolicy legacyPolicy = createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+        Integer legacyPolicyId = legacyPolicy.getID();
 
         runEmbargoMetadataUpdate(item, dublinCore(item));
 
@@ -328,15 +364,20 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         assertTrue(rightsAccess.isEmpty());
         assertTrue(embargoDates.isEmpty());
 
-        List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, reloadedBitstream, Constants.READ);
-        boolean hasSafEmbargoPolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-                && (STANDARD_EMBARGO.equals(policy.getRpName())
-                || SPECIAL_CASE_EMBARGO.equals(policy.getRpName())));
-        assertFalse(hasSafEmbargoPolicy);
+        List<ResourcePolicy> anonymousRead = anonymousReadPolicies(reloadedBitstream);
+        assertEquals(1, anonymousRead.size());
+
+        ResourcePolicy liftedPolicy = anonymousRead.get(0);
+        assertEquals(legacyPolicyId, liftedPolicy.getID());
+        assertNull(liftedPolicy.getStartDate());
+        assertFalse(STANDARD_EMBARGO.equals(liftedPolicy.getRpName())
+                || SPECIAL_CASE_EMBARGO.equals(liftedPolicy.getRpName()));
+        assertEquals(EMBARGO_POLICY_NAME, liftedPolicy.getRpName());
+        assertTrue(anonymousCanRead(reloadedBitstream));
     }
 
     @Test
-    public void processArchiveUpdateWithEmbargoDateAndNoRightsCreatesSpecialCasePolicy() throws Exception {
+    public void processArchiveUpdateWithEmbargoDateAndNoRightsAppliesEmbargo() throws Exception {
         String oldEmbargoDate = LocalDate.now().plusDays(8).toString();
         String newEmbargoDate = LocalDate.now().plusDays(25).toString();
 
@@ -347,7 +388,8 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
 
         Date oldPolicyStart = Date.from(LocalDate.parse(oldEmbargoDate).plusDays(1)
                 .atStartOfDay(ZoneId.systemDefault()).toInstant());
-        createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+        ResourcePolicy legacyPolicy = createAnonymousReadPolicy(bitstream, oldPolicyStart, STANDARD_EMBARGO);
+        Integer legacyPolicyId = legacyPolicy.getID();
 
         runEmbargoMetadataUpdate(item, dublinCoreWithEmbargo(item, null, newEmbargoDate));
 
@@ -358,17 +400,16 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         assertTrue(rightsAccess.isEmpty());
 
         LocalDate expectedPolicyDate = LocalDate.parse(newEmbargoDate).plusDays(1);
-        List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, reloadedBitstream, Constants.READ);
+        List<ResourcePolicy> anonymousRead = anonymousReadPolicies(reloadedBitstream);
+        assertEquals(1, anonymousRead.size());
 
-        boolean hasSpecialCasePolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-                && SPECIAL_CASE_EMBARGO.equals(policy.getRpName())
-                && policy.getStartDate() != null
-                && toLocalDate(policy.getStartDate()).equals(expectedPolicyDate));
-        assertTrue(hasSpecialCasePolicy);
-
-        boolean hasStandardPolicy = readPolicies.stream().anyMatch(policy -> isAnonymousPolicy(policy)
-                && STANDARD_EMBARGO.equals(policy.getRpName()));
-        assertFalse(hasStandardPolicy);
+        ResourcePolicy embargoPolicy = anonymousRead.get(0);
+        assertEquals(legacyPolicyId, embargoPolicy.getID());
+        assertEquals(EMBARGO_POLICY_NAME, embargoPolicy.getRpName());
+        assertEquals(ResourcePolicy.TYPE_CUSTOM, embargoPolicy.getRpType());
+        assertNotNull(embargoPolicy.getStartDate());
+        assertEquals(expectedPolicyDate, toLocalDate(embargoPolicy.getStartDate()));
+        assertFalse(anonymousCanRead(reloadedBitstream));
     }
 
     private void ensureMetadataFieldExists(String element, String qualifier) throws Exception {
@@ -405,7 +446,8 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         return bitstream;
     }
 
-    private void createAnonymousReadPolicy(Bitstream bitstream, Date startDate, String name) throws Exception {
+    private ResourcePolicy createAnonymousReadPolicy(Bitstream bitstream, Date startDate, String name)
+            throws Exception {
         context.turnOffAuthorisationSystem();
         ResourcePolicyBuilder builder = ResourcePolicyBuilder.createResourcePolicy(context, null, anonymousGroup)
                 .withAction(Constants.READ)
@@ -415,12 +457,52 @@ public class ItemUpdateIT extends AbstractIntegrationTestWithDatabase {
         if (startDate != null) {
             builder.withStartDate(startDate);
         }
-        builder.build();
+        ResourcePolicy policy = builder.build();
         context.restoreAuthSystemState();
+        return policy;
     }
 
     private boolean isAnonymousPolicy(ResourcePolicy policy) {
         return policy.getGroup() != null && policy.getGroup().equals(anonymousGroup);
+    }
+
+    private List<ResourcePolicy> anonymousReadPolicies(Bitstream bitstream) throws Exception {
+        return resourcePolicyService.find(context, bitstream, Constants.READ).stream()
+                .filter(this::isAnonymousPolicy)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Identity of every resource policy on the bitstream. A policy deleted and immediately re-created keeps
+     * the count but loses its id, so ids are what "untouched" has to be measured with.
+     */
+    private List<Integer> policyIds(Bitstream bitstream) throws Exception {
+        return authorizeService.getPolicies(context, bitstream).stream()
+                .map(ResourcePolicy::getID)
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * What an anonymous visitor of the REST API gets: the authorisation system asked as nobody, with the
+     * test's own turnOffAuthorisationSystem calls temporarily unwound.
+     */
+    private boolean anonymousCanRead(Bitstream bitstream) throws SQLException {
+        EPerson savedUser = context.getCurrentUser();
+        int popped = 0;
+        while (context.ignoreAuthorization()) {
+            context.restoreAuthSystemState();
+            popped++;
+        }
+        context.setCurrentUser(null);
+        try {
+            return authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ);
+        } finally {
+            context.setCurrentUser(savedUser);
+            for (int i = 0; i < popped; i++) {
+                context.turnOffAuthorisationSystem();
+            }
+        }
     }
 
     private Path createSafItemDirectory(String dublinCoreContent) throws IOException {

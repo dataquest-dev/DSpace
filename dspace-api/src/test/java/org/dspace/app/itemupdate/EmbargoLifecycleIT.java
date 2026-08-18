@@ -1,0 +1,884 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.app.itemupdate;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.commons.io.file.PathUtils;
+import org.dspace.AbstractIntegrationTestWithDatabase;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.authorize.service.ResourcePolicyService;
+import org.dspace.builder.BitstreamBuilder;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.MetadataFieldBuilder;
+import org.dspace.builder.ResourcePolicyBuilder;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BundleService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataSchemaService;
+import org.dspace.core.Constants;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * Life cycle, legacy data migration and invariant tests for the VSB-TUO embargo synchronisation in
+ * {@link ItemUpdate}.
+ *
+ * <p>Where {@code EmbargoPastDateIT} reproduces the single incident reported by the customer, this class
+ * covers the whole life cycle of an embargo as it is really operated: setting it, re-running the very same
+ * SAF archive, lifting it again by dropping {@code dc.date.embargoend}, and doing all of that on bitstreams
+ * whose resource policies were written by the previous (PR #1313 / #1315) implementation and therefore still
+ * carry the legacy {@code rpName} values {@code "Standard Embargo"} and {@code "Special Case Embargo"}.</p>
+ *
+ * <p>The binding rules exercised here are:</p>
+ * <ul>
+ *   <li>the survivor policy is located by {@code (group = Anonymous, action = READ)} and never by
+ *       {@code rpName}, so policies written by the old code are picked up and normalised;</li>
+ *   <li>the survivor is <em>mutated</em>, never deleted and recreated, so its {@code policy_id} is stable;</li>
+ *   <li>an ORIGINAL bitstream that started with at least one READ policy always ends with at least one -
+ *       whatever {@code dc.date.embargoend} contained;</li>
+ *   <li>exactly one {@code Anonymous}/{@code READ} policy remains, so no immediate policy can survive next to
+ *       a dated one and quietly defeat the embargo;</li>
+ *   <li>bitstreams outside the ORIGINAL bundle are never touched - their policies belong to filter-media.</li>
+ * </ul>
+ */
+public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
+
+    /** Target policy name of the fix. Must stay within the 30 char {@code resourcepolicy.rpname} column. */
+    private static final String EMBARGO_POLICY_NAME = "embargo";
+
+    /** Policy names written by the previous implementation and still present in the customer database. */
+    private static final String LEGACY_STANDARD_EMBARGO = "Standard Embargo";
+    private static final String LEGACY_SPECIAL_CASE_EMBARGO = "Special Case Embargo";
+
+    private static final String OPEN_ACCESS = "openAccess";
+    private static final String EMBARGOED_ACCESS = "embargoedAccess";
+
+    private static final String TEXT_BUNDLE = "TEXT";
+    private static final String THUMBNAIL_BUNDLE = "THUMBNAIL";
+
+    private final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    private final BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
+    private final HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
+    private final ResourcePolicyService resourcePolicyService =
+            AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+    private final AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+    private final GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+    private final MetadataSchemaService metadataSchemaService =
+            ContentServiceFactory.getInstance().getMetadataSchemaService();
+    private final MetadataFieldService metadataFieldService =
+            ContentServiceFactory.getInstance().getMetadataFieldService();
+
+    private Collection collection;
+    private Group anonymousGroup;
+    private Path tempDir;
+    private String previousHandlePrefix;
+
+    @Before
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+
+        ensureMetadataFieldExists("rights", "access");
+        ensureMetadataFieldExists("date", "embargoend");
+
+        anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
+        previousHandlePrefix = ItemUpdate.HANDLE_PREFIX;
+        ItemUpdate.HANDLE_PREFIX = handleService.getCanonicalPrefix();
+
+        context.restoreAuthSystemState();
+
+        tempDir = Files.createTempDirectory("embargoLifecycleIT");
+    }
+
+    @After
+    @Override
+    public void destroy() throws Exception {
+        ItemUpdate.HANDLE_PREFIX = previousHandlePrefix;
+        if (tempDir != null) {
+            PathUtils.deleteDirectory(tempDir);
+        }
+        super.destroy();
+    }
+
+    /**
+     * Removing {@code dc.date.embargoend} is the only way an operator lifts an embargo, and it is the second
+     * most frequent embargo operation after setting one. It must clear the start date of the surviving policy
+     * (spec row #5) instead of deleting the policy and leaving the file unreachable.
+     */
+    @Test
+    public void removingEmbargoMetadataLiftsEmbargo() throws Exception {
+        String futureEmbargoEnd = LocalDate.now().plusMonths(6).toString();
+
+        Item item = createItem("Lift Embargo Thesis");
+        Bitstream bitstream = createOriginalBitstream(item, "thesis.pdf");
+        Integer importedPolicyId = onlyAnonymousReadPolicy(bitstream, "the fresh SAF import").getID();
+
+        // (a) operator embargoes the item
+        runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+
+        assertEquals("itemupdate did not store the future embargo end date",
+                futureEmbargoEnd, singleMetadataValue(item, "date", "embargoend"));
+        ResourcePolicy embargoed = onlyAnonymousReadPolicy(bitstream, "the embargo run");
+        assertNotNull("the surviving Anonymous READ policy must be dated while the embargo runs",
+                embargoed.getStartDate());
+        assertEquals("the imported Anonymous READ policy must be mutated in place, not deleted and recreated",
+                importedPolicyId, embargoed.getID());
+        assertFalse("while embargoed the file must not be publicly readable" + describePolicies(bitstream),
+                anonymousCanRead(bitstream));
+
+        // (b) operator lifts the embargo: the SAF no longer carries dc.date.embargoend
+        runItemUpdate(item, dublinCore(item, OPEN_ACCESS, null));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+
+        assertTrue("itemupdate did not remove dc.date.embargoend from the item",
+                itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY).isEmpty());
+
+        ResourcePolicy lifted = onlyAnonymousReadPolicy(bitstream, "the embargo lift run");
+        assertEquals("lifting an embargo must mutate the surviving policy, not delete and recreate it",
+                importedPolicyId, lifted.getID());
+        assertNull("lifting an embargo must clear startDate on the surviving Anonymous READ policy"
+                        + describePolicies(bitstream),
+                lifted.getStartDate());
+        assertTrue("after the embargo was lifted the file must be publicly readable again"
+                        + describePolicies(bitstream),
+                anonymousCanRead(bitstream));
+    }
+
+    /**
+     * Re-running the identical SAF archive - which happens every time an import job is retried - must be a
+     * no-op. The same {@code policy_id} has to come back, which is only possible if the policy is mutated
+     * rather than deleted and recreated.
+     */
+    @Test
+    public void syncIsIdempotent() throws Exception {
+        String futureEmbargoEnd = LocalDate.now().plusMonths(3).toString();
+        LocalDate expectedStart = LocalDate.parse(futureEmbargoEnd).plusDays(1);
+
+        Item item = createItem("Idempotent Thesis");
+        Bitstream bitstream = createOriginalBitstream(item, "idempotent.pdf");
+        Integer importedPolicyId = onlyAnonymousReadPolicy(bitstream, "the fresh SAF import").getID();
+
+        runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+
+        ResourcePolicy first = onlyAnonymousReadPolicy(bitstream, "the first run");
+        Integer firstId = first.getID();
+        assertEquals("the imported Anonymous READ policy must be mutated in place, not deleted and recreated",
+                importedPolicyId, firstId);
+        assertNotNull("the surviving policy must be dated after the first run", first.getStartDate());
+        assertEquals("embargo must start the day after dc.date.embargoend",
+                expectedStart, toLocalDate(first.getStartDate()));
+        assertEquals("the surviving policy must be renamed to the canonical access condition",
+                EMBARGO_POLICY_NAME, first.getRpName());
+        assertEquals("the surviving policy must be TYPE_CUSTOM", ResourcePolicy.TYPE_CUSTOM, first.getRpType());
+
+        // exactly the same archive again
+        runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+
+        ResourcePolicy second = onlyAnonymousReadPolicy(bitstream, "the second, identical run");
+        assertEquals("a repeated identical run must mutate the same policy row - a changed policy_id proves"
+                        + " the policy was deleted and recreated, which is what loses the file on the way"
+                        + describePolicies(bitstream),
+                firstId, second.getID());
+        assertEquals("a repeated identical run must not move the embargo start date",
+                expectedStart, toLocalDate(second.getStartDate()));
+        assertEquals("a repeated identical run must not change the policy name",
+                EMBARGO_POLICY_NAME, second.getRpName());
+        assertEquals("a repeated identical run must not change the policy type",
+                ResourcePolicy.TYPE_CUSTOM, second.getRpType());
+        assertFalse("the file must still be embargoed after the second run" + describePolicies(bitstream),
+                anonymousCanRead(bitstream));
+    }
+
+    /**
+     * The customer database is full of policies named {@code "Standard Embargo"} whose start date has already
+     * passed. Re-embargoing such a bitstream must find that policy by {@code (Anonymous, READ)}, reuse it and
+     * normalise its name. An implementation that looks the survivor up by {@code rpName == "embargo"} would
+     * create a second policy and leave the expired one in place, so the file would stay downloadable.
+     */
+    @Test
+    public void legacyRpNameThenFutureEmbargoIsEnforced() throws Exception {
+        assertLegacyPolicyIsAdoptedAndEnforced(LEGACY_STANDARD_EMBARGO, EMBARGOED_ACCESS, "legacy-standard.pdf");
+    }
+
+    /**
+     * Same as {@link #legacyRpNameThenFutureEmbargoIsEnforced()} for the second legacy name, written by the
+     * previous implementation whenever {@code dc.rights.access} was not {@code embargoedAccess}.
+     */
+    @Test
+    public void legacySpecialCaseRpNameIsAlsoPickedUp() throws Exception {
+        assertLegacyPolicyIsAdoptedAndEnforced(LEGACY_SPECIAL_CASE_EMBARGO, null, "legacy-special-case.pdf");
+    }
+
+    /**
+     * An item that never had an embargo carries a single immediate ({@code startDate == null}) policy. Putting
+     * it under embargo must consume that policy: leaving it next to a dated one would make the embargo a no-op
+     * because the immediate policy alone already grants anonymous READ (spec row #13).
+     */
+    @Test
+    public void bornOpenItemThenFutureEmbargoIsEnforced() throws Exception {
+        String futureEmbargoEnd = LocalDate.now().plusMonths(4).toString();
+
+        Item item = createItem("Born Open Thesis");
+        Bitstream bitstream = createOriginalBitstream(item, "born-open.pdf");
+
+        ResourcePolicy imported = onlyAnonymousReadPolicy(bitstream, "the fresh SAF import");
+        Integer importedPolicyId = imported.getID();
+        assertNull("fixture precondition: a born open bitstream carries an immediate policy",
+                imported.getStartDate());
+        assertTrue("fixture precondition: a born open bitstream is publicly readable", anonymousCanRead(bitstream));
+
+        runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+
+        List<ResourcePolicy> after = anonymousReadPolicies(bitstream);
+        assertEquals("the immediate Anonymous READ policy must be consumed by the embargo, not left beside a"
+                        + " dated one" + describePolicies(bitstream),
+                1, after.size());
+
+        ResourcePolicy survivor = after.get(0);
+        assertEquals("the immediate policy must be mutated in place, not deleted and recreated",
+                importedPolicyId, survivor.getID());
+        assertNotNull("the surviving policy must be dated", survivor.getStartDate());
+        assertEquals("embargo must start the day after dc.date.embargoend",
+                LocalDate.parse(futureEmbargoEnd).plusDays(1), toLocalDate(survivor.getStartDate()));
+        assertEquals("the surviving policy must be renamed to the canonical access condition",
+                EMBARGO_POLICY_NAME, survivor.getRpName());
+        assertEquals("the surviving policy must be TYPE_CUSTOM",
+                ResourcePolicy.TYPE_CUSTOM, survivor.getRpType());
+        assertFalse("an immediate Anonymous READ policy left next to the embargo makes the embargo a no-op"
+                        + describePolicies(bitstream),
+                anonymousCanRead(bitstream));
+    }
+
+    /**
+     * A bitstream that accumulated several {@code Anonymous}/{@code READ} policies - the classic mix of one
+     * immediate policy and the leftovers of earlier embargo runs - must end up with exactly one policy, taken
+     * from the pre-existing ones (spec row #13). Any surviving second policy would either defeat the embargo
+     * or resurrect an obsolete date.
+     */
+    @Test
+    public void duplicateAnonymousReadPoliciesCollapseToOne() throws Exception {
+        String futureEmbargoEnd = LocalDate.now().plusMonths(5).toString();
+
+        Item item = createItem("Duplicate Policies Thesis");
+        Bitstream bitstream = createOriginalBitstream(item, "duplicates.pdf");
+
+        Integer immediateId = onlyAnonymousReadPolicy(bitstream, "the fresh SAF import").getID();
+        Integer oldestDatedId = addAnonymousReadPolicy(bitstream, startOfDayUtc(LocalDate.now().minusMonths(3)),
+                LEGACY_STANDARD_EMBARGO).getID();
+        Integer newestDatedId = addAnonymousReadPolicy(bitstream, startOfDayUtc(LocalDate.now().plusMonths(2)),
+                LEGACY_SPECIAL_CASE_EMBARGO).getID();
+        bitstream = context.reloadEntity(bitstream);
+        assertEquals("fixture precondition: three Anonymous READ policies" + describePolicies(bitstream),
+                3, anonymousReadPolicies(bitstream).size());
+
+        runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+
+        List<ResourcePolicy> after = anonymousReadPolicies(bitstream);
+        assertEquals("duplicate Anonymous READ policies must collapse into exactly one"
+                        + describePolicies(bitstream),
+                1, after.size());
+
+        ResourcePolicy survivor = after.get(0);
+        Integer survivorId = survivor.getID();
+        assertTrue("the survivor must be one of the three pre-existing policies - a brand new policy_id proves"
+                        + " delete and recreate" + describePolicies(bitstream),
+                survivorId.equals(immediateId) || survivorId.equals(oldestDatedId)
+                        || survivorId.equals(newestDatedId));
+        assertTrue("the survivor must be the oldest policy: either the immediate one (in force since forever)"
+                        + " or the one with the oldest start date - never the newest one"
+                        + describePolicies(bitstream),
+                survivorId.equals(immediateId) || survivorId.equals(oldestDatedId));
+        assertEquals("embargo must start the day after dc.date.embargoend",
+                LocalDate.parse(futureEmbargoEnd).plusDays(1), toLocalDate(survivor.getStartDate()));
+        assertEquals("the surviving policy must be renamed to the canonical access condition",
+                EMBARGO_POLICY_NAME, survivor.getRpName());
+        assertFalse("a second Anonymous READ policy would defeat the embargo" + describePolicies(bitstream),
+                anonymousCanRead(bitstream));
+    }
+
+    /**
+     * The single invariant the whole fix exists for: an ORIGINAL bitstream that had at least one READ policy
+     * before an {@code itemupdate} run must still have one afterwards, no matter what
+     * {@code dc.date.embargoend} contained. Zero READ policies is what turns the file into an HTTP 401.
+     *
+     * <p>Every case first puts a real embargo in place, exactly like the customer did, because that is what
+     * replaces the collection default with a single dated policy - the one the second run then has the
+     * opportunity to delete.</p>
+     */
+    @Test
+    public void neverZeroReadPoliciesInvariant() throws Exception {
+        String initialEmbargoEnd = LocalDate.now().plusYears(1).toString();
+        String impossibleCalendarDay = LocalDate.now().plusYears(1).getYear() + "-02-30";
+
+        List<String[]> cases = new ArrayList<>();
+        // { label, dc.rights.access, dc.date.embargoend (null = element absent from the SAF) }
+        cases.add(new String[] { "future date", OPEN_ACCESS, LocalDate.now().plusMonths(9).toString() });
+        cases.add(new String[] { "today", OPEN_ACCESS, LocalDate.now().toString() });
+        cases.add(new String[] { "past date", OPEN_ACCESS, LocalDate.now().minusMonths(1).toString() });
+        cases.add(new String[] { "empty value", OPEN_ACCESS, "" });
+        cases.add(new String[] { "unparseable value", OPEN_ACCESS, "not-a-date" });
+        cases.add(new String[] { "impossible calendar day", OPEN_ACCESS, impossibleCalendarDay });
+        cases.add(new String[] { "element removed", OPEN_ACCESS, null });
+
+        StringBuilder violations = new StringBuilder();
+
+        for (String[] testCase : cases) {
+            String label = testCase[0];
+
+            Item item = createItem("Invariant Thesis - " + label);
+            Bitstream bitstream = createOriginalBitstream(item, "invariant.pdf");
+
+            runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, initialEmbargoEnd));
+            item = context.reloadEntity(item);
+            bitstream = context.reloadEntity(bitstream);
+
+            int readPoliciesBefore = readPolicies(bitstream).size();
+            int anonymousBefore = anonymousReadPolicies(bitstream).size();
+            if (readPoliciesBefore < 1 || anonymousBefore < 1) {
+                violations.append(System.lineSeparator())
+                        .append("  [").append(label).append("] the fixture was already broken by the embargo run:")
+                        .append(describePolicies(bitstream));
+                continue;
+            }
+
+            runItemUpdate(item, dublinCore(item, testCase[1], testCase[2]));
+            item = context.reloadEntity(item);
+            bitstream = context.reloadEntity(bitstream);
+
+            int readPoliciesAfter = readPolicies(bitstream).size();
+            int anonymousAfter = anonymousReadPolicies(bitstream).size();
+            if (readPoliciesAfter < 1 || anonymousAfter < 1) {
+                violations.append(System.lineSeparator())
+                        .append("  [").append(label).append("] dc.date.embargoend=")
+                        .append(testCase[2] == null ? "<element removed>" : "'" + testCase[2] + "'")
+                        .append(" reduced ").append(readPoliciesBefore).append(" READ policies (")
+                        .append(anonymousBefore).append(" of them Anonymous) to ").append(readPoliciesAfter)
+                        .append(" (").append(anonymousAfter).append(" Anonymous):")
+                        .append(describePolicies(bitstream));
+            }
+        }
+
+        if (violations.length() > 0) {
+            fail("An itemupdate run must never leave an ORIGINAL bitstream without an Anonymous READ policy."
+                    + " A bitstream with no READ policy answers HTTP 401 and no later run can publish it again."
+                    + violations);
+        }
+    }
+
+    /**
+     * A real VSB-TUO record carries several files in ORIGINAL, one of them flagged as the primary bitstream.
+     * All of them must reach exactly the same state - the primary bitstream is not special - and the primary
+     * flag itself must survive.
+     */
+    @Test
+    public void multipleBitstreamsAllGetSameState() throws Exception {
+        String futureEmbargoEnd = LocalDate.now().plusMonths(7).toString();
+        String pastEmbargoEnd = LocalDate.now().minusMonths(1).toString();
+
+        Item item = createItem("Six File Thesis");
+        List<Bitstream> bitstreams = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            bitstreams.add(createOriginalBitstream(item, "file-" + i + ".pdf"));
+        }
+        Bundle originalBundle = bundleOf(item, Constants.CONTENT_BUNDLE_NAME);
+        setPrimaryBitstream(originalBundle, bitstreams.get(0));
+        UUID primaryBitstreamId = bitstreams.get(0).getID();
+
+        // (a) embargo every file of the record
+        runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd));
+        item = context.reloadEntity(item);
+        reloadAll(bitstreams);
+        originalBundle = context.reloadEntity(originalBundle);
+
+        assertUniformState(bitstreams, "the embargo run");
+        for (Bitstream bitstream : bitstreams) {
+            ResourcePolicy policy = onlyAnonymousReadPolicy(bitstream, "the embargo run");
+            assertEquals("embargo must start the day after dc.date.embargoend",
+                    LocalDate.parse(futureEmbargoEnd).plusDays(1), toLocalDate(policy.getStartDate()));
+            assertEquals("every ORIGINAL bitstream must carry the canonical policy name",
+                    EMBARGO_POLICY_NAME, policy.getRpName());
+            assertEquals("every ORIGINAL bitstream must carry a TYPE_CUSTOM policy",
+                    ResourcePolicy.TYPE_CUSTOM, policy.getRpType());
+            assertFalse("every embargoed file of the record must be closed" + describePolicies(bitstream),
+                    anonymousCanRead(bitstream));
+        }
+        assertNotNull("the ORIGINAL bundle lost its primary bitstream", originalBundle.getPrimaryBitstream());
+        assertEquals("the primary bitstream flag must survive an embargo run",
+                primaryBitstreamId, originalBundle.getPrimaryBitstream().getID());
+
+        // (b) the embargo expires - the same archive is re-imported with a past date
+        runItemUpdate(item, dublinCore(item, OPEN_ACCESS, pastEmbargoEnd));
+        item = context.reloadEntity(item);
+        reloadAll(bitstreams);
+        originalBundle = context.reloadEntity(originalBundle);
+
+        assertUniformState(bitstreams, "the expired embargo run");
+        for (Bitstream bitstream : bitstreams) {
+            ResourcePolicy policy = onlyAnonymousReadPolicy(bitstream, "the expired embargo run");
+            assertEquals("an expired embargo still starts the day after dc.date.embargoend",
+                    LocalDate.parse(pastEmbargoEnd).plusDays(1), toLocalDate(policy.getStartDate()));
+            assertTrue("an expired embargo must be effective immediately" + describePolicies(bitstream),
+                    resourcePolicyService.isDateValid(policy));
+            assertTrue("an expired embargo publishes every file of the record" + describePolicies(bitstream),
+                    anonymousCanRead(bitstream));
+        }
+        assertNotNull("the ORIGINAL bundle lost its primary bitstream", originalBundle.getPrimaryBitstream());
+        assertEquals("the primary bitstream flag must survive an expired embargo run",
+                primaryBitstreamId, originalBundle.getPrimaryBitstream().getID());
+    }
+
+    /**
+     * The embargo synchronisation owns the bitstreams of the ORIGINAL bundle only. Derivatives (TEXT,
+     * THUMBNAIL) are produced and re-protected by filter-media, and the bundle objects themselves carry their
+     * own policies; touching either from here is how a record ends up with 18 unreachable bitstreams.
+     */
+    @Test
+    public void derivativeBundlesAreNotTouchedDirectly() throws Exception {
+        String futureEmbargoEnd = LocalDate.now().plusMonths(2).toString();
+        String pastEmbargoEnd = LocalDate.now().minusMonths(2).toString();
+
+        Item item = createItem("Derivatives Thesis");
+        Bitstream original = createOriginalBitstream(item, "thesis.pdf");
+        Bitstream extractedText = createBitstreamInBundle(item, "thesis.pdf.txt", TEXT_BUNDLE);
+        Bitstream thumbnail = createBitstreamInBundle(item, "thesis.pdf.jpg", THUMBNAIL_BUNDLE);
+
+        Bundle originalBundle = bundleOf(item, Constants.CONTENT_BUNDLE_NAME);
+        Set<String> textPolicies = policySignatures(extractedText);
+        Set<String> thumbnailPolicies = policySignatures(thumbnail);
+        Set<String> originalBundlePolicies = policySignatures(originalBundle);
+        assertFalse("fixture precondition: the TEXT bitstream must start with policies", textPolicies.isEmpty());
+        assertFalse("fixture precondition: the THUMBNAIL bitstream must start with policies",
+                thumbnailPolicies.isEmpty());
+        assertFalse("fixture precondition: the ORIGINAL bundle must start with policies",
+                originalBundlePolicies.isEmpty());
+
+        // (a) embargo run
+        runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd));
+        item = context.reloadEntity(item);
+        original = context.reloadEntity(original);
+        extractedText = context.reloadEntity(extractedText);
+        thumbnail = context.reloadEntity(thumbnail);
+        originalBundle = context.reloadEntity(originalBundle);
+
+        ResourcePolicy embargoed = onlyAnonymousReadPolicy(original, "the embargo run");
+        assertEquals("sanity check: this run must have embargoed the ORIGINAL bitstream",
+                EMBARGO_POLICY_NAME, embargoed.getRpName());
+        assertEquals("TEXT bitstream policies belong to filter-media and must not be rewritten here",
+                textPolicies, policySignatures(extractedText));
+        assertEquals("THUMBNAIL bitstream policies belong to filter-media and must not be rewritten here",
+                thumbnailPolicies, policySignatures(thumbnail));
+        assertEquals("the ORIGINAL bundle's own policies must not be touched",
+                originalBundlePolicies, policySignatures(originalBundle));
+
+        // (b) expired embargo run - the code path that wipes policies today
+        runItemUpdate(item, dublinCore(item, OPEN_ACCESS, pastEmbargoEnd));
+        item = context.reloadEntity(item);
+        original = context.reloadEntity(original);
+        extractedText = context.reloadEntity(extractedText);
+        thumbnail = context.reloadEntity(thumbnail);
+        originalBundle = context.reloadEntity(originalBundle);
+
+        assertTrue("sanity check: the expired embargo must publish the ORIGINAL bitstream"
+                        + describePolicies(original),
+                anonymousCanRead(original));
+        assertEquals("TEXT bitstream policies must survive an expired embargo untouched",
+                textPolicies, policySignatures(extractedText));
+        assertEquals("THUMBNAIL bitstream policies must survive an expired embargo untouched",
+                thumbnailPolicies, policySignatures(thumbnail));
+        assertEquals("the ORIGINAL bundle's own policies must survive an expired embargo untouched",
+                originalBundlePolicies, policySignatures(originalBundle));
+    }
+
+    /**
+     * Shared body of the two legacy {@code rpName} tests: a bitstream whose only {@code Anonymous}/{@code READ}
+     * policy was written by the previous implementation (legacy name, start date already passed, so the file is
+     * public) is put back under embargo.
+     */
+    private void assertLegacyPolicyIsAdoptedAndEnforced(String legacyName, String rightsAccess, String fileName)
+            throws Exception {
+        String futureEmbargoEnd = LocalDate.now().plusYears(1).toString();
+
+        Item item = createItem("Legacy Policy Thesis - " + legacyName);
+        Bitstream bitstream = createOriginalBitstream(item, fileName);
+        Integer legacyPolicyId =
+                replaceAnonymousReadPolicies(bitstream, startOfDayUtc(LocalDate.now().minusMonths(2)), legacyName)
+                        .getID();
+        bitstream = context.reloadEntity(bitstream);
+
+        ResourcePolicy legacy = onlyAnonymousReadPolicy(bitstream, "the legacy fixture");
+        assertEquals("fixture precondition: the legacy policy must be the only Anonymous READ policy",
+                legacyPolicyId, legacy.getID());
+        assertEquals("fixture precondition: the legacy policy keeps its old name", legacyName, legacy.getRpName());
+        assertTrue("fixture precondition: an expired legacy embargo leaves the file public"
+                        + describePolicies(bitstream),
+                anonymousCanRead(bitstream));
+
+        runItemUpdate(item, dublinCore(item, rightsAccess, futureEmbargoEnd));
+        item = context.reloadEntity(item);
+        bitstream = context.reloadEntity(bitstream);
+
+        List<ResourcePolicy> after = anonymousReadPolicies(bitstream);
+        assertEquals("the legacy policy must be adopted, so exactly one Anonymous READ policy may remain."
+                        + " Looking the survivor up by rpName instead of by (Anonymous, READ) leaves the expired"
+                        + " legacy policy next to the new one and the embargo never takes effect."
+                        + describePolicies(bitstream),
+                1, after.size());
+
+        ResourcePolicy survivor = after.get(0);
+        assertEquals("the legacy policy must be mutated in place, not deleted and recreated",
+                legacyPolicyId, survivor.getID());
+        assertEquals("the legacy policy name must be normalised", EMBARGO_POLICY_NAME, survivor.getRpName());
+        assertEquals("the normalised policy must be TYPE_CUSTOM",
+                ResourcePolicy.TYPE_CUSTOM, survivor.getRpType());
+        assertNotNull("the normalised policy must be dated", survivor.getStartDate());
+        assertEquals("embargo must start the day after dc.date.embargoend",
+                LocalDate.parse(futureEmbargoEnd).plusDays(1), toLocalDate(survivor.getStartDate()));
+        assertFalse("re-embargoing a legacy bitstream must actually block anonymous download"
+                        + describePolicies(bitstream),
+                anonymousCanRead(bitstream));
+    }
+
+    /**
+     * Asserts that every bitstream of the record ended in the same state - same policy count, same start date,
+     * same name, same type, same answer to "may an anonymous visitor download it".
+     */
+    private void assertUniformState(List<Bitstream> bitstreams, String what) throws Exception {
+        String expected = stateSignature(bitstreams.get(0));
+        for (Bitstream bitstream : bitstreams) {
+            assertEquals("all ORIGINAL bitstreams of a record must share the same state after " + what
+                            + " (bitstream " + bitstream.getID() + ")",
+                    expected, stateSignature(bitstream));
+        }
+    }
+
+    /**
+     * Answers the only question that matters: may a not-logged-in visitor download the file?
+     */
+    private boolean anonymousCanRead(Bitstream bitstream) throws Exception {
+        EPerson saved = context.getCurrentUser();
+        int popped = 0;
+        while (context.ignoreAuthorization()) {
+            context.restoreAuthSystemState();
+            popped++;
+        }
+        context.setCurrentUser(null);
+        try {
+            return authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ);
+        } finally {
+            context.setCurrentUser(saved);
+            for (int i = 0; i < popped; i++) {
+                context.turnOffAuthorisationSystem();
+            }
+        }
+    }
+
+    private List<ResourcePolicy> readPolicies(Bitstream bitstream) throws Exception {
+        return resourcePolicyService.find(context, bitstream, Constants.READ);
+    }
+
+    private List<ResourcePolicy> anonymousReadPolicies(Bitstream bitstream) throws Exception {
+        return readPolicies(bitstream).stream()
+                .filter(policy -> policy.getGroup() != null && anonymousGroup.equals(policy.getGroup()))
+                .collect(Collectors.toList());
+    }
+
+    private ResourcePolicy onlyAnonymousReadPolicy(Bitstream bitstream, String what) throws Exception {
+        List<ResourcePolicy> policies = anonymousReadPolicies(bitstream);
+        assertEquals("exactly one Anonymous READ policy must remain after " + what + describePolicies(bitstream),
+                1, policies.size());
+        return policies.get(0);
+    }
+
+    /**
+     * State of a bitstream with the policy identities left out, so two different bitstreams can be compared.
+     */
+    private String stateSignature(Bitstream bitstream) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        List<ResourcePolicy> policies = anonymousReadPolicies(bitstream);
+        sb.append("anonymousReadPolicies=").append(policies.size());
+        for (ResourcePolicy policy : policies) {
+            sb.append(" [start=")
+                    .append(policy.getStartDate() == null ? "null" : toLocalDate(policy.getStartDate()))
+                    .append(" end=").append(policy.getEndDate() == null ? "null" : toLocalDate(policy.getEndDate()))
+                    .append(" rpName=").append(policy.getRpName())
+                    .append(" rpType=").append(policy.getRpType())
+                    .append(" valid=").append(resourcePolicyService.isDateValid(policy))
+                    .append(']');
+        }
+        sb.append(" anonymousCanRead=").append(anonymousCanRead(bitstream));
+        return sb.toString();
+    }
+
+    /**
+     * Full identity of every policy of a DSpace object, {@code policy_id} included - used to prove that a set
+     * of policies was not touched at all.
+     */
+    private Set<String> policySignatures(DSpaceObject dso) throws Exception {
+        Set<String> signatures = new TreeSet<>();
+        for (ResourcePolicy policy : resourcePolicyService.find(context, dso)) {
+            signatures.add(String.format("id=%s action=%s group=%s eperson=%s start=%s end=%s rpName=%s rpType=%s",
+                    policy.getID(),
+                    Constants.actionText[policy.getAction()],
+                    policy.getGroup() == null ? "<none>" : policy.getGroup().getName(),
+                    policy.getEPerson() == null ? "<none>" : policy.getEPerson().getEmail(),
+                    policy.getStartDate(),
+                    policy.getEndDate(),
+                    policy.getRpName(),
+                    policy.getRpType()));
+        }
+        return signatures;
+    }
+
+    private String describePolicies(Bitstream bitstream) throws Exception {
+        StringBuilder sb = new StringBuilder(System.lineSeparator());
+        sb.append("      bitstream=").append(bitstream.getID()).append(System.lineSeparator())
+                .append("      anonymousCanRead=").append(anonymousCanRead(bitstream))
+                .append(System.lineSeparator());
+
+        List<ResourcePolicy> policies = readPolicies(bitstream);
+        if (policies.isEmpty()) {
+            sb.append("      <NO READ POLICIES AT ALL>").append(System.lineSeparator());
+        }
+        for (ResourcePolicy policy : policies) {
+            sb.append(String.format("      id=%s group=%s action=%s rpType=%s rpName=%s start=%s end=%s valid=%s",
+                            policy.getID(),
+                            policy.getGroup() == null ? "<none>" : policy.getGroup().getName(),
+                            Constants.actionText[policy.getAction()],
+                            policy.getRpType(),
+                            policy.getRpName(),
+                            policy.getStartDate(),
+                            policy.getEndDate(),
+                            resourcePolicyService.isDateValid(policy)))
+                    .append(System.lineSeparator());
+        }
+        return sb.toString();
+    }
+
+    private void ensureMetadataFieldExists(String element, String qualifier) throws Exception {
+        MetadataSchema dcSchema = metadataSchemaService.find(context, "dc");
+        MetadataField existingField = metadataFieldService.findByElement(context, dcSchema, element, qualifier);
+        if (existingField == null) {
+            MetadataFieldBuilder.createMetadataField(context, dcSchema, element, qualifier, null).build();
+        }
+    }
+
+    private Item createItem(String title) throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection)
+                .withTitle(title)
+                .build();
+        context.restoreAuthSystemState();
+        return item;
+    }
+
+    /**
+     * Creates a bitstream in the ORIGINAL bundle. The collection grants DEFAULT_BITSTREAM_READ to Anonymous,
+     * so the new bitstream carries exactly one policy - Anonymous / READ / TYPE_INHERITED / startDate null -
+     * which is byte for byte the state of a freshly imported SAF package at the customer.
+     */
+    private Bitstream createOriginalBitstream(Item item, String name) throws Exception {
+        context.turnOffAuthorisationSystem();
+        Bitstream bitstream = BitstreamBuilder.createBitstream(context, item,
+                        new ByteArrayInputStream(("content-" + name).getBytes(StandardCharsets.UTF_8)))
+                .withName(name)
+                .withMimeType("text/plain")
+                .build();
+        context.restoreAuthSystemState();
+        return bitstream;
+    }
+
+    private Bitstream createBitstreamInBundle(Item item, String name, String bundleName) throws Exception {
+        context.turnOffAuthorisationSystem();
+        Bitstream bitstream = BitstreamBuilder.createBitstream(context, item,
+                        new ByteArrayInputStream(("content-" + name).getBytes(StandardCharsets.UTF_8)), bundleName)
+                .withName(name)
+                .withMimeType("text/plain")
+                .build();
+        context.restoreAuthSystemState();
+        return bitstream;
+    }
+
+    private Bundle bundleOf(Item item, String bundleName) throws Exception {
+        List<Bundle> bundles = itemService.getBundles(item, bundleName);
+        assertFalse("fixture precondition: the item must have a " + bundleName + " bundle", bundles.isEmpty());
+        return bundles.get(0);
+    }
+
+    private void setPrimaryBitstream(Bundle bundle, Bitstream bitstream) throws Exception {
+        context.turnOffAuthorisationSystem();
+        bundle.setPrimaryBitstreamID(bitstream);
+        bundleService.update(context, bundle);
+        context.restoreAuthSystemState();
+    }
+
+    private void reloadAll(List<Bitstream> bitstreams) throws Exception {
+        for (int i = 0; i < bitstreams.size(); i++) {
+            bitstreams.set(i, context.reloadEntity(bitstreams.get(i)));
+        }
+    }
+
+    private ResourcePolicy addAnonymousReadPolicy(Bitstream bitstream, Date startDate, String name)
+            throws Exception {
+        context.turnOffAuthorisationSystem();
+        ResourcePolicyBuilder builder = ResourcePolicyBuilder.createResourcePolicy(context, null, anonymousGroup)
+                .withAction(Constants.READ)
+                .withDspaceObject(bitstream)
+                .withName(name);
+        if (startDate != null) {
+            builder.withStartDate(startDate);
+        }
+        ResourcePolicy policy = builder.build();
+        context.restoreAuthSystemState();
+        return policy;
+    }
+
+    /**
+     * Replaces every READ policy of the bitstream with a single Anonymous READ policy - the state a bitstream
+     * is left in by the previous implementation.
+     */
+    private ResourcePolicy replaceAnonymousReadPolicies(Bitstream bitstream, Date startDate, String name)
+            throws Exception {
+        context.turnOffAuthorisationSystem();
+        authorizeService.removePoliciesActionFilter(context, bitstream, Constants.READ);
+        context.restoreAuthSystemState();
+        return addAnonymousReadPolicy(bitstream, startDate, name);
+    }
+
+    private String singleMetadataValue(Item item, String element, String qualifier) {
+        List<MetadataValue> values = itemService.getMetadata(item, "dc", element, qualifier, Item.ANY);
+        return values.isEmpty() ? null : values.get(0).getValue();
+    }
+
+    private Date startOfDayUtc(LocalDate day) {
+        return Date.from(day.atStartOfDay(ZoneOffset.UTC).toInstant());
+    }
+
+    private LocalDate toLocalDate(Date date) {
+        if (date instanceof java.sql.Date) {
+            return ((java.sql.Date) date).toLocalDate();
+        }
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    /**
+     * Equivalent of {@code dsrun ... ItemUpdate -s <saf> -d dc.rights.access -d dc.date.embargoend
+     * -a dc.rights.access -a dc.date.embargoend}, i.e. an update whose target fields contain an embargo field,
+     * which is what makes {@code processArchive} call {@code syncEmbargoPolicies}.
+     */
+    private void runItemUpdate(Item item, String dublinCoreContent) throws Exception {
+        Path sourceRoot = Files.createDirectory(tempDir.resolve("saf-" + System.nanoTime()));
+        Files.createFile(sourceRoot.resolve(ItemUpdate.SUPPRESS_UNDO_FILENAME));
+
+        Path itemDir = Files.createDirectory(sourceRoot.resolve("item_000"));
+        Files.writeString(itemDir.resolve("dublin_core.xml"), dublinCoreContent, StandardCharsets.UTF_8);
+
+        ItemUpdate itemUpdate = new ItemUpdate();
+        DeleteMetadataAction deleteAction =
+                (DeleteMetadataAction) itemUpdate.actionMgr.getUpdateAction(DeleteMetadataAction.class);
+        deleteAction.addTargetFields(new String[] { "dc.rights.access", "dc.date.embargoend" });
+
+        AddMetadataAction addAction =
+                (AddMetadataAction) itemUpdate.actionMgr.getUpdateAction(AddMetadataAction.class);
+        addAction.addTargetFields(new String[] { "dc.rights.access", "dc.date.embargoend" });
+
+        context.turnOffAuthorisationSystem();
+        itemUpdate.processArchive(context, sourceRoot.toString(), null, null, true, false, true);
+        context.restoreAuthSystemState();
+
+        context.uncacheEntity(item);
+    }
+
+    /**
+     * Builds a SAF {@code dublin_core.xml}. A {@code null} value omits the element entirely (that is how an
+     * operator removes a field), an empty string is written as a single space because an empty XML element is
+     * dropped by the parser.
+     */
+    private String dublinCore(Item item, String rightsAccess, String embargoEndDate) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+                .append("<dublin_core schema=\"dc\">\n")
+                .append("    <dcvalue element=\"identifier\" qualifier=\"uri\">")
+                .append(ItemUpdate.HANDLE_PREFIX).append(item.getHandle())
+                .append("</dcvalue>\n");
+
+        if (rightsAccess != null) {
+            sb.append("    <dcvalue element=\"rights\" qualifier=\"access\">")
+                    .append(rightsAccess)
+                    .append("</dcvalue>\n");
+        }
+
+        if (embargoEndDate != null) {
+            sb.append("    <dcvalue element=\"date\" qualifier=\"embargoend\">")
+                    .append(embargoEndDate.isEmpty() ? " " : embargoEndDate)
+                    .append("</dcvalue>\n");
+        }
+
+        sb.append("</dublin_core>");
+        return sb.toString();
+    }
+}
