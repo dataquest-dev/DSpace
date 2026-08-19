@@ -2679,7 +2679,7 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         List<Bundle> originalBundles = item.getBundles("ORIGINAL");
         if (originalBundles.isEmpty()) {
             // Known limitation: a contents file can route its files into another bundle with the
-            // "bundle:<name>" marker, and those bitstreams are outside the ORIGINAL scope of both SAF tools.
+            // "bundle:<name>" marker; only the ORIGINAL bundle is embargoed at import time.
             logInfo("Embargo: No ORIGINAL bundles found, no embargo applied");
             return;
         }

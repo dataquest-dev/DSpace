@@ -116,9 +116,14 @@ public class ItemUpdate {
     private static final String OPEN_ACCESS = "openAccess";
     private static final String EMBARGOED_ACCESS = "embargoedAccess";
 
-    /** The only supported way of changing access to a bitstream this tool refuses to touch. */
+    /** The only supported way of changing access to an ORIGINAL bitstream this tool refuses to touch. */
     private static final String BULK_ACCESS_CONTROL_HINT =
         "Use the 'dspace bulk-access-control' script to grant or restore access to it.";
+
+    /** Derived bundles are out of reach of bulk-access-control, which walks the ORIGINAL bundle only. */
+    private static final String DERIVATIVE_ACCESS_HINT =
+        "Change its access in the administrative UI, or let 'dspace filter-media' recreate it from the"
+            + " source file.";
 
     static {
         filterAliases.put("ORIGINAL", "org.dspace.app.itemupdate.OriginalBitstreamFilter");
@@ -695,7 +700,7 @@ public class ItemUpdate {
     }
 
     /**
-     * Bring the {@code Anonymous}/{@code READ} resource policies of the ORIGINAL bitstreams in line with the
+     * Bring the {@code Anonymous}/{@code READ} resource policies of the item bitstreams in line with the
      * embargo metadata of the item ({@code dc.rights.access}, {@code dc.date.embargoend}). The metadata is
      * validated before any policy is touched, and the surviving policy is re-dated instead of being replaced,
      * so that a failure cannot leave a bitstream without any policy.
@@ -787,20 +792,21 @@ public class ItemUpdate {
             // An expired embargo is a publication, not a deletion: the start date that has already passed
             // makes the policy effective immediately.
             pr("Embargo of item " + itemLabel(item) + " already expired on " + embargoEndDay
-                   + ", its ORIGINAL bitstreams are public since " + accessStartDay + ".");
+                   + ", its bitstreams are public since " + accessStartDay + ".");
         }
 
         applyEmbargoToItemBitstreams(context, item, accessStartDate);
     }
 
     /**
-     * Write the target embargo state onto the {@code Anonymous}/{@code READ} policy of every ORIGINAL bitstream
-     * of the item, leaving exactly one such policy per bitstream, as a second undated one would defeat the
-     * embargo. Where there is no such policy none is created: the bitstream was not public, and creating one
-     * would widen access instead of re-dating it.
+     * Write the target embargo state onto the {@code Anonymous}/{@code READ} policy of every bitstream in
+     * {@link SafEmbargoConstants#EMBARGOED_BUNDLE_NAMES}, leaving exactly one such policy per bitstream, as a
+     * second undated one would defeat the embargo. Where there is no such policy none is created: the bitstream
+     * was not public, and creating one would widen access instead of re-dating it. The embargo belongs to the
+     * item, so the derived bundles get the same start date as the file they were derived from.
      *
      * @param context   DSpace context
-     * @param item      item whose ORIGINAL bitstreams are synchronised
+     * @param item      item whose bitstreams are synchronised
      * @param startDate day the files become publicly readable; a day in the past takes effect immediately
      * @throws SQLException       if a database error occurs
      * @throws AuthorizeException if the policy update is not permitted
@@ -815,56 +821,97 @@ public class ItemUpdate {
             return;
         }
 
-        for (Bundle bundle : item.getBundles(Constants.CONTENT_BUNDLE_NAME)) {
-            for (Bitstream bitstream : bundle.getBitstreams()) {
-                // Located by (group, action) rather than by rpName: policies written under earlier names
-                // have to be adopted and normalised instead of being left behind next to a new one.
-                List<ResourcePolicy> anonymousReadPolicies = new ArrayList<>();
-                for (ResourcePolicy policy : resourcePolicyService.find(context, bitstream, Constants.READ)) {
-                    if (anonymousGroup.equals(policy.getGroup())) {
-                        anonymousReadPolicies.add(policy);
-                    }
-                }
-
-                if (anonymousReadPolicies.isEmpty()) {
-                    prErr("Bitstream '" + bitstream.getName() + "' (" + bitstream.getID() + ") of item "
-                              + itemLabel(item) + " has no " + Group.ANONYMOUS + " READ policy, so there is"
-                              + " nothing to re-date and its embargo could not be synchronised. No policy is"
-                              + " created: that would grant access nobody ever granted. "
-                              + BULK_ACCESS_CONTROL_HINT);
-                    embargoSyncFailures++;
-                    continue;
-                }
-
-                // A policy with an end date is a lease, not an embargo: re-dating it would either close the
-                // file for good or drop the end date, and either way decide access for the operator.
-                ResourcePolicy leasePolicy = firstPolicyWithEndDate(anonymousReadPolicies);
-                if (leasePolicy != null) {
-                    prErr("Bitstream '" + bitstream.getName() + "' (" + bitstream.getID() + ") of item "
-                              + itemLabel(item) + " has an " + Group.ANONYMOUS + " READ policy with an end"
-                              + " date (policy #" + leasePolicy.getID() + ", rpName='"
-                              + leasePolicy.getRpName() + "'), which this tool does not manage, so its"
-                              + " embargo could not be synchronised and the bitstream is left untouched. "
-                              + BULK_ACCESS_CONTROL_HINT);
-                    embargoSyncFailures++;
-                    continue;
-                }
-
-                ResourcePolicy survivor = selectSurvivorPolicy(anonymousReadPolicies);
-                survivor.setStartDate(startDate);
-                survivor.setRpType(ResourcePolicy.TYPE_CUSTOM);
-                survivor.setRpName(SafEmbargoConstants.EMBARGO_POLICY_NAME);
-                resourcePolicyService.update(context, survivor);
-
-                // The duplicates go only once the survivor is stored. Reference identity rather than
-                // equals(): ResourcePolicy.equals compares values, which the lines above just changed.
-                for (ResourcePolicy policy : anonymousReadPolicies) {
-                    if (policy != survivor) {
-                        resourcePolicyService.delete(context, policy);
-                    }
+        for (String bundleName : SafEmbargoConstants.EMBARGOED_BUNDLE_NAMES) {
+            for (Bundle bundle : item.getBundles(bundleName)) {
+                for (Bitstream bitstream : bundle.getBitstreams()) {
+                    applyEmbargoToBitstream(context, item, bundleName, bitstream, anonymousGroup, startDate);
                 }
             }
         }
+    }
+
+    /**
+     * Synchronise the {@code Anonymous}/{@code READ} policy of a single bitstream, reporting the bundle it
+     * belongs to so that the operator sees which file of the item a problem is about.
+     *
+     * @param context        DSpace context
+     * @param item           item the bitstream belongs to
+     * @param bundleName     bundle the bitstream lives in
+     * @param bitstream      bitstream to synchronise
+     * @param anonymousGroup the {@code Anonymous} group
+     * @param startDate      day the file becomes publicly readable
+     * @throws SQLException       if a database error occurs
+     * @throws AuthorizeException if the policy update is not permitted
+     */
+    protected void applyEmbargoToBitstream(Context context, Item item, String bundleName, Bitstream bitstream,
+            Group anonymousGroup, Date startDate) throws SQLException, AuthorizeException {
+        // Located by (group, action) rather than by rpName: policies written under earlier names have to be
+        // adopted and normalised instead of being left behind next to a new one.
+        List<ResourcePolicy> anonymousReadPolicies = new ArrayList<>();
+        for (ResourcePolicy policy : resourcePolicyService.find(context, bitstream, Constants.READ)) {
+            if (anonymousGroup.equals(policy.getGroup())) {
+                anonymousReadPolicies.add(policy);
+            }
+        }
+
+        if (anonymousReadPolicies.isEmpty()) {
+            prErr("Bitstream " + bitstreamLabel(bundleName, bitstream) + " of item " + itemLabel(item)
+                      + " has no " + Group.ANONYMOUS + " READ policy, so there is nothing to re-date and its"
+                      + " embargo could not be synchronised. No policy is created: that would grant access"
+                      + " nobody ever granted. " + accessChangeHint(bundleName));
+            embargoSyncFailures++;
+            return;
+        }
+
+        // A policy with an end date is a lease, not an embargo: re-dating it would either close the file for
+        // good or drop the end date, and either way decide access for the operator.
+        ResourcePolicy leasePolicy = firstPolicyWithEndDate(anonymousReadPolicies);
+        if (leasePolicy != null) {
+            prErr("Bitstream " + bitstreamLabel(bundleName, bitstream) + " of item " + itemLabel(item)
+                      + " has an " + Group.ANONYMOUS + " READ policy with an end date (policy #"
+                      + leasePolicy.getID() + ", rpName='" + leasePolicy.getRpName() + "'), which this tool"
+                      + " does not manage, so its embargo could not be synchronised and the bitstream is left"
+                      + " untouched. " + accessChangeHint(bundleName));
+            embargoSyncFailures++;
+            return;
+        }
+
+        ResourcePolicy survivor = selectSurvivorPolicy(anonymousReadPolicies);
+        survivor.setStartDate(startDate);
+        survivor.setRpType(ResourcePolicy.TYPE_CUSTOM);
+        survivor.setRpName(SafEmbargoConstants.EMBARGO_POLICY_NAME);
+        resourcePolicyService.update(context, survivor);
+
+        // The duplicates go only once the survivor is stored. Reference identity rather than equals():
+        // ResourcePolicy.equals compares values, which the lines above just changed.
+        for (ResourcePolicy policy : anonymousReadPolicies) {
+            if (policy != survivor) {
+                resourcePolicyService.delete(context, policy);
+            }
+        }
+    }
+
+    /**
+     * Bundle, name and id of a bitstream, so that a report identifies exactly one file of the item.
+     *
+     * @param bundleName bundle the bitstream lives in
+     * @param bitstream  bitstream to describe
+     * @return label of the form {@code BUNDLE/name (uuid)}
+     */
+    protected String bitstreamLabel(String bundleName, Bitstream bitstream) {
+        return bundleName + "/'" + bitstream.getName() + "' (" + bitstream.getID() + ")";
+    }
+
+    /**
+     * How to change access to a bitstream this tool refuses to touch. {@code bulk-access-control} walks the
+     * ORIGINAL bundle only, so it cannot be recommended for a derived one.
+     *
+     * @param bundleName bundle the bitstream lives in
+     * @return the hint matching the bundle
+     */
+    protected String accessChangeHint(String bundleName) {
+        return Constants.CONTENT_BUNDLE_NAME.equals(bundleName) ? BULK_ACCESS_CONTROL_HINT
+            : DERIVATIVE_ACCESS_HINT;
     }
 
     /**

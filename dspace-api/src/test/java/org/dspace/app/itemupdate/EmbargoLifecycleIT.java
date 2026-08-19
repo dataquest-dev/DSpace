@@ -69,7 +69,7 @@ import org.junit.Test;
  * Life cycle of an embargo driven by {@link ItemUpdate}: setting it, re-running the same SAF archive, and
  * ending it with a {@code dc.date.embargoend} in the past, including on policies written by earlier versions.
  * Covers the invariants that one {@code Anonymous}/{@code READ} policy survives every run, that it is mutated
- * rather than recreated, and that bitstreams outside the ORIGINAL bundle are left alone.
+ * rather than recreated, and that the bundles derived from an embargoed file follow it.
  */
 public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
@@ -525,64 +525,74 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Verifies that only ORIGINAL bitstreams are synchronised. Derivatives are produced and re-protected by
-     * filter-media, and the bundle objects carry policies of their own.
+     * Verifies that the derived bundles follow the embargo of the file they were derived from: the thumbnail
+     * and the extracted full text of an embargoed file must not be readable, and both re-open with it. The
+     * bundle objects themselves stay out of scope, only their bitstreams are synchronised.
      */
     @Test
-    public void derivativeBundlesAreNotTouchedDirectly() throws Exception {
-        String futureEmbargoEnd = LocalDate.now().plusMonths(2).toString();
-        String pastEmbargoEnd = LocalDate.now().minusMonths(2).toString();
+    public void derivativeBundlesFollowTheEmbargo() throws Exception {
+        LocalDate futureEmbargoEnd = LocalDate.now().plusMonths(2);
+        LocalDate pastEmbargoEnd = LocalDate.now().minusMonths(2);
 
         Item item = createItem("Derivatives Thesis");
         Bitstream original = createOriginalBitstream(item, "thesis.pdf");
         Bitstream extractedText = createBitstreamInBundle(item, "thesis.pdf.txt", TEXT_BUNDLE);
         Bitstream thumbnail = createBitstreamInBundle(item, "thesis.pdf.jpg", THUMBNAIL_BUNDLE);
+        List<Bitstream> files = new ArrayList<>(List.of(original, extractedText, thumbnail));
 
         Bundle originalBundle = bundleOf(item, Constants.CONTENT_BUNDLE_NAME);
-        Set<String> textPolicies = policySignatures(extractedText);
-        Set<String> thumbnailPolicies = policySignatures(thumbnail);
         Set<String> originalBundlePolicies = policySignatures(originalBundle);
-        assertFalse("fixture precondition: the TEXT bitstream must start with policies", textPolicies.isEmpty());
-        assertFalse("fixture precondition: the THUMBNAIL bitstream must start with policies",
-                thumbnailPolicies.isEmpty());
         assertFalse("fixture precondition: the ORIGINAL bundle must start with policies",
                 originalBundlePolicies.isEmpty());
+        List<Integer> policyIdsBefore = new ArrayList<>();
+        for (Bitstream file : files) {
+            policyIdsBefore.add(onlyAnonymousReadPolicy(file, "the fixture setup").getID());
+        }
 
         // embargo run
-        assertRunSucceeded("embargoing the ORIGINAL bitstream",
-                runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
+        assertRunSucceeded("embargoing the item",
+                runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd.toString())));
         item = context.reloadEntity(item);
-        original = context.reloadEntity(original);
-        extractedText = context.reloadEntity(extractedText);
-        thumbnail = context.reloadEntity(thumbnail);
+        reloadAll(files);
         originalBundle = context.reloadEntity(originalBundle);
 
-        ResourcePolicy embargoed = onlyAnonymousReadPolicy(original, "the embargo run");
-        assertEquals("sanity check: this run must have embargoed the ORIGINAL bitstream",
-                EMBARGO_POLICY_NAME, embargoed.getRpName());
-        assertEquals("TEXT bitstream policies belong to filter-media and must not be rewritten here",
-                textPolicies, policySignatures(extractedText));
-        assertEquals("THUMBNAIL bitstream policies belong to filter-media and must not be rewritten here",
-                thumbnailPolicies, policySignatures(thumbnail));
+        for (int i = 0; i < files.size(); i++) {
+            Bitstream file = files.get(i);
+            ResourcePolicy policy = onlyAnonymousReadPolicy(file, "the embargo run");
+            assertEquals("the Anonymous READ policy was recreated instead of being re-dated"
+                            + describePolicies(file),
+                    policyIdsBefore.get(i), policy.getID());
+            assertEquals("every bundle derived from the embargoed file carries the item embargo"
+                            + describePolicies(file),
+                    EMBARGO_POLICY_NAME, policy.getRpName());
+            assertEquals("wrong embargo start date" + describePolicies(file),
+                    futureEmbargoEnd.plusDays(1), toLocalDate(policy.getStartDate()));
+            assertFalse("a file of an item under embargo must not be publicly readable"
+                            + describePolicies(file),
+                    anonymousCanRead(file));
+        }
         assertEquals("the ORIGINAL bundle's own policies must not be touched",
                 originalBundlePolicies, policySignatures(originalBundle));
 
         // expired embargo run
         assertRunSucceeded("letting the embargo expire",
-                runItemUpdate(item, dublinCore(item, OPEN_ACCESS, pastEmbargoEnd)));
+                runItemUpdate(item, dublinCore(item, OPEN_ACCESS, pastEmbargoEnd.toString())));
         item = context.reloadEntity(item);
-        original = context.reloadEntity(original);
-        extractedText = context.reloadEntity(extractedText);
-        thumbnail = context.reloadEntity(thumbnail);
+        reloadAll(files);
         originalBundle = context.reloadEntity(originalBundle);
 
-        assertTrue("sanity check: the expired embargo must publish the ORIGINAL bitstream"
-                        + describePolicies(original),
-                anonymousCanRead(original));
-        assertEquals("TEXT bitstream policies must survive an expired embargo untouched",
-                textPolicies, policySignatures(extractedText));
-        assertEquals("THUMBNAIL bitstream policies must survive an expired embargo untouched",
-                thumbnailPolicies, policySignatures(thumbnail));
+        for (int i = 0; i < files.size(); i++) {
+            Bitstream file = files.get(i);
+            ResourcePolicy policy = onlyAnonymousReadPolicy(file, "the expired embargo run");
+            assertEquals("the Anonymous READ policy was recreated instead of being re-dated"
+                            + describePolicies(file),
+                    policyIdsBefore.get(i), policy.getID());
+            assertEquals("wrong start date after an expired embargo" + describePolicies(file),
+                    pastEmbargoEnd.plusDays(1), toLocalDate(policy.getStartDate()));
+            assertTrue("an expired embargo publishes the file together with everything derived from it"
+                            + describePolicies(file),
+                    anonymousCanRead(file));
+        }
         assertEquals("the ORIGINAL bundle's own policies must survive an expired embargo untouched",
                 originalBundlePolicies, policySignatures(originalBundle));
     }
