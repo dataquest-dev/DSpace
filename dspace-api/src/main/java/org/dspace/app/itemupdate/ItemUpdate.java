@@ -504,11 +504,14 @@ public class ItemUpdate {
                             this.syncEmbargoPolicies(context, item);
                         } catch (Exception embargoFailure) {
                             // The catch below only prints the exception, and a printed exception is an exit
-                            // code of 0. An embargo synchronisation that died half way has already re-dated
-                            // the surviving Anonymous READ policy of a bitstream - the duplicate deletion
-                            // that follows it is the last thing to run - and context.complete() commits that
-                            // state. Counting the failure is what stops a published file from being reported
-                            // as a successful run.
+                            // code of 0. A database error cannot leave half of the synchronisation behind:
+                            // Hibernate marks the transaction rollback-only and HibernateDBConnection.commit()
+                            // then commits nothing at all, so context.complete() writes the whole batch or
+                            // none of it. What does get committed is a non-database failure raised between the
+                            // re-dating of the surviving Anonymous READ policy and the deletion of the
+                            // duplicates that follow it. Counting the failure is what stops such an item from
+                            // being reported as a successful run; the synchronisation is idempotent, so
+                            // re-running the same SAF package is the repair.
                             embargoSyncFailures++;
                             throw embargoFailure;
                         }
@@ -804,6 +807,12 @@ public class ItemUpdate {
 
         // dc.date.embargoend is the inclusive last day of the embargo, so access starts the day after, at
         // midnight UTC. Calendar.getInstance() would use the server time zone and shift that boundary.
+        // ResourcePolicy.startDate is mapped @Temporal(DATE), so only the calendar day below survives the
+        // database. Midnight UTC is what core DSpace writes for the same day (DCDate.toDate() parses
+        // date-only values in UTC, the REST and submission layer uses TimeHelpers.toMidnightUTC), so every
+        // embargo path of one repository stores the same day. Upstream limitation, deliberately not patched
+        // here: on a JVM whose zone is behind UTC the driver stores the previous day - equally true of all
+        // those paths, and hibernate.jdbc.time_zone has no effect on @Temporal(DATE).
         LocalDate accessStartDay = embargoEndDay.plusDays(1);
         Date accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
 
@@ -824,7 +833,10 @@ public class ItemUpdate {
      *
      * <p>Exactly one such policy is left behind per bitstream: a second, undated one would silently defeat the
      * embargo. A policy is never created - a bitstream without an {@code Anonymous}/{@code READ} policy was not
-     * public, and inventing one would widen access instead of re-dating it.</p>
+     * public, and inventing one would widen access instead of re-dating it. A bitstream whose
+     * {@code Anonymous}/{@code READ} access expires by itself (a policy with an end date, as written by the
+     * {@code lease} access condition) is skipped: this tool has no instruction for that end date and both
+     * keeping and dropping it would decide access on the operator's behalf.</p>
      *
      * @param context   DSpace context
      * @param item      item whose ORIGINAL bitstreams are synchronised
@@ -865,6 +877,25 @@ public class ItemUpdate {
                     continue;
                 }
 
+                // A policy that carries an end date is a lease (public now, closed again on that day), not
+                // an embargo, and this tool is given no instruction about end dates. Re-dating one would
+                // either close the file for good (an end date before the new start date) or, once the other
+                // Anonymous READ policies are deleted below, drop the end date that was to close it again
+                // and publish the file for ever. Both are the operator's decision, so the bitstream is left
+                // exactly as it is. Every Anonymous READ policy is examined and not only the survivor: the
+                // ones that are not selected are the ones the deletion loop removes.
+                ResourcePolicy leasePolicy = firstPolicyWithEndDate(anonymousReadPolicies);
+                if (leasePolicy != null) {
+                    prErr("Bitstream '" + bitstream.getName() + "' (" + bitstream.getID() + ") of item "
+                              + itemLabel(item) + " has an " + Group.ANONYMOUS + " READ policy with an end"
+                              + " date (policy #" + leasePolicy.getID() + ", rpName='"
+                              + leasePolicy.getRpName() + "'), which this tool does not manage, so its"
+                              + " embargo could not be synchronised and the bitstream is left untouched. "
+                              + BULK_ACCESS_CONTROL_HINT);
+                    embargoSyncFailures++;
+                    continue;
+                }
+
                 ResourcePolicy survivor = selectSurvivorPolicy(anonymousReadPolicies);
                 survivor.setStartDate(startDate);
                 survivor.setRpType(ResourcePolicy.TYPE_CUSTOM);
@@ -880,6 +911,21 @@ public class ItemUpdate {
                 }
             }
         }
+    }
+
+    /**
+     * First policy of the list that expires by itself.
+     *
+     * @param anonymousReadPolicies the Anonymous READ policies of a single bitstream
+     * @return a policy with a non-null end date, or {@code null} when none of them has one
+     */
+    protected ResourcePolicy firstPolicyWithEndDate(List<ResourcePolicy> anonymousReadPolicies) {
+        for (ResourcePolicy policy : anonymousReadPolicies) {
+            if (policy.getEndDate() != null) {
+                return policy;
+            }
+        }
+        return null;
     }
 
     /**

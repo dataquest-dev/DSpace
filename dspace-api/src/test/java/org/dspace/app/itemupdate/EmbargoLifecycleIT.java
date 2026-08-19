@@ -71,9 +71,14 @@ import org.junit.Test;
  *
  * <p>Where {@code EmbargoPastDateIT} reproduces the single incident reported by the customer, this class
  * covers the whole life cycle of an embargo as it is really operated: setting it, re-running the very same
- * SAF archive, lifting it again by dropping {@code dc.date.embargoend}, and doing all of that on bitstreams
- * whose resource policies were written by the previous (PR #1313 / #1315) implementation and therefore still
- * carry the legacy {@code rpName} values {@code "Standard Embargo"} and {@code "Special Case Embargo"}.</p>
+ * SAF archive, ending it with a {@code dc.date.embargoend} that lies in the past, and doing all of that on
+ * bitstreams whose resource policies were written by the previous (PR #1313 / #1315) implementation and
+ * therefore still carry the legacy {@code rpName} values {@code "Standard Embargo"} and
+ * {@code "Special Case Embargo"}.</p>
+ *
+ * <p>The absence of {@code dc.date.embargoend} is the opposite of an instruction to open the files, and
+ * {@code removingEmbargoMetadataLeavesPoliciesUntouched()} is what pins that down: a SAF package that simply
+ * does not carry the field leaves every resource policy exactly as it was.</p>
  *
  * <p>The binding rules exercised here are:</p>
  * <ul>

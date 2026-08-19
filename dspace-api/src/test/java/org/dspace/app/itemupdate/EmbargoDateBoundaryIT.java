@@ -11,6 +11,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -345,38 +346,72 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The policy start date must be built as {@code Date.from(day.atStartOfDay(ZoneOffset.UTC).toInstant())},
-     * i.e. midnight UTC of a calendar day, and never midnight in the JVM time zone as produced by
-     * {@code Calendar.getInstance()} or {@code java.sql.Date.valueOf(LocalDate)}.
+     * The only thing {@code resourcepolicy.start_date} can hold is a calendar day - it is a DATE column
+     * behind a {@code @Temporal(DATE)} field - and that stored day is what decides access from the next
+     * request on: {@code ResourcePolicyServiceImpl.isDateValid} compares "now" against the value that came
+     * back from the database, never against the instant this tool computed.
      *
-     * <p>The harness pins the JVM to Europe/Dublin, which is UTC+1 during Irish Summer Time, so the two
-     * candidates differ by exactly one hour. The embargo end date is therefore anchored to the next 1 July -
-     * still computed from today, so fully dynamic - which is guaranteed to fall inside Irish Summer Time and
-     * makes the difference observable all year round.</p>
+     * <p>So the assertion that matters is a round trip. Synchronise, commit, drop the Hibernate session, read
+     * the policy back: the stored day has to be {@code dc.date.embargoend + 1}, the policy has to keep the
+     * file closed while that day is still ahead, and it has to be date-valid - and the file readable - once
+     * that day has arrived.</p>
      *
-     * <p>{@code syncEmbargoPolicies} is invoked directly rather than through {@code processArchive} on purpose:
-     * {@code processArchive} ends with {@code context.uncacheEntity(item)}, which evicts the bitstream policies,
-     * so they would come back from the day-granular {@code @Temporal(DATE)} column as a {@code java.sql.Date}
-     * and the exact instant could no longer be inspected.</p>
+     * <p>The in-session instant is asserted too, before the commit: it must be midnight UTC and never
+     * midnight in the JVM time zone as produced by {@code Calendar.getInstance()} or
+     * {@code java.sql.Date.valueOf(LocalDate)}. Midnight UTC is what core DSpace writes for the same day
+     * ({@code DCDate.toDate()} for the embargo lifter, {@code TimeHelpers.toMidnightUTC} for REST and the
+     * submission UI), so every embargo path of one repository stores the same day. The closed leg anchors its
+     * end date to the next 1 July - still computed from today, so fully dynamic - which always falls inside
+     * Irish Summer Time (UTC+1), the zone the harness pins, so the two candidate instants are one hour apart
+     * all year round.</p>
+     *
+     * <p>Known blind spot, for whoever extends this: the harness pins H2 to {@code TIME ZONE=UTC}
+     * ({@code local.cfg}), so no test in this class can detect that a JVM zone <em>behind</em> UTC makes
+     * PostgreSQL store the previous day. That is a property of {@code @Temporal(DATE)} shared by every DSpace
+     * embargo path - see the comment next to the start date computation in {@link ItemUpdate} - and guarding
+     * it needs a PostgreSQL backed test.</p>
      */
     @Test
-    public void startDateIsUtcMidnightNotServerZone() throws Exception {
-        LocalDate embargoEnd = nextIrishSummerTimeDay();
-        LocalDate expectedStartDay = embargoEnd.plusDays(1);
+    public void startDateSurvivesTheDatabaseAsTheExpectedCalendarDay() throws Exception {
+        LocalDate futureEnd = nextIrishSummerTimeDay();
+        LocalDate futureStartDay = futureEnd.plusDays(1);
+        assertNotEquals("fixture precondition: the JVM time zone (" + ZoneId.systemDefault() + ") must differ"
+                        + " from UTC on " + futureStartDay + ", otherwise this test cannot tell midnight UTC"
+                        + " apart from midnight in the server zone. The harness pins Europe/Dublin in"
+                        + " AbstractDSpaceIntegrationTest.",
+                Date.from(futureStartDay.atStartOfDay(ZoneOffset.UTC).toInstant()),
+                Date.from(futureStartDay.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
+        // (a) the stored day is still ahead, so the file has to stay closed after the reload
+        assertStoredStartDaySurvivesRoundTrip(futureEnd, false);
+
+        // (b) the embargo ended yesterday, so the stored day is today and the policy has to be in force
+        assertStoredStartDaySurvivesRoundTrip(utcToday().minusDays(1), true);
+    }
+
+    /**
+     * One leg of {@link #startDateSurvivesTheDatabaseAsTheExpectedCalendarDay()}.
+     *
+     * <p>{@code syncEmbargoPolicies} is invoked directly rather than through {@code processArchive} because
+     * the in-session instant is asserted before the commit, and {@code processArchive} ends with
+     * {@code context.uncacheEntity(item)}.</p>
+     *
+     * @param embargoEnd       value of {@code dc.date.embargoend}
+     * @param expectedReadable whether an anonymous visitor must be able to download the file once the policy
+     *                         has been read back from the database
+     */
+    private void assertStoredStartDaySurvivesRoundTrip(LocalDate embargoEnd, boolean expectedReadable)
+            throws Exception {
+        LocalDate expectedStartDay = embargoEnd.plusDays(1);
+        String leg = "dc.date.embargoend=" + embargoEnd;
         Date expectedUtcMidnight = Date.from(expectedStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
         Date serverZoneMidnight = Date.from(expectedStartDay.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        assertNotEquals("fixture precondition: the JVM time zone (" + ZoneId.systemDefault() + ") must differ from"
-                        + " UTC on " + expectedStartDay + ", otherwise this test cannot tell midnight UTC apart"
-                        + " from midnight in the server zone. The harness pins Europe/Dublin in"
-                        + " AbstractDSpaceIntegrationTest.",
-                expectedUtcMidnight, serverZoneMidnight);
 
-        Item item = createItem("UTC midnight embargo",
+        Item item = createItem("Round trip embargo " + embargoEnd,
                 "rights", "access", "embargoedAccess",
                 "date", "embargoend", embargoEnd.toString());
-        Bitstream bitstream = createOriginalBitstream(item, "utc-midnight.pdf");
-        dump("STEP A - fresh SAF import, before any itemupdate", bitstream);
+        Bitstream bitstream = createOriginalBitstream(item, "round-trip-" + embargoEnd + ".pdf");
+        dump("STEP A [" + leg + "] - fresh SAF import, before any itemupdate", bitstream);
         assertFreshImportBaseline(bitstream);
         Integer importedPolicyId = anonymousReadPolicies(bitstream).get(0).getID();
 
@@ -386,34 +421,73 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
         } finally {
             context.restoreAuthSystemState();
         }
-        dump("STEP B - after syncEmbargoPolicies with dc.date.embargoend=" + embargoEnd, bitstream);
+        dump("STEP B [" + leg + "] - after syncEmbargoPolicies, still inside the Hibernate session", bitstream);
 
-        ResourcePolicy policy = assertExactlyOneAnonymousReadPolicy("dc.date.embargoend=" + embargoEnd, bitstream);
-        assertNotNull("resource policy #" + policy.getID() + " must carry a start date." + diagnostics,
-                policy.getStartDate());
-        assertEquals("the inherited Anonymous/READ policy must be MUTATED in place, not deleted and recreated:"
-                        + " a policy may never be removed before its replacement is stored, otherwise a failure"
-                        + " between the two leaves the file with zero policies (HTTP 401)." + diagnostics,
-                importedPolicyId, policy.getID());
-
-        long actualMillis = policy.getStartDate().getTime();
-        assertEquals("dc.date.embargoend=" + embargoEnd + " must yield a start date of exactly midnight UTC on "
-                        + expectedStartDay + " (epochMillis=" + expectedUtcMidnight.getTime() + "). Midnight in"
-                        + " the server time zone " + ZoneId.systemDefault() + " would be epochMillis="
+        ResourcePolicy inSession = assertExactlyOneAnonymousReadPolicy(leg, bitstream);
+        assertEquals("[" + leg + "] the inherited Anonymous/READ policy must be MUTATED in place, not deleted"
+                        + " and recreated: a policy may never be removed before its replacement is stored,"
+                        + " otherwise a failure between the two leaves the file with zero policies (HTTP 401)."
+                        + diagnostics,
+                importedPolicyId, inSession.getID());
+        assertNotNull("[" + leg + "] resource policy #" + inSession.getID() + " must carry a start date."
+                        + diagnostics,
+                inSession.getStartDate());
+        assertEquals(leg + " must yield a start date of exactly midnight UTC on " + expectedStartDay
+                        + " (epochMillis=" + expectedUtcMidnight.getTime() + "). Midnight in the server time"
+                        + " zone " + ZoneId.systemDefault() + " would be epochMillis="
                         + serverZoneMidnight.getTime() + ", which is what Calendar.getInstance() or"
-                        + " java.sql.Date.valueOf(LocalDate) produce. Actual epochMillis=" + actualMillis + " ("
-                        + new Date(actualMillis).toInstant().atZone(ZoneOffset.UTC) + ")." + diagnostics,
-                expectedUtcMidnight.getTime(), actualMillis);
+                        + " java.sql.Date.valueOf(LocalDate) produce. Actual epochMillis="
+                        + inSession.getStartDate().getTime() + " ("
+                        + inSession.getStartDate().toInstant().atZone(ZoneOffset.UTC) + ")." + diagnostics,
+                expectedUtcMidnight.getTime(), inSession.getStartDate().getTime());
 
-        assertFalse("dc.date.embargoend=" + embargoEnd + " lies in the future, so an anonymous visitor must NOT"
-                        + " be able to download the ORIGINAL bitstream." + diagnostics,
-                anonymousCanRead(bitstream));
-        assertEquals("resource policy #" + policy.getID() + " must be normalised to rpType="
-                        + ResourcePolicy.TYPE_CUSTOM + "." + diagnostics,
-                ResourcePolicy.TYPE_CUSTOM, policy.getRpType());
-        assertEquals("resource policy #" + policy.getID() + " must be normalised to rpName=\""
-                        + EMBARGO_POLICY_NAME + "\"." + diagnostics,
-                EMBARGO_POLICY_NAME, policy.getRpName());
+        // Leave the session: commit what the synchronisation wrote and evict every cached entity, so the
+        // start date has to come back out of the DATE column instead of out of Hibernate's memory. That is
+        // the value the next request authorises against.
+        context.commit();
+        context.uncacheEntities();
+        // Everything the test itself holds is detached by now, the fixture fields of the class included, and
+        // the next leg creates its item in this very collection.
+        collection = context.reloadEntity(collection);
+        anonymousGroup = context.reloadEntity(anonymousGroup);
+        bitstream = context.reloadEntity(bitstream);
+        dump("STEP C [" + leg + "] - after commit + uncacheEntities, read back from the database", bitstream);
+
+        ResourcePolicy stored = assertExactlyOneAnonymousReadPolicy(leg + ", read back from the database",
+                bitstream);
+        assertNotSame("[" + leg + "] fixture precondition: the policy has to be read back from the database,"
+                        + " but the identical instance came out of the Hibernate session, so this leg would"
+                        + " prove nothing about the stored value." + diagnostics,
+                inSession, stored);
+        assertEquals("[" + leg + "] the policy id must survive the round trip." + diagnostics,
+                importedPolicyId, stored.getID());
+        assertEquals("[" + leg + "] resourcepolicy.start_date is a DATE column, so the calendar day is the"
+                        + " only part of the start date that survives - and it is the part that decides"
+                        + " access. Expected " + expectedStartDay + " (dc.date.embargoend + 1 day), stored "
+                        + stored.getStartDate() + "." + diagnostics,
+                expectedStartDay, toLocalDate(stored.getStartDate()));
+        assertNull("[" + leg + "] this tool must never write an end date: a policy that expires by itself"
+                        + " would close the file again on that day." + diagnostics,
+                stored.getEndDate());
+        assertNormalisedEmbargoPolicy(leg + ", read back from the database", stored, expectedStartDay);
+
+        if (expectedReadable) {
+            assertTrue("[" + leg + "] access starts on " + expectedStartDay + ", which is not after "
+                            + utcToday() + ", so the policy read back from the database has to be date-valid."
+                            + diagnostics,
+                    resourcePolicyService.isDateValid(stored));
+            assertTrue("[" + leg + "] the embargo has expired, so an anonymous visitor has to be able to"
+                            + " download the ORIGINAL bitstream after the round trip." + diagnostics,
+                    anonymousCanRead(bitstream));
+        } else {
+            assertFalse("[" + leg + "] access starts on " + expectedStartDay + ", which is still ahead of "
+                            + utcToday() + ", so the policy read back from the database must not be date-valid."
+                            + diagnostics,
+                    resourcePolicyService.isDateValid(stored));
+            assertFalse("[" + leg + "] the embargo is still running, so an anonymous visitor must NOT be able"
+                            + " to download the ORIGINAL bitstream after the round trip." + diagnostics,
+                    anonymousCanRead(bitstream));
+        }
     }
 
     /**

@@ -94,6 +94,13 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     private static final String BULK_ACCESS_CONTROL_HINT = "bulk-access-control";
 
     /**
+     * Access condition of access-conditions.xml that writes an {@code Anonymous}/{@code READ} policy with an
+     * END date ({@code groupName=Anonymous}, {@code hasEndDate=true}, {@code endDateLimit=+6MONTHS}): public
+     * now, closed again on that day. It is the one shape of Anonymous READ policy this tool refuses to touch.
+     */
+    private static final String LEASE_POLICY_NAME = "lease";
+
+    /**
      * Sentinel for {@link #deletePolicies(Bitstream, int)} meaning "every action", picked so it can never
      * collide with a real value of {@link Constants#actionText}.
      */
@@ -377,6 +384,84 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
                         + " access. Console output was:\n" + run.console,
                 run.console.contains(BULK_ACCESS_CONTROL_HINT));
         assertExitCode("bitstream with zero policies", 1, run);
+    }
+
+    /**
+     * An {@code Anonymous}/{@code READ} policy that carries an END date is a {@code lease}, not an embargo:
+     * access-conditions.xml declares it with {@code groupName=Anonymous} and {@code hasEndDate=true}, and it
+     * is written by the submission UI, by a REST access condition patch and by
+     * {@code dspace bulk-access-control}. It means "public now, closed again on that day", which is not
+     * something {@code dc.date.embargoend} says anything about.
+     *
+     * <p>Both ways of synchronising it would decide access on the operator's behalf: keeping the end date
+     * next to a fresh start date can close the file for good (an end date that lies before the start date),
+     * and losing the end date publishes for ever a file that was supposed to close itself. So the bitstream
+     * is left exactly as it is, the operator is told which policy stopped the synchronisation, and the run
+     * reports a failure instead of a success.</p>
+     */
+    @Test
+    public void leasedAnonymousReadPolicyIsUntouched() throws Exception {
+        Item item = createItem("Leased thesis");
+        Bitstream bitstream = createLeasedBitstream(item, "leased.pdf");
+
+        assertTrue("fixture precondition: a lease that has not expired yet makes the file publicly readable"
+                + describe(bitstream), anonymousCanRead(bitstream));
+
+        Set<Integer> idsBefore = policyIds(bitstream);
+        List<String> policiesBefore = policyFingerprints(bitstream);
+
+        // The future-date branch is the one that writes policies, so it is where the end date would be lost.
+        Run futureRun = runItemUpdate(item,
+                dublinCore(item, Collections.singletonList("embargoedAccess"), futureDate()));
+
+        bitstream = context.reloadEntity(bitstream);
+
+        assertUntouched("leased Anonymous READ policy, future embargo end", idsBefore, policiesBefore, bitstream);
+        assertTrue("ItemUpdate has to name '" + BULK_ACCESS_CONTROL_HINT + "' as the supported way to change an"
+                        + " access condition it does not manage. Console output was:" + System.lineSeparator()
+                        + futureRun.console,
+                futureRun.console.contains(BULK_ACCESS_CONTROL_HINT));
+        assertExitCode("leased Anonymous READ policy, future embargo end", 1, futureRun);
+
+        // An expired end date reaches the same mutation, only with a start date that has already passed.
+        Run pastRun = runItemUpdate(item,
+                dublinCore(item, Collections.singletonList("openAccess"), pastDate()));
+
+        bitstream = context.reloadEntity(bitstream);
+
+        assertUntouched("leased Anonymous READ policy, expired embargo end", idsBefore, policiesBefore, bitstream);
+        assertExitCode("leased Anonymous READ policy, expired embargo end", 1, pastRun);
+    }
+
+    /**
+     * The refusal has to consider every {@code Anonymous}/{@code READ} policy of the bitstream and not only
+     * the one that would be mutated. A leased policy has no start date, so {@code selectSurvivorPolicy}
+     * prefers the dated embargo policy next to it and the lease falls into the deletion loop - and deleting
+     * the lease is precisely what removes the end date that was to close the file again.
+     */
+    @Test
+    public void leaseNextToADatedEmbargoPolicyIsNotDeleted() throws Exception {
+        Item item = createItem("Leased and embargoed thesis");
+        Bitstream bitstream = createEmbargoedBitstream(item, "leased-and-embargoed.pdf");
+
+        context.turnOffAuthorisationSystem();
+        addLeasePolicy(bitstream);
+        context.restoreAuthSystemState();
+        bitstream = context.reloadEntity(bitstream);
+
+        assertEquals("fixture precondition: the bitstream has to carry the dated embargo policy AND the lease"
+                + describe(bitstream), 2, anonymousReadPolicies(bitstream).size());
+
+        Set<Integer> idsBefore = policyIds(bitstream);
+        List<String> policiesBefore = policyFingerprints(bitstream);
+
+        Run run = runItemUpdate(item,
+                dublinCore(item, Collections.singletonList("embargoedAccess"), futureDate()));
+
+        bitstream = context.reloadEntity(bitstream);
+
+        assertUntouched("lease next to a dated embargo policy", idsBefore, policiesBefore, bitstream);
+        assertExitCode("lease next to a dated embargo policy", 1, run);
     }
 
     /**
@@ -716,6 +801,31 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
 
         return context.reloadEntity(bitstream);
+    }
+
+    /**
+     * A bitstream whose {@code Anonymous}/{@code READ} access expires by itself, i.e. exactly what the
+     * {@code lease} access condition writes: no start date and an end date at most six months out.
+     */
+    private Bitstream createLeasedBitstream(Item item, String name) throws Exception {
+        Bitstream bitstream = createOriginalBitstream(item, name);
+
+        context.turnOffAuthorisationSystem();
+        deletePolicies(bitstream, Constants.READ);
+        addLeasePolicy(bitstream);
+        context.restoreAuthSystemState();
+
+        return context.reloadEntity(bitstream);
+    }
+
+    private void addLeasePolicy(Bitstream bitstream) throws Exception {
+        ResourcePolicyBuilder.createResourcePolicy(context, null, anonymousGroup)
+                .withAction(Constants.READ)
+                .withDspaceObject(bitstream)
+                .withName(LEASE_POLICY_NAME)
+                .withPolicyType(ResourcePolicy.TYPE_CUSTOM)
+                .withEndDate(startOfDayUtc(LocalDate.now().plusMonths(6)))
+                .build();
     }
 
     /**

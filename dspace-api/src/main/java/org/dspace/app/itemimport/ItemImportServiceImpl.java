@@ -2638,6 +2638,12 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                     + " are as accessible as the collection says.");
             return;
         }
+        // ResourcePolicy.startDate is mapped @Temporal(DATE), so only the calendar day survives the
+        // database. Midnight UTC is what core DSpace writes for the same day (DCDate.toDate() parses
+        // date-only values in UTC, the REST and submission layer uses TimeHelpers.toMidnightUTC), so every
+        // embargo path of one repository stores the same day. Upstream limitation, deliberately not patched
+        // here: on a JVM whose zone is behind UTC the driver stores the previous day - equally true of all
+        // those paths, and hibernate.jdbc.time_zone has no effect on @Temporal(DATE).
         Date accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
 
         if (hasEmbargoedAccess) {
