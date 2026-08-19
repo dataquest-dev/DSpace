@@ -66,38 +66,17 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Life cycle, legacy data migration and invariant tests for the VSB-TUO embargo synchronisation in
- * {@link ItemUpdate}.
- *
- * <p>Where {@code EmbargoPastDateIT} reproduces the single incident reported by the customer, this class
- * covers the whole life cycle of an embargo as it is really operated: setting it, re-running the very same
- * SAF archive, ending it with a {@code dc.date.embargoend} that lies in the past, and doing all of that on
- * bitstreams whose resource policies were written by the previous (PR #1313 / #1315) implementation and
- * therefore still carry the legacy {@code rpName} values {@code "Standard Embargo"} and
- * {@code "Special Case Embargo"}.</p>
- *
- * <p>The absence of {@code dc.date.embargoend} is the opposite of an instruction to open the files, and
- * {@code removingEmbargoMetadataLeavesPoliciesUntouched()} is what pins that down: a SAF package that simply
- * does not carry the field leaves every resource policy exactly as it was.</p>
- *
- * <p>The binding rules exercised here are:</p>
- * <ul>
- *   <li>the survivor policy is located by {@code (group = Anonymous, action = READ)} and never by
- *       {@code rpName}, so policies written by the old code are picked up and normalised;</li>
- *   <li>the survivor is <em>mutated</em>, never deleted and recreated, so its {@code policy_id} is stable;</li>
- *   <li>an ORIGINAL bitstream that started with at least one READ policy always ends with at least one -
- *       whatever {@code dc.date.embargoend} contained;</li>
- *   <li>exactly one {@code Anonymous}/{@code READ} policy remains, so no immediate policy can survive next to
- *       a dated one and quietly defeat the embargo;</li>
- *   <li>bitstreams outside the ORIGINAL bundle are never touched - their policies belong to filter-media.</li>
- * </ul>
+ * Life cycle of an embargo driven by {@link ItemUpdate}: setting it, re-running the same SAF archive, and
+ * ending it with a {@code dc.date.embargoend} in the past, including on policies written by earlier versions.
+ * Covers the invariants that one {@code Anonymous}/{@code READ} policy survives every run, that it is mutated
+ * rather than recreated, and that bitstreams outside the ORIGINAL bundle are left alone.
  */
 public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
     /** Target policy name of the fix. Must stay within the 30 char {@code resourcepolicy.rpname} column. */
     private static final String EMBARGO_POLICY_NAME = "embargo";
 
-    /** Policy names written by the previous implementation and still present in the customer database. */
+    /** Policy names written by earlier versions and still present in existing repositories. */
     private static final String LEGACY_STANDARD_EMBARGO = "Standard Embargo";
     private static final String LEGACY_SPECIAL_CASE_EMBARGO = "Special Case Embargo";
 
@@ -160,17 +139,8 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * A SAF package without {@code dc.date.embargoend} says nothing about the embargo of its item, and
-     * "nothing" is not "open the files". The policies have to come out of the run byte for byte identical -
-     * same {@code policy_id}, same start date, same name, same answer to "may an anonymous visitor download
-     * this".
-     *
-     * <p>Why this is not merely conservative: {@code syncEmbargoPolicies} runs for every item of a batch as
-     * soon as the {@code -a}/{@code -d} fields mention an embargo field, and the survivor is located by
-     * {@code (Anonymous, READ)}. One package whose {@code dublin_core.xml} happens to lack the field would
-     * otherwise publish that item's files - and a batch is exactly where nobody looks at the individual
-     * packages. Opening a file is done by writing a {@code dc.date.embargoend} that lies in the past, which
-     * is a deliberate, per-item statement.</p>
+     * Verifies that a SAF package without {@code dc.date.embargoend} leaves every policy as it was. A missing
+     * field says nothing about the embargo; an embargo is ended by an end date that lies in the past.
      */
     @Test
     public void removingEmbargoMetadataLeavesPoliciesUntouched() throws Exception {
@@ -180,7 +150,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
         Bitstream bitstream = createOriginalBitstream(item, "thesis.pdf");
         Integer importedPolicyId = onlyAnonymousReadPolicy(bitstream, "the fresh SAF import").getID();
 
-        // (a) operator embargoes the item
+        // the operator embargoes the item
         assertRunSucceeded("setting the embargo", runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS,
                 futureEmbargoEnd)));
         item = context.reloadEntity(item);
@@ -198,7 +168,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
         Set<String> policiesBefore = policySignatures(bitstream);
 
-        // (b) the next SAF package simply does not carry dc.date.embargoend
+        // the next SAF package does not carry dc.date.embargoend
         assertRunSucceeded("running without dc.date.embargoend",
                 runItemUpdate(item, dublinCore(item, OPEN_ACCESS, null)));
         item = context.reloadEntity(item);
@@ -219,15 +189,9 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The same rule seen from the side that makes it a data leak rather than a matter of taste: an embargo
-     * that {@code itemupdate} never set.
-     *
-     * <p>The submission access condition and {@code dspace bulk-access-control} both write precisely this
-     * policy - {@code Anonymous}/{@code READ}, {@code TYPE_CUSTOM}, rpName {@code embargo}, future start date -
-     * and {@code syncEmbargoPolicies} finds its survivor by {@code (group, action)}, so it cannot tell that
-     * policy apart from one of its own. If the absence of {@code dc.date.embargoend} cleared the start date,
-     * a single {@code dspace itemupdate -a dc.date.embargoend} over a batch whose packages do not carry the
-     * field would publish every embargoed ORIGINAL bitstream in it.</p>
+     * Verifies that an embargo itemupdate never set survives a run without {@code dc.date.embargoend}. The
+     * survivor is found by {@code (group, action)}, so a policy from the submission UI or from
+     * {@code bulk-access-control} is indistinguishable from one of itemupdate's own.
      */
     @Test
     public void foreignEmbargoIsNeverLifted() throws Exception {
@@ -274,9 +238,8 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Re-running the identical SAF archive - which happens every time an import job is retried - must be a
-     * no-op. The same {@code policy_id} has to come back, which is only possible if the policy is mutated
-     * rather than deleted and recreated.
+     * Verifies that re-running the identical SAF archive is a no-op: the same {@code policy_id} comes back,
+     * which only holds if the policy is mutated rather than deleted and recreated.
      */
     @Test
     public void syncIsIdempotent() throws Exception {
@@ -325,10 +288,9 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The customer database is full of policies named {@code "Standard Embargo"} whose start date has already
-     * passed. Re-embargoing such a bitstream must find that policy by {@code (Anonymous, READ)}, reuse it and
-     * normalise its name. An implementation that looks the survivor up by {@code rpName == "embargo"} would
-     * create a second policy and leave the expired one in place, so the file would stay downloadable.
+     * Verifies that a legacy policy whose start date has passed is found by {@code (Anonymous, READ)}, reused
+     * and normalised. Looking the survivor up by {@code rpName} would leave the expired policy in place next
+     * to a new one, and the file would stay downloadable.
      */
     @Test
     public void legacyRpNameThenFutureEmbargoIsEnforced() throws Exception {
@@ -336,8 +298,8 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Same as {@link #legacyRpNameThenFutureEmbargoIsEnforced()} for the second legacy name, written by the
-     * previous implementation whenever {@code dc.rights.access} was not {@code embargoedAccess}.
+     * Same as {@link #legacyRpNameThenFutureEmbargoIsEnforced()} for the second legacy name, written whenever
+     * {@code dc.rights.access} was not {@code embargoedAccess}.
      */
     @Test
     public void legacySpecialCaseRpNameIsAlsoPickedUp() throws Exception {
@@ -345,9 +307,8 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * An item that never had an embargo carries a single immediate ({@code startDate == null}) policy. Putting
-     * it under embargo must consume that policy: leaving it next to a dated one would make the embargo a no-op
-     * because the immediate policy alone already grants anonymous READ (spec row #13).
+     * Verifies that embargoing a born-open item consumes its immediate ({@code startDate == null}) policy;
+     * left next to a dated one it would keep granting anonymous READ and the embargo would be a no-op.
      */
     @Test
     public void bornOpenItemThenFutureEmbargoIsEnforced() throws Exception {
@@ -388,10 +349,8 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * A bitstream that accumulated several {@code Anonymous}/{@code READ} policies - the classic mix of one
-     * immediate policy and the leftovers of earlier embargo runs - must end up with exactly one policy, taken
-     * from the pre-existing ones (spec row #13). Any surviving second policy would either defeat the embargo
-     * or resurrect an obsolete date.
+     * Verifies that accumulated {@code Anonymous}/{@code READ} policies collapse into one of the pre-existing
+     * ones; a second survivor would either defeat the embargo or resurrect an obsolete date.
      */
     @Test
     public void duplicateAnonymousReadPoliciesCollapseToOne() throws Exception {
@@ -438,13 +397,9 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The single invariant the whole fix exists for: an ORIGINAL bitstream that had at least one READ policy
-     * before an {@code itemupdate} run must still have one afterwards, no matter what
-     * {@code dc.date.embargoend} contained. Zero READ policies is what turns the file into an HTTP 401.
-     *
-     * <p>Every case first puts a real embargo in place, exactly like the customer did, because that is what
-     * replaces the collection default with a single dated policy - the one the second run then has the
-     * opportunity to delete.</p>
+     * Verifies that an ORIGINAL bitstream which had a READ policy before a run still has one afterwards,
+     * whatever {@code dc.date.embargoend} contained. Each case first puts a real embargo in place, which is
+     * what replaces the collection default with a single dated policy.
      */
     @Test
     public void neverZeroReadPoliciesInvariant() throws Exception {
@@ -507,9 +462,8 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * A real VSB-TUO record carries several files in ORIGINAL, one of them flagged as the primary bitstream.
-     * All of them must reach exactly the same state - the primary bitstream is not special - and the primary
-     * flag itself must survive.
+     * Verifies that every ORIGINAL bitstream of a record reaches the same state, the primary one included, and
+     * that the primary bitstream flag survives.
      */
     @Test
     public void multipleBitstreamsAllGetSameState() throws Exception {
@@ -525,7 +479,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
         setPrimaryBitstream(originalBundle, bitstreams.get(0));
         UUID primaryBitstreamId = bitstreams.get(0).getID();
 
-        // (a) embargo every file of the record
+        // embargo every file of the record
         assertRunSucceeded("embargoing every ORIGINAL bitstream",
                 runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
         item = context.reloadEntity(item);
@@ -548,7 +502,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
         assertEquals("the primary bitstream flag must survive an embargo run",
                 primaryBitstreamId, originalBundle.getPrimaryBitstream().getID());
 
-        // (b) the embargo expires - the same archive is re-imported with a past date
+        // the embargo expires: the same archive is re-imported with a past date
         assertRunSucceeded("letting the embargo expire",
                 runItemUpdate(item, dublinCore(item, OPEN_ACCESS, pastEmbargoEnd)));
         item = context.reloadEntity(item);
@@ -571,9 +525,8 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The embargo synchronisation owns the bitstreams of the ORIGINAL bundle only. Derivatives (TEXT,
-     * THUMBNAIL) are produced and re-protected by filter-media, and the bundle objects themselves carry their
-     * own policies; touching either from here is how a record ends up with 18 unreachable bitstreams.
+     * Verifies that only ORIGINAL bitstreams are synchronised. Derivatives are produced and re-protected by
+     * filter-media, and the bundle objects carry policies of their own.
      */
     @Test
     public void derivativeBundlesAreNotTouchedDirectly() throws Exception {
@@ -595,7 +548,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
         assertFalse("fixture precondition: the ORIGINAL bundle must start with policies",
                 originalBundlePolicies.isEmpty());
 
-        // (a) embargo run
+        // embargo run
         assertRunSucceeded("embargoing the ORIGINAL bitstream",
                 runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
         item = context.reloadEntity(item);
@@ -614,7 +567,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
         assertEquals("the ORIGINAL bundle's own policies must not be touched",
                 originalBundlePolicies, policySignatures(originalBundle));
 
-        // (b) expired embargo run - the code path that wipes policies today
+        // expired embargo run
         assertRunSucceeded("letting the embargo expire",
                 runItemUpdate(item, dublinCore(item, OPEN_ACCESS, pastEmbargoEnd)));
         item = context.reloadEntity(item);
@@ -636,8 +589,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
     /**
      * Shared body of the two legacy {@code rpName} tests: a bitstream whose only {@code Anonymous}/{@code READ}
-     * policy was written by the previous implementation (legacy name, start date already passed, so the file is
-     * public) is put back under embargo.
+     * policy carries a legacy name and a start date that has passed is put back under embargo.
      */
     private void assertLegacyPolicyIsAdoptedAndEnforced(String legacyName, String rightsAccess, String fileName)
             throws Exception {
@@ -698,7 +650,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Answers the only question that matters: may a not-logged-in visitor download the file?
+     * Tells whether a visitor who is not logged in may read the bitstream.
      */
     private boolean anonymousCanRead(Bitstream bitstream) throws Exception {
         EPerson saved = context.getCurrentUser();
@@ -818,9 +770,8 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Creates a bitstream in the ORIGINAL bundle. The collection grants DEFAULT_BITSTREAM_READ to Anonymous,
-     * so the new bitstream carries exactly one policy - Anonymous / READ / TYPE_INHERITED / startDate null -
-     * which is byte for byte the state of a freshly imported SAF package at the customer.
+     * Creates a bitstream in the ORIGINAL bundle. It inherits the collection DEFAULT_BITSTREAM_READ and so
+     * carries one undated Anonymous READ policy, the state a freshly imported SAF package is in.
      */
     private Bitstream createOriginalBitstream(Item item, String name) throws Exception {
         context.turnOffAuthorisationSystem();
@@ -887,8 +838,8 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Replaces every READ policy of the bitstream with a single Anonymous READ policy - the state a bitstream
-     * is left in by the previous implementation.
+     * Replaces every READ policy of the bitstream with a single Anonymous READ policy, the state earlier
+     * versions left behind.
      */
     private ResourcePolicy replaceAnonymousReadPolicies(Bitstream bitstream, Date startDate, String name)
             throws Exception {
@@ -920,12 +871,11 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Equivalent of {@code dsrun ... ItemUpdate -s <saf> -d dc.rights.access -d dc.date.embargoend
-     * -a dc.rights.access -a dc.date.embargoend}, i.e. an update whose target fields contain an embargo field,
-     * which is what makes {@code processArchive} call {@code syncEmbargoPolicies}.
+     * Runs itemupdate with both embargo fields as targets, the combination that triggers embargo
+     * synchronisation.
      *
-     * @return the number of embargo problems the run reported; this is the only thing {@code ItemUpdate.main()}
-     *         turns into a non-zero exit code, so it is what an operator's script sees
+     * @return the number of embargo problems the run reported, which is what {@code ItemUpdate.main()} turns
+     *         into a non-zero exit code
      */
     private int runItemUpdate(Item item, String dublinCoreContent) throws Exception {
         Path sourceRoot = Files.createDirectory(tempDir.resolve("saf-" + System.nanoTime()));

@@ -67,36 +67,27 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Safety net for the VSB-TUO embargo synchronisation in {@link ItemUpdate}.
- *
- * <p>The bug being fixed is that an expired {@code dc.date.embargoend} strips the ORIGINAL bitstreams
- * of their last {@code Anonymous}/{@code READ} policy. The obvious repair - "when the embargo has
- * expired, just make the files public" - is far more dangerous than the bug itself, because it would
- * publish material that has to stay closed. This class pins down everything the repair must NOT do.</p>
- *
- * <p>Every "must not touch" assertion compares the full set of {@code policy_id} values plus a
- * fingerprint of every policy (action, group, rpType, rpName, start and end date). Comparing counts
- * would be useless: a policy deleted and immediately recreated keeps the count but loses its identity,
- * and a policy mutated in place keeps its id but changes its meaning.</p>
+ * Pins down the cases in which embargo synchronisation in {@link ItemUpdate} has to leave a bitstream alone
+ * rather than publish it. Every "must not touch" assertion compares policy ids and a fingerprint of every
+ * policy, because counts hide both delete-and-recreate and in-place mutation.
  */
 public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
 
     /**
-     * rpName written by the shipped (buggy) implementation. The repair has to recognise and normalise
-     * these legacy policies, so the fixtures use that name rather than a clean-room one.
+     * rpName written by earlier versions; the fixtures use it so that normalisation of legacy policies is
+     * exercised.
      */
     private static final String LEGACY_EMBARGO_POLICY_NAME = "Standard Embargo";
 
     /**
-     * The only supported way of re-opening files whose Anonymous READ policy is already gone.
-     * ItemUpdate has to point the operator at it instead of inventing a public policy.
+     * The supported way of re-opening files whose Anonymous READ policy is already gone; ItemUpdate points
+     * the operator at it instead of inventing a public policy.
      */
     private static final String BULK_ACCESS_CONTROL_HINT = "bulk-access-control";
 
     /**
-     * Access condition of access-conditions.xml that writes an {@code Anonymous}/{@code READ} policy with an
-     * END date ({@code groupName=Anonymous}, {@code hasEndDate=true}, {@code endDateLimit=+6MONTHS}): public
-     * now, closed again on that day. It is the one shape of Anonymous READ policy this tool refuses to touch.
+     * Access condition writing an {@code Anonymous}/{@code READ} policy with an END date: public now, closed
+     * again on that day.
      */
     private static final String LEASE_POLICY_NAME = "lease";
 
@@ -160,8 +151,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Specification row 9. A withdrawn item is hidden on purpose. Withdrawal converts every READ policy
-     * into WITHDRAWN_READ, so an embargo sync that "restores" access would silently undo a takedown.
+     * Verifies that a withdrawn item is left alone: withdrawal turns every READ policy into WITHDRAWN_READ,
+     * and synchronising an embargo must not undo a takedown.
      */
     @Test
     public void withdrawnItemIsNeverRepublished() throws Exception {
@@ -192,9 +183,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
-        // Which guard stopped the run has to be nailed down. ItemServiceImpl.withdraw() also clears
-        // archived, so the !isArchived guard alone would satisfy every policy assertion below and this test
-        // would keep passing after the withdrawal guard was deleted.
+        // withdraw() also clears archived, so without this check the !isArchived guard alone would satisfy
+        // every policy assertion below.
         assertTrue("ItemUpdate has to refuse a withdrawn item because it is withdrawn. Nothing in the console"
                         + " output says so, so some other guard stopped the run and the withdrawal guard is"
                         + " untested. Console output was:" + System.lineSeparator() + pastRun.console,
@@ -209,8 +199,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
                         + describe(bitstream),
                 anonymousCanRead(bitstream));
 
-        // Row 9 says "any end date". The past-date run above only ever reaches the early return, so on its own
-        // it proves nothing about withdrawal; the future-date branch is the one that creates policies.
+        // The past-date run above only reaches the early return; the future-date branch is the one that
+        // creates policies.
         Run futureRun =
                 runItemUpdate(item, dublinCore(item, Collections.singletonList("embargoedAccess"), futureDate()));
 
@@ -232,8 +222,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Specification row 4. {@code restrictedAccess} means the files stay closed no matter what the embargo
-     * end date says - a stale end date is not permission to publish.
+     * Verifies that {@code restrictedAccess} keeps the files closed whatever the embargo end date says.
      */
     @Test
     public void restrictedAccessWithStaleEmbargoEndIsUntouched() throws Exception {
@@ -242,7 +231,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Specification row 4. {@code metadataOnlyAccess} means the bitstreams are never disclosed.
+     * Verifies that {@code metadataOnlyAccess} keeps the bitstreams undisclosed.
      */
     @Test
     public void metadataOnlyAccessIsUntouched() throws Exception {
@@ -251,8 +240,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Specification row 4. An access right the tool does not understand is not an invitation to guess;
-     * an unknown value means "hands off", never "open".
+     * Verifies that an access right the tool does not understand means "hands off" rather than "open".
      */
     @Test
     public void unknownAccessRightValueIsUntouched() throws Exception {
@@ -261,9 +249,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Specification row 4. A single value outside the allowlist blocks the whole item, even when another
-     * value of the same field says {@code openAccess}. Contradictory metadata is never resolved in favour
-     * of disclosure.
+     * Verifies that one value outside the allowlist blocks the whole item, even next to {@code openAccess}:
+     * contradictory metadata is not resolved in favour of disclosure.
      */
     @Test
     public void mixedAccessRightsWithOneDisallowedIsUntouched() throws Exception {
@@ -272,8 +259,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Specification row 11. When READ is granted to a named group only there is no Anonymous policy to
-     * mutate. Creating one would hand the public a file that was deliberately limited to that group.
+     * Verifies that a bitstream readable by a named group only gains no Anonymous policy: with nothing to
+     * mutate, creating one would widen access nobody granted.
      */
     @Test
     public void bitstreamWithoutAnonymousReadIsNotPublished() throws Exception {
@@ -314,8 +301,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         assertFalse("A group restricted file became publicly readable after an expired embargo was synchronised."
                 + describe(bitstream), anonymousCanRead(bitstream));
 
-        // Row 11 says "any end date". A past date only reaches the early return; the future-date branch is the
-        // one that creates policies, so it is where a group-restricted file can silently gain an Anonymous one.
+        // A past date only reaches the early return; the future-date branch is where a group-restricted file
+        // could gain an Anonymous policy.
         Run futureRun = runItemUpdate(item,
                 dublinCore(item, Collections.singletonList("embargoedAccess"), futureDate()));
 
@@ -330,8 +317,6 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
         assertFalse("A group restricted file became publicly readable after a future embargo end date was"
                 + " synchronised." + describe(bitstream), anonymousCanRead(bitstream));
 
-        // Reporting is asserted last, after both legs have proved that no policy was invented: a missing log
-        // line must never be the reason a reader stops reading before the policy damage is on screen.
         assertTrue("There is no Anonymous READ policy to re-date here, so ItemUpdate has to report the bitstream"
                         + " it could not synchronise and name '" + BULK_ACCESS_CONTROL_HINT + "' as the supported"
                         + " way to change access. Console output of the expired-embargo run was:"
@@ -341,16 +326,14 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
                         + " future-embargo run was:" + System.lineSeparator() + futureRun.console,
                 futureRun.console.contains(BULK_ACCESS_CONTROL_HINT));
 
-        // Spec row 11 requires a non-zero exit code: an unsynchronised bitstream that leaves the exit code at
-        // 0 is invisible to the operator who started the batch.
+        // An unsynchronised bitstream that leaves the exit code at 0 is invisible to the caller.
         assertExitCode("bitstream without Anonymous READ, expired embargo", 1, pastRun);
         assertExitCode("bitstream without Anonymous READ, future embargo", 1, futureRun);
     }
 
     /**
-     * Specification row 11. This is the exact state of the customer record damaged by the shipped code:
-     * zero resource policies, HTTP 401 on every download. The repair must refuse to guess what those
-     * policies used to be - it may only report the damage and name the tool that can undo it.
+     * Verifies that a bitstream left without any resource policy stays that way: what it used to grant cannot
+     * be reconstructed, so the run reports the damage instead of guessing.
      */
     @Test
     public void alreadyBrokenBitstreamWithZeroPoliciesStaysZero() throws Exception {
@@ -387,17 +370,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * An {@code Anonymous}/{@code READ} policy that carries an END date is a {@code lease}, not an embargo:
-     * access-conditions.xml declares it with {@code groupName=Anonymous} and {@code hasEndDate=true}, and it
-     * is written by the submission UI, by a REST access condition patch and by
-     * {@code dspace bulk-access-control}. It means "public now, closed again on that day", which is not
-     * something {@code dc.date.embargoend} says anything about.
-     *
-     * <p>Both ways of synchronising it would decide access on the operator's behalf: keeping the end date
-     * next to a fresh start date can close the file for good (an end date that lies before the start date),
-     * and losing the end date publishes for ever a file that was supposed to close itself. So the bitstream
-     * is left exactly as it is, the operator is told which policy stopped the synchronisation, and the run
-     * reports a failure instead of a success.</p>
+     * Verifies that an {@code Anonymous}/{@code READ} policy with an END date is left alone. It is a lease
+     * ("public now, closed again on that day"), which {@code dc.date.embargoend} says nothing about.
      */
     @Test
     public void leasedAnonymousReadPolicyIsUntouched() throws Exception {
@@ -434,10 +408,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The refusal has to consider every {@code Anonymous}/{@code READ} policy of the bitstream and not only
-     * the one that would be mutated. A leased policy has no start date, so {@code selectSurvivorPolicy}
-     * prefers the dated embargo policy next to it and the lease falls into the deletion loop - and deleting
-     * the lease is precisely what removes the end date that was to close the file again.
+     * Verifies that a lease sitting next to a dated embargo policy is not deleted: the refusal has to consider
+     * every {@code Anonymous}/{@code READ} policy, not only the one that would be mutated.
      */
     @Test
     public void leaseNextToADatedEmbargoPolicyIsNotDeleted() throws Exception {
@@ -465,8 +437,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Specification row 7. A blank end date is a broken export, not an instruction. Validation has to run
-     * before anything is mutated, so the existing policies survive untouched.
+     * Verifies that a blank end date changes nothing: validation runs before anything is mutated.
      */
     @Test
     public void blankEmbargoEndLeavesPoliciesUntouched() throws Exception {
@@ -483,8 +454,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Specification row 8. Parsing has to be strict. {@code DCDate} silently rolls 30 February over into
-     * 2 March, which would turn an unparseable value into a real - possibly future - embargo date.
+     * Verifies that parsing is strict: a lenient parser rolls 30 February over into 2 March and turns an
+     * unreadable value into a real embargo date.
      */
     @Test
     public void invalidEmbargoEndLeavesPoliciesUntouched() throws Exception {
@@ -499,8 +470,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Specification row 6. {@code embargoedAccess} without an end date is self-contradictory metadata.
-     * The tool has to refuse it rather than pick one half of the contradiction.
+     * Verifies that {@code embargoedAccess} without an end date is refused rather than half-applied.
      */
     @Test
     public void embargoedAccessWithoutEndDateLeavesPoliciesUntouched() throws Exception {
@@ -509,8 +479,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Specification row 10. An item outside the archive (workspace or workflow) is not published yet; its
-     * bitstream policies are the submission's business, not itemupdate's.
+     * Verifies that an item outside the archive is left alone; its bitstream policies belong to the
+     * submission, not to itemupdate.
      */
     @Test
     public void notArchivedItemIsUntouched() throws Exception {
@@ -544,15 +514,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The per-item {@code catch} of {@code processArchive} prints the exception and carries on, and a printed
-     * exception is an exit code of 0. That is harmless for an action that failed before it changed anything.
-     * It is not harmless for the embargo synchronisation, whose <em>last</em> step is deleting the duplicate
-     * Anonymous READ policies of a bitstream whose surviving policy has just been re-dated: if that step
-     * throws, {@code context.complete()} commits the re-dated policy anyway, so the file is open and the run
-     * reports success. The exit code is all the operator's script gets to see.
-     *
-     * <p>The failure is provoked by letting {@code applyEmbargoToItemBitstreams} throw <em>after</em> doing its
-     * work, which is exactly the state the duplicate deletion loop runs in.</p>
+     * Verifies that a synchronisation which throws after re-dating a policy is not reported as success: the
+     * per-item catch of {@code processArchive} prints the exception and commits what was written so far.
      */
     @Test
     public void embargoSyncThatDiesHalfWayIsNotReportedAsSuccess() throws Exception {
@@ -585,11 +548,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Runs one "ItemUpdate has to keep its hands off" scenario end to end and returns the reloaded item.
-     *
-     * <p>The fixture is the state the customer repository is in after an earlier itemupdate run with a
-     * future end date: exactly one Anonymous READ policy, dated, currently blocking access. Any repair
-     * that publishes, deletes or re-creates that policy is caught here.</p>
+     * Runs one "hands off" scenario end to end and returns the reloaded item. The fixture is the state an
+     * earlier run with a future end date leaves: one dated Anonymous READ policy currently blocking access.
      */
     private Item assertEmbargoSyncIsANoOp(String scenario, List<String> accessRights, String embargoEndDate,
                                           int expectedFailures)
@@ -631,13 +591,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Equivalent of {@code dsrun ... ItemUpdate -s <saf> -d dc.rights.access -d dc.date.embargoend
-     * -a dc.rights.access -a dc.date.embargoend}, i.e. an update whose target fields contain an embargo
-     * field, which is what makes {@code processArchive} call {@code syncEmbargoPolicies}.
-     *
-     * <p>The {@link ItemUpdate} instance is kept, not thrown away: {@code embargoSyncFailures} is what
-     * {@code main()} turns into a non-zero exit code, and an operator scripting {@code itemupdate} sees
-     * nothing else. A refusal that leaves the exit code at 0 is a silent failure.</p>
+     * Runs itemupdate with both embargo fields as targets, the combination that triggers embargo
+     * synchronisation. The {@link ItemUpdate} instance is kept because it carries the failure count.
      *
      * @return the console output of the run and the number of embargo problems it counted
      */
@@ -692,8 +647,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Everything a finished {@code itemupdate} run is judged by: what it told the operator, and what it would
-     * have exited with.
+     * What a finished {@code itemupdate} run is judged by: its console output and its failure count.
      */
     private static final class Run {
         private final String console;
@@ -706,8 +660,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * A run that refused to do something has to say so in its exit code, otherwise the operator's script
-     * treats a skipped item as a synchronised one.
+     * Asserts the exit code the run would have produced; without it a skipped item looks synchronised.
      */
     private void assertExitCode(String scenario, int expectedFailures, Run run) {
         assertEquals("[" + scenario + "] wrong number of reported embargo problems, so ItemUpdate.main() would"
@@ -720,9 +673,9 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     /**
      * Builds a {@code dublin_core.xml} carrying zero or more {@code dc.rights.access} values.
      *
-     * @param embargoEndDate {@code null} omits {@code dc.date.embargoend} entirely (the operator lifted the
-     *                       embargo), the empty string writes a blank value (an empty XML element is dropped
-     *                       by the parser, so a single space is written instead)
+     * @param embargoEndDate {@code null} omits {@code dc.date.embargoend} entirely, the empty string writes a
+     *                       blank value (an empty XML element is dropped by the parser, so a single space is
+     *                       written instead)
      */
     private String dublinCore(Item item, List<String> accessRights, String embargoEndDate) {
         StringBuilder sb = new StringBuilder();
@@ -767,9 +720,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * A bitstream in the ORIGINAL bundle. The collection grants DEFAULT_BITSTREAM_READ to Anonymous, so
-     * BundleServiceImpl gives the new bitstream exactly one policy: Anonymous / READ / TYPE_INHERITED /
-     * rpName=null / startDate=null - byte for byte the state of a freshly imported SAF item.
+     * A bitstream in the ORIGINAL bundle. It inherits the collection DEFAULT_BITSTREAM_READ and so carries one
+     * undated Anonymous READ policy, the state a freshly imported SAF item is in.
      */
     private Bitstream createOriginalBitstream(Item item, String name) throws Exception {
         context.turnOffAuthorisationSystem();
@@ -783,9 +735,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The state the customer repository is left in by an itemupdate run with a future end date: the
-     * immediate Anonymous READ policy is gone and a single dated legacy "Standard Embargo" policy blocks
-     * access. That policy is all that stands between the public and the file.
+     * The state an itemupdate run with a future end date leaves: a single dated legacy policy blocking access,
+     * and nothing else between the public and the file.
      */
     private Bitstream createEmbargoedBitstream(Item item, String name) throws Exception {
         Bitstream bitstream = createOriginalBitstream(item, name);
@@ -804,8 +755,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * A bitstream whose {@code Anonymous}/{@code READ} access expires by itself, i.e. exactly what the
-     * {@code lease} access condition writes: no start date and an end date at most six months out.
+     * A bitstream whose {@code Anonymous}/{@code READ} access expires by itself, as the {@code lease} access
+     * condition writes it: no start date and an end date six months out.
      */
     private Bitstream createLeasedBitstream(Item item, String name) throws Exception {
         Bitstream bitstream = createOriginalBitstream(item, name);
@@ -829,9 +780,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Deletes policies one by one through {@code ResourcePolicyService#delete}, the same call the production
-     * code uses, so the Hibernate session stays consistent (the bulk removal helpers issue an HQL delete and
-     * leave the in-memory collection stale).
+     * Deletes policies one by one, because the bulk removal helpers issue an HQL delete and leave the
+     * in-memory collection stale.
      *
      * @param actionId action to delete, or {@link #ALL_ACTIONS} for every policy regardless of action
      */
@@ -888,8 +838,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Renders the current policies of the bitstream for failure messages. Whoever reads a red build has to
-     * see which policy moved without re-running anything.
+     * Renders the current policies of the bitstream for failure messages, so a red build shows which policy
+     * moved.
      */
     private String describe(Bitstream bitstream) throws SQLException {
         StringBuilder sb = new StringBuilder(System.lineSeparator())
@@ -905,11 +855,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Answers the only question that matters: may a visitor who is not logged in download the file?
-     *
-     * <p>The authorisation state is a stack, not a flag: the builders and processArchive push and pop
-     * around themselves, so the depth is not guaranteed to be zero here. It has to be drained, otherwise
-     * {@code authorize()} short circuits on {@code ignoreAuthorization()} and every read looks allowed.</p>
+     * Tells whether a visitor who is not logged in may read the bitstream. The authorisation state is a stack
+     * the builders push and pop, so it is drained first - otherwise every read looks allowed.
      */
     private boolean anonymousCanRead(Bitstream bitstream) throws SQLException {
         EPerson savedUser = context.getCurrentUser();
@@ -934,9 +881,7 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * A future end date is the dangerous half of every "hands off" rule: the past-date branch of the shipped
-     * code returns early and therefore looks harmless, while the future-date branch is the one that actually
-     * writes resource policies.
+     * A future end date, the branch that writes resource policies; the past-date branch returns early.
      */
     private String futureDate() {
         return LocalDate.now().plusYears(1).toString();
@@ -947,9 +892,8 @@ public class EmbargoSafetyIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Compares dates at calendar day granularity. The harness forces TZ Europe/Dublin while resource policy
-     * start dates come back from the database as {@code java.sql.Date}; comparing instants across that
-     * boundary would be flaky, comparing days is not.
+     * Renders a date at calendar day granularity: start dates come back from the database as
+     * {@code java.sql.Date}, so comparing instants across the harness time zone would be flaky.
      */
     private String day(Date date) {
         if (date == null) {

@@ -23,40 +23,15 @@ import org.apache.commons.lang3.StringUtils;
  * Turns the {@code dc.date.embargoend} value of a SAF package into the UTC calendar day on which the embargo
  * ends, for {@code dspace import} and {@code dspace itemupdate} alike.
  *
- * <p>Both tools used to read that value with {@link org.dspace.content.DCDate}, which accepts seven shapes and
- * is lenient: {@code 2026-02-30} silently becomes 2 March and {@code 2026-13-01} becomes 1 January 2027, so a
- * typo turns into a real - possibly future - embargo date. Parsing is therefore strict here, but it still has
- * to accept the shapes {@code DCDate} accepted, or SAF packages that used to import would stop working. Each
- * shape is mapped to exactly the day {@code DCDate} mapped it to (verified against the class itself):</p>
- *
- * <table>
- *   <caption>accepted values</caption>
- *   <tr><td>{@code 2027-05-01}</td><td>1 May 2027</td></tr>
- *   <tr><td>{@code 2027-5-1}</td><td>1 May 2027 - unpadded, {@code SimpleDateFormat} took it</td></tr>
- *   <tr><td>{@code 2027-05-01T00:00:00Z}, {@code ...T00:00:00}, {@code ...T00:00}, {@code ...T00}</td>
- *       <td>1 May 2027, the UTC day of the instant; the time of day is dropped</td></tr>
- *   <tr><td>{@code 2027-05}</td><td><b>1</b> May 2027, not the end of the month</td></tr>
- *   <tr><td>{@code 2027}</td><td><b>1 January</b> 2027, not the end of the year</td></tr>
- * </table>
- *
- * <p>The last two rows are the ones worth reading twice. {@code DCDate} keeps a granularity, but
- * {@code toDate()} returns the <em>first</em> instant of that year or month, and the old code took that
- * {@code Date} as the embargo end. So {@code 2027} has always meant "the embargo ends on 1 January 2027", the
- * files open on 2 January 2027, and that reading is kept - widening it to 31 December would extend embargoes
- * that operators have already been living with.</p>
- *
- * <p>What is deliberately <em>not</em> kept from {@code DCDate}: the lenient roll-over of impossible dates,
- * trailing garbage ({@code SimpleDateFormat} read {@code 2099garbage} as the year 2099), and a numeric UTC
- * offset, which {@code DCDate} did not really support either - it ignored the offset and read
- * {@code 2027-05-01T00:00:00+02:00} as if it were UTC. All of those now throw, and every caller has to treat a
- * throw as "refuse the package", never as "no embargo".</p>
+ * <p>Parsing is strict, unlike the {@link org.dspace.content.DCDate} both tools used before, which rolls
+ * {@code 2026-02-30} over into 2 March and so turns a typo into a real embargo date. The shapes
+ * {@code DCDate} accepted are still read, and read as the same day, so existing SAF packages keep working.</p>
  */
 public final class SafEmbargoDateParser {
 
     /**
-     * {@code yyyy-MM-dd'T'HH[:mm[:ss[.fff]]]['Z']}, the four full ISO shapes of {@code DCDate} plus the
-     * fractional seconds its prefix matching used to swallow. Everything is UTC, which is what the trailing
-     * {@code Z} says and what {@code DCDate} assumed for the shapes without it.
+     * {@code yyyy-MM-dd'T'HH[:mm[:ss[.fff]]]['Z']}, the ISO shapes {@code DCDate} accepted. Always read as
+     * UTC, which is what {@code DCDate} assumed for the shapes without a trailing {@code Z}.
      */
     private static final DateTimeFormatter LEGACY_TIMESTAMP = new DateTimeFormatterBuilder()
             .append(DateTimeFormatter.ISO_LOCAL_DATE)
@@ -70,9 +45,8 @@ public final class SafEmbargoDateParser {
             .toFormatter().withResolverStyle(ResolverStyle.STRICT);
 
     /**
-     * {@code yyyy-M-d} with unpadded month and day. {@code SimpleDateFormat} accepted {@code 2027-5-1} and
-     * meant 1 May 2027 by it, without any roll-over, so it is accepted here too - strictly, unlike
-     * {@code DCDate}: {@code 2027-2-30} is still rejected.
+     * {@code yyyy-M-d} with unpadded month and day, which {@code SimpleDateFormat} accepted and older SAF
+     * packages therefore contain. Strict all the same: {@code 2027-2-30} is rejected.
      */
     private static final DateTimeFormatter UNPADDED_DATE = new DateTimeFormatterBuilder()
             .appendValue(ChronoField.YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
@@ -93,19 +67,18 @@ public final class SafEmbargoDateParser {
      * The UTC calendar day on which the embargo ends, i.e. the last day the files stay closed.
      *
      * @param value raw {@code dc.date.embargoend}, surrounding whitespace is ignored
-     * @return the embargo end day, never {@code null}
-     * @throws DateTimeParseException if the value is none of the accepted shapes. It is never a licence to
-     *                                skip the embargo: a caller that cannot read the date does not know
-     *                                whether the item is embargoed, and has to refuse it.
+     * @return the embargo end day
+     * @throws DateTimeParseException if the value is none of the accepted shapes; a caller that cannot read
+     *                                the date has to refuse the package instead of assuming no embargo
      */
     public static LocalDate parseEmbargoEndDay(String value) {
         String trimmed = StringUtils.trimToEmpty(value);
 
         try {
-            // yyyy-MM-dd, the shape everything written by DSpace itself has
+            // yyyy-MM-dd, the shape DSpace itself writes
             return LocalDate.parse(trimmed);
         } catch (DateTimeParseException notAnIsoDay) {
-            // one of the older shapes, or garbage - decided below
+            // an older shape or garbage, decided below
         }
 
         try {
@@ -115,14 +88,14 @@ public final class SafEmbargoDateParser {
         }
 
         try {
-            // a month is a period; its embargo ends on its first day, as DCDate.toDate() reported it
+            // DCDate.toDate() reported a bare month as its first day, so it keeps meaning that day
             return YearMonth.parse(trimmed).atDay(1);
         } catch (DateTimeParseException notAYearMonth) {
             // ditto
         }
 
         try {
-            // and a year on 1 January, for the same reason
+            // and a bare year as 1 January, for the same reason
             return Year.parse(trimmed).atDay(1);
         } catch (DateTimeParseException notAYear) {
             // ditto

@@ -813,17 +813,13 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         // non-standard permissions
         List<String> options = processContentsFile(c, myitem, itemPathDir, "contents");
 
-        // Check for embargo metadata and set up embargo terms if needed. This has to happen on the common
-        // path, before the workflow is started as well as before installItem: an embargoed submission that
-        // reaches the workflow without its policy is given the collection's undated default READ policy the
-        // moment it is approved (ItemServiceImpl.addDefaultPoliciesNotInPlace) and is public from then on.
-        // The policy grants nothing while the item waits in the workflow - AuthorizeServiceImpl ignores
-        // TYPE_CUSTOM policies on a bitstream that belongs to no installed item (DS-2614).
+        // Check for embargo metadata and set up embargo terms if needed
+        // Runs before the workflow is started as well as before installItem: a submission that reaches the
+        // workflow without its policy is given the collection default READ policy the moment it is approved.
         try {
             processEmbargoMetadata(c, myitem);
         } catch (EmbargoMetadataException e) {
-            // The operator gets the package directory, which is the thing they have to fix; the item id
-            // means nothing to them and the import is rolled back anyway.
+            // The operator needs the package directory, not the item id: the package is what they fix.
             throw new EmbargoMetadataException("SAF package '" + itemname + "': " + e.getMessage(), e);
         }
 
@@ -2560,33 +2556,21 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
 
     /**
      * Set up the ResourcePolicy based embargo of an item being imported, from its own metadata
-     * ({@code dc.rights.access}, {@code dc.date.embargoend}).
-     *
-     * <p>Every path out of this method is either "the embargo policy is written" or "the import fails". What
-     * it must never do is return quietly on a package that claims an embargo: {@code addItem} archives the
-     * item a few lines later, {@code installItem} clones the collection undated default READ policy onto
-     * every bitstream that has none - and the files are public although their own metadata says
-     * {@code embargoedAccess}, with exit code 0. That is why the blanket {@code catch (Exception)} this method
-     * used to end with is gone, and why the failure cases below throw instead of logging and returning.</p>
-     *
-     * <p>Two scenarios produce an embargo:</p>
-     * <ol>
-     *   <li>{@code dc.rights.access=embargoedAccess} together with {@code dc.date.embargoend}</li>
-     *   <li>{@code dc.date.embargoend} on its own - same policy, logged as a special case</li>
-     * </ol>
+     * ({@code dc.rights.access}, {@code dc.date.embargoend}). A package that claims an embargo either gets its
+     * policy or fails the import: an item archived without one is given the collection default READ policy by
+     * {@code installItem}, which publishes files whose own metadata says they are closed.
      *
      * @param c    DSpace context
      * @param item item being imported, already carrying the metadata of the package
      * @throws SQLException             if a database error occurs
      * @throws AuthorizeException       if the policy may not be written
-     * @throws EmbargoMetadataException if the package claims an embargo that cannot be written. Never treat it
-     *                                  as "then there is no embargo" - the item must not be archived.
+     * @throws EmbargoMetadataException if the package claims an embargo that cannot be written; the item must
+     *                                  not be archived then
      */
     protected void processEmbargoMetadata(Context c, Item item)
             throws SQLException, AuthorizeException, EmbargoMetadataException {
         if (isTest || item == null) {
-            // A test run creates no item and loads no metadata, so there is nothing to read and no file that
-            // could be disclosed.
+            // A test run creates no item, so there is no metadata to read and no file to disclose.
             return;
         }
 
@@ -2604,8 +2588,7 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         }
 
         if (embargoEndDates.size() > 1) {
-            // Same rule as itemupdate: the first value wins and the operator is told, because two embargo
-            // end dates are a data error only they can resolve.
+            // Two embargo end dates are a data error only the operator can resolve.
             logError("WARNING: Multiple dc.date.embargoend values found. Using first value only.");
         }
 
@@ -2616,9 +2599,8 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                     + " could not be written must not be archived.");
         }
 
-        // All arithmetic is done in UTC calendar days: neither Calendar.getInstance() (server time zone) nor
-        // DCDate (lenient, rolls 2026-02-30 over into 2026-03-02) can decide a day boundary reliably. The
-        // shapes DCDate did accept are still accepted, see SafEmbargoDateParser.
+        // UTC calendar days throughout: the server time zone must not decide a day boundary, and DCDate is
+        // lenient enough to roll 2026-02-30 over into a real date. Same parser as itemupdate, so one day.
         LocalDate embargoEndDay;
         try {
             embargoEndDay = SafEmbargoDateParser.parseEmbargoEndDay(embargoEndDateStr);
@@ -2628,9 +2610,8 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                     + " not the same as no embargo, so the package is refused instead of archived.", e);
         }
 
-        // dc.date.embargoend is the inclusive last day of the embargo, so access starts the day after. The
-        // "already passed" test has to run on that start day and not on the end day, otherwise an embargo
-        // ending today would be dropped although the file must still be closed today.
+        // dc.date.embargoend is the last day of the embargo, so the test below runs on the start day: an
+        // embargo ending today has to keep the file closed for the rest of today.
         LocalDate accessStartDay = embargoEndDay.plusDays(1);
         if (!accessStartDay.isAfter(LocalDate.now(ZoneOffset.UTC))) {
             logInfo("Embargo: end date " + embargoEndDateStr + " has already passed, no embargo policy"
@@ -2638,12 +2619,8 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                     + " are as accessible as the collection says.");
             return;
         }
-        // ResourcePolicy.startDate is mapped @Temporal(DATE), so only the calendar day survives the
-        // database. Midnight UTC is what core DSpace writes for the same day (DCDate.toDate() parses
-        // date-only values in UTC, the REST and submission layer uses TimeHelpers.toMidnightUTC), so every
-        // embargo path of one repository stores the same day. Upstream limitation, deliberately not patched
-        // here: on a JVM whose zone is behind UTC the driver stores the previous day - equally true of all
-        // those paths, and hibernate.jdbc.time_zone has no effect on @Temporal(DATE).
+        // ResourcePolicy.startDate is mapped @Temporal(DATE), so only the calendar day survives; midnight
+        // UTC is what the other DSpace embargo paths store for that same day.
         Date accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
 
         if (hasEmbargoedAccess) {
@@ -2655,8 +2632,8 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                     + "dc.rights.access=embargoedAccess");
             logInfo("Embargo: Applying embargo based on end date only until " + embargoEndDateStr);
         }
-        // Both scenarios produce the same policy. They used to differ only in the rpName, and one of those two
-        // names did not fit the 30 character rpname column at all.
+        // Both scenarios produce the same policy; they used to differ only in an rpName, one of which did
+        // not fit the 30 character rpname column.
         applyEmbargoToItemBitstreams(c, item, accessStartDate, SafEmbargoConstants.EMBARGO_POLICY_NAME);
     }
 
@@ -2676,15 +2653,9 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
     }
 
     /**
-     * Apply an embargo ResourcePolicy to all ORIGINAL bitstreams of the item.
-     *
-     * <p>This is the import path, where the bitstreams do not have an Anonymous READ policy yet - they only
-     * get one from the collection default when installItem runs - so the policy is created here. ItemUpdate
-     * works on already archived items and mutates the existing policy instead; the two must not be merged.</p>
-     *
-     * <p>Nothing here is caught and logged away. A bitstream whose policy could not be written is exactly the
-     * bitstream {@code installItem} then hands the collection undated default READ policy to, so a swallowed
-     * failure here is a published file.</p>
+     * Apply an embargo ResourcePolicy to all ORIGINAL bitstreams of the item. The import path creates the
+     * policy because the bitstreams have none until {@code installItem} copies the collection defaults, while
+     * {@code ItemUpdate} works on archived items and re-dates the policy that is already there.
      *
      * @param c                DSpace context
      * @param item             item being imported
@@ -2707,12 +2678,8 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         // Only process ORIGINAL bundles to avoid affecting system bundles
         List<Bundle> originalBundles = item.getBundles("ORIGINAL");
         if (originalBundles.isEmpty()) {
-            // Nothing this method could close: both SAF tools declare a scope of "ORIGINAL bitstreams only".
-            // Known limitation, deliberately left as it is: a contents file may route its files into another
-            // bundle with the "bundle:<name>" marker, and such a package is archived with the collection
-            // default READ policy on those bitstreams however loudly its metadata claims an embargo. So this
-            // is not the guarantee that no file is disclosed, only the end of what an ORIGINAL-scoped tool
-            // has to say about it.
+            // Known limitation: a contents file can route its files into another bundle with the
+            // "bundle:<name>" marker, and those bitstreams are outside the ORIGINAL scope of both SAF tools.
             logInfo("Embargo: No ORIGINAL bundles found, no embargo applied");
             return;
         }
@@ -2726,13 +2693,8 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                 policy.setAction(Constants.READ);
                 policy.setStartDate(accessStartDate);
                 policy.setRpName(policyReason);
-                // TYPE_CUSTOM keeps the policy inert until the item is installed: AuthorizeServiceImpl
-                // skips custom policies on a bitstream that belongs to no installed item (DS-2614), so
-                // an item waiting in the workflow discloses nothing. What stops installItem from
-                // cloning the collection undated default READ policy next to this one is not the
-                // type but ItemServiceImpl.addDefaultPoliciesNotInPlace ->
-                // AuthorizeServiceImpl.isAnIdenticalPolicyAlreadyInPlace, which matches on
-                // (dso, group, action) alone and therefore already sees this policy.
+                // TYPE_CUSTOM grants nothing while the item is still in the workflow, since custom policies
+                // on a bitstream of an item that is not installed yet are skipped when access is checked.
                 policy.setRpType(ResourcePolicy.TYPE_CUSTOM);
 
                 // Add policy to bitstream existing policies

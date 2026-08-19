@@ -84,9 +84,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     private static final String EMBARGOEND_DATE_PAST = "2020-01-01";
     private static final String ITEM_TITLE = "Test Embargo Item";
     /**
-     * The single rpName both SAF tools write. Deliberately repeated here instead of referencing
-     * {@code SafEmbargoConstants}: the value ends up in the database and must not change silently, and it has
-     * to fit the 30 character {@code resourcepolicy.rpname} column.
+     * The single rpName both SAF tools write. Repeated here rather than referenced, because the value ends up
+     * in the database and has to fit the 30 character {@code resourcepolicy.rpname} column.
      */
     private static final String EMBARGO_POLICY_NAME = "embargo";
 
@@ -201,10 +200,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
 
         Bitstream bitstream = bitstreams.get(0);
 
-        // Counting is part of the assertion, not a detail: installItem clones the collection's undated
-        // DEFAULT_BITSTREAM_READ onto a bitstream that has no Anonymous READ policy yet, and such a second,
-        // undated policy would make the file downloadable throughout the embargo. Picking the first matching
-        // policy with findFirst() cannot see that.
+        // installItem clones the collection's undated DEFAULT_BITSTREAM_READ onto a bitstream without an
+        // Anonymous READ policy, and such a second policy would open the file throughout the embargo.
         List<ResourcePolicy> anonymousRead = anonymousReadPolicies(bitstream);
         assertEquals("exactly one Anonymous READ policy may remain: " + describe(bitstream),
                 1, anonymousRead.size());
@@ -226,11 +223,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * An embargo that has already expired must not be turned into a policy - but "no embargo policy" is only
-     * half the requirement. The original assertion ("no Anonymous policy carries a start date") is satisfied
-     * just as well by a bitstream that has no policy at all and answers HTTP 401, which is the failure mode
-     * this branch is fixing. The test therefore also asserts that the file really is publicly readable, which
-     * on the import path means the collection default policies installItem applies.
+     * Verifies that an embargo which has already expired produces no policy and leaves the file readable,
+     * which on the import path means the collection default policies applied by installItem.
      */
     @Test
     public void testPastEmbargoDateNoPolicy() throws Exception {
@@ -274,24 +268,15 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
 
         assertTrue("Should not have embargo policy for past dates", !hasEmbargoPolicy);
 
-        // The point of not writing an expired embargo policy is that the file stays available. Zero policies
-        // would satisfy the assertion above and leave every download at HTTP 401.
+        // The assertion above is also satisfied by a bitstream with no policy at all, which is unreadable.
         assertTrue("An expired embargo end date must leave the bitstream readable, not policy-less",
                 anonymousCanRead(bitstream));
     }
 
     /**
-     * The regression this test exists for: {@code dspace import -a -w} puts the item into the workflow, and
-     * approving it calls {@code installItem}, which applies the collection's default policies. A bitstream
-     * that carries no embargo policy at that moment has no Anonymous READ policy at all, so
-     * {@code ItemServiceImpl.addDefaultPoliciesNotInPlace} clones the collection's <em>undated</em>
-     * DEFAULT_BITSTREAM_READ onto it - and the file is public from the second it is approved, while its
-     * metadata still says {@code embargoedAccess} with a future end date.
-     *
-     * <p>The embargo policy therefore has to be created on the common path, before the workflow starts. It
-     * discloses nothing while the item waits for approval, because {@code AuthorizeServiceImpl} ignores
-     * {@code TYPE_CUSTOM} policies on a bitstream that belongs to no installed item (DS-2614) - which the
-     * assertion on the workflow item below pins down.</p>
+     * Verifies that an embargo imported with {@code -w} survives approval. Approval calls {@code installItem},
+     * which clones the collection's undated default onto any bitstream without an Anonymous READ policy, so
+     * the embargo policy has to exist before the workflow starts.
      */
     @Test
     public void testWorkflowEmbargoSurvivesApproval() throws Exception {
@@ -324,8 +309,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
                 "-s", safDir.toString(), "-m", tempDir.toString() + "/mapfile.out" };
         runDSpaceScript(args);
 
-        // itemService.findByMetadataField only returns archived items, and this one is deliberately not
-        // archived yet. The mapfile is what the operator gets instead: "<package directory> <item uuid>".
+        // findByMetadataField only returns archived items and this one is still in the workflow, so the
+        // mapfile is what identifies it: "<package directory> <item uuid>".
         Item item = itemFromMapfile(tempDir.toString() + "/mapfile.out");
         assertFalse("fixture precondition: -w must leave the item in the workflow, not in the archive",
                 item.isArchived());
@@ -340,8 +325,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
         bitstream = context.reloadEntity(bitstream);
         assertTrue("fixture precondition: approving the workflow item must archive it", item.isArchived());
 
-        // The moment of the leak. Without the embargo policy the bitstream reaches installItem with no
-        // Anonymous READ policy, gets the collection default cloned onto it, and is public right here.
+        // Without the embargo policy the bitstream would reach installItem with no Anonymous READ policy and
+        // get the collection default cloned onto it.
         assertFalse("approving an embargoed submission published its files. dc.date.embargoend is "
                         + EMBARGOEND_DATE_FUTURE + ", so the file has to stay closed: " + describe(bitstream),
                 anonymousCanRead(bitstream));
@@ -364,11 +349,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The "special case" branch: {@code dc.date.embargoend} without {@code dc.rights.access=embargoedAccess}.
-     *
-     * <p>It had no test at all, which is why nobody noticed that it wrote the 48 character rpName
-     * "Special Case Embargo - No access rights metadata" into a {@code varchar(30)} column - on PostgreSQL
-     * that aborts the whole import, and the SQL error names the column, not the branch that produced it.</p>
+     * Verifies the branch where {@code dc.date.embargoend} arrives without
+     * {@code dc.rights.access=embargoedAccess}: it embargoes the files under the same, short enough rpName.
      */
     @Test
     public void testEmbargoEndWithoutAccessRightsStillEmbargoes() throws Exception {
@@ -437,9 +419,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * A workflow item that outlives its test keeps a {@code cwf_pooltask} row referencing the collection's
-     * workflow group, so {@code AbstractBuilder.cleanupObjects()} cannot delete that group - and every
-     * following test in this class then fails in cleanup instead of where the real problem is.
+     * A workflow item that outlives its test keeps a {@code cwf_pooltask} row referencing the workflow group,
+     * which then blocks {@code AbstractBuilder.cleanupObjects()} from deleting that group.
      */
     private void deleteRemainingWorkflowItems() throws Exception {
         if (context == null || !context.isValid()) {
@@ -491,8 +472,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Every resource policy of the bitstream, for failure messages - "the assertion failed" is not enough to
-     * tell an extra undated policy from a missing one.
+     * Every resource policy of the bitstream, for failure messages: an extra undated policy and a missing one
+     * are otherwise indistinguishable.
      */
     private String describe(Bitstream bitstream) throws Exception {
         StringBuilder sb = new StringBuilder(System.lineSeparator());
@@ -517,7 +498,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * What an anonymous visitor gets, with the test's own turnOffAuthorisationSystem calls temporarily unwound.
+     * Tells whether a visitor who is not logged in may read the bitstream, with the test's own
+     * turnOffAuthorisationSystem calls temporarily unwound.
      */
     private boolean anonymousCanRead(Bitstream bitstream) throws Exception {
         EPerson savedUser = context.getCurrentUser();
@@ -582,14 +564,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The leak of this round, and the reason the old version of this test did not catch it: it asserted
-     * "no embargo policy", which is satisfied just as well by a bitstream that is wide open. An unparseable
-     * {@code dc.date.embargoend} used to be a log line and a {@code return}, after which the item was
-     * archived, {@code installItem} cloned the collection undated default READ policy onto the bitstream, and
-     * the file was public although its own metadata says {@code embargoedAccess} - with exit code 0.
-     *
-     * <p>The value here is one no date parser accepts. The values that {@code DCDate} <em>did</em> accept are
-     * a different story and are still imported, see the three format tests below.</p>
+     * Verifies that a {@code dc.date.embargoend} no date parser accepts is reported and leaves no readable
+     * file behind. The shapes {@code DCDate} did accept are still imported, see the format tests below.
      */
     @Test
     public void testInvalidEmbargoDateFormat() throws Exception {
@@ -597,9 +573,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * {@code DCDate} is lenient and reads 30 February as 2 March, i.e. it turns a typo into a real embargo
-     * date. Rejecting the value is right, but rejecting it and archiving the item anyway is the leak above,
-     * so this pins down both halves on the import path.
+     * Verifies that a date only a lenient parser would accept is refused; reading 30 February as 2 March turns
+     * a typo into a real embargo date.
      */
     @Test
     public void testLenientRollOverEmbargoDateIsRefused() throws Exception {
@@ -608,9 +583,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * {@code embargoedAccess} without an end date is self-contradictory metadata. Importing it archives an
-     * item that says its files are closed while the collection default policies make them public, which is
-     * exactly the contradiction resolved in the direction of disclosure.
+     * Verifies that {@code embargoedAccess} without an end date is refused: archiving it would leave an item
+     * whose metadata says closed while the collection default policies make the files public.
      */
     @Test
     public void testEmbargoedAccessWithoutEndDateIsRefused() throws Exception {
@@ -624,8 +598,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * A present but empty {@code dc.date.embargoend} is a broken export. The field is an instruction to close
-     * the files, and an instruction that cannot be carried out must not end as "no embargo".
+     * Verifies that a present but empty {@code dc.date.embargoend} is refused rather than read as "no
+     * embargo"; it is a broken export.
      */
     @Test
     public void testBlankEmbargoEndIsRefused() throws Exception {
@@ -633,10 +607,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Backwards compatibility, first of three. {@code DCDate} accepted a bare year and
-     * {@code DCDate.toDate()} returned its <em>first</em> instant, so the old code has always read
-     * {@code 2099} as "the embargo ends on 1 January 2099" - not on 31 December. Widening it now would extend
-     * embargoes the operators have been living with, so the day is kept and only the fail-open half changed.
+     * Verifies that a bare year keeps the day {@code DCDate} mapped it to, 1 January; reading it as
+     * 31 December would extend embargoes that repositories already live with.
      */
     @Test
     public void testYearOnlyEmbargoEndIsFirstOfJanuary() throws Exception {
@@ -645,8 +617,7 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Backwards compatibility, second of three: {@code yyyy-MM} is the first day of that month, again because
-     * that is the instant {@code DCDate.toDate()} returned.
+     * Verifies that {@code yyyy-MM} keeps the day {@code DCDate} mapped it to, the first of that month.
      */
     @Test
     public void testYearMonthEmbargoEndIsFirstOfMonth() throws Exception {
@@ -655,9 +626,7 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Backwards compatibility, third of three: a full ISO timestamp. The time of day is dropped and the UTC
-     * day of the instant is the last closed day, which for the {@code T00:00:00Z} form every DSpace export
-     * writes is the same day and the same policy start date as before.
+     * Verifies that a full ISO timestamp is truncated to its UTC day, which is then the last closed day.
      */
     @Test
     public void testIsoTimestampEmbargoEndIsTruncatedToUtcDay() throws Exception {
@@ -666,14 +635,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The same class of bug as the parse failure, one layer down: writing the policy fails and the failure is
-     * caught, logged and forgotten. The bitstream then reaches {@code installItem} without an Anonymous READ
-     * policy and gets the collection undated default cloned onto it, i.e. the file is published by the very
-     * code path that was supposed to close it.
-     *
-     * <p>The failure is injected instead of provoked: breaking the resourcepolicy table of a running test
-     * database would take the rest of the suite with it. The test class sits in the same package as the
-     * service, so the Spring-injected collaborators can be replaced by hand.</p>
+     * Verifies that a policy which cannot be written stops the import instead of being logged and forgotten.
+     * The failure is injected because breaking the resourcepolicy table would take the rest of the suite down.
      */
     @Test
     public void testFailureToWriteThePolicyIsNotSwallowed() throws Exception {
@@ -691,13 +654,13 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
                     + " few lines later in addItem and installItem then hands its bitstreams the collection"
                     + " undated default READ policy, so a swallowed failure here publishes the files.");
         } catch (Exception expected) {
-            // fail closed: the exception is the whole point, the import is rolled back by ItemImport
+            // fail closed: ItemImport rolls the import back
         }
     }
 
     /**
-     * Same again for the other collaborator: without the {@code Anonymous} group there is no embargo policy
-     * to create, and an item archived without one is public by collection default.
+     * Same for the other collaborator: without the {@code Anonymous} group no embargo policy can be created,
+     * and an item archived without one is public by collection default.
      */
     @Test
     public void testMissingAnonymousGroupIsNotSwallowed() throws Exception {
@@ -766,10 +729,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Both halves of "fail closed" for a package whose {@code dc.date.embargoend} cannot be used: the
-     * operator is told (so the exit code is not 0), and no file of that package ends up readable. Asserting
-     * only the first half would pass on an import that leaves the files open, asserting only the second would
-     * pass on a silent import of nothing.
+     * Both halves of "fail closed" for a package whose {@code dc.date.embargoend} cannot be used: the failure
+     * is reported, and no file of that package ends up readable.
      */
     private void assertBrokenEmbargoPackageIsRefused(String embargoEnd, String what) throws Exception {
         Path itemDir = safPackage("embargoedAccess", embargoEnd, "TEST CONTENT " + what);
@@ -867,8 +828,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Every archived item with this title and the policies of its ORIGINAL bitstreams, for failure messages.
-     * "The import did not fail" is not enough to tell a refused package from a published one.
+     * Every archived item with this title and the policies of its ORIGINAL bitstreams, for failure messages:
+     * a refused package and a published one are otherwise indistinguishable.
      */
     private String describeArchived(String title) throws Exception {
         StringBuilder sb = new StringBuilder(System.lineSeparator());

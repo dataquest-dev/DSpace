@@ -9,13 +9,9 @@ package org.dspace.app.itemimport;
 
 /**
  * Thrown when a SAF package claims an embargo ({@code dc.rights.access=embargoedAccess} or
- * {@code dc.date.embargoend}) that the import cannot turn into a resource policy.
- *
- * <p>Checked on purpose. Every one of these conditions used to be a log line followed by a {@code return},
- * after which the item was archived anyway - and {@code installItem} then gave its bitstreams the collection's
- * undated default READ policy, so the files were public although their own metadata says they are closed, with
- * exit code 0. There is no correct way to swallow this exception: an embargo that cannot be written means the
- * package has to be refused.</p>
+ * {@code dc.date.embargoend}) that the import cannot turn into a resource policy. It is checked because the
+ * package has to be refused: an item archived without its embargo policy gets the collection default READ
+ * policy from {@code installItem} and its files become public.
  */
 public class EmbargoMetadataException extends Exception {
 

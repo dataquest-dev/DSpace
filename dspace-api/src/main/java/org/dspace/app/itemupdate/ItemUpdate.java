@@ -406,8 +406,8 @@ public class ItemUpdate {
     }
 
     /**
-     * Exit code of a run. Embargo problems are reported per item and never abort the run, but they must not be
-     * reported as success either: an operator scripting {@code itemupdate} only ever sees the exit code.
+     * Exit code of a run. Embargo problems are reported per item without aborting the run, but a run that
+     * reported them must not exit as a success: a script around this tool sees the exit code only.
      *
      * @param status              exit code the run has produced so far
      * @param embargoSyncFailures number of bitstreams/items whose embargo could not be synchronised
@@ -503,15 +503,8 @@ public class ItemUpdate {
                         try {
                             this.syncEmbargoPolicies(context, item);
                         } catch (Exception embargoFailure) {
-                            // The catch below only prints the exception, and a printed exception is an exit
-                            // code of 0. A database error cannot leave half of the synchronisation behind:
-                            // Hibernate marks the transaction rollback-only and HibernateDBConnection.commit()
-                            // then commits nothing at all, so context.complete() writes the whole batch or
-                            // none of it. What does get committed is a non-database failure raised between the
-                            // re-dating of the surviving Anonymous READ policy and the deletion of the
-                            // duplicates that follow it. Counting the failure is what stops such an item from
-                            // being reported as a successful run; the synchronisation is idempotent, so
-                            // re-running the same SAF package is the repair.
+                            // The catch below only prints the exception, which would leave the run exiting 0.
+                            // Synchronisation is idempotent, so re-running the SAF package repairs the item.
                             embargoSyncFailures++;
                             throw embargoFailure;
                         }
@@ -703,19 +696,9 @@ public class ItemUpdate {
 
     /**
      * Bring the {@code Anonymous}/{@code READ} resource policies of the ORIGINAL bitstreams in line with the
-     * embargo metadata of the item ({@code dc.rights.access}, {@code dc.date.embargoend}).
-     *
-     * <p>The order of the three phases below is the whole point of this method. A policy whose start date lies
-     * in the future only postpones access and is therefore harmless, but deleting a policy - or writing a start
-     * date that has already passed - is a publishing operation. So every objection is raised first, the target
-     * state is computed second, and only a run that got that far may touch a single policy. Nothing is deleted
-     * before its replacement has been stored, which is why the existing policy is mutated rather than replaced:
-     * a failure between a delete and a create would leave the file with no policy at all, i.e. HTTP 401.</p>
-     *
-     * <p>Only a {@code dc.date.embargoend} that is actually present is an instruction. Its absence means the
-     * SAF package says nothing about the embargo of this item, and the policies are left exactly as they are -
-     * an embargo this tool never set is never lifted by it. A file is opened by writing a
-     * {@code dc.date.embargoend} that lies in the past.</p>
+     * embargo metadata of the item ({@code dc.rights.access}, {@code dc.date.embargoend}). The metadata is
+     * validated before any policy is touched, and the surviving policy is re-dated instead of being replaced,
+     * so that a failure cannot leave a bitstream without any policy.
      *
      * @param context DSpace context
      * @param item    item that has just been updated from the SAF archive
@@ -723,7 +706,6 @@ public class ItemUpdate {
      * @throws AuthorizeException if the policy update is not permitted
      */
     protected void syncEmbargoPolicies(Context context, Item item) throws SQLException, AuthorizeException {
-        // --- phase 1: objections -------------------------------------------------------------------------
         if (item.isWithdrawn()) {
             prWarn("Item " + itemLabel(item) + " is withdrawn, its bitstream policies are left untouched."
                        + " A withdrawn item must never regain a READ policy, or the takedown would undo itself"
@@ -744,9 +726,8 @@ public class ItemUpdate {
             if (EMBARGOED_ACCESS.equals(value)) {
                 hasEmbargoedAccess = true;
             } else if (!OPEN_ACCESS.equals(value)) {
-                // restrictedAccess, metadataOnlyAccess or a value we do not know. A single such value blocks the
-                // whole item even next to an openAccess one: contradictory metadata is never resolved towards
-                // disclosure, and an unknown access right is not an invitation to guess.
+                // restrictedAccess, metadataOnlyAccess or an unknown value blocks the whole item, even next
+                // to an openAccess one: contradictory metadata is not resolved towards disclosure.
                 prWarn("Item " + itemLabel(item) + " carries " + EMBARGO_FIELD_RIGHTS_ACCESS + "='"
                            + accessRight.getValue() + "', which is not an embargo access right ("
                            + OPEN_ACCESS + ", " + EMBARGOED_ACCESS + "), its bitstream policies are left"
@@ -755,7 +736,6 @@ public class ItemUpdate {
             }
         }
 
-        // --- phase 2: validate and compute the target state ----------------------------------------------
         List<MetadataValue> embargoEndDates = itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY);
 
         if (embargoEndDates.isEmpty()) {
@@ -766,13 +746,8 @@ public class ItemUpdate {
                 embargoSyncFailures++;
                 return;
             }
-            // A missing dc.date.embargoend is no instruction at all, and it is never read as "lift the
-            // embargo". The embargo of an item may well have been set outside this tool - the submission
-            // access condition and dspace bulk-access-control both write exactly the policy that would be
-            // reopened here (Anonymous/READ, TYPE_CUSTOM, rpName "embargo") - while syncEmbargoPolicies runs
-            // for every item of a batch whose -a/-d fields mention an embargo field. A single SAF package
-            // without the field would therefore publish every embargoed file of that batch.
-            // The supported way to open a file is a dc.date.embargoend that lies in the past.
+            // A missing dc.date.embargoend is no instruction, not a request to lift the embargo: it may have
+            // been set outside this tool, and this method runs for every item of the batch.
             pr("Item " + itemLabel(item) + " has no " + EMBARGO_FIELD_DATE_END + ", resource policies left"
                    + " untouched. To end an embargo, set " + EMBARGO_FIELD_DATE_END + " to a date in the past.");
             return;
@@ -792,10 +767,8 @@ public class ItemUpdate {
 
         LocalDate embargoEndDay;
         try {
-            // Strict parsing on purpose: DCDate rolls 2026-02-30 over into 2026-03-02 and would turn a typo
-            // into a real embargo date. The shapes DCDate accepted are still read, and read as the same day,
-            // so the SAF packages of this repository keep working - see SafEmbargoDateParser. The import side
-            // uses the same parser, or the same package would mean two different days in the two tools.
+            // Strict parsing: DCDate rolls 2026-02-30 over into 2026-03-02 and would turn a typo into a real
+            // embargo date. The import path uses the same parser, so a package means one day in both tools.
             embargoEndDay = SafEmbargoDateParser.parseEmbargoEndDay(embargoEndDateStr);
         } catch (DateTimeParseException e) {
             prErr("Invalid " + EMBARGO_FIELD_DATE_END + " '" + embargoEndDateStr + "' on item "
@@ -805,43 +778,30 @@ public class ItemUpdate {
             return;
         }
 
-        // dc.date.embargoend is the inclusive last day of the embargo, so access starts the day after, at
-        // midnight UTC. Calendar.getInstance() would use the server time zone and shift that boundary.
-        // ResourcePolicy.startDate is mapped @Temporal(DATE), so only the calendar day below survives the
-        // database. Midnight UTC is what core DSpace writes for the same day (DCDate.toDate() parses
-        // date-only values in UTC, the REST and submission layer uses TimeHelpers.toMidnightUTC), so every
-        // embargo path of one repository stores the same day. Upstream limitation, deliberately not patched
-        // here: on a JVM whose zone is behind UTC the driver stores the previous day - equally true of all
-        // those paths, and hibernate.jdbc.time_zone has no effect on @Temporal(DATE).
+        // dc.date.embargoend is the last day of the embargo, so access starts the day after at midnight UTC:
+        // startDate is mapped @Temporal(DATE) and the other DSpace embargo paths store that same day.
         LocalDate accessStartDay = embargoEndDay.plusDays(1);
         Date accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
 
         if (!accessStartDay.isAfter(LocalDate.now(ZoneOffset.UTC))) {
-            // An expired embargo is a publication, not a deletion. The real - already passed - start date is
-            // written, which makes the policy effective immediately.
+            // An expired embargo is a publication, not a deletion: the start date that has already passed
+            // makes the policy effective immediately.
             pr("Embargo of item " + itemLabel(item) + " already expired on " + embargoEndDay
                    + ", its ORIGINAL bitstreams are public since " + accessStartDay + ".");
         }
 
-        // --- phase 3: mutate -----------------------------------------------------------------------------
         applyEmbargoToItemBitstreams(context, item, accessStartDate);
     }
 
     /**
      * Write the target embargo state onto the {@code Anonymous}/{@code READ} policy of every ORIGINAL bitstream
-     * of the item.
-     *
-     * <p>Exactly one such policy is left behind per bitstream: a second, undated one would silently defeat the
-     * embargo. A policy is never created - a bitstream without an {@code Anonymous}/{@code READ} policy was not
-     * public, and inventing one would widen access instead of re-dating it. A bitstream whose
-     * {@code Anonymous}/{@code READ} access expires by itself (a policy with an end date, as written by the
-     * {@code lease} access condition) is skipped: this tool has no instruction for that end date and both
-     * keeping and dropping it would decide access on the operator's behalf.</p>
+     * of the item, leaving exactly one such policy per bitstream, as a second undated one would defeat the
+     * embargo. Where there is no such policy none is created: the bitstream was not public, and creating one
+     * would widen access instead of re-dating it.
      *
      * @param context   DSpace context
      * @param item      item whose ORIGINAL bitstreams are synchronised
-     * @param startDate day the files become publicly readable, never {@code null}; a day in the past makes the
-     *                  policy effective immediately
+     * @param startDate day the files become publicly readable; a day in the past takes effect immediately
      * @throws SQLException       if a database error occurs
      * @throws AuthorizeException if the policy update is not permitted
      */
@@ -857,9 +817,8 @@ public class ItemUpdate {
 
         for (Bundle bundle : item.getBundles(Constants.CONTENT_BUNDLE_NAME)) {
             for (Bitstream bitstream : bundle.getBitstreams()) {
-                // Deliberately located by (group, action) and not by rpName: policies written by earlier
-                // versions of this tool carry "Standard Embargo" or "Special Case Embargo" and have to be
-                // adopted and normalised instead of being left behind next to a new one.
+                // Located by (group, action) rather than by rpName: policies written under earlier names
+                // have to be adopted and normalised instead of being left behind next to a new one.
                 List<ResourcePolicy> anonymousReadPolicies = new ArrayList<>();
                 for (ResourcePolicy policy : resourcePolicyService.find(context, bitstream, Constants.READ)) {
                     if (anonymousGroup.equals(policy.getGroup())) {
@@ -877,13 +836,8 @@ public class ItemUpdate {
                     continue;
                 }
 
-                // A policy that carries an end date is a lease (public now, closed again on that day), not
-                // an embargo, and this tool is given no instruction about end dates. Re-dating one would
-                // either close the file for good (an end date before the new start date) or, once the other
-                // Anonymous READ policies are deleted below, drop the end date that was to close it again
-                // and publish the file for ever. Both are the operator's decision, so the bitstream is left
-                // exactly as it is. Every Anonymous READ policy is examined and not only the survivor: the
-                // ones that are not selected are the ones the deletion loop removes.
+                // A policy with an end date is a lease, not an embargo: re-dating it would either close the
+                // file for good or drop the end date, and either way decide access for the operator.
                 ResourcePolicy leasePolicy = firstPolicyWithEndDate(anonymousReadPolicies);
                 if (leasePolicy != null) {
                     prErr("Bitstream '" + bitstream.getName() + "' (" + bitstream.getID() + ") of item "
@@ -902,8 +856,8 @@ public class ItemUpdate {
                 survivor.setRpName(SafEmbargoConstants.EMBARGO_POLICY_NAME);
                 resourcePolicyService.update(context, survivor);
 
-                // Only now, with the replacement safely stored, may the duplicates go. Reference identity is
-                // used on purpose: ResourcePolicy.equals compares values, which the lines above just changed.
+                // The duplicates go only once the survivor is stored. Reference identity rather than
+                // equals(): ResourcePolicy.equals compares values, which the lines above just changed.
                 for (ResourcePolicy policy : anonymousReadPolicies) {
                     if (policy != survivor) {
                         resourcePolicyService.delete(context, policy);

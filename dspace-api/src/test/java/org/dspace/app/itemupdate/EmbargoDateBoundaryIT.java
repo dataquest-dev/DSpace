@@ -65,25 +65,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Date-boundary and baseline behaviour of the VSB-TUO embargo synchronisation in {@link ItemUpdate}.
- *
- * <p>Every scenario models the customer workflow literally: a SAF archive is re-imported with
- * {@code ItemUpdate -s SAFDIR -d dc.rights.access -d dc.date.embargoend -a dc.rights.access
- * -a dc.date.embargoend}, which is what makes {@code processArchive} call {@code syncEmbargoPolicies}.</p>
- *
- * <p>The binding rules under test (VSB-TUO embargo specification):</p>
- * <ul>
- *   <li>the resulting {@code Anonymous}/{@code READ} policy on every ORIGINAL bitstream starts at
- *       {@code dc.date.embargoend + 1 day} at <em>midnight UTC</em>, because {@code dc.date.embargoend}
- *       is the inclusive last day of the embargo;</li>
- *   <li>there is always exactly one such policy - never zero (the file would answer HTTP 401) and never
- *       two (an undated one would silently neutralise the embargo);</li>
- *   <li>the policy is normalised to {@code rpType=TYPE_CUSTOM} and {@code rpName="embargo"};</li>
- *   <li>an embargo end date that already lies in the past is a <em>publication</em>, not a deletion.</li>
- * </ul>
- *
- * <p>All dates are derived from {@code LocalDate.now(ZoneOffset.UTC)}, never hard-coded, so the suite cannot
- * become a time bomb (lesson of PR #1359) and cannot straddle the UTC/Europe-Dublin day boundary.</p>
+ * Date-boundary behaviour of the embargo synchronisation in {@link ItemUpdate}: which calendar day the
+ * resulting {@code Anonymous}/{@code READ} policy starts on, that exactly one such policy is left behind, and
+ * that an embargo end date already in the past opens the file. All dates are derived from
+ * {@code LocalDate.now(ZoneOffset.UTC)} so the suite cannot expire.
  */
 public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
 
@@ -147,8 +132,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Row 1 of the specification: a future {@code dc.date.embargoend} closes the file and leaves exactly one
-     * normalised {@code Anonymous}/{@code READ} policy starting the day after the embargo end date.
+     * Verifies that a future {@code dc.date.embargoend} closes the file and leaves one normalised
+     * {@code Anonymous}/{@code READ} policy starting the day after the embargo end date.
      */
     @Test
     public void futureEmbargoEndBlocksAccess() throws Exception {
@@ -179,9 +164,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Row 2 of the specification: {@code dc.date.embargoend} is the <em>inclusive</em> last day of the embargo.
-     * When it equals today the file must still be closed today and open only tomorrow, so the policy start date
-     * is tomorrow - the "+1 day" has to be applied before, not after, any past/future comparison.
+     * Verifies that {@code dc.date.embargoend} is the inclusive last day: an end date of today keeps the file
+     * closed today and opens it tomorrow.
      */
     @Test
     public void embargoEndTodayStillBlocksToday() throws Exception {
@@ -214,8 +198,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Row 3 of the specification: an embargo that ended yesterday is expired, which means the file is published.
-     * The policy must survive with a start date of today, be date-valid and let anonymous visitors in.
+     * Verifies that an embargo which ended yesterday publishes the file, with the policy surviving and starting
+     * today.
      */
     @Test
     public void embargoEndYesterdayOpensAccess() throws Exception {
@@ -248,12 +232,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Main regression test - the exact record observed on dspace7-test.vsb.cz (item
-     * 4dde91f3-7078-4241-9938-9b8488623bb1: {@code dc.date.embargoend} in the past,
-     * {@code dc.rights.access=openAccess}, yet HTTP 401 on all 18 bitstreams).
-     *
-     * <p>The priming run with a future date is mandatory: it is what replaces the inherited collection default
-     * with a single dated policy, so that the following past-date run has exactly one policy left to destroy.</p>
+     * Verifies that an expired {@code dc.date.embargoend} with {@code dc.rights.access=openAccess} publishes the
+     * file. The priming run replaces the inherited collection default with a single dated policy.
      */
     @Test
     public void pastEmbargoEndWithOpenAccessOpensAccess() throws Exception {
@@ -266,7 +246,7 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
         dump("STEP A - fresh SAF import, before any itemupdate", bitstream);
         assertFreshImportBaseline(bitstream);
 
-        // (b) the state the customer confirmed as working: an embargo with a future end date
+        // priming run: an embargo with a future end date
         runItemUpdate(item, dublinCore(item, "embargoedAccess", futureEnd.toString()));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
@@ -275,7 +255,7 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
                         + " not be publicly readable." + diagnostics,
                 anonymousCanRead(bitstream));
 
-        // (c) the operator lets the embargo expire: past end date, item declared openAccess
+        // the embargo expires: past end date, item declared openAccess
         runItemUpdate(item, dublinCore(item, "openAccess", pastEnd.toString()));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
@@ -301,9 +281,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Same as {@link #pastEmbargoEndWithOpenAccessOpensAccess()} but the item keeps
-     * {@code dc.rights.access=embargoedAccess}. An expired embargo publishes the file regardless: the access
-     * right only names the licence regime, the end date decides when it lapses.
+     * Same as {@link #pastEmbargoEndWithOpenAccessOpensAccess()} with {@code dc.rights.access=embargoedAccess}:
+     * the access right names the licence regime, the end date decides when the embargo lapses.
      */
     @Test
     public void pastEmbargoEndWithEmbargoedAccessOpensAccess() throws Exception {
@@ -346,30 +325,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The only thing {@code resourcepolicy.start_date} can hold is a calendar day - it is a DATE column
-     * behind a {@code @Temporal(DATE)} field - and that stored day is what decides access from the next
-     * request on: {@code ResourcePolicyServiceImpl.isDateValid} compares "now" against the value that came
-     * back from the database, never against the instant this tool computed.
-     *
-     * <p>So the assertion that matters is a round trip. Synchronise, commit, drop the Hibernate session, read
-     * the policy back: the stored day has to be {@code dc.date.embargoend + 1}, the policy has to keep the
-     * file closed while that day is still ahead, and it has to be date-valid - and the file readable - once
-     * that day has arrived.</p>
-     *
-     * <p>The in-session instant is asserted too, before the commit: it must be midnight UTC and never
-     * midnight in the JVM time zone as produced by {@code Calendar.getInstance()} or
-     * {@code java.sql.Date.valueOf(LocalDate)}. Midnight UTC is what core DSpace writes for the same day
-     * ({@code DCDate.toDate()} for the embargo lifter, {@code TimeHelpers.toMidnightUTC} for REST and the
-     * submission UI), so every embargo path of one repository stores the same day. The closed leg anchors its
-     * end date to the next 1 July - still computed from today, so fully dynamic - which always falls inside
-     * Irish Summer Time (UTC+1), the zone the harness pins, so the two candidate instants are one hour apart
-     * all year round.</p>
-     *
-     * <p>Known blind spot, for whoever extends this: the harness pins H2 to {@code TIME ZONE=UTC}
-     * ({@code local.cfg}), so no test in this class can detect that a JVM zone <em>behind</em> UTC makes
-     * PostgreSQL store the previous day. That is a property of {@code @Temporal(DATE)} shared by every DSpace
-     * embargo path - see the comment next to the start date computation in {@link ItemUpdate} - and guarding
-     * it needs a PostgreSQL backed test.</p>
+     * Verifies that the start date is midnight UTC in session and comes back from the DATE column as the
+     * calendar day {@code dc.date.embargoend + 1}, which is the day later requests are authorised against.
      */
     @Test
     public void startDateSurvivesTheDatabaseAsTheExpectedCalendarDay() throws Exception {
@@ -382,19 +339,17 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
                 Date.from(futureStartDay.atStartOfDay(ZoneOffset.UTC).toInstant()),
                 Date.from(futureStartDay.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
-        // (a) the stored day is still ahead, so the file has to stay closed after the reload
+        // stored day still ahead: the file stays closed after the reload
         assertStoredStartDaySurvivesRoundTrip(futureEnd, false);
 
-        // (b) the embargo ended yesterday, so the stored day is today and the policy has to be in force
+        // embargo ended yesterday: the stored day is today and the policy is in force
         assertStoredStartDaySurvivesRoundTrip(utcToday().minusDays(1), true);
     }
 
     /**
-     * One leg of {@link #startDateSurvivesTheDatabaseAsTheExpectedCalendarDay()}.
-     *
-     * <p>{@code syncEmbargoPolicies} is invoked directly rather than through {@code processArchive} because
-     * the in-session instant is asserted before the commit, and {@code processArchive} ends with
-     * {@code context.uncacheEntity(item)}.</p>
+     * One leg of {@link #startDateSurvivesTheDatabaseAsTheExpectedCalendarDay()}. Calls
+     * {@code syncEmbargoPolicies} directly because the in-session instant is asserted before the commit, and
+     * {@code processArchive} ends with {@code context.uncacheEntity(item)}.
      *
      * @param embargoEnd       value of {@code dc.date.embargoend}
      * @param expectedReadable whether an anonymous visitor must be able to download the file once the policy
@@ -441,13 +396,11 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
                         + inSession.getStartDate().toInstant().atZone(ZoneOffset.UTC) + ")." + diagnostics,
                 expectedUtcMidnight.getTime(), inSession.getStartDate().getTime());
 
-        // Leave the session: commit what the synchronisation wrote and evict every cached entity, so the
-        // start date has to come back out of the DATE column instead of out of Hibernate's memory. That is
-        // the value the next request authorises against.
+        // Read the start date back out of the DATE column instead of out of Hibernate's memory - that is the
+        // value the next request authorises against.
         context.commit();
         context.uncacheEntities();
-        // Everything the test itself holds is detached by now, the fixture fields of the class included, and
-        // the next leg creates its item in this very collection.
+        // Everything the test holds is detached by now, the fixture fields included.
         collection = context.reloadEntity(collection);
         anonymousGroup = context.reloadEntity(anonymousGroup);
         bitstream = context.reloadEntity(bitstream);
@@ -491,8 +444,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Row 12 of the specification: several {@code dc.date.embargoend} values are a data error the operator has
-     * to see, but the run still completes and uses the first value.
+     * Verifies that several {@code dc.date.embargoend} values are reported to the operator while the run
+     * completes and follows the first value.
      */
     @Test
     public void multipleEmbargoEndValuesUsesFirst() throws Exception {
@@ -535,43 +488,26 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
                 anonymousCanRead(bitstream));
     }
 
-    // -----------------------------------------------------------------------------------------------
-    // legacy dc.date.embargoend shapes
-    // -----------------------------------------------------------------------------------------------
-
     /**
-     * The value shapes {@code DCDate} used to accept still have to work here, and have to mean the same day
-     * here as on the import path. {@code DCDate.toDate()} reported the <em>first</em> instant of a year or a
-     * month, so {@code 2099} has always meant 1 January 2099 and {@code 2027-05} 1 May 2027, never the end of
-     * the period; a timestamp was truncated to its UTC day.
-     *
-     * <p>The same SAF package is first fed to {@code dspace import} and later re-fed to {@code dspace
-     * itemupdate}, so a disagreement between the two tools is a file one of them closes and the other opens.
-     * The import-side mirror of this test is {@code EmbargoImportIT#testYearOnlyEmbargoEndIsFirstOfJanuary}
-     * and its two neighbours.</p>
+     * Verifies that the value shapes {@code DCDate} accepted mean the same day here as on the import path: a
+     * bare year or month is its first day, a timestamp is truncated to its UTC day.
      */
     @Test
     public void legacyEmbargoEndShapesKeepTheirDcDateDay() throws Exception {
         int nextYear = utcToday().getYear() + 1;
         LocalDate tomorrow = utcToday().plusDays(1);
 
-        // a bare year is 1 January of it - not 31 December, which would extend embargoes operators live with
+        // a bare year is 1 January of it, not 31 December, which would extend the embargo
         assertLegacyEmbargoEndClosesTheFileUntil(String.valueOf(nextYear), LocalDate.of(nextYear, 1, 1));
         // a bare month is the 1st of it, for the same reason
         assertLegacyEmbargoEndClosesTheFileUntil(nextYear + "-05", LocalDate.of(nextYear, 5, 1));
-        // the shape every DSpace export writes; the time of day is dropped, the UTC day is the last closed day
+        // the shape DSpace exports write; the time of day is dropped, the UTC day is the last closed day
         assertLegacyEmbargoEndClosesTheFileUntil(tomorrow + "T00:00:00Z", tomorrow);
     }
 
     /**
-     * A legacy shape whose day lies in the <em>past</em> publishes the file, and that is a decision, not an
-     * accident. {@code 2020} says the embargo ended in 2020, so the files are public - exactly as a written
-     * out {@code 2020-01-01} would be. Until the {@code DCDate} shapes were read again, such a value threw and
-     * the item was refused; that refusal was a side effect of strict parsing and not what the metadata says.
-     *
-     * <p>This is the one test in the class that watches a file being opened by a legacy value, so it asserts
-     * the whole outcome: one immediately effective policy, an anonymous visitor who really gets the file, and
-     * a run that reports no problem ({@link #runItemUpdate} checks the last part).</p>
+     * Verifies that a legacy shape whose day lies in the past publishes the file: one immediately effective
+     * policy, an anonymous visitor who gets the file, and a run that reports no problem.
      */
     @Test
     public void legacyPastEmbargoEndPublishesOnPurpose() throws Exception {
@@ -619,11 +555,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Reading the {@code DCDate} shapes is not the same as swallowing what {@code DCDate} swallowed.
-     * {@code SimpleDateFormat} took {@code 2099garbage} for the year 2099, and {@code DCDate} ignored a numeric
-     * UTC offset instead of applying it - both move an embargo boundary silently. They are refused, and a
-     * refusal has to leave every policy exactly where it was and fail the run: an operator scripting
-     * {@code itemupdate} sees nothing but the exit code.
+     * Verifies that values only a lenient parser would accept are refused, leaving every policy where it was
+     * and failing the run - both shapes would move an embargo boundary without saying so.
      */
     @Test
     public void unparseableLegacyLookalikeLeavesPoliciesUntouched() throws Exception {
@@ -636,10 +569,10 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * One legacy value that has to close the file until exactly the day {@code DCDate} mapped it to.
+     * One legacy value that has to close the file until the day {@code DCDate} mapped it to.
      *
      * @param legacyValue        raw {@code dc.date.embargoend} as a legacy SAF package writes it
-     * @param expectedEmbargoEnd last closed day {@code DCDate} mapped that value to; has to be in the future
+     * @param expectedEmbargoEnd last closed day that value maps to; has to be in the future
      */
     private void assertLegacyEmbargoEndClosesTheFileUntil(String legacyValue, LocalDate expectedEmbargoEnd)
             throws Exception {
@@ -675,8 +608,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * One value that has to be refused: the policies of an embargoed file stay byte for byte what they were and
-     * the run counts a failure, so {@code ItemUpdate.main()} exits non-zero.
+     * One value that has to be refused: the policies of an embargoed file stay as they were and the run counts
+     * a failure.
      *
      * @param rejectedValue raw {@code dc.date.embargoend} that no accepted shape matches
      */
@@ -716,13 +649,9 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
                 + " dc.date.embargoend." + diagnostics, anonymousCanRead(bitstream));
     }
 
-    // -----------------------------------------------------------------------------------------------
-    // assertions
-    // -----------------------------------------------------------------------------------------------
-
     /**
-     * A bitstream created by {@code BitstreamBuilder} inherits the collection DEFAULT_BITSTREAM_READ, which is
-     * byte-for-byte the state a fresh SAF import leaves behind: one Anonymous/READ policy without a start date.
+     * Asserts the state a fresh SAF import leaves behind: one Anonymous/READ policy without a start date,
+     * inherited from the collection DEFAULT_BITSTREAM_READ.
      */
     private void assertFreshImportBaseline(Bitstream bitstream) throws Exception {
         List<Group> defaultBitstreamReadGroups =
@@ -744,8 +673,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Zero policies means HTTP 401 on the file; more than one means an undated policy can coexist with the dated
-     * one and silently neutralise the embargo. Exactly one is the only acceptable outcome.
+     * Asserts a single Anonymous/READ policy: zero leaves the file unreachable, more than one lets an undated
+     * policy coexist with the dated one and neutralise the embargo.
      */
     private ResourcePolicy assertExactlyOneAnonymousReadPolicy(String scenario, Bitstream bitstream)
             throws Exception {
@@ -758,10 +687,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The surviving policy has to be normalised: {@code TYPE_CUSTOM} (AuthorizeServiceImpl only honours custom
-     * policies on not-yet-installed items), {@code rpName="embargo"} (the access condition name used by
-     * access-conditions.xml, short enough for the 30 character column) and a start date of
-     * {@code dc.date.embargoend + 1 day}.
+     * Asserts the normalised shape of the surviving policy: {@code TYPE_CUSTOM}, {@code rpName="embargo"} and a
+     * start date of {@code dc.date.embargoend + 1 day}.
      */
     private void assertNormalisedEmbargoPolicy(String scenario, ResourcePolicy policy, LocalDate expectedStartDay) {
         assertNotNull("After " + scenario + " resource policy #" + policy.getID() + " must carry a start date."
@@ -788,18 +715,9 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
                 expectedEmbargoEnd, firstMetadataValue(item, "date", "embargoend"));
     }
 
-    // -----------------------------------------------------------------------------------------------
-    // policy inspection helpers
-    // -----------------------------------------------------------------------------------------------
-
     /**
-     * Answers the only question that matters: may a not-logged-in visitor download the file?
-     *
-     * <p>The authorisation state is a stack, not a flag, and the builders as well as {@code processArchive} push
-     * and pop around themselves, so the depth at assertion time is not guaranteed to be zero. The stack is
-     * therefore drained (otherwise {@code AuthorizeServiceImpl.authorize} short-circuits and every read looks
-     * allowed) and restored afterwards. The current user is cleared as well, because {@code setUp} leaves the
-     * test EPerson logged in.</p>
+     * Tells whether a visitor who is not logged in may read the bitstream. The authorisation state is a stack
+     * the builders push and pop, so it is drained first - otherwise every read looks allowed.
      */
     private boolean anonymousCanRead(Bitstream bitstream) throws Exception {
         EPerson savedUser = context.getCurrentUser();
@@ -820,8 +738,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Every resource policy id of the bitstream, whatever the action. Comparing ids and not counts is the point:
-     * a policy deleted and immediately re-created keeps the count but loses its identity.
+     * Every resource policy id of the bitstream. Ids rather than counts, so a policy that was deleted and
+     * re-created is visible.
      */
     private Set<Integer> allPolicyIds(Bitstream bitstream) throws Exception {
         Set<Integer> ids = new TreeSet<>();
@@ -866,9 +784,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * {@code ResourcePolicy.startDate} is mapped as {@code @Temporal(DATE)}, so once it has been round-tripped
-     * through the database it comes back as a day-granular {@code java.sql.Date}. Compare calendar days, never
-     * {@code Date} instances, across the UTC/Europe-Dublin boundary.
+     * Calendar day of a start date. {@code ResourcePolicy.startDate} is mapped as {@code @Temporal(DATE)}, so
+     * after a round trip through the database it comes back as a day-granular {@code java.sql.Date}.
      */
     private LocalDate toLocalDate(Date date) {
         if (date instanceof java.sql.Date) {
@@ -877,18 +794,14 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
         return date.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
     }
 
-    // -----------------------------------------------------------------------------------------------
-    // fixture helpers
-    // -----------------------------------------------------------------------------------------------
-
-    /** Calendar "today" in UTC - the specification does all embargo arithmetic in UTC calendar days. */
+    /** Calendar "today" in UTC - all embargo arithmetic is done in UTC calendar days. */
     private LocalDate utcToday() {
         return LocalDate.now(ZoneOffset.UTC);
     }
 
     /**
-     * The next 1 July strictly after today, computed dynamically. Ireland observes Irish Summer Time (UTC+1) on
-     * that date every year, which is what makes midnight UTC and midnight in the server zone distinguishable.
+     * The next 1 July after today. Ireland is on UTC+1 then, which makes midnight UTC and midnight in the
+     * harness time zone distinguishable.
      */
     private LocalDate nextIrishSummerTimeDay() {
         LocalDate today = utcToday();
@@ -941,17 +854,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Equivalent of {@code ItemUpdate -s SAFDIR -d dc.rights.access -d dc.date.embargoend -a dc.rights.access
-     * -a dc.date.embargoend}: an update whose target fields contain an embargo field, which is exactly what
-     * makes {@code processArchive} call {@code syncEmbargoPolicies}.
-     *
-     * <p>{@code ItemUpdate.main} is deliberately not used - it ends in {@code System.exit} and would kill the
-     * failsafe JVM.</p>
-     *
-     * <p>Every scenario in this class is one {@code itemupdate} is supposed to carry out, so the helper also
-     * asserts the exit code the run would have produced: {@code embargoSyncFailures} is the only thing
-     * {@code main()} turns into a non-zero status, and a refusal that keeps the status at 0 is a silent
-     * failure for the operator's script.</p>
+     * Runs itemupdate with both embargo fields as targets, the combination that triggers embargo
+     * synchronisation. {@code main()} is not used because it ends in {@code System.exit}.
      *
      * @return everything {@code ItemUpdate.pr()} printed during the run; the stream is teed, so the output still
      *         reaches the failsafe output file as well.
@@ -963,8 +867,8 @@ public class EmbargoDateBoundaryIT extends AbstractIntegrationTestWithDatabase {
     /**
      * Same run, for the scenarios {@code itemupdate} has to refuse.
      *
-     * @param expectedEmbargoSyncFailures number of embargo problems the run has to count; anything but 0 means
-     *                                    {@code ItemUpdate.main()} would exit with 1
+     * @param expectedEmbargoSyncFailures number of embargo problems the run has to count; anything but 0 makes
+     *                                    {@code ItemUpdate.main()} exit with 1
      */
     private String runItemUpdate(Item item, String dublinCoreContent, int expectedEmbargoSyncFailures)
             throws Exception {

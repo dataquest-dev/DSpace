@@ -54,13 +54,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Regression test for the VSB-TUO embargo synchronisation in {@link ItemUpdate}.
- *
- * <p>Models the exact customer scenario observed on dspace7-test.vsb.cz: a thesis is first embargoed
- * with a future {@code dc.date.embargoend} and later the very same SAF archive is re-imported with an
- * {@code dc.date.embargoend} that already lies in the past. After the second run every
- * {@code Anonymous}/{@code READ} policy is gone from the ORIGINAL bitstreams and the files answer
- * HTTP 401 even though {@code dc.rights.access} says {@code openAccess}.</p>
+ * Covers embargo synchronisation in {@link ItemUpdate} when the same archive is re-imported with a
+ * {@code dc.date.embargoend} that has already passed: the ORIGINAL bitstreams have to stay readable
+ * for anonymous users instead of losing their last {@code READ} policy.
  */
 public class EmbargoPastDateIT extends AbstractIntegrationTestWithDatabase {
 
@@ -118,15 +114,14 @@ public class EmbargoPastDateIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * A {@code dc.date.embargoend} in the past must never strip the ORIGINAL bitstreams of their last
-     * {@code Anonymous}/{@code READ} policy. An expired embargo means "publish", not "hide forever".
+     * Verifies that a future embargo followed by an expired one leaves the ORIGINAL bitstream publicly
+     * readable.
      */
     @Test
     public void pastEmbargoEndMustKeepFilesPublic() throws Exception {
         String futureEmbargoEnd = LocalDate.now().plusYears(1).toString();
         String pastEmbargoEnd = LocalDate.now().minusMonths(1).toString();
 
-        // (a) item with an ORIGINAL bitstream in a collection granting DEFAULT_BITSTREAM_READ to Anonymous
         List<Group> defaultBitstreamReadGroups =
                 authorizeService.getAuthorizedGroups(context, collection, Constants.DEFAULT_BITSTREAM_READ);
         assertTrue("fixture precondition: collection must grant DEFAULT_BITSTREAM_READ to Anonymous",
@@ -141,7 +136,7 @@ public class EmbargoPastDateIT extends AbstractIntegrationTestWithDatabase {
         assertTrue("fixture precondition: imported bitstream must be publicly readable",
                 anonymousCanRead(bitstream));
 
-        // (b) first itemupdate run - embargo end date in the FUTURE (state the customer confirmed as working)
+        // first run: embargo end date in the future
         runItemUpdate(item, dublinCore(item, "embargoedAccess", futureEmbargoEnd));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
@@ -154,14 +149,13 @@ public class EmbargoPastDateIT extends AbstractIntegrationTestWithDatabase {
         assertNotNull("the surviving Anonymous READ policy must be dated", embargoed.get(0).getStartDate());
         assertFalse("while embargoed the file must not be publicly readable", anonymousCanRead(bitstream));
 
-        // (c) second itemupdate run - embargo end date in the PAST, item declared openAccess
+        // second run: embargo end date in the past, item declared openAccess
         runItemUpdate(item, dublinCore(item, "openAccess", pastEmbargoEnd));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
         dump("STEP C - after itemupdate with PAST dc.date.embargoend=" + pastEmbargoEnd
                 + " and dc.rights.access=openAccess", bitstream);
 
-        // (d) an expired embargo publishes the file - it must never delete the last Anonymous READ policy
         List<ResourcePolicy> afterExpiry = anonymousReadPolicies(bitstream);
         assertFalse("Expired embargo wiped every Anonymous READ policy from the ORIGINAL bitstream."
                         + " The file is now unreachable (HTTP 401) although dc.rights.access=openAccess."
@@ -173,7 +167,7 @@ public class EmbargoPastDateIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Answers the only question that matters: may a not-logged-in visitor download the file?
+     * Tells whether a visitor who is not logged in may read the bitstream.
      */
     private boolean anonymousCanRead(Bitstream bs) throws Exception {
         EPerson saved = context.getCurrentUser();
@@ -262,9 +256,8 @@ public class EmbargoPastDateIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Equivalent of {@code dsrun ... ItemUpdate -s <saf> -d dc.rights.access -d dc.date.embargoend
-     * -a dc.rights.access -a dc.date.embargoend}, i.e. an update whose target fields contain an embargo
-     * field, which is what makes {@code processArchive} call {@code syncEmbargoPolicies}.
+     * Runs itemupdate with both embargo fields as targets, the combination that triggers embargo
+     * synchronisation.
      */
     private void runItemUpdate(Item item, String dublinCoreContent) throws Exception {
         Path sourceRoot = Files.createDirectory(tempDir.resolve("saf-" + System.nanoTime()));
@@ -288,9 +281,8 @@ public class EmbargoPastDateIT extends AbstractIntegrationTestWithDatabase {
 
         context.uncacheEntity(item);
 
-        // Both runs of this test are runs itemupdate has to carry out. embargoSyncFailures is what
-        // ItemUpdate.main() turns into a non-zero exit code, so a refusal that leaves it at 0 would be
-        // invisible to the operator's script.
+        // embargoSyncFailures drives the exit code of ItemUpdate.main(), so a refusal that left it at
+        // zero would be invisible to the calling script.
         assertEquals("itemupdate reported an embargo synchronisation problem, so ItemUpdate.main() would exit"
                         + " with " + ItemUpdate.exitStatus(0, itemUpdate.embargoSyncFailures),
                 0, itemUpdate.embargoSyncFailures);

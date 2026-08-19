@@ -8,22 +8,15 @@
 package org.dspace.app.util;
 
 /**
- * Constants shared by the two SAF batch tools that write embargo resource policies:
- * {@code dspace import} ({@link org.dspace.app.itemimport.ItemImportServiceImpl}) creates the policy on a
- * freshly imported item, {@code dspace itemupdate} ({@link org.dspace.app.itemupdate.ItemUpdate}) later
- * re-dates and normalises it.
- *
- * <p>The two tools have to agree on the value, so it is declared once. When they drift apart the operator
- * sees two different names for the same thing in the policy list of a bitstream.</p>
+ * Constants of the embargo resource policies written by the SAF batch tools, declared once so that
+ * {@code dspace import} and {@code dspace itemupdate} cannot drift apart.
  */
 public final class SafEmbargoConstants {
 
     /**
-     * Value written to {@code resourcepolicy.rpname} on every embargo policy created or adopted by the SAF
-     * tools. It is the {@code name} of the {@code embargoed} access condition in access-conditions.xml, which
-     * is what the submission UI and {@code dspace bulk-access-control} write, and it fits the 30 character
-     * {@code rpname} column - the previous "Special Case Embargo - No access rights metadata" was 48
-     * characters and aborted the whole import on PostgreSQL.
+     * Value written to {@code resourcepolicy.rpname} on embargo policies. It is the name of the
+     * {@code embargoed} access condition, as written by the submission UI and {@code bulk-access-control}, and
+     * it fits the 30 character {@code rpname} column, which a longer name would overflow.
      */
     public static final String EMBARGO_POLICY_NAME = "embargo";
 
