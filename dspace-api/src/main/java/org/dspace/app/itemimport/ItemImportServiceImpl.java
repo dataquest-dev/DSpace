@@ -819,6 +819,11 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         try {
             processEmbargoMetadata(c, myitem);
         } catch (EmbargoMetadataException e) {
+            // The half built submission goes with the failure: the batch import path completes its context
+            // in a finally block, so anything left behind here would be committed as an orphan.
+            if (wi != null) {
+                workspaceItemService.deleteAll(c, wi);
+            }
             // The operator needs the package directory, not the item id: the package is what they fix.
             throw new EmbargoMetadataException("SAF package '" + itemname + "': " + e.getMessage(), e);
         }

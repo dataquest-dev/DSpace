@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.file.PathUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
+import org.dspace.app.itemimport.factory.ItemImportServiceFactory;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
@@ -50,6 +52,7 @@ import org.dspace.content.MetadataSchema;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataSchemaService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -90,6 +93,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     private static final String EMBARGO_POLICY_NAME = "embargo";
 
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    private WorkspaceItemService workspaceItemService =
+            ContentServiceFactory.getInstance().getWorkspaceItemService();
     private ResourcePolicyService resourcePolicyService =
             AuthorizeServiceFactory.getInstance().getResourcePolicyService();
     private AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
@@ -604,6 +609,37 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void testBlankEmbargoEndIsRefused() throws Exception {
         assertBrokenEmbargoPackageIsRefused("", "an empty dc.date.embargoend");
+    }
+
+    /**
+     * Verifies that a refused package leaves no workspace item behind. The command line path aborts its
+     * context, but the batch import path completes its own in a finally block, so a half built submission
+     * left here would be committed as an orphan submission with its bitstreams.
+     *
+     * <p>{@code addItem} is driven directly because that is the unit that has to clean up after itself; going
+     * through the script would only exercise the caller that aborts anyway.</p>
+     */
+    @Test
+    public void testRefusedPackageLeavesNoWorkspaceItem() throws Exception {
+        Path itemDir = safPackage("embargoedAccess", "not-a-date", "TEST CONTENT ORPHAN");
+        ItemImportServiceImpl importService =
+                (ItemImportServiceImpl) ItemImportServiceFactory.getInstance().getItemImportService();
+        importService.setTest(false);
+
+        context.turnOffAuthorisationSystem();
+        try {
+            importService.addItem(context, Collections.singletonList(collection),
+                    itemDir.getParent().toString(), itemDir.getFileName().toString(), null, false);
+            fail("an unparseable dc.date.embargoend has to be reported instead of importing the package");
+        } catch (EmbargoMetadataException expected) {
+            // the failure the operator is given
+        } finally {
+            context.restoreAuthSystemState();
+        }
+
+        assertTrue("the refused package must leave no workspace item behind, the batch import path would"
+                        + " commit it as an orphan submission",
+                workspaceItemService.findByCollection(context, collection).isEmpty());
     }
 
     /**
