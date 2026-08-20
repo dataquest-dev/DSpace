@@ -10,6 +10,9 @@ package org.dspace.app.rest.converter;
 import static org.dspace.app.util.Util.getSourceVersion;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.RootRest;
 import org.dspace.services.ConfigurationService;
@@ -39,8 +42,37 @@ public class RootConverter {
             rootRest.setDspaceServer(dspaceUrl);
         }
         rootRest.setDspaceVersion("DSpace " + getSourceVersion());
+        rootRest.setBuildVersion(getBuildVersion());
         return rootRest;
     }
 
+    /**
+     * Read the build version from the `build.version.file.path` property
+     *
+     * @return content of the version file
+     */
+    private String getBuildVersion() {
+        String bVersionFilePath = configurationService.getProperty("build.version.file.path");
 
+        if (StringUtils.isBlank(bVersionFilePath)) {
+            return "Unknown";
+        }
+
+        StringBuilder buildVersion = new StringBuilder();
+        try {
+            FileReader fileReader = new FileReader(bVersionFilePath);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+            String line;
+            // Read each line from the file until the end of the file is reached
+            while ((line = bufferedReader.readLine()) != null) {
+                buildVersion.append(line);
+            }
+
+        } catch (IOException e) {
+            // Empty - do not log anything
+        }
+
+        return buildVersion.toString();
+    }
 }
