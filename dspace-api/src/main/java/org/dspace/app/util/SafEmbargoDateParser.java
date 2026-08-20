@@ -56,6 +56,15 @@ public final class SafEmbargoDateParser {
             .appendValue(ChronoField.DAY_OF_MONTH)
             .toFormatter().withResolverStyle(ResolverStyle.STRICT);
 
+    /**
+     * {@code yyyy-M} with an unpadded month, which {@code SimpleDateFormat} accepted for the same reason.
+     */
+    private static final DateTimeFormatter UNPADDED_YEAR_MONTH = new DateTimeFormatterBuilder()
+            .appendValue(ChronoField.YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
+            .appendLiteral('-')
+            .appendValue(ChronoField.MONTH_OF_YEAR)
+            .toFormatter().withResolverStyle(ResolverStyle.STRICT);
+
     /** Listed in operator messages, so that the two tools describe the same set of values. */
     public static final String ACCEPTED_FORMATS =
             "yyyy-MM-dd, yyyy-MM (first of the month), yyyy (1 January) or yyyy-MM-dd'T'HH[:mm[:ss]][Z]";
@@ -104,8 +113,14 @@ public final class SafEmbargoDateParser {
         try {
             return LocalDate.parse(trimmed, UNPADDED_DATE);
         } catch (DateTimeParseException notAnUnpaddedDay) {
+            // ditto
+        }
+
+        try {
+            return YearMonth.parse(trimmed, UNPADDED_YEAR_MONTH).atDay(1);
+        } catch (DateTimeParseException notAnUnpaddedYearMonth) {
             throw new DateTimeParseException("Unparseable embargo end date '" + value + "', expected "
-                    + ACCEPTED_FORMATS, trimmed, notAnUnpaddedDay.getErrorIndex());
+                    + ACCEPTED_FORMATS, trimmed, notAnUnpaddedYearMonth.getErrorIndex());
         }
     }
 }

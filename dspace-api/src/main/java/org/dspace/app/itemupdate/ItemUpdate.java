@@ -788,14 +788,16 @@ public class ItemUpdate {
         LocalDate accessStartDay = embargoEndDay.plusDays(1);
         Date accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
 
-        if (!accessStartDay.isAfter(LocalDate.now(ZoneOffset.UTC))) {
+        int failuresBefore = embargoSyncFailures;
+        applyEmbargoToItemBitstreams(context, item, accessStartDate);
+
+        if (embargoSyncFailures == failuresBefore && !accessStartDay.isAfter(LocalDate.now(ZoneOffset.UTC))) {
             // An expired embargo is a publication, not a deletion: the start date that has already passed
-            // makes the policy effective immediately.
+            // makes the policy effective immediately. Reported once every bitstream is done, so that a
+            // bitstream the tool had to refuse is never announced as public.
             pr("Embargo of item " + itemLabel(item) + " already expired on " + embargoEndDay
                    + ", its bitstreams are public since " + accessStartDay + ".");
         }
-
-        applyEmbargoToItemBitstreams(context, item, accessStartDate);
     }
 
     /**
@@ -821,11 +823,13 @@ public class ItemUpdate {
             return;
         }
 
-        for (String bundleName : SafEmbargoConstants.EMBARGOED_BUNDLE_NAMES) {
-            for (Bundle bundle : item.getBundles(bundleName)) {
-                for (Bitstream bitstream : bundle.getBitstreams()) {
-                    applyEmbargoToBitstream(context, item, bundleName, bitstream, anonymousGroup, startDate);
-                }
+        for (Bundle bundle : item.getBundles()) {
+            String bundleName = bundle.getName();
+            if (!SafEmbargoConstants.isEmbargoed(bundleName)) {
+                continue;
+            }
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                applyEmbargoToBitstream(context, item, bundleName, bitstream, anonymousGroup, startDate);
             }
         }
     }

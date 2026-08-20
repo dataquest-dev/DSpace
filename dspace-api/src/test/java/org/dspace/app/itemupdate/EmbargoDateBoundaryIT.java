@@ -411,6 +411,9 @@ public class EmbargoDateBoundaryIT extends AbstractEmbargoIT {
         assertLegacyEmbargoEndClosesTheFileUntil(String.valueOf(nextYear), LocalDate.of(nextYear, 1, 1));
         // a bare month is the 1st of it, for the same reason
         assertLegacyEmbargoEndClosesTheFileUntil(nextYear + "-05", LocalDate.of(nextYear, 5, 1));
+        // SimpleDateFormat did not require the month to be padded, so packages contain this shape too
+        assertLegacyEmbargoEndClosesTheFileUntil(nextYear + "-5", LocalDate.of(nextYear, 5, 1));
+        assertLegacyEmbargoEndClosesTheFileUntil(nextYear + "-5-9", LocalDate.of(nextYear, 5, 9));
         // the shape DSpace exports write; the time of day is dropped, the UTC day is the last closed day
         assertLegacyEmbargoEndClosesTheFileUntil(tomorrow + "T00:00:00Z", tomorrow);
     }

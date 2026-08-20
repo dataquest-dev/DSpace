@@ -203,6 +203,45 @@ public class EmbargoDerivativesIT extends AbstractEmbargoIT {
     }
 
     /**
+     * Verifies that a file an operator routed into a bundle of its own follows the embargo. SAF packages can
+     * do that with the {@code bundle:<name>} marker, and {@code DefaultEmbargoSetter} covers every bundle but
+     * the licence and metadata ones, so leaving it public would disclose the embargoed work.
+     */
+    @Test
+    public void customBundleFollowsTheEmbargo() throws Exception {
+        LocalDate futureEnd = LocalDate.now().plusMonths(4);
+        LocalDate pastEnd = LocalDate.now().minusMonths(4);
+
+        Item item = createItem("Thesis with a supplement");
+        Bitstream original = createBitstreamInBundle(item, "thesis.pdf", Constants.CONTENT_BUNDLE_NAME);
+        Bitstream supplement = createBitstreamInBundle(item, "dataset.csv", "SUPPLEMENT");
+
+        Run embargoRun = runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEnd.toString()));
+        item = context.reloadEntity(item);
+        original = context.reloadEntity(original);
+        supplement = context.reloadEntity(supplement);
+
+        assertExitCode("future embargo on an item with a custom bundle", 0, embargoRun);
+        assertFalse("sanity check: the ORIGINAL bitstream has to be closed" + describe(original),
+                anonymousCanRead(original));
+        assertFalse("a file in a bundle of its own is part of the work and must be closed by the embargo"
+                        + describe(supplement),
+                anonymousCanRead(supplement));
+
+        Run expiredRun = runItemUpdate(item, dublinCore(item, OPEN_ACCESS, pastEnd.toString()));
+        item = context.reloadEntity(item);
+        original = context.reloadEntity(original);
+        supplement = context.reloadEntity(supplement);
+
+        assertExitCode("expired embargo on an item with a custom bundle", 0, expiredRun);
+        assertTrue("sanity check: the expired embargo has to publish the ORIGINAL bitstream"
+                        + describe(original),
+                anonymousCanRead(original));
+        assertTrue("the custom bundle has to open together with the file it belongs to" + describe(supplement),
+                anonymousCanRead(supplement));
+    }
+
+    /**
      * Verifies that a derivative without an {@code Anonymous}/{@code READ} policy does not get one. Creating
      * it would grant access nobody granted, so the run reports the bitstream instead.
      */

@@ -2680,17 +2680,14 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                     + " default policies and no embargo at all.");
         }
 
-        // Only process ORIGINAL bundles to avoid affecting system bundles
-        List<Bundle> originalBundles = item.getBundles("ORIGINAL");
-        if (originalBundles.isEmpty()) {
-            // Known limitation: a contents file can route its files into another bundle with the
-            // "bundle:<name>" marker; only the ORIGINAL bundle is embargoed at import time.
-            logInfo("Embargo: No ORIGINAL bundles found, no embargo applied");
-            return;
-        }
-
+        // Every bundle that holds the work itself, licence and metadata bundles excepted: a contents file
+        // can route its files into a bundle of its own with the "bundle:<name>" marker, and leaving those
+        // out would archive the package the operator declared closed with public files.
         int bitstreamsProcessed = 0;
-        for (Bundle bundle : originalBundles) {
+        for (Bundle bundle : item.getBundles()) {
+            if (!SafEmbargoConstants.isEmbargoed(bundle.getName())) {
+                continue;
+            }
             for (Bitstream bitstream : bundle.getBitstreams()) {
                 // Create ResourcePolicy for READ access with start date = embargo end date + 1 day
                 ResourcePolicy policy = resourcePolicyService.create(c, null, anonymousGroup);

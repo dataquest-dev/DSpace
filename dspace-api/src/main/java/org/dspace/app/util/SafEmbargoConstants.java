@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.dspace.core.Constants;
+import org.dspace.license.service.CreativeCommonsService;
 
 /**
  * Constants of the embargo resource policies written by the SAF batch tools, declared once so that
@@ -33,11 +34,24 @@ public final class SafEmbargoConstants {
     public static final String THUMBNAIL_BUNDLE_NAME = "THUMBNAIL";
 
     /**
-     * Bundles an embargo covers: the file itself and everything derived from it, because the thumbnail and the
-     * extracted full text disclose the embargoed file. {@code filter.*.publicPermission} is ignored on purpose.
+     * Bundles an embargo never covers, the same three {@code DefaultEmbargoSetter} leaves world readable.
+     * Everything else is covered: the file, the thumbnail and the extracted full text disclose the embargoed
+     * work, and so does a file an operator routed into a bundle of their own with the SAF
+     * {@code bundle:<name>} marker. {@code filter.*.publicPermission} is ignored on purpose.
      */
-    public static final List<String> EMBARGOED_BUNDLE_NAMES = Collections.unmodifiableList(Arrays.asList(
-        Constants.CONTENT_BUNDLE_NAME, TEXT_BUNDLE_NAME, THUMBNAIL_BUNDLE_NAME));
+    public static final List<String> NON_EMBARGOED_BUNDLE_NAMES = Collections.unmodifiableList(Arrays.asList(
+        Constants.LICENSE_BUNDLE_NAME, CreativeCommonsService.CC_BUNDLE_NAME,
+        Constants.METADATA_BUNDLE_NAME));
+
+    /**
+     * Whether an embargo covers the bundle.
+     *
+     * @param bundleName name of the bundle
+     * @return false for the licence and metadata bundles, true for everything that holds the work itself
+     */
+    public static boolean isEmbargoed(String bundleName) {
+        return !NON_EMBARGOED_BUNDLE_NAMES.contains(bundleName);
+    }
 
     private SafEmbargoConstants() {
     }

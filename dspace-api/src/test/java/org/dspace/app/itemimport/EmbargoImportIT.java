@@ -612,6 +612,30 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
+     * Verifies that a package whose payload sits in a bundle of its own is embargoed too. Only the licence
+     * and metadata bundles stay world readable, as in {@code DefaultEmbargoSetter}; anything else holds the
+     * work and would otherwise be published by the collection default policies.
+     */
+    @Test
+    public void testCustomBundlePayloadIsEmbargoed() throws Exception {
+        Path itemDir = safPackage("embargoedAccess", EMBARGOEND_DATE_FUTURE, "TEST CONTENT CUSTOM BUNDLE",
+                "SUPPLEMENT");
+
+        assertNull("a package whose payload is in a custom bundle has to import", runImport(itemDir.getParent()));
+
+        Iterator<Item> archived = itemService.findByMetadataField(context, "dc", "title", null, ITEM_TITLE);
+        assertTrue("the package has to be archived", archived.hasNext());
+        List<Bundle> bundles = archived.next().getBundles("SUPPLEMENT");
+        assertFalse("fixture precondition: the payload must be in the SUPPLEMENT bundle", bundles.isEmpty());
+
+        for (Bitstream bitstream : bundles.get(0).getBitstreams()) {
+            assertFalse("the package says dc.rights.access=embargoedAccess, so a file in a bundle of its own"
+                            + " must not be readable by an anonymous visitor either: " + describe(bitstream),
+                    anonymousCanRead(bitstream));
+        }
+    }
+
+    /**
      * Verifies that a refused package leaves no workspace item behind. The command line path aborts its
      * context, but the batch import path completes its own in a finally block, so a half built submission
      * left here would be committed as an orphan submission with its bitstreams.
@@ -724,6 +748,15 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
      * @return the item directory; its parent is the source directory to hand to the import
      */
     private Path safPackage(String accessRight, String embargoEnd, String content) throws Exception {
+        return safPackage(accessRight, embargoEnd, content, null);
+    }
+
+    /**
+     * The same package with its payload routed into a bundle of its own, as the SAF
+     * {@code bundle:<name>} marker does.
+     */
+    private Path safPackage(String accessRight, String embargoEnd, String content, String bundleName)
+            throws Exception {
         Path safDir = Files.createDirectory(Path.of(tempDir.toString() + "/test"));
         Path itemDir = Files.createDirectory(Path.of(safDir.toString() + "/item_000"));
 
@@ -742,7 +775,8 @@ public class EmbargoImportIT extends AbstractIntegrationTestWithDatabase {
         dublinCore.append("</dublin_core>");
         Files.writeString(Path.of(itemDir.toString() + "/dublin_core.xml"), dublinCore.toString());
 
-        Files.writeString(Files.createFile(Path.of(itemDir.toString() + "/contents")), "test.txt");
+        Files.writeString(Files.createFile(Path.of(itemDir.toString() + "/contents")),
+                bundleName == null ? "test.txt" : "test.txt\tbundle:" + bundleName);
         Files.writeString(Files.createFile(Path.of(itemDir.toString() + "/test.txt")), content);
         return itemDir;
     }
