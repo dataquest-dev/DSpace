@@ -14,55 +14,19 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import org.apache.commons.io.file.PathUtils;
-import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.ResourcePolicy;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
-import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.authorize.service.ResourcePolicyService;
-import org.dspace.builder.BitstreamBuilder;
-import org.dspace.builder.CollectionBuilder;
-import org.dspace.builder.CommunityBuilder;
-import org.dspace.builder.ItemBuilder;
-import org.dspace.builder.MetadataFieldBuilder;
-import org.dspace.builder.ResourcePolicyBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
-import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.BundleService;
-import org.dspace.content.service.ItemService;
-import org.dspace.content.service.MetadataFieldService;
-import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Constants;
-import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Group;
-import org.dspace.eperson.factory.EPersonServiceFactory;
-import org.dspace.eperson.service.GroupService;
-import org.dspace.handle.factory.HandleServiceFactory;
-import org.dspace.handle.service.HandleService;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -71,72 +35,12 @@ import org.junit.Test;
  * Covers the invariants that one {@code Anonymous}/{@code READ} policy survives every run, that it is mutated
  * rather than recreated, and that the bundles derived from an embargoed file follow it.
  */
-public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
+public class EmbargoLifecycleIT extends AbstractEmbargoIT {
 
-    /** Target policy name of the fix. Must stay within the 30 char {@code resourcepolicy.rpname} column. */
-    private static final String EMBARGO_POLICY_NAME = "embargo";
-
-    /** Policy names written by earlier versions and still present in existing repositories. */
-    private static final String LEGACY_STANDARD_EMBARGO = "Standard Embargo";
     private static final String LEGACY_SPECIAL_CASE_EMBARGO = "Special Case Embargo";
 
     private static final String OPEN_ACCESS = "openAccess";
     private static final String EMBARGOED_ACCESS = "embargoedAccess";
-
-    private static final String TEXT_BUNDLE = "TEXT";
-    private static final String THUMBNAIL_BUNDLE = "THUMBNAIL";
-
-    private final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    private final BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
-    private final HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
-    private final ResourcePolicyService resourcePolicyService =
-            AuthorizeServiceFactory.getInstance().getResourcePolicyService();
-    private final AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
-    private final GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
-    private final MetadataSchemaService metadataSchemaService =
-            ContentServiceFactory.getInstance().getMetadataSchemaService();
-    private final MetadataFieldService metadataFieldService =
-            ContentServiceFactory.getInstance().getMetadataFieldService();
-
-    private Collection collection;
-    private Group anonymousGroup;
-    private Path tempDir;
-    private String previousHandlePrefix;
-
-    @Before
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        context.turnOffAuthorisationSystem();
-
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
-        collection = CollectionBuilder.createCollection(context, parentCommunity)
-                .withName("Collection")
-                .build();
-
-        ensureMetadataFieldExists("rights", "access");
-        ensureMetadataFieldExists("date", "embargoend");
-
-        anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
-        previousHandlePrefix = ItemUpdate.HANDLE_PREFIX;
-        ItemUpdate.HANDLE_PREFIX = handleService.getCanonicalPrefix();
-
-        context.restoreAuthSystemState();
-
-        tempDir = Files.createTempDirectory("embargoLifecycleIT");
-    }
-
-    @After
-    @Override
-    public void destroy() throws Exception {
-        ItemUpdate.HANDLE_PREFIX = previousHandlePrefix;
-        if (tempDir != null) {
-            PathUtils.deleteDirectory(tempDir);
-        }
-        super.destroy();
-    }
 
     /**
      * Verifies that a SAF package without {@code dc.date.embargoend} leaves every policy as it was. A missing
@@ -151,7 +55,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
         Integer importedPolicyId = onlyAnonymousReadPolicy(bitstream, "the fresh SAF import").getID();
 
         // the operator embargoes the item
-        assertRunSucceeded("setting the embargo", runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS,
+        assertRunSucceeded("setting the embargo", runItemUpdateFailures(item, dublinCore(item, EMBARGOED_ACCESS,
                 futureEmbargoEnd)));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
@@ -170,7 +74,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
         // the next SAF package does not carry dc.date.embargoend
         assertRunSucceeded("running without dc.date.embargoend",
-                runItemUpdate(item, dublinCore(item, OPEN_ACCESS, null)));
+                runItemUpdateFailures(item, dublinCore(item, OPEN_ACCESS, null)));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
@@ -217,7 +121,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
         // a routine metadata batch: the fields are targeted, the package carries neither of them
         assertRunSucceeded("running a batch that does not mention the embargo",
-                runItemUpdate(item, dublinCore(item, null, null)));
+                runItemUpdateFailures(item, dublinCore(item, null, null)));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
@@ -251,7 +155,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
         Integer importedPolicyId = onlyAnonymousReadPolicy(bitstream, "the fresh SAF import").getID();
 
         assertRunSucceeded("setting the embargo",
-                runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
+                runItemUpdateFailures(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
@@ -268,7 +172,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
         // exactly the same archive again
         assertRunSucceeded("re-running the identical archive",
-                runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
+                runItemUpdateFailures(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
@@ -294,7 +198,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
      */
     @Test
     public void legacyRpNameThenFutureEmbargoIsEnforced() throws Exception {
-        assertLegacyPolicyIsAdoptedAndEnforced(LEGACY_STANDARD_EMBARGO, EMBARGOED_ACCESS, "legacy-standard.pdf");
+        assertLegacyPolicyIsAdoptedAndEnforced(LEGACY_EMBARGO_POLICY_NAME, EMBARGOED_ACCESS, "legacy-standard.pdf");
     }
 
     /**
@@ -324,7 +228,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
         assertTrue("fixture precondition: a born open bitstream is publicly readable", anonymousCanRead(bitstream));
 
         assertRunSucceeded("embargoing a born-open item",
-                runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
+                runItemUpdateFailures(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
@@ -361,7 +265,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
         Integer immediateId = onlyAnonymousReadPolicy(bitstream, "the fresh SAF import").getID();
         Integer oldestDatedId = addAnonymousReadPolicy(bitstream, startOfDayUtc(LocalDate.now().minusMonths(3)),
-                LEGACY_STANDARD_EMBARGO).getID();
+                LEGACY_EMBARGO_POLICY_NAME).getID();
         Integer newestDatedId = addAnonymousReadPolicy(bitstream, startOfDayUtc(LocalDate.now().plusMonths(2)),
                 LEGACY_SPECIAL_CASE_EMBARGO).getID();
         bitstream = context.reloadEntity(bitstream);
@@ -369,7 +273,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
                 3, anonymousReadPolicies(bitstream).size());
 
         assertRunSucceeded("collapsing duplicate Anonymous READ policies",
-                runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
+                runItemUpdateFailures(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
@@ -424,7 +328,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
             Item item = createItem("Invariant Thesis - " + label);
             Bitstream bitstream = createOriginalBitstream(item, "invariant.pdf");
 
-            runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, initialEmbargoEnd));
+            runItemUpdateFailures(item, dublinCore(item, EMBARGOED_ACCESS, initialEmbargoEnd));
             item = context.reloadEntity(item);
             bitstream = context.reloadEntity(bitstream);
 
@@ -437,7 +341,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
                 continue;
             }
 
-            runItemUpdate(item, dublinCore(item, testCase[1], testCase[2]));
+            runItemUpdateFailures(item, dublinCore(item, testCase[1], testCase[2]));
             item = context.reloadEntity(item);
             bitstream = context.reloadEntity(bitstream);
 
@@ -481,7 +385,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
         // embargo every file of the record
         assertRunSucceeded("embargoing every ORIGINAL bitstream",
-                runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
+                runItemUpdateFailures(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd)));
         item = context.reloadEntity(item);
         reloadAll(bitstreams);
         originalBundle = context.reloadEntity(originalBundle);
@@ -504,7 +408,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
         // the embargo expires: the same archive is re-imported with a past date
         assertRunSucceeded("letting the embargo expire",
-                runItemUpdate(item, dublinCore(item, OPEN_ACCESS, pastEmbargoEnd)));
+                runItemUpdateFailures(item, dublinCore(item, OPEN_ACCESS, pastEmbargoEnd)));
         item = context.reloadEntity(item);
         reloadAll(bitstreams);
         originalBundle = context.reloadEntity(originalBundle);
@@ -551,7 +455,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
         // embargo run
         assertRunSucceeded("embargoing the item",
-                runItemUpdate(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd.toString())));
+                runItemUpdateFailures(item, dublinCore(item, EMBARGOED_ACCESS, futureEmbargoEnd.toString())));
         item = context.reloadEntity(item);
         reloadAll(files);
         originalBundle = context.reloadEntity(originalBundle);
@@ -576,7 +480,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
 
         // expired embargo run
         assertRunSucceeded("letting the embargo expire",
-                runItemUpdate(item, dublinCore(item, OPEN_ACCESS, pastEmbargoEnd.toString())));
+                runItemUpdateFailures(item, dublinCore(item, OPEN_ACCESS, pastEmbargoEnd.toString())));
         item = context.reloadEntity(item);
         reloadAll(files);
         originalBundle = context.reloadEntity(originalBundle);
@@ -621,7 +525,7 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
                 anonymousCanRead(bitstream));
 
         assertRunSucceeded("adopting a legacy embargo policy",
-                runItemUpdate(item, dublinCore(item, rightsAccess, futureEmbargoEnd)));
+                runItemUpdateFailures(item, dublinCore(item, rightsAccess, futureEmbargoEnd)));
         item = context.reloadEntity(item);
         bitstream = context.reloadEntity(bitstream);
 
@@ -657,37 +561,6 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
                             + " (bitstream " + bitstream.getID() + ")",
                     expected, stateSignature(bitstream));
         }
-    }
-
-    /**
-     * Tells whether a visitor who is not logged in may read the bitstream.
-     */
-    private boolean anonymousCanRead(Bitstream bitstream) throws Exception {
-        EPerson saved = context.getCurrentUser();
-        int popped = 0;
-        while (context.ignoreAuthorization()) {
-            context.restoreAuthSystemState();
-            popped++;
-        }
-        context.setCurrentUser(null);
-        try {
-            return authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ);
-        } finally {
-            context.setCurrentUser(saved);
-            for (int i = 0; i < popped; i++) {
-                context.turnOffAuthorisationSystem();
-            }
-        }
-    }
-
-    private List<ResourcePolicy> readPolicies(Bitstream bitstream) throws Exception {
-        return resourcePolicyService.find(context, bitstream, Constants.READ);
-    }
-
-    private List<ResourcePolicy> anonymousReadPolicies(Bitstream bitstream) throws Exception {
-        return readPolicies(bitstream).stream()
-                .filter(policy -> policy.getGroup() != null && anonymousGroup.equals(policy.getGroup()))
-                .collect(Collectors.toList());
     }
 
     private ResourcePolicy onlyAnonymousReadPolicy(Bitstream bitstream, String what) throws Exception {
@@ -762,49 +635,6 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
         return sb.toString();
     }
 
-    private void ensureMetadataFieldExists(String element, String qualifier) throws Exception {
-        MetadataSchema dcSchema = metadataSchemaService.find(context, "dc");
-        MetadataField existingField = metadataFieldService.findByElement(context, dcSchema, element, qualifier);
-        if (existingField == null) {
-            MetadataFieldBuilder.createMetadataField(context, dcSchema, element, qualifier, null).build();
-        }
-    }
-
-    private Item createItem(String title) throws Exception {
-        context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection)
-                .withTitle(title)
-                .build();
-        context.restoreAuthSystemState();
-        return item;
-    }
-
-    /**
-     * Creates a bitstream in the ORIGINAL bundle. It inherits the collection DEFAULT_BITSTREAM_READ and so
-     * carries one undated Anonymous READ policy, the state a freshly imported SAF package is in.
-     */
-    private Bitstream createOriginalBitstream(Item item, String name) throws Exception {
-        context.turnOffAuthorisationSystem();
-        Bitstream bitstream = BitstreamBuilder.createBitstream(context, item,
-                        new ByteArrayInputStream(("content-" + name).getBytes(StandardCharsets.UTF_8)))
-                .withName(name)
-                .withMimeType("text/plain")
-                .build();
-        context.restoreAuthSystemState();
-        return bitstream;
-    }
-
-    private Bitstream createBitstreamInBundle(Item item, String name, String bundleName) throws Exception {
-        context.turnOffAuthorisationSystem();
-        Bitstream bitstream = BitstreamBuilder.createBitstream(context, item,
-                        new ByteArrayInputStream(("content-" + name).getBytes(StandardCharsets.UTF_8)), bundleName)
-                .withName(name)
-                .withMimeType("text/plain")
-                .build();
-        context.restoreAuthSystemState();
-        return bitstream;
-    }
-
     private Bundle bundleOf(Item item, String bundleName) throws Exception {
         List<Bundle> bundles = itemService.getBundles(item, bundleName);
         assertFalse("fixture precondition: the item must have a " + bundleName + " bundle", bundles.isEmpty());
@@ -818,99 +648,6 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
     }
 
-    private void reloadAll(List<Bitstream> bitstreams) throws Exception {
-        for (int i = 0; i < bitstreams.size(); i++) {
-            bitstreams.set(i, context.reloadEntity(bitstreams.get(i)));
-        }
-    }
-
-    private ResourcePolicy addAnonymousReadPolicy(Bitstream bitstream, Date startDate, String name)
-            throws Exception {
-        return addAnonymousReadPolicy(bitstream, startDate, name, null);
-    }
-
-    private ResourcePolicy addAnonymousReadPolicy(Bitstream bitstream, Date startDate, String name,
-                                                  String policyType) throws Exception {
-        context.turnOffAuthorisationSystem();
-        ResourcePolicyBuilder builder = ResourcePolicyBuilder.createResourcePolicy(context, null, anonymousGroup)
-                .withAction(Constants.READ)
-                .withDspaceObject(bitstream)
-                .withName(name);
-        if (startDate != null) {
-            builder.withStartDate(startDate);
-        }
-        if (policyType != null) {
-            builder.withPolicyType(policyType);
-        }
-        ResourcePolicy policy = builder.build();
-        context.restoreAuthSystemState();
-        return policy;
-    }
-
-    /**
-     * Replaces every READ policy of the bitstream with a single Anonymous READ policy, the state earlier
-     * versions left behind.
-     */
-    private ResourcePolicy replaceAnonymousReadPolicies(Bitstream bitstream, Date startDate, String name)
-            throws Exception {
-        return replaceAnonymousReadPolicies(bitstream, startDate, name, null);
-    }
-
-    private ResourcePolicy replaceAnonymousReadPolicies(Bitstream bitstream, Date startDate, String name,
-                                                       String policyType) throws Exception {
-        context.turnOffAuthorisationSystem();
-        authorizeService.removePoliciesActionFilter(context, bitstream, Constants.READ);
-        context.restoreAuthSystemState();
-        return addAnonymousReadPolicy(bitstream, startDate, name, policyType);
-    }
-
-    private String singleMetadataValue(Item item, String element, String qualifier) {
-        List<MetadataValue> values = itemService.getMetadata(item, "dc", element, qualifier, Item.ANY);
-        return values.isEmpty() ? null : values.get(0).getValue();
-    }
-
-    private Date startOfDayUtc(LocalDate day) {
-        return Date.from(day.atStartOfDay(ZoneOffset.UTC).toInstant());
-    }
-
-    private LocalDate toLocalDate(Date date) {
-        if (date instanceof java.sql.Date) {
-            return ((java.sql.Date) date).toLocalDate();
-        }
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-    }
-
-    /**
-     * Runs itemupdate with both embargo fields as targets, the combination that triggers embargo
-     * synchronisation.
-     *
-     * @return the number of embargo problems the run reported, which is what {@code ItemUpdate.main()} turns
-     *         into a non-zero exit code
-     */
-    private int runItemUpdate(Item item, String dublinCoreContent) throws Exception {
-        Path sourceRoot = Files.createDirectory(tempDir.resolve("saf-" + System.nanoTime()));
-        Files.createFile(sourceRoot.resolve(ItemUpdate.SUPPRESS_UNDO_FILENAME));
-
-        Path itemDir = Files.createDirectory(sourceRoot.resolve("item_000"));
-        Files.writeString(itemDir.resolve("dublin_core.xml"), dublinCoreContent, StandardCharsets.UTF_8);
-
-        ItemUpdate itemUpdate = new ItemUpdate();
-        DeleteMetadataAction deleteAction =
-                (DeleteMetadataAction) itemUpdate.actionMgr.getUpdateAction(DeleteMetadataAction.class);
-        deleteAction.addTargetFields(new String[] { "dc.rights.access", "dc.date.embargoend" });
-
-        AddMetadataAction addAction =
-                (AddMetadataAction) itemUpdate.actionMgr.getUpdateAction(AddMetadataAction.class);
-        addAction.addTargetFields(new String[] { "dc.rights.access", "dc.date.embargoend" });
-
-        context.turnOffAuthorisationSystem();
-        itemUpdate.processArchive(context, sourceRoot.toString(), null, null, true, false, true);
-        context.restoreAuthSystemState();
-
-        context.uncacheEntity(item);
-        return itemUpdate.embargoSyncFailures;
-    }
-
     /**
      * A run the tool is supposed to carry out has to end with exit code 0.
      */
@@ -921,32 +658,4 @@ public class EmbargoLifecycleIT extends AbstractIntegrationTestWithDatabase {
                 0, embargoSyncFailures);
     }
 
-    /**
-     * Builds a SAF {@code dublin_core.xml}. A {@code null} value omits the element entirely (that is how an
-     * operator removes a field), an empty string is written as a single space because an empty XML element is
-     * dropped by the parser.
-     */
-    private String dublinCore(Item item, String rightsAccess, String embargoEndDate) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-                .append("<dublin_core schema=\"dc\">\n")
-                .append("    <dcvalue element=\"identifier\" qualifier=\"uri\">")
-                .append(ItemUpdate.HANDLE_PREFIX).append(item.getHandle())
-                .append("</dcvalue>\n");
-
-        if (rightsAccess != null) {
-            sb.append("    <dcvalue element=\"rights\" qualifier=\"access\">")
-                    .append(rightsAccess)
-                    .append("</dcvalue>\n");
-        }
-
-        if (embargoEndDate != null) {
-            sb.append("    <dcvalue element=\"date\" qualifier=\"embargoend\">")
-                    .append(embargoEndDate.isEmpty() ? " " : embargoEndDate)
-                    .append("</dcvalue>\n");
-        }
-
-        sb.append("</dublin_core>");
-        return sb.toString();
-    }
 }
