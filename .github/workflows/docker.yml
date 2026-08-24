@@ -44,9 +44,7 @@ jobs:
       - name: Checkout codebase
         uses: actions/checkout@v3
 
-      # Generate deployed-version info (git hash, commit date, build run) into a file
-      # that the backend exposes as `buildVersion` on the REST root endpoint (issue #813).
-      # Must run before the Docker build so the file is included in the image.
+      # Generate the version file before the Docker build so it is included in the image.
       - name: Add version
         run: python scripts/sourceversion.py ${{ github.server_url }}/${{ github.repository }}/actions/runs/ ${{ github.run_id }} > dspace/config/VERSION_D.txt
 
