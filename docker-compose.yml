@@ -1,4 +1,24 @@
 version: '3.7'
+# IMAGE VERSION - build it, do not pull it
+#
+# The dspace image MUST be built from this repository:
+#
+#     docker compose build dspace
+#
+# This branch carries customisations that no published image contains. For example
+# dspace/config/ehcache.xml references org.dspace.external.provider.orcid.xml.CacheLogger,
+# which exists in dspace-api here but in neither upstream 7.6.5 nor 7.6.8. Since this
+# compose file also mounts ./dspace/config over the image config, a pulled image gives
+# you a newer/other webapp reading this tree config, and the DSpace kernel dies with
+# "Error parsing XML configuration at file:/dspace/config/ehcache.xml".
+#
+# `docker compose up` builds a missing image on its own, so a clean machine is fine.
+# The trap is a STALE image left over from an earlier pull: it shadows the build and
+# the failure looks unrelated to images. `docker compose build` is the fix.
+#
+# DSPACE_VER is pinned to the pom.xml version rather than the floating dspace-7_x tag
+# so the local build cannot be silently shadowed by a newer upstream one. Bump it
+# together with pom.xml.
 networks:
   dspacenet:
     ipam:
@@ -46,7 +66,7 @@ services:
       # HeapDumpOnOutOfMemoryError writes the dump to the mounted log volume so the
       # cause survives the restart. Without it the restart destroys the evidence.
       JAVA_OPTS: '-Xmx2000m -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dspace/log'
-    image: "${DOCKER_OWNER:-dspace}/dspace:${DSPACE_VER:-dspace-7_x-test}"
+    image: "${DOCKER_OWNER:-dspace}/dspace:${DSPACE_VER:-dspace-7.6.5}-test"
     build:
       context: .
       dockerfile: Dockerfile.test
@@ -137,8 +157,16 @@ services:
   # DSpace PostgreSQL database container
   dspacedb:
     container_name: dspacedb
+    # Two independent recovery paths, both needed:
+    #   restart policy -> the postmaster died and the container exited
+    #   autoheal label -> the container still runs but pg_isready keeps failing
+    # Restarting a database is not free, which is why the sidecar enforces a restart
+    # budget (3 per hour by default) and then stops and asks for a human.
+    restart: unless-stopped
+    labels:
+      autoheal: "true"
     # Uses a custom Postgres image with pgcrypto installed
-    image: "${DOCKER_OWNER:-dspace}/dspace-postgres-pgcrypto:${DSPACE_VER:-dspace-7_x}"
+    image: "${DOCKER_OWNER:-dspace}/dspace-postgres-pgcrypto:${DSPACE_VER:-dspace-7.6.5}"
     build:
       # Must build out of subdirectory to have access to install script for pgcrypto
       context: ./dspace/src/main/docker/dspace-postgres-pgcrypto/
@@ -167,7 +195,19 @@ services:
   # DSpace Solr container
   dspacesolr:
     container_name: dspacesolr
-    image: "${DOCKER_OWNER:-dspace}/dspace-solr:${DSPACE_VER:-dspace-7_x}"
+    # Two independent recovery paths, both needed:
+    #   restart policy -> the Solr process died and the container exited
+    #   autoheal label -> the container still runs but the search core is gone
+    #
+    # Note what a restart does NOT fix: precreate-core only checks whether the core
+    # DIRECTORY exists, so once a core has been unloaded (its core.properties is gone
+    # but the directory stays) a restart logs "Core search already exists" and moves on,
+    # leaving the core unregistered. That is intentional on the sidecar side - it burns
+    # its restart budget, gives up, and asks for a human, which beats looping forever.
+    restart: unless-stopped
+    labels:
+      autoheal: "true"
+    image: "${DOCKER_OWNER:-dspace}/dspace-solr:${DSPACE_VER:-dspace-7.6.5}"
     build:
       context: ./dspace/src/main/docker/dspace-solr/
       # Provide path to Solr configs necessary to build Docker image

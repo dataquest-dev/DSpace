@@ -15,6 +15,7 @@ networks:
 services:
   dspace-angular:
     container_name: dspace-angular
+    restart: unless-stopped
     depends_on:
       dspace:
         condition: service_healthy
@@ -27,7 +28,7 @@ services:
       DSPACE_REST_HOST: localhost
       DSPACE_REST_PORT: 8080
       DSPACE_REST_NAMESPACE: /server
-    image: dspace/dspace-angular:dspace-7_x
+    image: "${DOCKER_OWNER:-dspace}/dspace-angular:${DSPACE_VER:-dspace-7.6.5}"
     ports:
     - published: 4000
       target: 4000
