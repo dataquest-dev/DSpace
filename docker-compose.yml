@@ -250,12 +250,17 @@ services:
       precreate-core statistics /opt/solr/server/solr/configsets/statistics
       cp -r /opt/solr/server/solr/configsets/statistics/* statistics
       exec solr -f
-    # A port check is not enough: precreate-core runs AFTER Solr starts listening,
-    # so a port probe goes green while DSpace would still fail every query.
-    # Asking for a specific core discriminates - a missing core returns
-    # {"status":{"search":{}}} with no "name", so the grep fails.
+    # Asks the core's own ping handler rather than the CoreAdmin list. A registered core
+    # answers 200; an unregistered one is simply not a route, so Solr answers 404 and
+    # curl -f fails. That is worth more than it looks:
+    #   - no pipe and no grep, so the probe depends on nothing but curl
+    #   - no matching on Solr's JSON, which could be reformatted by a Solr upgrade
+    #   - ping runs a real query against the core, so it checks the core actually
+    #     answers rather than merely appearing in a list
+    # A port check would be useless here: precreate-core runs AFTER Solr starts
+    # listening, so the port is up while every DSpace query would still fail.
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS 'http://localhost:8983/solr/admin/cores?action=STATUS&core=search' | grep -q '\"name\":\"search\"'"]
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:8983/solr/search/admin/ping"]
       interval: 10s
       timeout: 5s
       retries: 5
