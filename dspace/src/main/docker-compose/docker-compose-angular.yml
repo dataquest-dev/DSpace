@@ -16,7 +16,8 @@ services:
   dspace-angular:
     container_name: dspace-angular
     depends_on:
-    - dspace
+      dspace:
+        condition: service_healthy
     environment:
       DSPACE_UI_SSL: 'false'
       DSPACE_UI_HOST: dspace-angular
@@ -34,3 +35,31 @@ services:
       target: 9876
     stdin_open: true
     tty: true
+    # Probe choice, and why it is not the obvious one:
+    #
+    # NOT /app/health - that endpoint is a pure proxy to the backend actuator (see
+    # server.ts healthCheck()), so it reports the BACKEND's health, not this
+    # container's. It would mark the UI unhealthy whenever the backend is down, and
+    # restarting the UI cannot fix the backend, so autoheal would loop. It also
+    # forwards the backend's HTTP 200-on-DOWN.
+    #
+    # NOT /robots.txt either - that express route lives in the SSR server (server.ts)
+    # which only runs in the *dist* image. This overlay uses dspace/dspace-angular,
+    # the DEVELOPMENT image: it runs `ng serve`, which returns 404 for /robots.txt.
+    # Measured on this image: / -> 200 in 35ms, /robots.txt -> 404.
+    # If you switch this overlay to dspace-angular-dist, /robots.txt becomes the
+    # better probe - it is served from a template with no backend call.
+    #
+    # start_period is large on purpose: `ng serve` compiles the bundles at container
+    # start and does not answer the first request for many minutes. A short value here
+    # means autoheal kills the build and the container never finishes booting - we hit
+    # exactly that during testing.
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const r=require('http').get({host:'127.0.0.1',port:4000,path:'/'},s=>process.exit(s.statusCode===200?0:1));r.setTimeout(8000,()=>{r.destroy();process.exit(1)});r.on('error',()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 900s
+    labels:
+      # Consumed by the optional autoheal sidecar, see docker-compose-autoheal.yml
+      autoheal: "true"
