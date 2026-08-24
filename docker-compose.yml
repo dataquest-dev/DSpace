@@ -209,7 +209,13 @@ services:
       autoheal: "true"
     image: "${DOCKER_OWNER:-dspace}/dspace-solr:${DSPACE_VER:-dspace-7.6.5}"
     build:
-      context: ./dspace/src/main/docker/dspace-solr/
+      # Context is the repository root, matching .github/workflows/docker.yml. The
+      # Dockerfile does `COPY scripts/log4j2.solr.xml`, which lives at the repo root,
+      # so the narrower ./dspace/src/main/docker/dspace-solr/ context used before made
+      # `docker compose build dspacesolr` fail with "/scripts/log4j2.solr.xml: not found"
+      # while CI built the same image fine.
+      context: .
+      dockerfile: ./dspace/src/main/docker/dspace-solr/Dockerfile
       # Provide path to Solr configs necessary to build Docker image
       additional_contexts:
         solrconfigs: ./dspace/solr/
