@@ -49,4 +49,6 @@ COPY --from=solrconfigs suggestion/conf/* $SUGGESTION_CONFIGSET_PATH/
 
 RUN chown -R solr:solr /opt/solr/server/solr/configsets
 
+COPY scripts/log4j2.solr.xml /var/solr/log4j2.xml
+
 USER solr
