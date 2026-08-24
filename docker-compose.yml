@@ -10,6 +10,11 @@ services:
   # DSpace (backend) webapp container
   dspace:
     container_name: dspace
+    # Required for the ExitOnOutOfMemoryError in JAVA_OPTS below to be useful: it makes Docker
+    # bring the container back after the JVM kills itself. Note this policy reacts
+    # ONLY to the process exiting - an unhealthy-but-running container is the
+    # autoheal sidecar's job, not this.
+    restart: unless-stopped
     environment:
       # Below syntax may look odd, but it is how to override dspace.cfg settings via env variables.
       # See https://github.com/DSpace/DSpace/blob/main/dspace/config/config-definition.xml
@@ -29,12 +34,27 @@ services:
       # from the host machine. This IP range MUST correspond to the 'dspacenet' subnet defined above.
       proxies__P__trusted__P__ipranges: '172.23.0'
       LOGGING_CONFIG: /dspace/config/log4j2-container.xml
+      # JVM options. -Xmx2000m is the image default and is kept as-is.
+      #
+      # ExitOnOutOfMemoryError is the piece that gives OOM coverage. A healthcheck is
+      # the wrong tool for OOM: after an OutOfMemoryError the JVM is often still able
+      # to answer a trivial health request while being unable to serve real work, so a
+      # probe can report healthy on a process that is effectively dead. Letting the JVM
+      # exit turns an invisible internal failure into a container exit, which the
+      # restart policy below then handles - no sidecar involved.
+      #
+      # HeapDumpOnOutOfMemoryError writes the dump to the mounted log volume so the
+      # cause survives the restart. Without it the restart destroys the evidence.
+      JAVA_OPTS: '-Xmx2000m -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dspace/log'
     image: "${DOCKER_OWNER:-dspace}/dspace:${DSPACE_VER:-dspace-7_x-test}"
     build:
       context: .
       dockerfile: Dockerfile.test
     depends_on:
-    - dspacedb
+      dspacedb:
+        condition: service_healthy
+      dspacesolr:
+        condition: service_healthy
     networks:
       - dspacenet
     ports:
@@ -49,20 +69,71 @@ services:
     volumes:
     # Keep DSpace assetstore directory between reboots
     - assetstore:/dspace/assetstore
+    # Keep the log directory between container recreates. Without this, the heap dump
+    # written by HeapDumpOnOutOfMemoryError (see JAVA_OPTS) lives only in the writable
+    # layer and is destroyed by `docker compose down` - i.e. exactly when someone is
+    # trying to find out why the container died. A named volume is used on purpose: it
+    # inherits ownership of /dspace/log from the image, whereas a bind mount to a fresh
+    # host directory would be owned by root and silently unwritable.
+    - dspacelogs:/dspace/log
     # Mount local [src]/dspace/config/ to container. This syncs your local configs with container
     # NOTE: Environment variables specified above will OVERRIDE any configs in local.cfg or dspace.cfg
     - ./dspace/config:/dspace/config
-    # Ensure that the database is ready BEFORE starting tomcat
-    # 1. While a TCP connection to dspacedb port 5432 is not available, continue to sleep
-    # 2. Then, run database migration to init database tables
-    # 3. Finally, start Tomcat
+    # The database is guaranteed to be ready by depends_on: condition: service_healthy
+    # above, so this no longer waits for it. The TCP poll that used to live here was
+    # weaker anyway: the port accepts connections before Postgres accepts queries.
+    # 1. Run database migration to init database tables
+    # 2. Start Tomcat
     entrypoint:
     - /bin/bash
     - '-c'
     - |
-      while (!</dev/tcp/dspacedb/5432) > /dev/null 2>&1; do sleep 1; done;
       /dspace/bin/dspace database migrate
       catalina.sh run
+    # This probe targets the liveness GROUP, not the aggregated /actuator/health.
+    # The aggregate is DOWN even on a clean install (SEOHealthIndicator reports a
+    # missing robots.txt/sitemap/SSR) and a restart cannot fix that, so wiring a
+    # healthcheck to it would restart-loop forever. The group also maps DOWN to a
+    # real 503, so a plain `curl -f` suffices - no fragile JSON string matching.
+    #
+    # What this probe covers, and what it deliberately does not:
+    #
+    #   DB unreachable / dead connection pool -> the `db` component in the liveness
+    #     group goes DOWN, the group maps that to 503, curl -f fails.
+    #
+    #   Tomcat thread pool exhausted, or the JVM wedged in a GC spiral -> actuator is
+    #     served by the SAME Tomcat connector and thread pool as the REST API, so a
+    #     wedged server cannot answer this request either. --max-time 5 turns that into
+    #     a failure instead of a hang. (Measured: with the database frozen, the health
+    #     endpoint returned nothing for 25s+.) This is why the timeout matters as much
+    #     as the endpoint choice.
+    #
+    #   OutOfMemoryError -> NOT covered here on purpose. After an OOM the JVM can often
+    #     still answer a trivial health request while being unable to do real work, so a
+    #     probe would report healthy on a dead process. That case is handled by
+    #     -XX:+ExitOnOutOfMemoryError in JAVA_OPTS plus `restart: unless-stopped`.
+    #
+    #   Disk full, missing robots.txt, misconfiguration -> deliberately NOT covered.
+    #     A restart cannot fix any of them, so making them fail this probe would only
+    #     produce a restart loop.
+    healthcheck:
+      # The leading chaos-flag check is a deliberate test hook: it lets you prove the
+      # whole unhealthy -> restart chain end to end without taking down Postgres or
+      # Solr, and without waiting for a real outage.
+      #   docker exec dspace touch /tmp/chaos-fail   -> report a fault artificially
+      #   docker exec dspace rm    /tmp/chaos-fail   -> clear it
+      # NOTE: the flag survives a restart (it lives in the container's writable
+      # layer, which `docker restart` does not reset), so remove it once the restart
+      # has been observed or autoheal will keep restarting the container.
+      test: ["CMD-SHELL", "[ -f /tmp/chaos-fail ] && exit 1; curl -fsS --max-time 5 http://localhost:8080/server/actuator/health/liveness > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      # DSpace needs several minutes to boot; too short a start_period restart-loops.
+      start_period: 300s
+    labels:
+      # Consumed by the optional autoheal sidecar, see docker-compose-autoheal.yml
+      autoheal: "true"
   # DSpace PostgreSQL database container
   dspacedb:
     container_name: dspacedb
@@ -84,6 +155,15 @@ services:
     volumes:
     # Keep Postgres data directory between reboots
     - pgdata:/pgdata
+    # pg_isready is the purpose-built readiness probe: unlike a TCP port check it
+    # only succeeds once the server actually accepts queries (not during initdb
+    # or crash recovery, when the port is already listening).
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dspace -d dspace"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
   # DSpace Solr container
   dspacesolr:
     container_name: dspacesolr
@@ -124,7 +204,18 @@ services:
       precreate-core statistics /opt/solr/server/solr/configsets/statistics
       cp -r /opt/solr/server/solr/configsets/statistics/* statistics
       exec solr -f
+    # A port check is not enough: precreate-core runs AFTER Solr starts listening,
+    # so a port probe goes green while DSpace would still fail every query.
+    # Asking for a specific core discriminates - a missing core returns
+    # {"status":{"search":{}}} with no "name", so the grep fails.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS 'http://localhost:8983/solr/admin/cores?action=STATUS&core=search' | grep -q '\"name\":\"search\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 volumes:
   assetstore:
+  dspacelogs:
   pgdata:
   solr_data:
