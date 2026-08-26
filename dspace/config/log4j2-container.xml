@@ -3,7 +3,8 @@
 
      Writes [dspace.dir]/log/dspace.log exactly like log4j2.xml does outside of a container, and
      mirrors the same events to stdout so that "docker logs" keeps working. Point the container at
-     this file with the LOGGING_CONFIG environment variable (see docker-compose-rest.yml).
+     this file with the LOGGING_CONFIG environment variable (see docker/docker-compose-rest.yml
+     in dspace-angular; the docker-compose.yml in this repo is for dev/test).
 
      NOTE: /dspace/log only survives a container recreate when it is mounted as a volume. -->
 <Configuration strict='true'
@@ -75,6 +76,21 @@
             <Layout type='PatternLayout'
                     pattern='%m%n'/>
         </Appender>
+
+        <!-- A4 is for Warns and errors -->
+        <Appender name='A4'
+                  filePattern='${log.dir}/warn.log-%d{yyyy-MM-dd}.gz'
+                  type='RollingFile'
+                  fileName='${log.dir}/warn.log'
+        >
+            <!-- NOTE: The %equals patterns are providing a default value of "unknown" if "correlationID" or
+                 "requestID" are not currently set in the ThreadContext. -->
+            <Layout type='PatternLayout'
+                    pattern='%d %-5p %equals{%X{correlationID}}{}{unknown} %equals{%X{requestID}}{}{unknown} %c @ %m%n'/>
+            <policies>
+                <policy type='TimeBasedTriggeringPolicy'>yyyy-MM-dd</policy>
+            </policies>
+        </Appender>
     </Appenders>
 
     <Loggers>
@@ -82,6 +98,16 @@
         <!-- Most parts of DSpace -->
         <Logger name='org.dspace'
                 level='${loglevel.dspace}'
+                additivity='false'>
+            <AppenderRef ref='A1'/>
+            <AppenderRef ref='STDOUT'/>
+            <AppenderRef ref='A4' level='WARN'/>
+        </Logger>
+
+        <!-- 404 NOT_FOUND responses. Set to WARN to see 404s in logs.
+             Deliberately not routed to A4: 404s are noise, warn.log should stay actionable. -->
+        <Logger name='org.dspace.app.rest.exception.DSpaceApiExceptionControllerAdvice.NotFound'
+                level='OFF'
                 additivity='false'>
             <AppenderRef ref='A1'/>
             <AppenderRef ref='STDOUT'/>
@@ -113,6 +139,7 @@
         <Root level='${loglevel.other}'>
             <AppenderRef ref='A1'/>
             <AppenderRef ref='STDOUT'/>
+            <AppenderRef ref='A4' level='WARN'/>
         </Root>
     </Loggers>
 </Configuration>
