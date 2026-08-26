@@ -44,6 +44,10 @@ jobs:
       - name: Checkout codebase
         uses: actions/checkout@v3
 
+      # Generate the version file before the Docker build so it is included in the image.
+      - name: Add version
+        run: python scripts/sourceversion.py ${{ github.server_url }}/${{ github.repository }}/actions/runs/ ${{ github.run_id }} > dspace/config/VERSION_D.txt
+
       # https://github.com/docker/setup-buildx-action
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
