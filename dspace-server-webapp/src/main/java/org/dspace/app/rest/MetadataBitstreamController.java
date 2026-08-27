@@ -11,7 +11,10 @@ import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFI
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -115,7 +118,7 @@ public class MetadataBitstreamController {
         // This bitstream is used to get it's item in the statistics tracker
         Bitstream bitstreamForStatistics = null;
         name = item.getName() + ".zip";
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment;filename=\"%s\"", name));
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, buildContentDisposition(name));
         response.setContentType("application/zip");
         List<Bundle> bundles = item.getBundles("ORIGINAL");
 
@@ -142,5 +145,50 @@ public class MetadataBitstreamController {
         zip.close();
         matomoBitstreamTracker.trackBitstreamDownload(context, request, bitstreamForStatistics, true);
         response.getOutputStream().flush();
+    }
+
+    /**
+     * Build the Content-Disposition value the way vanilla's HttpHeadersInitializer does: an ASCII
+     * fallback in {@code filename} for clients that predate RFC 5987, plus the real UTF-8 name in
+     * {@code filename*} for everyone else. This endpoint has no upstream counterpart, so the logic
+     * is copied from vanilla rather than shared, to keep it tracking upstream's behaviour.
+     */
+    private String buildContentDisposition(String name) {
+        return String.format("attachment; filename=\"%s\"; filename*=UTF-8''%s",
+                createFallbackAsciiName(name), createEncodedUtf8Name(name));
+    }
+
+    /**
+     * Creates a safe ASCII-only fallback filename by removing diacritics (accents)
+     * and replacing any remaining non-ASCII characters.
+     * E.g., "ä-ö-é.pdf" becomes "a-o-e.pdf".
+     * @param originalFilename The original filename.
+     * @return A string containing only ASCII characters.
+     */
+    private String createFallbackAsciiName(String originalFilename) {
+        if (originalFilename == null) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(originalFilename, Normalizer.Form.NFD);
+        String withoutAccents = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        // Deviates from vanilla by escaping \ and ": the value is a quoted-string, and an item name
+        // containing a quote closes it early. Vanilla still has that bug.
+        return withoutAccents.replaceAll("[^\\x00-\\x7F]", "")
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
+    }
+
+    /**
+     * Creates a percent-encoded UTF-8 filename according to RFC 5987.
+     * This is for the `filename*` parameter.
+     * E.g., "ä ö é.pdf" becomes "%C3%A4%20%C3%B6%20%C3%A9.pdf".
+     * @param originalFilename The original filename.
+     * @return A percent-encoded string.
+     */
+    private String createEncodedUtf8Name(String originalFilename) {
+        if (originalFilename == null) {
+            return "";
+        }
+        return URLEncoder.encode(originalFilename, StandardCharsets.UTF_8).replace("+", "%20");
     }
 }
