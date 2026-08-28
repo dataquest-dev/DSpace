@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Test XOAI metadata XML for CCMM crosswalk testing.
+    Includes fields commonly found in NMD/NRP dataset submissions.
+-->
+<metadata xmlns="http://www.lyncode.com/xoai" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.lyncode.com/xoai http://www.lyncode.com/xsd/xoai.xsd">
+    <element name="dc">
+        <element name="contributor">
+            <element name="author">
+                <element name="none">
+                    <field name="value">Novak, Jan</field>
+                    <field name="value">Svobodova, Marie</field>
+                </element>
+            </element>
+        </element>
+        <element name="date">
+            <element name="accessioned">
+                <element name="none">
+                    <field name="value">2025-06-15T10:30:00Z</field>
+                </element>
+            </element>
+            <element name="available">
+                <element name="none">
+                    <field name="value">2025-06-15T10:30:00Z</field>
+                </element>
+            </element>
+            <element name="issued">
+                <element name="none">
+                    <field name="value">2025-03-20</field>
+                </element>
+            </element>
+        </element>
+        <element name="identifier">
+            <element name="uri">
+                <element name="none">
+                    <field name="value">http://hdl.handle.net/11234/1-5678</field>
+                </element>
+            </element>
+        </element>
+        <element name="description">
+            <element name="abstract">
+                <element name="en">
+                    <field name="value">A sample dataset for testing CCMM crosswalk output in the OAI-PMH protocol.</field>
+                </element>
+            </element>
+        </element>
+        <element name="language">
+            <element name="iso">
+                <element name="none">
+                    <field name="value">ces</field>
+                </element>
+            </element>
+        </element>
+        <element name="publisher">
+            <element name="none">
+                <field name="value">Charles University, Faculty of Mathematics and Physics, Institute of Formal and Applied Linguistics</field>
+            </element>
+        </element>
+        <element name="rights">
+            <element name="none">
+                <field name="value">Creative Commons - Attribution 4.0 International</field>
+            </element>
+            <element name="uri">
+                <element name="none">
+                    <field name="value">https://creativecommons.org/licenses/by/4.0/</field>
+                </element>
+            </element>
+            <element name="label">
+                <element name="none">
+                    <field name="value">CC BY 4.0</field>
+                </element>
+            </element>
+        </element>
+        <element name="subject">
+            <element name="none">
+                <field name="value">linguistics</field>
+                <field name="value">Czech language</field>
+                <field name="value">NLP</field>
+            </element>
+            <element name="cs_CZ">
+                <field name="value">korpus</field>
+            </element>
+        </element>
+        <element name="title">
+            <element name="none">
+                <field name="value">Czech NLP Dataset v2.0</field>
+            </element>
+            <element name="alternative">
+                <element name="none">
+                    <field name="value">CND 2.0</field>
+                </element>
+            </element>
+        </element>
+        <element name="type">
+            <element name="none">
+                <field name="value">corpus</field>
+            </element>
+        </element>
+    </element>
+    <element name="others">
+        <field name="handle">11234/1-5678</field>
+        <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-5678</field>
+        <field name="lastModifyDate">2025-06-15 10:30:00.000</field>
+        <!-- computed by org.dspace.access.status.DefaultAccessStatusHelper and injected by
+             AccessStatusElementItemCompilePlugin; drives ccmm:access_rights -->
+        <element name="access-status">
+            <field name="value">open.access</field>
+        </element>
+    </element>
+    <element name="repository">
+        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
+        <field name="name">LINDAT/CLARIAH-CZ</field>
+        <field name="mail">lindat-help@ufal.mff.cuni.cz</field>
+    </element>
+</metadata>
