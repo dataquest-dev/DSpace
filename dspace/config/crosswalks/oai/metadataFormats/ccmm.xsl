@@ -27,6 +27,60 @@
     <xsl:variable name="FALLBACK_SUBJECT" select="'unspecified'"/>
     <xsl:variable name="FALLBACK_PUBLICATION_YEAR" select="'9999'"/>
 
+    <!-- ============================================================ -->
+    <!-- Controlled vocabularies.                                      -->
+    <!-- The registers below are the ones CCMM 1.1.0 names in its own  -->
+    <!-- specification (en/dsv.ttl, skos:scopeNote per term):          -->
+    <!--   ResourceType    -> vocabularies.coar-repositories.org       -->
+    <!--   AccessRights    -> purl.org/coar/access_right/              -->
+    <!--   AgentRole       -> vocabs.ccmm.cz/registry/codelist/AgentRole/       -->
+    <!--   DateType        -> vocabs.ccmm.cz/registry/codelist/TimeReference/   -->
+    <!--   DescriptionType -> vocabs.ccmm.cz/registry/codelist/DescriptionType/ -->
+    <!--   LanguageSystem  -> publications.europa.eu/resource/authority/language -->
+    <!-- ============================================================ -->
+
+    <!-- ============================================================ -->
+    <!-- Dates.                                                        -->
+    <!-- CLARIN-DSpace records an unknown issue date as the literal    -->
+    <!-- "0000" and puts the real information into                     -->
+    <!-- local.approximateDate.issued, either as a range               -->
+    <!-- ("cca 1930-1965") or as an enumeration ("1920, 1932").        -->
+    <!-- The precedence below is the one LINDAT applies to itself in   -->
+    <!-- ClarinDateService.composeItemDate (dspace-angular): when the  -->
+    <!-- local field is present it REPLACES dc.date.issued.  The       -->
+    <!-- original string is never rewritten, it travels along in       -->
+    <!-- ccmm:date_information.                                        -->
+    <!-- ============================================================ -->
+    <xsl:variable name="issuedAll"
+        select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']"/>
+    <xsl:variable name="issuedFirst" select="$issuedAll[not(starts-with(normalize-space(.), '0000'))][1]"/>
+    <xsl:variable name="approxRaw"
+        select="normalize-space(string((/doc:metadata/doc:element[@name='local']/doc:element[@name='approximateDate']/doc:element[@name='issued']/doc:element/doc:field[@name='value'])[1]))"/>
+    <xsl:variable name="approxYears" select="tokenize($approxRaw, '[^0-9]+')[string-length(.) = 4]"/>
+    <xsl:variable name="approxMin" select="format-number(min(for $y in $approxYears return number($y)), '0000')"/>
+    <xsl:variable name="approxMax" select="format-number(max(for $y in $approxYears return number($y)), '0000')"/>
+    <!-- dc.language.iso, falling back to dc.language; only well-formed 3-letter codes survive -->
+    <xsl:variable name="languageRaw"
+        select="if (/doc:metadata/doc:element[@name='dc']/doc:element[@name='language']/doc:element[@name='iso']/doc:element/doc:field[@name='value'])
+                then /doc:metadata/doc:element[@name='dc']/doc:element[@name='language']/doc:element[@name='iso']/doc:element/doc:field[@name='value']
+                else /doc:metadata/doc:element[@name='dc']/doc:element[@name='language']/doc:element/doc:field[@name='value']"/>
+    <xsl:variable name="languageCodes"
+        select="distinct-values(for $l in $languageRaw
+                                return lower-case(normalize-space($l)))[matches(., '^[a-z]{3}$')]"/>
+    <xsl:variable name="accessionedAll"
+        select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']"/>
+    <xsl:variable name="availableAll"
+        select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='available']/doc:element/doc:field[@name='value']"/>
+    <!-- the single year that publication_year and the Issued time reference must agree on -->
+    <xsl:variable name="publicationYear">
+        <xsl:choose>
+            <xsl:when test="count($approxYears) &gt; 0"><xsl:value-of select="$approxMin"/></xsl:when>
+            <xsl:when test="$issuedFirst"><xsl:value-of select="substring(normalize-space($issuedFirst), 1, 4)"/></xsl:when>
+            <xsl:when test="$accessionedAll[1]"><xsl:value-of select="substring(normalize-space($accessionedAll[1]), 1, 4)"/></xsl:when>
+            <xsl:otherwise><xsl:value-of select="$FALLBACK_PUBLICATION_YEAR"/></xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+
     <!-- Main template -->
     <xsl:template match="/">
         <ccmm:dataset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -103,8 +157,8 @@
                     </ccmm:organization>
                 </ccmm:relation>
                 <ccmm:role>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/contributorType/DataCurator</ccmm:iri>
-                    <ccmm:label xml:lang="en">DataCurator</ccmm:label>
+                    <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Contributor/DataManager</ccmm:iri>
+                    <ccmm:label xml:lang="en">Data Manager</ccmm:label>
                 </ccmm:role>
             </ccmm:qualified_relation>
             <!-- conforms_to_standard -->
@@ -117,7 +171,7 @@
                 <ccmm:iri>
                     <xsl:choose>
                         <xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
-                            <xsl:variable name="uri" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'][1]"/>
+                            <xsl:variable name="uri" select="(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])[1]"/>
                             <!--
                                 Extract repository base URL from Handle URI.
                                 Assumes DSpace-style URLs like https://repo.example.org/handle/123/456.
@@ -254,7 +308,7 @@
                     </ccmm:person>
                 </ccmm:relation>
                 <ccmm:role>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/contributorType/Creator</ccmm:iri>
+                    <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Creator</ccmm:iri>
                     <ccmm:label xml:lang="en">Creator</ccmm:label>
                 </ccmm:role>
             </ccmm:qualified_relation>
@@ -268,7 +322,7 @@
                     </ccmm:person>
                 </ccmm:relation>
                 <ccmm:role>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/contributorType/Creator</ccmm:iri>
+                    <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Creator</ccmm:iri>
                     <ccmm:label xml:lang="en">Creator</ccmm:label>
                 </ccmm:role>
             </ccmm:qualified_relation>
@@ -282,7 +336,7 @@
                     </ccmm:person>
                 </ccmm:relation>
                 <ccmm:role>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/contributorType/Editor</ccmm:iri>
+                    <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Contributor/Editor</ccmm:iri>
                     <ccmm:label xml:lang="en">Editor</ccmm:label>
                 </ccmm:role>
             </ccmm:qualified_relation>
@@ -296,16 +350,15 @@
                     </ccmm:person>
                 </ccmm:relation>
                 <ccmm:role>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/contributorType/Other</ccmm:iri>
+                    <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Contributor/Other</ccmm:iri>
                     <ccmm:label xml:lang="en">Other</ccmm:label>
                 </ccmm:role>
             </ccmm:qualified_relation>
         </xsl:for-each>
         <!--
-            dc.publisher mapped to Distributor role.
-            In CCMM/DataCite vocabulary, the DSpace publisher typically acts as
-            the distributing organization rather than the original publisher.
-            See https://model.ccmm.cz/vocabulary/datacite/contributorType/Distributor
+            dc.publisher -> Publisher.  Publisher is a top-level role in the CCMM AgentRole
+            codelist alongside Creator and Contributor; Distributor exists only below
+            Contributor/ and would demote the publisher to a kind of contributor.
         -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']">
             <ccmm:qualified_relation>
@@ -315,8 +368,8 @@
                     </ccmm:organization>
                 </ccmm:relation>
                 <ccmm:role>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/contributorType/Distributor</ccmm:iri>
-                    <ccmm:label xml:lang="en">Distributor</ccmm:label>
+                    <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Publisher</ccmm:iri>
+                    <ccmm:label xml:lang="en">Publisher</ccmm:label>
                 </ccmm:role>
             </ccmm:qualified_relation>
         </xsl:for-each>
@@ -326,41 +379,90 @@
     <!-- publication_year (required)                                    -->
     <!-- ============================================================ -->
     <xsl:template name="PublicationYear">
-        <ccmm:publication_year>
+        <ccmm:publication_year><xsl:value-of select="$publicationYear"/></ccmm:publication_year>
+    </xsl:template>
+
+    <!-- ============================================================ -->
+    <!-- time_reference (required, unbounded)                          -->
+    <!-- ============================================================ -->
+    <!--
+        The temporal representation shared by the Issued and Created time references.
+        An approximate date wins over dc.date.issued; a range becomes a time_interval,
+        a single year an instant.
+    -->
+    <xsl:template name="PrimaryTemporalRepresentation">
+        <ccmm:temporal_representation>
             <xsl:choose>
-                <xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
-                    <xsl:value-of select="substring(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value'], 1, 4)"/>
+                <xsl:when test="count($approxYears) &gt; 0 and $approxMin != $approxMax">
+                    <ccmm:time_interval>
+                        <ccmm:beginning>
+                            <ccmm:date><xsl:value-of select="concat($approxMin, '-01-01')"/></ccmm:date>
+                        </ccmm:beginning>
+                        <ccmm:end>
+                            <ccmm:date><xsl:value-of select="concat($approxMax, '-12-31')"/></ccmm:date>
+                        </ccmm:end>
+                    </ccmm:time_interval>
                 </xsl:when>
-                <xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']">
-                    <xsl:value-of select="substring(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value'], 1, 4)"/>
+                <xsl:when test="count($approxYears) &gt; 0">
+                    <ccmm:time_instant>
+                        <ccmm:date><xsl:value-of select="concat($approxMin, '-01-01')"/></ccmm:date>
+                    </ccmm:time_instant>
                 </xsl:when>
-                <xsl:otherwise><xsl:value-of select="$FALLBACK_PUBLICATION_YEAR"/></xsl:otherwise>
+                <xsl:when test="$issuedFirst">
+                    <ccmm:time_instant>
+                        <xsl:call-template name="FormatDate">
+                            <xsl:with-param name="dateStr" select="$issuedFirst"/>
+                        </xsl:call-template>
+                    </ccmm:time_instant>
+                </xsl:when>
+                <xsl:when test="$accessionedAll[1]">
+                    <ccmm:time_instant>
+                        <xsl:call-template name="FormatDate">
+                            <xsl:with-param name="dateStr" select="$accessionedAll[1]"/>
+                        </xsl:call-template>
+                    </ccmm:time_instant>
+                </xsl:when>
+                <xsl:otherwise>
+                    <ccmm:time_instant>
+                        <ccmm:date><xsl:value-of select="concat($FALLBACK_PUBLICATION_YEAR, '-01-01')"/></ccmm:date>
+                    </ccmm:time_instant>
+                </xsl:otherwise>
             </xsl:choose>
-        </ccmm:publication_year>
+        </ccmm:temporal_representation>
     </xsl:template>
 
     <!-- ============================================================ -->
     <!-- time_reference (required, unbounded)                          -->
     <!-- ============================================================ -->
     <xsl:template name="TimeReferences">
-        <!-- dc.date.issued -> Issued -->
-        <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
-            <ccmm:time_reference>
-                <ccmm:temporal_representation>
-                    <ccmm:time_instant>
-                        <xsl:call-template name="FormatDate">
-                            <xsl:with-param name="dateStr" select="."/>
-                        </xsl:call-template>
-                    </ccmm:time_instant>
-                </ccmm:temporal_representation>
-                <ccmm:date_type>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/dateType/Issued</ccmm:iri>
-                    <ccmm:label xml:lang="en">Issued</ccmm:label>
-                </ccmm:date_type>
-            </ccmm:time_reference>
-        </xsl:for-each>
+        <!--
+            Exactly one Issued reference: CCMM requires publication_year and the year of the
+            Issued date to be the same, which several Issued references could not satisfy.
+        -->
+        <ccmm:time_reference>
+            <xsl:call-template name="PrimaryTemporalRepresentation"/>
+            <ccmm:date_type>
+                <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/TimeReference/Issued</ccmm:iri>
+                <ccmm:label xml:lang="en">Issued</ccmm:label>
+            </ccmm:date_type>
+            <xsl:if test="$approxRaw != ''">
+                <ccmm:date_information xml:lang="cs"><xsl:value-of select="$approxRaw"/></ccmm:date_information>
+            </xsl:if>
+        </ccmm:time_reference>
+        <!--
+            CCMM requires at least one time reference of type Created.  DSpace holds no
+            creation date, so the same value is reused: for a deposited resource the date the
+            depositor states is the closest available statement about when it came into being.
+        -->
+        <ccmm:time_reference>
+            <xsl:call-template name="PrimaryTemporalRepresentation"/>
+            <ccmm:date_type>
+                <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/TimeReference/Created</ccmm:iri>
+                <ccmm:label xml:lang="en">Created</ccmm:label>
+            </ccmm:date_type>
+        </ccmm:time_reference>
         <!-- dc.date.accessioned -> Accepted -->
-        <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']">
+        <xsl:for-each select="$accessionedAll">
             <ccmm:time_reference>
                 <ccmm:temporal_representation>
                     <ccmm:time_instant>
@@ -370,13 +472,13 @@
                     </ccmm:time_instant>
                 </ccmm:temporal_representation>
                 <ccmm:date_type>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/dateType/Accepted</ccmm:iri>
+                    <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/TimeReference/Accepted</ccmm:iri>
                     <ccmm:label xml:lang="en">Accepted</ccmm:label>
                 </ccmm:date_type>
             </ccmm:time_reference>
         </xsl:for-each>
         <!-- dc.date.available -> Available -->
-        <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='available']/doc:element/doc:field[@name='value']">
+        <xsl:for-each select="$availableAll">
             <ccmm:time_reference>
                 <ccmm:temporal_representation>
                     <ccmm:time_instant>
@@ -386,49 +488,75 @@
                     </ccmm:time_instant>
                 </ccmm:temporal_representation>
                 <ccmm:date_type>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/dateType/Available</ccmm:iri>
+                    <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/TimeReference/Available</ccmm:iri>
                     <ccmm:label xml:lang="en">Available</ccmm:label>
                 </ccmm:date_type>
             </ccmm:time_reference>
         </xsl:for-each>
-        <!-- Fallback: if no issued/available dates, create a minimal time_reference from accessioned -->
-        <xsl:if test="not(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']) and not(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='available']/doc:element/doc:field[@name='value']) and doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']">
-            <xsl:variable name="accessionedDate"
-                          select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value'][1]"/>
-            <ccmm:time_reference>
-                <ccmm:temporal_representation>
-                    <ccmm:time_instant>
-                        <xsl:call-template name="FormatDate">
-                            <xsl:with-param name="dateStr" select="$accessionedDate"/>
-                        </xsl:call-template>
-                    </ccmm:time_instant>
-                </ccmm:temporal_representation>
-                <ccmm:date_type>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/dateType/Issued</ccmm:iri>
-                    <ccmm:label xml:lang="en">Issued</ccmm:label>
-                </ccmm:date_type>
-            </ccmm:time_reference>
-        </xsl:if>
     </xsl:template>
 
     <!-- ============================================================ -->
     <!-- resource_type (optional)                                      -->
     <!-- ============================================================ -->
     <xsl:template name="ResourceType">
-        <xsl:variable name="dctype" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']"/>
-        <xsl:if test="$dctype">
+        <!--
+            dc.type -> COAR Resource Type vocabulary, which CCMM names for this term.
+            LINDAT values come from META-SHARE: corpus / lexicalConceptualResource /
+            languageDescription are data sets, toolService is software, clip is video.
+        -->
+        <xsl:variable name="dctype" select="normalize-space((doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'])[1])"/>
+        <xsl:if test="$dctype != ''">
             <ccmm:resource_type>
-                <ccmm:iri>
-                    <xsl:choose>
-                        <xsl:when test="$dctype='Dataset' or $dctype='corpus' or $dctype='lexicalConceptualResource' or $dctype='languageDescription'">https://model.ccmm.cz/vocabulary/datacite/resourceTypeGeneral/Dataset</xsl:when>
-                        <xsl:when test="$dctype='Software' or $dctype='toolService'">https://model.ccmm.cz/vocabulary/datacite/resourceTypeGeneral/Software</xsl:when>
-                        <xsl:when test="$dctype='Text' or $dctype='text'">https://model.ccmm.cz/vocabulary/datacite/resourceTypeGeneral/Text</xsl:when>
-                        <xsl:when test="$dctype='Image' or $dctype='image'">https://model.ccmm.cz/vocabulary/datacite/resourceTypeGeneral/Image</xsl:when>
-                        <xsl:when test="$dctype='Collection'">https://model.ccmm.cz/vocabulary/datacite/resourceTypeGeneral/Collection</xsl:when>
-                        <xsl:otherwise>https://model.ccmm.cz/vocabulary/datacite/resourceTypeGeneral/Other</xsl:otherwise>
-                    </xsl:choose>
-                </ccmm:iri>
-                <ccmm:label xml:lang="en"><xsl:value-of select="$dctype"/></ccmm:label>
+                <xsl:choose>
+                    <xsl:when test="$dctype = 'corpus' or $dctype = 'lexicalConceptualResource'
+                                 or $dctype = 'languageDescription' or $dctype = 'Dataset'
+                                 or $dctype = 'dataset' or $dctype = 'Datafile/dataset'
+                                 or $dctype = 'Spreadsheet' or $dctype = 'language test'">
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_ddb1</ccmm:iri>
+                        <ccmm:label xml:lang="en">dataset</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$dctype = 'toolService' or $dctype = 'Software' or $dctype = 'software'">
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_5ce6</ccmm:iri>
+                        <ccmm:label xml:lang="en">software</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$dctype = 'clip' or $dctype = 'Video' or $dctype = 'video'">
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_12ce</ccmm:iri>
+                        <ccmm:label xml:lang="en">video</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$dctype = 'Sound' or $dctype = 'sound' or $dctype = 'Audio' or $dctype = 'audio'">
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_18cc</ccmm:iri>
+                        <ccmm:label xml:lang="en">sound</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$dctype = 'Image' or $dctype = 'image' or $dctype = 'IMAGE'">
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_ecc8</ccmm:iri>
+                        <ccmm:label xml:lang="en">still image</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$dctype = 'Text' or $dctype = 'text' or $dctype = 'Sentences'
+                                 or $dctype = 'Transcribed document'">
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_18cf</ccmm:iri>
+                        <ccmm:label xml:lang="en">text</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$dctype = 'Music notation'">
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_18cw</ccmm:iri>
+                        <ccmm:label xml:lang="en">musical notation</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$dctype = 'bibliography'">
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_86bc</ccmm:iri>
+                        <ccmm:label xml:lang="en">bibliography</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$dctype = 'onlineCourse'">
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_e059</ccmm:iri>
+                        <ccmm:label xml:lang="en">learning object</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$dctype = 'dashboard'">
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_e9a0</ccmm:iri>
+                        <ccmm:label xml:lang="en">interactive resource</ccmm:label>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <ccmm:iri>http://purl.org/coar/resource_type/c_1843</ccmm:iri>
+                        <ccmm:label xml:lang="en">other</ccmm:label>
+                    </xsl:otherwise>
+                </xsl:choose>
             </ccmm:resource_type>
         </xsl:if>
     </xsl:template>
@@ -437,40 +565,35 @@
     <!-- primary_language (optional)                                    -->
     <!-- ============================================================ -->
     <xsl:template name="PrimaryLanguage">
-        <xsl:variable name="lang" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='language']/doc:element[@name='iso']/doc:element/doc:field[@name='value']"/>
-        <xsl:variable name="langAlt" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='language']/doc:element/doc:field[@name='value']"/>
-        <xsl:choose>
-            <xsl:when test="$lang">
-                <ccmm:primary_language>
-                    <ccmm:iri>
-                        <xsl:value-of select="concat('https://iso639-3.sil.org/code/', $lang)"/>
-                    </ccmm:iri>
-                    <ccmm:label xml:lang="en"><xsl:value-of select="$lang"/></ccmm:label>
-                </ccmm:primary_language>
-            </xsl:when>
-            <xsl:when test="$langAlt">
-                <ccmm:primary_language>
-                    <ccmm:iri>
-                        <xsl:value-of select="concat('https://iso639-3.sil.org/code/', $langAlt)"/>
-                    </ccmm:iri>
-                    <ccmm:label xml:lang="en"><xsl:value-of select="$langAlt"/></ccmm:label>
-                </ccmm:primary_language>
-            </xsl:when>
-        </xsl:choose>
+        <!--
+            CCMM: "Use IRI identifier from the register
+            http://publications.europa.eu/resource/authority/language."  The register keys on the
+            uppercased 3-letter ISO 639-3 code, so the value is emitted only when it has exactly
+            that shape; anything else (free text such as "English; Czech") would produce an IRI
+            that does not resolve, and language_system is optional, so the element is omitted.
+            No label: only a minority of the codes LINDAT uses carry an English label in the
+            register, and the code itself is already the last segment of the IRI.
+            AJP and HBS are marked deprecated in the register but are still real, resolvable
+            concepts; they are emitted unchanged rather than silently remapped (APC is a
+            broadening of AJP, and HBS has no single successor).
+        -->
+        <xsl:variable name="langCode" select="$languageCodes[1]"/>
+        <xsl:if test="$langCode">
+            <ccmm:primary_language>
+                <ccmm:iri><xsl:value-of select="concat('http://publications.europa.eu/resource/authority/language/', upper-case($langCode))"/></ccmm:iri>
+            </ccmm:primary_language>
+        </xsl:if>
     </xsl:template>
 
     <!-- ============================================================ -->
     <!-- other_language (optional)                                     -->
     <!-- ============================================================ -->
     <xsl:template name="OtherLanguages">
-        <!-- If there are multiple language values, the first one becomes primary, rest become other -->
-        <xsl:variable name="langs" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='language']/doc:element[@name='iso']/doc:element/doc:field[@name='value']"/>
-        <xsl:for-each select="$langs[position() > 1]">
+        <!-- every remaining distinct code; XOAI can repeat the same code under several
+             language wrappers, hence distinct-values() -->
+        <xsl:for-each select="distinct-values($languageCodes[position() &gt; 1])">
             <ccmm:other_language>
-                <ccmm:iri>
-                    <xsl:value-of select="concat('https://iso639-3.sil.org/code/', .)"/>
-                </ccmm:iri>
-                <ccmm:label xml:lang="en"><xsl:value-of select="."/></ccmm:label>
+                <ccmm:iri><xsl:value-of select="concat('http://publications.europa.eu/resource/authority/language/', upper-case(.))"/></ccmm:iri>
             </ccmm:other_language>
         </xsl:for-each>
     </xsl:template>
@@ -479,50 +602,71 @@
     <!-- terms_of_use (required)                                       -->
     <!-- ============================================================ -->
     <xsl:template name="TermsOfUse">
+        <!--
+            access_rights comes from others/access-status, which DSpace computes itself in
+            org.dspace.access.status.DefaultAccessStatusHelper from the actual READ policies on
+            the primary bitstream and publishes through AccessStatusElementItemCompilePlugin.
+            It is the value the user interface shows and it is present on every item.
+            Labels are the four English strings CCMM allows for this term.
+        -->
+        <xsl:variable name="accessStatus"
+            select="normalize-space((doc:metadata/doc:element[@name='others']/doc:element[@name='access-status']/doc:field[@name='value'])[1])"/>
+        <xsl:variable name="licenseUri"
+            select="normalize-space((doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])[1])"/>
+        <xsl:variable name="licenseLabel"
+            select="normalize-space((doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='label']/doc:element/doc:field[@name='value'])[1])"/>
+        <xsl:variable name="ccUri"
+            select="normalize-space((doc:metadata/doc:element[@name='others']/doc:element[@name='cc']/doc:field[@name='uri'])[1])"/>
+        <xsl:variable name="ccName"
+            select="normalize-space((doc:metadata/doc:element[@name='others']/doc:element[@name='cc']/doc:field[@name='name'])[1])"/>
         <ccmm:terms_of_use>
-            <!-- access_rights -->
             <ccmm:access_rights>
                 <xsl:choose>
-                    <xsl:when test="doc:metadata/doc:element[@name='local']/doc:element[@name='embargo']/doc:element[@name='termslift']/doc:element/doc:field[@name='value']">
-                        <ccmm:iri>http://purl.org/coar/access_right/c_f1cf</ccmm:iri>
-                        <ccmm:label xml:lang="en">embargoed access</ccmm:label>
-                    </xsl:when>
-                    <xsl:when test="doc:metadata/doc:element[@name='others']/doc:field[@name='restrictedAccess']/text()='true'">
-                        <ccmm:iri>http://purl.org/coar/access_right/c_16ec</ccmm:iri>
-                        <ccmm:label xml:lang="en">restricted access</ccmm:label>
-                    </xsl:when>
-                    <xsl:otherwise>
+                    <xsl:when test="$accessStatus = 'open.access'">
                         <ccmm:iri>http://purl.org/coar/access_right/c_abf2</ccmm:iri>
                         <ccmm:label xml:lang="en">open access</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$accessStatus = 'embargo'">
+                        <ccmm:iri>http://purl.org/coar/access_right/c_f1cf</ccmm:iri>
+                        <!-- spelling as listed in the CCMM 1.1.0 specification -->
+                        <ccmm:label xml:lang="en">embargoes access</ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$accessStatus = 'metadata.only'">
+                        <ccmm:iri>http://purl.org/coar/access_right/c_14cb</ccmm:iri>
+                        <ccmm:label xml:lang="en">metadata only access</ccmm:label>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- 'restricted', 'unknown' and a missing value all mean "not freely
+                             downloadable"; never default to claiming open access -->
+                        <ccmm:iri>http://purl.org/coar/access_right/c_16ec</ccmm:iri>
+                        <ccmm:label xml:lang="en">restricted access</ccmm:label>
                     </xsl:otherwise>
                 </xsl:choose>
             </ccmm:access_rights>
-            <!-- license -->
+            <!--
+                license is mandatory inside terms_of_use, but license_document has no mandatory
+                children, so an empty element is valid.  A made-up IRI is not, so when no licence
+                URI is known the element stays empty and the wording moves to description below.
+            -->
             <ccmm:license>
                 <xsl:choose>
-                    <xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
-                        <ccmm:iri>
-                            <xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value']"/>
-                        </ccmm:iri>
-                        <xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='label']/doc:element/doc:field[@name='value']">
-                            <ccmm:label xml:lang="en">
-                                <xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='label']/doc:element/doc:field[@name='value']"/>
-                            </ccmm:label>
+                    <xsl:when test="$licenseUri != ''">
+                        <ccmm:iri><xsl:value-of select="$licenseUri"/></ccmm:iri>
+                        <xsl:if test="$licenseLabel != ''">
+                            <ccmm:label xml:lang="en"><xsl:value-of select="$licenseLabel"/></ccmm:label>
                         </xsl:if>
                     </xsl:when>
-                    <xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']">
-                        <!-- Use the rights text itself as a fallback label -->
-                        <ccmm:iri>https://model.ccmm.cz/vocabulary/ccmm/license/unspecified</ccmm:iri>
-                        <ccmm:label xml:lang="en">
-                            <xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']"/>
-                        </ccmm:label>
+                    <xsl:when test="$ccUri != ''">
+                        <ccmm:iri><xsl:value-of select="$ccUri"/></ccmm:iri>
+                        <xsl:if test="$ccName != ''">
+                            <ccmm:label xml:lang="en"><xsl:value-of select="$ccName"/></ccmm:label>
+                        </xsl:if>
                     </xsl:when>
-                    <xsl:otherwise>
-                        <ccmm:iri>https://model.ccmm.cz/vocabulary/ccmm/license/unspecified</ccmm:iri>
-                        <ccmm:label xml:lang="en">unspecified</ccmm:label>
-                    </xsl:otherwise>
                 </xsl:choose>
             </ccmm:license>
+            <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']">
+                <ccmm:description xml:lang="en"><xsl:value-of select="."/></ccmm:description>
+            </xsl:for-each>
         </ccmm:terms_of_use>
     </xsl:template>
 
@@ -559,7 +703,7 @@
             <ccmm:description>
                 <ccmm:description_text xml:lang="en"><xsl:value-of select="."/></ccmm:description_text>
                 <ccmm:description_type>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/descriptionType/Abstract</ccmm:iri>
+                    <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/Abstract</ccmm:iri>
                     <ccmm:label xml:lang="en">Abstract</ccmm:label>
                 </ccmm:description_type>
             </ccmm:description>
@@ -569,7 +713,7 @@
             <ccmm:description>
                 <ccmm:description_text xml:lang="en"><xsl:value-of select="."/></ccmm:description_text>
                 <ccmm:description_type>
-                    <ccmm:iri>https://model.ccmm.cz/vocabulary/datacite/descriptionType/Abstract</ccmm:iri>
+                    <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/Abstract</ccmm:iri>
                     <ccmm:label xml:lang="en">Abstract</ccmm:label>
                 </ccmm:description_type>
             </ccmm:description>

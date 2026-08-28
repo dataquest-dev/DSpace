@@ -63,10 +63,14 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmContainsResourceType() throws Exception {
+        // META-SHARE "corpus" maps to the COAR resource type "dataset"
         String result = apply("ccmm.xsl").to(resource("xoai-ccmm-test.xml"));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:resource_type/ccmm:label",
-            equalTo("corpus"))));
+            "//ccmm:dataset/ccmm:resource_type/ccmm:iri",
+            equalTo("http://purl.org/coar/resource_type/c_ddb1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:resource_type/ccmm:label[1]",
+            equalTo("dataset"))));
     }
 
     @Test
@@ -95,10 +99,14 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmContainsPrimaryLanguage() throws Exception {
+        // CCMM: "Use IRI identifier from the register
+        // http://publications.europa.eu/resource/authority/language"
         String result = apply("ccmm.xsl").to(resource("xoai-ccmm-test.xml"));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:primary_language/ccmm:label",
-            equalTo("ces"))));
+            "//ccmm:dataset/ccmm:primary_language/ccmm:iri",
+            equalTo("http://publications.europa.eu/resource/authority/language/CES"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:dataset/ccmm:primary_language/ccmm:label)", equalTo("0"))));
     }
 
     @Test
@@ -110,10 +118,10 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmContainsPublisher() throws Exception {
+    public void ccmmPublisherUsesPublisherRole() throws Exception {
         String result = apply("ccmm.xsl").to(resource("xoai-ccmm-test.xml"));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:qualified_relation[ccmm:role/ccmm:label='Distributor']/ccmm:relation/ccmm:organization/ccmm:name",
+            "//ccmm:dataset/ccmm:qualified_relation[ccmm:role/ccmm:label='Publisher']/ccmm:relation/ccmm:organization/ccmm:name",
             equalTo("Charles University, Faculty of Mathematics and Physics, Institute of Formal and Applied Linguistics"))));
     }
 
@@ -176,12 +184,98 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmFallbackLicenseIsUnspecified() throws Exception {
-        // When dc.rights.uri is missing but dc.rights text exists, license IRI is unspecified
+    public void ccmmFallbackLicenseIsEmptyAndRightsTextBecomesDescription() throws Exception {
+        // When no licence URI is known, ccmm:license stays empty (which is valid) instead of
+        // carrying a made-up IRI; the free-text wording moves to terms_of_use/description.
         String result = apply("ccmm.xsl").to(resource("xoai-ccmm-minimal-test.xml"));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:terms_of_use/ccmm:license/ccmm:iri",
-            equalTo("https://model.ccmm.cz/vocabulary/ccmm/license/unspecified"))));
+            "count(//ccmm:dataset/ccmm:terms_of_use/ccmm:license/ccmm:iri)", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:terms_of_use/ccmm:description",
+            equalTo("All rights reserved"))));
+    }
+
+    // ---- Controlled vocabularies ----
+
+    @Test
+    public void ccmmCreatorRoleUsesCcmmAgentRoleCodelist() throws Exception {
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:qualified_relation[1]/ccmm:role/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/AgentRole/Creator"))));
+    }
+
+    @Test
+    public void ccmmDateTypeUsesCcmmTimeReferenceCodelist() throws Exception {
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:time_reference[1]/ccmm:date_type/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/TimeReference/Issued"))));
+    }
+
+    // ---- Access rights come from DSpace's own computed access status ----
+
+    @Test
+    public void ccmmAccessRightsFollowAccessStatus() throws Exception {
+        // others/access-status = open.access
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
+            equalTo("http://purl.org/coar/access_right/c_abf2"))));
+    }
+
+    @Test
+    public void ccmmAccessRightsFallBackToRestricted() throws Exception {
+        // No others/access-status at all: never claim open access
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-minimal-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
+            equalTo("http://purl.org/coar/access_right/c_16ec"))));
+    }
+
+    // ---- CLARIN approximate dates (dc.date.issued = "0000") ----
+
+    @Test
+    public void ccmmApproximateDateSetsPublicationYearToEarliestAttestedYear() throws Exception {
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-approximate-date-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:publication_year", equalTo("1930"))));
+    }
+
+    @Test
+    public void ccmmApproximateDateRangeBecomesTimeInterval() throws Exception {
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-approximate-date-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:time_reference/ccmm:temporal_representation/ccmm:time_interval"
+                + "/ccmm:beginning/ccmm:date", equalTo("1930-01-01"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:time_reference/ccmm:temporal_representation/ccmm:time_interval"
+                + "/ccmm:end/ccmm:date", equalTo("1950-12-31"))));
+    }
+
+    @Test
+    public void ccmmApproximateDateKeepsOriginalTextVerbatim() throws Exception {
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-approximate-date-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:time_reference/ccmm:date_information", equalTo("cca 1930-1950"))));
+    }
+
+    @Test
+    public void ccmmEmitsExactlyOneIssuedAndOneCreatedTimeReference() throws Exception {
+        // CCMM requires a Created time reference, and requires publication_year to equal the
+        // year of the Issued date - which several Issued references could not satisfy.
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:time_reference[ccmm:date_type/ccmm:label='Issued'])", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:time_reference[ccmm:date_type/ccmm:label='Created'])", equalTo("1"))));
+    }
+
+    @Test
+    public void ccmmApproximateDateNeverEmitsYearZero() throws Exception {
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-approximate-date-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:time_instant[starts-with(ccmm:date, '0000')])", equalTo("0"))));
     }
 
     private XmlMatcherBuilder ccmm() {

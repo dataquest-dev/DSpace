@@ -99,6 +99,11 @@
         <field name="handle">11234/1-5678</field>
         <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-5678</field>
         <field name="lastModifyDate">2025-06-15 10:30:00.000</field>
+        <!-- computed by org.dspace.access.status.DefaultAccessStatusHelper and injected by
+             AccessStatusElementItemCompilePlugin; drives ccmm:access_rights -->
+        <element name="access-status">
+            <field name="value">open.access</field>
+        </element>
     </element>
     <element name="repository">
         <field name="name">LINDAT/CLARIAH-CZ</field>
