@@ -233,6 +233,25 @@ public class CcmmXslTest extends AbstractXSLTest {
             equalTo("http://purl.org/coar/access_right/c_16ec"))));
     }
 
+    @Test
+    public void ccmmOriginalRepositoryIsTheRepositoryUrl() throws Exception {
+        // XOAI carries repository/@url; deriving it from the item URI names the item itself
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:metadata_identification/ccmm:original_repository/ccmm:iri",
+            equalTo("https://lindat.mff.cuni.cz/repository/"))));
+    }
+
+    @Test
+    public void ccmmXmlLangFollowsTheXoaiLanguageWrapper() throws Exception {
+        // a value stored under <element name="cs_CZ"> must not be tagged as English
+        String result = apply("ccmm.xsl").to(resource("xoai-ccmm-test.xml"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject/ccmm:title[.='korpus']/@xml:lang", equalTo("cs"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject/ccmm:title[.='linguistics']/@xml:lang", equalTo("en"))));
+    }
+
     // ---- CLARIN approximate dates (dc.date.issued = "0000") ----
 
     @Test

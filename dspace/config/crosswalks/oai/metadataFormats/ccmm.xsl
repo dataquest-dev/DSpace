@@ -170,6 +170,14 @@
             <ccmm:original_repository>
                 <ccmm:iri>
                     <xsl:choose>
+                        <!--
+                            XOAI carries the repository's own base URL; use it.  Deriving it from
+                            the item URI only works for /handle/ style URLs and otherwise names the
+                            item itself as the repository.
+                        -->
+                        <xsl:when test="doc:metadata/doc:element[@name='repository']/doc:field[@name='url']">
+                            <xsl:value-of select="normalize-space((doc:metadata/doc:element[@name='repository']/doc:field[@name='url'])[1])"/>
+                        </xsl:when>
                         <xsl:when test="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
                             <xsl:variable name="uri" select="(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])[1]"/>
                             <!--
@@ -288,9 +296,7 @@
         <!-- dc.title.alternative mapped to alternate_title -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element[@name='alternative']/doc:element/doc:field[@name='value']">
             <ccmm:alternate_title>
-                <ccmm:title xml:lang="en">
-                    <xsl:value-of select="."/>
-                </ccmm:title>
+                <ccmm:title><xsl:call-template name="XmlLangAttribute"/><xsl:value-of select="."/></ccmm:title>
             </ccmm:alternate_title>
         </xsl:for-each>
     </xsl:template>
@@ -385,6 +391,24 @@
     <!-- ============================================================ -->
     <!-- time_reference (required, unbounded)                          -->
     <!-- ============================================================ -->
+    <!--
+        xml:lang for a text value, taken from the XOAI language wrapper that encloses it.
+        XOAI nests every metadata value inside an element named after its language qualifier
+        ("en_US", "cs_CZ", ... or "none" when the field has no language).  Called with the
+        doc:field as the context node.
+    -->
+    <xsl:template name="XmlLangAttribute">
+        <xsl:variable name="wrapper" select="string(../@name)"/>
+        <xsl:attribute name="xml:lang">
+            <xsl:choose>
+                <xsl:when test="matches($wrapper, '^[a-z]{2,3}(_[A-Za-z]{2,4})?$')">
+                    <xsl:value-of select="substring-before(concat($wrapper, '_'), '_')"/>
+                </xsl:when>
+                <xsl:otherwise>en</xsl:otherwise>
+            </xsl:choose>
+        </xsl:attribute>
+    </xsl:template>
+
     <!--
         The temporal representation shared by the Issued and Created time references.
         An approximate date wins over dc.date.issued; a range becomes a time_interval,
@@ -665,7 +689,7 @@
                 </xsl:choose>
             </ccmm:license>
             <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']">
-                <ccmm:description xml:lang="en"><xsl:value-of select="."/></ccmm:description>
+                <ccmm:description><xsl:call-template name="XmlLangAttribute"/><xsl:value-of select="."/></ccmm:description>
             </xsl:for-each>
         </ccmm:terms_of_use>
     </xsl:template>
@@ -677,13 +701,13 @@
         <!-- dc.subject -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
             <ccmm:subject>
-                <ccmm:title xml:lang="en"><xsl:value-of select="."/></ccmm:title>
+                <ccmm:title><xsl:call-template name="XmlLangAttribute"/><xsl:value-of select="."/></ccmm:title>
             </ccmm:subject>
         </xsl:for-each>
         <!-- dc.subject.* (nested qualifiers) -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:element/doc:field[@name='value']">
             <ccmm:subject>
-                <ccmm:title xml:lang="en"><xsl:value-of select="."/></ccmm:title>
+                <ccmm:title><xsl:call-template name="XmlLangAttribute"/><xsl:value-of select="."/></ccmm:title>
             </ccmm:subject>
         </xsl:for-each>
         <!-- Fallback: if no subjects, provide a placeholder -->
@@ -701,7 +725,7 @@
         <!-- dc.description (abstract) -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
             <ccmm:description>
-                <ccmm:description_text xml:lang="en"><xsl:value-of select="."/></ccmm:description_text>
+                <ccmm:description_text><xsl:call-template name="XmlLangAttribute"/><xsl:value-of select="."/></ccmm:description_text>
                 <ccmm:description_type>
                     <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/Abstract</ccmm:iri>
                     <ccmm:label xml:lang="en">Abstract</ccmm:label>
@@ -711,7 +735,7 @@
         <!-- dc.description (general, non-qualified) -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element/doc:field[@name='value']">
             <ccmm:description>
-                <ccmm:description_text xml:lang="en"><xsl:value-of select="."/></ccmm:description_text>
+                <ccmm:description_text><xsl:call-template name="XmlLangAttribute"/><xsl:value-of select="."/></ccmm:description_text>
                 <ccmm:description_type>
                     <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/Abstract</ccmm:iri>
                     <ccmm:label xml:lang="en">Abstract</ccmm:label>

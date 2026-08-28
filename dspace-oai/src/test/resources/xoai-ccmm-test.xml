@@ -78,6 +78,9 @@
                 <field name="value">Czech language</field>
                 <field name="value">NLP</field>
             </element>
+            <element name="cs_CZ">
+                <field name="value">korpus</field>
+            </element>
         </element>
         <element name="title">
             <element name="none">
@@ -106,6 +109,7 @@
         </element>
     </element>
     <element name="repository">
+        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
         <field name="name">LINDAT/CLARIAH-CZ</field>
         <field name="mail">lindat-help@ufal.mff.cuni.cz</field>
     </element>
