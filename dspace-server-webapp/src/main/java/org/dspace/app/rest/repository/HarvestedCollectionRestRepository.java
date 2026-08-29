@@ -138,11 +138,16 @@ public class HarvestedCollectionRestRepository extends AbstractDSpaceRestReposit
         String oaiSource = harvestedCollectionRest.getOaiSource();
         String oaiSetId = harvestedCollectionRest.getOaiSetId();
         String metadataConfigId = harvestedCollectionRest.getMetadataConfigId();
+        Boolean allowExternalUrls = harvestedCollectionRest.getAllowExternalUrls();
 
         harvestedCollection.setHarvestType(harvestType);
         harvestedCollection.setOaiSource(oaiSource);
         harvestedCollection.setOaiSetId(oaiSetId);
         harvestedCollection.setHarvestMetadataConfig(metadataConfigId);
+        // Absent from the request body means "leave unchanged", so only apply an explicit value.
+        if (allowExternalUrls != null) {
+            harvestedCollection.setAllowExternalUrls(allowExternalUrls);
+        }
 
         harvestedCollectionService.update(context, harvestedCollection);
     }
