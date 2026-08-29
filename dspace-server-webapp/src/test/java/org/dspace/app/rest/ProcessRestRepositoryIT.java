@@ -12,6 +12,7 @@ import static org.dspace.content.ProcessStatus.SCHEDULED;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -124,6 +125,41 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(get("/api/system/processes/" + process.getID()))
                         .andExpect(status().isForbidden());
 
+    }
+
+    @Test
+    public void deleteProcessAdmin() throws Exception {
+        // "process" (from setup) is SCHEDULED with no bitstreams - the exact shape that
+        // previously bypassed authorization entirely.
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token).perform(delete("/api/system/processes/" + process.getID()))
+                        .andExpect(status().isNoContent());
+
+        getClient(token).perform(get("/api/system/processes/" + process.getID()))
+                        .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void deleteProcessAnonymousUnauthorizedException() throws Exception {
+        getClient().perform(delete("/api/system/processes/" + process.getID()))
+                   .andExpect(status().isUnauthorized());
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/system/processes/" + process.getID()))
+                        .andExpect(status().isOk());
+    }
+
+    @Test
+    public void deleteProcessForDifferentUserForbiddenException() throws Exception {
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(delete("/api/system/processes/" + process.getID()))
+                        .andExpect(status().isForbidden());
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/system/processes/" + process.getID()))
+                             .andExpect(status().isOk());
     }
 
     @Test
