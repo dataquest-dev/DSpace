@@ -307,7 +307,6 @@ public final class CreateAdministrator {
         ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
         clarinUserRegistration.setOrganization(organization);
         clarinUserRegistration.setConfirmation(true);
-        clarinUserRegistration.setEmail(eperson.getEmail());
         clarinUserRegistration.setPersonID(eperson.getID());
         clarinUserRegistrationService.create(context, clarinUserRegistration);
 

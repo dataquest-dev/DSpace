@@ -24,11 +24,14 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.crosswalk.CrosswalkException;
+import org.dspace.content.factory.ClarinServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -60,6 +63,8 @@ public class RoleIngester implements PackageIngester {
 
     protected GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
     protected EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+    private ClarinUserRegistrationService clarinUserRegistrationService =
+            ClarinServiceFactory.getInstance().getClarinUserRegistration();
 
     /**
      * Common code to ingest roles from a Document.
@@ -195,6 +200,14 @@ public class RoleIngester implements PackageIngester {
             // NOTE: this update() doesn't call a commit(). So, Eperson info
             // may still be rolled back if a subsequent error occurs
             ePersonService.update(context, eperson);
+            if (collider == null) {
+                // Only create a registration for newly created EPersons, not pre-existing colliders
+                ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
+                clarinUserRegistration.setPersonID(eperson.getID());
+                clarinUserRegistration.setOrganization(ClarinUserRegistration.UNKNOWN_USER_REGISTRATION);
+                clarinUserRegistration.setConfirmation(false);
+                clarinUserRegistrationService.create(context, clarinUserRegistration);
+            }
         }
 
         // Now ingest the Groups
