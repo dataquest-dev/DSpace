@@ -46,11 +46,8 @@ public class ClarinDiscoJuiceFeedsController {
         // Download feeds
         String feedsContent = clarinDiscoJuiceFeedsUpdateScheduler.getFeedsContent();
         if (StringUtils.isBlank(feedsContent)) {
-            // No feeds are available (e.g. `shibboleth.discofeed.allowed` is off or the feeds
-            // have not been downloaded yet). Respond with an empty, but still valid, feed instead
-            // of a 204. The DiscoJuice widget consumes this endpoint via JSONP and passes the body
-            // straight to `jQuery.merge()`; an empty response body leaves the callback argument
-            // undefined and throws `Cannot read properties of undefined (reading 'length')`.
+            // Return an empty but valid feed, not a 204: the JSONP client passes the body to
+            // jQuery.merge() and an empty response throws on `undefined.length`.
             feedsContent = "[]";
         }
 
