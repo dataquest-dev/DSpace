@@ -259,8 +259,8 @@
             queries done by discovery for this configuration -->
         <property name="defaultFilterQueries">
             <list>
-                <!--CLARIN: restrict the default search to items only (hide communities and collections)-->
-                <value>search.resourcetype:Item AND latestVersion:true</value>
+                <!--CLARIN: resource types returned by the default search; configurable via discovery.cfg (items only by default)-->
+                <value>${discovery.search.default.filterquery}</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
