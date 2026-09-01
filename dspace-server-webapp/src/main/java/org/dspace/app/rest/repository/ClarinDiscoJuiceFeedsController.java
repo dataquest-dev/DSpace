@@ -9,9 +9,6 @@ package org.dspace.app.rest.repository;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import java.io.IOException;
-
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.ClarinDiscoJuiceFeedsDownloadService;
@@ -45,13 +42,16 @@ public class ClarinDiscoJuiceFeedsController {
 
     @RequestMapping(method = GET, produces = APPLICATION_JAVASCRIPT_UTF8)
     @PreAuthorize("permitAll()")
-    public ResponseEntity getDiscojuiceFeeds(@RequestParam(value = "callback", required = false) String callback,
-                                             HttpServletResponse response) throws IOException {
+    public ResponseEntity getDiscojuiceFeeds(@RequestParam(value = "callback", required = false) String callback) {
         // Download feeds
         String feedsContent = clarinDiscoJuiceFeedsUpdateScheduler.getFeedsContent();
         if (StringUtils.isBlank(feedsContent)) {
-            response.sendError(HttpServletResponse.SC_NO_CONTENT);
-            return null;
+            // No feeds are available (e.g. `shibboleth.discofeed.allowed` is off or the feeds
+            // have not been downloaded yet). Respond with an empty, but still valid, feed instead
+            // of a 204. The DiscoJuice widget consumes this endpoint via JSONP and passes the body
+            // straight to `jQuery.merge()`; an empty response body leaves the callback argument
+            // undefined and throws `Cannot read properties of undefined (reading 'length')`.
+            feedsContent = "[]";
         }
 
         // If callback is not null wrap the feedsContent to the callback string.
