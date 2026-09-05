@@ -413,7 +413,7 @@ public class ItemExportCLIIT extends AbstractIntegrationTestWithDatabase {
         Exception thrown = assertThrows(Exception.class, () -> perfomExportScript(args2));
         assertTrue(thrown.getMessage().contains("Illegal file path attempted for I/O (itemexport)"));
         // File should never have been written
-        assertFalse(Files.list(workDir).findAny().isPresent());
+        assertFalse(Files.list(tempDir).findAny().isPresent());
     }
 
     /**
