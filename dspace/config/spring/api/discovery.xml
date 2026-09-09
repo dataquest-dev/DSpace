@@ -2682,6 +2682,8 @@
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
         <property name="splitter" value="::"/>
+        <!-- CLARIN: show the whole "A::B" value on the search page, not just its leaf -->
+        <property name="skipFirstNodeLevel" value="false"/>
 
     </bean>
 
