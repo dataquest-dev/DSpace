@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 @Component(ClarinUserRegistrationRest.CATEGORY + "." + ClarinUserRegistrationRest.PLURAL_NAME + "." +
@@ -35,12 +37,24 @@ public class CUserRegistrationCLicenseLinkRepository extends AbstractDSpaceRestR
     @Autowired
     ClarinUserRegistrationService clarinUserRegistrationService;
 
+    /**
+     * The CLARIN licenses a user registration has agreed to are readable by the owner of the registration and by
+     * administrators. See {@link ClarinUserRegistrationUserMetadataLinkRepository#getUserMetadata} for why the
+     * checked {@link AuthorizeException} must be translated into an unchecked one here.
+     */
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public Page<ClarinLicenseRest> getClarinLicenses(@Nullable HttpServletRequest request,
                                                      Integer userRegistrationID,
                                                      @Nullable Pageable optionalPageable,
-                                                     Projection projection) throws SQLException, AuthorizeException {
+                                                     Projection projection) throws SQLException {
         Context context = obtainContext();
-        ClarinUserRegistration clarinUserRegistration = clarinUserRegistrationService.find(context, userRegistrationID);
+        ClarinUserRegistration clarinUserRegistration;
+        try {
+            clarinUserRegistration = clarinUserRegistrationService.find(context, userRegistrationID);
+        } catch (AuthorizeException e) {
+            throw new AccessDeniedException("The current user is not allowed to read the CLARIN licenses of the "
+                    + "CLARIN user registration with id: " + userRegistrationID, e);
+        }
         if (Objects.isNull(clarinUserRegistration)) {
             throw new ResourceNotFoundException("The CLARIN User Registration for id: " + userRegistrationID +
                     " couldn't be found");
