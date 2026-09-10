@@ -23,7 +23,7 @@
     "/checks/[name=User summary]/report/subscribers": "Subscribers",
     "/checks/[name=User summary]/report/subscribedCollections": "Subscribed Collections",
     "/checks/[name=User summary]/report/emptyGroups": "Empty Groups",
-    "/checks/[name=License summary]/report/licenses": "Licenses",
+    "/checks/[name=License]/report/licenses": "Licenses",
     "/checks/[name=Metadata check]/report/errorCount": "Metadata Errors",
     "/checks/[name=Metadata check]/report/warningCount": "Metadata Warnings"
 
@@ -52,7 +52,7 @@
     "/checks/[name=User summary]/report/subscribers",
     "/checks/[name=User summary]/report/subscribedCollections",
     "/checks/[name=User summary]/report/emptyGroups",
-    "/checks/[name=License summary]/report/licenses",
+    "/checks/[name=License]/report/licenses",
     "/checks/[name=Metadata check]/report/errorCount",
     "/checks/[name=Metadata check]/report/warningCount"
   ]
