@@ -30,6 +30,7 @@ import org.junit.Test;
 public class CcmmXslTest extends AbstractXSLTest {
 
     private static final String CCMM_NS = "https://schema.ccmm.cz/research-data/1.1";
+    private static final String XML_NS = "http://www.w3.org/XML/1998/namespace";
     private static final String MAIN = "xoai-ccmm-test.xml";
     private static final String MINIMAL = "xoai-ccmm-minimal-test.xml";
     private static final String APPROX = "xoai-ccmm-approximate-date-test.xml";
@@ -753,7 +754,10 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     private XmlMatcherBuilder ccmm() {
+        // XmlMatcherBuilder's NamespaceContext is a plain map, so the reserved "xml" prefix has
+        // to be registered explicitly or JAXP cannot compile an @xml:lang step.
         return xml()
-            .withNamespace("ccmm", CCMM_NS);
+            .withNamespace("ccmm", CCMM_NS)
+            .withNamespace("xml", XML_NS);
     }
 }
