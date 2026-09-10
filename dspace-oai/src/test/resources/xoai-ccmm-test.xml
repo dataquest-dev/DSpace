@@ -11,6 +11,21 @@
                 <element name="none">
                     <field name="value">Novak, Jan</field>
                     <field name="value">Svobodova, Marie</field>
+                    <!-- a corporate credit and an ANVL placeholder, both of which occur in production -->
+                    <field name="value">Aktualita</field>
+                    <field name="value">(:unav) Unknown author</field>
+                </element>
+            </element>
+            <element name="other">
+                <element name="none">
+                    <field name="value">Dvorak, Petr</field>
+                </element>
+            </element>
+        </element>
+        <element name="coverage">
+            <element name="placeName">
+                <element name="none">
+                    <field name="value">Praha</field>
                 </element>
             </element>
         </element>
@@ -31,10 +46,20 @@
                 </element>
             </element>
         </element>
+        <element name="format">
+            <element name="none">
+                <field name="value">text/plain</field>
+            </element>
+        </element>
         <element name="identifier">
             <element name="uri">
                 <element name="none">
                     <field name="value">http://hdl.handle.net/11234/1-5678</field>
+                </element>
+            </element>
+            <element name="other">
+                <element name="none">
+                    <field name="value">ISLRN-123-456-789</field>
                 </element>
             </element>
         </element>
@@ -44,17 +69,31 @@
                     <field name="value">A sample dataset for testing CCMM crosswalk output in the OAI-PMH protocol.</field>
                 </element>
             </element>
+            <element name="none">
+                <field name="value">Built from newspaper text collected in 2024.</field>
+            </element>
         </element>
         <element name="language">
             <element name="iso">
                 <element name="none">
                     <field name="value">ces</field>
+                    <field name="value">eng</field>
                 </element>
             </element>
         </element>
         <element name="publisher">
             <element name="none">
                 <field name="value">Charles University, Faculty of Mathematics and Physics, Institute of Formal and Applied Linguistics</field>
+            </element>
+        </element>
+        <element name="relation">
+            <element name="none">
+                <field name="value">info:eu-repo/grantAgreement/EC/H2020/731015/EU//ELEXIS</field>
+            </element>
+            <element name="replaces">
+                <element name="none">
+                    <field name="value">http://hdl.handle.net/11234/1-1111</field>
+                </element>
             </element>
         </element>
         <element name="rights">
@@ -66,9 +105,17 @@
                     <field name="value">https://creativecommons.org/licenses/by/4.0/</field>
                 </element>
             </element>
+            <!-- the CLARIN access category; it is not a licence name -->
             <element name="label">
                 <element name="none">
-                    <field name="value">CC BY 4.0</field>
+                    <field name="value">PUB</field>
+                </element>
+            </element>
+        </element>
+        <element name="source">
+            <element name="uri">
+                <element name="none">
+                    <field name="value">https://example.org/czech-nlp-dataset</field>
                 </element>
             </element>
         </element>
@@ -77,9 +124,14 @@
                 <field name="value">linguistics</field>
                 <field name="value">Czech language</field>
                 <field name="value">NLP</field>
+                <!-- a path through a controlled vocabulary, as the digitised collections use -->
+                <field name="value">People::Masaryk Tomas Garrigue (1850-1937)</field>
             </element>
             <element name="cs_CZ">
                 <field name="value">korpus</field>
+            </element>
+            <element name="de_DE">
+                <field name="value">Korpus</field>
             </element>
         </element>
         <element name="title">
@@ -98,12 +150,62 @@
             </element>
         </element>
     </element>
+    <element name="local">
+        <element name="contact">
+            <element name="person">
+                <element name="none">
+                    <field name="value">Rudolf;Rosa;rosa@example.org;Charles University</field>
+                </element>
+            </element>
+        </element>
+        <element name="language">
+            <element name="name">
+                <element name="none">
+                    <field name="value">Czech</field>
+                    <field name="value">English</field>
+                </element>
+            </element>
+        </element>
+        <element name="demo">
+            <element name="uri">
+                <element name="none">
+                    <field name="value">https://example.org/demo</field>
+                </element>
+            </element>
+        </element>
+    </element>
+    <element name="metashare">
+        <element name="ResourceInfo#ValidationInfo">
+            <element name="validated">
+                <element name="none">
+                    <field name="value">true</field>
+                </element>
+            </element>
+        </element>
+    </element>
+    <element name="bundles">
+        <element name="bundle">
+            <field name="name">ORIGINAL</field>
+            <element name="bitstreams">
+                <element name="bitstream">
+                    <field name="name">corpus.txt</field>
+                    <field name="originalName">corpus.txt</field>
+                    <field name="format">text/plain</field>
+                    <field name="size">2048</field>
+                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/11234/1-5678/1/corpus.txt</field>
+                    <field name="checksum">ee1c4e448a8f9f838df348dfee1fc11f</field>
+                    <field name="checksumAlgorithm">MD5</field>
+                </element>
+            </element>
+        </element>
+    </element>
     <element name="others">
         <field name="handle">11234/1-5678</field>
         <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-5678</field>
+        <field name="owningCollection">Test Collection</field>
         <field name="lastModifyDate">2025-06-15 10:30:00.000</field>
         <!-- computed by org.dspace.access.status.DefaultAccessStatusHelper and injected by
-             AccessStatusElementItemCompilePlugin; drives ccmm:access_rights -->
+             AccessStatusElementItemCompilePlugin -->
         <element name="access-status">
             <field name="value">open.access</field>
         </element>
