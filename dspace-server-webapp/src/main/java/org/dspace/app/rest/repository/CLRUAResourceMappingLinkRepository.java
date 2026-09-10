@@ -23,6 +23,8 @@ import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,15 +38,27 @@ public class CLRUAResourceMappingLinkRepository extends AbstractDSpaceRestReposi
     @Autowired
     ClarinLicenseResourceUserAllowanceService clarinLicenseResourceUserAllowanceService;
 
+    /**
+     * The resource mapping behind a CLARIN license resource user allowance is readable by the user the allowance
+     * belongs to and by administrators. See
+     * {@link ClarinUserRegistrationUserMetadataLinkRepository#getUserMetadata} for why the checked
+     * {@link AuthorizeException} must be translated into an unchecked one here.
+     */
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public ClarinLicenseResourceMappingRest getResourceMapping(@Nullable HttpServletRequest request,
                                                                Integer clruaID,
                                                                @Nullable Pageable optionalPageable,
                                                                Projection projection)
-            throws SQLException, AuthorizeException {
+            throws SQLException {
         Context context = obtainContext();
 
-        ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance =
-                clarinLicenseResourceUserAllowanceService.find(context, clruaID);
+        ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance;
+        try {
+            clarinLicenseResourceUserAllowance = clarinLicenseResourceUserAllowanceService.find(context, clruaID);
+        } catch (AuthorizeException e) {
+            throw new AccessDeniedException("The current user is not allowed to read the resource mapping of the "
+                    + "CLARIN license resource user allowance with id: " + clruaID, e);
+        }
         if (Objects.isNull(clarinLicenseResourceUserAllowance)) {
             throw new ResourceNotFoundException("The ClarinLicenseResourceUserAllowance for id: " + clruaID +
                     " couldn't be found");

@@ -145,7 +145,9 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
         EPerson currentUser = context.getCurrentUser();
         ClarinUserRegistration clarinUserRegistration = userRegistrationList.get(0);
         UUID userRegistrationEpersonUUID = clarinUserRegistration.getPersonID();
-        if (currentUser.getID().equals(userRegistrationEpersonUUID)) {
+        // An anonymous request has no current user. Deny it here instead of throwing a NullPointerException,
+        // so that the callers can translate the AuthorizeException into 401/403.
+        if (Objects.nonNull(currentUser) && currentUser.getID().equals(userRegistrationEpersonUUID)) {
             return;
         }
 
