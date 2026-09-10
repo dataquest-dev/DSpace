@@ -39,7 +39,7 @@
                 <field>
                     <dc-schema>dc</dc-schema>
                     <dc-element>description</dc-element>
-                    <repeatable>true</repeatable>
+                    <repeatable>false</repeatable>
                     <label>Popis</label>
                     <input-type>textarea</input-type>
                     <hint>Zadejte popis souboru.</hint>
@@ -127,7 +127,7 @@
                     <dc-qualifier>issued</dc-qualifier>
                     <repeatable>false</repeatable>
                     <label>Datum vydání</label>
-                    <style>col-sm-4</style>
+                    <style>col-md-4</style>
                     <input-type>date</input-type>
                     <hint>Uveďte prosím datum vydání příspěvku, např 2014-01-21 nebo alespoň rok.</hint>
                     <required>Musíte uvést datum v platném formátu.</required>
@@ -139,7 +139,7 @@
                     <dc-qualifier></dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Vydavatel</label>
-                    <style>col-sm-8</style>
+                    <style>col-md-8</style>
                     <input-type autocomplete-custom="solr-publisher_ac">autocomplete</input-type>
                     <hint>Uveďte vydavatele předchozího vydání, nebo vaši domovskou instituci. Začnete-li vyplňovat vydavatele, objeví se nápověda. Nechcete-li nápovědu využít, stiskněte ESC.</hint>
                     <required>Musíte uvést vydavatele.</required>
@@ -199,7 +199,7 @@
                     <dc-qualifier>person</dc-qualifier>
                     <repeatable>true</repeatable>
                     <label>Kontaktní osoba</label>
-                    <style>col-sm-5</style>
+                    <style>col-md-5</style>
                     <input-type complex-definition-ref="contact_person">complex</input-type>
                     <hint>Osoba, která bude kontaktována v případě problémů s tímto záznamem.</hint>
                     <required>Vyplňte prosím všechna pole u kontaktní osoby</required>
@@ -211,7 +211,7 @@
                     <dc-element>sponsor</dc-element>
                     <repeatable>true</repeatable>
                     <label>Financování</label>
-                    <style>col-sm-5</style>
+                    <style>col-md-5</style>
                     <input-type complex-definition-ref="funding">complex</input-type>
                     <hint>Uveďte sponzory a zdroje financí podporující vznik práce popsané v tomto příspěvku.</hint>
                     <required></required>
@@ -449,7 +449,7 @@
                     <dc-qualifier>issued</dc-qualifier>
                     <repeatable>false</repeatable>
                     <label>Date of Issue</label>
-                    <style>col-sm-4</style>
+                    <style>col-md-4</style>
                     <input-type>date</input-type>
                     <hint>Please give the date of previous publication or public distribution.
                         You can leave out the day and/or month if they aren't applicable.
@@ -463,7 +463,7 @@
                     <dc-qualifier></dc-qualifier>
                     <repeatable>false</repeatable>
                     <label>Publisher</label>
-                    <style>col-sm-8</style>
+                    <style>col-md-8</style>
                     <input-type>onebox</input-type>
                     <hint>Enter the name of the publisher of the previously issued instance of this item.</hint>
                     <required></required>
@@ -519,7 +519,7 @@
                     <hint>Select the type(s) of content of the item. To select more than one value in the list, you may
                         have to hold down the "CTRL" or "Shift" key.
                     </hint>
-                    <required></required>
+                    <required>Musíte zvolit alespoň jeden typ.</required>
                 </field>
             </row>
             <row>
@@ -669,7 +669,7 @@
             <!--            </row>-->
             <row>
                 <relation-field>
-                    <relationship-type>isProjectOfPerson</relationship-type>
+                    <relationship-type>isPersonOfProject</relationship-type>
                     <search-configuration>person</search-configuration>
                     <repeatable>true</repeatable>
                     <label>Investigator</label>
@@ -684,18 +684,18 @@
             </row>
             <row>
                 <relation-field>
-                    <relationship-type>isProjectOfOrgUnit</relationship-type>
+                    <relationship-type>isOrgUnitOfProject</relationship-type>
                     <search-configuration>orgunit</search-configuration>
                     <repeatable>false</repeatable>
                     <label>Organization</label>
                     <hint>Enter the organization's name</hint>
                     <linked-metadata-field>
-                        <dc-schema>project</dc-schema>
-                        <dc-element>funder</dc-element>
-                        <dc-qualifier>name</dc-qualifier>
+                        <dc-schema>dc</dc-schema>
+                        <dc-element>contributor</dc-element>
+                        <dc-qualifier>other</dc-qualifier>
                         <input-type>onebox</input-type>
                     </linked-metadata-field>
-                    <externalsources/>
+                    <externalsources>ror</externalsources>
                 </relation-field>
             </row>
             <row>
@@ -974,7 +974,7 @@
 
         <!-- OpenAIRE specific forms -->
 
-        <form name="openAIREPublicationPageoneForm">
+        <form name="openairePublicationPageoneForm">
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -1027,7 +1027,7 @@
                     <dc-qualifier>issued</dc-qualifier>
                     <repeatable>false</repeatable>
                     <label>Date of Issue</label>
-                    <style>col-sm-4</style>
+                    <style>col-md-4</style>
                     <input-type>date</input-type>
                     <hint>Please give the date of previous publication or public distribution.
                         You can leave out the day
@@ -1043,7 +1043,7 @@
                     <dc-qualifier></dc-qualifier>
                     <repeatable>false</repeatable>
                     <label>Publisher</label>
-                    <style>col-sm-8</style>
+                    <style>col-md-8</style>
                     <input-type>onebox</input-type>
                     <hint>Enter the name of the publisher of the previously issued instance of this item.</hint>
                     <required></required>
@@ -1194,7 +1194,7 @@
                     <hint>Select the type(s) of content of the item. To select more than one value in the list, you may
                         have to hold down the "CTRL" or "Shift" key.
                     </hint>
-                    <required></required>
+                    <required>Musíte zvolit alespoň jeden typ.</required>
                 </field>
             </row>
             <row>
@@ -1224,7 +1224,7 @@
             </row>
         </form>
 
-        <form name="openAIREPublicationPagetwoForm">
+        <form name="openairePublicationPagetwoForm">
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -1282,32 +1282,9 @@
                         <dc-element>relation</dc-element>
                         <input-type>onebox</input-type>
                     </linked-metadata-field>
-                    <externalsources>openAIREFunding</externalsources>
+                    <externalsources>openaireFunding</externalsources>
                     <required></required>
                 </relation-field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>dc</dc-schema>
-                    <dc-element>rights</dc-element>
-                    <repeatable>false</repeatable>
-                    <label>Access Type</label>
-                    <input-type value-pairs-name="openaire_rights">dropdown</input-type>
-                    <hint>Select the access type of the resource.</hint>
-                    <required></required>
-                </field>
-            </row>
-            <row>
-                <field>
-                    <dc-schema>oaire</dc-schema>
-                    <dc-element>license</dc-element>
-                    <dc-qualifier>condition</dc-qualifier>
-                    <repeatable>false</repeatable>
-                    <label>License</label>
-                    <input-type value-pairs-name="openaire_license_types">dropdown</input-type>
-                    <hint>Select the license of the resource.</hint>
-                    <required></required>
-                </field>
             </row>
             <row>
                 <field>
@@ -1335,7 +1312,7 @@
             </row>
         </form>
 
-        <form name="openAIREPersonForm">
+        <form name="openairePersonForm">
             <row>
                 <field>
                     <dc-schema>person</dc-schema>
@@ -1399,7 +1376,7 @@
             </row>
         </form>
 
-        <form name="openAIREProjectForm">
+        <form name="openaireProjectForm">
             <row>
                 <field>
                     <dc-schema>dc</dc-schema>
@@ -1422,7 +1399,7 @@
             <row>
                 <relation-field>
                     <relationship-type>isFundingAgencyOfProject</relationship-type>
-                    <search-configuration>openAIREFundingAgency</search-configuration>
+                    <search-configuration>openaireFundingAgency</search-configuration>
                     <repeatable>false</repeatable>
                     <name-variants>false</name-variants>
                     <label>Funding Agency</label>
@@ -1455,7 +1432,7 @@
             </row>
         </form>
 
-        <form name="openAIREOrganizationForm">
+        <form name="openaireOrganizationForm">
             <row>
                 <field>
                     <dc-schema>organization</dc-schema>
