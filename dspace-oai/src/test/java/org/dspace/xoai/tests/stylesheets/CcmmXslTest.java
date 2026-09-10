@@ -40,6 +40,8 @@ public class CcmmXslTest extends AbstractXSLTest {
     private static final String ENUM = "xoai-ccmm-enumerated-date-test.xml";
     private static final String ACA = "xoai-ccmm-academic-licence-test.xml";
     private static final String BARE = "xoai-ccmm-no-identifier-test.xml";
+    private static final String FLAG = "xoai-ccmm-restricted-flag-test.xml";
+    private static final String EMBARGO = "xoai-ccmm-embargo-test.xml";
 
     @Test
     public void ccmmCanTransformInput() throws Exception {
@@ -661,6 +663,21 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
+    public void ccmmDateTimeValuesKeepTheirTimeAndUseTheDateTimeElement() throws Exception {
+        // time_instant is a choice of date_time or date; truncating a timestamp into date
+        // would silently drop the time
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:time_reference[ccmm:date_type/ccmm:label='Date Accepted']"
+                + "/ccmm:temporal_representation/ccmm:time_instant/ccmm:date_time",
+            equalTo("2025-06-15T10:30:00Z"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:time_reference[ccmm:date_type/ccmm:label='Date Accepted']"
+                + "/ccmm:temporal_representation/ccmm:time_instant/ccmm:date)",
+            equalTo("0"))));
+    }
+
+    @Test
     public void ccmmPublicationYearAlwaysMatchesTheIssuedReference() throws Exception {
         // dsv.ttl requires the two to agree; the fixtures carry different years so this can fail
         for (String fixture : new String[] { MAIN, MINIMAL, APPROX, STOCK, DATES }) {
@@ -737,6 +754,31 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
             equalTo("http://purl.org/coar/access_right/c_16ec"))));
+    }
+
+    @Test
+    public void ccmmRestrictedAccessFlagOutranksAPubLicence() throws Exception {
+        // ItemUtils sets others/restrictedAccess when a bitstream licence demands the identity
+        // form; that gate outranks the PUB licence category
+        String result = apply("ccmm.xsl").to(resource(FLAG));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
+            equalTo("http://purl.org/coar/access_right/c_16ec"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:access_rights/ccmm:label",
+            equalTo("restricted access"))));
+    }
+
+    @Test
+    public void ccmmEmbargoedAccessStatusMapsToTheCoarEmbargoTerm() throws Exception {
+        // with no CLARIN licence category present, others/access-status decides
+        String result = apply("ccmm.xsl").to(resource(EMBARGO));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
+            equalTo("http://purl.org/coar/access_right/c_f1cf"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:access_rights/ccmm:label",
+            equalTo("embargoes access"))));
     }
 
     @Test
