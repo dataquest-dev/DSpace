@@ -116,7 +116,12 @@ public class BitstreamRestController {
      * @throws SQLException
      * @throws AuthorizeException
      */
-    @PreAuthorize("#accessToken != null|| hasPermission(#uuid, 'BITSTREAM', 'READ')")
+    // CLARIN: a non-null access token used to satisfy this expression on its own, which streamed the
+    // content past the resource policies AND past the CLARIN licence gate. The token is still accepted,
+    // but only through clarinBitstreamAccessTokenSecurity, which runs the same licence check as a
+    // download without a token. Do not restore the short-circuiting "or #accessToken != null".
+    @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ') "
+        + "or @clarinBitstreamAccessTokenSecurity.canDownloadWithAccessToken(#uuid, #accessToken)")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")
     public ResponseEntity retrieve(@PathVariable UUID uuid,
                                    @Parameter(value = "accessToken", required = false) String accessToken,
