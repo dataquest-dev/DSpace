@@ -8,14 +8,23 @@
 package org.dspace.app.rest;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.dspace.app.rest.exception.RepositoryNotFoundException;
 import org.dspace.app.rest.model.BitstreamRest;
@@ -28,17 +37,33 @@ import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.repository.LinkRestRepository;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
+import org.dspace.builder.BitstreamBuilder;
+import org.dspace.builder.ClarinLicenseBuilder;
+import org.dspace.builder.ClarinLicenseLabelBuilder;
 import org.dspace.builder.ClarinLicenseResourceMappingBuilder;
 import org.dspace.builder.ClarinLicenseResourceUserAllowanceBuilder;
 import org.dspace.builder.ClarinUserMetadataBuilder;
 import org.dspace.builder.ClarinUserRegistrationBuilder;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.ItemBuilder;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
+import org.dspace.content.clarin.ClarinLicense;
+import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
 import org.dspace.content.clarin.ClarinUserRegistration;
+import org.dspace.content.service.clarin.ClarinLicenseLabelService;
+import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
+import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.eperson.EPerson;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
  * Guards the DSpace 9 link-repository contract for the CLARIN models: the bean naming that decides
@@ -76,13 +101,37 @@ public class ClarinLinkRestRepositoryBeanNameIT extends AbstractControllerIntegr
     private static final String ALLOWANCES_URL = "/api/core/clarinlruallowances/";
     private static final String OTHER_EPERSON_EMAIL = "other-eperson@mail.com";
 
+    /** An id no fixture can own, used to ask about an entity that does not exist. */
+    private static final int UNKNOWN_ID = Integer.MAX_VALUE;
+
+    /**
+     * The CLARIN models that own rels. The cells are read off their {@link LinksRest} annotations rather
+     * than hardcoded, so a rel added to any of them is covered without touching this test - the same
+     * reason {@code _sync3/sweeps/rest-matrix.sh} enumerates from the source instead of from a list.
+     */
+    private static final List<Class<? extends RestAddressableModel>> CLARIN_MODELS_WITH_RELS = List.of(
+            ClarinLicenseResourceUserAllowanceRest.class,
+            ClarinUserRegistrationRest.class,
+            ClarinLicenseResourceMappingRest.class);
+
     @Autowired
     private Utils utils;
 
     @Autowired
     private ApplicationContext applicationContext;
 
+    @Autowired
+    private ClarinLicenseService clarinLicenseService;
+
+    @Autowired
+    private ClarinLicenseLabelService clarinLicenseLabelService;
+
+    @Autowired
+    private ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+
     private ClarinLicenseResourceUserAllowance allowance;
+
+    private ClarinLicenseResourceMapping publicResourceMapping;
 
     /**
      * The CLARIN builders are not part of the ordered cleanup map, so they are torn down in the order they
@@ -94,6 +143,11 @@ public class ClarinLinkRestRepositoryBeanNameIT extends AbstractControllerIntegr
         if (allowance != null) {
             ClarinLicenseResourceUserAllowanceBuilder.deleteClarinLicenseResourceUserAllowance(allowance.getID());
             allowance = null;
+        }
+        // Same reason: this mapping carries a licence, whose builder would otherwise be torn down first.
+        if (publicResourceMapping != null) {
+            ClarinLicenseResourceMappingBuilder.delete(publicResourceMapping.getID());
+            publicResourceMapping = null;
         }
         super.destroy();
     }
@@ -349,5 +403,162 @@ public class ClarinLinkRestRepositoryBeanNameIT extends AbstractControllerIntegr
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(get(ALLOWANCES_URL + allowance.getID() + "/userRegistration"))
                 .andExpect(status().isOk());
+    }
+    /**
+     * Enumerates every CLARIN rel cell from the {@link LinksRest} annotations of the models above, the way
+     * {@code _sync3/sweeps/rest-matrix.sh} does from the source.
+     *
+     * @return one {category, typePlural, rel} triple per declared rel
+     */
+    private List<String[]> clarinRelCells() throws ReflectiveOperationException {
+        List<String[]> cells = new ArrayList<>();
+        for (Class<? extends RestAddressableModel> modelClass : CLARIN_MODELS_WITH_RELS) {
+            RestAddressableModel model = modelClass.getDeclaredConstructor().newInstance();
+            LinksRest linksRest = modelClass.getDeclaredAnnotation(LinksRest.class);
+            assertNotNull(modelClass.getSimpleName() + " is expected to declare @LinksRest", linksRest);
+            for (LinkRest linkRest : linksRest.links()) {
+                cells.add(new String[] {model.getCategory(), model.getTypePlural(), linkRest.name()});
+            }
+        }
+        return cells;
+    }
+
+    private String parentUrl(String[] cell, Object id) {
+        return "/api/" + cell[0] + "/" + cell[1] + "/" + id;
+    }
+
+    private int anonymousStatus(String url) throws Exception {
+        return getClient().perform(get(url)).andReturn().getResponse().getStatus();
+    }
+
+    /**
+     * A rel must answer an anonymous caller exactly as its own parent does, or the status code becomes an
+     * oracle: {@code ClarinLicenseResourceUserAllowanceService.find} returns null for a missing row before
+     * {@code authorizeClruaAction} ever runs, so an unguarded link method answered 404 for an unknown id and
+     * 401 for an existing one, while the parent findOne answers 401 for both. Anonymous callers could
+     * therefore probe which allowance ids exist.
+     * <P>
+     * The cells come from the models' own annotations, so this covers all six CLARIN rels rather than the two
+     * that leaked, and picks up any rel added later.
+     */
+    @Test
+    public void anonymousRelStatusMatchesParentForUnknownId() throws Exception {
+        List<String[]> cells = clarinRelCells();
+        assertEquals("Expected the six CLARIN rel cells; the matrix changed shape: " + cells.size(),
+                6, cells.size());
+
+        for (String[] cell : cells) {
+            String parent = parentUrl(cell, UNKNOWN_ID);
+            String rel = parent + "/" + cell[2];
+            assertEquals("Anonymous " + rel + " must answer the same status as its parent " + parent,
+                    anonymousStatus(parent), anonymousStatus(rel));
+        }
+    }
+
+    /**
+     * The other half of the same leak, seen from the entity rather than from the parent: for an anonymous
+     * caller the answer must not depend on whether the allowance exists.
+     */
+    @Test
+    public void anonymousClruaRelsRevealNothingAboutExistence() throws Exception {
+        ClarinLicenseResourceUserAllowance existing = allowanceOwnedByEPerson();
+
+        for (String rel : new String[] {ClarinLicenseResourceUserAllowanceRest.RESOURCE_MAPPING,
+                                        ClarinLicenseResourceUserAllowanceRest.USER_REGISTRATION,
+                                        ClarinLicenseResourceUserAllowanceRest.USER_METADATA}) {
+            int onExisting = anonymousStatus(ALLOWANCES_URL + existing.getID() + "/" + rel);
+            int onUnknown = anonymousStatus(ALLOWANCES_URL + UNKNOWN_ID + "/" + rel);
+            assertEquals("The anonymous status of the " + rel + " rel tells the caller whether the allowance"
+                            + " exists (existing id vs unknown id)", onExisting, onUnknown);
+        }
+    }
+
+    /**
+     * The not-found message of the userMetadata rel said "for if:" instead of "for id:" on both dtq-dev and
+     * the v9 base. An authenticated caller is past the guard, so this is the caller who can still see it.
+     */
+    @Test
+    public void clruaUserMetadataNotFoundMessageUsesId() throws Exception {
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+        MockHttpServletResponse response = getClient(epersonToken)
+                .perform(get(ALLOWANCES_URL + UNKNOWN_ID + "/"
+                        + ClarinLicenseResourceUserAllowanceRest.USER_METADATA))
+                .andExpect(status().isNotFound())
+                .andReturn().getResponse();
+        // MockMvc renders no error page, so the text of a sendError() lands in the error message rather
+        // than in the body; read both so the assertion holds however the advice reports it.
+        String message = Objects.toString(response.getErrorMessage(), "") + response.getContentAsString();
+
+        assertTrue("The not-found message should read \"for id: \", but was: " + message,
+                message.contains("for id: "));
+        assertFalse("The \"for if: \" typo is back: " + message, message.contains("for if: "));
+    }
+
+    /**
+     * Guard against over-fixing. {@code ClarinResourceMappingCLicenseLinkRepository} must stay unguarded:
+     * its parent {@code ClarinLicenseResourceMappingRestRepository.findOne} is {@code permitAll()} and the
+     * Angular licence agreement page follows this rel anonymously, so adding {@code @PreAuthorize} here in a
+     * later "security cleanup" would break the anonymous download flow.
+     */
+    @Test
+    public void anonymousResourceMappingClarinLicenseRelStaysPublic() throws Exception {
+        ClarinLicenseResourceMapping mapping = resourceMappingWithLicence();
+
+        getClient().perform(get("/api/" + ClarinLicenseResourceMappingRest.CATEGORY + "/"
+                        + ClarinLicenseResourceMappingRest.PLURAL_NAME + "/" + mapping.getID() + "/"
+                        + ClarinLicenseResourceMappingRest.CLARIN_LICENSE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(mapping.getLicense().getID())));
+    }
+
+    /**
+     * Builds a bitstream with a CLARIN licence attached, i.e. the resource mapping the licence agreement page
+     * reads anonymously.
+     *
+     * @return the resource mapping created by attaching the licence
+     */
+    private ClarinLicenseResourceMapping resourceMappingWithLicence() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection 1")
+                .build();
+        Item item = ItemBuilder.createItem(context, collection)
+                .withTitle("Item with a licensed bitstream")
+                .withIssueDate("2026-09-10")
+                .build();
+        Bitstream bitstream;
+        try (InputStream is = new ByteArrayInputStream("public".getBytes(StandardCharsets.UTF_8))) {
+            bitstream = BitstreamBuilder.createBitstream(context, item, is)
+                    .withName("public.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+
+        ClarinLicenseLabel label = ClarinLicenseLabelBuilder.createClarinLicenseLabel(context).build();
+        label.setLabel("PUB");
+        label.setTitle("Public rel label");
+        label.setExtended(false);
+        clarinLicenseLabelService.update(context, label);
+
+        ClarinLicense licence = ClarinLicenseBuilder.createClarinLicense(context).build();
+        licence.setName("Public rel licence");
+        licence.setDefinition("http://example.com/licence");
+        licence.setRequiredInfo("NAME");
+        licence.setConfirmation(ClarinLicense.Confirmation.NOT_REQUIRED);
+        HashSet<ClarinLicenseLabel> labels = new HashSet<>();
+        labels.add(label);
+        licence.setLicenseLabels(labels);
+        clarinLicenseService.update(context, licence);
+
+        clarinLicenseResourceMappingService.attachLicense(context, licence, bitstream);
+        List<ClarinLicenseResourceMapping> mappings =
+                clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID());
+        assertEquals("The licence fixture did not attach exactly one resource mapping", 1, mappings.size());
+        publicResourceMapping = mappings.get(0);
+        context.restoreAuthSystemState();
+        return publicResourceMapping;
     }
 }
