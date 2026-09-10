@@ -17,6 +17,7 @@ import org.dspace.checker.ChecksumResultCode;
 import org.dspace.checker.ChecksumResultsCollector;
 import org.dspace.checker.MostRecentChecksum;
 import org.dspace.checker.SimpleDispatcher;
+import org.dspace.content.Bitstream;
 import org.dspace.core.Context;
 
 /**
@@ -39,35 +40,42 @@ public class ChecksumCheck extends Check {
         checker.setReportVerbose(true);
         try {
             checker.process();
+            // The report is built here, inside the try and before context.complete(): afterwards the
+            // Hibernate session is closed and every Bitstream the collector holds is a detached entity,
+            // so reading its lazy metadata throws LazyInitializationException. That made the check work
+            // exactly as long as nothing was wrong and fail the moment it had something to report.
+            if (collector.arr.size() > 0) {
+                ret = String.format("Checksum performed on [%d] items:\n",
+                                    collector.arr.size());
+                int ok_items = 0;
+                for (MostRecentChecksum bi : collector.arr) {
+                    if (!ChecksumResultCode.CHECKSUM_MATCH.equals(bi
+                                                                      .getChecksumResult().getResultCode())) {
+                        // Reload before reading the name: the collector may hold an instance from an
+                        // earlier session.
+                        Bitstream reloadedBitstream = context.reloadEntity(bi.getBitstream());
+                        ret += String
+                            .format("md5 checksum FAILED (%s): %s id: %s bitstream-id: %s\n was: %s\n  is: %s\n",
+                                    bi.getChecksumResult(), reloadedBitstream.getName(),
+                                    reloadedBitstream.getInternalId(), reloadedBitstream.getID(),
+                                    bi.getExpectedChecksum(),
+                                    bi.getCurrentChecksum());
+                    } else {
+                        ok_items++;
+                    }
+                }
+
+                ret += String.format("checksum OK for [%d] items\n", ok_items);
+            }
             context.complete();
             context = null;
+            return ret;
         } catch (SQLException e) {
             error(e);
         } finally {
             if (context != null) {
                 context.abort();
             }
-        }
-
-        if (collector.arr.size() > 0) {
-            ret = String.format("Checksum performed on [%d] items:\n",
-                                collector.arr.size());
-            int ok_items = 0;
-            for (MostRecentChecksum bi : collector.arr) {
-                if (!ChecksumResultCode.CHECKSUM_MATCH.equals(bi
-                                                                  .getChecksumResult().getResultCode())) {
-                    ret += String
-                        .format("md5 checksum FAILED (%s): %s id: %s bitstream-id: %s\n was: %s\n  is: %s\n",
-                                bi.getChecksumResult(), bi.getBitstream().getName(),
-                                bi.getBitstream().getInternalId(), bi.getBitstream().getID(),
-                                bi.getExpectedChecksum(),
-                                bi.getCurrentChecksum());
-                } else {
-                    ok_items++;
-                }
-            }
-
-            ret += String.format("checksum OK for [%d] items\n", ok_items);
         }
         return ret;
     }
