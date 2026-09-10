@@ -26,8 +26,70 @@
     <xsl:variable name="FALLBACK_REPOSITORY_NAME" select="':unav'"/>
     <xsl:variable name="FALLBACK_REPOSITORY_URL" select="'urn:x-ccmm:repository-unknown'"/>
     <xsl:variable name="FALLBACK_TITLE" select="'Untitled'"/>
-    <xsl:variable name="FALLBACK_SUBJECT" select="'unspecified'"/>
     <xsl:variable name="FALLBACK_PUBLICATION_YEAR" select="'9999'"/>
+
+    <!-- ============================================================ -->
+    <!-- FRASCATI FORD research field.                                 -->
+    <!-- CCMM (en/dsv.ttl, Dataset.hasSubject): "At least one subject  -->
+    <!-- must be a value from FRASCATI FORD vocabulary."  The XSD does -->
+    <!-- not enforce this, but a CCMM conformance check does.          -->
+    <!--                                                               -->
+    <!-- The field is read off dc.type, which is the only evidence     -->
+    <!-- DSpace holds about what the resource is.  FORD_DEFAULT_CODE   -->
+    <!-- is the discipline of the repository itself and is the one     -->
+    <!-- value another deployment has to change: LINDAT/CLARIAH-CZ is  -->
+    <!-- a language-resources repository, so its default is            -->
+    <!-- Linguistics.                                                  -->
+    <!-- ============================================================ -->
+    <xsl:variable name="FORD_SCHEME_IRI" select="'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/'"/>
+    <xsl:variable name="FORD_DEFAULT_CODE" select="'60203'"/>
+    <!-- code, its division/group path, and both prefLabels exactly as the register spells them -->
+    <xsl:variable name="fordTerms">
+        <f code="60101" path="60000/60100" en="History" cs="Historie"/>
+        <f code="60203" path="60000/60200" en="Linguistics" cs="Lingvistika"/>
+        <f code="10201" path="10000/10200" en="Computer sciences, information science, bioinformathics" cs="Po&#269;&#237;ta&#269;ov&#233; v&#283;dy, informa&#269;n&#237; v&#283;da, bioinformatika"/>
+    </xsl:variable>
+
+    <!-- ============================================================ -->
+    <!-- EU file types.                                                -->
+    <!-- CCMM (Format.label): "Use a label of a codelist value from    -->
+    <!-- http://publications.europa.eu/resource/dataset/file-type."    -->
+    <!-- media_type stays on IANA, which its own scope note asks for.  -->
+    <!-- A media type with no EU concept keeps the IANA value, because -->
+    <!-- format/iri is mandatory and an invented EU code would be      -->
+    <!-- worse than a true IANA one.                                   -->
+    <!-- ============================================================ -->
+    <xsl:variable name="EU_FILETYPE_IRI" select="'http://publications.europa.eu/resource/authority/file-type/'"/>
+    <xsl:variable name="euFileTypes">
+        <t m="application/x-gzip" c="GZIP" l="GNU zip"/>
+        <t m="application/gzip" c="GZIP" l="GNU zip"/>
+        <t m="video/mp4" c="MPEG4" l="MPEG-4"/>
+        <t m="video/quicktime" c="MOV" l="MOV"/>
+        <t m="application/octet-stream" c="OCTET" l="Octet Stream"/>
+        <t m="text/plain" c="TXT" l="Plain text"/>
+        <t m="application/zip" c="ZIP" l="ZIP"/>
+        <t m="text/xml" c="XML" l="XML"/>
+        <t m="application/xml" c="XML" l="XML"/>
+        <t m="application/x-tar" c="TAR" l="TAR"/>
+        <t m="application/pdf" c="PDF" l="PDF"/>
+        <t m="text/csv" c="CSV" l="CSV"/>
+        <t m="application/x-xz" c="XZ" l="xz"/>
+        <t m="audio/x-wav" c="WAV" l="WAV"/>
+        <t m="audio/wav" c="WAV" l="WAV"/>
+        <t m="audio/mpeg" c="MP3" l="MP3"/>
+        <t m="application/vnd.openxmlformats-officedocument.wordprocessingml.document" c="DOCX" l="Word DOCX"/>
+        <t m="text/html" c="HTML" l="HTML"/>
+        <t m="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" c="XLSX" l="Excel XLSX"/>
+        <t m="application/vnd.openxmlformats-officedocument.presentationml.presentation" c="PPTX" l="PowerPoint PPTX"/>
+        <t m="application/x-bzip2" c="BZIP2" l="bzip2"/>
+        <t m="application/x-rar-compressed" c="RAR" l="RAR"/>
+        <t m="image/png" c="PNG" l="PNG"/>
+        <t m="application/rdf+xml" c="RDF_XML" l="RDF XML"/>
+        <t m="text/richtext" c="RTF" l="RTF"/>
+        <t m="application/rtf" c="RTF" l="RTF"/>
+        <t m="application/vnd.oasis.opendocument.spreadsheet" c="ODS" l="ODS"/>
+        <t m="application/vnd.ms-excel" c="XLS" l="Excel XLS"/>
+    </xsl:variable>
 
     <!-- ============================================================ -->
     <!-- Controlled vocabularies.                                      -->
@@ -163,6 +225,21 @@
     <!-- local.language.name is DSpace's positional English name for the same list -->
     <xsl:variable name="languageNames"
         select="/doc:metadata/doc:element[@name='local']/doc:element[@name='language']/doc:element[@name='name']/doc:element/doc:field[@name='value']"/>
+    <!--
+        The item's landing page - a web page that tells a reader how to get the resource.  Every
+        DSpace item has one behind its Handle, and that is what access_url asks for; the bitstream
+        URL belongs in download_url.
+    -->
+    <xsl:variable name="handleUri"
+        select="(/doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'][contains(., 'hdl.handle.net') or contains(., '/handle/')])[1]"/>
+    <xsl:variable name="handleField"
+        select="(/doc:metadata/doc:element[@name='others']/doc:field[@name='handle'])[1]"/>
+    <xsl:variable name="landingPage"
+        select="if ($handleUri) then normalize-space(string($handleUri))
+                else if (normalize-space(string($handleField)) != '')
+                     then concat('http://hdl.handle.net/', normalize-space(string($handleField)))
+                     else ''"/>
+
     <xsl:variable name="accessionedAll"
         select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']"/>
     <xsl:variable name="availableAll"
@@ -190,10 +267,30 @@
         </xsl:choose>
     </xsl:variable>
 
+    <!--
+        The FORD field, from dc.type.  A tool or a service is computer science; a newsreel clip
+        is a historical source, not a language resource - on this corpus every dc.type "clip" is
+        a segment of a digitised newsreel held for historical research.  Everything else is a
+        language resource, which is what the repository collects.
+    -->
+    <xsl:variable name="fordCode">
+        <xsl:variable name="dt" select="lower-case(normalize-space((/doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'])[1]))"/>
+        <xsl:choose>
+            <xsl:when test="$dt = ('toolservice', 'software')">10201</xsl:when>
+            <xsl:when test="$dt = 'clip'">60101</xsl:when>
+            <xsl:otherwise><xsl:value-of select="$FORD_DEFAULT_CODE"/></xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+
     <!-- Main template -->
     <xsl:template match="/">
         <ccmm:dataset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                       xsi:schemaLocation="https://schema.ccmm.cz/research-data/1.1 https://techlib.github.io/CCMM/dataset/schema.xsd">
+
+            <!-- iri (optional) - the dataset's own resolvable identity, which is its landing page -->
+            <xsl:if test="$landingPage != ''">
+                <ccmm:iri><xsl:value-of select="$landingPage"/></ccmm:iri>
+            </xsl:if>
 
             <!-- metadata_identification (required, unbounded) -->
             <xsl:call-template name="MetadataIdentification"/>
@@ -345,32 +442,17 @@
         <!-- Handle identifier -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
             <xsl:if test="contains(., 'hdl.handle.net') or contains(., '/handle/')">
-                <ccmm:identifier>
-                    <ccmm:value><xsl:value-of select="."/></ccmm:value>
-                    <ccmm:scheme>
-                        <ccmm:iri>https://hdl.handle.net/</ccmm:iri>
-                        <ccmm:label xml:lang="en">Handle</ccmm:label>
-                    </ccmm:scheme>
-                </ccmm:identifier>
+                <xsl:call-template name="EmitIdentifier"/>
             </xsl:if>
         </xsl:for-each>
         <!-- DOI identifier -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value']">
-            <ccmm:identifier>
-                <ccmm:value><xsl:value-of select="."/></ccmm:value>
-                <ccmm:scheme>
-                    <ccmm:iri>https://doi.org/</ccmm:iri>
-                    <ccmm:label xml:lang="en">DOI</ccmm:label>
-                </ccmm:scheme>
-            </ccmm:identifier>
+            <xsl:call-template name="EmitIdentifier"/>
         </xsl:for-each>
         <!-- Other URI identifiers (non-handle) -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
             <xsl:if test="not(contains(., 'hdl.handle.net')) and not(contains(., '/handle/'))">
-                <ccmm:identifier>
-                    <ccmm:value><xsl:value-of select="normalize-space(.)"/></ccmm:value>
-                    <ccmm:scheme><xsl:call-template name="IdentifierScheme"/></ccmm:scheme>
-                </ccmm:identifier>
+                <xsl:call-template name="EmitIdentifier"/>
             </xsl:if>
         </xsl:for-each>
         <!--
@@ -382,10 +464,7 @@
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[not(@name = ('uri', 'doi', 'citation'))]/doc:element/doc:field[@name='value']">
             <xsl:if test="not(normalize-space(.) = ../../../doc:element[@name='uri']/doc:element/doc:field[@name='value']/normalize-space(.))
                       and not(normalize-space(.) = ../../../doc:element[@name='doi']/doc:element/doc:field[@name='value']/normalize-space(.))">
-                <ccmm:identifier>
-                    <ccmm:value><xsl:value-of select="normalize-space(.)"/></ccmm:value>
-                    <ccmm:scheme><xsl:call-template name="IdentifierScheme"/></ccmm:scheme>
-                </ccmm:identifier>
+                <xsl:call-template name="EmitIdentifier"/>
             </xsl:if>
         </xsl:for-each>
         <!--
@@ -395,10 +474,10 @@
         -->
         <xsl:if test="not(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'][contains(., 'hdl.handle.net') or contains(., '/handle/')]) and not(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value'])">
             <xsl:if test="doc:metadata/doc:element[@name='others']/doc:field[@name='handle']">
+                <xsl:variable name="h" select="normalize-space((doc:metadata/doc:element[@name='others']/doc:field[@name='handle'])[1])"/>
                 <ccmm:identifier>
-                    <ccmm:value>
-                        <xsl:value-of select="concat('http://hdl.handle.net/', normalize-space((doc:metadata/doc:element[@name='others']/doc:field[@name='handle'])[1]))"/>
-                    </ccmm:value>
+                    <ccmm:iri><xsl:value-of select="concat('http://hdl.handle.net/', $h)"/></ccmm:iri>
+                    <ccmm:value><xsl:value-of select="$h"/></ccmm:value>
                     <ccmm:scheme>
                         <ccmm:iri>https://hdl.handle.net/</ccmm:iri>
                         <ccmm:label xml:lang="en">Handle</ccmm:label>
@@ -456,10 +535,17 @@
     <!-- alternate_title (optional)                                    -->
     <!-- ============================================================ -->
     <xsl:template name="AlternateTitles">
-        <!-- title is 1..1, so every dc.title after the first is an alternate title -->
-        <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value'][position() &gt; 1]">
+        <!--
+            title is 1..1, so every dc.title after the first is an alternate title.  The sequence
+            has to be bound first: position() counts within each parent, and every XOAI language
+            wrapper holds exactly one field, so a predicate on the step itself is always 1.
+        -->
+        <xsl:variable name="titleFields"
+            select="doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']"/>
+        <xsl:for-each select="$titleFields[position() &gt; 1]">
             <ccmm:alternate_title>
                 <ccmm:title><xsl:call-template name="XmlLangAttribute"/><xsl:value-of select="normalize-space(.)"/></ccmm:title>
+                <xsl:call-template name="AlternativeTitleType"/>
             </ccmm:alternate_title>
         </xsl:for-each>
         <!-- the META-SHARE resource name, where it differs from dc.title -->
@@ -468,6 +554,7 @@
                       and not(normalize-space(.) = /doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']/normalize-space(.))">
                 <ccmm:alternate_title>
                     <ccmm:title><xsl:call-template name="XmlLangAttribute"/><xsl:value-of select="normalize-space(.)"/></ccmm:title>
+                    <xsl:call-template name="AlternativeTitleType"/>
                 </ccmm:alternate_title>
             </xsl:if>
         </xsl:for-each>
@@ -483,10 +570,23 @@
         </xsl:for-each>
     </xsl:template>
 
+    <!--
+        An alternate title that DSpace does not qualify is an alternative name for the same
+        resource, which is what the register calls AlternativeTitle.  A translated title is
+        typed separately above, where dc.title.alternative says so.
+    -->
+    <xsl:template name="AlternativeTitleType">
+        <ccmm:alternate_title_type>
+            <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/AlternateTitle/AlternativeTitle</ccmm:iri>
+            <ccmm:label xml:lang="en">Alternative Title</ccmm:label>
+        </ccmm:alternate_title_type>
+    </xsl:template>
+
     <!-- ============================================================ -->
     <!-- qualified_relation (creators and contributors)                -->
     <!-- ============================================================ -->
     <xsl:template name="QualifiedRelations">
+        <xsl:variable name="deduped">
         <!-- dc.contributor.author and dc.creator -> Creator -->
         <xsl:call-template name="AgentRelations">
             <xsl:with-param name="values" select="$creatorValues"/>
@@ -556,6 +656,10 @@
                 </ccmm:role>
             </ccmm:qualified_relation>
         </xsl:if>
+        </xsl:variable>
+        <xsl:call-template name="CopyDistinct">
+            <xsl:with-param name="nodes" select="$deduped/*"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!--
@@ -959,11 +1063,16 @@
         -->
         <xsl:variable name="langCode" select="$languageCodes[1]"/>
         <xsl:if test="$langCode">
+            <!--
+                The register IRI alone: the scope note asks for "language label and/or its
+                3-letter code from" the register, and CCMM's own dataset-mini sample writes
+                primary_language with an iri and no label.  DSpace's local.language.name is not
+                the register's label - it glues words together ("UpperSorbian") and its position
+                no longer lines up once duplicate codes are removed - so publishing it would be
+                asserting a label the register does not use.
+            -->
             <ccmm:primary_language>
                 <ccmm:iri><xsl:value-of select="concat('http://publications.europa.eu/resource/authority/language/', upper-case($langCode))"/></ccmm:iri>
-                <xsl:if test="normalize-space($languageNames[1]) != ''">
-                    <ccmm:label xml:lang="en"><xsl:value-of select="normalize-space($languageNames[1])"/></ccmm:label>
-                </xsl:if>
             </ccmm:primary_language>
         </xsl:if>
     </xsl:template>
@@ -977,9 +1086,6 @@
             <xsl:variable name="i" select="."/>
             <ccmm:other_language>
                 <ccmm:iri><xsl:value-of select="concat('http://publications.europa.eu/resource/authority/language/', upper-case($languageCodes[$i]))"/></ccmm:iri>
-                <xsl:if test="normalize-space($languageNames[$i]) != ''">
-                    <ccmm:label xml:lang="en"><xsl:value-of select="normalize-space($languageNames[$i])"/></ccmm:label>
-                </xsl:if>
             </ccmm:other_language>
         </xsl:for-each>
     </xsl:template>
@@ -1013,8 +1119,8 @@
             select="boolean(doc:metadata/doc:element[@name='bundles']/doc:element[@name='bundle'][doc:field[@name='name'] = 'ORIGINAL']/doc:element[@name='bitstreams']/doc:element[@name='bitstream'])"/>
         <!-- a licence IRI must be an IRI; free text belongs in the description -->
         <xsl:variable name="licenseIri"
-            select="if (matches($licenseUriRaw, '^https?://')) then $licenseUriRaw
-                    else if (matches($ccUri, '^https?://')) then $ccUri else ''"/>
+            select="if (matches($licenseUriRaw, '^https?://\S+$')) then $licenseUriRaw
+                    else if (matches($ccUri, '^https?://\S+$')) then $ccUri else ''"/>
         <!-- the licence NAME, never the CLARIN access category, which is not a licence -->
         <xsl:variable name="rightsNodes"
             select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']"/>
@@ -1071,6 +1177,15 @@
                     </xsl:when>
                     <xsl:when test="$ccName != ''">
                         <ccmm:label xml:lang="en"><xsl:value-of select="$ccName"/></ccmm:label>
+                    </xsl:when>
+                    <xsl:when test="$licenseIri = ''">
+                        <!--
+                            license is 1..1 and the record states no rights at all.  An empty
+                            element would satisfy the schema and tell a harvester nothing, so the
+                            standard statement for exactly this case is published instead.
+                        -->
+                        <ccmm:iri>http://rightsstatements.org/vocab/UND/1.0/</ccmm:iri>
+                        <ccmm:label xml:lang="en">Copyright Undetermined</ccmm:label>
                     </xsl:when>
                 </xsl:choose>
             </ccmm:license>
@@ -1137,7 +1252,9 @@
                     <ccmm:name><xsl:value-of select="normalize-space(if ($family != '' and $given != '') then concat($family, ', ', $given) else concat($family, $given))"/></ccmm:name>
                     <xsl:if test="$given != ''"><ccmm:given_name><xsl:value-of select="$given"/></ccmm:given_name></xsl:if>
                     <xsl:if test="$family != ''"><ccmm:family_name><xsl:value-of select="$family"/></ccmm:family_name></xsl:if>
-                    <xsl:if test="$mail != ''">
+                    <!-- the packed field is positional, so a record that omits one part shifts
+                         an affiliation into the email slot; only a real address is published -->
+                    <xsl:if test="matches($mail, '^[^\s@]+@[^\s@]+\.[^\s@]+$')">
                         <ccmm:contact_point><ccmm:email><xsl:value-of select="$mail"/></ccmm:email></ccmm:contact_point>
                     </xsl:if>
                     <xsl:if test="$org != ''">
@@ -1170,6 +1287,9 @@
     <!-- subject (required, unbounded)                                 -->
     <!-- ============================================================ -->
     <xsl:template name="Subjects">
+        <xsl:variable name="deduped">
+        <!-- the mandatory FORD field leads, as it does in CCMM's own samples -->
+        <xsl:call-template name="FordSubject"/>
         <!-- dc.subject -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
             <xsl:call-template name="EmitSubject"/>
@@ -1196,23 +1316,42 @@
         <xsl:for-each select="$amLangOther[. != '']">
             <ccmm:subject><ccmm:title xml:lang="en"><xsl:value-of select="."/></ccmm:title></ccmm:subject>
         </xsl:for-each>
-        <!-- Fallback: subject is 1..unbounded, so a record with none still needs one -->
-        <xsl:if test="not(doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value'])
-                  and not(doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:element/doc:field[@name='value'])
-                  and not(doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ContentInfo']/doc:element[@name='detailedType']/doc:element/doc:field[@name='value'])
-                  and not(doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ContentInfo']/doc:element[@name='mediaType']/doc:element/doc:field[@name='value'])
-                  and not($amLangOther[. != ''])">
-            <ccmm:subject>
-                <ccmm:title xml:lang="en"><xsl:value-of select="$FALLBACK_SUBJECT"/></ccmm:title>
-            </ccmm:subject>
-        </xsl:if>
+        <!--
+            No "unspecified" fallback: subject is 1..unbounded and the FORD field above always
+            satisfies it, so a placeholder subject would add nothing but noise.
+        -->
+        </xsl:variable>
+        <xsl:call-template name="CopyDistinct">
+            <xsl:with-param name="nodes" select="$deduped/*"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!--
+        The FRASCATI FORD field, in the shape CCMM's own samples use: the concept IRI, both
+        prefLabels, the bare code as the classification code, and the codelist itself as the
+        subject scheme.  This is the one subject that carries a subject_scheme, because it is
+        the one whose scheme publishes an IRI.
+    -->
+    <xsl:template name="FordSubject">
+        <xsl:variable name="f" select="$fordTerms/f[@code = $fordCode]"/>
+        <ccmm:subject>
+            <ccmm:iri><xsl:value-of select="concat($FORD_SCHEME_IRI, $f/@path, '/', $f/@code)"/></ccmm:iri>
+            <ccmm:title xml:lang="cs"><xsl:value-of select="$f/@cs"/></ccmm:title>
+            <ccmm:title xml:lang="en"><xsl:value-of select="$f/@en"/></ccmm:title>
+            <ccmm:classification_code><xsl:value-of select="$f/@code"/></ccmm:classification_code>
+            <ccmm:subject_scheme>
+                <ccmm:iri><xsl:value-of select="$FORD_SCHEME_IRI"/></ccmm:iri>
+                <ccmm:label xml:lang="en">OECD FORD Subject Category (Frascati)</ccmm:label>
+                <ccmm:label xml:lang="cs">Oborov&#233; t&#345;&#237;d&#283;n&#237; OECD FORD (Frascati)</ccmm:label>
+            </ccmm:subject_scheme>
+        </ccmm:subject>
     </xsl:template>
 
     <!--
         One subject from the value in context.  A "::"-separated value is a path through a
         controlled vocabulary: the leaf is the term and the whole path is its classification
-        code.  No subject_scheme is emitted - subject-scheme/schema.xsd makes its iri mandatory
-        and the thesauri these paths come from publish none.
+        code.  No subject_scheme is emitted for these - subject-scheme/schema.xsd makes its iri
+        mandatory and the thesauri these paths come from publish none.
     -->
     <xsl:template name="EmitSubject">
         <xsl:variable name="v" select="normalize-space(.)"/>
@@ -1233,6 +1372,7 @@
     <!-- description (optional, unbounded)                             -->
     <!-- ============================================================ -->
     <xsl:template name="Descriptions">
+        <xsl:variable name="deduped">
         <!-- dc.description (abstract) -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
             <ccmm:description>
@@ -1342,6 +1482,10 @@
                 </ccmm:description>
             </xsl:if>
         </xsl:for-each>
+        </xsl:variable>
+        <xsl:call-template name="CopyDistinct">
+            <xsl:with-param name="nodes" select="$deduped/*"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- ============================================================ -->
@@ -1354,6 +1498,8 @@
     -->
     <xsl:template name="Locations">
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='coverage']/doc:element[@name='placeName']/doc:element/doc:field[@name='value']">
+            <!-- DSpace packs repeated values as "A||B"; that is two places, not one name -->
+            <xsl:for-each select="tokenize(normalize-space(.), '\|\|')">
             <xsl:if test="normalize-space(.) != ''">
                 <ccmm:location>
                     <ccmm:name><xsl:value-of select="normalize-space(.)"/></ccmm:name>
@@ -1363,6 +1509,7 @@
                     </ccmm:relation_type>
                 </ccmm:location>
             </xsl:if>
+            </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
 
@@ -1370,6 +1517,7 @@
     <!-- funding_reference (optional, unbounded)                       -->
     <!-- ============================================================ -->
     <xsl:template name="FundingReferences">
+        <xsl:variable name="deduped">
         <!--
             OpenAIRE grant agreements: info:eu-repo/grantAgreement/FUNDER/PROGRAMME/AWARD/...
             The guard names the whole prefix - any other info: URI (info:eu-repo/semantics/...,
@@ -1454,6 +1602,10 @@
                 </ccmm:funding_reference>
             </xsl:if>
         </xsl:for-each>
+        </xsl:variable>
+        <xsl:call-template name="CopyDistinct">
+            <xsl:with-param name="nodes" select="$deduped/*"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- ============================================================ -->
@@ -1461,6 +1613,7 @@
     <!-- ============================================================ -->
     <!-- (funding continues below in FundingReferences) -->
     <xsl:template name="RelatedResources">
+        <xsl:variable name="deduped">
         <!-- every dc.relation qualifier that names another resource -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name = ('uri', 'ispartof', 'haspart', 'replaces', 'isreplacedby', 'isreferencedby', 'references', 'isbasedon', 'isversionof', 'hasversion', 'requires', 'isrequiredby', 'isformatof', 'hasformat')]/doc:element/doc:field[@name='value']">
             <xsl:variable name="rel" select="../../@name"/>
@@ -1490,7 +1643,8 @@
         <xsl:for-each select="$amPublications[. != '']">
             <ccmm:related_resource>
                 <xsl:choose>
-                    <xsl:when test="matches(., '^https?://')">
+                    <!-- the whole line has to be one URL; a URL followed by prose is a title -->
+                    <xsl:when test="matches(., '^https?://\S+$')">
                         <ccmm:iri><xsl:value-of select="."/></ccmm:iri>
                         <ccmm:resource_url><xsl:value-of select="."/></ccmm:resource_url>
                     </xsl:when>
@@ -1513,6 +1667,10 @@
                 </ccmm:related_resource>
             </xsl:if>
         </xsl:for-each>
+        </xsl:variable>
+        <xsl:call-template name="CopyDistinct">
+            <xsl:with-param name="nodes" select="$deduped/*"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!--
@@ -1526,12 +1684,12 @@
         <xsl:if test="$v != ''">
             <ccmm:related_resource>
                 <xsl:choose>
-                    <xsl:when test="matches($v, '^https?://')">
+                    <!-- the WHOLE value has to be one URI: "http://a http://b" and a URL
+                         followed by prose are titles, not identifiers -->
+                    <xsl:when test="matches($v, '^https?://\S+$')">
                         <ccmm:iri><xsl:value-of select="$v"/></ccmm:iri>
-                        <ccmm:identifier>
-                            <ccmm:value><xsl:value-of select="$v"/></ccmm:value>
-                            <ccmm:scheme><xsl:call-template name="IdentifierScheme"/></ccmm:scheme>
-                        </ccmm:identifier>
+                        <!-- the same notation/iri split the dataset's own identifiers use -->
+                        <xsl:call-template name="EmitIdentifier"/>
                         <ccmm:resource_url><xsl:value-of select="$v"/></ccmm:resource_url>
                     </xsl:when>
                     <xsl:otherwise>
@@ -1567,6 +1725,10 @@
                 <xsl:when test="$relType = 'isbasedon'">IsDerivedFrom</xsl:when>
                 <xsl:when test="$relType = 'isformatof'">IsVariantFormOf</xsl:when>
                 <xsl:when test="$relType = 'hasformat'">IsOriginalFormOf</xsl:when>
+                <!-- dc.relation.uri asserts a relation without saying which; the register has a
+                     term for exactly that, and resource_relation_type is how a consumer tells
+                     related resources apart -->
+                <xsl:when test="$relType = 'uri'">Other</xsl:when>
                 <xsl:otherwise/>
             </xsl:choose>
         </xsl:variable>
@@ -1585,6 +1747,7 @@
                 <xsl:when test="$term = 'IsDerivedFrom'">is derived from</xsl:when>
                 <xsl:when test="$term = 'IsVariantFormOf'">is variant form of</xsl:when>
                 <xsl:when test="$term = 'IsOriginalFormOf'">is original form of</xsl:when>
+                <xsl:when test="$term = 'Other'">other</xsl:when>
                 <xsl:otherwise/>
             </xsl:choose>
         </xsl:variable>
@@ -1614,20 +1777,46 @@
             <xsl:variable name="nm" select="normalize-space((doc:field[@name='name'], doc:field[@name='originalName'])[normalize-space(.) != ''][1])"/>
             <xsl:variable name="sum" select="normalize-space((doc:field[@name='checksum'])[1])"/>
             <xsl:variable name="alg" select="normalize-space((doc:field[@name='checksumAlgorithm'])[1])"/>
-            <xsl:if test="matches($url, '^https?://') and matches($size, '^[0-9]+$') and matches($fmt, '^[A-Za-z0-9!#$&amp;^_.+-]+/[A-Za-z0-9!#$&amp;^_.+-]+$')">
+            <xsl:if test="matches($url, '^https?://\S+$') and matches($size, '^[0-9]+$') and matches($fmt, '^[A-Za-z0-9!#$&amp;^_.+-]+/[A-Za-z0-9!#$&amp;^_.+-]+$')">
                 <ccmm:distribution>
                     <ccmm:distribution_downloadable_file>
                         <ccmm:title><xsl:value-of select="if ($nm != '') then $nm else $url"/></ccmm:title>
-                        <ccmm:access_url><ccmm:iri><xsl:value-of select="$url"/></ccmm:iri></ccmm:access_url>
+                        <!--
+                            access_url is the page that says how to get the resource, so it is the
+                            item's landing page.  A record with no Handle at all has no page to
+                            point at, and access_url is mandatory, so it keeps the file URL.
+                        -->
+                        <ccmm:access_url>
+                            <ccmm:iri><xsl:value-of select="if ($landingPage != '') then $landingPage else $url"/></ccmm:iri>
+                        </ccmm:access_url>
                         <ccmm:download_url><ccmm:iri><xsl:value-of select="$url"/></ccmm:iri></ccmm:download_url>
+                        <xsl:variable name="eu" select="$euFileTypes/t[@m = $fmt]"/>
                         <ccmm:format>
-                            <ccmm:iri><xsl:value-of select="concat('https://www.iana.org/assignments/media-types/', $fmt)"/></ccmm:iri>
-                            <ccmm:label xml:lang="en"><xsl:value-of select="$fmt"/></ccmm:label>
+                            <xsl:choose>
+                                <xsl:when test="$eu">
+                                    <ccmm:iri><xsl:value-of select="concat($EU_FILETYPE_IRI, $eu[1]/@c)"/></ccmm:iri>
+                                    <ccmm:label xml:lang="en"><xsl:value-of select="$eu[1]/@l"/></ccmm:label>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <!-- no EU concept for this media type; a true IANA value beats an invented one -->
+                                    <ccmm:iri><xsl:value-of select="concat('https://www.iana.org/assignments/media-types/', $fmt)"/></ccmm:iri>
+                                    <ccmm:label xml:lang="en"><xsl:value-of select="$fmt"/></ccmm:label>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </ccmm:format>
-                        <ccmm:media_type>
-                            <ccmm:iri><xsl:value-of select="concat('https://www.iana.org/assignments/media-types/', $fmt)"/></ccmm:iri>
-                            <ccmm:label xml:lang="en"><xsl:value-of select="$fmt"/></ccmm:label>
-                        </ccmm:media_type>
+                        <!--
+                            media_type's scope note applies "when the media type is defined in
+                            IANA".  RFC 6838 reserves the "x-" subtype prefix for types that are
+                            NOT registered, so those get no media_type and the mandatory EU
+                            format above carries the file type instead - which is exactly the
+                            "otherwise Format MAY be used" branch of the same scope note.
+                        -->
+                        <xsl:if test="not(matches($fmt, '/x-'))">
+                            <ccmm:media_type>
+                                <ccmm:iri><xsl:value-of select="concat('https://www.iana.org/assignments/media-types/', $fmt)"/></ccmm:iri>
+                                <ccmm:label xml:lang="en"><xsl:value-of select="$fmt"/></ccmm:label>
+                            </ccmm:media_type>
+                        </xsl:if>
                         <ccmm:byte_size><xsl:value-of select="$size"/></ccmm:byte_size>
                         <xsl:if test="matches($sum, '^[0-9a-fA-F]+$') and string-length($sum) mod 2 = 0 and $alg != ''">
                             <ccmm:checksum>
@@ -1647,14 +1836,14 @@
             <xsl:variable name="v" select="normalize-space(.)"/>
             <xsl:variable name="lab" select="if (contains($v, '|')) then normalize-space(substring-before($v, '|')) else ''"/>
             <xsl:variable name="url" select="normalize-space(if (contains($v, '|')) then substring-after($v, '|') else $v)"/>
-            <xsl:if test="matches($url, '^https?://')">
+            <xsl:if test="matches($url, '^https?://\S+$')">
                 <xsl:call-template name="DataServiceDistribution">
                     <xsl:with-param name="title" select="if ($lab != '') then concat(../../@name, ': ', $lab) else string(../../@name)"/>
                     <xsl:with-param name="url" select="$url"/>
                 </xsl:call-template>
             </xsl:if>
         </xsl:for-each>
-        <xsl:for-each select="$amWebservice[matches(., '^https?://')]">
+        <xsl:for-each select="$amWebservice[matches(., '^https?://\S+$')]">
             <xsl:call-template name="DataServiceDistribution">
                 <xsl:with-param name="title" select="'Web service'"/>
                 <xsl:with-param name="url" select="."/>
@@ -1676,7 +1865,7 @@
                         <ccmm:resource_url><xsl:value-of select="$url"/></ccmm:resource_url>
                     </ccmm:endpoint_url>
                 </ccmm:access_service>
-                <xsl:for-each select="$amDoclink[matches(., '^https?://')]">
+                <xsl:for-each select="$amDoclink[matches(., '^https?://\S+$')]">
                     <ccmm:documentation>
                         <ccmm:iri><xsl:value-of select="."/></ccmm:iri>
                         <ccmm:label xml:lang="en">Documentation</ccmm:label>
@@ -1728,6 +1917,21 @@
           description element - and the deprecated language variants of a subject path.
     -->
 
+    <!--
+        Copies each distinct child once.  Two byte-identical siblings are one value in the CCMM
+        model and two in XML, which a consumer displays twice; the key below - element names,
+        string value and xml:lang - is what makes them identical.
+    -->
+    <xsl:template name="CopyDistinct">
+        <xsl:param name="nodes"/>
+        <xsl:for-each-group select="$nodes"
+            group-by="concat(string-join(descendant-or-self::*/name(), '|'), '#',
+                             string(.), '#',
+                             string-join(descendant-or-self::*/@xml:lang, '|'))">
+            <xsl:copy-of select="current-group()[1]"/>
+        </xsl:for-each-group>
+    </xsl:template>
+
     <!-- ============================================================ -->
     <!-- Helper: Format a date string to xs:date or xs:dateTime        -->
     <!-- ============================================================ -->
@@ -1759,6 +1963,45 @@
                 <ccmm:date><xsl:value-of select="concat($y, '-01-01')"/></ccmm:date>
             </xsl:when>
         </xsl:choose>
+    </xsl:template>
+
+    <!--
+        One identifier from the value in context.  CCMM types value as skos:notation - the
+        identifier WITHIN its scheme - and offers a separate iri for the resolvable form, which
+        is the split CCMM's own samples use.  So a handle URL yields the bare handle plus the
+        resolvable URL, a DOI in any of its three written forms yields the bare DOI plus
+        https://doi.org/..., and anything else keeps its value, gaining an iri only when the
+        whole value really is one URL.
+    -->
+    <xsl:template name="EmitIdentifier">
+        <xsl:variable name="raw" select="normalize-space(.)"/>
+        <xsl:variable name="isHandle" select="contains($raw, 'hdl.handle.net') or contains($raw, '/handle/')"/>
+        <xsl:variable name="isDoi"
+            select="not($isHandle) and (matches($raw, '^https?://(dx\.)?doi\.org/')
+                                        or starts-with($raw, 'doi:') or starts-with($raw, '10.'))"/>
+        <xsl:variable name="notation">
+            <xsl:choose>
+                <xsl:when test="$isHandle"><xsl:value-of select="replace($raw, '^.*?(hdl\.handle\.net/|/handle/)', '')"/></xsl:when>
+                <xsl:when test="$isDoi"><xsl:value-of select="replace(replace($raw, '^https?://(dx\.)?doi\.org/', ''), '^doi:', '')"/></xsl:when>
+                <xsl:otherwise><xsl:value-of select="$raw"/></xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="iri">
+            <xsl:choose>
+                <xsl:when test="$isHandle and matches($raw, '^https?://\S+$')"><xsl:value-of select="$raw"/></xsl:when>
+                <xsl:when test="$isHandle"><xsl:value-of select="concat('https://hdl.handle.net/', $notation)"/></xsl:when>
+                <xsl:when test="$isDoi"><xsl:value-of select="concat('https://doi.org/', $notation)"/></xsl:when>
+                <xsl:when test="matches($raw, '^https?://\S+$')"><xsl:value-of select="$raw"/></xsl:when>
+                <xsl:otherwise/>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:if test="$notation != ''">
+            <ccmm:identifier>
+                <xsl:if test="$iri != ''"><ccmm:iri><xsl:value-of select="$iri"/></ccmm:iri></xsl:if>
+                <ccmm:value><xsl:value-of select="$notation"/></ccmm:value>
+                <ccmm:scheme><xsl:call-template name="IdentifierScheme"/></ccmm:scheme>
+            </ccmm:identifier>
+        </xsl:if>
     </xsl:template>
 
     <!--

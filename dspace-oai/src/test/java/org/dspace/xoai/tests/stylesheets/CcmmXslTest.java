@@ -42,6 +42,8 @@ public class CcmmXslTest extends AbstractXSLTest {
     private static final String BARE = "xoai-ccmm-no-identifier-test.xml";
     private static final String FLAG = "xoai-ccmm-restricted-flag-test.xml";
     private static final String EMBARGO = "xoai-ccmm-embargo-test.xml";
+    private static final String CLIP = "xoai-ccmm-newsreel-clip-test.xml";
+    private static final String TOOL = "xoai-ccmm-tool-test.xml";
 
     @Test
     public void ccmmCanTransformInput() throws Exception {
@@ -59,7 +61,9 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmContainsIdentifier() throws Exception {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:identifier[1]/ccmm:value",
+            "//ccmm:dataset/ccmm:identifier[1]/ccmm:value", equalTo("11234/1-5678"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:identifier[1]/ccmm:iri",
             equalTo("http://hdl.handle.net/11234/1-5678"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:identifier[1]/ccmm:scheme/ccmm:label", equalTo("Handle"))));
@@ -121,21 +125,25 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmContainsSubjects() throws Exception {
+        // the FORD field leads the subject list, so a keyword is matched by value, not position
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:subject[1]/ccmm:title", equalTo("linguistics"))));
+            "count(//ccmm:dataset/ccmm:subject/ccmm:title[.='linguistics'])", equalTo("1"))));
     }
 
     @Test
     public void ccmmHierarchicalSubjectKeepsThePathAsAClassificationCode() throws Exception {
         // "People::Masaryk ..." is a path through a thesaurus, not a subject heading
         String result = apply("ccmm.xsl").to(resource(MAIN));
+        // the FORD field also carries a classification code, so match on the code itself
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:classification_code]/ccmm:title",
+            "//ccmm:subject[ccmm:classification_code="
+                + "'People::Masaryk Tomas Garrigue (1850-1937)']/ccmm:title",
             equalTo("Masaryk Tomas Garrigue (1850-1937)"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject/ccmm:classification_code",
-            equalTo("People::Masaryk Tomas Garrigue (1850-1937)"))));
+            "count(//ccmm:subject/ccmm:classification_code"
+                + "[.='People::Masaryk Tomas Garrigue (1850-1937)'])",
+            equalTo("1"))));
     }
 
     @Test
@@ -223,18 +231,16 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:primary_language/ccmm:iri",
             equalTo("http://publications.europa.eu/resource/authority/language/CES"))));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:primary_language/ccmm:label", equalTo("Czech"))));
     }
 
     @Test
-    public void ccmmOtherLanguageKeepsItsNameAligned() throws Exception {
+    public void ccmmOtherLanguageKeepsItsRegisterIri() throws Exception {
+        // document order is preserved and duplicates removed without reordering, so the second
+        // distinct code is the first other_language
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:other_language/ccmm:iri",
             equalTo("http://publications.europa.eu/resource/authority/language/ENG"))));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:other_language/ccmm:label", equalTo("English"))));
     }
 
     @Test
@@ -331,17 +337,24 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmFallbackSubjectIsUnspecified() throws Exception {
+    public void ccmmRecordWithNoKeywordsStillCarriesTheFordSubject() throws Exception {
+        // subject is 1..n; the mandatory FORD field satisfies it, so no placeholder is needed
         String result = apply("ccmm.xsl").to(resource(MINIMAL));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:subject/ccmm:title", equalTo("unspecified"))));
+            "count(//ccmm:dataset/ccmm:subject)", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:subject/ccmm:classification_code", equalTo("60203"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:subject/ccmm:title[.='unspecified'])", equalTo("0"))));
     }
 
     @Test
     public void ccmmFallbackIdentifierUsesOthersHandle() throws Exception {
         String result = apply("ccmm.xsl").to(resource(MINIMAL));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:identifier/ccmm:value",
+            "//ccmm:dataset/ccmm:identifier/ccmm:value", equalTo("99999/test-1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:identifier/ccmm:iri",
             equalTo("http://hdl.handle.net/99999/test-1"))));
     }
 
@@ -425,8 +438,17 @@ public class CcmmXslTest extends AbstractXSLTest {
             equalTo("corpus.txt"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file/ccmm:byte_size", equalTo("2048"))));
+        // format carries the EU file-type codelist value, media_type carries IANA
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:distribution_downloadable_file/ccmm:format/ccmm:label", equalTo("text/plain"))));
+            "//ccmm:distribution_downloadable_file/ccmm:format/ccmm:iri",
+            equalTo("http://publications.europa.eu/resource/authority/file-type/TXT"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:format/ccmm:label", equalTo("Plain text"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:media_type/ccmm:iri",
+            equalTo("https://www.iana.org/assignments/media-types/text/plain"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:media_type/ccmm:label", equalTo("text/plain"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file/ccmm:checksum/ccmm:checksum_value",
             equalTo("ee1c4e448a8f9f838df348dfee1fc11f"))));
@@ -779,6 +801,275 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:terms_of_use/ccmm:access_rights/ccmm:label",
             equalTo("embargoes access"))));
+    }
+
+    @Test
+    public void ccmmEveryRecordCarriesAFrascatiFordSubject() throws Exception {
+        // CCMM: "At least one subject must be a value from FRASCATI FORD vocabulary."  The XSD
+        // does not enforce it, a CCMM conformance check does.
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:subject_scheme/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:subject_scheme/ccmm:label[@xml:lang='en']",
+            equalTo("OECD FORD Subject Category (Frascati)"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:subject[ccmm:subject_scheme])", equalTo("1"))));
+    }
+
+    @Test
+    public void ccmmFordSubjectCarriesTheConceptIriCodeAndBothLabels() throws Exception {
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/60000/60200/60203"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:classification_code", equalTo("60203"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:title[@xml:lang='en']", equalTo("Linguistics"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:title[@xml:lang='cs']", equalTo("Lingvistika"))));
+    }
+
+    @Test
+    public void ccmmNewsreelClipIsClassifiedAsHistoryNotLinguistics() throws Exception {
+        // a digitised newsreel is a primary historical source, not a language resource
+        String result = apply("ccmm.xsl").to(resource(CLIP));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:classification_code", equalTo("60101"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:title[@xml:lang='en']", equalTo("History"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:title[@xml:lang='cs']", equalTo("Historie"))));
+    }
+
+    @Test
+    public void ccmmToolIsClassifiedAsComputerScience() throws Exception {
+        String result = apply("ccmm.xsl").to(resource(TOOL));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:classification_code", equalTo("10201"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:subject[ccmm:subject_scheme]/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/10000/10200/10201"))));
+    }
+
+    @Test
+    public void ccmmFordSubjectKeepsTheSchemaElementOrder() throws Exception {
+        // subject is a sequence: iri, title+, definition*, classification_code?, subject_scheme?
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:subject/ccmm:iri[preceding-sibling::ccmm:title])", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:subject/ccmm:subject_scheme[following-sibling::ccmm:classification_code])",
+            equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmDatasetCarriesItsOwnResolvableIri() throws Exception {
+        // dataset/iri is optional in the XSD but it is the only resolvable identity the
+        // published record has
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "/ccmm:dataset/ccmm:iri", equalTo("http://hdl.handle.net/11234/1-5678"))));
+    }
+
+    @Test
+    public void ccmmDatasetIriFallsBackToTheOthersHandle() throws Exception {
+        // a record with no dc.identifier.uri still has a Handle, and that is its landing page
+        String result = apply("ccmm.xsl").to(resource(MINIMAL));
+        assertThat(result, is(ccmm().withXPath(
+            "/ccmm:dataset/ccmm:iri", equalTo("http://hdl.handle.net/99999/test-1"))));
+    }
+
+    @Test
+    public void ccmmIdentifierValueIsTheNotationAndIriIsTheResolvableForm() throws Exception {
+        // CCMM types value as skos:notation - the identifier WITHIN its scheme - and keeps the
+        // resolvable form in iri, which is the split CCMM's own samples use
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:identifier[ccmm:scheme/ccmm:label='Handle']/ccmm:value",
+            equalTo("11234/1-5678"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:identifier[ccmm:scheme/ccmm:label='Handle']/ccmm:iri",
+            equalTo("http://hdl.handle.net/11234/1-5678"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:dataset/ccmm:identifier/ccmm:value[starts-with(., 'http')"
+                + " and ../ccmm:scheme/ccmm:label='Handle'])",
+            equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmMandatoryLicenceIsNeverAnEmptyElement() throws Exception {
+        // license is 1..1; a record that states no rights gets the standard statement for
+        // exactly that case rather than a void element
+        String result = apply("ccmm.xsl").to(resource(STOCK));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:license/ccmm:iri",
+            equalTo("http://rightsstatements.org/vocab/UND/1.0/"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:license/ccmm:label", equalTo("Copyright Undetermined"))));
+    }
+
+    @Test
+    public void ccmmLanguageCarriesTheRegisterIriAndNoInventedLabel() throws Exception {
+        // the scope note asks for the register's label "and/or" its code; DSpace's own string is
+        // not the register's, so only the IRI is published
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:primary_language/ccmm:iri",
+            equalTo("http://publications.europa.eu/resource/authority/language/CES"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:primary_language/ccmm:label)", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:other_language/ccmm:label)", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmUnregisteredMediaTypeGetsNoIanaIriButKeepsItsEuFormat() throws Exception {
+        // RFC 6838 reserves the "x-" subtype prefix for types that are NOT registered, so an
+        // IANA IRI for one would not resolve; the mandatory EU format carries it instead
+        String result = apply("ccmm.xsl").to(resource(TOOL));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file[ccmm:title='models.tar.gz']/ccmm:format/ccmm:iri",
+            equalTo("http://publications.europa.eu/resource/authority/file-type/GZIP"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:distribution_downloadable_file[ccmm:title='models.tar.gz']/ccmm:media_type)",
+            equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:distribution_downloadable_file[ccmm:title='morphodita.zip']/ccmm:media_type)",
+            equalTo("1"))));
+    }
+
+    @Test
+    public void ccmmPackedMultiValuePlaceBecomesOneLocationEach() throws Exception {
+        // DSpace packs repeated values as "A||B"; that is two places, not one name
+        String result = apply("ccmm.xsl").to(resource(CLIP));
+        assertThat(result, is(ccmm().withXPath("count(//ccmm:location)", equalTo("2"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:location/ccmm:name[.='Germany'])", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:location/ccmm:name[.='Austria'])", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:location/ccmm:name[contains(., '||')])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmUnqualifiedRelationUriStillGetsARelationType() throws Exception {
+        // dc.relation.uri asserts a relation without saying which, and the register has a term
+        // for exactly that; a related resource with no type cannot be told apart from any other
+        String result = apply("ccmm.xsl").to(resource(CLIP));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/20.500.12801/3900007-01']"
+                + "/ccmm:resource_relation_type/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/RelationType/Other"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:related_resource[not(ccmm:resource_relation_type)])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmAlternateTitleAlwaysStatesWhatKindItIs() throws Exception {
+        // dc.title.alternative says it is a translation; a plain second dc.title only says the
+        // resource has another name, which the register calls AlternativeTitle
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:alternate_title[not(ccmm:alternate_title_type)])", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:alternate_title[ccmm:title='CND 2.0']/ccmm:alternate_title_type/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/AlternateTitle/TranslatedTitle"))));
+    }
+
+    @Test
+    public void ccmmSecondPlainTitleBecomesAnAlternativeTitle() throws Exception {
+        // the two titles sit in different XOAI language wrappers, which is how DSpace stores
+        // them whenever they differ in language
+        String result = apply("ccmm.xsl").to(resource(TOOL));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:alternate_title[ccmm:title='MorphoDiTa']/ccmm:alternate_title_type/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/AlternateTitle/AlternativeTitle"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:alternate_title[ccmm:title='MorphoDiTa']/ccmm:alternate_title_type/ccmm:label",
+            equalTo("Alternative Title"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:title", equalTo("MorphoDiTa Morphological Tagger"))));
+    }
+
+    @Test
+    public void ccmmDoiWrittenAsAUrlStillYieldsTheBareDoiAsItsNotation() throws Exception {
+        String result = apply("ccmm.xsl").to(resource(TOOL));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:identifier[ccmm:scheme/ccmm:label='DOI']/ccmm:value",
+            equalTo("10.5555/morphodita"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:identifier[ccmm:scheme/ccmm:label='DOI']/ccmm:iri",
+            equalTo("https://doi.org/10.5555/morphodita"))));
+    }
+
+    @Test
+    public void ccmmAffiliationInTheEmailSlotIsNotPublishedAsAnEmail() throws Exception {
+        // local.contact.person is positional "Given;Family;email;affiliation"; a record that
+        // omits the email shifts the affiliation into its place
+        String result = apply("ccmm.xsl").to(resource(TOOL));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:contact_point/ccmm:person/ccmm:name", equalTo("Strakova, Jana"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:contact_point/ccmm:person/ccmm:contact_point/ccmm:email)",
+            equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmSameValueUnderTwoLanguageWrappersIsOneElement() throws Exception {
+        // DSpace stores one value under several wrappers; two byte-identical siblings are one
+        // value in the CCMM model and would be displayed twice by any consumer
+        String result = apply("ccmm.xsl").to(resource(TOOL));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:dataset/ccmm:subject/ccmm:title[.='tagger'])", equalTo("1"))));
+    }
+
+    @Test
+    public void ccmmUrlFollowedByProseIsATitleNotAnIdentifier() throws Exception {
+        String result = apply("ccmm.xsl").to(resource(TOOL));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:related_resource/ccmm:iri[contains(., ' ')])", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:related_resource/ccmm:title",
+            equalTo("https://ufal.mff.cuni.cz/morphodita Project page"))));
+    }
+
+    @Test
+    public void ccmmAccessUrlIsTheLandingPageAndDownloadUrlIsTheFile() throws Exception {
+        // CCMM: access URL "shall be the web page (not a document file)"; the bitstream belongs
+        // in download_url
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:access_url/ccmm:iri",
+            equalTo("http://hdl.handle.net/11234/1-5678"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
+            equalTo("https://lindat.mff.cuni.cz/repository/bitstream/11234/1-5678/1/corpus.txt"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:access_url/ccmm:iri[contains(., '/bitstream/')])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmQuickTimeVideoMapsToTheMovEuFileType() throws Exception {
+        String result = apply("ccmm.xsl").to(resource(CLIP));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:format/ccmm:iri",
+            equalTo("http://publications.europa.eu/resource/authority/file-type/MOV"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:media_type/ccmm:label",
+            equalTo("video/quicktime"))));
+    }
+
+    @Test
+    public void ccmmZipArchiveMapsToTheZipEuFileType() throws Exception {
+        String result = apply("ccmm.xsl").to(resource(TOOL));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:format/ccmm:iri",
+            equalTo("http://publications.europa.eu/resource/authority/file-type/ZIP"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:format/ccmm:label", equalTo("ZIP"))));
     }
 
     @Test
