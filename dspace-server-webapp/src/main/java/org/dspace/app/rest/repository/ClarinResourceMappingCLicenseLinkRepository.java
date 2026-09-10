@@ -32,6 +32,18 @@ public class ClarinResourceMappingCLicenseLinkRepository extends AbstractDSpaceR
     @Autowired
     ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
 
+    /**
+     * Deliberately public - do not put a method security guard on this method. Its parent,
+     * {@code ClarinLicenseResourceMappingRestRepository.findOne}, permits all callers, and the Angular
+     * licence agreement page follows this rel anonymously
+     * ({@code clarin-license-agreement-page.component.ts}, {@code followLink('clarinLicense')}), so guarding
+     * it would break the anonymous download flow. The 404 an anonymous caller gets for an unknown mapping is
+     * parity with the parent, not an information leak - unlike the sibling allowance rels, whose 404 on an
+     * unknown id sat next to a 401 on an existing one.
+     * <p>
+     * {@code ClarinLinkRestRepositoryBeanNameIT.anonymousResourceMappingClarinLicenseRelStaysPublic} fails
+     * if a later security cleanup guards it anyway.
+     */
     public ClarinLicenseRest getClarinLicense(@Nullable HttpServletRequest request,
                                               Integer mappingID,
                                               @Nullable Pageable optionalPageable,
