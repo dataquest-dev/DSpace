@@ -45,7 +45,7 @@ public class RootConverterTest {
         when(configurationService.getProperty("dspace.name")).thenReturn("dspacename");
         when(configurationService.getProperty("dspace.server.url")).thenReturn(serverURL);
         when(configurationService.getProperty("dspace.server.ssr.url", serverURL)).thenReturn(serverSSRURL);
-        when(configurationService.getProperty("dspace.version.prefix", "DSpace")).thenReturn("DSpace");
+        when(configurationService.getProperty("dspace.version.prefix", "CLARIN-DSpace")).thenReturn("CLARIN-DSpace");
 
     }
 
@@ -65,7 +65,7 @@ public class RootConverterTest {
         assertEquals("dspaceurl", rootRest.getDspaceUI());
         assertEquals("dspacename", rootRest.getDspaceName());
         assertEquals(serverURL, rootRest.getDspaceServer());
-        assertEquals("DSpace " + Util.getSourceVersion(), rootRest.getDspaceVersion());
+        assertEquals("CLARIN-DSpace " + Util.getSourceVersion(), rootRest.getDspaceVersion());
     }
 
     @Test
@@ -84,12 +84,23 @@ public class RootConverterTest {
         assertEquals("dspaceurl", rootRest.getDspaceUI());
         assertEquals("dspacename", rootRest.getDspaceName());
         assertEquals(serverSSRURL, rootRest.getDspaceServer());
-        assertEquals("DSpace " + Util.getSourceVersion(), rootRest.getDspaceVersion());
+        assertEquals("CLARIN-DSpace " + Util.getSourceVersion(), rootRest.getDspaceVersion());
     }
 
     @Test
     public void testConfigurableVersionPrefix() throws Exception {
-        when(configurationService.getProperty("dspace.version.prefix", "DSpace")).thenReturn("CLARIN-DSpace");
+        when(configurationService.getProperty("dspace.version.prefix", "CLARIN-DSpace")).thenReturn("CustomPrefix");
+        request.setScheme("https");
+        request.setServerName("dspace-rest");
+        request.setServerPort(443);
+        request.setRequestURI("/server/api");
+        RootRest rootRest = rootConverter.convert(request);
+        assertEquals("CustomPrefix " + Util.getSourceVersion(), rootRest.getDspaceVersion());
+    }
+
+    @Test
+    public void testBlankVersionPrefixFallsBackToDefault() throws Exception {
+        when(configurationService.getProperty("dspace.version.prefix", "CLARIN-DSpace")).thenReturn("");
         request.setScheme("https");
         request.setServerName("dspace-rest");
         request.setServerPort(443);
