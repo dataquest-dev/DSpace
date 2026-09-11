@@ -89,7 +89,18 @@ public class RootConverterTest {
 
     @Test
     public void testConfigurableVersionPrefix() throws Exception {
-        when(configurationService.getProperty("dspace.version.prefix", "DSpace")).thenReturn("CLARIN-DSpace");
+        when(configurationService.getProperty("dspace.version.prefix", "CLARIN-DSpace")).thenReturn("CustomPrefix");
+        request.setScheme("https");
+        request.setServerName("dspace-rest");
+        request.setServerPort(443);
+        request.setRequestURI("/server/api");
+        RootRest rootRest = rootConverter.convert(request);
+        assertEquals("CustomPrefix " + Util.getSourceVersion(), rootRest.getDspaceVersion());
+    }
+
+    @Test
+    public void testBlankVersionPrefixFallsBackToDefault() throws Exception {
+        when(configurationService.getProperty("dspace.version.prefix", "CLARIN-DSpace")).thenReturn("");
         request.setScheme("https");
         request.setServerName("dspace-rest");
         request.setServerPort(443);
