@@ -45,7 +45,7 @@ public class RootConverter {
             rootRest.setDspaceServer(dspaceUrl);
         }
         String versionPrefix = StringUtils.defaultIfBlank(
-                configurationService.getProperty("dspace.version.prefix", "DSpace"), "DSpace");
+                configurationService.getProperty("dspace.version.prefix", "CLARIN-DSpace"), "CLARIN-DSpace");
         rootRest.setDspaceVersion(versionPrefix + " " + getSourceVersion());
         rootRest.setBuildVersion(getBuildVersion());
         return rootRest;
