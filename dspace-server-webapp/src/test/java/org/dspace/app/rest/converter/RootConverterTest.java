@@ -45,7 +45,7 @@ public class RootConverterTest {
         when(configurationService.getProperty("dspace.name")).thenReturn("dspacename");
         when(configurationService.getProperty("dspace.server.url")).thenReturn(serverURL);
         when(configurationService.getProperty("dspace.server.ssr.url", serverURL)).thenReturn(serverSSRURL);
-        when(configurationService.getProperty("dspace.version.prefix", "DSpace")).thenReturn("DSpace");
+        when(configurationService.getProperty("dspace.version.prefix", "CLARIN-DSpace")).thenReturn("CLARIN-DSpace");
 
     }
 
@@ -65,7 +65,7 @@ public class RootConverterTest {
         assertEquals("dspaceurl", rootRest.getDspaceUI());
         assertEquals("dspacename", rootRest.getDspaceName());
         assertEquals(serverURL, rootRest.getDspaceServer());
-        assertEquals("DSpace " + Util.getSourceVersion(), rootRest.getDspaceVersion());
+        assertEquals("CLARIN-DSpace " + Util.getSourceVersion(), rootRest.getDspaceVersion());
     }
 
     @Test
@@ -84,7 +84,7 @@ public class RootConverterTest {
         assertEquals("dspaceurl", rootRest.getDspaceUI());
         assertEquals("dspacename", rootRest.getDspaceName());
         assertEquals(serverSSRURL, rootRest.getDspaceServer());
-        assertEquals("DSpace " + Util.getSourceVersion(), rootRest.getDspaceVersion());
+        assertEquals("CLARIN-DSpace " + Util.getSourceVersion(), rootRest.getDspaceVersion());
     }
 
     @Test
