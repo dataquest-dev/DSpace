@@ -11,6 +11,7 @@ import static org.dspace.core.Constants.CONTENT_BUNDLE_NAME;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
@@ -35,10 +36,14 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
+import org.dspace.services.ConfigurationService;
 import org.dspace.services.EventService;
+import org.dspace.storage.bitstore.S3BitStoreService;
+import org.dspace.storage.bitstore.service.S3DirectDownloadService;
 import org.dspace.usage.UsageEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -79,6 +84,15 @@ public class BitstreamByHandleRestController {
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private ConfigurationService configurationService;
+
+    @Autowired
+    private S3DirectDownloadService s3DirectDownloadService;
+
+    @Autowired
+    private S3BitStoreService s3BitStoreService;
 
     /**
      * Download a bitstream by item handle and filename.
@@ -155,6 +169,15 @@ public class BitstreamByHandleRestController {
                 response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(size));
             }
 
+            // Only ORIGINAL bundle files are redirected to S3, which this endpoint already guarantees:
+            // findBitstreamByName searches the ORIGINAL bundles only.
+            if (s3DirectDownloadEnabled()) {
+                // Close the DB connection before redirecting
+                context.complete();
+                redirectToS3DownloadUrl(name, bitstream.getInternalId(), response);
+                return;
+            }
+
             if (RequestMethod.HEAD.name().equals(request.getMethod())) {
                 // HEAD request — only headers, no body
                 context.complete();
@@ -201,6 +224,49 @@ public class BitstreamByHandleRestController {
         }
     }
 
+
+    private boolean s3DirectDownloadEnabled() {
+        return configurationService.getBooleanProperty("s3.download.direct.enabled")
+                && configurationService.getBooleanProperty("assetstore.s3.enabled");
+    }
+
+    /**
+     * Redirect to a presigned S3 URL so the file is downloaded straight from the object store instead of
+     * being streamed through this backend.
+     *
+     * @param bitName       the bitstream filename
+     * @param bitInternalId the internal storage ID
+     * @param response      the HTTP response to send the redirect on
+     */
+    private void redirectToS3DownloadUrl(String bitName, String bitInternalId,
+                                         HttpServletResponse response) throws IOException {
+        try {
+            String bucket = configurationService.getProperty("assetstore.s3.bucketName", "");
+            if (StringUtils.isBlank(bucket)) {
+                throw new IllegalStateException("S3 bucket name is not configured");
+            }
+
+            String bitstreamPath = s3BitStoreService.getFullKey(bitInternalId);
+            if (StringUtils.isBlank(bitstreamPath)) {
+                throw new IllegalStateException("Failed to get bitstream path for internal ID: " + bitInternalId);
+            }
+
+            int expirationTime = configurationService.getIntProperty("s3.download.direct.expiration", 3600);
+            String presignedUrl = s3DirectDownloadService
+                    .generatePresignedUrl(bucket, bitstreamPath, expirationTime, bitName);
+
+            if (StringUtils.isBlank(presignedUrl)) {
+                throw new IllegalStateException("Failed to generate presigned URL for bitstream: " + bitInternalId);
+            }
+
+            response.setStatus(HttpStatus.FOUND.value());
+            response.setHeader(HttpHeaders.LOCATION, URI.create(presignedUrl).toString());
+        } catch (Exception e) {
+            log.error("Error generating S3 presigned URL for bitstream: {}", bitInternalId, e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Error generating download URL.");
+        }
+    }
 
     /**
      * Build the Content-Disposition value the way vanilla's HttpHeadersInitializer does: an ASCII

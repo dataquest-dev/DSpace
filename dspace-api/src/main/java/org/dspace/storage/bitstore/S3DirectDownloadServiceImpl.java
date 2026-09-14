@@ -1,0 +1,144 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.storage.bitstore;
+
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.dspace.storage.bitstore.service.S3DirectDownloadService;
+import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+
+/**
+ * Generates presigned S3 URLs so a bitstream can be downloaded straight from the object store instead of
+ * being streamed through the backend.
+ * <p>
+ * Presigning is a local signing operation, so it shares the credentials, region and endpoint of the
+ * {@code s3Store} assetstore but not its client: {@link S3BitStoreService} talks to S3 through an
+ * {@link software.amazon.awssdk.services.s3.S3AsyncClient}, which cannot presign.
+ *
+ * @author Milan Majchrak (dspace at dataquest.sk)
+ */
+public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
+
+    private static final Logger log = LogManager.getLogger(S3DirectDownloadServiceImpl.class);
+
+    @Autowired
+    private S3BitStoreService s3BitStoreService;
+
+    private volatile S3Presigner s3Presigner;
+
+    @Override
+    public String generatePresignedUrl(String bucket, String key, int expirationSeconds, String bitstreamName) {
+        if (StringUtils.isBlank(bucket)) {
+            throw new IllegalArgumentException("Cannot presign an S3 URL without a bucket name");
+        }
+        if (StringUtils.isBlank(key)) {
+            throw new IllegalArgumentException("Cannot presign an S3 URL without an object key");
+        }
+        if (bitstreamName == null) {
+            throw new IllegalArgumentException("Cannot presign an S3 URL without a bitstream name");
+        }
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .responseContentDisposition(contentDisposition(bitstreamName))
+                .build();
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofSeconds(expirationSeconds))
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+        try {
+            return getS3Presigner().presignGetObject(presignRequest).url().toString();
+        } catch (Exception e) {
+            log.error("Failed to generate presigned URL for bucket: {}, key: {}", bucket, key, e);
+            throw new IllegalStateException("Failed to generate presigned URL", e);
+        }
+    }
+
+    /**
+     * Build the {@code response-content-disposition} the presigned URL will carry, so S3 serves the file under
+     * the bitstream name. The quoted fallback drops CR, LF and quotes, which would otherwise close the header
+     * value early; {@code filename*} carries the real name percent-encoded per RFC 5987.
+     */
+    private String contentDisposition(String bitstreamName) {
+        String fallbackName = bitstreamName.replaceAll("[\r\n\"]", "_");
+        String encodedName = URLEncoder.encode(bitstreamName, StandardCharsets.UTF_8).replace("+", "%20");
+        return String.format("attachment; filename=\"%s\"; filename*=UTF-8''%s", fallbackName, encodedName);
+    }
+
+    private S3Presigner getS3Presigner() {
+        if (s3Presigner == null) {
+            synchronized (this) {
+                if (s3Presigner == null) {
+                    s3Presigner = buildS3Presigner();
+                }
+            }
+        }
+        return s3Presigner;
+    }
+
+    /**
+     * Build a presigner against the same S3 the assetstore writes to, otherwise the signature would not match
+     * the object the redirect points at.
+     */
+    private S3Presigner buildS3Presigner() {
+        S3Presigner.Builder builder = S3Presigner.builder().region(resolveRegion());
+
+        String accessKey = s3BitStoreService.getAwsAccessKey();
+        String secretKey = s3BitStoreService.getAwsSecretKey();
+        if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
+            builder.credentialsProvider(
+                    StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
+        } else {
+            builder.credentialsProvider(DefaultCredentialsProvider.create());
+        }
+
+        String endpoint = s3BitStoreService.getEndpoint();
+        if (StringUtils.isNotBlank(endpoint)) {
+            // Path style matches what S3BitStoreService forces on a custom endpoint, so both address the same URL
+            builder.endpointOverride(URI.create(endpoint))
+                   .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build());
+        }
+        return builder.build();
+    }
+
+    private Region resolveRegion() {
+        String regionName = s3BitStoreService.getAwsRegionName();
+        if (StringUtils.isNotBlank(regionName)) {
+            try {
+                return Region.of(regionName);
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid aws_region: {}, presigning with {}", regionName, Region.US_EAST_1.id());
+            }
+        }
+        return Region.US_EAST_1;
+    }
+
+    protected void setS3Presigner(S3Presigner s3Presigner) {
+        this.s3Presigner = s3Presigner;
+    }
+
+    protected void setS3BitStoreService(S3BitStoreService s3BitStoreService) {
+        this.s3BitStoreService = s3BitStoreService;
+    }
+}

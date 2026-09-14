@@ -107,6 +107,9 @@
 
     </bean>
 
+    <!-- Signs the presigned S3 URLs the REST layer redirects to when s3.download.direct.enabled is true -->
+    <bean name="s3DirectDownload" class="org.dspace.storage.bitstore.S3DirectDownloadServiceImpl"/>
+
     <!-- <bean name="localStore2 ... -->
     <!-- <bean name="s3Store2 ... -->
 </beans>

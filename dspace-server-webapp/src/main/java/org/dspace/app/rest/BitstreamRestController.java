@@ -9,9 +9,11 @@ package org.dspace.app.rest;
 
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
+import static org.dspace.core.Constants.CONTENT_BUNDLE_NAME;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.io.IOException;
+import java.net.URI;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -41,10 +43,13 @@ import org.dspace.disseminate.service.CitationDocumentService;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.EventService;
+import org.dspace.storage.bitstore.S3BitStoreService;
+import org.dspace.storage.bitstore.service.S3DirectDownloadService;
 import org.dspace.usage.UsageEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -102,6 +107,12 @@ public class BitstreamRestController {
 
     @Autowired
     Utils utils;
+
+    @Autowired
+    private S3DirectDownloadService s3DirectDownloadService;
+
+    @Autowired
+    private S3BitStoreService s3BitStoreService;
 
     /**
      * Retrieve bitstream. An access token (created by request a copy for some files, if enabled) can optionally
@@ -181,6 +192,12 @@ public class BitstreamRestController {
             long filesize = bit.getSizeBytes();
             Boolean citationEnabledForBitstream = citationDocumentService.isCitationEnabledForBitstream(bit, context);
 
+            // Only ORIGINAL bundle files are redirected to S3: other bundles carry files the UI reads back
+            // itself, e.g. process output, which a redirect breaks. Decided here because reading the bundles
+            // needs the context, which is closed before the response is built.
+            boolean redirectToS3 = s3DirectDownloadEnabled() && bit.getBundles().stream()
+                    .anyMatch(bundle -> CONTENT_BUNDLE_NAME.equals(bundle.getName()));
+
 
 
             // Generate a special bitstream resource stream depending on whether we are accessing by token
@@ -235,6 +252,10 @@ public class BitstreamRestController {
             if (httpHeadersInitializer.isValid()) {
                 HttpHeaders httpHeaders = httpHeadersInitializer.initialiseHeaders();
 
+                if (redirectToS3) {
+                    return redirectToS3DownloadUrl(httpHeaders, name, bit.getInternalId());
+                }
+
                 if (RequestMethod.HEAD.name().equals(request.getMethod())) {
                     log.debug("HEAD request - no response body");
                     return ResponseEntity.ok().headers(httpHeaders).build();
@@ -250,6 +271,48 @@ public class BitstreamRestController {
             throw e;
         }
         return null;
+    }
+
+    private boolean s3DirectDownloadEnabled() {
+        return configurationService.getBooleanProperty("s3.download.direct.enabled")
+                && configurationService.getBooleanProperty("assetstore.s3.enabled");
+    }
+
+    /**
+     * Answer with a redirect to a presigned S3 URL so the file is downloaded straight from the object store
+     * instead of being streamed through this backend.
+     *
+     * @param httpHeaders    headers needed to form a proper response when returning the Bitstream/File
+     * @param bitName        name of the bitstream
+     * @param bitInternalId  internal id of the bitstream
+     * @return ResponseEntity with the location header set to the presigned URL
+     */
+    private ResponseEntity redirectToS3DownloadUrl(HttpHeaders httpHeaders, String bitName, String bitInternalId) {
+        try {
+            String bucket = configurationService.getProperty("assetstore.s3.bucketName", "");
+            if (StringUtils.isBlank(bucket)) {
+                throw new IllegalStateException("S3 bucket name is not configured");
+            }
+
+            String bitstreamPath = s3BitStoreService.getFullKey(bitInternalId);
+            if (StringUtils.isBlank(bitstreamPath)) {
+                throw new IllegalStateException("Failed to get bitstream path for internal ID: " + bitInternalId);
+            }
+
+            int expirationTime = configurationService.getIntProperty("s3.download.direct.expiration", 3600);
+            String presignedUrl =
+                    s3DirectDownloadService.generatePresignedUrl(bucket, bitstreamPath, expirationTime, bitName);
+
+            if (StringUtils.isBlank(presignedUrl)) {
+                throw new IllegalStateException("Failed to generate presigned URL for bitstream: " + bitInternalId);
+            }
+
+            httpHeaders.setLocation(URI.create(presignedUrl));
+            return ResponseEntity.status(HttpStatus.FOUND).headers(httpHeaders).build();
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Error generating S3 presigned URL for bitstream: " + bitInternalId, e);
+        }
     }
 
     /**
