@@ -40,6 +40,11 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
 
     private static final Logger log = LogManager.getLogger(S3DirectDownloadServiceImpl.class);
 
+    /** SigV4 refuses to sign outside these bounds, so a misconfigured expiration is rejected with a
+     *  message naming the key instead of the SDK's. */
+    private static final Duration MIN_SIGNATURE_DURATION = Duration.ofSeconds(1);
+    private static final Duration MAX_SIGNATURE_DURATION = Duration.ofDays(7);
+
     @Autowired
     private S3BitStoreService s3BitStoreService;
 
@@ -57,13 +62,20 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
             throw new IllegalArgumentException("Cannot presign an S3 URL without a bitstream name");
         }
 
+        Duration signatureDuration = Duration.ofSeconds(expirationSeconds);
+        if (signatureDuration.compareTo(MIN_SIGNATURE_DURATION) < 0
+                || signatureDuration.compareTo(MAX_SIGNATURE_DURATION) > 0) {
+            throw new IllegalArgumentException("s3.download.direct.expiration is " + expirationSeconds
+                    + " seconds; a presigned URL is valid for at least 1 second and at most 7 days");
+        }
+
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
                 .responseContentDisposition(contentDisposition(bitstreamName))
                 .build();
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofSeconds(expirationSeconds))
+                .signatureDuration(signatureDuration)
                 .getObjectRequest(getObjectRequest)
                 .build();
 

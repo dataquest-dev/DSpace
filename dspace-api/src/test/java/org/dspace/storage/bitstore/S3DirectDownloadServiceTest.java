@@ -9,6 +9,7 @@ package org.dspace.storage.bitstore;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -38,6 +39,7 @@ public class S3DirectDownloadServiceTest extends AbstractDSpaceTest {
     private static final String BUCKET = "dspace-assetstore";
     private static final String KEY = "12/34/56/123456789";
     private static final int EXPIRATION_SECONDS = 120;
+    private static final int SEVEN_DAYS = 7 * 24 * 60 * 60;
 
     @Mock
     private S3BitStoreService s3BitStoreService;
@@ -101,6 +103,21 @@ public class S3DirectDownloadServiceTest extends AbstractDSpaceTest {
         assertFalse(fallbackName.contains("\""));
         assertTrue(fallbackName.contains("../"));
         assertTrue(disposition.contains("filename*=UTF-8''"));
+    }
+
+    @Test
+    public void signsUpToSevenDaysAndNoFurther() {
+        URI url = URI.create(s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, SEVEN_DAYS, "myfile.txt"));
+        assertEquals(String.valueOf(SEVEN_DAYS), queryOf(url).get("X-Amz-Expires"));
+
+        // SigV4 refuses anything outside 1s..7d, so an out-of-range expiration is reported by key name
+        // instead of failing deep inside the SDK
+        assertThrows(IllegalArgumentException.class,
+                () -> s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, SEVEN_DAYS + 1, "myfile.txt"));
+        assertThrows(IllegalArgumentException.class,
+                () -> s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, 0, "myfile.txt"));
+        assertThrows(IllegalArgumentException.class,
+                () -> s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, -30, "myfile.txt"));
     }
 
     @Test(expected = IllegalArgumentException.class)
