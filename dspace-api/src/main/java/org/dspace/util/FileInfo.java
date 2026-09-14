@@ -22,12 +22,11 @@ public class FileInfo {
 
     public Hashtable<String, FileInfo> sub = null;
 
-    public FileInfo(String name, String content, String size, boolean isDirectory, Hashtable<String, FileInfo> sub) {
+    public FileInfo(String name, String content, String size, boolean isDirectory) {
         this.name = name;
         this.content = content;
         this.size = size;
         this.isDirectory = isDirectory;
-        this.sub = sub;
     }
 
     public FileInfo(String name) {
@@ -44,5 +43,9 @@ public class FileInfo {
         this.name = name;
         this.size = size;
         isDirectory = false;
+    }
+
+    public void setSub(Hashtable<String, FileInfo> sub) {
+        this.sub = sub;
     }
 }
