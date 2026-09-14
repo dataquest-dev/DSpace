@@ -106,7 +106,7 @@ Hardening rules: dataset-pinned values assume the dev-5 dump; pair every negativ
 - [ ] For an identifier taken from a live ListIdentifiers sample, GetRecord&metadataPrefix=cmdi returns HTTP 200, body contains the CMDI root (xmlns:cmd="http://www.clarin.eu/cmd/") and contains NO <error code=
 - [ ] Same identifier, GetRecord&metadataPrefix=olac returns an <olac:olac> record with no <error code=
 - [ ] ListRecords&metadataPrefix=cmdi for the default context does not return HTTP 500 and excludes items in the DH/teaching communities (ColComFilter effective — assert an item known to be in the excluded community is absent)
-- [ ] git show HEAD:dspace/config/modules/oai.cfg contains oai.description.file.1 and oai.bundle.excluded, AND still contains the oai.html comment block (v9 feature retained)
+- [ ] git show HEAD:dspace/config/modules/oai.cfg contains oai.bundle.excluded and still contains the oai.html comment block (v9 feature retained), and does NOT contain oai.description.file.1 (the OLAC repository description is customer/lindat only, see dspace-customers#969)
   - verify: `curl -s 'http://localhost:18080/server/oai/request?verb=ListMetadataFormats' | grep -oE 'metadataPrefix>(cmdi|olac|oai_metasharev2|bibtex|elg|oai_datacite)<' | sort -u`
 
 ### BE-OAI-9 — Port the oai_dc.xsl CLARIN crosswalk delta (downloadable_files_count, dc.date.issued-only, broadened bitstream selection) `[medium]`
