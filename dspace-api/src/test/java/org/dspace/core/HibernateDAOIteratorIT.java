@@ -33,7 +33,7 @@ import org.junit.Test;
  * stream on the owning thread once the iteration is exhausted. This test guards against reintroducing any
  * stream-closing finalizer on the returned iterator.</p>
  */
-public class AbstractHibernateDAOIteratorIT extends AbstractIntegrationTestWithDatabase {
+public class HibernateDAOIteratorIT extends AbstractIntegrationTestWithDatabase {
 
     private final MetadataValueService metadataValueService =
             ContentServiceFactory.getInstance().getMetadataValueService();
