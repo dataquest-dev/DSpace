@@ -240,6 +240,18 @@
                      then concat('http://hdl.handle.net/', normalize-space(string($handleField)))
                      else ''"/>
 
+    <!--
+        Where DSpace 7 actually serves bitstream bytes.  The url XOAI puts on a bitstream is the
+        DSpace 6 UI path (/bitstream/handle/sid/name); under DSpace 7 the Angular application
+        answers there and returns HTML, so it is not a download link.  The REST content endpoint
+        is, and its base sits under the repository URL that XOAI already supplies.
+    -->
+    <xsl:variable name="repoUrlRaw"
+        select="normalize-space((/doc:metadata/doc:element[@name='repository']/doc:field[@name='url'])[1])"/>
+    <xsl:variable name="restBase"
+        select="if ($repoUrlRaw = '') then ''
+                else concat(replace($repoUrlRaw, '/+$', ''), '/server/api/core/bitstreams/')"/>
+
     <xsl:variable name="accessionedAll"
         select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']"/>
     <xsl:variable name="availableAll"
@@ -1775,6 +1787,11 @@
             <xsl:variable name="size" select="normalize-space((doc:field[@name='size'])[1])"/>
             <xsl:variable name="fmt" select="normalize-space(tokenize(normalize-space((doc:field[@name='format'])[1]), ';')[1])"/>
             <xsl:variable name="nm" select="normalize-space((doc:field[@name='name'], doc:field[@name='originalName'])[normalize-space(.) != ''][1])"/>
+            <xsl:variable name="uuid" select="normalize-space((doc:field[@name='id'])[1])"/>
+            <!-- the endpoint that serves the bytes; the XOAI url is a UI path, not a download -->
+            <xsl:variable name="downloadUrl"
+                select="if ($restBase != '' and matches($uuid, '^[0-9a-fA-F-]{36}$'))
+                        then concat($restBase, $uuid, '/content') else $url"/>
             <xsl:variable name="sum" select="normalize-space((doc:field[@name='checksum'])[1])"/>
             <xsl:variable name="alg" select="normalize-space((doc:field[@name='checksumAlgorithm'])[1])"/>
             <xsl:if test="matches($url, '^https?://\S+$') and matches($size, '^[0-9]+$') and matches($fmt, '^[A-Za-z0-9!#$&amp;^_.+-]+/[A-Za-z0-9!#$&amp;^_.+-]+$')">
@@ -1789,7 +1806,7 @@
                         <ccmm:access_url>
                             <ccmm:iri><xsl:value-of select="if ($landingPage != '') then $landingPage else $url"/></ccmm:iri>
                         </ccmm:access_url>
-                        <ccmm:download_url><ccmm:iri><xsl:value-of select="$url"/></ccmm:iri></ccmm:download_url>
+                        <ccmm:download_url><ccmm:iri><xsl:value-of select="$downloadUrl"/></ccmm:iri></ccmm:download_url>
                         <xsl:variable name="eu" select="$euFileTypes/t[@m = $fmt]"/>
                         <ccmm:format>
                             <xsl:choose>

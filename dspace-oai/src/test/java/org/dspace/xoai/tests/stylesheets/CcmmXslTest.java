@@ -866,6 +866,29 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
+    public void ccmmDownloadUrlIsTheEndpointThatServesTheBytes() throws Exception {
+        // XOAI builds the bitstream url as the DSpace 6 UI path; under DSpace 7 that path is
+        // answered by the Angular application and returns HTML, so it is not a download link
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
+            equalTo("https://lindat.mff.cuni.cz/repository/server/api/core/bitstreams/"
+                + "18341be0-03ad-4a22-a1c8-4cd293c3f5da/content"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:download_url/ccmm:iri[contains(., '/bitstream/')])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmBitstreamWithoutAUuidKeepsTheUrlXoaiSupplied() throws Exception {
+        // nothing to build a REST URL from, so the source url is better than no url
+        String result = apply("ccmm.xsl").to(resource(TOOL));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file[ccmm:title='morphodita.zip']"
+                + "/ccmm:download_url/ccmm:iri",
+            equalTo("https://lindat.mff.cuni.cz/repository/bitstream/1/10/morphodita.zip"))));
+    }
+
+    @Test
     public void ccmmDatasetCarriesItsOwnResolvableIri() throws Exception {
         // dataset/iri is optional in the XSD but it is the only resolvable identity the
         // published record has
@@ -1045,10 +1068,9 @@ public class CcmmXslTest extends AbstractXSLTest {
             "//ccmm:distribution_downloadable_file/ccmm:access_url/ccmm:iri",
             equalTo("http://hdl.handle.net/11234/1-5678"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
-            equalTo("https://lindat.mff.cuni.cz/repository/bitstream/11234/1-5678/1/corpus.txt"))));
-        assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:access_url/ccmm:iri[contains(., '/bitstream/')])", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:access_url/ccmm:iri[. = //ccmm:download_url/ccmm:iri])", equalTo("0"))));
     }
 
     @Test

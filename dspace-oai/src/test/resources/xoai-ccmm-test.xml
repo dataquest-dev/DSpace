@@ -204,6 +204,8 @@
                     <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/11234/1-5678/1/corpus.txt</field>
                     <field name="checksum">ee1c4e448a8f9f838df348dfee1fc11f</field>
                     <field name="checksumAlgorithm">MD5</field>
+                    <field name="sid">1</field>
+                    <field name="id">18341be0-03ad-4a22-a1c8-4cd293c3f5da</field>
                 </element>
             </element>
         </element>
