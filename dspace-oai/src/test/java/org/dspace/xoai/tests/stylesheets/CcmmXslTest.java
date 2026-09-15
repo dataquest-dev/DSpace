@@ -868,21 +868,21 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmDownloadUrlIsTheEndpointThatServesTheBytes() throws Exception {
-        // XOAI builds the bitstream url as the DSpace 6 UI path; under DSpace 7 that path is
-        // answered by the Angular application and returns HTML, so it is not a download link
+    public void ccmmDownloadUrlIsTheFrontEndDownloadRoute() throws Exception {
+        // XOAI builds the bitstream url as the DSpace 6 UI path, which DSpace 7 does not serve;
+        // the download route is the one the item page's own download button uses
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
-            equalTo("https://lindat.mff.cuni.cz/repository/server/api/core/bitstreams/"
-                + "18341be0-03ad-4a22-a1c8-4cd293c3f5da/content"))));
+            equalTo("https://lindat.mff.cuni.cz/repository/bitstreams/"
+                + "18341be0-03ad-4a22-a1c8-4cd293c3f5da/download"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:download_url/ccmm:iri[contains(., '/bitstream/')])", equalTo("0"))));
     }
 
     @Test
     public void ccmmBitstreamWithoutAUuidKeepsTheUrlXoaiSupplied() throws Exception {
-        // nothing to build a REST URL from, so the source url is better than no url
+        // nothing to build a download route from, so the source url is better than no url
         String result = apply("ccmm.xsl").to(resource(TOOL));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file[ccmm:title='morphodita.zip']"
@@ -1155,8 +1155,8 @@ public class CcmmXslTest extends AbstractXSLTest {
             "count(//ccmm:distribution_downloadable_file)", equalTo("2"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file[ccmm:byte_size='128']/ccmm:download_url/ccmm:iri",
-            equalTo("https://example.org/repository/server/api/core/bitstreams/"
-                + "18341be0-03ad-4a22-a1c8-4cd293c3f5da/content"))));
+            equalTo("https://example.org/repository/bitstreams/"
+                + "18341be0-03ad-4a22-a1c8-4cd293c3f5da/download"))));
     }
 
     @Test
@@ -1174,8 +1174,8 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmRepositoryUrlThatIsNotAbsoluteBuildsNoRestUrl() throws Exception {
-        // guessing an endpoint from "localhost:8080" would put an unresolvable IRI in a
+    public void ccmmRepositoryUrlThatIsNotAbsoluteBuildsNoDownloadUrl() throws Exception {
+        // guessing a route from "localhost:8080" would put an unresolvable IRI in a
         // mandatory slot, so the url XOAI supplied is kept instead
         String result = apply("ccmm.xsl").to(resource(BAD_REPO));
         assertThat(result, is(ccmm().withXPath(

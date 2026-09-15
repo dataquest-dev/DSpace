@@ -241,22 +241,23 @@
                      else ''"/>
 
     <!--
-        Where DSpace 7 actually serves bitstream bytes.  The url XOAI puts on a bitstream is the
-        DSpace 6 UI path (/bitstream/handle/sid/name); under DSpace 7 the Angular application
-        answers there and returns HTML, so it is not a download link.  The REST content endpoint
-        is, and its base sits under the repository URL that XOAI already supplies.
+        Where the repository serves a bitstream.  The url XOAI puts on a bitstream is the DSpace 6
+        UI path (/bitstream/handle/sid/name), which DSpace 7 does not serve.  The current one is
+        the front end's download route - the link the item page's own download button uses, and
+        the shape vanilla ItemUtils publishes.  Naming the REST endpoint instead would route
+        harvesters around whatever protects the front end.
     -->
     <xsl:variable name="repoUrlRaw"
         select="normalize-space((/doc:metadata/doc:element[@name='repository']/doc:field[@name='url'])[1])"/>
     <!--
-        Only an absolute http(s) repository URL can carry a resolvable endpoint; anything else
+        Only an absolute http(s) repository URL can carry a resolvable route; anything else
         (a bare host, a relative path, an unset property) would put a non-resolvable IRI into
         download_url, which is mandatory.  In that case the crosswalk keeps whatever URL XOAI
         supplied rather than publishing one it made up.
     -->
-    <xsl:variable name="restBase"
+    <xsl:variable name="downloadBase"
         select="if (matches($repoUrlRaw, '^https?://\S+$'))
-                then concat(replace($repoUrlRaw, '/+$', ''), '/server/api/core/bitstreams/')
+                then concat(replace($repoUrlRaw, '/+$', ''), '/bitstreams/')
                 else ''"/>
 
     <xsl:variable name="accessionedAll"
@@ -1805,17 +1806,17 @@
             <xsl:variable name="fmt" select="normalize-space(tokenize(normalize-space((doc:field[@name='format'])[1]), ';')[1])"/>
             <xsl:variable name="nm" select="normalize-space((doc:field[@name='name'], doc:field[@name='originalName'])[normalize-space(.) != ''][1])"/>
             <xsl:variable name="uuid" select="normalize-space((doc:field[@name='id'])[1])"/>
-            <!-- the endpoint that serves the bytes; the XOAI url is a UI path, not a download -->
+            <!-- the front end's download route; the XOAI url is a DSpace 6 path nothing serves -->
             <xsl:variable name="downloadUrl"
-                select="if ($restBase != '' and matches($uuid, '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$'))
-                        then concat($restBase, $uuid, '/content') else $url"/>
+                select="if ($downloadBase != '' and matches($uuid, '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$'))
+                        then concat($downloadBase, $uuid, '/download') else $url"/>
             <xsl:variable name="sum" select="normalize-space((doc:field[@name='checksum'])[1])"/>
             <xsl:variable name="alg" select="normalize-space((doc:field[@name='checksumAlgorithm'])[1])"/>
             <!--
                 The published URL is what has to be resolvable, and that is download_url.  Gating
                 on the XOAI url instead would drop the file whenever XOAI could not build one -
                 ItemUtils emits a bare filename when the item has no handle - even though the
-                REST endpoint was derivable from the bitstream uuid.
+                download route was derivable from the bitstream uuid.
             -->
             <xsl:if test="matches($downloadUrl, '^https?://\S+$') and matches($size, '^[0-9]+$') and matches($fmt, '^[A-Za-z0-9!#$&amp;^_.+-]+/[A-Za-z0-9!#$&amp;^_.+-]+$')">
                 <ccmm:distribution>
@@ -1828,7 +1829,7 @@
                             access_url is the page that says how to get the resource, so it is the
                             item's landing page.  A record with no Handle at all has no page to
                             point at, and access_url is mandatory, so it falls back to the same
-                            endpoint download_url uses, which is at least resolvable.
+                            route download_url uses, which is at least resolvable.
                         -->
                         <ccmm:access_url>
                             <ccmm:iri><xsl:value-of select="if ($landingPage != '') then $landingPage else $downloadUrl"/></ccmm:iri>
