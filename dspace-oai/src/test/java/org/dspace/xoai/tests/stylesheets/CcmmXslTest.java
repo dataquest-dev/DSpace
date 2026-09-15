@@ -1062,7 +1062,7 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmAccessUrlIsTheLandingPageAndDownloadUrlIsTheFile() throws Exception {
+    public void ccmmAccessUrlIsTheLandingPageNotTheDownloadRoute() throws Exception {
         // CCMM: access URL "shall be the web page (not a document file)"; the bitstream belongs
         // in download_url
         String result = apply("ccmm.xsl").to(resource(MAIN));
