@@ -248,9 +248,16 @@
     -->
     <xsl:variable name="repoUrlRaw"
         select="normalize-space((/doc:metadata/doc:element[@name='repository']/doc:field[@name='url'])[1])"/>
+    <!--
+        Only an absolute http(s) repository URL can carry a resolvable endpoint; anything else
+        (a bare host, a relative path, an unset property) would put a non-resolvable IRI into
+        download_url, which is mandatory.  In that case the crosswalk keeps whatever URL XOAI
+        supplied rather than publishing one it made up.
+    -->
     <xsl:variable name="restBase"
-        select="if ($repoUrlRaw = '') then ''
-                else concat(replace($repoUrlRaw, '/+$', ''), '/server/api/core/bitstreams/')"/>
+        select="if (matches($repoUrlRaw, '^https?://\S+$'))
+                then concat(replace($repoUrlRaw, '/+$', ''), '/server/api/core/bitstreams/')
+                else ''"/>
 
     <xsl:variable name="accessionedAll"
         select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']"/>
@@ -423,8 +430,8 @@
                             the item URI only works for /handle/ style URLs and otherwise names the
                             item itself as the repository.
                         -->
-                        <xsl:when test="doc:metadata/doc:element[@name='repository']/doc:field[@name='url']">
-                            <xsl:value-of select="normalize-space((doc:metadata/doc:element[@name='repository']/doc:field[@name='url'])[1])"/>
+                        <xsl:when test="matches($repoUrlRaw, '^https?://\S+$')">
+                            <xsl:value-of select="$repoUrlRaw"/>
                         </xsl:when>
                         <!--
                             A DSpace-style item URL carries the repository base before /handle/.
@@ -1529,6 +1536,15 @@
     <!-- funding_reference (optional, unbounded)                       -->
     <!-- ============================================================ -->
     <xsl:template name="FundingReferences">
+        <!--
+            The grant numbers already published from the info:eu-repo URIs.  local.sponsor spells
+            the same grant differently - "288487" there, "FP7-ICT-2011-7-288487" here - so the
+            guard below has to compare both ways round, not just look for one inside the other.
+        -->
+        <xsl:variable name="uriGrantCodes"
+            select="for $v in /doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:field[@name='value']
+                               [starts-with(normalize-space(.), 'info:eu-repo/grantAgreement/')]
+                    return normalize-space(tokenize(normalize-space($v), '/')[5])"/>
         <xsl:variable name="deduped">
         <!--
             OpenAIRE grant agreements: info:eu-repo/grantAgreement/FUNDER/PROGRAMME/AWARD/...
@@ -1542,7 +1558,7 @@
                       and normalize-space($parts[3]) != '' and normalize-space($parts[5]) != ''">
                 <!-- local.sponsor is "org;projectCode;funderName;projectName;infoUri" -->
                 <xsl:variable name="sponsor"
-                    select="(doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value'][contains(., $parts[5])])[1]"/>
+                    select="(/doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value'][contains(., $parts[5])])[1]"/>
                 <xsl:variable name="sponsorParts" select="tokenize(string($sponsor), ';')"/>
                 <ccmm:funding_reference>
                     <ccmm:local_identifier><xsl:value-of select="replace(replace($parts[5], '%2F', '/'), '%2f', '/')"/></ccmm:local_identifier>
@@ -1598,7 +1614,8 @@
             <xsl:variable name="sp" select="tokenize(normalize-space(.), ';')"/>
             <xsl:variable name="code" select="normalize-space($sp[2])"/>
             <xsl:if test="$code != '' and $code != 'N/A'
-                      and not(../../../../doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:field[@name='value'][starts-with(normalize-space(.), 'info:eu-repo/grantAgreement/') and contains(., $code)])">
+                      and not(some $g in $uriGrantCodes satisfies
+                              (string-length($g) &gt;= 4 and (contains($code, $g) or contains($g, $code))))">
                 <ccmm:funding_reference>
                     <ccmm:local_identifier><xsl:value-of select="$code"/></ccmm:local_identifier>
                     <xsl:if test="normalize-space($sp[4]) != ''">
@@ -1790,21 +1807,31 @@
             <xsl:variable name="uuid" select="normalize-space((doc:field[@name='id'])[1])"/>
             <!-- the endpoint that serves the bytes; the XOAI url is a UI path, not a download -->
             <xsl:variable name="downloadUrl"
-                select="if ($restBase != '' and matches($uuid, '^[0-9a-fA-F-]{36}$'))
+                select="if ($restBase != '' and matches($uuid, '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$'))
                         then concat($restBase, $uuid, '/content') else $url"/>
             <xsl:variable name="sum" select="normalize-space((doc:field[@name='checksum'])[1])"/>
             <xsl:variable name="alg" select="normalize-space((doc:field[@name='checksumAlgorithm'])[1])"/>
-            <xsl:if test="matches($url, '^https?://\S+$') and matches($size, '^[0-9]+$') and matches($fmt, '^[A-Za-z0-9!#$&amp;^_.+-]+/[A-Za-z0-9!#$&amp;^_.+-]+$')">
+            <!--
+                The published URL is what has to be resolvable, and that is download_url.  Gating
+                on the XOAI url instead would drop the file whenever XOAI could not build one -
+                ItemUtils emits a bare filename when the item has no handle - even though the
+                REST endpoint was derivable from the bitstream uuid.
+            -->
+            <xsl:if test="matches($downloadUrl, '^https?://\S+$') and matches($size, '^[0-9]+$') and matches($fmt, '^[A-Za-z0-9!#$&amp;^_.+-]+/[A-Za-z0-9!#$&amp;^_.+-]+$')">
                 <ccmm:distribution>
                     <ccmm:distribution_downloadable_file>
-                        <ccmm:title><xsl:value-of select="if ($nm != '') then $nm else $url"/></ccmm:title>
+                        <!-- a file name, never a URL: the last path segment is the name XOAI encoded -->
+                        <ccmm:title><xsl:value-of select="if ($nm != '') then $nm
+                                                          else if ($url != '') then tokenize($url, '/')[last()]
+                                                          else concat('bitstream-', $uuid)"/></ccmm:title>
                         <!--
                             access_url is the page that says how to get the resource, so it is the
                             item's landing page.  A record with no Handle at all has no page to
-                            point at, and access_url is mandatory, so it keeps the file URL.
+                            point at, and access_url is mandatory, so it falls back to the same
+                            endpoint download_url uses, which is at least resolvable.
                         -->
                         <ccmm:access_url>
-                            <ccmm:iri><xsl:value-of select="if ($landingPage != '') then $landingPage else $url"/></ccmm:iri>
+                            <ccmm:iri><xsl:value-of select="if ($landingPage != '') then $landingPage else $downloadUrl"/></ccmm:iri>
                         </ccmm:access_url>
                         <ccmm:download_url><ccmm:iri><xsl:value-of select="$downloadUrl"/></ccmm:iri></ccmm:download_url>
                         <xsl:variable name="eu" select="$euFileTypes/t[@m = $fmt]"/>
@@ -1935,15 +1962,21 @@
     -->
 
     <!--
-        Copies each distinct child once.  Two byte-identical siblings are one value in the CCMM
-        model and two in XML, which a consumer displays twice; the key below - element names,
-        string value and xml:lang - is what makes them identical.
+        Copies each distinct child once.  Two siblings carrying the same value are one value in
+        the CCMM model and two in XML, which a consumer displays twice; the key below - element
+        names, text and xml:lang - is what makes them identical.
+
+        Each text node is keyed separately and normalised: the source repeats descriptions that
+        differ only in a stray carriage return, and concatenating the text without a separator
+        would also let <title>AB</title><iri>C</iri> collide with <title>A</title><iri>BC</iri>.
+        Only the key is normalised - the text is copied through untouched, so paragraph breaks
+        in an abstract survive.
     -->
     <xsl:template name="CopyDistinct">
         <xsl:param name="nodes"/>
         <xsl:for-each-group select="$nodes"
             group-by="concat(string-join(descendant-or-self::*/name(), '|'), '#',
-                             string(.), '#',
+                             string-join(for $t in descendant::text() return normalize-space($t), '|'), '#',
                              string-join(descendant-or-self::*/@xml:lang, '|'))">
             <xsl:copy-of select="current-group()[1]"/>
         </xsl:for-each-group>

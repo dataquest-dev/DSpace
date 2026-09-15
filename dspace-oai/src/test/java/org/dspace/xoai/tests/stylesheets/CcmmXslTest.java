@@ -44,6 +44,8 @@ public class CcmmXslTest extends AbstractXSLTest {
     private static final String EMBARGO = "xoai-ccmm-embargo-test.xml";
     private static final String CLIP = "xoai-ccmm-newsreel-clip-test.xml";
     private static final String TOOL = "xoai-ccmm-tool-test.xml";
+    private static final String FUNDING = "xoai-ccmm-funding-test.xml";
+    private static final String BAD_REPO = "xoai-ccmm-bad-repo-test.xml";
 
     @Test
     public void ccmmCanTransformInput() throws Exception {
@@ -1106,6 +1108,77 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:identifier/ccmm:scheme/ccmm:iri",
             equalTo("https://www.iana.org/assignments/uri-schemes"))));
+    }
+
+    @Test
+    public void ccmmAwardTitleAndFunderComeFromLocalSponsor() throws Exception {
+        // the grant number in the info: URI is looked up in local.sponsor, which holds the
+        // project name and the funder's own name
+        String result = apply("ccmm.xsl").to(resource(FUNDING));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:funding_reference[ccmm:local_identifier='288487']/ccmm:award_title",
+            equalTo("MosesCore"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:funding_reference[ccmm:local_identifier='288487']/ccmm:funder/ccmm:organization/ccmm:name",
+            equalTo("European Union"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:funding_reference[ccmm:local_identifier][not(ccmm:award_title)])",
+            equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmOneGrantRecordedTwiceIsPublishedOnce() throws Exception {
+        // dc.relation spells it 288487 and local.sponsor spells it FP7-ICT-2011-7-288487
+        String result = apply("ccmm.xsl").to(resource(FUNDING));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:funding_reference[ccmm:award_title='MosesCore'])", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:funding_reference)", equalTo("2"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:funding_reference[ccmm:local_identifier='GA20-12345S']/ccmm:award_title",
+            equalTo("A separately funded project"))));
+    }
+
+    @Test
+    public void ccmmDescriptionsDifferingOnlyInWhitespaceAreOneDescription() throws Exception {
+        String result = apply("ccmm.xsl").to(resource(FUNDING));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:description[starts-with(ccmm:description_text, 'The source stores')])",
+            equalTo("1"))));
+    }
+
+    @Test
+    public void ccmmBitstreamWithoutAUsableUrlStillBecomesADistribution() throws Exception {
+        // XOAI emits a bare file name when the item has no handle; the uuid is still enough
+        String result = apply("ccmm.xsl").to(resource(FUNDING));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:distribution_downloadable_file)", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
+            equalTo("https://example.org/repository/server/api/core/bitstreams/"
+                + "18341be0-03ad-4a22-a1c8-4cd293c3f5da/content"))));
+    }
+
+    @Test
+    public void ccmmDistributionTitleIsAFileNameNeverAUrl() throws Exception {
+        String result = apply("ccmm.xsl").to(resource(FUNDING));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:title", equalTo("plain file name.txt"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:distribution_downloadable_file/ccmm:title[contains(., '://')])",
+            equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmRepositoryUrlThatIsNotAbsoluteBuildsNoRestUrl() throws Exception {
+        // guessing an endpoint from "localhost:8080" would put an unresolvable IRI in a
+        // mandatory slot, so the url XOAI supplied is kept instead
+        String result = apply("ccmm.xsl").to(resource(BAD_REPO));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
+            equalTo("https://files.example.org/data.csv"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:iri[starts-with(., 'localhost')])", equalTo("0"))));
     }
 
     private XmlMatcherBuilder ccmm() {
