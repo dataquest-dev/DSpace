@@ -14,13 +14,7 @@ package org.dspace.storage.bitstore.service;
  */
 public interface S3DirectDownloadService {
     /**
-     * Generate a presigned URL for downloading a file from S3.
-     *
-     * @param bucket             The S3 bucket name
-     * @param key                The bitstream path in the S3 bucket
-     * @param expirationSeconds  The number of seconds until the URL expires
-     * @param bitstreamName      The name of the bitstream to be used in the Content-Disposition header
-     * @return                   A string containing the presigned URL for direct download access
+     * Generate a presigned URL that downloads the S3 object as an attachment named {@code bitstreamName}.
      */
     String generatePresignedUrl(String bucket, String key, int expirationSeconds, String bitstreamName);
 }

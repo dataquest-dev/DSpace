@@ -39,9 +39,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 
 /**
- * Integration tests for the S3 direct download branch of {@link BitstreamRestController} and
- * {@link BitstreamByHandleRestController}: with {@code s3.download.direct.enabled} on, both endpoints answer
- * with a 302 to a presigned URL instead of streaming the file.
+ * Integration tests for the 302-to-presigned-URL branch of the bitstream content endpoints.
  *
  * @author Milan Majchrak (dspace at dataquest.sk)
  */

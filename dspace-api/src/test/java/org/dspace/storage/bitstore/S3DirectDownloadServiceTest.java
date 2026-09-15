@@ -29,7 +29,6 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 
 /**
  * Tests that {@link S3DirectDownloadServiceImpl} signs a working GET URL with the AWS SDK v2 presigner.
- * Presigning is a local computation, so these tests need no S3 endpoint.
  *
  * @author Milan Majchrak (dspace at dataquest.sk)
  */
@@ -110,8 +109,7 @@ public class S3DirectDownloadServiceTest extends AbstractDSpaceTest {
         URI url = URI.create(s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, SEVEN_DAYS, "myfile.txt"));
         assertEquals(String.valueOf(SEVEN_DAYS), queryOf(url).get("X-Amz-Expires"));
 
-        // SigV4 refuses anything outside 1s..7d, so an out-of-range expiration is reported by key name
-        // instead of failing deep inside the SDK
+        // SigV4 signs only between 1 second and 7 days
         assertThrows(IllegalArgumentException.class,
                 () -> s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, SEVEN_DAYS + 1, "myfile.txt"));
         assertThrows(IllegalArgumentException.class,

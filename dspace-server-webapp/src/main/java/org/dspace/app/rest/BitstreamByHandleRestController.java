@@ -169,10 +169,8 @@ public class BitstreamByHandleRestController {
                 response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(size));
             }
 
-            // Only ORIGINAL bundle files are redirected to S3, which this endpoint already guarantees:
-            // findBitstreamByName searches the ORIGINAL bundles only.
+            // findBitstreamByName searches ORIGINAL bundles only, so every hit here is safe to redirect.
             if (s3DirectDownloadEnabled()) {
-                // Close the DB connection before redirecting
                 context.complete();
                 redirectToS3DownloadUrl(name, bitstream.getInternalId(), response);
                 return;
@@ -230,14 +228,7 @@ public class BitstreamByHandleRestController {
                 && configurationService.getBooleanProperty("assetstore.s3.enabled");
     }
 
-    /**
-     * Redirect to a presigned S3 URL so the file is downloaded straight from the object store instead of
-     * being streamed through this backend.
-     *
-     * @param bitName       the bitstream filename
-     * @param bitInternalId the internal storage ID
-     * @param response      the HTTP response to send the redirect on
-     */
+    /** Send a 302 to a presigned S3 URL instead of streaming the file through this backend. */
     private void redirectToS3DownloadUrl(String bitName, String bitInternalId,
                                          HttpServletResponse response) throws IOException {
         try {

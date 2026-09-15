@@ -192,9 +192,8 @@ public class BitstreamRestController {
             long filesize = bit.getSizeBytes();
             Boolean citationEnabledForBitstream = citationDocumentService.isCitationEnabledForBitstream(bit, context);
 
-            // Only ORIGINAL bundle files are redirected to S3: other bundles carry files the UI reads back
-            // itself, e.g. process output, which a redirect breaks. Decided here because reading the bundles
-            // needs the context, which is closed before the response is built.
+            // Only ORIGINAL bundle files are redirected; a redirect breaks bundles the UI reads back itself.
+            // Resolved here because reading the bundles needs the context, closed further down.
             boolean redirectToS3 = s3DirectDownloadEnabled() && bit.getBundles().stream()
                     .anyMatch(bundle -> CONTENT_BUNDLE_NAME.equals(bundle.getName()));
 
@@ -278,15 +277,7 @@ public class BitstreamRestController {
                 && configurationService.getBooleanProperty("assetstore.s3.enabled");
     }
 
-    /**
-     * Answer with a redirect to a presigned S3 URL so the file is downloaded straight from the object store
-     * instead of being streamed through this backend.
-     *
-     * @param httpHeaders    headers needed to form a proper response when returning the Bitstream/File
-     * @param bitName        name of the bitstream
-     * @param bitInternalId  internal id of the bitstream
-     * @return ResponseEntity with the location header set to the presigned URL
-     */
+    /** Answer with a 302 to a presigned S3 URL instead of streaming the file through this backend. */
     private ResponseEntity redirectToS3DownloadUrl(HttpHeaders httpHeaders, String bitName, String bitInternalId) {
         try {
             String bucket = configurationService.getProperty("assetstore.s3.bucketName", "");

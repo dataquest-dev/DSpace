@@ -27,12 +27,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 /**
- * Generates presigned S3 URLs so a bitstream can be downloaded straight from the object store instead of
- * being streamed through the backend.
- * <p>
- * Presigning is a local signing operation, so it shares the credentials, region and endpoint of the
- * {@code s3Store} assetstore but not its client: {@link S3BitStoreService} talks to S3 through an
- * {@link software.amazon.awssdk.services.s3.S3AsyncClient}, which cannot presign.
+ * Generates presigned S3 URLs so a bitstream is downloaded straight from the object store.
  *
  * @author Milan Majchrak (dspace at dataquest.sk)
  */
@@ -40,8 +35,7 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
 
     private static final Logger log = LogManager.getLogger(S3DirectDownloadServiceImpl.class);
 
-    /** SigV4 refuses to sign outside these bounds, so a misconfigured expiration is rejected with a
-     *  message naming the key instead of the SDK's. */
+    /** SigV4 signs only between 1 second and 7 days. */
     private static final Duration MIN_SIGNATURE_DURATION = Duration.ofSeconds(1);
     private static final Duration MAX_SIGNATURE_DURATION = Duration.ofDays(7);
 
@@ -87,11 +81,7 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
         }
     }
 
-    /**
-     * Build the {@code response-content-disposition} the presigned URL will carry, so S3 serves the file under
-     * the bitstream name. The quoted fallback drops CR, LF and quotes, which would otherwise close the header
-     * value early; {@code filename*} carries the real name percent-encoded per RFC 5987.
-     */
+    /** The quoted fallback must not contain CR, LF or quotes; {@code filename*} carries the real name. */
     private String contentDisposition(String bitstreamName) {
         String fallbackName = bitstreamName.replaceAll("[\r\n\"]", "_");
         String encodedName = URLEncoder.encode(bitstreamName, StandardCharsets.UTF_8).replace("+", "%20");
@@ -109,10 +99,7 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
         return s3Presigner;
     }
 
-    /**
-     * Build a presigner against the same S3 the assetstore writes to, otherwise the signature would not match
-     * the object the redirect points at.
-     */
+    /** Must presign against the same S3 the assetstore writes to, or the signature will not match. */
     private S3Presigner buildS3Presigner() {
         S3Presigner.Builder builder = S3Presigner.builder().region(resolveRegion());
 
