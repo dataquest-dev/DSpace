@@ -20,8 +20,10 @@
                 <element name="none">
                     <field name="value">Novak, Jan</field>
                     <field name="value">Svobodova, Marie</field>
-                    <!-- a corporate credit and an ANVL placeholder, both of which occur in production -->
-                    <field name="value">Aktualita</field>
+                    <!-- a corporate credit the shipped pattern recognises, one it cannot, and an
+                         ANVL placeholder; all three occur in production -->
+                    <field name="value">Lucernafilm</field>
+                    <field name="value">Kinofa</field>
                     <field name="value">(:unav) Unknown author</field>
                 </element>
             </element>

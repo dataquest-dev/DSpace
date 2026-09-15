@@ -98,13 +98,25 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmTypesCorporateCreditsAsOrganizationsNotPeople() throws Exception {
-        // a newsreel producer is not a natural person
+        // a film producer is not a natural person, and the shipped pattern says so without
+        // any per-repository list
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:qualified_relation[ccmm:relation/ccmm:organization/ccmm:name='Aktualita'])",
+            "count(//ccmm:qualified_relation[ccmm:relation/ccmm:organization/ccmm:name='Lucernafilm'])",
             equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:person[ccmm:name='Aktualita'])", equalTo("0"))));
+            "count(//ccmm:person[ccmm:name='Lucernafilm'])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmBareProperNounStaysAPersonUntilTheDeploymentSaysOtherwise() throws Exception {
+        // ORGANIZATION_AGENT_NAMES ships empty, so a corporate name carrying no corporate word
+        // is typed as a person. Repository-specific names belong in that variable, not here.
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:person[ccmm:name='Kinofa'])", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:organization[ccmm:name='Kinofa'])", equalTo("0"))));
     }
 
     @Test

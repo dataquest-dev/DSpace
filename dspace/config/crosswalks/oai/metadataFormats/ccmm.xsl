@@ -37,9 +37,11 @@
     <!-- The field is read off dc.type, which is the only evidence     -->
     <!-- DSpace holds about what the resource is.  FORD_DEFAULT_CODE   -->
     <!-- is the discipline of the repository itself and is the one     -->
-    <!-- value another deployment has to change: LINDAT/CLARIAH-CZ is  -->
-    <!-- a language-resources repository, so its default is            -->
-    <!-- Linguistics.                                                  -->
+    <!-- value another deployment has to change - but fordTerms below -->
+    <!-- is a seed, not the whole FRASCATI list, so a new code needs a -->
+    <!-- row adding beside it.  Without one the lookup falls back to a -->
+    <!-- row that exists rather than emitting empty mandatory          -->
+    <!-- elements: wrong beats malformed, and both stay visible.       -->
     <!-- ============================================================ -->
     <xsl:variable name="FORD_SCHEME_IRI" select="'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/'"/>
     <xsl:variable name="FORD_DEFAULT_CODE" select="'60203'"/>
@@ -203,16 +205,18 @@
 
     <!--
         Agent names.  DSpace has one string per agent and no type, so the type has to be read off
-        the value.  ORGANIZATION_AGENT_NAMES is the closed set of corporate credits this corpus
-        uses that no keyword would catch - film studios and newsreel producers, mostly; the regex
-        below catches the generic corporate forms any repository produces.  ANVL placeholders and
-        "et al." are not agents at all and produce no relation, which lets the Creator fallback
-        in QualifiedRelations fire instead.
+        the value.  ORGANIZATION_AGENT_PATTERN carries the corporate forms any repository produces
+        and decides the type on its own.  ANVL placeholders and "et al." are not agents at all and
+        produce no relation, which lets the Creator fallback in QualifiedRelations fire instead.
+
+        ORGANIZATION_AGENT_NAMES is a deployment value and ships empty: names a repository knows to
+        be corporate but that carry no such word, a studio or an imprint known only by a proper
+        noun.  Write them lower case between pipes, as in '|acme|acme praha|'.  Leaving it empty
+        costs only the type on those few values.
     -->
-    <xsl:variable name="ORGANIZATION_AGENT_NAMES"
-        select="'|aktualita|akltualita|aktualita 1944/44 výstřihy|krátký film|elektajournal|elekta-journal|ufa|agrofilm|asum|kinofa|paramount|paramount praha|favorit film|excelsiorfilm-praha|fox movietone news|sascha-film|jerzetfilm|pathé|dutch language union|masarykův lidový ústav|'"/>
+    <xsl:variable name="ORGANIZATION_AGENT_NAMES" select="'||'"/>
     <xsl:variable name="ORGANIZATION_AGENT_PATTERN"
-        select="'(univ|institu|akadem|academi|ústav|ustav|fondazione|s\.r\.o|gmbh|(^|[^a-z])(ltd|inc)([^a-z]|$)|archiv|mus[ez]um|society|consortium|cent(re|er|rum)|agency|association|foundation|council|library|knihovna|press|ministr|company|(^|[^a-z])film([^a-z]|$)|facult|fakult|school|college|dept|departmen|laborat|(^|[^a-z])union([^a-z]|$)|nakladatel|vydavatel)'"/>
+        select="'(univ|institu|akadem|academi|ústav|ustav|fondazione|s\.r\.o|gmbh|(^|[^a-z])(ltd|inc)([^a-z]|$)|archiv|mus[ez]um|society|consortium|cent(re|er|rum)|agency|association|foundation|council|library|knihovna|press|ministr|company|film|journal|news|studio|produkc|production|facult|fakult|school|college|dept|departmen|laborat|(^|[^a-z])union([^a-z]|$)|nakladatel|vydavatel)'"/>
     <xsl:variable name="creatorValues"
         select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value']
               | /doc:metadata/doc:element[@name='dc']/doc:element[@name='creator']/doc:element/doc:field[@name='value']"/>
@@ -1353,7 +1357,11 @@
         the one whose scheme publishes an IRI.
     -->
     <xsl:template name="FordSubject">
-        <xsl:variable name="f" select="$fordTerms/f[@code = $fordCode]"/>
+        <!-- never empty: an unknown code would otherwise emit ".../SubjectCategory//" and
+             three empty mandatory elements -->
+        <xsl:variable name="f" select="($fordTerms/f[@code = $fordCode],
+                                        $fordTerms/f[@code = $FORD_DEFAULT_CODE],
+                                        $fordTerms/f[1])[1]"/>
         <ccmm:subject>
             <ccmm:iri><xsl:value-of select="concat($FORD_SCHEME_IRI, $f/@path, '/', $f/@code)"/></ccmm:iri>
             <ccmm:title xml:lang="cs"><xsl:value-of select="$f/@cs"/></ccmm:title>
