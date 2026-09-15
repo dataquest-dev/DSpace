@@ -21,17 +21,8 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.junit.Test;
 
 /**
- * Regression test for the intermittent {@code ConcurrentModificationException} thrown during
- * {@code @After} integration-test cleanup and traced to
- * {@link AbstractHibernateDAO#iterate(jakarta.persistence.Query)}.
- *
- * <p>That method used to close its Hibernate {@code Stream} from a {@code finalize()} override. {@code finalize()}
- * runs on the GC Finalizer thread, so closing the stream there mutated the owning {@code Session}'s per-session,
- * non-thread-safe JDBC {@code ResourceRegistry} (xref) concurrently with the thread that owns the session. That
- * is a genuine data race which intermittently threw {@code ConcurrentModificationException} from
- * {@code ResourceRegistryStandardImpl.releaseResources} during an unrelated commit/rollback. The fix closes the
- * stream on the owning thread once the iteration is exhausted. This test guards against reintroducing any
- * stream-closing finalizer on the returned iterator.</p>
+ * Checks that {@link AbstractHibernateDAO#iterate(jakarta.persistence.Query)} closes its Hibernate stream on
+ * the owning thread when the iteration is exhausted, and not from a finalizer.
  */
 public class HibernateDAOIteratorIT extends AbstractIntegrationTestWithDatabase {
 
@@ -39,13 +30,7 @@ public class HibernateDAOIteratorIT extends AbstractIntegrationTestWithDatabase 
             ContentServiceFactory.getInstance().getMetadataValueService();
 
     /**
-     * Verifies that the iterator returned by {@link AbstractHibernateDAO#iterate(jakarta.persistence.Query)}
-     * (exercised here through {@code MetadataValueService.findByValueLike}) does not close its backing Hibernate
-     * stream from a {@code finalize()} override anywhere in its class hierarchy, and that it still iterates to
-     * exhaustion (closing its cursor on the owning thread) without error. No matching rows are required - the
-     * wrapper iterator is created regardless of the result count.
-     *
-     * @throws Exception passed through.
+     * No class in the returned iterator's hierarchy may declare a stream-closing finalizer.
      */
     @Test
     public void iterateIteratorMustNotCloseStreamFromFinalizer() throws Exception {
@@ -53,11 +38,7 @@ public class HibernateDAOIteratorIT extends AbstractIntegrationTestWithDatabase 
                 metadataValueService.findByValueLike(context, "no-such-metadata-value-" + System.nanoTime());
         assertNotNull(iterator);
 
-        // The returned iterator - and every class in its hierarchy up to Object - MUST NOT declare a finalize()
-        // override: closing the backing Hibernate Stream from the GC Finalizer thread is exactly the cross-thread
-        // access to the non-thread-safe per-session JDBC ResourceRegistry that caused the flaky
-        // ConcurrentModificationException. Walking the hierarchy also catches a finalizer reintroduced on a
-        // superclass/helper rather than on the anonymous leaf class.
+        // Walk the hierarchy, not just the anonymous leaf class.
         for (Class<?> type = iterator.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
             try {
                 type.getDeclaredMethod("finalize");
@@ -70,21 +51,14 @@ public class HibernateDAOIteratorIT extends AbstractIntegrationTestWithDatabase 
             }
         }
 
-        // It must still iterate to exhaustion and close its cursor on THIS (the owning) thread without error.
+        // Exhausting it here is what closes the cursor, and on the owning thread.
         while (iterator.hasNext()) {
             assertNotNull(iterator.next());
         }
     }
 
     /**
-     * The companion of the test above, and the one that makes the pair a real detector.
-     * <p>
-     * Deleting the {@code finalize()} override alone would satisfy
-     * {@link #iterateIteratorMustNotCloseStreamFromFinalizer()} while leaking the JDBC cursor forever, because
-     * nothing else would ever close the stream. This asserts the other half: once the iterator is exhausted, the
-     * owning session must hold no registered JDBC resources.
-     *
-     * @throws Exception passed through.
+     * Once the iterator is exhausted the owning session must hold no registered JDBC resources.
      */
     @Test
     public void iterateIteratorMustReleaseJdbcResourcesOnExhaustion() throws Exception {

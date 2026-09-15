@@ -34,17 +34,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Covers the one situation the Checksum health check exists for: a bitstream whose stored checksum no
- * longer matches.
- * <P>
- * The check used to build its report <em>after</em> {@code context.complete()}. By then the Hibernate
- * session is closed and every {@code Bitstream} the collector holds is detached, so reading the lazily
- * loaded name threw {@code LazyInitializationException}. The result was a check that worked for exactly as
- * long as nothing was wrong and blew up the moment it had something to report - which is also why no test
- * ever caught it: the healthy path never touches those fields.
- * <P>
- * {@link #healthyBitstreamIsReportedAsOk()} is a plain regression guard and passes with or without the fix;
- * {@link #checksumMismatchIsReportedWithBitstreamName()} is the one that measures it.
+ * Covers the situation the Checksum health check exists for: a bitstream whose stored checksum no longer
+ * matches, so the report has to name it.
  */
 public class ChecksumCheckIT extends AbstractIntegrationTestWithDatabase {
 
@@ -84,9 +75,7 @@ public class ChecksumCheckIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The checker rows carry a foreign key to the bitstream, so they have to go before the builder teardown
-     * deletes it - otherwise cleanup fails with a referential integrity violation and every test in the
-     * class reports an error it did not cause.
+     * Drops the checker rows before the builder teardown deletes the bitstream they reference.
      */
     @Override
     public void destroy() throws Exception {
@@ -105,17 +94,8 @@ public class ChecksumCheckIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Registers the fixture bitstream with the checker and back-dates its process dates.
-     * <p>
-     * {@code updateMissingBitstreams} stamps {@code processStartDate} with {@code current_timestamp()},
-     * while {@code ChecksumCheck} asks {@code SimpleDispatcher} for rows whose {@code processStartDate} is
-     * strictly older than the instant the check itself started. A row created microseconds earlier is
-     * therefore picked up or skipped depending on clock resolution, which makes the test flaky in exactly
-     * the way that hides the defect ("No md5 checks made!" instead of a report). In production the rows are
-     * always older; back-dating them here reproduces that.
-     *
-     * @param expectedChecksum the checksum to store as the expected one, or {@code null} to keep the real
-     *                         one so that the check sees a healthy bitstream
+     * Registers the fixture bitstream with the checker and back-dates its process dates, because the
+     * dispatcher only picks up rows strictly older than the instant the check started.
      */
     private void registerForChecking(String expectedChecksum) throws Exception {
         context.turnOffAuthorisationSystem();
@@ -140,8 +120,7 @@ public class ChecksumCheckIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * The regression this card is about: with a mismatching checksum the check must name the offending
-     * bitstream instead of failing on a detached entity.
+     * With a mismatching checksum the check must name the offending bitstream.
      */
     @Test
     public void checksumMismatchIsReportedWithBitstreamName() throws Exception {
@@ -157,8 +136,7 @@ public class ChecksumCheckIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Regression guard only: the healthy path passes on the unported base too. It is here so that a fix
-     * which simply stops reporting cannot be mistaken for a fix.
+     * Guards the healthy path, so that a fix which simply stops reporting cannot pass.
      */
     @Test
     public void healthyBitstreamIsReportedAsOk() throws Exception {

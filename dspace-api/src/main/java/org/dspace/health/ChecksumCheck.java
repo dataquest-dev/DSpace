@@ -40,10 +40,8 @@ public class ChecksumCheck extends Check {
         checker.setReportVerbose(true);
         try {
             checker.process();
-            // The report is built here, inside the try and before context.complete(): afterwards the
-            // Hibernate session is closed and every Bitstream the collector holds is a detached entity,
-            // so reading its lazy metadata throws LazyInitializationException. That made the check work
-            // exactly as long as nothing was wrong and fail the moment it had something to report.
+            // Build the report before context.complete(): afterwards the collector's Bitstreams are
+            // detached and reading their lazy metadata throws LazyInitializationException.
             if (collector.arr.size() > 0) {
                 ret = String.format("Checksum performed on [%d] items:\n",
                                     collector.arr.size());
@@ -51,8 +49,7 @@ public class ChecksumCheck extends Check {
                 for (MostRecentChecksum bi : collector.arr) {
                     if (!ChecksumResultCode.CHECKSUM_MATCH.equals(bi
                                                                       .getChecksumResult().getResultCode())) {
-                        // Reload before reading the name: the collector may hold an instance from an
-                        // earlier session.
+                        // The collector may hold an instance from an earlier session.
                         Bitstream reloadedBitstream = context.reloadEntity(bi.getBitstream());
                         ret += String
                             .format("md5 checksum FAILED (%s): %s id: %s bitstream-id: %s\n was: %s\n  is: %s\n",
