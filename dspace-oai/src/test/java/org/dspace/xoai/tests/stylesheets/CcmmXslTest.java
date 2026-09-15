@@ -1152,9 +1152,9 @@ public class CcmmXslTest extends AbstractXSLTest {
         // XOAI emits a bare file name when the item has no handle; the uuid is still enough
         String result = apply("ccmm.xsl").to(resource(FUNDING));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:distribution_downloadable_file)", equalTo("1"))));
+            "count(//ccmm:distribution_downloadable_file)", equalTo("2"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
+            "//ccmm:distribution_downloadable_file[ccmm:byte_size='128']/ccmm:download_url/ccmm:iri",
             equalTo("https://example.org/repository/server/api/core/bitstreams/"
                 + "18341be0-03ad-4a22-a1c8-4cd293c3f5da/content"))));
     }
@@ -1163,7 +1163,11 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmDistributionTitleIsAFileNameNeverAUrl() throws Exception {
         String result = apply("ccmm.xsl").to(resource(FUNDING));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:distribution_downloadable_file/ccmm:title", equalTo("plain file name.txt"))));
+            "//ccmm:distribution_downloadable_file[ccmm:byte_size='128']/ccmm:title",
+            equalTo("plain file name.txt"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file[ccmm:byte_size='256']/ccmm:title",
+            equalTo("report-final.pdf"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:distribution_downloadable_file/ccmm:title[contains(., '://')])",
             equalTo("0"))));

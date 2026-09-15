@@ -67,6 +67,14 @@
                     <field name="sid">1</field>
                     <field name="id">18341be0-03ad-4a22-a1c8-4cd293c3f5da</field>
                 </element>
+                <!-- no name either, but the url is a real path: the title is its last segment -->
+                <element name="bitstream">
+                    <field name="format">application/pdf</field>
+                    <field name="size">256</field>
+                    <field name="url">https://example.org/repository/bitstream/11234/1-9001/2/report-final.pdf</field>
+                    <field name="sid">2</field>
+                    <field name="id">a2c4e6f8-1111-4222-8333-444455556666</field>
+                </element>
             </element>
         </element>
     </element>
