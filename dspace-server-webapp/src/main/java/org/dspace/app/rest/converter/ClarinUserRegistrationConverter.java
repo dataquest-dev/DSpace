@@ -22,7 +22,6 @@ public class ClarinUserRegistrationConverter implements DSpaceConverter<ClarinUs
         clarinUserRegistrationRest.setProjection(projection);
         clarinUserRegistrationRest.setId(modelObject.getID());
         clarinUserRegistrationRest.setePersonID(modelObject.getPersonID());
-        clarinUserRegistrationRest.setEmail(modelObject.getEmail());
         clarinUserRegistrationRest.setOrganization(modelObject.getOrganization());
         clarinUserRegistrationRest.setConfirmation(modelObject.isConfirmation());
         return clarinUserRegistrationRest;
