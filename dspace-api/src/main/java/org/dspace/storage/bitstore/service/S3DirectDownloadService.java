@@ -13,8 +13,6 @@ package org.dspace.storage.bitstore.service;
  * @author Milan Majchrak (dspace at dataquest.sk)
  */
 public interface S3DirectDownloadService {
-    /**
-     * Generate a presigned URL that downloads the S3 object as an attachment named {@code bitstreamName}.
-     */
+    /** Generate a presigned URL for the S3 object, named {@code bitstreamName}, valid 1 second to 7 days. */
     String generatePresignedUrl(String bucket, String key, int expirationSeconds, String bitstreamName);
 }

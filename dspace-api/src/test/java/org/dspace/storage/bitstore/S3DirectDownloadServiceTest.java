@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 /**
- * Tests that {@link S3DirectDownloadServiceImpl} signs a working GET URL with the AWS SDK v2 presigner.
+ * Tests that {@link S3DirectDownloadServiceImpl} signs a working GET URL; presigning is local, so no S3 runs.
  *
  * @author Milan Majchrak (dspace at dataquest.sk)
  */
@@ -109,7 +109,6 @@ public class S3DirectDownloadServiceTest extends AbstractDSpaceTest {
         URI url = URI.create(s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, SEVEN_DAYS, "myfile.txt"));
         assertEquals(String.valueOf(SEVEN_DAYS), queryOf(url).get("X-Amz-Expires"));
 
-        // SigV4 signs only between 1 second and 7 days
         assertThrows(IllegalArgumentException.class,
                 () -> s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, SEVEN_DAYS + 1, "myfile.txt"));
         assertThrows(IllegalArgumentException.class,

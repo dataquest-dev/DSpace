@@ -81,7 +81,7 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
         }
     }
 
-    /** The quoted fallback must not contain CR, LF or quotes; {@code filename*} carries the real name. */
+    /** Builds Content-Disposition: the quoted fallback drops CR, LF and quotes, {@code filename*} is RFC 5987. */
     private String contentDisposition(String bitstreamName) {
         String fallbackName = bitstreamName.replaceAll("[\r\n\"]", "_");
         String encodedName = URLEncoder.encode(bitstreamName, StandardCharsets.UTF_8).replace("+", "%20");
@@ -99,7 +99,7 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
         return s3Presigner;
     }
 
-    /** Must presign against the same S3 the assetstore writes to, or the signature will not match. */
+    /** The assetstore's S3AsyncClient cannot presign, so build a second client against the same S3. */
     private S3Presigner buildS3Presigner() {
         S3Presigner.Builder builder = S3Presigner.builder().region(resolveRegion());
 
