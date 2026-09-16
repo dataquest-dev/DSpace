@@ -15,8 +15,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.dspace.AbstractDSpaceIntegrationTest;
 import org.dspace.scripts.DSpaceRunnable;
@@ -25,8 +27,8 @@ import org.jdom2.Element;
 import org.junit.Test;
 
 /**
- * Guards {@code dspace/config/launcher.xml} against entries that resolve to nothing and against CLARIN
- * commands disappearing from it.
+ * Guards {@code dspace/config/launcher.xml} against entries that resolve to nothing and against
+ * commands quietly disappearing from it.
  */
 public class LauncherCommandsIT extends AbstractDSpaceIntegrationTest {
 
@@ -35,6 +37,19 @@ public class LauncherCommandsIT extends AbstractDSpaceIntegrationTest {
 
     /** The commands CLARIN adds on top of vanilla, each mapped to the class it launches. */
     private static final Map<String, String> CLARIN_COMMANDS = new LinkedHashMap<>();
+
+    /** Every command the launcher is known to register; commands may be added, none may go missing. */
+    private static final List<String> KNOWN_COMMANDS = List.of(
+        "anonymize-statistics", "bitstore-migrate", "checker", "checker-emailer", "clarin-token",
+        "classpath", "cleanup", "community-filiator", "create-administrator", "database",
+        "doi-organiser", "dsprop", "dsrun", "embargo-lifter", "generate-sitemaps", "harvest",
+        "iiif-canvas-dimensions", "index-authority", "initialize-entities", "itemupdate",
+        "make-handle-config", "matomo-report-generator", "migrate-embargo", "oai", "packager",
+        "rdfizer", "read", "registry-loader", "retry-tracker", "solr-export-statistics",
+        "solr-import-statistics", "solr-reindex-statistics", "solr-upgrade-statistics-6x",
+        "stat-general", "stat-initial", "stat-monthly", "stat-report-general", "stat-report-initial",
+        "stat-report-monthly", "stats-log-converter", "stats-log-importer", "stats-util",
+        "structure-builder", "test-email", "update-handle-prefix", "user", "validate-date", "version");
 
     static {
         CLARIN_COMMANDS.put("clarin-token", "org.dspace.administer.ClarinTokenAdministrator");
@@ -89,6 +104,24 @@ public class LauncherCommandsIT extends AbstractDSpaceIntegrationTest {
 
         assertThat("dspace/config/launcher.xml no longer registers these CLARIN commands, so the classes"
                        + " implementing them cannot be launched:\n  " + String.join("\n  ", missing),
+                   missing, empty());
+    }
+
+    /**
+     * A command dropped from the file is simply no longer iterated by the checks above, so the set of
+     * registered names is checked against the one this branch ships.
+     */
+    @Test
+    public void noKnownLauncherCommandDisappears() {
+        Set<String> registered = new LinkedHashSet<>();
+        for (Element command : commands()) {
+            registered.add(command.getChildText("name"));
+        }
+
+        List<String> missing = new ArrayList<>(KNOWN_COMMANDS);
+        missing.removeAll(registered);
+
+        assertThat("dspace/config/launcher.xml no longer registers these commands: " + missing,
                    missing, empty());
     }
 
