@@ -60,20 +60,34 @@
         <element name="bundle">
             <field name="name">ORIGINAL</field>
             <element name="bitstreams">
+<!-- a name that has to be percent-encoded, and a url XOAI could not build: the endpoint
+                     URL is derivable from the Handle and the name, so the file is still published -->
                 <element name="bitstream">
                     <field name="format">text/plain</field>
                     <field name="size">128</field>
+                    <field name="name">zpráva finální.txt</field>
                     <field name="url">plain file name.txt</field>
                     <field name="sid">1</field>
                     <field name="id">18341be0-03ad-4a22-a1c8-4cd293c3f5da</field>
                 </element>
-                <!-- no name either, but the url is a real path: the title is its last segment -->
+                <!-- originalName but no name: the endpoint matches on name, so there is nothing to
+                     address the file by and the absolute url XOAI supplied is kept -->
                 <element name="bitstream">
                     <field name="format">application/pdf</field>
                     <field name="size">256</field>
+                    <field name="originalName">report-final.pdf</field>
                     <field name="url">https://example.org/repository/bitstream/11234/1-9001/2/report-final.pdf</field>
                     <field name="sid">2</field>
                     <field name="id">a2c4e6f8-1111-4222-8333-444455556666</field>
+                </element>
+                <!-- neither name nor originalName: the title has to come from the url's last
+                     segment, and it is still a file name rather than the whole URL -->
+                <element name="bitstream">
+                    <field name="format">text/csv</field>
+                    <field name="size">512</field>
+                    <field name="url">https://example.org/repository/bitstream/11234/1-9001/3/data-table.csv</field>
+                    <field name="sid">3</field>
+                    <field name="id">b3d5f7a9-2222-4333-8444-555566667777</field>
                 </element>
             </element>
         </element>

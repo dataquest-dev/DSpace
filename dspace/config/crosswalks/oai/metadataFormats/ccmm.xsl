@@ -245,11 +245,18 @@
                      else ''"/>
 
     <!--
-        Where the repository serves a bitstream.  The url XOAI puts on a bitstream is the DSpace 6
-        UI path (/bitstream/handle/sid/name), which DSpace 7 does not serve.  The current one is
-        the front end's download route - the link the item page's own download button uses, and
-        the shape vanilla ItemUtils publishes.  Naming the REST endpoint instead would route
-        harvesters around whatever protects the front end.
+        Where the repository serves a bitstream, in the shape the CMDI crosswalk already publishes:
+        {server}/api/core/bitstreams/handle/{handle}/{name}.  Addressing the file by the item's
+        Handle and its name keeps the link valid when the bitstream's uuid changes underneath it -
+        a file replaced under the same name, a restore from backup, a migration - which is what a
+        harvested record has to survive.
+
+        Two things follow from it.  The endpoint answers under dspace.server.url and returns the
+        bytes itself, so it does not pass through the front end.  And it is not part of vanilla
+        DSpace: a deployment without that controller resolves none of these URLs.
+
+        XOAI publishes dspace.ui.url as the repository url; the REST base is that plus /server,
+        which is where DSpace puts it by default.
     -->
     <xsl:variable name="repoUrlRaw"
         select="normalize-space((/doc:metadata/doc:element[@name='repository']/doc:field[@name='url'])[1])"/>
@@ -261,7 +268,14 @@
     -->
     <xsl:variable name="downloadBase"
         select="if (matches($repoUrlRaw, '^https?://\S+$'))
-                then concat(replace($repoUrlRaw, '/+$', ''), '/bitstreams/')
+                then concat(replace($repoUrlRaw, '/+$', ''), '/server/api/core/bitstreams/handle/')
+                else ''"/>
+    <!-- the bare Handle the endpoint takes, from whichever of the two places carries it -->
+    <xsl:variable name="itemHandle"
+        select="if (normalize-space(string($handleField)) != '')
+                then normalize-space(string($handleField))
+                else if ($handleUri and contains(string($handleUri), 'hdl.handle.net/'))
+                     then substring-after(normalize-space(string($handleUri)), 'hdl.handle.net/')
                 else ''"/>
 
     <xsl:variable name="accessionedAll"
@@ -1814,17 +1828,24 @@
             <xsl:variable name="fmt" select="normalize-space(tokenize(normalize-space((doc:field[@name='format'])[1]), ';')[1])"/>
             <xsl:variable name="nm" select="normalize-space((doc:field[@name='name'], doc:field[@name='originalName'])[normalize-space(.) != ''][1])"/>
             <xsl:variable name="uuid" select="normalize-space((doc:field[@name='id'])[1])"/>
-            <!-- the front end's download route; the XOAI url is a DSpace 6 path nothing serves -->
+            <!--
+                The by-handle endpoint matches on the bitstream's own name, so the name field is
+                what goes in the path - not originalName, which the endpoint never compares.  With
+                no handle or no name there is nothing to address the file by, and the url XOAI
+                supplied is kept instead.
+            -->
+            <xsl:variable name="fileName" select="normalize-space((doc:field[@name='name'])[1])"/>
             <xsl:variable name="downloadUrl"
-                select="if ($downloadBase != '' and matches($uuid, '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$'))
-                        then concat($downloadBase, $uuid, '/download') else $url"/>
+                select="if ($downloadBase != '' and $itemHandle != '' and $fileName != '')
+                        then concat($downloadBase, $itemHandle, '/', encode-for-uri($fileName))
+                        else $url"/>
             <xsl:variable name="sum" select="normalize-space((doc:field[@name='checksum'])[1])"/>
             <xsl:variable name="alg" select="normalize-space((doc:field[@name='checksumAlgorithm'])[1])"/>
             <!--
                 The published URL is what has to be resolvable, and that is download_url.  Gating
                 on the XOAI url instead would drop the file whenever XOAI could not build one -
                 ItemUtils emits a bare filename when the item has no handle - even though the
-                download route was derivable from the bitstream uuid.
+                endpoint URL was derivable from the Handle and the name.
             -->
             <xsl:if test="matches($downloadUrl, '^https?://\S+$') and matches($size, '^[0-9]+$') and matches($fmt, '^[A-Za-z0-9!#$&amp;^_.+-]+/[A-Za-z0-9!#$&amp;^_.+-]+$')">
                 <ccmm:distribution>
