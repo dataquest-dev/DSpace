@@ -95,6 +95,8 @@ public class MatomoPDFExporter {
     private static String MATOMO_API_MODE;
     private static boolean MATOMO_KEEP_REPORTS;
 
+    static final String ITEM_STATISTICS_LOGO_PATH = "/org/dspace/lindat/lindat-logo.png";
+
     private static URL ITEM_STATISTICS_LOGO;
 
     private static SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -142,7 +144,7 @@ public class MatomoPDFExporter {
         MATOMO_API_MODE = configurationService.getProperty("lr.statistics.api.mode", "cached");
         MATOMO_REPORTS_OUTPUT_PATH = configurationService.getProperty("lr.statistics.report.path");
         MATOMO_KEEP_REPORTS = configurationService.getBooleanProperty("lr.statistics.keep.reports", true);
-        ITEM_STATISTICS_LOGO = MatomoPDFExporter.class.getResource("/org/dspace/lindat/lindat-logo.png");
+        ITEM_STATISTICS_LOGO = MatomoPDFExporter.class.getResource(ITEM_STATISTICS_LOGO_PATH);
     }
 
     private static void generateReports(String adminEmail, boolean verboseOutput)
@@ -428,7 +430,7 @@ public class MatomoPDFExporter {
         FONT[6] = new Font(FontFamily.HELVETICA, 8);
         FONT[7] = new Font(FontFamily.HELVETICA, 10, Font.BOLD);
 
-        Image logo = Image.getInstance(ITEM_STATISTICS_LOGO);
+        Image logo = Image.getInstance(requireItemStatisticsLogo(ITEM_STATISTICS_LOGO));
         logo.scaleAbsolute(82, 48);
         logo.setAlignment(Image.RIGHT);
 
@@ -615,6 +617,16 @@ public class MatomoPDFExporter {
 
         pdf.close();
         writer.close();
+    }
+
+    /** Names the missing resource instead of letting iText dereference null. */
+    static URL requireItemStatisticsLogo(URL logoResource) {
+        if (logoResource == null) {
+            throw new IllegalStateException("Item statistics report logo " + ITEM_STATISTICS_LOGO_PATH
+                    + " is not on the classpath, so the report cannot be rendered. Rebuild dspace-api"
+                    + " so that the resource is packaged into the jar.");
+        }
+        return logoResource;
     }
 
     private static void printHelpAndExit(Options options) {
