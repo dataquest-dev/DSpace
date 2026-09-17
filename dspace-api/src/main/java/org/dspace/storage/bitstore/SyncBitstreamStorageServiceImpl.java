@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.content.Bitstream;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
@@ -26,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl {
+
+    private static final Logger log = LogManager.getLogger(SyncBitstreamStorageServiceImpl.class);
 
     /**
      * Recorded on a bitstream that lives in the incoming store and in the mirror at the same time.
@@ -47,6 +51,25 @@ public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
         this.syncEnabled = configurationService.getBooleanProperty("sync.storage.service.enabled", false);
+        if (syncEnabled && !incomingStoreMirrors()) {
+            log.error("sync.storage.service.enabled is on, but the incoming store {} does not mirror into the "
+                    + "local assetstore: new bitstreams will be recorded as synchronized ({}) without a second "
+                    + "copy ever being written, and the checksum checker will find nothing to compare. Point "
+                    + "assetstore.index.primary at a SyncS3BitStoreService with assetstore.s3.enabled = true, or "
+                    + "turn sync.storage.service.enabled off.", getIncoming(), SYNCHRONIZED_STORES_NUMBER);
+        }
+    }
+
+    /**
+     * Can the incoming store actually write the second copy this service assumes exists? Only
+     * {@link SyncS3BitStoreService} mirrors, and only while its own flag is on.
+     *
+     * @return true when a bitstream written to the incoming store also lands in the local assetstore
+     */
+    private boolean incomingStoreMirrors() {
+        BitStoreService incomingStore = getStores().get(getIncoming());
+        return incomingStore instanceof SyncS3BitStoreService
+                && ((SyncS3BitStoreService) incomingStore).isSyncEnabled();
     }
 
     @Override

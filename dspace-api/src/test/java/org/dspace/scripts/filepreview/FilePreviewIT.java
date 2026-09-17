@@ -163,23 +163,21 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
 
     @Test
     public void testPreviewWithSyncStorage() throws Exception {
-        configurationService.setProperty("sync.storage.service.enabled", true);
-        try {
-            Item item2 = createOtherWorkspaceItemWithBitstream(ePerson, SYNC_STORE_NUMBER);
-            // Run the script
-            TestDSpaceRunnableHandler testHandler = runScriptForItemWithBitstreams(item2, ePerson);
-            checkHandlerMessages(testHandler, ePerson, item2, "logos.tgz", true);
+        // The store number is set directly rather than through sync.storage.service.enabled: the flag is
+        // read once at bean init, so setting it here would change nothing. The write path that stamps the
+        // number is covered by BitstreamStorageServiceImplIT.
+        Item item2 = createOtherWorkspaceItemWithBitstream(ePerson, SYNC_STORE_NUMBER);
+        // Run the script
+        TestDSpaceRunnableHandler testHandler = runScriptForItemWithBitstreams(item2, ePerson);
+        checkHandlerMessages(testHandler, ePerson, item2, "logos.tgz", true);
 
-            Bitstream b = bitstreamService.findAll(context).stream()
-                    .filter(bitstream -> bitstream.getStoreNumber() == SYNC_STORE_NUMBER)
-                    .findFirst().orElse(null);
+        Bitstream b = bitstreamService.findAll(context).stream()
+                .filter(bitstream -> bitstream.getStoreNumber() == SYNC_STORE_NUMBER)
+                .findFirst().orElse(null);
 
-            assertNotNull(b);
-            assertEquals("logos.tgz", b.getName());
-            assertTrue("Expects preview content created and stored.", previewContentService.hasPreview(context, b));
-        } finally {
-            configurationService.setProperty("sync.storage.service.enabled", false);
-        }
+        assertNotNull(b);
+        assertEquals("logos.tgz", b.getName());
+        assertTrue("Expects preview content created and stored.", previewContentService.hasPreview(context, b));
     }
 
     @Test
