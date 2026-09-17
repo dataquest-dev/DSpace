@@ -23,7 +23,7 @@ import org.dspace.app.rest.projection.Projection;
 import org.dspace.content.Bitstream;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
-import org.dspace.storage.bitstore.service.BitstreamStorageService;
+import org.dspace.storage.bitstore.SyncBitstreamStorageServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -32,10 +32,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Link repository for "checksum" subresource of an individual bitstream.
- *
- * v9 adaptation: the synchronized (S3-sync) store tier is not ported, so the
- * active-store checksum is computed via the vanilla BitstreamStorageService and
- * the synchronizedStore checksum stays empty until the sync tier lands.
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
@@ -46,7 +42,7 @@ public class BitstreamCheckSumLinkRepository extends AbstractDSpaceRestRepositor
     BitstreamService bitstreamService;
 
     @Autowired
-    BitstreamStorageService bitstreamStorageService;
+    SyncBitstreamStorageServiceImpl bitstreamStorageService;
 
     @PreAuthorize("hasPermission(#bitstreamId, 'BITSTREAM', 'READ')")
     public BitstreamChecksumRest getChecksum(@Nullable HttpServletRequest request,
@@ -70,8 +66,11 @@ public class BitstreamCheckSumLinkRepository extends AbstractDSpaceRestRepositor
             databaseChecksum.setCheckSumAlgorithm(bitstream.getChecksumAlgorithm());
             databaseChecksum.setValue(bitstream.getChecksum());
 
-            // The synchronized (S3-sync) store is not configured in this deployment; the
-            // synchronizedStore checksum is left empty (SyncBitstreamStorageService is not ported).
+            int syncStoreNumber = bitstreamStorageService.getSynchronizedStoreNumber(bitstream);
+            if (syncStoreNumber != SyncBitstreamStorageServiceImpl.NO_SYNCHRONIZED_STORE) {
+                composeChecksumRest(synchronizedStoreChecksum,
+                        bitstreamStorageService.computeChecksumSpecStore(context, bitstream, syncStoreNumber));
+            }
 
             BitstreamChecksum bitstreamChecksum = new BitstreamChecksum();
             bitstreamChecksum.setActiveStore(activeStoreChecksum);
