@@ -176,7 +176,10 @@ public class ChecksumCheckerIT extends AbstractIntegrationTestWithDatabase {
         mirror.setBaseDir(mirrorDir);
         mirror.init();
 
-        Bitstream bitstream = bitstreams.get(0);
+        // The checker reaches the bitstream through the checksum record, so the test has to work on
+        // that instance; the one the builder handed back is a different object for the same row.
+        MostRecentChecksum info = checksumService.findByBitstream(context, bitstreams.get(0));
+        Bitstream bitstream = info.getBitstream();
         int originalStoreNumber = bitstream.getStoreNumber();
         Map<Integer, BitStoreService> stores = storage.getStores();
         stores.put(MIRROR_STORE_NUMBER, mirror);
@@ -186,15 +189,20 @@ public class ChecksumCheckerIT extends AbstractIntegrationTestWithDatabase {
             bitstream.setStoreNumber(SyncBitstreamStorageServiceImpl.SYNCHRONIZED_STORES_NUMBER);
             bitstreamService.update(context, bitstream);
             context.restoreAuthSystemState();
-            context.commit();
 
             assertEquals(MIRROR_STORE_NUMBER, storage.getSynchronizedStoreNumber(bitstream));
 
             File mirroredFile = mirror.getFile(bitstream);
             FileUtils.forceMkdirParent(mirroredFile);
             FileUtils.writeStringToFile(mirroredFile, "Not what the incoming store holds", UTF_8);
+            assertTrue("the mirrored copy was not written", mirroredFile.exists());
+            assertEquals("the mirrored copy has to differ from the incoming one",
+                ChecksumResultCode.CHECKSUM_NO_MATCH,
+                new CheckerCommand(context).compareChecksums(
+                    bitstream.getChecksum(),
+                    storage.computeChecksumSpecStore(context, bitstream, MIRROR_STORE_NUMBER)
+                           .get("checksum").toString()).getResultCode());
 
-            MostRecentChecksum info = checksumService.findByBitstream(context, bitstream);
             new CheckerCommand(context).processBitstream(info);
 
             assertEquals(ChecksumResultCode.CHECKSUM_SYNC_NO_MATCH,

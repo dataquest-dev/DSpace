@@ -302,9 +302,6 @@ public final class CheckerCommand {
      */
     protected void compareSynchronizedCopy(MostRecentChecksum info, Bitstream bitstream)
             throws SQLException, IOException {
-        if (!bitstreamStorageService.isBitstreamStoreSynchronized(bitstream)) {
-            return;
-        }
         if (info.getChecksumResult() == null
                 || ChecksumResultCode.CHECKSUM_NO_MATCH == info.getChecksumResult().getResultCode()) {
             return;

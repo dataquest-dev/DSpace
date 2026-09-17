@@ -76,11 +76,12 @@ public class SyncBitstreamStorageServiceImpl extends BitstreamStorageServiceImpl
      * bitstore.xml configures more than two stores.
      *
      * @param bitstream bitstream to locate the mirror for
-     * @return the mirror's store number, or {@link #NO_SYNCHRONIZED_STORE} when there is none
+     * @return the mirror's store number, or {@link #NO_SYNCHRONIZED_STORE} when the bitstream is not
+     *         synchronized or no mirror store is configured
      */
     public int getSynchronizedStoreNumber(Bitstream bitstream) {
         if (!isBitstreamStoreSynchronized(bitstream)) {
-            return bitstream.getStoreNumber();
+            return NO_SYNCHRONIZED_STORE;
         }
 
         for (Map.Entry<Integer, BitStoreService> storeEntry : getStores().entrySet()) {
