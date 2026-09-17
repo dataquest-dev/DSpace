@@ -8,14 +8,18 @@
 package org.dspace.checker;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.builder.BitstreamBuilder;
@@ -29,12 +33,21 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
+import org.dspace.storage.bitstore.BitStoreService;
+import org.dspace.storage.bitstore.DSBitStoreService;
+import org.dspace.storage.bitstore.SyncBitstreamStorageServiceImpl;
+import org.dspace.storage.bitstore.factory.StorageServiceFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ChecksumCheckerIT extends AbstractIntegrationTestWithDatabase {
+    /** Free key in bitstore.xml, used by the test as the mirror of the synchronized store. */
+    private static final int MIRROR_STORE_NUMBER = 3;
+
     protected List<Bitstream> bitstreams;
     protected MostRecentChecksumService checksumService =
         CheckerServiceFactory.getInstance().getMostRecentChecksumService();
@@ -143,6 +156,56 @@ public class ChecksumCheckerIT extends AbstractIntegrationTestWithDatabase {
                 assertTrue("lastChecksumDate (" + lastChecksumDate + ") >= checkerStartDate (" + checkerStartDate + ")",
                     lastChecksumDate.isBefore(checkerStartDate));
             }
+        }
+    }
+
+    /**
+     * A bitstream in the synchronized store is held in the incoming store and in a mirror at the
+     * same time. When the two copies drift apart the checker's second pass has to report it, and
+     * the first pass on its own cannot: it only ever reads the incoming store.
+     */
+    @Test
+    public void testDivergingSynchronizedCopyIsReported() throws Exception {
+        SyncBitstreamStorageServiceImpl storage =
+            StorageServiceFactory.getInstance().getSyncBitstreamStorageService();
+        BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+
+        File mirrorDir = new File("target/testing/sync-mirror-assetstore");
+        FileUtils.forceMkdir(mirrorDir);
+        DSBitStoreService mirror = new DSBitStoreService();
+        mirror.setBaseDir(mirrorDir);
+        mirror.init();
+
+        Bitstream bitstream = bitstreams.get(0);
+        int originalStoreNumber = bitstream.getStoreNumber();
+        Map<Integer, BitStoreService> stores = storage.getStores();
+        stores.put(MIRROR_STORE_NUMBER, mirror);
+
+        try {
+            context.turnOffAuthorisationSystem();
+            bitstream.setStoreNumber(SyncBitstreamStorageServiceImpl.SYNCHRONIZED_STORES_NUMBER);
+            bitstreamService.update(context, bitstream);
+            context.restoreAuthSystemState();
+            context.commit();
+
+            assertEquals(MIRROR_STORE_NUMBER, storage.getSynchronizedStoreNumber(bitstream));
+
+            File mirroredFile = mirror.getFile(bitstream);
+            FileUtils.forceMkdirParent(mirroredFile);
+            FileUtils.writeStringToFile(mirroredFile, "Not what the incoming store holds", UTF_8);
+
+            MostRecentChecksum info = checksumService.findByBitstream(context, bitstream);
+            new CheckerCommand(context).processBitstream(info);
+
+            assertEquals(ChecksumResultCode.CHECKSUM_SYNC_NO_MATCH,
+                info.getChecksumResult().getResultCode());
+        } finally {
+            stores.remove(MIRROR_STORE_NUMBER);
+            FileUtils.deleteQuietly(mirrorDir);
+            context.turnOffAuthorisationSystem();
+            bitstream.setStoreNumber(originalStoreNumber);
+            bitstreamService.update(context, bitstream);
+            context.restoreAuthSystemState();
         }
     }
 
