@@ -1080,6 +1080,14 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     public void testTargetIsOldestDefaultsToNewerNeighbor() throws Exception {
         context.turnOffAuthorisationSystem();
 
+        // Remove any reports left over from earlier tests so report1 is genuinely the oldest
+        // report in the database. This test exercises the "target is the oldest report" fallback,
+        // which only fires when the target has no older neighbor.
+        for (ReportResult existing : reportResultService.findAll(context)) {
+            reportResultService.delete(context, existing);
+        }
+        context.commit();
+
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
