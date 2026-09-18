@@ -358,11 +358,6 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
     /**
      * Sets default values for the source and target report IDs if not already specified.
-     * <p>
-     * When both IDs are missing, the last two reports from the database are used.
-     * When only one ID is provided, the missing one defaults to the newest report in the
-     * database, unless the provided report is itself the newest, in which case the second
-     * newest report is used so a report is never compared against itself.
      *
      * @param context the application context used for fetching reports and logging
      */
@@ -392,25 +387,22 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 return;
             }
 
-            // The newest report is the last element (list is sorted ascending by last modified).
             Integer newestId = allReports.get(size - 1).getID();
             Integer secondNewestId = size > 1 ? allReports.get(size - 2).getID() : null;
 
             if (targetReportId == null) {
-                // Only '-s' was specified. Default the target to the newest report, unless the
-                // source is itself the newest report, in which case use the second newest so the
-                // source is never compared against itself.
+                // Default the target to the newest or second newest report, depending on the source.
                 if (!Objects.equals(newestId, sourceReportId)) {
                     targetReportId = newestId;
-                    handler.logInfo("Only '-s' was specified; '-t' will be set to the latest report (ID "
+                    handler.logInfo("Only '-s' was specified, '-t' will be set to the latest report (ID "
                             + newestId + ").");
                 } else if (secondNewestId != null) {
                     targetReportId = secondNewestId;
-                    handler.logInfo("Only '-s' was specified and the source is the latest report; "
+                    handler.logInfo("Only '-s' was specified and the source is the latest report, "
                             + "'-t' will be set to the second latest report (ID " + secondNewestId + ").");
                 }
             } else {
-                // Only '-t' was specified (source is null). Apply the same rule to the source.
+                // Default the source to the newest or second newest report, depending on the target.
                 if (!Objects.equals(newestId, targetReportId)) {
                     sourceReportId = newestId;
                     handler.logInfo("Only '-t' was specified; '-s' will be set to the latest report (ID "
@@ -750,8 +742,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
         StringBuilder sb = new StringBuilder();
 
-        // Section numbers are assigned dynamically as sections are emitted so the numbering stays
-        // consecutive regardless of which optional sections (e.g. Skipped Checks) are present.
+        // Dynamically assigned sections
         int sectionNumber = 1;
 
         // Header
@@ -796,7 +787,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             return sb.toString();
         }
 
-        // Skipped Checks (not present in both reports) - only emitted when some check was skipped.
+        // Skipped Checks
         if (hasSkippedChecks) {
             appendSkippedChecksSection(sb, sectionNumber++, normalized, fromReport, toReport);
         }
@@ -1405,17 +1396,13 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             return "No differences found.";
         }
 
-        // Map the numeric check index used by the JSON Patch pointer (e.g. /checks/0/...) to the
-        // human-readable check name so the diff reads /checks/General Information/... instead of
-        // /checks/0/...
+        // Map the numeric check index to check name
         Map<Integer, String> checkNames = buildCheckNameMap(oldNode);
 
         StringBuilder sb = new StringBuilder();
 
         for (JsonNode op : patch) {
             String operation = op.path("op").asText();
-            // The raw JSON pointer is used to look up values in oldNode; the humanized path is
-            // used only for display.
             String path = op.path("path").asText();
             String displayPath = humanizeCheckPath(path, checkNames);
 
@@ -1451,7 +1438,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * node. Used to translate numeric JSON Patch pointers into human-readable check names.
      *
      * @param root the report root node containing a {@code checks} array
-     * @return a map of array index to check name (empty when no named checks are present)
+     * @return a map of array index to check name
      */
     private static Map<Integer, String> buildCheckNameMap(JsonNode root) {
         Map<Integer, String> checkNames = new HashMap<>();
@@ -1460,7 +1447,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         }
         JsonNode checks = root.get("checks");
         if (checks != null && checks.isArray()) {
-            for (int i = 0; i < checks.size(); i++) {
+            for (int i = 0; i < checks.size(); ++i) {
                 JsonNode nameNode = checks.get(i).get("name");
                 if (nameNode != null && !nameNode.isNull()) {
                     checkNames.put(i, nameNode.asText());
@@ -1472,9 +1459,7 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
 
     /**
      * Replace a leading {@code /checks/<index>} segment in a JSON Patch pointer with
-     * {@code /checks/<check name>} so the path is meaningful to administrators. Only the check
-     * index is translated; deeper numeric segments (e.g. array indices inside a report) are left
-     * unchanged. When the index has no known name the path is returned unchanged.
+     * {@code /checks/<check name>} so the path is meaningful to administrators.
      *
      * @param path       the raw JSON pointer path, e.g. {@code /checks/0/report/errorCount}
      * @param checkNames the index-to-name map produced by {@link #buildCheckNameMap(JsonNode)}

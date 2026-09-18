@@ -505,15 +505,13 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         assertThat(infoMessages, hasItem(containsString("Assetstore Size")));
         assertThat(infoMessages, hasItem(containsString("Log Directory Size")));
 
-        // Test detailed change log section. With only one check (no skipped checks), the section
-        // numbering is dynamic, so the Detailed Change Log is Section 2 here.
+        // Test detailed change log section. Without skipped checks, this should be section 2
         assertThat(infoMessages, hasItem(containsString("Section 2: Detailed Change Log")));
         assertThat(infoMessages, hasItem(containsString("Changes Summary")));
         assertThat(infoMessages, hasItem(containsString("Total operations:")));
         assertThat(infoMessages, hasItem(containsString("Fields modified:")));
 
-        // Test that the detailed diff still includes individual changes. Paths use the check name
-        // (General Information) instead of the numeric index.
+        // Test that the detailed diff still includes individual changes.
         assertThat(infoMessages, hasItem(containsString(
                 expectedReplace(checkPath("General Information", "publishedItems"), "0", "2"))));
         assertThat(infoMessages, hasItem(containsString(
@@ -838,8 +836,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // When only -s is supplied and the source is not the latest report, the missing -t is
-        // auto-filled with the latest report in the database.
+        // When only -s is supplied and it is not the latest, the missing -t is set as the latest report.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
             "Only '-s' was specified; '-t' will be set to the latest report (ID "
                 + report2.getID() + ")")));
@@ -872,10 +869,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // When only -t is supplied and the target is the latest report, the missing -s is
-        // auto-filled with the second latest report instead of the latest one, so the target
-        // report is never compared against itself. The script logs a dedicated info message
-        // announcing that and the comparison still runs without errors.
+        // When only -t is supplied and it is the latest one, the source is set to the second latest.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
             "Only '-t' was specified and the target is the latest report; '-s' will be set to the "
                 + "second latest report (ID " + report1.getID() + ")")));
@@ -1032,8 +1026,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
     /**
      * When only -s is provided and it points to the latest report, the target must
-     * default to the second latest report instead of the latest one, so the report is not
-     * compared against itself.
+     * default to the second latest report.
      */
     @Test
     public void testSourceIsLatestDefaultsToSecondLatest() throws Exception {
@@ -1158,8 +1151,6 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     public void testDiffPathUsesCheckNameForNonFirstCheck() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        // The differing field lives in the second check (index 1). The diff pointer would be
-        // /checks/1/report/errorCount, which must be rendered as /checks/Metadata check/... .
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
         report1.setValue("{\"checks\":[" +
@@ -1189,10 +1180,10 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-        // The humanized path (with the check name) must be present ...
+        // The humanized path (with the check name) must be present
         assertThat(infoMessages, hasItem(containsString(
                 expectedReplace(checkPath("Metadata check", "errorCount"), "1191", "1190"))));
-        // ... and the raw numeric-index path must not leak into the output.
+        // the raw numeric-index path must not leak into the output.
         boolean hasNumericIndexPath = infoMessages.stream()
                 .anyMatch(msg -> msg.contains("/checks/1/report/errorCount"));
         assertThat("Numeric check index should not appear in diff paths", hasNumericIndexPath,
