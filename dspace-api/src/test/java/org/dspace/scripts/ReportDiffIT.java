@@ -838,7 +838,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         // When only -s is supplied and it is not the latest, the missing -t is set as the latest report.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-            "Only '-s' was specified; '-t' will be set to the latest report (ID "
+            "Only '-s' was specified, '-t' will be set to the latest report (ID "
                 + report2.getID() + ")")));
         assertThat(handler.getErrorMessages(), empty());
     }
@@ -924,7 +924,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(handler.getInfoMessages(), hasItem(containsString("No report found for report ID: 999999")));
         assertThat(handler.getInfoMessages(), not(hasItem(containsString(
-            "Only '-s' was specified; '-t' will be set to the latest report (ID"))));
+            "Only '-s' was specified, '-t' will be set to the latest report (ID"))));
     }
 
     /**
@@ -1056,7 +1056,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         // Target must fall back to the second latest report (report1), not report2 itself.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-            "Only '-s' was specified and the source is the latest report; '-t' will be set to the "
+            "Only '-s' was specified and the source is the latest report, '-t' will be set to the "
                 + "second latest report (ID " + report1.getID() + ")")));
         // A real diff is produced between the two distinct reports.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
