@@ -255,11 +255,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-s", "invalid-id", "-t", "2" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // Invalid -s value is now a warning and the missing ID falls back to latest report.
+        // Invalid -s value is now a warning and the missing ID is selected automatically.
         List<String> warningMessages = handler.getWarningMessages();
         assertThat(warningMessages, hasItem(containsString("Invalid value for -s: 'invalid-id'")));
         assertThat(warningMessages, hasItem(containsString(
-            "The last report from the database will be used instead.")));
+            "The value will be ignored and the source report will be selected automatically.")));
     }
 
     @Test
@@ -904,7 +904,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -s: 'abc'")));
         assertThat(handler.getWarningMessages(), hasItem(containsString(
-            "The last report from the database will be used instead.")));
+            "The value will be ignored and the source report will be selected automatically.")));
         // Source becomes null after the invalid -s parse. Only -t remains and it points to the
         // latest report, so the missing source defaults to the second latest report.
         assertThat(handler.getInfoMessages(), hasItem(containsString(

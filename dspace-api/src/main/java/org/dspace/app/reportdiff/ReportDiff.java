@@ -220,7 +220,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             sourceReportId = parseReportIdOption(sValue);
             if (sourceReportId == null) {
                 handler.logWarning("Invalid value for -s: '" + sValue
-                        + "'. The last report from the database will be used instead.");
+                        + "'. Report IDs must be positive integers. The value will be ignored and the "
+                        + "source report will be selected automatically.");
             }
         }
 
@@ -230,7 +231,8 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             targetReportId = parseReportIdOption(tValue);
             if (targetReportId == null) {
                 handler.logWarning("Invalid value for -t: '" + tValue
-                        + "'. The last report from the database will be used instead.");
+                        + "'. Report IDs must be positive integers. The value will be ignored and the "
+                        + "target report will be selected automatically.");
             }
         }
 
