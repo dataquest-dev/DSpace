@@ -48,13 +48,15 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     private static final String DIFF_REPLACE_PATTERN = "REPLACE at %s: %s -> %s";
 
     /**
-     * Constants for common JSON paths used in tests.
-     * These make tests more maintainable by avoiding hardcoded paths throughout the test file.
+     * Helper to build the human-readable JSON path used in diff output.
+     *
+     * @param checkName the name of the check (as stored in the report JSON)
+     * @param field     the report field path relative to the check's {@code report} object
+     * @return the full humanized path
      */
-    private static final String CHECK_KEY_PATH = "/checks/0/report/key";
-    private static final String PUBLISHED_ITEMS_PATH = "/checks/0/report/publishedItems";
-    private static final String EPERSON_COUNT_PATH = "/checks/0/report/ePersonsCount";
-    private static final String COMMUNITIES_COUNT_PATH = "/checks/0/report/communitiesCount";
+    private static String checkPath(String checkName, String field) {
+        return "/checks/" + checkName + "/report/" + field;
+    }
 
     /**
      * Helper methods to create expected diff messages with proper formatting.
@@ -191,7 +193,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         List<String> infoMessages = handler.getInfoMessages();
     assertThat(infoMessages, hasItem(containsString("DSpace at My University: Repository Health Report Diff")));
     assertThat(infoMessages, hasItem(containsString("Section 1: Executive Summary")));
-    assertThat(infoMessages, hasItem(containsString(expectedReplace(CHECK_KEY_PATH, "value1", "value2"))));
+    assertThat(infoMessages, hasItem(containsString(
+        expectedReplace(checkPath("Check1", "key"), "value1", "value2"))));
     }
 
     @Test
@@ -226,9 +229,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-        assertThat(infoMessages, hasItem(containsString(expectedReplace(CHECK_KEY_PATH, "value1", "value2"))));
+        String generalInfoKeyPath = checkPath("General Information", "key");
+        assertThat(infoMessages, hasItem(containsString(
+                expectedReplace(generalInfoKeyPath, "value1", "value2"))));
         assertThat("Should contain REPLACE operation for key field",
-                hasDiffOperation(infoMessages, "REPLACE", CHECK_KEY_PATH),
+                hasDiffOperation(infoMessages, "REPLACE", generalInfoKeyPath),
                 org.hamcrest.Matchers.is(true));
     }
 
@@ -399,7 +404,8 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
         List<String> infoMessages = handler.getInfoMessages();
-    assertThat(infoMessages, hasItem(containsString(expectedReplace(CHECK_KEY_PATH, "value1", "value2"))));
+    assertThat(infoMessages, hasItem(containsString(
+        expectedReplace(checkPath("Check1", "key"), "value1", "value2"))));
     }
 
     @Test
@@ -499,16 +505,21 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         assertThat(infoMessages, hasItem(containsString("Assetstore Size")));
         assertThat(infoMessages, hasItem(containsString("Log Directory Size")));
 
-        // Test detailed change log section
-        assertThat(infoMessages, hasItem(containsString("Section 3: Detailed Change Log")));
+        // Test detailed change log section. With only one check (no skipped checks), the section
+        // numbering is dynamic, so the Detailed Change Log is Section 2 here.
+        assertThat(infoMessages, hasItem(containsString("Section 2: Detailed Change Log")));
         assertThat(infoMessages, hasItem(containsString("Changes Summary")));
         assertThat(infoMessages, hasItem(containsString("Total operations:")));
         assertThat(infoMessages, hasItem(containsString("Fields modified:")));
 
-        // Test that the detailed diff still includes individual changes
-        assertThat(infoMessages, hasItem(containsString(expectedReplace(PUBLISHED_ITEMS_PATH, "0", "2"))));
-        assertThat(infoMessages, hasItem(containsString(expectedReplace(EPERSON_COUNT_PATH, "1", "1721"))));
-        assertThat(infoMessages, hasItem(containsString(expectedReplace(COMMUNITIES_COUNT_PATH, "0", "9"))));
+        // Test that the detailed diff still includes individual changes. Paths use the check name
+        // (General Information) instead of the numeric index.
+        assertThat(infoMessages, hasItem(containsString(
+                expectedReplace(checkPath("General Information", "publishedItems"), "0", "2"))));
+        assertThat(infoMessages, hasItem(containsString(
+                expectedReplace(checkPath("General Information", "ePersonsCount"), "1", "1721"))));
+        assertThat(infoMessages, hasItem(containsString(
+                expectedReplace(checkPath("General Information", "communitiesCount"), "0", "9"))));
     }
 
     @Test
@@ -763,7 +774,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         // The common check "General Information" should be compared normally
         assertThat("Should contain diff for common check",
-                hasDiffOperation(infoMessages, "REPLACE", CHECK_KEY_PATH),
+                hasDiffOperation(infoMessages, "REPLACE", checkPath("General Information", "key")),
                 org.hamcrest.Matchers.is(true));
     }
 
@@ -827,9 +838,12 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // When only -s is supplied, the missing -t is now auto-filled with the latest report.
+        // When only -s is supplied, the missing -t is now auto-filled with the report adjacent to
+        // the source (its newer neighbor) instead of the latest report, so the source report is
+        // never compared against itself.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-            "Only '-s' was specified; '-t' will be set to the latest report from the database.")));
+            "Only '-s' was specified; '-t' will be set to the adjacent report (ID "
+                + report2.getID() + ")")));
         assertThat(handler.getErrorMessages(), empty());
     }
 
@@ -859,11 +873,13 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // When only -t is supplied, the missing -s is now auto-filled with the next latest
-        // report (instead of falling back to the last two reports). The script logs a dedicated
-        // info message announcing that and the comparison still runs without errors.
+        // When only -t is supplied, the missing -s is now auto-filled with the report adjacent to
+        // the target (its older neighbor) instead of the latest report, so the target report is
+        // never compared against itself. The script logs a dedicated info message
+        // announcing that and the comparison still runs without errors.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-            "Only '-t' was specified; '-s' will be set to the latest report from the database.")));
+            "Only '-t' was specified; '-s' will be set to the adjacent report (ID "
+                + report1.getID() + ")")));
         assertThat(handler.getErrorMessages(), empty());
     }
 
@@ -897,9 +913,10 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         assertThat(handler.getWarningMessages(), hasItem(containsString(
             "The last report from the database will be used instead.")));
         // Source becomes null after the invalid -s parse, so the missing-source branch in
-        // defaultReportIds now logs an info message instead of the legacy XOR warning.
+        // defaultReportIds now logs an info message announcing the adjacent-report fallback.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-            "Only '-t' was specified; '-s' will be set to the latest report from the database.")));
+            "Only '-t' was specified; '-s' will be set to the adjacent report (ID "
+                + report1.getID() + ")")));
     }
 
     /**
@@ -1012,5 +1029,174 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -m: '0'")));
         assertThat(handler.getWarningMessages(), hasItem(containsString("All entries will be shown.")));
         assertThat(handler.getErrorMessages(), empty());
+    }
+
+    /**
+     * When only -s is provided and it points to the latest report, the target must
+     * default to the adjacent (older) report instead of the latest one, so the report is not
+     * compared against itself.
+     */
+    @Test
+    public void testSourceIsLatestDefaultsToOlderNeighbor() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
+        reportResultService.update(context, report1);
+        context.commit();
+        Thread.sleep(1000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}}]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        // Only -s, pointing to the latest report (report2).
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report2.getID()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        // Target must fall back to the older neighbor (report1), not report2 itself.
+        assertThat(handler.getInfoMessages(), hasItem(containsString(
+            "Only '-s' was specified; '-t' will be set to the adjacent report (ID "
+                + report1.getID() + ")")));
+        // A real diff is produced between the two distinct reports.
+        assertThat(handler.getInfoMessages(), hasItem(containsString(
+            expectedReplace(checkPath("Check1", "key"), "value2", "value1"))));
+        assertThat(handler.getErrorMessages(), empty());
+    }
+
+    /**
+     * When only -t is provided and it points to the oldest report, the source must
+     * default to the adjacent (newer) report instead of the latest one.
+     */
+    @Test
+    public void testTargetIsOldestDefaultsToNewerNeighbor() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value1\"}}]}");
+        reportResultService.update(context, report1);
+        context.commit();
+        Thread.sleep(1000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[{\"name\":\"Check1\",\"report\":{\"key\":\"value2\"}}]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        // Only -t, pointing to the oldest report (report1).
+        String[] args = new String[] { "report-diff", "-t", String.valueOf(report1.getID()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        // Source must fall back to the newer neighbor (report2), not report1 itself.
+        assertThat(handler.getInfoMessages(), hasItem(containsString(
+            "Only '-t' was specified; '-s' will be set to the adjacent report (ID "
+                + report2.getID() + ")")));
+        assertThat(handler.getErrorMessages(), empty());
+    }
+
+    /**
+     * When there are skipped checks, section numbering must stay consecutive:
+     * Executive Summary = 1, Skipped Checks = 2, Detailed Change Log = 3.
+     */
+    @Test
+    public void testDynamicSectionNumberingWithSkippedChecks() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[" +
+                "{\"name\":\"General Information\",\"report\":{\"key\":\"val1\"}}," +
+                "{\"name\":\"Only In From\",\"report\":{\"key\":\"fromOnly\"}}" +
+                "]}");
+        reportResultService.update(context, report1);
+        context.commit();
+        Thread.sleep(1000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[" +
+                "{\"name\":\"General Information\",\"report\":{\"key\":\"val2\"}}," +
+                "{\"name\":\"Only In To\",\"report\":{\"key\":\"toOnly\"}}" +
+                "]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
+            "-t", String.valueOf(report2.getID()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat(infoMessages, hasItem(containsString("Section 1: Executive Summary")));
+        assertThat(infoMessages, hasItem(containsString("Section 2: Skipped Checks")));
+        assertThat(infoMessages, hasItem(containsString("Section 3: Detailed Change Log")));
+    }
+
+    /**
+     * The diff must render the check name rather than the numeric check index, even for
+     * a check that is not the first one in the array.
+     */
+    @Test
+    public void testDiffPathUsesCheckNameForNonFirstCheck() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // The differing field lives in the second check (index 1). The diff pointer would be
+        // /checks/1/report/errorCount, which must be rendered as /checks/Metadata check/... .
+        ReportResult report1 = reportResultService.create(context);
+        report1.setType("healthcheck");
+        report1.setValue("{\"checks\":[" +
+                "{\"name\":\"General Information\",\"report\":{\"key\":\"same\"}}," +
+                "{\"name\":\"Metadata check\",\"report\":{\"errorCount\":1191}}" +
+                "]}");
+        reportResultService.update(context, report1);
+        context.commit();
+        Thread.sleep(1000);
+
+        ReportResult report2 = reportResultService.create(context);
+        report2.setType("healthcheck");
+        report2.setValue("{\"checks\":[" +
+                "{\"name\":\"General Information\",\"report\":{\"key\":\"same\"}}," +
+                "{\"name\":\"Metadata check\",\"report\":{\"errorCount\":1190}}" +
+                "]}");
+        reportResultService.update(context, report2);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        report1 = reportResultService.find(context, report1.getID());
+        report2 = reportResultService.find(context, report2.getID());
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()),
+            "-t", String.valueOf(report2.getID()) };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+
+        List<String> infoMessages = handler.getInfoMessages();
+        // The humanized path (with the check name) must be present ...
+        assertThat(infoMessages, hasItem(containsString(
+                expectedReplace(checkPath("Metadata check", "errorCount"), "1191", "1190"))));
+        // ... and the raw numeric-index path must not leak into the output.
+        boolean hasNumericIndexPath = infoMessages.stream()
+                .anyMatch(msg -> msg.contains("/checks/1/report/errorCount"));
+        assertThat("Numeric check index should not appear in diff paths", hasNumericIndexPath,
+                org.hamcrest.Matchers.is(false));
     }
 }
