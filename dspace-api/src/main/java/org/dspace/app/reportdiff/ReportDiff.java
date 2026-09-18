@@ -396,11 +396,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 // Default the target to the newest or second newest report, depending on the source.
                 if (!Objects.equals(newestId, sourceReportId)) {
                     targetReportId = newestId;
-                    handler.logInfo("Only '-s' was specified, '-t' will be set to the latest report (ID "
+                    handler.logInfo("Only '-s' was specified; '-t' will be set to the latest report (ID "
                             + newestId + ").");
                 } else if (secondNewestId != null) {
                     targetReportId = secondNewestId;
-                    handler.logInfo("Only '-s' was specified and the source is the latest report, "
+                    handler.logInfo("Only '-s' was specified and the source is the latest report; "
                             + "'-t' will be set to the second latest report (ID " + secondNewestId + ").");
                 }
             } else {
