@@ -107,8 +107,6 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     private static final String FIELD_ORDER_KEY = "fieldOrder";
     private static final Pattern SHORT_ARG_WITH_VALUE = Pattern.compile("^-([a-zA-Z]):\\s*(.*)$");
     private static final Pattern SHORT_ARG_WITHOUT_VALUE = Pattern.compile("^-([a-zA-Z])$");
-    // Matches the leading "/checks/<index>" segment of a JSON Patch pointer so it can be replaced
-    // with the human-readable check name.
     private static final Pattern CHECKS_INDEX_PATTERN = Pattern.compile("^/checks/(\\d+)");
 
     // Field configuration cache
@@ -362,10 +360,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      * Sets default values for the source and target report IDs if not already specified.
      * <p>
      * When both IDs are missing, the last two reports from the database are used.
-     * When only one ID is provided, the missing one is filled with the <em>adjacent</em> report
-     * (the neighbor in chronological order) rather than the latest report. This avoids the
-     * previous behavior where selecting the latest report as the only argument would compare
-     * that report against itself.
+     * When only one ID is provided, the missing one defaults to the newest report in the
+     * database, unless the provided report is itself the newest, in which case the second
+     * newest report is used so a report is never compared against itself.
      *
      * @param context the application context used for fetching reports and logging
      */
@@ -395,79 +392,38 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 return;
             }
 
+            // The newest report is the last element (list is sorted ascending by last modified).
+            Integer newestId = allReports.get(size - 1).getID();
+            Integer secondNewestId = size > 1 ? allReports.get(size - 2).getID() : null;
+
             if (targetReportId == null) {
-                // Only '-s' was specified. Default the target to the report immediately after the
-                // source (the next newer one). If the source is the newest report, fall back to the
-                // report immediately before it so the source is never compared against itself.
-                int sourceIdx = indexOfReport(allReports, sourceReportId);
-                Integer neighbor = pickNeighbor(allReports, sourceIdx, true);
-                if (neighbor != null) {
-                    targetReportId = neighbor;
-                    handler.logInfo("Only '-s' was specified; '-t' will be set to the adjacent report (ID "
-                            + neighbor + ") to avoid comparing the source report against itself.");
+                // Only '-s' was specified. Default the target to the newest report, unless the
+                // source is itself the newest report, in which case use the second newest so the
+                // source is never compared against itself.
+                if (!Objects.equals(newestId, sourceReportId)) {
+                    targetReportId = newestId;
+                    handler.logInfo("Only '-s' was specified; '-t' will be set to the latest report (ID "
+                            + newestId + ").");
+                } else if (secondNewestId != null) {
+                    targetReportId = secondNewestId;
+                    handler.logInfo("Only '-s' was specified and the source is the latest report; "
+                            + "'-t' will be set to the second latest report (ID " + secondNewestId + ").");
                 }
             } else {
-                // Only '-t' was specified (source is null). Default the source to the report
-                // immediately before the target (the next older one). If the target is the oldest
-                // report, fall back to the report immediately after it.
-                int targetIdx = indexOfReport(allReports, targetReportId);
-                Integer neighbor = pickNeighbor(allReports, targetIdx, false);
-                if (neighbor != null) {
-                    sourceReportId = neighbor;
-                    handler.logInfo("Only '-t' was specified; '-s' will be set to the adjacent report (ID "
-                            + neighbor + ") to avoid comparing the target report against itself.");
+                // Only '-t' was specified (source is null). Apply the same rule to the source.
+                if (!Objects.equals(newestId, targetReportId)) {
+                    sourceReportId = newestId;
+                    handler.logInfo("Only '-t' was specified; '-s' will be set to the latest report (ID "
+                            + newestId + ").");
+                } else if (secondNewestId != null) {
+                    sourceReportId = secondNewestId;
+                    handler.logInfo("Only '-t' was specified and the target is the latest report; "
+                            + "'-s' will be set to the second latest report (ID " + secondNewestId + ").");
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * Return the index of the report with the given ID within the (time-sorted) list.
-     *
-     * @param reports  the list of reports, sorted by last modified ascending
-     * @param reportId the report ID to locate
-     * @return the zero-based index, or -1 if the report is not present in the list
-     */
-    private int indexOfReport(List<ReportResult> reports, Integer reportId) {
-        for (int i = 0; i < reports.size(); i++) {
-            if (Objects.equals(reports.get(i).getID(), reportId)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Pick the ID of a report adjacent to the one at {@code index} in the time-sorted list.
-     * When {@code preferNewer} is true the newer neighbor (index + 1) is preferred, otherwise the
-     * older neighbor (index - 1) is preferred. If the preferred neighbor does not exist, the
-     * opposite neighbor is used instead.
-     *
-     * @param reports     the list of reports, sorted by last modified ascending
-     * @param index       the index of the anchor report; if negative the latest report is returned
-     * @param preferNewer whether to prefer the newer neighbor over the older one
-     * @return the neighbor's report ID, or null when no distinct neighbor exists
-     */
-    private Integer pickNeighbor(List<ReportResult> reports, int index, boolean preferNewer) {
-        if (reports.isEmpty()) {
-            return null;
-        }
-        if (index < 0) {
-            // The anchor report was not found among all reports (should not normally happen because
-            // existence is validated earlier). Fall back to the latest report so a diff can still run.
-            return reports.get(reports.size() - 1).getID();
-        }
-        int preferred = preferNewer ? index + 1 : index - 1;
-        int fallback = preferNewer ? index - 1 : index + 1;
-        if (preferred >= 0 && preferred < reports.size()) {
-            return reports.get(preferred).getID();
-        }
-        if (fallback >= 0 && fallback < reports.size()) {
-            return reports.get(fallback).getID();
-        }
-        return null;
     }
 
     /**

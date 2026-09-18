@@ -838,11 +838,10 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-s", String.valueOf(report1.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // When only -s is supplied, the missing -t is now auto-filled with the report adjacent to
-        // the source (its newer neighbor) instead of the latest report, so the source report is
-        // never compared against itself.
+        // When only -s is supplied and the source is not the latest report, the missing -t is
+        // auto-filled with the latest report in the database.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-            "Only '-s' was specified; '-t' will be set to the adjacent report (ID "
+            "Only '-s' was specified; '-t' will be set to the latest report (ID "
                 + report2.getID() + ")")));
         assertThat(handler.getErrorMessages(), empty());
     }
@@ -873,13 +872,13 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-t", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // When only -t is supplied, the missing -s is now auto-filled with the report adjacent to
-        // the target (its older neighbor) instead of the latest report, so the target report is
-        // never compared against itself. The script logs a dedicated info message
+        // When only -t is supplied and the target is the latest report, the missing -s is
+        // auto-filled with the second latest report instead of the latest one, so the target
+        // report is never compared against itself. The script logs a dedicated info message
         // announcing that and the comparison still runs without errors.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-            "Only '-t' was specified; '-s' will be set to the adjacent report (ID "
-                + report1.getID() + ")")));
+            "Only '-t' was specified and the target is the latest report; '-s' will be set to the "
+                + "second latest report (ID " + report1.getID() + ")")));
         assertThat(handler.getErrorMessages(), empty());
     }
 
@@ -912,11 +911,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         assertThat(handler.getWarningMessages(), hasItem(containsString("Invalid value for -s: 'abc'")));
         assertThat(handler.getWarningMessages(), hasItem(containsString(
             "The last report from the database will be used instead.")));
-        // Source becomes null after the invalid -s parse, so the missing-source branch in
-        // defaultReportIds now logs an info message announcing the adjacent-report fallback.
+        // Source becomes null after the invalid -s parse. Only -t remains and it points to the
+        // latest report, so the missing source defaults to the second latest report.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-            "Only '-t' was specified; '-s' will be set to the adjacent report (ID "
-                + report1.getID() + ")")));
+            "Only '-t' was specified and the target is the latest report; '-s' will be set to the "
+                + "second latest report (ID " + report1.getID() + ")")));
     }
 
     /**
@@ -931,7 +930,7 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(handler.getInfoMessages(), hasItem(containsString("No report found for report ID: 999999")));
         assertThat(handler.getInfoMessages(), not(hasItem(containsString(
-            "Only '-s' was specified; '-t' will be set to the latest report from the database."))));
+            "Only '-s' was specified; '-t' will be set to the latest report (ID"))));
     }
 
     /**
@@ -1033,11 +1032,11 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
 
     /**
      * When only -s is provided and it points to the latest report, the target must
-     * default to the adjacent (older) report instead of the latest one, so the report is not
+     * default to the second latest report instead of the latest one, so the report is not
      * compared against itself.
      */
     @Test
-    public void testSourceIsLatestDefaultsToOlderNeighbor() throws Exception {
+    public void testSourceIsLatestDefaultsToSecondLatest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         ReportResult report1 = reportResultService.create(context);
@@ -1062,10 +1061,10 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         String[] args = new String[] { "report-diff", "-s", String.valueOf(report2.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // Target must fall back to the older neighbor (report1), not report2 itself.
+        // Target must fall back to the second latest report (report1), not report2 itself.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-            "Only '-s' was specified; '-t' will be set to the adjacent report (ID "
-                + report1.getID() + ")")));
+            "Only '-s' was specified and the source is the latest report; '-t' will be set to the "
+                + "second latest report (ID " + report1.getID() + ")")));
         // A real diff is produced between the two distinct reports.
         assertThat(handler.getInfoMessages(), hasItem(containsString(
             expectedReplace(checkPath("Check1", "key"), "value2", "value1"))));
@@ -1073,20 +1072,12 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * When only -t is provided and it points to the oldest report, the source must
-     * default to the adjacent (newer) report instead of the latest one.
+     * When only -t is provided and it does not point to the latest report, the source must
+     * default to the latest report in the database.
      */
     @Test
-    public void testTargetIsOldestDefaultsToNewerNeighbor() throws Exception {
+    public void testTargetNotLatestDefaultsToLatest() throws Exception {
         context.turnOffAuthorisationSystem();
-
-        // Remove any reports left over from earlier tests so report1 is genuinely the oldest
-        // report in the database. This test exercises the "target is the oldest report" fallback,
-        // which only fires when the target has no older neighbor.
-        for (ReportResult existing : reportResultService.findAll(context)) {
-            reportResultService.delete(context, existing);
-        }
-        context.commit();
 
         ReportResult report1 = reportResultService.create(context);
         report1.setType("healthcheck");
@@ -1106,13 +1097,13 @@ public class ReportDiffIT extends AbstractIntegrationTestWithDatabase {
         report2 = reportResultService.find(context, report2.getID());
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        // Only -t, pointing to the oldest report (report1).
+        // Only -t, pointing to a report that is not the latest (report1).
         String[] args = new String[] { "report-diff", "-t", String.valueOf(report1.getID()) };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
 
-        // Source must fall back to the newer neighbor (report2), not report1 itself.
+        // Source must default to the latest report (report2).
         assertThat(handler.getInfoMessages(), hasItem(containsString(
-            "Only '-t' was specified; '-s' will be set to the adjacent report (ID "
+            "Only '-t' was specified; '-s' will be set to the latest report (ID "
                 + report2.getID() + ")")));
         assertThat(handler.getErrorMessages(), empty());
     }
