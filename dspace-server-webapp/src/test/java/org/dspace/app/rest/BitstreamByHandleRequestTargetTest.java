@@ -9,12 +9,14 @@ package org.dspace.app.rest;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Properties;
 
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,11 +28,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Pins which byte sequences a servlet container accepts in a request target, for both URL forms of
- * {@link BitstreamByHandleRestController}, by driving an embedded Tomcat over a raw socket. A
- * reverse proxy that rewrites the request path percent-decodes it and re-escapes only its own small
- * set, so the path form reaches Tomcat the way these tests send it; the query string is proxied
- * verbatim.
+ * Pins what a servlet container does with the two URL forms of
+ * {@link BitstreamByHandleRestController}: which request targets it accepts, and what the filename
+ * looks like by the time a servlet reads it. It drives an embedded Tomcat over a raw socket, and it
+ * applies whatever {@code server.tomcat.relaxed-path-chars} the shipped application.properties sets,
+ * so it tracks the configuration this backend actually runs with.
  *
  * <p>MockMvc cannot stand in for this: it is handed an already-parsed path and never runs Tomcat's
  * request-line parser, so it is blind to this class of failure by construction.</p>
@@ -56,11 +58,16 @@ public class BitstreamByHandleRequestTargetTest {
             protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.setContentType("text/plain;charset=UTF-8");
-                resp.getWriter().write(String.valueOf(req.getParameter("filename")));
+                resp.getWriter().write(req.getPathInfo() + "|" + req.getParameter("filename"));
             }
         });
         ctx.addServletMappingDecoded("/*", "echo");
-        tomcat.getConnector();
+        String relaxed = shippedRelaxedPathChars();
+        if (relaxed == null) {
+            tomcat.getConnector();
+        } else {
+            tomcat.getConnector().setProperty("relaxedPathChars", relaxed);
+        }
         tomcat.start();
         port = tomcat.getConnector().getLocalPort();
     }
@@ -74,55 +81,93 @@ public class BitstreamByHandleRequestTargetTest {
     }
 
     @Test
-    public void percentEncodedQuoteInPathSegmentIsAccepted() throws Exception {
-        assertEquals(200, statusOf(BASE + "/file%20%22quoted%22.txt"));
+    public void percentEncodedQuoteInPathSegmentIsDeliveredIntact() throws Exception {
+        String[] response = exchange(BASE + "/file%20%22quoted%22.txt");
+        assertEquals("200", response[0]);
+        assertEquals(BASE + "/file \"quoted\".txt|null", response[1]);
     }
 
     @Test
     public void decodedQuoteInPathSegmentIsRejected() throws Exception {
-        assertEquals(400, statusOf(BASE + "/file%20\"quoted\".txt"));
+        assertEquals("400", exchange(BASE + "/file%20\"quoted\".txt")[0]);
     }
 
     @Test
     public void encodedBackslashInPathSegmentIsRejected() throws Exception {
-        assertEquals(400, statusOf(BASE + "/back%5Cslash.txt"));
+        assertEquals("400", exchange(BASE + "/back%5Cslash.txt")[0]);
     }
 
     @Test
-    public void percentEncodedQuoteInFilenameParamIsAccepted() throws Exception {
-        assertEquals(200, statusOf(BASE + "?filename=file%20%22quoted%22.txt"));
+    public void percentEncodedQuoteInFilenameParamIsDeliveredIntact() throws Exception {
+        String[] response = exchange(BASE + "?filename=file%20%22quoted%22.txt");
+        assertEquals("200", response[0]);
+        assertEquals(BASE + "|file \"quoted\".txt", response[1]);
     }
 
     @Test
-    public void percentEncodedBackslashInFilenameParamIsAccepted() throws Exception {
-        assertEquals(200, statusOf(BASE + "?filename=back%5Cslash.txt"));
+    public void percentEncodedBackslashInFilenameParamIsDeliveredIntact() throws Exception {
+        String[] response = exchange(BASE + "?filename=back%5Cslash.txt");
+        assertEquals("200", response[0]);
+        assertEquals(BASE + "|back\\slash.txt", response[1]);
+    }
+
+    @Test
+    public void queryDelimitersInFilenameParamAreDeliveredIntact() throws Exception {
+        String[] response = exchange(BASE + "?filename=a%26b%2Bc%23d.txt");
+        assertEquals("200", response[0]);
+        assertEquals(BASE + "|a&b+c#d.txt", response[1]);
     }
 
     @Test
     public void decodedQuoteInFilenameParamIsRejected() throws Exception {
-        assertEquals(400, statusOf(BASE + "?filename=file%20\"quoted\".txt"));
+        assertEquals("400", exchange(BASE + "?filename=file%20\"quoted\".txt")[0]);
     }
 
-    /** Send one request line verbatim and return the status code the container answers with. */
-    private static int statusOf(String requestTarget) throws IOException {
+    /** Send one request line verbatim; return the status code and the response body. */
+    private static String[] exchange(String requestTarget) throws IOException {
         try (Socket socket = new Socket("localhost", port)) {
             socket.setSoTimeout(10000);
             OutputStream out = socket.getOutputStream();
             out.write(("GET " + requestTarget + " HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
                     .getBytes(StandardCharsets.ISO_8859_1));
             out.flush();
-            return Integer.parseInt(readStatusLine(socket.getInputStream()).split(" ")[1]);
+            byte[] raw = readAll(socket.getInputStream());
+            int bodyStart = headerLength(raw);
+            String head = new String(raw, 0, Math.min(bodyStart, 64), StandardCharsets.ISO_8859_1);
+            String statusLine = head.split("\r\n")[0];
+            String body = new String(raw, bodyStart, raw.length - bodyStart, StandardCharsets.UTF_8);
+            return new String[] {statusLine.split(" ")[1], body};
         }
     }
 
-    private static String readStatusLine(InputStream in) throws IOException {
-        StringBuilder line = new StringBuilder();
-        int c;
-        while ((c = in.read()) != -1 && c != '\n') {
-            if (c != '\r') {
-                line.append((char) c);
+    private static byte[] readAll(InputStream in) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] chunk = new byte[4096];
+        int read;
+        while ((read = in.read(chunk)) != -1) {
+            buffer.write(chunk, 0, read);
+        }
+        return buffer.toByteArray();
+    }
+
+    private static int headerLength(byte[] raw) {
+        for (int i = 3; i < raw.length; i++) {
+            if (raw[i - 3] == '\r' && raw[i - 2] == '\n' && raw[i - 1] == '\r' && raw[i] == '\n') {
+                return i + 1;
             }
         }
-        return line.toString();
+        return raw.length;
+    }
+
+    private static String shippedRelaxedPathChars() throws IOException {
+        Properties properties = new Properties();
+        try (InputStream in = BitstreamByHandleRequestTargetTest.class
+                .getResourceAsStream("/application.properties")) {
+            if (in == null) {
+                return null;
+            }
+            properties.load(in);
+        }
+        return properties.getProperty("server.tomcat.relaxed-path-chars");
     }
 }

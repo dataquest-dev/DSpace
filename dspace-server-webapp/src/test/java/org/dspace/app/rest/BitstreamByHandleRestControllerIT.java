@@ -548,6 +548,39 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
     }
 
     @Test
+    public void downloadBitstreamByHandleQueryDelimitersInFilenameViaFilenameParam() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+        String bitstreamContent = "DelimiterContent";
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, item, is)
+                    .withName("a&b+c#d.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        getClient().perform(get(URI.create(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "?filename=a%26b%2Bc%23d.txt")))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        equalTo("attachment; filename=\"a&b+c#d.txt\"; "
+                                + "filename*=UTF-8''a%26b%2Bc%23d.txt")))
+                .andExpect(content().string(bitstreamContent));
+    }
+
+    @Test
     public void downloadBitstreamByHandleMissingFilenameParam() throws Exception {
         getClient().perform(get(ENDPOINT_BASE + "/99999/99999"))
                 .andExpect(status().isBadRequest());
