@@ -446,8 +446,9 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
     }
 
     @Test
-    public void downloadBitstreamByHandleQuoteInFilename() throws Exception {
-        // Verify double quotes in filename are escaped in Content-Disposition
+    public void downloadBitstreamByHandleQuoteInFilenameViaFilenameParam() throws Exception {
+        // The path form cannot carry a quote through a rewriting proxy, see
+        // BitstreamByHandleRequestTargetTest; the query form can.
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
@@ -470,14 +471,86 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
         String handle = item.getHandle();
         String[] handleParts = handle.split("/");
 
-        // Use URI.create to pass a pre-encoded URL — get(String) would double-encode %22 to %2522
         getClient().perform(get(URI.create(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
-                        + "/file%20%22quoted%22.txt")))
+                        + "?filename=file%20%22quoted%22.txt")))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
                         equalTo("attachment; filename=\"file \\\"quoted\\\".txt\"; "
                                 + "filename*=UTF-8''file%20%22quoted%22.txt")))
                 .andExpect(content().string(bitstreamContent));
+    }
+
+    @Test
+    public void downloadBitstreamByHandleBackslashInFilenameViaFilenameParam() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+        String bitstreamContent = "BackslashContent";
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, item, is)
+                    .withName("back\\slash.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        getClient().perform(get(URI.create(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "?filename=back%5Cslash.txt")))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        equalTo("attachment; filename=\"back\\\\slash.txt\"; "
+                                + "filename*=UTF-8''back%5Cslash.txt")))
+                .andExpect(content().string(bitstreamContent));
+    }
+
+    @Test
+    public void downloadBitstreamByHandleUtf8FilenameViaFilenameParam() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+        String utf8Name = "Médiá (3).jfif";
+        String bitstreamContent = "Utf8ParamContent";
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, item, is)
+                    .withName(utf8Name)
+                    .withMimeType("image/jpeg")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        getClient().perform(get(URI.create(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1]
+                        + "?filename=M%C3%A9di%C3%A1%20%283%29.jfif")))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        equalTo("attachment; filename=\"Media (3).jfif\"; "
+                                + "filename*=UTF-8''M%C3%A9di%C3%A1%20%283%29.jfif")))
+                .andExpect(content().string(bitstreamContent));
+    }
+
+    @Test
+    public void downloadBitstreamByHandleMissingFilenameParam() throws Exception {
+        getClient().perform(get(ENDPOINT_BASE + "/99999/99999"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
