@@ -259,7 +259,8 @@
             queries done by discovery for this configuration -->
         <property name="defaultFilterQueries">
             <list>
-                <!--Resource types returned by this configuration; configurable via discovery.cfg-->
+                <!--Resource types for this configuration and for the community and collection
+                    configurations that inherit it; configurable via discovery.cfg-->
                 <value>${discovery.search.default.filterquery}</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
