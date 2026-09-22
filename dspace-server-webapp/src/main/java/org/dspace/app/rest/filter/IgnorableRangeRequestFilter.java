@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.filter;
 
+import static org.dspace.app.rest.utils.HttpHeadersInitializer.IGNORE_RANGE;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -20,27 +22,18 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
+import org.springframework.http.HttpHeaders;
+
 /**
  * A Servlet Filter that wraps requests carrying a Range header, so that a controller can take that
  * header back. Spring only reads Range once the controller has returned, so a controller which
  * decides the range no longer applies - an If-Range that stopped matching - has to hide the header
- * rather than ignore it.
+ * rather than ignore it. The filter is mapped webapp wide because more than one controller serves
+ * ranges, and it costs one header lookup on everything else.
  *
- * @see org.dspace.app.rest.utils.HttpHeadersInitializer
+ * @see org.dspace.app.rest.utils.HttpHeadersInitializer#IGNORE_RANGE
  */
 public class IgnorableRangeRequestFilter implements Filter {
-
-    private static final String RANGE = "Range";
-    private static final String IGNORE_RANGE = IgnorableRangeRequestFilter.class.getName() + ".ignoreRange";
-
-    /**
-     * Serve the rest of this request as if the client had never sent a Range header.
-     *
-     * @param request the request being handled
-     */
-    public static void ignoreRange(HttpServletRequest request) {
-        request.setAttribute(IGNORE_RANGE, Boolean.TRUE);
-    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -50,7 +43,8 @@ public class IgnorableRangeRequestFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
         throws IOException, ServletException {
-        if (request instanceof HttpServletRequest && ((HttpServletRequest) request).getHeader(RANGE) != null) {
+        if (request instanceof HttpServletRequest
+            && ((HttpServletRequest) request).getHeader(HttpHeaders.RANGE) != null) {
             chain.doFilter(new IgnorableRangeRequest((HttpServletRequest) request), response);
         } else {
             chain.doFilter(request, response);
@@ -63,7 +57,7 @@ public class IgnorableRangeRequestFilter implements Filter {
     }
 
     /**
-     * Hides the Range header once {@link #ignoreRange(HttpServletRequest)} has been called.
+     * Hides the Range header once the request has been marked with {@code IGNORE_RANGE}.
      */
     private static class IgnorableRangeRequest extends HttpServletRequestWrapper {
 
@@ -71,8 +65,12 @@ public class IgnorableRangeRequestFilter implements Filter {
             super(request);
         }
 
+        private boolean rangeIgnored() {
+            return Boolean.TRUE.equals(getAttribute(IGNORE_RANGE));
+        }
+
         private boolean hides(String headerName) {
-            return RANGE.equalsIgnoreCase(headerName) && Boolean.TRUE.equals(getAttribute(IGNORE_RANGE));
+            return HttpHeaders.RANGE.equalsIgnoreCase(headerName) && rangeIgnored();
         }
 
         @Override
@@ -87,6 +85,9 @@ public class IgnorableRangeRequestFilter implements Filter {
 
         @Override
         public Enumeration<String> getHeaderNames() {
+            if (!rangeIgnored()) {
+                return super.getHeaderNames();
+            }
             List<String> names = Collections.list(super.getHeaderNames());
             names.removeIf(this::hides);
             return Collections.enumeration(names);

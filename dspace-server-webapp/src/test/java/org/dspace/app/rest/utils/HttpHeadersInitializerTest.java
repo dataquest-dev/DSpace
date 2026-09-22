@@ -15,13 +15,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.concurrent.atomic.AtomicReference;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.tomcat.util.http.FastHttpDateFormat;
 import org.dspace.app.rest.filter.IgnorableRangeRequestFilter;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -32,9 +32,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 public class HttpHeadersInitializerTest {
 
     private static final String CHECKSUM = "184620a503489ab88e9e678feea682fa";
-    private static final String OTHER_CHECKSUM = "deadbeefdeadbeefdeadbeefdeadbeef";
     private static final String QUOTED_CHECKSUM = "\"" + CHECKSUM + "\"";
-    private static final String OTHER_QUOTED_CHECKSUM = "\"" + OTHER_CHECKSUM + "\"";
+    private static final String OTHER_QUOTED_CHECKSUM = "\"deadbeefdeadbeefdeadbeefdeadbeef\"";
     private static final long LAST_MODIFIED = 1_600_000_000_000L;
 
     private MockHttpServletRequest request;
@@ -62,14 +61,18 @@ public class HttpHeadersInitializerTest {
     }
 
     /**
-     * Run the request through the filter that lets a controller hide the Range header, and return
-     * the request as the rest of the chain sees it.
+     * Ask for a range with this If-Range value, and report whether the Range header was still there
+     * when the filter chain handed the request on.
      */
-    private HttpServletRequest throughRangeFilter() throws Exception {
-        AtomicReference<HttpServletRequest> wrapped = new AtomicReference<>();
-        new IgnorableRangeRequestFilter()
-            .doFilter(request, response, (req, res) -> wrapped.set((HttpServletRequest) req));
-        return wrapped.get();
+    private boolean rangeSurvives(String ifRange) throws Exception {
+        request.addHeader("Range", "bytes=1-3");
+        request.addHeader("If-Range", ifRange);
+        MockFilterChain chain = new MockFilterChain();
+        new IgnorableRangeRequestFilter().doFilter(request, response, chain);
+        HttpServletRequest filtered = (HttpServletRequest) chain.getRequest();
+
+        assertTrue(initializerFor(filtered).isValid());
+        return filtered.getHeader("Range") != null;
     }
 
     @Test
@@ -167,15 +170,8 @@ public class HttpHeadersInitializerTest {
     @Test
     public void notModifiedWithoutAChecksumSendsNoEtag() throws Exception {
         request.addHeader("If-None-Match", "*");
-        HttpHeadersInitializer sitemapLikeSender = new HttpHeadersInitializer()
-            .withFileName("sitemap.xml")
-            .withLength(10)
-            .withMimetype("text/xml")
-            .withLastModified(LAST_MODIFIED)
-            .with(request)
-            .with(response);
 
-        assertFalse(sitemapLikeSender.isValid());
+        assertFalse(initializer().withChecksum(null).isValid());
         assertEquals(SC_NOT_MODIFIED, response.getStatus());
         assertNull(response.getHeader("ETag"));
     }
@@ -199,42 +195,22 @@ public class HttpHeadersInitializerTest {
 
     @Test
     public void ifRangeOnTheEtagWeSentKeepsTheRange() throws Exception {
-        request.addHeader("Range", "bytes=1-3");
-        request.addHeader("If-Range", QUOTED_CHECKSUM);
-        HttpServletRequest filtered = throughRangeFilter();
-
-        assertTrue(initializerFor(filtered).isValid());
-        assertNotNull(filtered.getHeader("Range"));
+        assertTrue(rangeSurvives(QUOTED_CHECKSUM));
     }
 
     @Test
     public void ifRangeOnTheDateWeSentKeepsTheRange() throws Exception {
-        request.addHeader("Range", "bytes=1-3");
-        request.addHeader("If-Range", FastHttpDateFormat.formatDate(LAST_MODIFIED));
-        HttpServletRequest filtered = throughRangeFilter();
-
-        assertTrue(initializerFor(filtered).isValid());
-        assertNotNull(filtered.getHeader("Range"));
-    }
-
-    @Test
-    public void ifRangeOnAnotherEtagDropsTheRange() throws Exception {
-        request.addHeader("Range", "bytes=1-3");
-        request.addHeader("If-Range", OTHER_QUOTED_CHECKSUM);
-        HttpServletRequest filtered = throughRangeFilter();
-
-        assertTrue(initializerFor(filtered).isValid());
-        assertNull(filtered.getHeader("Range"));
+        assertTrue(rangeSurvives(FastHttpDateFormat.formatDate(LAST_MODIFIED)));
     }
 
     @Test
     public void ifRangeOnAnUnquotedChecksumKeepsTheRange() throws Exception {
-        request.addHeader("Range", "bytes=1-3");
-        request.addHeader("If-Range", CHECKSUM);
-        HttpServletRequest filtered = throughRangeFilter();
+        assertTrue(rangeSurvives(CHECKSUM));
+    }
 
-        assertTrue(initializerFor(filtered).isValid());
-        assertNotNull(filtered.getHeader("Range"));
+    @Test
+    public void ifRangeOnAnotherEtagDropsTheRange() throws Exception {
+        assertFalse(rangeSurvives(OTHER_QUOTED_CHECKSUM));
     }
 
     @Test

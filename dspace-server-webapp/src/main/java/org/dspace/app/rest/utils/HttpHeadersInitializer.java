@@ -20,7 +20,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.FastHttpDateFormat;
-import org.dspace.app.rest.filter.IgnorableRangeRequestFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -39,13 +38,16 @@ public class HttpHeadersInitializer {
     private static final String CONTENT_TYPE_MULTITYPE_WITH_BOUNDARY = "multipart/byteranges; boundary=" +
         MULTIPART_BOUNDARY;
     public static final String CONTENT_DISPOSITION_INLINE = "inline";
+    /**
+     * Set on the request when If-Range no longer matches, so that the filter honouring it hides the
+     * Range header from the rest of the chain.
+     */
+    public static final String IGNORE_RANGE = HttpHeadersInitializer.class.getName() + ".ignoreRange";
     public static final String CONTENT_DISPOSITION_ATTACHMENT = "attachment";
     private static final String IF_NONE_MATCH = "If-None-Match";
     private static final String IF_MODIFIED_SINCE = "If-Modified-Since";
     private static final String ETAG = "ETag";
     private static final String IF_MATCH = "If-Match";
-    private static final String IF_RANGE = "If-Range";
-    private static final String RANGE = "Range";
     private static final String ANY_ETAG = "*";
     private static final String WEAK_ETAG_PREFIX = "W/";
     private static final String ETAG_QUOTE = "\"";
@@ -154,8 +156,7 @@ public class HttpHeadersInitializer {
             httpHeaders.put(HttpHeaders.CONTENT_LENGTH, Collections.singletonList(String.valueOf(this.length)));
         }
         httpHeaders.put(LAST_MODIFIED, Collections.singletonList(FastHttpDateFormat.formatDate(lastModified)));
-        httpHeaders.put(EXPIRES, Collections.singletonList(FastHttpDateFormat.formatDate(
-            System.currentTimeMillis() + DEFAULT_EXPIRE_TIME)));
+        httpHeaders.put(EXPIRES, Collections.singletonList(expires()));
 
         //No-cache so that we can log every download
         httpHeaders.put(CACHE_CONTROL, Collections.singletonList(CACHE_CONTROL_SETTING));
@@ -242,10 +243,10 @@ public class HttpHeadersInitializer {
         }
 
         // A Range only holds while the client is still resuming the same file.
-        String ifRange = request.getHeader(IF_RANGE);
-        if (nonNull(ifRange) && nonNull(request.getHeader(RANGE)) && !ifRangeStillHolds(ifRange)) {
+        String ifRange = request.getHeader(HttpHeaders.IF_RANGE);
+        if (nonNull(ifRange) && nonNull(request.getHeader(HttpHeaders.RANGE)) && !ifRangeStillHolds(ifRange)) {
             log.debug("If-Range no longer matches, sending the whole file instead of the requested range.");
-            IgnorableRangeRequestFilter.ignoreRange(request);
+            request.setAttribute(IGNORE_RANGE, Boolean.TRUE);
         }
 
         return true;
@@ -306,15 +307,16 @@ public class HttpHeadersInitializer {
      * only applies while that still matches (RFC 9110 section 13.1.5).
      */
     private boolean ifRangeStillHolds(String ifRange) {
-        if (ifRange.startsWith(ETAG_QUOTE) || ifRange.startsWith(WEAK_ETAG_PREFIX)) {
+        long ifRangeDate = FastHttpDateFormat.parseDate(ifRange);
+        if (ifRangeDate == -1) {
             return matchesChecksum(ifRange, false);
         }
-        try {
-            // an HTTP date carries whole seconds only, so compare against the date we sent
-            return request.getDateHeader(IF_RANGE) == lastModified / 1000 * 1000;
-        } catch (IllegalArgumentException e) {
-            return matchesChecksum(ifRange, false);
-        }
+        // an HTTP date carries whole seconds only, so compare against the date we sent
+        return ifRangeDate == lastModified / 1000 * 1000;
+    }
+
+    private String expires() {
+        return FastHttpDateFormat.formatDate(System.currentTimeMillis() + DEFAULT_EXPIRE_TIME);
     }
 
     /**
@@ -327,7 +329,7 @@ public class HttpHeadersInitializer {
         }
         response.setHeader(LAST_MODIFIED, FastHttpDateFormat.formatDate(lastModified));
         response.setHeader(CACHE_CONTROL, CACHE_CONTROL_SETTING);
-        response.setHeader(EXPIRES, FastHttpDateFormat.formatDate(System.currentTimeMillis() + DEFAULT_EXPIRE_TIME));
+        response.setHeader(EXPIRES, expires());
         response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
     }
 
