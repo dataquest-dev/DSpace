@@ -26,7 +26,7 @@ import org.dspace.web.ContextUtil;
 
 /**
  * ChoiceAuthority using the ORCID API for search and local DB for label resolution.
- * Uses ORCID API for getMatches/getBestMatch (submission workflow).
+ * Uses ORCID API for getMatches, and for getBestMatch unless orcid.authority.disable-autoassign is set.
  * Falls back to metadata_value table for getLabel when ORCID returns null (browse).
  *
  * @author Michaela Paurikova (dspace at dataquest.sk)
@@ -120,6 +120,10 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
      * This call is typically used in non-interactive metadata ingest
      * where there is no interactive agent to choose from among options.
      *
+     * <p>
+     * Returns nothing when {@code orcid.authority.disable-autoassign} is set. That covers batch ingest
+     * and the REST lookup with {@code exact=true}, which resolves a stored value to an entry.
+     *
      * @param text   user's value to match
      * @param locale explicit localization key if available, or null
      * @return a Choices object (never null) with 1 or 0 values.
@@ -128,7 +132,7 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
     public Choices getBestMatch(String text, String locale) {
         log.debug("getBestMatch: {}", text);
         if (autoAssignDisabled) {
-            // Ingest has nobody to pick between namesakes, so an exact name match is not a person.
+            // An exact name match is not a person: ORCID answers with the first of many namesakes.
             return new Choices(false);
         }
         Choices matches = getMatches(text, 0, 1, locale);
