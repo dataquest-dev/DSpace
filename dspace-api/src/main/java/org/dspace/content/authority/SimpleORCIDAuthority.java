@@ -36,21 +36,32 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
 
     private static final Logger log = LogManager.getLogger(SimpleORCIDAuthority.class);
     private static final int MAX_RESULTS = 100;
+    private static final String DISABLE_AUTOASSIGN_PROPERTY = "orcid.authority.disable-autoassign";
 
     private String pluginInstanceName;
     private final CachingOrcidRestConnector orcidRestConnector;
     private final MetadataValueService metadataValueService;
+    private final boolean autoAssignDisabled;
 
     public SimpleORCIDAuthority() {
         this.orcidRestConnector = new DSpace().getServiceManager()
             .getServiceByName("CachingOrcidRestConnector", CachingOrcidRestConnector.class);
         this.metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
+        this.autoAssignDisabled = new DSpace().getConfigurationService()
+            .getBooleanProperty(DISABLE_AUTOASSIGN_PROPERTY, false);
     }
 
     SimpleORCIDAuthority(CachingOrcidRestConnector orcidRestConnector,
                          MetadataValueService metadataValueService) {
+        this(orcidRestConnector, metadataValueService, false);
+    }
+
+    SimpleORCIDAuthority(CachingOrcidRestConnector orcidRestConnector,
+                         MetadataValueService metadataValueService,
+                         boolean autoAssignDisabled) {
         this.orcidRestConnector = orcidRestConnector;
         this.metadataValueService = metadataValueService;
+        this.autoAssignDisabled = autoAssignDisabled;
     }
 
     /**
@@ -116,6 +127,10 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
     @Override
     public Choices getBestMatch(String text, String locale) {
         log.debug("getBestMatch: {}", text);
+        if (autoAssignDisabled) {
+            // Ingest has nobody to pick between namesakes, so an exact name match is not a person.
+            return new Choices(false);
+        }
         Choices matches = getMatches(text, 0, 1, locale);
         if (matches.values.length != 0 && !matches.values[0].value.equalsIgnoreCase(text)) {
             // novalue
