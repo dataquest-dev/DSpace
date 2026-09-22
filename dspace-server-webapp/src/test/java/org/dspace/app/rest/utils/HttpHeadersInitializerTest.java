@@ -34,7 +34,7 @@ public class HttpHeadersInitializerTest {
     private static final String CHECKSUM = "184620a503489ab88e9e678feea682fa";
     private static final String QUOTED_CHECKSUM = "\"" + CHECKSUM + "\"";
     private static final String OTHER_QUOTED_CHECKSUM = "\"deadbeefdeadbeefdeadbeefdeadbeef\"";
-    private static final long LAST_MODIFIED = 1_600_000_000_000L;
+    private static final long LAST_MODIFIED = 1_600_000_000_123L;
 
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
@@ -65,13 +65,17 @@ public class HttpHeadersInitializerTest {
      * when the filter chain handed the request on.
      */
     private boolean rangeSurvives(String ifRange) throws Exception {
+        return rangeSurvives(ifRange, LAST_MODIFIED);
+    }
+
+    private boolean rangeSurvives(String ifRange, long lastModified) throws Exception {
         request.addHeader("Range", "bytes=1-3");
         request.addHeader("If-Range", ifRange);
         MockFilterChain chain = new MockFilterChain();
         new IgnorableRangeRequestFilter().doFilter(request, response, chain);
         HttpServletRequest filtered = (HttpServletRequest) chain.getRequest();
 
-        assertTrue(initializerFor(filtered).isValid());
+        assertTrue(initializerFor(filtered).withLastModified(lastModified).isValid());
         return filtered.getHeader("Range") != null;
     }
 
@@ -150,7 +154,7 @@ public class HttpHeadersInitializerTest {
 
     @Test
     public void ifModifiedSinceAlsoReturnsNotModified() throws Exception {
-        request.addHeader("If-Modified-Since", LAST_MODIFIED);
+        request.addHeader("If-Modified-Since", FastHttpDateFormat.formatDate(LAST_MODIFIED));
 
         assertFalse(initializer().isValid());
         assertEquals(SC_NOT_MODIFIED, response.getStatus());
@@ -186,11 +190,27 @@ public class HttpHeadersInitializerTest {
     }
 
     @Test
-    public void ifMatchMakesIfUnmodifiedSinceIrrelevant() throws Exception {
-        request.addHeader("If-Match", QUOTED_CHECKSUM);
-        request.addHeader("If-Unmodified-Since", LAST_MODIFIED - 10_000L);
+    public void ifUnmodifiedSinceOlderThanTheFileFailsWithPreconditionFailed() throws Exception {
+        request.addHeader("If-Unmodified-Since", FastHttpDateFormat.formatDate(LAST_MODIFIED - 10_000L));
+
+        assertFalse(initializer().isValid());
+        assertEquals(SC_PRECONDITION_FAILED, response.getStatus());
+    }
+
+    @Test
+    public void aConditionalDateWeCannotReadIsIgnored() throws Exception {
+        request.addHeader("If-Modified-Since", "garbage");
+        request.addHeader("If-Unmodified-Since", "garbage");
 
         assertTrue(initializer().isValid());
+    }
+
+    @Test
+    public void ifMatchWithAWildcardInsideAListIsRejected() throws Exception {
+        request.addHeader("If-Match", OTHER_QUOTED_CHECKSUM + ", *");
+
+        assertFalse(initializer().isValid());
+        assertEquals(SC_PRECONDITION_FAILED, response.getStatus());
     }
 
     @Test
@@ -211,6 +231,16 @@ public class HttpHeadersInitializerTest {
     @Test
     public void ifRangeOnAnotherEtagDropsTheRange() throws Exception {
         assertFalse(rangeSurvives(OTHER_QUOTED_CHECKSUM));
+    }
+
+    @Test
+    public void ifRangeOnAnotherDateDropsTheRange() throws Exception {
+        assertFalse(rangeSurvives(FastHttpDateFormat.formatDate(LAST_MODIFIED - 10_000L)));
+    }
+
+    @Test
+    public void ifRangeOnADateDropsTheRangeWhenTheFileHasNoDate() throws Exception {
+        assertFalse(rangeSurvives(FastHttpDateFormat.formatDate(0L), 0));
     }
 
     @Test

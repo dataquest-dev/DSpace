@@ -217,9 +217,8 @@ public class HttpHeadersInitializer {
         }
 
         // If-Unmodified-Since header should be greater than LastModified. If not, then return 412.
-        // This header is ignored if any If-Match header is specified.
-        long ifUnmodifiedSince = request.getDateHeader(IF_UNMODIFIED_SINCE);
-        if (isNull(ifMatch) && ifUnmodifiedSince != -1 && ifUnmodifiedSince + 1000 <= lastModified) {
+        long ifUnmodifiedSince = readDateHeader(IF_UNMODIFIED_SINCE);
+        if (ifUnmodifiedSince != -1 && ifUnmodifiedSince + 1000 <= lastModified) {
             log.debug("If-Unmodified-Since header should be greater than LastModified. If not, then return 412.");
             response.sendError(HttpServletResponse.SC_PRECONDITION_FAILED);
             return false;
@@ -235,7 +234,7 @@ public class HttpHeadersInitializer {
 
         // If-Modified-Since header should be greater than LastModified. If so, then return 304.
         // This header is ignored if any If-None-Match header is specified.
-        long ifModifiedSince = request.getDateHeader(IF_MODIFIED_SINCE);
+        long ifModifiedSince = readDateHeader(IF_MODIFIED_SINCE);
         if (isNull(ifNoneMatch) && ifModifiedSince != -1 && ifModifiedSince + 1000 > lastModified) {
             log.debug("If-Modified-Since header should be greater than LastModified. If so, then return 304.");
             sendNotModified();
@@ -284,11 +283,11 @@ public class HttpHeadersInitializer {
      * @param weakAllowed true to also accept a weak tag, which only If-None-Match may do
      */
     private boolean matchesChecksum(String matchHeader, boolean weakAllowed) {
+        if (ANY_ETAG.equals(matchHeader.trim())) {
+            return true;
+        }
         for (String value : matchHeader.split(",")) {
             String entityTag = value.trim();
-            if (ANY_ETAG.equals(entityTag)) {
-                return true;
-            }
             if (entityTag.startsWith(WEAK_ETAG_PREFIX)) {
                 if (!weakAllowed) {
                     continue;
@@ -312,7 +311,16 @@ public class HttpHeadersInitializer {
             return matchesChecksum(ifRange, false);
         }
         // an HTTP date carries whole seconds only, so compare against the date we sent
-        return ifRangeDate == lastModified / 1000 * 1000;
+        return lastModified > 0 && ifRangeDate == lastModified / 1000 * 1000;
+    }
+
+    /**
+     * Read a date header, treating one we cannot parse as absent. The container answers 400 instead,
+     * and RFC 9110 sections 13.1.3 and 13.1.4 both say to ignore it.
+     */
+    private long readDateHeader(String name) {
+        String value = request.getHeader(name);
+        return isNull(value) ? -1 : FastHttpDateFormat.parseDate(value);
     }
 
     private String expires() {

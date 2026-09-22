@@ -376,6 +376,41 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    public void retrieveBitstreamWithIfUnmodifiedSince() throws Exception {
+        createPublicBitstream("0123456789");
+        String url = "/api/core/bitstreams/" + bitstream.getID() + "/content";
+
+        //The file changed after the date the client is willing to accept
+        getClient().perform(get(url).header("If-Unmodified-Since", "Tue, 15 Nov 1994 12:45:26 GMT"))
+                   .andExpect(status().isPreconditionFailed())
+                   .andExpect(header().doesNotExist("Content-Length"));
+    }
+
+    @Test
+    public void retrieveBitstreamWithAConditionalDateWeCannotRead() throws Exception {
+        createPublicBitstream("0123456789");
+        String url = "/api/core/bitstreams/" + bitstream.getID() + "/content";
+
+        //A date we cannot read is ignored, not answered with 400 (RFC 9110 13.1.3)
+        getClient().perform(get(url).header("If-Modified-Since", "garbage"))
+                   .andExpect(status().isOk())
+                   .andExpect(content().bytes("0123456789".getBytes()));
+    }
+
+    @Test
+    public void retrieveBitstreamNotModifiedKeepsTheCachingHeaders() throws Exception {
+        createPublicBitstream("0123456789");
+        String url = "/api/core/bitstreams/" + bitstream.getID() + "/content";
+
+        //A 304 repeats what the client would have got with the file (RFC 9110 15.4.5)
+        getClient().perform(get(url).header("If-None-Match", "\"" + bitstream.getChecksum() + "\""))
+                   .andExpect(status().isNotModified())
+                   .andExpect(header().string("ETag", "\"" + bitstream.getChecksum() + "\""))
+                   .andExpect(header().string("Cache-Control", "private,no-cache"))
+                   .andExpect(header().exists("Last-Modified"));
+    }
+
+    @Test
     public void retrieveBitstreamWithIfRange() throws Exception {
         String bitstreamContent = "0123456789";
         createPublicBitstream(bitstreamContent);
