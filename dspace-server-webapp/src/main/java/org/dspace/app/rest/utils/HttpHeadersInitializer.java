@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.FastHttpDateFormat;
+import org.dspace.app.rest.filter.IgnorableRangeRequestFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -43,6 +44,11 @@ public class HttpHeadersInitializer {
     private static final String IF_MODIFIED_SINCE = "If-Modified-Since";
     private static final String ETAG = "ETag";
     private static final String IF_MATCH = "If-Match";
+    private static final String IF_RANGE = "If-Range";
+    private static final String RANGE = "Range";
+    private static final String ANY_ETAG = "*";
+    private static final String WEAK_ETAG_PREFIX = "W/";
+    private static final String ETAG_QUOTE = "\"";
     private static final String IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String ACCEPT_RANGES = "Accept-Ranges";
@@ -142,7 +148,7 @@ public class HttpHeadersInitializer {
         }
         httpHeaders.put(ACCEPT_RANGES, Collections.singletonList(BYTES));
         if (checksum != null) {
-            httpHeaders.put(ETAG, Collections.singletonList(checksum));
+            httpHeaders.put(ETAG, Collections.singletonList(quotedChecksum()));
         }
         if (Objects.nonNull((Long.valueOf(this.length)))) {
             httpHeaders.put(HttpHeaders.CONTENT_LENGTH, Collections.singletonList(String.valueOf(this.length)));
@@ -199,13 +205,30 @@ public class HttpHeadersInitializer {
             return false;
         }
 
-        // Validate request headers for caching ---------------------------------------------------
+        // Validate request headers, in the order RFC 9110 section 13.2.2 lays down ----------------
+
+        // If-Match header should contain "*" or ETag. If not, then return 412.
+        String ifMatch = request.getHeader(IF_MATCH);
+        if (nonNull(ifMatch) && !matchesChecksum(ifMatch, false)) {
+            log.debug("If-Match header should contain \"*\" or ETag. If not, then return 412.");
+            response.sendError(HttpServletResponse.SC_PRECONDITION_FAILED);
+            return false;
+        }
+
+        // If-Unmodified-Since header should be greater than LastModified. If not, then return 412.
+        // This header is ignored if any If-Match header is specified.
+        long ifUnmodifiedSince = request.getDateHeader(IF_UNMODIFIED_SINCE);
+        if (isNull(ifMatch) && ifUnmodifiedSince != -1 && ifUnmodifiedSince + 1000 <= lastModified) {
+            log.debug("If-Unmodified-Since header should be greater than LastModified. If not, then return 412.");
+            response.sendError(HttpServletResponse.SC_PRECONDITION_FAILED);
+            return false;
+        }
+
         // If-None-Match header should contain "*" or ETag. If so, then return 304.
         String ifNoneMatch = request.getHeader(IF_NONE_MATCH);
-        if (nonNull(ifNoneMatch) && matches(ifNoneMatch, checksum)) {
+        if (nonNull(ifNoneMatch) && matchesChecksum(ifNoneMatch, true)) {
             log.debug("If-None-Match header should contain \"*\" or ETag. If so, then return 304.");
-            response.setHeader(ETAG, checksum); // Required in 304.
-            response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+            sendNotModified();
             return false;
         }
 
@@ -214,27 +237,15 @@ public class HttpHeadersInitializer {
         long ifModifiedSince = request.getDateHeader(IF_MODIFIED_SINCE);
         if (isNull(ifNoneMatch) && ifModifiedSince != -1 && ifModifiedSince + 1000 > lastModified) {
             log.debug("If-Modified-Since header should be greater than LastModified. If so, then return 304.");
-            response.setHeader(ETAG, checksum); // Required in 304.
-            response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+            sendNotModified();
             return false;
         }
 
-        // Validate request headers for resume ----------------------------------------------------
-
-        // If-Match header should contain "*" or ETag. If not, then return 412.
-        String ifMatch = request.getHeader(IF_MATCH);
-        if (nonNull(ifMatch) && !matches(ifMatch, checksum)) {
-            log.error("If-Match header should contain \"*\" or ETag. If not, then return 412.");
-            response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
-            return false;
-        }
-
-        // If-Unmodified-Since header should be greater than LastModified. If not, then return 412.
-        long ifUnmodifiedSince = request.getDateHeader(IF_UNMODIFIED_SINCE);
-        if (ifUnmodifiedSince != -1 && ifUnmodifiedSince + 1000 <= lastModified) {
-            log.error("If-Unmodified-Since header should be greater than LastModified. If not, then return 412.");
-            response.sendError(HttpServletResponse.SC_PRECONDITION_FAILED);
-            return false;
+        // A Range only holds while the client is still resuming the same file.
+        String ifRange = request.getHeader(IF_RANGE);
+        if (nonNull(ifRange) && nonNull(request.getHeader(RANGE)) && !ifRangeStillHolds(ifRange)) {
+            log.debug("If-Range no longer matches, sending the whole file instead of the requested range.");
+            IgnorableRangeRequestFilter.ignoreRange(request);
         }
 
         return true;
@@ -255,10 +266,69 @@ public class HttpHeadersInitializer {
             || Arrays.binarySearch(acceptValues, "*/*") > -1;
     }
 
-    private static boolean matches(String matchHeader, String toMatch) {
-        String[] matchValues = matchHeader.split("\\s*,\\s*");
-        Arrays.sort(matchValues);
-        return Arrays.binarySearch(matchValues, toMatch) > -1 || Arrays.binarySearch(matchValues, "*") > -1;
+    /**
+     * The ETag as it goes out on the wire. RFC 9110 requires the quotes, and that is what a client
+     * sends back in If-Match, If-None-Match and If-Range.
+     */
+    private String quotedChecksum() {
+        return ETAG_QUOTE + checksum + ETAG_QUOTE;
+    }
+
+    /**
+     * Compare an If-Match, If-None-Match or If-Range header against our ETag, as described in
+     * RFC 9110 section 8.8.3.2. Missing quotes are tolerated so that clients which drop them keep
+     * working.
+     *
+     * @param matchHeader the header value, which may list several entity tags
+     * @param weakAllowed true to also accept a weak tag, which only If-None-Match may do
+     */
+    private boolean matchesChecksum(String matchHeader, boolean weakAllowed) {
+        for (String value : matchHeader.split(",")) {
+            String entityTag = value.trim();
+            if (ANY_ETAG.equals(entityTag)) {
+                return true;
+            }
+            if (entityTag.startsWith(WEAK_ETAG_PREFIX)) {
+                if (!weakAllowed) {
+                    continue;
+                }
+                entityTag = entityTag.substring(WEAK_ETAG_PREFIX.length());
+            }
+            if (StringUtils.unwrap(entityTag, ETAG_QUOTE).equals(checksum)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * If-Range carries the ETag or the Last-Modified date the client already has, and the range
+     * only applies while that still matches (RFC 9110 section 13.1.5).
+     */
+    private boolean ifRangeStillHolds(String ifRange) {
+        if (ifRange.startsWith(ETAG_QUOTE) || ifRange.startsWith(WEAK_ETAG_PREFIX)) {
+            return matchesChecksum(ifRange, false);
+        }
+        try {
+            // an HTTP date carries whole seconds only, so compare against the date we sent
+            return request.getDateHeader(IF_RANGE) == lastModified / 1000 * 1000;
+        } catch (IllegalArgumentException e) {
+            return matchesChecksum(ifRange, false);
+        }
+    }
+
+    /**
+     * Answer 304, repeating the header fields the client would have got with the file itself
+     * (RFC 9110 section 15.4.5).
+     */
+    private void sendNotModified() throws IOException {
+        if (checksum != null) {
+            response.setHeader(ETAG, quotedChecksum());
+        }
+        response.setHeader(LAST_MODIFIED, FastHttpDateFormat.formatDate(lastModified));
+        response.setHeader(CACHE_CONTROL, CACHE_CONTROL_SETTING);
+        response.setHeader(EXPIRES, FastHttpDateFormat.formatDate(System.currentTimeMillis() + DEFAULT_EXPIRE_TIME));
+        response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
     }
 
 }
