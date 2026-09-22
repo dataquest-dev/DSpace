@@ -1,0 +1,111 @@
+#
+# The contents of this file are subject to the license and copyright
+# detailed in the LICENSE and NOTICE files at the root of the source
+# tree and available online at
+#
+# http://www.dspace.org/license/
+#
+
+# Optional sidecar that restarts unhealthy containers - with a restart budget.
+#
+# WHY THIS EXISTS
+# Docker does NOT restart a container just because its healthcheck says "unhealthy".
+# The `restart` policy only reacts to the main process exiting. A container can sit
+# unhealthy indefinitely while `docker ps` still shows it running - exactly the
+# "nothing crashed but something inside was broken" failure mode.
+#
+# WHY NOT willfarrell/autoheal
+# That image has no restart budget: if a container can never become healthy, it
+# restarts it forever. We hit this three times while building this setup - once on
+# the backend (a config/version mismatch meant Spring never booted) and twice on the
+# frontend (`ng serve` needs ~15 min to build; the healthcheck's start_period was too
+# short, so the build was killed mid-flight and could never finish). In both cases the
+# restarts made the problem HARDER to diagnose, because the container kept dying
+# under the person reading its logs.
+#
+# WHAT THIS DOES INSTEAD
+# Restarts an unhealthy container at most MAX_RESTARTS times within WINDOW_SECONDS.
+# Past that it gives up, logs a loud one-off message, and leaves the container
+# unhealthy so a human can look at it. The budget resets once the container reports
+# healthy again.
+#
+# SECURITY: mounting /var/run/docker.sock grants this container effective root on the
+# host. Acceptable for local development; for production either accept it deliberately,
+# put a restricted socket proxy in front of it, or move to an orchestrator with
+# built-in restart semantics (Swarm, Kubernetes livenessProbe + backoff).
+#
+# Usage:
+#   docker compose -p d7 -f docker-compose.yml \
+#     -f dspace/src/main/docker-compose/docker-compose-autoheal.yml up -d
+
+networks:
+  # Default to using network named 'dspacenet' from docker-compose.yml.
+  default:
+    name: ${COMPOSE_PROJECT_NAME}_dspacenet
+    external: true
+services:
+  autoheal:
+    container_name: autoheal
+    image: docker:27-cli
+    restart: always
+    environment:
+      # Only containers carrying this label are eligible
+      AUTOHEAL_LABEL: ${AUTOHEAL_LABEL:-autoheal}
+      # Seconds between polls of the Docker API
+      AUTOHEAL_INTERVAL: ${AUTOHEAL_INTERVAL:-10}
+      # Restart budget: at most MAX_RESTARTS restarts per WINDOW_SECONDS, per container
+      AUTOHEAL_MAX_RESTARTS: ${AUTOHEAL_MAX_RESTARTS:-3}
+      AUTOHEAL_WINDOW_SECONDS: ${AUTOHEAL_WINDOW_SECONDS:-3600}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint:
+      - /bin/sh
+      - '-c'
+      - |
+        set -eu
+        STATE=/tmp/autoheal
+        mkdir -p "$$STATE"
+        log() { echo "$$(date '+%Y-%m-%d %H:%M:%S') $$*"; }
+        log "watching label $$AUTOHEAL_LABEL=true; budget $$AUTOHEAL_MAX_RESTARTS restarts / $${AUTOHEAL_WINDOW_SECONDS}s"
+        while true; do
+          now=$$(date +%s)
+
+          # Reset the budget for anything that recovered.
+          for cid in $$(docker ps -q --filter "label=$$AUTOHEAL_LABEL=true" --filter "health=healthy"); do
+            name=$$(docker inspect -f '{{.Name}}' "$$cid" | tr -d '/')
+            if [ -f "$$STATE/$$name.gaveup" ]; then log "$$name recovered - restart budget reset"; fi
+            rm -f "$$STATE/$$name" "$$STATE/$$name.gaveup"
+          done
+
+          for cid in $$(docker ps -q --filter "label=$$AUTOHEAL_LABEL=true" --filter "health=unhealthy"); do
+            name=$$(docker inspect -f '{{.Name}}' "$$cid" | tr -d '/')
+            f="$$STATE/$$name"
+
+            # Drop restart timestamps that fell out of the window.
+            if [ -f "$$f" ]; then
+              awk -v now="$$now" -v w="$$AUTOHEAL_WINDOW_SECONDS" 'now-$$1 < w' "$$f" > "$$f.tmp" || true
+              mv "$$f.tmp" "$$f"
+            else
+              : > "$$f"
+            fi
+            count=$$(wc -l < "$$f" | tr -d ' ')
+
+            if [ "$$count" -ge "$$AUTOHEAL_MAX_RESTARTS" ]; then
+              # Loud once, then quiet - so the log stays readable while someone debugs.
+              if [ ! -f "$$f.gaveup" ]; then
+                touch "$$f.gaveup"
+                log "GIVING UP on $$name: $$count restarts in the last $${AUTOHEAL_WINDOW_SECONDS}s did not help."
+                log "GIVING UP on $$name: leaving it unhealthy for investigation. Restarting is not fixing this - check its logs."
+              fi
+              continue
+            fi
+
+            log "$$name is unhealthy - restarting ($$((count+1))/$$AUTOHEAL_MAX_RESTARTS in window)"
+            if docker restart -t 10 "$$cid" >/dev/null 2>&1; then
+              echo "$$now" >> "$$f"
+            else
+              log "$$name restart FAILED"
+            fi
+          done
+          sleep "$$AUTOHEAL_INTERVAL"
+        done
