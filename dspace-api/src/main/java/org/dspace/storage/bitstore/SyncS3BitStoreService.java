@@ -22,7 +22,9 @@ import java.util.List;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import com.amazonaws.services.s3.transfer.Upload;
@@ -96,46 +98,33 @@ public class SyncS3BitStoreService extends S3BitStoreService {
     @Override
     public void put(Bitstream bitstream, InputStream in) throws IOException {
         String key = getFullKey(bitstream.getInternalId());
-        //Copy istream to temp file, and send the file, with some metadata
         File scratchFile = File.createTempFile(bitstream.getInternalId(), "s3bs");
         try (
                 FileOutputStream fos = new FileOutputStream(scratchFile);
-                // Read through a digest input stream that will work out the MD5
                 DigestInputStream dis = new DigestInputStream(in, MessageDigest.getInstance(CSA));
         ) {
+            // Copy stream data to scratch file and compute checksum
             Utils.bufferedCopy(dis, fos);
             in.close();
 
-            if (uploadByParts) {
-                uploadByParts(key, scratchFile);
-            } else {
-                uploadFluently(key, scratchFile);
-            }
+            // Upload using the unified method
+            uploadFile(key, scratchFile);
 
             bitstream.setSizeBytes(scratchFile.length());
-            // we cannot use the S3 ETAG here as it could be not a MD5 in case of multipart upload (large files) or if
-            // the bucket is encrypted
             bitstream.setChecksum(Utils.toHex(dis.getMessageDigest().digest()));
             bitstream.setChecksumAlgorithm(CSA);
 
             if (syncEnabled) {
-                // Upload file into local assetstore - use buffered copy to avoid memory issues, because of large files
                 File localFile = dsBitStoreService.getFile(bitstream);
-                // Create a new file in the assetstore if it does not exist
                 createFileIfNotExist(localFile);
 
-                // Copy content from scratch file to local assetstore file
-                FileInputStream fisScratchFile =  new FileInputStream(scratchFile);
-                FileOutputStream fosLocalFile = new FileOutputStream(localFile);
-                Utils.bufferedCopy(fisScratchFile, fosLocalFile);
-                fisScratchFile.close();
+                try (FileInputStream fisScratchFile = new FileInputStream(scratchFile);
+                     FileOutputStream fosLocalFile = new FileOutputStream(localFile)) {
+                    Utils.bufferedCopy(fisScratchFile, fosLocalFile);
+                }
             }
-        } catch (AmazonClientException | IOException | InterruptedException e) {
-            log.error("put(" + bitstream.getInternalId() + ", is)", e);
-            throw new IOException(e);
         } catch (NoSuchAlgorithmException nsae) {
-            // Should never happen
-            log.warn("Caught NoSuchAlgorithmException", nsae);
+            log.warn("Algorithm not found", nsae);
         } finally {
             if (!scratchFile.delete()) {
                 scratchFile.deleteOnExit();
@@ -156,6 +145,22 @@ public class SyncS3BitStoreService extends S3BitStoreService {
         } catch (AmazonClientException e) {
             log.error("remove(" + key + ")", e);
             throw new IOException(e);
+        }
+    }
+
+    private void uploadFile(String key, File scratchFile) throws IOException {
+        try {
+            // Create PutObjectRequest for TransferManager upload
+            PutObjectRequest putRequest = new PutObjectRequest(getBucketName(), key, scratchFile);
+
+            // Upload using TransferManager (handles multipart automatically)
+            Upload upload = tm.upload(putRequest);
+            upload.waitForCompletion();
+
+            log.info("Upload completed successfully for key: " + key);
+        } catch (AmazonClientException | InterruptedException e) {
+            log.error("Upload failed for key: " + key, e);
+            throw new IOException("Upload failed: " + e.getMessage(), e);
         }
     }
 
