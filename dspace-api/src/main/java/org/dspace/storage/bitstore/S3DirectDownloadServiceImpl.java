@@ -20,7 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -101,11 +103,12 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
 
     /** The assetstore's S3AsyncClient cannot presign, so build a second client against the same S3. */
     private S3Presigner buildS3Presigner() {
-        S3Presigner.Builder builder = S3Presigner.builder().region(resolveRegion());
-
         String accessKey = s3BitStoreService.getAwsAccessKey();
         String secretKey = s3BitStoreService.getAwsSecretKey();
-        if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
+        boolean staticCredentials = StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey);
+
+        S3Presigner.Builder builder = S3Presigner.builder().region(resolveRegion(staticCredentials));
+        if (staticCredentials) {
             builder.credentialsProvider(
                     StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
         } else {
@@ -121,13 +124,21 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
         return builder.build();
     }
 
-    private Region resolveRegion() {
+    /** Resolves the region the assetstore client picks for the same kind of credentials. */
+    private Region resolveRegion(boolean staticCredentials) {
         String regionName = s3BitStoreService.getAwsRegionName();
         if (StringUtils.isNotBlank(regionName)) {
             try {
                 return Region.of(regionName);
             } catch (IllegalArgumentException e) {
-                log.warn("Invalid aws_region: {}, presigning with {}", regionName, Region.US_EAST_1.id());
+                log.warn("Invalid aws_region: {}, resolving the region without it", regionName);
+            }
+        }
+        if (!staticCredentials) {
+            try {
+                return new DefaultAwsRegionProviderChain().getRegion();
+            } catch (SdkClientException e) {
+                log.warn("No AWS region found by the SDK provider chain, presigning with us-east-1");
             }
         }
         return Region.US_EAST_1;

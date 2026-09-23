@@ -24,6 +24,7 @@ import org.dspace.AbstractDSpaceTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
@@ -39,6 +40,8 @@ public class S3DirectDownloadServiceTest extends AbstractDSpaceTest {
     private static final String KEY = "12/34/56/123456789";
     private static final int EXPIRATION_SECONDS = 120;
     private static final int SEVEN_DAYS = 7 * 24 * 60 * 60;
+    private static final String CHAIN_REGION = "eu-west-1";
+    private static final String ASSETSTORE_DEFAULT_REGION = "us-east-1";
 
     @Mock
     private S3BitStoreService s3BitStoreService;
@@ -72,6 +75,41 @@ public class S3DirectDownloadServiceTest extends AbstractDSpaceTest {
         assertFalse(query.get("X-Amz-Signature").isEmpty());
         assertEquals("attachment; filename=\"myfile.txt\"; filename*=UTF-8''myfile.txt",
                 query.get("response-content-disposition"));
+    }
+
+    @Test
+    public void presignedUrlUsesResolvedRegion() {
+        when(s3BitStoreService.getAwsAccessKey()).thenReturn("");
+        when(s3BitStoreService.getAwsSecretKey()).thenReturn("");
+        when(s3BitStoreService.getAwsRegionName()).thenReturn("");
+
+        Map<String, String> restore = setProperties(
+                SdkSystemSetting.AWS_REGION.property(), CHAIN_REGION,
+                SdkSystemSetting.AWS_ACCESS_KEY_ID.property(), "test-access-key",
+                SdkSystemSetting.AWS_SECRET_ACCESS_KEY.property(), "test-secret-key");
+        try {
+            URI url = URI.create(
+                    s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, EXPIRATION_SECONDS, "myfile.txt"));
+
+            assertEquals(CHAIN_REGION, regionOf(url));
+        } finally {
+            restoreProperties(restore);
+        }
+    }
+
+    @Test
+    public void staticCredentialsKeepTheAssetstoreDefaultRegion() {
+        when(s3BitStoreService.getAwsRegionName()).thenReturn("");
+
+        Map<String, String> restore = setProperties(SdkSystemSetting.AWS_REGION.property(), CHAIN_REGION);
+        try {
+            URI url = URI.create(
+                    s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, EXPIRATION_SECONDS, "myfile.txt"));
+
+            assertEquals(ASSETSTORE_DEFAULT_REGION, regionOf(url));
+        } finally {
+            restoreProperties(restore);
+        }
     }
 
     @Test
@@ -139,6 +177,30 @@ public class S3DirectDownloadServiceTest extends AbstractDSpaceTest {
         s3DirectDownloadService.setS3Presigner(failing);
 
         s3DirectDownloadService.generatePresignedUrl(BUCKET, KEY, EXPIRATION_SECONDS, "myfile.txt");
+    }
+
+    /** Signing region of the credential scope: {@code <key>/<date>/<region>/s3/aws4_request}. */
+    private String regionOf(URI url) {
+        return queryOf(url).get("X-Amz-Credential").split("/")[2];
+    }
+
+    private Map<String, String> setProperties(String... keysAndValues) {
+        Map<String, String> previous = new HashMap<>();
+        for (int i = 0; i < keysAndValues.length; i += 2) {
+            previous.put(keysAndValues[i], System.getProperty(keysAndValues[i]));
+            System.setProperty(keysAndValues[i], keysAndValues[i + 1]);
+        }
+        return previous;
+    }
+
+    private void restoreProperties(Map<String, String> previous) {
+        previous.forEach((key, value) -> {
+            if (value == null) {
+                System.clearProperty(key);
+            } else {
+                System.setProperty(key, value);
+            }
+        });
     }
 
     private Map<String, String> queryOf(URI url) {
