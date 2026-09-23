@@ -54,6 +54,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.function.FailableConsumer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
@@ -178,7 +179,27 @@ public class MatomoPDFExporter {
             }
         }
 
+        try {
+            sendReports(matomoReports, MatomoPDFExporter::generateItemReport, verboseOutput);
+        } finally {
+            if (!MATOMO_KEEP_REPORTS) {
+                try {
+                    FileUtils.deleteDirectory(outputDir);
+                } catch (IOException e) {
+                    log.error("Failed to delete directory: {}", outputDir.getAbsolutePath(), e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Generates and mails the report of every subscription. A report that cannot be generated is skipped
+     * so the others still go out, and the run then fails with the number of reports that failed.
+     */
+    static void sendReports(List<MatomoReportSubscription> matomoReports,
+                            FailableConsumer<Item, Exception> reportGenerator, boolean verboseOutput) {
         HashSet<Item> done = new HashSet<>();
+        int failed = 0;
 
         for (MatomoReportSubscription mr : matomoReports) {
             Item item = mr.getItem();
@@ -190,7 +211,7 @@ public class MatomoPDFExporter {
                         if (verboseOutput) {
                             System.out.println("Processing Item: " + item.getID() + "(" + getHandle(item) + ")");
                         }
-                        generateItemReport(item);
+                        reportGenerator.accept(item);
                         done.add(item);
                     } catch (FileNotFoundException e) {
                         log.info("404 '{}' probably nothing logged for that date", e.getMessage());
@@ -200,6 +221,7 @@ public class MatomoPDFExporter {
                         continue;
                     } catch (Exception e) {
                         log.error("Unable to generate report.", e);
+                        failed++;
                         continue;
                     }
                 } else {
@@ -214,13 +236,9 @@ public class MatomoPDFExporter {
                         to.getEmail(), item.getID(), e.getMessage(), e);
             }
         }
-        //cleanup
-        if (!MATOMO_KEEP_REPORTS) {
-            try {
-                FileUtils.deleteDirectory(outputDir);
-            } catch (IOException e) {
-                log.error("Failed to delete directory: {}", outputDir.getAbsolutePath(), e);
-            }
+        if (failed > 0) {
+            throw new IllegalStateException(failed + " of " + matomoReports.size()
+                    + " Matomo reports could not be generated, see the log for the cause.");
         }
     }
 
