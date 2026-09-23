@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.matchers.JsonPathMatchers;
+import org.dspace.app.rest.matcher.SearchResultMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -144,5 +145,51 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 .andExpect(jsonPath("$", JsonPathMatchers.hasNoJsonPath("_embedded.values[2].label")))
                 .andExpect(jsonPath("$", JsonPathMatchers.hasNoJsonPath("_embedded.values[2].count")))
                 .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(2)));
+    }
+
+    /**
+     * The scope selector sends no {@code configuration} parameter, so its request runs against the default
+     * discovery configuration. A default filter query that keeps items only empties that selector.
+     */
+    @Test
+    public void defaultSearchReturnsCommunitiesAndCollectionsByDsoType() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Scope Selector Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Scope Selector Corpora").build();
+
+        ItemBuilder.createItem(context, col1)
+                .withTitle("Scope Selector Item")
+                .withIssueDate("2024-05-06")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("dsoType", "Collection"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.contains(
+                        SearchResultMatcher.matchOnItemName("collection", "collections", "Scope Selector Corpora"))));
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("dsoType", "Community"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.contains(
+                        SearchResultMatcher.matchOnItemName("community", "communities",
+                                "Scope Selector Community"))));
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("dsoType", "Community")
+                        .param("dsoType", "Collection")
+                        .param("query", "Corpora"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.contains(
+                        SearchResultMatcher.matchOnItemName("collection", "collections", "Scope Selector Corpora"))));
     }
 }
