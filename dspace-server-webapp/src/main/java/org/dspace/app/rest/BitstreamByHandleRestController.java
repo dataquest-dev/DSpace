@@ -48,16 +48,26 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * This controller provides a direct download endpoint for bitstreams
  * identified by an Item handle and the bitstream filename.
  *
- * <p>Endpoint: {@code GET /api/core/bitstreams/handle/{prefix}/{suffix}/{filename}}</p>
+ * <p>Endpoints: {@code GET /api/core/bitstreams/handle/{prefix}/{suffix}/{filename}} and
+ * {@code GET /api/core/bitstreams/handle/{prefix}/{suffix}?filename={filename}}</p>
  *
  * <p>This is used by the command-line download instructions (curl commands)
  * shown on the item page in the UI. Only bitstreams in ORIGINAL bundles are served.</p>
+ *
+ * <p>Prefer the query-parameter form for filenames that are not plain ASCII words. Where a reverse
+ * proxy rewrites the request path, as the {@code /repository/} namespace deployment does, it
+ * percent-decodes the path first and re-escapes only its own small set, so a double quote, angle
+ * bracket, square bracket, caret, backtick, brace or pipe arrives at Tomcat bare and the request
+ * line is rejected with 400 before this controller runs; query strings are proxied verbatim. A
+ * backslash is refused by Tomcat in a path even when it stays percent-encoded, so the path form
+ * cannot carry one on any deployment. {@code BitstreamByHandleRequestTargetTest} pins both.</p>
  *
  * <p>Note: {@code @PreAuthorize} is not used because authorization depends on the resolved
  * bitstream (looked up by handle + filename), not on a UUID path variable. Authorization
@@ -93,6 +103,37 @@ public class BitstreamByHandleRestController {
 
     @Autowired
     private S3BitStoreService s3BitStoreService;
+
+    /**
+     * Download a bitstream by item handle, with the filename in a query parameter.
+     *
+     * <p>Serves the same bitstream as {@link #downloadBitstreamByHandle}, and is the form to use
+     * when the filename may contain characters a rewriting reverse proxy strips of their encoding.
+     * The two forms need different encoders: in a query string {@code +} decodes to a space and
+     * {@code &} and {@code #} end the value, so a filename containing any of them must arrive
+     * percent-encoded. {@code URLEncoder.encode} and {@code encodeURIComponent} both do that.</p>
+     *
+     * <p>This mapping also shadows the generic resource controller's
+     * {@code /api/{apiCategory}/{model}/{id}/{rel}/{relid}} route for the literal segment
+     * {@code handle}, which answered 200 with an empty body and cannot resolve a bitstream, since a
+     * bitstream id is a UUID.</p>
+     *
+     * @param prefix   the handle prefix (e.g. "11234")
+     * @param suffix   the handle suffix (e.g. "1-5814")
+     * @param filename the bitstream filename (e.g. "pdtvallex-4.5.xml")
+     * @param request  the HTTP request
+     * @param response the HTTP response
+     * @throws IOException if an I/O error occurs during streaming
+     */
+    @RequestMapping(method = {RequestMethod.GET, RequestMethod.HEAD},
+                    value = "/{prefix}/{suffix}")
+    public void downloadBitstreamByHandleFilenameParam(@PathVariable String prefix,
+                                                       @PathVariable String suffix,
+                                                       @RequestParam("filename") String filename,
+                                                       HttpServletRequest request,
+                                                       HttpServletResponse response) throws IOException {
+        downloadBitstreamByHandle(prefix, suffix, filename, request, response);
+    }
 
     /**
      * Download a bitstream by item handle and filename.
