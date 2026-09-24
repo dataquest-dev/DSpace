@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.itextpdf.text.Image;
@@ -44,19 +43,24 @@ public class MatomoPDFExporterTest {
 
     private MockedStatic<Email> emailFactory;
     private MockedStatic<I18nUtil> i18n;
+    private MockedStatic<MatomoPDFExporter> exporter;
     private final Email email = mock(Email.class);
 
     @Before
-    public void stubEmail() {
+    public void stubStaticCalls() {
         emailFactory = mockStatic(Email.class);
         emailFactory.when(() -> Email.getEmail(any())).thenReturn(email);
         i18n = mockStatic(I18nUtil.class);
+        // everything but the Matomo call runs for real
+        exporter = mockStatic(MatomoPDFExporter.class, invocation ->
+                invocation.getMethod().getName().equals("generateItemReport") ? null : invocation.callRealMethod());
     }
 
     @After
     public void releaseStaticMocks() {
         emailFactory.close();
         i18n.close();
+        exporter.close();
     }
 
     @Test
@@ -91,27 +95,25 @@ public class MatomoPDFExporterTest {
     public void failedReportFailsTheRunAfterTheOtherReportsAreSent() throws Exception {
         Item broken = item("123456789/1");
         Item healthy = item("123456789/2");
-        List<Item> attempted = new ArrayList<>();
+        exporter.when(() -> MatomoPDFExporter.generateItemReport(broken))
+                .thenThrow(new IOException("Matomo is not reachable"));
 
         IllegalStateException e = assertThrows(IllegalStateException.class, () ->
-                MatomoPDFExporter.sendReports(List.of(subscription(broken), subscription(healthy)), item -> {
-                    attempted.add(item);
-                    if (item == broken) {
-                        throw new IOException("Matomo is not reachable");
-                    }
-                }, false));
+                MatomoPDFExporter.sendReports(List.of(subscription(broken), subscription(healthy)), false));
 
         assertTrue("message does not give the number of failed reports: " + e.getMessage(),
                 e.getMessage().startsWith("1 of 2 "));
-        assertEquals(List.of(broken, healthy), attempted);
+        exporter.verify(() -> MatomoPDFExporter.generateItemReport(healthy));
         verify(email, times(1)).send();
     }
 
     @Test
     public void nothingLoggedForTheMonthIsNotAFailure() throws Exception {
-        MatomoPDFExporter.sendReports(List.of(subscription(item("123456789/1"))), item -> {
-            throw new FileNotFoundException("no statistics for that date");
-        }, false);
+        Item item = item("123456789/1");
+        exporter.when(() -> MatomoPDFExporter.generateItemReport(item))
+                .thenThrow(new FileNotFoundException("no statistics for that date"));
+
+        MatomoPDFExporter.sendReports(List.of(subscription(item)), false);
 
         verify(email, never()).send();
     }
@@ -119,7 +121,7 @@ public class MatomoPDFExporterTest {
     @Test
     public void runWithAllReportsGeneratedSucceeds() throws Exception {
         MatomoPDFExporter.sendReports(List.of(subscription(item("123456789/1")), subscription(item("123456789/2"))),
-                item -> { }, false);
+                false);
 
         verify(email, times(2)).send();
     }

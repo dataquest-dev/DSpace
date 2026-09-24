@@ -54,7 +54,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.function.FailableConsumer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
@@ -180,7 +179,7 @@ public class MatomoPDFExporter {
         }
 
         try {
-            sendReports(matomoReports, MatomoPDFExporter::generateItemReport, verboseOutput);
+            sendReports(matomoReports, verboseOutput);
         } finally {
             if (!MATOMO_KEEP_REPORTS) {
                 try {
@@ -196,8 +195,7 @@ public class MatomoPDFExporter {
      * Generates and mails the report of every subscription. A report that cannot be generated is skipped
      * so the others still go out, and the run then fails with the number of reports that failed.
      */
-    static void sendReports(List<MatomoReportSubscription> matomoReports,
-                            FailableConsumer<Item, Exception> reportGenerator, boolean verboseOutput) {
+    static void sendReports(List<MatomoReportSubscription> matomoReports, boolean verboseOutput) {
         HashSet<Item> done = new HashSet<>();
         int failed = 0;
 
@@ -211,7 +209,7 @@ public class MatomoPDFExporter {
                         if (verboseOutput) {
                             System.out.println("Processing Item: " + item.getID() + "(" + getHandle(item) + ")");
                         }
-                        reportGenerator.accept(item);
+                        generateItemReport(item);
                         done.add(item);
                     } catch (FileNotFoundException e) {
                         log.info("404 '{}' probably nothing logged for that date", e.getMessage());
@@ -260,7 +258,7 @@ public class MatomoPDFExporter {
 
     }
 
-    private static void generateItemReport(Item item) throws Exception {
+    static void generateItemReport(Item item) throws Exception {
 
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MONTH, -1);
