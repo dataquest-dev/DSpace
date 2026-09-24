@@ -178,7 +178,26 @@ public class MatomoPDFExporter {
             }
         }
 
+        try {
+            sendReports(matomoReports, verboseOutput);
+        } finally {
+            if (!MATOMO_KEEP_REPORTS) {
+                try {
+                    FileUtils.deleteDirectory(outputDir);
+                } catch (IOException e) {
+                    log.error("Failed to delete directory: {}", outputDir.getAbsolutePath(), e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Generates and mails the report of every subscription. A report that cannot be generated is skipped
+     * so the others still go out, and the run then fails with the number of reports that failed.
+     */
+    static void sendReports(List<MatomoReportSubscription> matomoReports, boolean verboseOutput) {
         HashSet<Item> done = new HashSet<>();
+        int failed = 0;
 
         for (MatomoReportSubscription mr : matomoReports) {
             Item item = mr.getItem();
@@ -200,6 +219,7 @@ public class MatomoPDFExporter {
                         continue;
                     } catch (Exception e) {
                         log.error("Unable to generate report.", e);
+                        failed++;
                         continue;
                     }
                 } else {
@@ -214,13 +234,9 @@ public class MatomoPDFExporter {
                         to.getEmail(), item.getID(), e.getMessage(), e);
             }
         }
-        //cleanup
-        if (!MATOMO_KEEP_REPORTS) {
-            try {
-                FileUtils.deleteDirectory(outputDir);
-            } catch (IOException e) {
-                log.error("Failed to delete directory: {}", outputDir.getAbsolutePath(), e);
-            }
+        if (failed > 0) {
+            throw new IllegalStateException(failed + " of " + matomoReports.size()
+                    + " Matomo reports could not be generated, see the log for the cause.");
         }
     }
 
@@ -242,7 +258,7 @@ public class MatomoPDFExporter {
 
     }
 
-    private static void generateItemReport(Item item) throws Exception {
+    static void generateItemReport(Item item) throws Exception {
 
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MONTH, -1);
