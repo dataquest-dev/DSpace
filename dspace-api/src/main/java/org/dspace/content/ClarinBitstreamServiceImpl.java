@@ -35,10 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * The implementation of this class is autowired by spring.
  * This class should never be accessed directly.
  *
- * v9 adaptation: the synchronized (S3-sync) storage tier is not ported, so the
- * checksum/size validation is computed via the vanilla BitstreamStorageService
- * instead of SyncBitstreamStorageServiceImpl.
- *
  * @author Michaela Paurikova (michaela.paurikova at dataquest.sk)
  */
 //If this class wants to catch the Bitstream protected constructor, it must be in this package!

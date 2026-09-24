@@ -43,6 +43,7 @@ import org.dspace.content.service.PreviewContentService;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.storage.bitstore.SyncBitstreamStorageServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,6 +52,7 @@ import org.junit.Test;
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
+    private static final int SYNC_STORE_NUMBER = SyncBitstreamStorageServiceImpl.SYNCHRONIZED_STORES_NUMBER;
 
     BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
     BitstreamFormatService bitstreamFormatService = ContentServiceFactory.getInstance().getBitstreamFormatService();
@@ -157,6 +159,25 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         // now the preview content was created since the script was run by admin user
         assertTrue("Expects preview content created.", previewContentService.hasPreview(context, b));
         assertEquals(2, previewContentService.getPreview(context, b).size());
+    }
+
+    @Test
+    public void testPreviewWithSyncStorage() throws Exception {
+        // The store number is set directly rather than through sync.storage.service.enabled: the flag is
+        // read once at bean init, so setting it here would change nothing. The write path that stamps the
+        // number is covered by BitstreamStorageServiceImplIT.
+        Item item2 = createOtherWorkspaceItemWithBitstream(ePerson, SYNC_STORE_NUMBER);
+        // Run the script
+        TestDSpaceRunnableHandler testHandler = runScriptForItemWithBitstreams(item2, ePerson);
+        checkHandlerMessages(testHandler, ePerson, item2, "logos.tgz", true);
+
+        Bitstream b = bitstreamService.findAll(context).stream()
+                .filter(bitstream -> bitstream.getStoreNumber() == SYNC_STORE_NUMBER)
+                .findFirst().orElse(null);
+
+        assertNotNull(b);
+        assertEquals("logos.tgz", b.getName());
+        assertTrue("Expects preview content created and stored.", previewContentService.hasPreview(context, b));
     }
 
     @Test
