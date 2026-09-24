@@ -232,11 +232,12 @@ public class MatomoPDFExporter {
             } catch (Exception e) {
                 log.error("Failed to send email to recipient: {} for item ID: {}. Error: {}",
                         to.getEmail(), item.getID(), e.getMessage(), e);
+                failed++;
             }
         }
         if (failed > 0) {
             throw new IllegalStateException(failed + " of " + matomoReports.size()
-                    + " Matomo reports could not be generated, see the log for the cause.");
+                    + " Matomo reports failed, see the log for the cause.");
         }
     }
 
@@ -429,8 +430,8 @@ public class MatomoPDFExporter {
                                     Map<String, Integer> summary,
                                     List<String[]> countryData) throws Exception {
         Document pdf = new Document(PageSize.A4, 36, 36, 54, 54);
-        PdfWriter writer = PdfWriter.getInstance(pdf,
-                new FileOutputStream(MATOMO_REPORTS_OUTPUT_PATH + "/" + item.getID() + ".pdf"));
+        File reportFile = new File(MATOMO_REPORTS_OUTPUT_PATH + "/" + item.getID() + ".pdf");
+        PdfWriter writer = PdfWriter.getInstance(pdf, reportFileStream(reportFile));
 
         pdf.open();
 
@@ -633,6 +634,16 @@ public class MatomoPDFExporter {
 
         pdf.close();
         writer.close();
+    }
+
+    /** Opens the report file for writing. A write failure names the file and is not a
+     * FileNotFoundException, so it is counted as a failure instead of "nothing logged". */
+    static FileOutputStream reportFileStream(File reportFile) throws IOException {
+        try {
+            return new FileOutputStream(reportFile);
+        } catch (FileNotFoundException e) {
+            throw new IOException("Cannot write the Matomo report file " + reportFile.getAbsolutePath(), e);
+        }
     }
 
     /** Names the missing resource instead of letting iText dereference null. */
