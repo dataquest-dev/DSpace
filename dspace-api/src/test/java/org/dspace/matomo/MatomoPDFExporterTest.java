@@ -8,11 +8,13 @@
 package org.dspace.matomo;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -20,12 +22,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
 import com.itextpdf.text.Image;
+import jakarta.mail.MessagingException;
 import org.dspace.content.Item;
 import org.dspace.content.clarin.MatomoReportSubscription;
 import org.dspace.content.service.ItemService;
@@ -116,6 +120,34 @@ public class MatomoPDFExporterTest {
         MatomoPDFExporter.sendReports(List.of(subscription(item)), false);
 
         verify(email, never()).send();
+    }
+
+    @Test
+    public void unwritableReportFileFailsLoudly() throws Exception {
+        File notADirectory = File.createTempFile("matomo-report", ".tmp");
+        notADirectory.deleteOnExit();
+        // parent is a regular file, so the report file cannot be created
+        File reportFile = new File(notADirectory, "1.pdf");
+
+        IOException e = assertThrows(IOException.class, () -> MatomoPDFExporter.reportFileStream(reportFile));
+
+        assertFalse("a write failure must not look like the swallowed \"nothing logged\" case",
+                e instanceof FileNotFoundException);
+        assertTrue("error does not name the report file: " + e.getMessage(),
+                e.getMessage().contains(reportFile.getAbsolutePath()));
+    }
+
+    @Test
+    public void failedEmailFailsTheRun() throws Exception {
+        Item item = item("123456789/1");
+        doThrow(new MessagingException("SMTP unreachable")).when(email).send();
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, () ->
+                MatomoPDFExporter.sendReports(List.of(subscription(item)), false));
+
+        assertTrue("message does not count the failed report: " + e.getMessage(),
+                e.getMessage().startsWith("1 of 1 "));
+        verify(email, times(1)).send();
     }
 
     @Test
