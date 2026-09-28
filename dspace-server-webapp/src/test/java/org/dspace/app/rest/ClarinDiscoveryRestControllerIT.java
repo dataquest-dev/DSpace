@@ -21,19 +21,22 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
 /**
  * Discovery tests for the CLARIN customisations that {@link DiscoveryRestControllerIT} does not cover: the
- * hierarchical {@code subject} facet with a {@code ::} splitter, and the {@code subjectFirstValue} facet of the
- * CLARIN {@code homepage} configuration, which collapses such values to their first node.
+ * hierarchical {@code subject} facet with a {@code ::} splitter, the {@code subjectFirstValue} facet of the
+ * CLARIN {@code homepage} configuration, which collapses such values to their first node, and the items-only
+ * search configurations next to the inclusive {@code default} one.
  *
  * <p>On DSpace 7 this class was a full copy of {@code DiscoveryRestControllerIT}, because that class hard-coded
  * the vanilla facet list and therefore failed against the CLARIN {@code discovery.xml}. DSpace 9 derives its
  * expected facets and filters from the live configuration instead ({@code FacetEntryMatcher.defaultFacetMatchers},
  * {@code SearchFilterMatcher.searchFilterMatchers}), so {@code DiscoveryRestControllerIT} runs green against the
- * CLARIN configuration and only the two tests below have no counterpart there.</p>
+ * CLARIN configuration and only the tests below have no counterpart there.</p>
  *
  * @author Milan Majchrak (dspace at dataquest.sk)
  */
@@ -191,5 +194,65 @@ public class ClarinDiscoveryRestControllerIT extends AbstractControllerIntegrati
                 .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
                 .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.contains(
                         SearchResultMatcher.matchOnItemName("collection", "collections", "Scope Selector Corpora"))));
+    }
+
+    /**
+     * The search page uses the "items" configuration and community and collection pages use "community" and
+     * "collection". These return items only, while "default" still finds communities for the scope selector.
+     */
+    @Test
+    public void itemsOnlyConfigurationsReturnNoCommunitiesOrCollections() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Items Only Community").build();
+        Community subCommunity = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Items Only Subcommunity").build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Items Only Collection").build();
+        Collection col2 = CollectionBuilder.createCollection(context, subCommunity)
+                .withName("Items Only Subcollection").build();
+
+        ItemBuilder.createItem(context, col1)
+                .withTitle("Items Only Item One")
+                .build();
+        ItemBuilder.createItem(context, col2)
+                .withTitle("Items Only Item Two")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        Matcher<Iterable<? extends Object>> bothItems = Matchers.containsInAnyOrder(
+                SearchResultMatcher.matchOnItemName("item", "items", "Items Only Item One"),
+                SearchResultMatcher.matchOnItemName("item", "items", "Items Only Item Two"));
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("configuration", "items"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", bothItems));
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("configuration", "community")
+                        .param("scope", parentCommunity.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", bothItems));
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("configuration", "collection"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", bothItems));
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("configuration", "default")
+                        .param("dsoType", "Community"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
+                        SearchResultMatcher.matchOnItemName("community", "communities", "Items Only Community"),
+                        SearchResultMatcher.matchOnItemName("community", "communities",
+                                "Items Only Subcommunity"))));
     }
 }

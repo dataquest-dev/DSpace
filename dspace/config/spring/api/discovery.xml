@@ -88,6 +88,8 @@
                 <entry key="community" value-ref="communityConfiguration" />
                 <!-- "collection" is the search configuration for collection pages -->
                 <entry key="collection" value-ref="collectionConfiguration" />
+                <!-- "items" is the search configuration for the search page -->
+                <entry key="items" value-ref="itemsConfiguration" />
 
                 <entry key="publication" value-ref="publication"/>
                 <!-- Same as the "publication" configuration, but does NOT filter out older versions of items -->
@@ -259,8 +261,8 @@
             queries done by discovery for this configuration -->
         <property name="defaultFilterQueries">
             <list>
-                <!--Resource types for this configuration and for the community and collection
-                    configurations that inherit it; configurable via discovery.cfg-->
+                <!--Resource types for this configuration; configurable via discovery.cfg.
+                    The items, community and collection configurations set their own items-only filter.-->
                 <value>${discovery.search.default.filterquery}</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
@@ -375,6 +377,13 @@
                 </property>
             </bean>
         </property>
+        <!--Items only: subcommunities and collections are not search results-->
+        <property name="defaultFilterQueries">
+            <list>
+                <value>search.resourcetype:Item AND latestVersion:true</value>
+                <value>-withdrawn:true AND -discoverable:false</value>
+            </list>
+        </property>
     </bean>
 
     <bean id="collectionConfiguration" class="org.dspace.discovery.configuration.DiscoveryConfiguration"
@@ -393,6 +402,25 @@
                     </list>
                 </property>
             </bean>
+        </property>
+        <!--Items only, like the community configuration-->
+        <property name="defaultFilterQueries">
+            <list>
+                <value>search.resourcetype:Item AND latestVersion:true</value>
+                <value>-withdrawn:true AND -discoverable:false</value>
+            </list>
+        </property>
+    </bean>
+
+    <!--The default configuration limited to items. "default" keeps communities and collections for the scope selector-->
+    <bean id="itemsConfiguration" class="org.dspace.discovery.configuration.DiscoveryConfiguration"
+          scope="prototype" parent="defaultConfiguration">
+        <property name="id" value="items"/>
+        <property name="defaultFilterQueries">
+            <list>
+                <value>search.resourcetype:Item AND latestVersion:true</value>
+                <value>-withdrawn:true AND -discoverable:false</value>
+            </list>
         </property>
     </bean>
 
