@@ -30,9 +30,7 @@ import org.springframework.stereotype.Component;
  * Decides whether a request-a-copy access token may authorize a bitstream download.
  * <p>
  * An approved request gives the requester the file without the CLARIN licence page, the same way the
- * e-mail attachment does. The token only opens bitstreams of the item the request was made for. Vanilla
- * {@link RequestItemService#authorizeAccessByAccessToken} lets an "all files" token open a bitstream of
- * any item, so this bean adds that check.
+ * e-mail attachment does. The token opens only bitstreams of the item of its request.
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
@@ -95,8 +93,8 @@ public class ClarinBitstreamAccessTokenSecurityBean {
     }
 
     /**
-     * The vanilla token check (accepted request, matching token, not expired, this bitstream or all files)
-     * plus: the bitstream belongs to the item of the request.
+     * Checks that the token authorizes the bitstream: the request is accepted, the token matches and has not
+     * expired, the request covers this bitstream, and the bitstream belongs to the item of the request.
      *
      * @param context DSpace context
      * @param bitstream bitstream to download

@@ -126,9 +126,8 @@ public class BitstreamRestController {
      * @throws SQLException
      * @throws AuthorizeException
      */
-    // CLARIN: a non-null access token used to satisfy this expression on its own. The token is still
-    // accepted, but only through clarinBitstreamAccessTokenSecurity, which also requires the bitstream to
-    // belong to the item of the request. Do not restore the short-circuiting "or #accessToken != null".
+    // CLARIN: the access token is accepted only through clarinBitstreamAccessTokenSecurity. The token opens
+    // only bitstreams of the item of its request. Do not restore the short-circuiting "or #accessToken != null".
     @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ') "
         + "or @clarinBitstreamAccessTokenSecurity.canDownloadWithAccessToken(#uuid, #accessToken)")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")

@@ -9,6 +9,7 @@ package org.dspace.app.rest;
 
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -51,9 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Request-a-copy access tokens on {@code GET /api/core/bitstreams/{uuid}/content}.
  * <P>
  * An approved request gives the requester the file without the CLARIN licence page, the same way the
- * e-mail attachment does. The token only opens bitstreams of the item the request was made for: vanilla
- * lets an "all files" token open a bitstream of any item, which would turn one approval into access to the
- * whole repository.
+ * e-mail attachment does. The token opens only bitstreams of the item of its request.
  */
 public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrationTest {
 
@@ -220,8 +219,7 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     }
 
     /**
-     * Vanilla does not check that the bitstream of a request belongs to its item, so a request can name a
-     * bitstream of another item. Its token is refused for that bitstream.
+     * A single-file token opens nothing outside the item of its request, also for a reader of that file.
      */
     @Test
     public void singleFileAccessTokenDoesNotOpenABitstreamOfAnotherItem() throws Exception {
@@ -232,7 +230,102 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
                         .param("accessToken", request.getAccess_token()))
                 .andExpect(status().isUnauthorized());
 
+        String readerToken = getAuthToken(eperson.getEmail(), password);
+        getClient(readerToken).perform(get(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isForbidden());
+
         RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * A single-file token opens its own bitstream and not the other bitstream of the same item, also for a
+     * reader of that other bitstream.
+     */
+    @Test
+    public void singleFileAccessTokenOpensOnlyItsOwnBitstream() throws Exception {
+        RequestItem request = acceptedRequestFor(licensedBitstream);
+
+        getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(LICENSED_CONTENT));
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        String readerToken = getAuthToken(licenceReader.getEmail(), password);
+        getClient(readerToken).perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isForbidden());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * HEAD follows the same rule as GET: the token opens bitstreams of the item of its request only.
+     */
+    @Test
+    public void headRequestWithAccessTokenOpensOnlyBitstreamsOfTheItemOfTheRequest() throws Exception {
+        Bitstream otherBitstream = createBitstreamOfAnotherItem();
+        RequestItem request = acceptedAllFilesRequestFor(item);
+
+        getClient().perform(head(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isOk());
+
+        getClient().perform(head(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        String readerToken = getAuthToken(eperson.getEmail(), password);
+        getClient(readerToken).perform(head(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isForbidden());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * The token of a request that is not decided yet is refused.
+     */
+    @Test
+    public void pendingAccessTokenIsRefused() throws Exception {
+        context.turnOffAuthorisationSystem();
+        RequestItem pending = RequestItemBuilder.createRequestItem(context, item, openBitstream)
+                .withAcceptRequest(false)
+                .withAccessToken(ACCESS_TOKEN)
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", pending.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        RequestItemBuilder.deleteRequestItem(pending.getToken());
+    }
+
+    /**
+     * The token of a denied request is refused.
+     */
+    @Test
+    public void deniedAccessTokenIsRefused() throws Exception {
+        context.turnOffAuthorisationSystem();
+        RequestItem denied = RequestItemBuilder.createRequestItem(context, item, openBitstream)
+                .withAcceptRequest(false)
+                .withDecisionDate(Instant.now())
+                .withAccessToken(ACCESS_TOKEN)
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", denied.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        RequestItemBuilder.deleteRequestItem(denied.getToken());
     }
 
     /**
