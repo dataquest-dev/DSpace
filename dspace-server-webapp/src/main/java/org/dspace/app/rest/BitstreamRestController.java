@@ -24,12 +24,11 @@ import jakarta.ws.rs.core.Response;
 import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
-import org.dspace.app.requestitem.RequestItem;
-import org.dspace.app.requestitem.service.RequestItemService;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.hateoas.BitstreamResource;
+import org.dspace.app.rest.security.ClarinBitstreamAccessTokenSecurityBean;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.HttpHeadersInitializer;
 import org.dspace.app.rest.utils.Utils;
@@ -100,7 +99,7 @@ public class BitstreamRestController {
     private ConfigurationService configurationService;
 
     @Autowired
-    private RequestItemService requestItemService;
+    private ClarinBitstreamAccessTokenSecurityBean clarinBitstreamAccessTokenSecurity;
 
     @Autowired
     ConverterService converter;
@@ -127,10 +126,9 @@ public class BitstreamRestController {
      * @throws SQLException
      * @throws AuthorizeException
      */
-    // CLARIN: a non-null access token used to satisfy this expression on its own, which streamed the
-    // content past the resource policies AND past the CLARIN licence gate. The token is still accepted,
-    // but only through clarinBitstreamAccessTokenSecurity, which runs the same licence check as a
-    // download without a token. Do not restore the short-circuiting "or #accessToken != null".
+    // CLARIN: a non-null access token used to satisfy this expression on its own. The token is still
+    // accepted, but only through clarinBitstreamAccessTokenSecurity, which also requires the bitstream to
+    // belong to the item of the request. Do not restore the short-circuiting "or #accessToken != null".
     @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ') "
         + "or @clarinBitstreamAccessTokenSecurity.canDownloadWithAccessToken(#uuid, #accessToken)")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")
@@ -163,10 +161,9 @@ public class BitstreamRestController {
         boolean authorizedByAccessToken = false;
         // There may be a way of checking enabled in preauth
         if (StringUtils.isNotBlank(accessToken) && requestACopyEnabled()) {
-            RequestItem requestItem = requestItemService.findByAccessToken(context, accessToken);
             // Try authorize by token. An AuthorizeException will be thrown if the token is invalid, expired,
-            // for the wrong bitstream, or does not match (see RequestItemService)
-            requestItemService.authorizeAccessByAccessToken(context, requestItem, bit, accessToken);
+            // for the wrong bitstream or item, or does not match (see ClarinBitstreamAccessTokenSecurityBean)
+            clarinBitstreamAccessTokenSecurity.authorizeAccessToken(context, bit, accessToken);
             authorizedByAccessToken = true;
             log.debug("Authorize access by token={} bitstream={}", accessToken, bit.getID());
         }
