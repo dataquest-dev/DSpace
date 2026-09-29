@@ -81,6 +81,7 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     /** Restricted by the same resource policy, but with no CLARIN licence at all. */
     private Bitstream openBitstream;
     private EPerson nonSubmitter;
+    private EPerson licenceReader;
 
     @Before
     public void setup() throws Exception {
@@ -103,10 +104,17 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
                 .withPassword(password)
                 .withCanLogin(true)
                 .build();
+        // A member of the reader group who is not the submitter. The submitter passes the CLARIN licence.
+        licenceReader = EPersonBuilder.createEPerson(context)
+                .withEmail("licence-reader@mail.com")
+                .withPassword(password)
+                .withCanLogin(true)
+                .build();
 
         readerGroup = GroupBuilder.createGroup(context)
                 .withName("Reader Group")
                 .addMember(eperson)
+                .addMember(licenceReader)
                 .build();
 
         item = ItemBuilder.createItem(context, collection)
@@ -186,13 +194,7 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
      */
     @Test
     public void allFilesAccessTokenDoesNotOpenABitstreamOfAnotherItem() throws Exception {
-        context.turnOffAuthorisationSystem();
-        Item otherItem = ItemBuilder.createItem(context, collection)
-                .withTitle("Another item with a restricted bitstream")
-                .withIssueDate("2026-09-10")
-                .build();
-        Bitstream otherBitstream = createRestrictedBitstream(otherItem, "other.txt", OTHER_CONTENT);
-        context.restoreAuthSystemState();
+        Bitstream otherBitstream = createBitstreamOfAnotherItem();
         RequestItem request = acceptedAllFilesRequestFor(item);
 
         getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
@@ -213,6 +215,22 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
         getClient(readerToken).perform(get(String.format(CONTENT_URL, otherBitstream.getID()))
                         .param("accessToken", request.getAccess_token()))
                 .andExpect(status().isForbidden());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * Vanilla does not check that the bitstream of a request belongs to its item, so a request can name a
+     * bitstream of another item. Its token is refused for that bitstream.
+     */
+    @Test
+    public void singleFileAccessTokenDoesNotOpenABitstreamOfAnotherItem() throws Exception {
+        Bitstream otherBitstream = createBitstreamOfAnotherItem();
+        RequestItem request = acceptedRequestFor(otherBitstream);
+
+        getClient().perform(get(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isUnauthorized());
 
         RequestItemBuilder.deleteRequestItem(request.getToken());
     }
@@ -247,8 +265,9 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     }
 
     /**
-     * Nothing about a download without an access token changes. An anonymous caller is refused and a
-     * member of the reader group is served the bitstream that carries no CLARIN licence.
+     * Nothing about a download without an access token changes. An anonymous caller is refused. A reader who
+     * is not the submitter is served the bitstream that carries no CLARIN licence, and is still stopped by
+     * the licence on the other one.
      */
     @Test
     public void behaviourWithoutAnAccessTokenIsUnchanged() throws Exception {
@@ -257,10 +276,23 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
         getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID())))
                 .andExpect(status().isUnauthorized());
 
-        String epersonToken = getAuthToken(eperson.getEmail(), password);
-        getClient(epersonToken).perform(get(String.format(CONTENT_URL, openBitstream.getID())))
+        String readerToken = getAuthToken(licenceReader.getEmail(), password);
+        getClient(readerToken).perform(get(String.format(CONTENT_URL, openBitstream.getID())))
                 .andExpect(status().isOk())
                 .andExpect(content().string(OPEN_CONTENT));
+        getClient(readerToken).perform(get(String.format(CONTENT_URL, licensedBitstream.getID())))
+                .andExpect(status().isForbidden());
+    }
+
+    private Bitstream createBitstreamOfAnotherItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item otherItem = ItemBuilder.createItem(context, collection)
+                .withTitle("Another item with a restricted bitstream")
+                .withIssueDate("2026-09-10")
+                .build();
+        Bitstream otherBitstream = createRestrictedBitstream(otherItem, "other.txt", OTHER_CONTENT);
+        context.restoreAuthSystemState();
+        return otherBitstream;
     }
 
     private Bitstream createRestrictedBitstream(Item owner, String name, String content) throws Exception {
