@@ -16,6 +16,8 @@ import static org.dspace.content.clarin.ClarinUserRegistration.ANONYMOUS_USER_RE
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -175,7 +177,7 @@ public class ClarinUserMetadataRestController {
             try {
                 String email = getEmailFromUserMetadata(clarinUserMetadataRestList);
                 this.sendEmailWithDownloadLink(context, item, clarinLicense,
-                        email, downloadToken, MailType.ALLZIP, clarinUserMetadataRestList, item.getHandle());
+                        email, downloadToken, null, MailType.ALLZIP, clarinUserMetadataRestList, item.getHandle());
             } catch (MessagingException e) {
                 log.error("Cannot send the download email because: " + e.getMessage());
                 throw new RuntimeException("Cannot send the download email because: " + e.getMessage());
@@ -191,6 +193,7 @@ public class ClarinUserMetadataRestController {
     @RequestMapping(method = POST, consumes = APPLICATION_JSON)
     @PreAuthorize("permitAll()")
     public ResponseEntity manageUserMetadata(@RequestParam("bitstreamUUID") UUID bitstreamUUID,
+                                             @RequestParam(value = "accessToken", required = false) String accessToken,
                                                      HttpServletRequest request)
             throws SQLException, ParseException, IOException, AuthorizeException, MessagingException {
 
@@ -263,8 +266,8 @@ public class ClarinUserMetadataRestController {
                     log.error("Multiple items ({}) found for bitstream UUID: {}. Expected only one.",
                             items.size(), bitstreamUUID);
                 }
-                this.sendEmailWithDownloadLink(context, bitstream, clarinLicense,
-                        email, downloadToken, MailType.BITSTREAM, clarinUserMetadataRestList, items.get(0).getHandle());
+                this.sendEmailWithDownloadLink(context, bitstream, clarinLicense, email, downloadToken, accessToken,
+                        MailType.BITSTREAM, clarinUserMetadataRestList, items.get(0).getHandle());
             } catch (MessagingException e) {
                 log.error("Cannot send the download email because: " + e.getMessage());
                 throw new RuntimeException("Cannot send the download email because: " + e.getMessage());
@@ -281,6 +284,7 @@ public class ClarinUserMetadataRestController {
                                            ClarinLicense clarinLicense,
                                            String email,
                                            String downloadToken,
+                                           String accessToken,
                                            MailType mailType,
                                            List<ClarinUserMetadataRest> clarinUserMetadataRestList,
                                            String itemHandle)
@@ -312,7 +316,7 @@ public class ClarinUserMetadataRestController {
         // `/api/items/{itemId}/download?dtoken={downloadToken}`
         String downloadLink = uiUrl + "/"  + (dso instanceof Item ? ItemRest.PLURAL_NAME : BitstreamRest.PLURAL_NAME) +
                 "/" + dso.getID() + "/download";
-        String downloadLinkWithToken = downloadLink + "?dtoken=" + downloadToken;
+        String downloadLinkWithToken = downloadLinkWithTokens(downloadLink, downloadToken, accessToken);
         try {
             Locale locale = context.getCurrentLocale();
             Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale, "clarin_download_link"));
@@ -337,6 +341,18 @@ public class ClarinUserMetadataRestController {
 
     }
 
+
+    /**
+     * The download link for the e-mail. A request-a-copy access token goes with it, otherwise the requester could
+     * not open the file from the e-mail.
+     */
+    static String downloadLinkWithTokens(String downloadLink, String downloadToken, String accessToken) {
+        String link = downloadLink + "?dtoken=" + downloadToken;
+        if (StringUtils.isNotBlank(accessToken)) {
+            link += "&accessToken=" + URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
+        }
+        return link;
+    }
 
     private List<String> getCCEmails(String ccAdmin, ClarinLicense clarinLicense) {
         List<String> ccEmails = new ArrayList<>();
