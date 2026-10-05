@@ -7,7 +7,10 @@
  */
 package org.dspace.app.rest;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -19,14 +22,22 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.dspace.app.requestitem.RequestItem;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.app.rest.utils.BitstreamResource;
+import org.dspace.app.rest.utils.BitstreamResourceAccessByToken;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.builder.ClarinLicenseLabelBuilder;
+import org.dspace.builder.ClarinLicenseResourceUserAllowanceBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
@@ -38,6 +49,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinLicenseResourceMapping;
+import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
@@ -51,14 +64,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Request-a-copy access tokens on {@code GET /api/core/bitstreams/{uuid}/content}.
  * <P>
- * An approved request gives the requester the file without the CLARIN licence page, the same way the
- * e-mail attachment does. The token opens only bitstreams of the item of its request.
+ * The token opens only bitstreams of the item of its request, and the CLARIN licence still applies: a
+ * licence-protected bitstream is served on a token only once the licence is agreed, as without a token.
  */
 public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrationTest {
 
     private static final String CONTENT_URL = "/api/core/bitstreams/%s/content";
     private static final String ACCESS_TOKEN = "clarin-gate-access-token";
+    private static final String OPEN_ACCESS_TOKEN = "clarin-gate-open-access-token";
     private static final String ALL_FILES_TOKEN = "clarin-gate-all-files-token";
+    private static final String DOWNLOAD_TOKEN = "clarin-gate-download-token";
     private static final String LICENSED_CONTENT = "licensed bitstream content";
     private static final String OPEN_CONTENT = "open bitstream content";
     private static final String OTHER_CONTENT = "bitstream content of another item";
@@ -81,6 +96,7 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     private Bitstream openBitstream;
     private EPerson nonSubmitter;
     private EPerson licenceReader;
+    private ClarinLicenseResourceUserAllowance allowance;
 
     @Before
     public void setup() throws Exception {
@@ -134,11 +150,15 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     }
 
     /**
-     * The CLARIN resource mapping is not part of the ordered builder cleanup, so it has to go before the
-     * licence it points at.
+     * The CLARIN rows are not part of the ordered builder cleanup, so the allowance and the resource
+     * mapping have to go before the licence they point at.
      */
     @Override
     public void destroy() throws Exception {
+        if (allowance != null) {
+            ClarinLicenseResourceUserAllowanceBuilder.deleteClarinLicenseResourceUserAllowance(allowance.getID());
+            allowance = null;
+        }
         if (licensedBitstream != null) {
             context.turnOffAuthorisationSystem();
             clarinLicenseResourceMappingService.detachLicenses(context, licensedBitstream);
@@ -149,22 +169,37 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     }
 
     /**
-     * An approved request skips the CLARIN licence, like the e-mail attachment: a valid token serves a
-     * licence-protected bitstream of the request's item to an anonymous caller and to a logged-in one who
-     * has not agreed to the licence.
+     * A valid token does not replace the CLARIN licence. Until the licence is agreed, the licence-protected
+     * bitstream of the request's item is refused to an anonymous caller and to a logged-in one.
      */
     @Test
-    public void accessTokenSkipsTheClarinLicenceForTheRequestedItem() throws Exception {
+    public void accessTokenStillNeedsTheClarinLicence() throws Exception {
         RequestItem request = acceptedRequestFor(licensedBitstream);
 
         getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
                         .param("accessToken", request.getAccess_token()))
-                .andExpect(status().isOk())
-                .andExpect(content().string(LICENSED_CONTENT));
+                .andExpect(status().isUnauthorized());
 
         String nonSubmitterToken = getAuthToken(nonSubmitter.getEmail(), password);
         getClient(nonSubmitterToken).perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
                         .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isForbidden());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * Once the licence is agreed (the {@code dtoken} the licence flow hands out), the same token serves the
+     * licence-protected bitstream.
+     */
+    @Test
+    public void accessTokenServesTheBitstreamOnceTheClarinLicenceIsSatisfied() throws Exception {
+        RequestItem request = acceptedRequestFor(licensedBitstream);
+        agreeToTheLicence();
+
+        getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
+                        .param("accessToken", request.getAccess_token())
+                        .param("dtoken", DOWNLOAD_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(content().string(LICENSED_CONTENT));
 
@@ -172,7 +207,7 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     }
 
     /**
-     * A bitstream that carries no CLARIN licence answers a valid access token with its content too.
+     * A bitstream of the request's item that carries no CLARIN licence answers a valid token with its content.
      */
     @Test
     public void accessTokenServesABitstreamWithoutAClarinLicence() throws Exception {
@@ -240,14 +275,16 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
 
     /**
      * A single-file token opens its own bitstream and not the other bitstream of the same item, also for a
-     * reader of that other bitstream.
+     * reader of that other bitstream. The other bitstream has no CLARIN licence, so only the token refuses it.
      */
     @Test
     public void singleFileAccessTokenOpensOnlyItsOwnBitstream() throws Exception {
         RequestItem request = acceptedRequestFor(licensedBitstream);
+        agreeToTheLicence();
 
         getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
-                        .param("accessToken", request.getAccess_token()))
+                        .param("accessToken", request.getAccess_token())
+                        .param("dtoken", DOWNLOAD_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(content().string(LICENSED_CONTENT));
 
@@ -334,7 +371,7 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     @Test
     public void expiredOrUnknownAccessTokenIsRefused() throws Exception {
         context.turnOffAuthorisationSystem();
-        RequestItem expired = RequestItemBuilder.createRequestItem(context, item, licensedBitstream)
+        RequestItem expired = RequestItemBuilder.createRequestItem(context, item, openBitstream)
                 .withAcceptRequest(true)
                 .withDecisionDate(Instant.now().minus(2, ChronoUnit.DAYS))
                 .withAccessToken(ACCESS_TOKEN)
@@ -343,13 +380,10 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
         context.commit();
 
-        getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
                         .param("accessToken", expired.getAccess_token()))
                 .andExpect(status().isUnauthorized());
 
-        getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
-                        .param("accessToken", "not-a-real-token"))
-                .andExpect(status().isUnauthorized());
         getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
                         .param("accessToken", "not-a-real-token"))
                 .andExpect(status().isUnauthorized());
@@ -377,6 +411,53 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * {@code BitstreamResourceAccessByToken} streams the bytes in its own context, so it checks the CLARIN
+     * licence itself: a licence-protected bitstream is not served on an access token alone.
+     */
+    @Test
+    public void bitstreamResourceRefusesToServeLicensedContentOnAnAccessTokenAlone() throws Exception {
+        RequestItem licensedRequest = acceptedRequestFor(licensedBitstream, ACCESS_TOKEN);
+
+        BitstreamResource licensedResource = new BitstreamResourceAccessByToken("licensed.txt",
+                licensedBitstream.getID(), null, Set.of(), false, licensedRequest.getAccess_token());
+        try {
+            licensedResource.getChecksum();
+            fail("BitstreamResourceAccessByToken served a CLARIN licence protected bitstream on an access"
+                    + " token alone");
+        } catch (RuntimeException e) {
+            assertTrue("Expected the CLARIN licence check to refuse, but the failure was: " + e,
+                    isCausedByMissingLicenceAgreement(e));
+        }
+    }
+
+    /**
+     * {@code BitstreamResourceAccessByToken} still serves a bitstream without a CLARIN licence. It is a test
+     * of its own because the failing case above aborts the shared transaction on its way out.
+     */
+    @Test
+    public void bitstreamResourceStillServesUnlicensedContentOnAnAccessToken() throws Exception {
+        RequestItem openRequest = acceptedRequestFor(openBitstream, OPEN_ACCESS_TOKEN);
+
+        BitstreamResource openResource = new BitstreamResourceAccessByToken("open.txt", openBitstream.getID(),
+                null, Set.of(), false, openRequest.getAccess_token());
+        assertEquals(OPEN_CONTENT, IOUtils.toString(openResource.getInputStream(), StandardCharsets.UTF_8));
+
+        RequestItemBuilder.deleteRequestItem(openRequest.getToken());
+    }
+
+    private boolean isCausedByMissingLicenceAgreement(Throwable throwable) {
+        for (Throwable t = throwable; t != null; t = t.getCause()) {
+            if (t instanceof MissingLicenseAgreementException) {
+                return true;
+            }
+            if (t.getCause() == t) {
+                break;
+            }
+        }
+        return false;
+    }
+
     private Bitstream createBitstreamOfAnotherItem() throws Exception {
         context.turnOffAuthorisationSystem();
         Item otherItem = ItemBuilder.createItem(context, collection)
@@ -402,10 +483,14 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
      * Mints an accepted, unexpired request-a-copy access token for one bitstream.
      */
     private RequestItem acceptedRequestFor(Bitstream bitstream) throws Exception {
+        return acceptedRequestFor(bitstream, ACCESS_TOKEN);
+    }
+
+    private RequestItem acceptedRequestFor(Bitstream bitstream, String accessToken) throws Exception {
         RequestItem requestItem = RequestItemBuilder.createRequestItem(context, item, bitstream)
                 .withAcceptRequest(true)
                 .withDecisionDate(Instant.now())
-                .withAccessToken(ACCESS_TOKEN)
+                .withAccessToken(accessToken)
                 .withAccessExpiry(Instant.now().plus(1, ChronoUnit.DAYS))
                 .build();
         context.commit();
@@ -425,6 +510,26 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
                 .build();
         context.commit();
         return requestItem;
+    }
+
+    /**
+     * Records that the licence has been agreed, by creating the allowance row the CLARIN licence flow
+     * writes and whose token it hands back as the {@code dtoken} request parameter.
+     */
+    private void agreeToTheLicence() throws Exception {
+        List<ClarinLicenseResourceMapping> mappings =
+                clarinLicenseResourceMappingService.findByBitstreamUUID(context, licensedBitstream.getID());
+        assertEquals("The CLARIN licence fixture did not attach exactly one resource mapping",
+                1, mappings.size());
+
+        context.turnOffAuthorisationSystem();
+        allowance = ClarinLicenseResourceUserAllowanceBuilder.createClarinLicenseResourceUserAllowance(context)
+                .withToken(DOWNLOAD_TOKEN)
+                .withCreatedOn(new Date())
+                .withMapping(mappings.get(0))
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
     }
 
     /**

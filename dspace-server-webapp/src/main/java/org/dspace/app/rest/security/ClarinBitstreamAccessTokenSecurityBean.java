@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.requestitem.RequestItem;
 import org.dspace.app.requestitem.service.RequestItemService;
 import org.dspace.app.rest.utils.ContextUtil;
+import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.service.BitstreamService;
@@ -29,8 +30,8 @@ import org.springframework.stereotype.Component;
 /**
  * Decides whether a request-a-copy access token may authorize a bitstream download.
  * <p>
- * An approved request gives the requester the file without the CLARIN licence page, the same way the
- * e-mail attachment does. The token opens only bitstreams of the item of its request.
+ * The token opens only bitstreams of the item of its request, and the CLARIN licence still applies, the same
+ * check a download without a token goes through.
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
@@ -43,6 +44,8 @@ public class ClarinBitstreamAccessTokenSecurityBean {
     private BitstreamService bitstreamService;
     @Autowired
     private RequestItemService requestItemService;
+    @Autowired
+    private AuthorizationBitstreamUtils authorizationBitstreamUtils;
     @Autowired
     private ConfigurationService configurationService;
     @Autowired
@@ -94,13 +97,14 @@ public class ClarinBitstreamAccessTokenSecurityBean {
 
     /**
      * Checks that the token authorizes the bitstream: the request is accepted, the token matches and has not
-     * expired, the request covers this bitstream, and the bitstream belongs to the item of the request.
+     * expired, the request covers this bitstream, the bitstream belongs to the item of the request, and the
+     * CLARIN licence lets the current user have the bitstream.
      *
      * @param context DSpace context
      * @param bitstream bitstream to download
      * @param accessToken request-a-copy access token
-     * @throws AuthorizeException if the token does not authorize this bitstream
-     * @throws SQLException if the bundles of the bitstream cannot be read
+     * @throws AuthorizeException if the token does not authorize this bitstream or the licence is not agreed
+     * @throws SQLException if the database cannot be read
      */
     public void authorizeAccessToken(Context context, Bitstream bitstream, String accessToken)
             throws AuthorizeException, SQLException {
@@ -113,5 +117,9 @@ public class ClarinBitstreamAccessTokenSecurityBean {
             throw new AuthorizeException("The access token belongs to another item than bitstream "
                     + bitstream.getID());
         }
+
+        // The same CLARIN licence check as a download without a token. Throws MissingLicenseAgreementException
+        // or DownloadTokenExpiredException when the licence is not satisfied.
+        authorizationBitstreamUtils.authorizeBitstream(context, bitstream);
     }
 }

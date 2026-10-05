@@ -127,7 +127,8 @@ public class BitstreamRestController {
      * @throws AuthorizeException
      */
     // CLARIN: the access token is accepted only through clarinBitstreamAccessTokenSecurity. The token opens
-    // only bitstreams of the item of its request. Do not restore the short-circuiting "or #accessToken != null".
+    // only bitstreams of the item of its request, and the CLARIN licence still applies. Do not restore the
+    // short-circuiting "or #accessToken != null".
     @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ') "
         + "or @clarinBitstreamAccessTokenSecurity.canDownloadWithAccessToken(#uuid, #accessToken)")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")
@@ -161,7 +162,8 @@ public class BitstreamRestController {
         // There may be a way of checking enabled in preauth
         if (StringUtils.isNotBlank(accessToken) && requestACopyEnabled()) {
             // Try authorize by token. An AuthorizeException will be thrown if the token is invalid, expired,
-            // for the wrong bitstream or item, or does not match (see ClarinBitstreamAccessTokenSecurityBean)
+            // for the wrong bitstream or item, does not match, or the CLARIN licence is not agreed
+            // (see ClarinBitstreamAccessTokenSecurityBean)
             clarinBitstreamAccessTokenSecurity.authorizeAccessToken(context, bit, accessToken);
             authorizedByAccessToken = true;
             log.debug("Authorize access by token={} bitstream={}", accessToken, bit.getID());
