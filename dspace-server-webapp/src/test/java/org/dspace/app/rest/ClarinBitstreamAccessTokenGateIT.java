@@ -35,6 +35,7 @@ import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.BitstreamResource;
 import org.dspace.app.rest.utils.BitstreamResourceAccessByToken;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.DownloadTokenExpiredException;
 import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.ClarinLicenseBuilder;
@@ -498,6 +499,12 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
                         .param("accessToken", request.getAccess_token())
                         .param("dtoken", DOWNLOAD_TOKEN))
                 .andExpect(status().isOk());
+
+        getClient(nonSubmitterToken).perform(get(AUTHRN_URL + licensedBitstream.getID())
+                        .param("accessToken", request.getAccess_token())
+                        .param("dtoken", OTHER_DOWNLOAD_TOKEN))
+                .andExpect(status().isUnauthorized())
+                .andExpect(status().reason(DownloadTokenExpiredException.NAME));
 
         getClient().perform(get(AUTHRN_URL + licensedBitstream.getID())
                         .param("accessToken", request.getAccess_token()))

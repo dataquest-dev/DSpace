@@ -14,6 +14,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -56,8 +61,12 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.content.service.clarin.ClarinUserMetadataService;
+import org.dspace.core.Email;
 import org.dspace.eperson.EPerson;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
@@ -223,6 +232,39 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                         .contentType(contentType))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
+    }
+
+    /**
+     * The e-mailed download link keeps the request-a-copy access token the UI sent with the user metadata.
+     */
+    @Test
+    public void emailedDownloadLinkCarriesTheRequestACopyAccessToken() throws Exception {
+        this.prepareEnvironment("SEND_TOKEN", Confirmation.ALLOW_ANONYMOUS);
+        ClarinUserMetadataRest sendToken = new ClarinUserMetadataRest();
+        sendToken.setMetadataKey("SEND_TOKEN");
+        ClarinUserMetadataRest extraEmail = new ClarinUserMetadataRest();
+        extraEmail.setMetadataKey("EXTRA_EMAIL");
+        extraEmail.setMetadataValue("test@test.edu");
+
+        Email email = Mockito.spy(Email.class);
+        doNothing().when(email).send();
+        try (MockedStatic<Email> emailMock = Mockito.mockStatic(Email.class)) {
+            emailMock.when(() -> Email.getEmail(any())).thenReturn(email);
+
+            getClient().perform(post("/api/core/clarinusermetadata/manage?bitstreamUUID=" + bitstream.getID())
+                            .param("accessToken", "a+b")
+                            .content(new ObjectMapper().writeValueAsBytes(
+                                    new ClarinUserMetadataRest[] {sendToken, extraEmail}))
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", is(CHECK_EMAIL_RESPONSE_CONTENT)));
+        }
+
+        ArgumentCaptor<Object> arguments = ArgumentCaptor.forClass(Object.class);
+        verify(email, atLeastOnce()).addArgument(arguments.capture());
+        String linkPattern = ".*/bitstreams/" + bitstream.getID() + "/download\\?dtoken=[^&]+&accessToken=a%2Bb";
+        assertTrue("No e-mail argument is the download link with both tokens: " + arguments.getAllValues(),
+                arguments.getAllValues().stream().anyMatch(argument -> String.valueOf(argument).matches(linkPattern)));
     }
 
     @Test
