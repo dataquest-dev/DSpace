@@ -16,6 +16,7 @@ import static org.junit.Assert.assertThrows;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -30,10 +31,14 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.core.service.PluginService;
+import org.dspace.ctask.testing.ReportAndFailTask;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.dspace.scripts.factory.ScriptServiceFactory;
 import org.dspace.scripts.service.ScriptService;
+import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Rule;
 import org.junit.Test;
@@ -137,6 +142,30 @@ public class CurationIT extends AbstractIntegrationTestWithDatabase {
             "-e", admin.getEmail(), "-t", "noop", "-i", item.getHandle(), "-r", outsideFile.toString()));
         assertThat(e.getMessage(), containsString("Illegal file path"));
         assertFalse(Files.exists(outsideFile));
+    }
+
+    @Test
+    public void curationReportIsKeptWhenTheTaskFails() throws Exception {
+        Item item = createItem();
+        Path reportBase = useNewReportBase();
+        Path reportFile = reportBase.resolve("report.txt");
+        // -T, because the -t task names are cached when the curate script is first used
+        Path taskFile = Files.writeString(reportBase.resolve("tasks.txt"), "reportandfail");
+        ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        configurationService.setProperty("curate.taskfile.base", reportBase.toString());
+        configurationService.addPropertyValue("plugin.named.org.dspace.curate.CurationTask",
+            ReportAndFailTask.class.getName() + " = reportandfail");
+        PluginService pluginService = CoreServiceFactory.getInstance().getPluginService();
+        pluginService.clearNamedPluginClasses();
+        try {
+            assertThrows(IOException.class, () -> runDSpaceScript("curate", "-e", admin.getEmail(),
+                "-T", taskFile.toString(), "-i", item.getHandle(), "-r", reportFile.toString()));
+        } finally {
+            pluginService.clearNamedPluginClasses();
+        }
+
+        assertEquals("Reported before failing on " + item.getHandle() + System.lineSeparator(),
+            Files.readString(reportFile));
     }
 
     private Item createItem() {
