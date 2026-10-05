@@ -37,6 +37,7 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.ClarinUserMetadataRest;
 import org.dspace.app.rest.model.ItemRest;
+import org.dspace.app.rest.security.ClarinBitstreamAccessTokenSecurityBean;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -94,6 +95,8 @@ public class ClarinUserMetadataRestController {
 
     @Autowired
     ConfigurationService configurationService;
+    @Autowired
+    ClarinBitstreamAccessTokenSecurityBean clarinBitstreamAccessTokenSecurity;
 
     // Enum to distinguish between the two types of the email
     enum MailType { ALLZIP, BITSTREAM }
@@ -253,6 +256,7 @@ public class ClarinUserMetadataRestController {
         }
 
         boolean shouldEmailToken = this.shouldEmailToken(clarinLicenseResourceMapping);
+        String linkAccessToken = shouldEmailToken ? accessTokenForTheLink(context, bitstream, accessToken) : null;
         context.commit();
         if (shouldEmailToken) {
             // If yes - send token to e-mail
@@ -266,8 +270,8 @@ public class ClarinUserMetadataRestController {
                     log.error("Multiple items ({}) found for bitstream UUID: {}. Expected only one.",
                             items.size(), bitstreamUUID);
                 }
-                this.sendEmailWithDownloadLink(context, bitstream, clarinLicense, email, downloadToken, accessToken,
-                        MailType.BITSTREAM, clarinUserMetadataRestList, items.get(0).getHandle());
+                this.sendEmailWithDownloadLink(context, bitstream, clarinLicense, email, downloadToken,
+                        linkAccessToken, MailType.BITSTREAM, clarinUserMetadataRestList, items.get(0).getHandle());
             } catch (MessagingException e) {
                 log.error("Cannot send the download email because: " + e.getMessage());
                 throw new RuntimeException("Cannot send the download email because: " + e.getMessage());
@@ -341,6 +345,25 @@ public class ClarinUserMetadataRestController {
 
     }
 
+
+    /**
+     * The request-a-copy access token for the e-mailed link: kept only when it is valid for this bitstream and its
+     * item, otherwise the link goes out without it.
+     */
+    private String accessTokenForTheLink(Context context, Bitstream bitstream, String accessToken)
+            throws SQLException {
+        if (StringUtils.isBlank(accessToken) || configurationService.getProperty("request.item.type") == null) {
+            return null;
+        }
+        try {
+            clarinBitstreamAccessTokenSecurity.authorizeAccessTokenRequest(context, bitstream, accessToken);
+            return accessToken;
+        } catch (AuthorizeException e) {
+            log.debug("The access token is not added to the download link of bitstream {}: {}",
+                    bitstream.getID(), e.getMessage());
+            return null;
+        }
+    }
 
     /**
      * The download link for the e-mail. A request-a-copy access token goes with it, otherwise the requester could

@@ -108,6 +108,26 @@ public class ClarinBitstreamAccessTokenSecurityBean {
      */
     public void authorizeAccessToken(Context context, Bitstream bitstream, String accessToken)
             throws AuthorizeException, SQLException {
+        authorizeAccessTokenRequest(context, bitstream, accessToken);
+
+        // The same CLARIN licence check as a download without a token. Throws MissingLicenseAgreementException
+        // or DownloadTokenExpiredException when the licence is not satisfied.
+        authorizationBitstreamUtils.authorizeBitstream(context, bitstream);
+    }
+
+    /**
+     * The request-a-copy part of {@link #authorizeAccessToken}, without the CLARIN licence: the request is
+     * accepted, the token matches and has not expired, the request covers this bitstream, and the bitstream
+     * belongs to the item of the request.
+     *
+     * @param context DSpace context
+     * @param bitstream bitstream the token is used for
+     * @param accessToken request-a-copy access token
+     * @throws AuthorizeException if the token is not valid for this bitstream
+     * @throws SQLException if the database cannot be read
+     */
+    public void authorizeAccessTokenRequest(Context context, Bitstream bitstream, String accessToken)
+            throws AuthorizeException, SQLException {
         RequestItem requestItem = requestItemService.findByAccessToken(context, accessToken);
         requestItemService.authorizeAccessByAccessToken(context, requestItem, bitstream, accessToken);
 
@@ -117,9 +137,5 @@ public class ClarinBitstreamAccessTokenSecurityBean {
             throw new AuthorizeException("The access token belongs to another item than bitstream "
                     + bitstream.getID());
         }
-
-        // The same CLARIN licence check as a download without a token. Throws MissingLicenseAgreementException
-        // or DownloadTokenExpiredException when the licence is not satisfied.
-        authorizationBitstreamUtils.authorizeBitstream(context, bitstream);
     }
 }
