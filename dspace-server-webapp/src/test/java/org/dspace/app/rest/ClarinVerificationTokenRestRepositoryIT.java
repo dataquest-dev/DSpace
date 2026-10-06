@@ -120,4 +120,11 @@ public class ClarinVerificationTokenRestRepositoryIT extends AbstractControllerI
                 .andExpect(jsonPath("$._embedded.clarinverificationtokens[0].shibHeaders",
                         is(verificationToken.getShibHeaders())));
     }
+
+    @Test
+    public void searchByUnknownTokenReturnsNothing() throws Exception {
+        getClient().perform(get(BASE_URL + "search/byToken").param("token", "unknown-" + UUID.randomUUID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(0)));
+    }
 }
