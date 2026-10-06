@@ -30,6 +30,8 @@ public abstract class Check {
     protected abstract String run(ReportInfo ri);
 
     public void report(ReportInfo ri) {
+        reportJson_ = new JSONObject();
+        errors_ = "";
         took_ = Instant.now().toEpochMilli();
         try {
             String run_report = run(ri);
