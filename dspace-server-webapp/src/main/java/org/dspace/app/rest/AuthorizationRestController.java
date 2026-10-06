@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.authorization.AuthorizationRestUtil;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.model.AuthrnRest;
+import org.dspace.app.rest.security.ClarinBitstreamAccessTokenSecurityBean;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizationBitstreamUtils;
@@ -29,6 +30,7 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping(value = "/api/" + AuthrnRest.CATEGORY)
@@ -59,9 +62,15 @@ public class AuthorizationRestController {
     AuthorizeService authorizeService;
     @Autowired
     ClarinLicenseResourceMappingService clarinLicenseResourceMappingService;
+    @Autowired
+    private ClarinBitstreamAccessTokenSecurityBean clarinBitstreamAccessTokenSecurity;
+    @Autowired
+    private ConfigurationService configurationService;
 
     @RequestMapping(method = RequestMethod.GET, value = "/{id}")
-    public ResponseEntity authrn(@PathVariable String id, HttpServletResponse response, HttpServletRequest request)
+    public ResponseEntity authrn(@PathVariable String id,
+                                 @RequestParam(value = "accessToken", required = false) String accessToken,
+                                 HttpServletResponse response, HttpServletRequest request)
             throws SQLException, AuthorizeException, IOException, IOException {
 
         // Validate path variable.
@@ -97,7 +106,11 @@ public class AuthorizationRestController {
         String errorMessage = "";
 
         try {
-            authorizeService.authorizeAction(context, bitstream, Constants.READ);
+            if (StringUtils.isNotBlank(accessToken) && configurationService.getProperty("request.item.type") != null) {
+                authorizeByAccessToken(context, bitstream, accessToken);
+            } else {
+                authorizeService.authorizeAction(context, bitstream, Constants.READ);
+            }
         } catch (AuthorizeException e) {
             if (e instanceof MissingLicenseAgreementException) {
                 errorMessage = MissingLicenseAgreementException.NAME;
@@ -115,5 +128,21 @@ public class AuthorizationRestController {
         }
 
         return ResponseEntity.ok().body("User is authorized to download the bitstream.");
+    }
+
+    /**
+     * Answers the same way as a download with a request-a-copy access token. The CLARIN licence answers stay as
+     * they are, so the UI can show the licence page. Any other refusal looks like a refused download.
+     */
+    private void authorizeByAccessToken(Context context, Bitstream bitstream, String accessToken)
+            throws AuthorizeException, SQLException {
+        try {
+            clarinBitstreamAccessTokenSecurity.authorizeAccessToken(context, bitstream, accessToken);
+        } catch (MissingLicenseAgreementException | DownloadTokenExpiredException e) {
+            throw e;
+        } catch (AuthorizeException e) {
+            throw new AuthorizeException("Authorization denied for action READ on BITSTREAM:" + bitstream.getID()
+                    + " by access token");
+        }
     }
 }

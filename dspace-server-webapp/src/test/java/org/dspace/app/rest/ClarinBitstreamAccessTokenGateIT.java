@@ -7,11 +7,13 @@
  */
 package org.dspace.app.rest;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -21,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +35,7 @@ import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.BitstreamResource;
 import org.dspace.app.rest.utils.BitstreamResourceAccessByToken;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.DownloadTokenExpiredException;
 import org.dspace.authorize.MissingLicenseAgreementException;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.ClarinLicenseBuilder;
@@ -61,35 +65,24 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Guards the boundary between vanilla request-a-copy and the CLARIN licence gate on
- * {@code GET /api/core/bitstreams/{uuid}/content}.
+ * Request-a-copy access tokens on {@code GET /api/core/bitstreams/{uuid}/content}.
  * <P>
- * DSpace 9 added an access token to that endpoint and guarded it with a {@code @PreAuthorize} expression
- * whose left side was only {@code #accessToken != null}. Because the operator is {@code ||}, a non-null
- * token satisfied authorization on its own: the resource policies were never consulted, and neither was
- * the CLARIN licence gate that {@code AuthorizeServiceImpl.authorizeAction} runs for every other bitstream
- * read. The fork has no such token path at all, so a valid request-a-copy token streamed licence-protected
- * content to anyone holding it.
- * <P>
- * Request-a-copy stays enabled (owner decision O-8). The token is still honoured, but only together with
- * the CLARIN licence check, so the tests below have to pin down three things at once: the token no longer
- * opens a licence-protected file ({@link #accessTokenDoesNotBypassTheClarinLicenceGate()}), it still opens
- * a file that carries no CLARIN licence ({@link #accessTokenStillServesABitstreamWithoutAClarinLicence()}),
- * and it opens a licence-protected file once the licence flow has been satisfied
- * ({@link #accessTokenServesTheBitstreamOnceTheClarinLicenceIsSatisfied()}) - the last one is what proves
- * the fix wires the {@code accessToken} path into the existing {@code dtoken} gate rather than simply
- * killing request-a-copy for CLARIN items. Two further tests reach past the endpoint to
- * {@code BitstreamResourceAccessByToken}, the class that streams the bytes with authorisation switched
- * off, because a guard on the controller alone would leave that class as a second door.
+ * The token opens only bitstreams of the item of its request, and the CLARIN licence still applies: a
+ * licence-protected bitstream is served on a token only once the licence is agreed, as without a token.
  */
 public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrationTest {
 
     private static final String CONTENT_URL = "/api/core/bitstreams/%s/content";
+    private static final String AUTHRN_URL = "/api/authrn/";
     private static final String ACCESS_TOKEN = "clarin-gate-access-token";
     private static final String OPEN_ACCESS_TOKEN = "clarin-gate-open-access-token";
+    private static final String ALL_FILES_TOKEN = "clarin-gate-all-files-token";
+    private static final String OTHER_ITEM_TOKEN = "clarin-gate-other-item-token";
     private static final String DOWNLOAD_TOKEN = "clarin-gate-download-token";
+    private static final String OTHER_DOWNLOAD_TOKEN = "clarin-gate-other-download-token";
     private static final String LICENSED_CONTENT = "licensed bitstream content";
     private static final String OPEN_CONTENT = "open bitstream content";
+    private static final String OTHER_CONTENT = "bitstream content of another item";
 
     @Autowired
     private ClarinLicenseService clarinLicenseService;
@@ -100,14 +93,18 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     @Autowired
     private ConfigurationService configurationService;
 
+    private Collection collection;
+    private Group readerGroup;
     private Item item;
     /** Restricted by a resource policy AND covered by a CLARIN licence that has to be agreed. */
     private Bitstream licensedBitstream;
     /** Restricted by the same resource policy, but with no CLARIN licence at all. */
     private Bitstream openBitstream;
     private EPerson nonSubmitter;
+    private EPerson licenceReader;
     private ClarinLicense clarinLicense;
-    private ClarinLicenseResourceUserAllowance allowance;
+    private final List<Bitstream> bitstreamsWithLicence = new ArrayList<>();
+    private final List<ClarinLicenseResourceUserAllowance> allowances = new ArrayList<>();
 
     @Before
     public void setup() throws Exception {
@@ -120,48 +117,40 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
-        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+        collection = CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("Collection 1")
                 .build();
 
-        // A user who is neither the submitter of the item nor a member of the reader group. The submitter
-        // is allowed past the CLARIN gate by design, so the gate can only be observed through someone else.
+        // Neither the submitter of the item nor a member of the reader group.
         nonSubmitter = EPersonBuilder.createEPerson(context)
                 .withEmail("non-submitter@mail.com")
                 .withPassword(password)
                 .withCanLogin(true)
                 .build();
+        // A member of the reader group who is not the submitter. The submitter passes the CLARIN licence.
+        licenceReader = EPersonBuilder.createEPerson(context)
+                .withEmail("licence-reader@mail.com")
+                .withPassword(password)
+                .withCanLogin(true)
+                .build();
 
-        Group readerGroup = GroupBuilder.createGroup(context)
+        readerGroup = GroupBuilder.createGroup(context)
                 .withName("Reader Group")
                 .addMember(eperson)
+                .addMember(licenceReader)
                 .build();
 
         item = ItemBuilder.createItem(context, collection)
                 .withTitle("Item with a restricted bitstream")
                 .withIssueDate("2026-09-10")
                 .build();
-
-        try (InputStream is = toStream(LICENSED_CONTENT)) {
-            licensedBitstream = BitstreamBuilder.createBitstream(context, item, is)
-                    .withName("licensed.txt")
-                    .withMimeType("text/plain")
-                    .withReaderGroup(readerGroup)
-                    .build();
-        }
-        try (InputStream is = toStream(OPEN_CONTENT)) {
-            openBitstream = BitstreamBuilder.createBitstream(context, item, is)
-                    .withName("open.txt")
-                    .withMimeType("text/plain")
-                    .withReaderGroup(readerGroup)
-                    .build();
-        }
+        licensedBitstream = createRestrictedBitstream(item, "licensed.txt", LICENSED_CONTENT);
+        openBitstream = createRestrictedBitstream(item, "open.txt", OPEN_CONTENT);
 
         // Only the first bitstream gets a CLARIN licence, and one that always has to be agreed to.
         clarinLicense = createClarinLicense(ClarinLicense.Confirmation.ASK_ALWAYS);
-        clarinLicenseResourceMappingService.attachLicense(context, clarinLicense, licensedBitstream);
-
         context.restoreAuthSystemState();
+        attachTheLicence(licensedBitstream);
         // BitstreamResourceAccessByToken reads through a Context in READ_ONLY mode, whose session does not
         // auto-flush, so anything still pending in this session would simply not be there.
         context.commit();
@@ -169,39 +158,35 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
 
     /**
      * The CLARIN rows are not part of the ordered builder cleanup, so the allowance and the resource
-     * mapping have to go before the licence they point at, the way
-     * {@code ClarinLinkRestRepositoryBeanNameIT} does it.
+     * mapping have to go before the licence they point at.
      */
     @Override
     public void destroy() throws Exception {
-        if (allowance != null) {
+        for (ClarinLicenseResourceUserAllowance allowance : allowances) {
             ClarinLicenseResourceUserAllowanceBuilder.deleteClarinLicenseResourceUserAllowance(allowance.getID());
-            allowance = null;
         }
-        if (licensedBitstream != null) {
-            context.turnOffAuthorisationSystem();
-            clarinLicenseResourceMappingService.detachLicenses(context, licensedBitstream);
-            context.restoreAuthSystemState();
-            licensedBitstream = null;
+        allowances.clear();
+        context.turnOffAuthorisationSystem();
+        for (Bitstream bitstream : bitstreamsWithLicence) {
+            clarinLicenseResourceMappingService.detachLicenses(context, bitstream);
         }
+        context.restoreAuthSystemState();
+        bitstreamsWithLicence.clear();
         super.destroy();
     }
 
     /**
-     * The bypass itself. A valid, accepted, unexpired request-a-copy token for a bitstream that sits behind
-     * a CLARIN licence must not serve the content - neither to an anonymous caller nor to a logged-in one
-     * who has not been through the licence flow.
+     * A valid token does not replace the CLARIN licence. Until the licence is agreed, the licence-protected
+     * bitstream of the request's item is refused to an anonymous caller and to a logged-in one.
      */
     @Test
-    public void accessTokenDoesNotBypassTheClarinLicenceGate() throws Exception {
+    public void accessTokenStillNeedsTheClarinLicence() throws Exception {
         RequestItem request = acceptedRequestFor(licensedBitstream);
 
-        // Anonymous, valid token: 401 (before the fix: 200 with the file body)
         getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
                         .param("accessToken", request.getAccess_token()))
                 .andExpect(status().isUnauthorized());
 
-        // Logged in but neither submitter nor reader, valid token: 403
         String nonSubmitterToken = getAuthToken(nonSubmitter.getEmail(), password);
         getClient(nonSubmitterToken).perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
                         .param("accessToken", request.getAccess_token()))
@@ -211,31 +196,13 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     }
 
     /**
-     * The other half of the decision: request-a-copy is not disabled. A bitstream that carries no CLARIN
-     * licence still answers a valid access token with its content, exactly as it did before the fix.
-     */
-    @Test
-    public void accessTokenStillServesABitstreamWithoutAClarinLicence() throws Exception {
-        RequestItem request = acceptedRequestFor(openBitstream);
-
-        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
-                        .param("accessToken", request.getAccess_token()))
-                .andExpect(status().isOk())
-                .andExpect(content().string(OPEN_CONTENT));
-
-        RequestItemBuilder.deleteRequestItem(request.getToken());
-    }
-
-    /**
-     * The wiring. The CLARIN gate reads {@code dtoken}, the vanilla path carries {@code accessToken}; the
-     * fix routes the second through the first instead of copying the licence rules. A caller who holds both
-     * - a valid access token and a download token minted by the licence flow - is served, which is what
-     * shows the licence check is being satisfied rather than merely refusing everything.
+     * Once the licence is agreed (the {@code dtoken} the licence flow hands out), the same token serves the
+     * licence-protected bitstream.
      */
     @Test
     public void accessTokenServesTheBitstreamOnceTheClarinLicenceIsSatisfied() throws Exception {
         RequestItem request = acceptedRequestFor(licensedBitstream);
-        agreeToTheLicence();
+        agreeToTheLicence(licensedBitstream, DOWNLOAD_TOKEN);
 
         getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
                         .param("accessToken", request.getAccess_token())
@@ -247,34 +214,329 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     }
 
     /**
-     * The regression guard: nothing about a download without an access token may change. An anonymous
-     * caller is refused, a member of the reader group is served, and an invalid token is still refused.
+     * A bitstream of the request's item that carries no CLARIN licence answers a valid token with its content.
+     */
+    @Test
+    public void accessTokenServesABitstreamWithoutAClarinLicence() throws Exception {
+        RequestItem request = acceptedRequestFor(openBitstream);
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(OPEN_CONTENT));
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * An "all files" token opens the bitstreams of its own item and nothing of another item. The last call
+     * passes {@code @PreAuthorize} on the reader's own READ permission, so there it is the token check
+     * inside the controller that refuses.
+     */
+    @Test
+    public void allFilesAccessTokenDoesNotOpenABitstreamOfAnotherItem() throws Exception {
+        Bitstream otherBitstream = createBitstreamOfAnotherItem();
+        RequestItem request = acceptedAllFilesRequestFor(item, ALL_FILES_TOKEN);
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(OPEN_CONTENT));
+
+        getClient().perform(get(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        String nonSubmitterToken = getAuthToken(nonSubmitter.getEmail(), password);
+        getClient(nonSubmitterToken).perform(get(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isForbidden());
+
+        String readerToken = getAuthToken(eperson.getEmail(), password);
+        getClient(readerToken).perform(get(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isForbidden());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * A single-file token opens nothing outside the item of its request, also for a reader of that file.
+     */
+    @Test
+    public void singleFileAccessTokenDoesNotOpenABitstreamOfAnotherItem() throws Exception {
+        Bitstream otherBitstream = createBitstreamOfAnotherItem();
+        RequestItem request = acceptedRequestFor(otherBitstream);
+
+        getClient().perform(get(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        String readerToken = getAuthToken(eperson.getEmail(), password);
+        getClient(readerToken).perform(get(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isForbidden());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * A single-file token opens its own bitstream and not the other bitstream of the same item, also for a
+     * reader of that other bitstream. The other bitstream has no CLARIN licence, so only the token refuses it.
+     */
+    @Test
+    public void singleFileAccessTokenOpensOnlyItsOwnBitstream() throws Exception {
+        RequestItem request = acceptedRequestFor(licensedBitstream);
+        agreeToTheLicence(licensedBitstream, DOWNLOAD_TOKEN);
+
+        getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID()))
+                        .param("accessToken", request.getAccess_token())
+                        .param("dtoken", DOWNLOAD_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(content().string(LICENSED_CONTENT));
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        String readerToken = getAuthToken(licenceReader.getEmail(), password);
+        getClient(readerToken).perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isForbidden());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * HEAD follows the same rule as GET: the token opens bitstreams of the item of its request only.
+     */
+    @Test
+    public void headRequestWithAccessTokenOpensOnlyBitstreamsOfTheItemOfTheRequest() throws Exception {
+        Bitstream otherBitstream = createBitstreamOfAnotherItem();
+        RequestItem request = acceptedAllFilesRequestFor(item, ALL_FILES_TOKEN);
+
+        getClient().perform(head(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isOk());
+
+        getClient().perform(head(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        String readerToken = getAuthToken(eperson.getEmail(), password);
+        getClient(readerToken).perform(head(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isForbidden());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * The token of a request that is not decided yet is refused.
+     */
+    @Test
+    public void pendingAccessTokenIsRefused() throws Exception {
+        context.turnOffAuthorisationSystem();
+        RequestItem pending = RequestItemBuilder.createRequestItem(context, item, openBitstream)
+                .withAcceptRequest(false)
+                .withAccessToken(ACCESS_TOKEN)
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", pending.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        RequestItemBuilder.deleteRequestItem(pending.getToken());
+    }
+
+    /**
+     * The token of a denied request is refused.
+     */
+    @Test
+    public void deniedAccessTokenIsRefused() throws Exception {
+        context.turnOffAuthorisationSystem();
+        RequestItem denied = RequestItemBuilder.createRequestItem(context, item, openBitstream)
+                .withAcceptRequest(false)
+                .withDecisionDate(Instant.now())
+                .withAccessToken(ACCESS_TOKEN)
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", denied.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        RequestItemBuilder.deleteRequestItem(denied.getToken());
+    }
+
+    /**
+     * An expired token and a token nobody issued are refused.
+     */
+    @Test
+    public void expiredOrUnknownAccessTokenIsRefused() throws Exception {
+        context.turnOffAuthorisationSystem();
+        RequestItem expired = RequestItemBuilder.createRequestItem(context, item, openBitstream)
+                .withAcceptRequest(true)
+                .withDecisionDate(Instant.now().minus(2, ChronoUnit.DAYS))
+                .withAccessToken(ACCESS_TOKEN)
+                .withAccessExpiry(Instant.now().minus(1, ChronoUnit.DAYS))
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", expired.getAccess_token()))
+                .andExpect(status().isUnauthorized());
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", "not-a-real-token"))
+                .andExpect(status().isUnauthorized());
+
+        RequestItemBuilder.deleteRequestItem(expired.getToken());
+    }
+
+    /**
+     * Nothing about a download without an access token changes. An anonymous caller is refused. A reader who
+     * is not the submitter is served the bitstream that carries no CLARIN licence, and is still stopped by
+     * the licence on the other one.
      */
     @Test
     public void behaviourWithoutAnAccessTokenIsUnchanged() throws Exception {
-        // No token, anonymous: refused for both bitstreams
         getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID())))
                 .andExpect(status().isUnauthorized());
         getClient().perform(get(String.format(CONTENT_URL, licensedBitstream.getID())))
                 .andExpect(status().isUnauthorized());
 
-        // No token, member of the reader group: served the bitstream that carries no CLARIN licence
-        String epersonToken = getAuthToken(eperson.getEmail(), password);
-        getClient(epersonToken).perform(get(String.format(CONTENT_URL, openBitstream.getID())))
+        String readerToken = getAuthToken(licenceReader.getEmail(), password);
+        getClient(readerToken).perform(get(String.format(CONTENT_URL, openBitstream.getID())))
                 .andExpect(status().isOk())
                 .andExpect(content().string(OPEN_CONTENT));
-
-        // An invalid access token is still refused
-        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
-                        .param("accessToken", "not-a-real-token"))
-                .andExpect(status().isUnauthorized());
+        getClient(readerToken).perform(get(String.format(CONTENT_URL, licensedBitstream.getID())))
+                .andExpect(status().isForbidden());
     }
 
     /**
-     * The endpoint tests above stop at {@code @PreAuthorize}, so on their own they say nothing about the
-     * class that actually streams the bytes. {@code BitstreamResourceAccessByToken} opens its own context
-     * and turns authorisation off in it, so it has to enforce the licence itself - anything else leaves a
-     * second door into the same content for any caller that can reach the class.
+     * A download token opens only the bitstream it was issued for. Together with the access token of the request
+     * it does not open another licence-protected bitstream of the same item, which its own download token opens.
+     */
+    @Test
+    public void downloadTokenOfAnotherBitstreamIsRefused() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // The item of the setup is detached here, a new bitstream would not be linked to it without the reload.
+        Bitstream secondLicensedBitstream =
+                createRestrictedBitstream(context.reloadEntity(item), "second.txt", LICENSED_CONTENT);
+        context.restoreAuthSystemState();
+        attachTheLicence(secondLicensedBitstream);
+        RequestItem request = acceptedAllFilesRequestFor(item, ALL_FILES_TOKEN);
+        agreeToTheLicence(licensedBitstream, DOWNLOAD_TOKEN);
+        agreeToTheLicence(secondLicensedBitstream, OTHER_DOWNLOAD_TOKEN);
+
+        getClient().perform(get(String.format(CONTENT_URL, secondLicensedBitstream.getID()))
+                        .param("accessToken", request.getAccess_token())
+                        .param("dtoken", OTHER_DOWNLOAD_TOKEN))
+                .andExpect(status().isOk());
+
+        getClient().perform(get(String.format(CONTENT_URL, secondLicensedBitstream.getID()))
+                        .param("accessToken", request.getAccess_token())
+                        .param("dtoken", DOWNLOAD_TOKEN))
+                .andExpect(status().isUnauthorized());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * An agreed licence of a bitstream of another item does not let the token of the request open that bitstream.
+     * The token of a request for that other item does.
+     */
+    @Test
+    public void accessTokenOfAnotherItemIsRefusedWithAValidDownloadToken() throws Exception {
+        Bitstream otherBitstream = createBitstreamOfAnotherItem();
+        Item otherItem = otherBitstream.getBundles().get(0).getItems().get(0);
+        attachTheLicence(otherBitstream);
+        agreeToTheLicence(otherBitstream, OTHER_DOWNLOAD_TOKEN);
+        RequestItem request = acceptedAllFilesRequestFor(item, ALL_FILES_TOKEN);
+        RequestItem otherRequest = acceptedAllFilesRequestFor(otherItem, OTHER_ITEM_TOKEN);
+
+        getClient().perform(get(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", otherRequest.getAccess_token())
+                        .param("dtoken", OTHER_DOWNLOAD_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(content().string(OTHER_CONTENT));
+
+        getClient().perform(get(String.format(CONTENT_URL, otherBitstream.getID()))
+                        .param("accessToken", request.getAccess_token())
+                        .param("dtoken", OTHER_DOWNLOAD_TOKEN))
+                .andExpect(status().isUnauthorized());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+        RequestItemBuilder.deleteRequestItem(otherRequest.getToken());
+    }
+
+    /**
+     * The CLARIN authorization endpoint answers for an access token like the content endpoint, so the UI can show
+     * the licence page: the licence first, then the download once the licence is agreed. A licence that needs a
+     * logged-in user still sends an anonymous caller to the login. Without the token the answer does not change.
+     */
+    @Test
+    public void clarinAuthorizationWithAccessTokenAsksForTheLicence() throws Exception {
+        RequestItem request = acceptedRequestFor(licensedBitstream);
+        String nonSubmitterToken = getAuthToken(nonSubmitter.getEmail(), password);
+
+        getClient(nonSubmitterToken).perform(get(AUTHRN_URL + licensedBitstream.getID()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(status().reason(startsWith("Authorization denied")));
+
+        getClient(nonSubmitterToken).perform(get(AUTHRN_URL + licensedBitstream.getID())
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(status().reason(MissingLicenseAgreementException.NAME));
+
+        agreeToTheLicence(licensedBitstream, DOWNLOAD_TOKEN);
+        getClient(nonSubmitterToken).perform(get(AUTHRN_URL + licensedBitstream.getID())
+                        .param("accessToken", request.getAccess_token())
+                        .param("dtoken", DOWNLOAD_TOKEN))
+                .andExpect(status().isOk());
+
+        getClient(nonSubmitterToken).perform(get(AUTHRN_URL + licensedBitstream.getID())
+                        .param("accessToken", request.getAccess_token())
+                        .param("dtoken", OTHER_DOWNLOAD_TOKEN))
+                .andExpect(status().isUnauthorized())
+                .andExpect(status().reason(DownloadTokenExpiredException.NAME));
+
+        getClient().perform(get(AUTHRN_URL + licensedBitstream.getID())
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(status().reason("Anonymous user cannot download this bitstream"));
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * For a token of another item the CLARIN authorization endpoint answers like for a refused download.
+     */
+    @Test
+    public void clarinAuthorizationWithAccessTokenOpensOnlyBitstreamsOfTheItemOfTheRequest() throws Exception {
+        Bitstream otherBitstream = createBitstreamOfAnotherItem();
+        RequestItem request = acceptedAllFilesRequestFor(item, ALL_FILES_TOKEN);
+
+        getClient().perform(get(AUTHRN_URL + openBitstream.getID())
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isOk());
+
+        getClient().perform(get(AUTHRN_URL + otherBitstream.getID())
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(status().reason(startsWith("Authorization denied")));
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * {@code BitstreamResourceAccessByToken} streams the bytes in its own context, so it checks the CLARIN
+     * licence itself: a licence-protected bitstream is not served on an access token alone.
      */
     @Test
     public void bitstreamResourceRefusesToServeLicensedContentOnAnAccessTokenAlone() throws Exception {
@@ -287,17 +549,14 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
             fail("BitstreamResourceAccessByToken served a CLARIN licence protected bitstream on an access"
                     + " token alone");
         } catch (RuntimeException e) {
-            assertTrue("Expected the CLARIN licence gate to refuse, but the failure was: " + e,
+            assertTrue("Expected the CLARIN licence check to refuse, but the failure was: " + e,
                     isCausedByMissingLicenceAgreement(e));
         }
     }
 
     /**
-     * The companion of the test above: the licence check added to the streaming resource must not turn it
-     * into a resource that refuses everything. A bitstream with no CLARIN licence is still served.
-     * <P>
-     * It is a test of its own because the failing case above aborts the shared transaction on its way out,
-     * which would take this fixture with it.
+     * {@code BitstreamResourceAccessByToken} still serves a bitstream without a CLARIN licence. It is a test
+     * of its own because the failing case above aborts the shared transaction on its way out.
      */
     @Test
     public void bitstreamResourceStillServesUnlicensedContentOnAnAccessToken() throws Exception {
@@ -322,8 +581,25 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
         return false;
     }
 
-    private InputStream toStream(String content) {
-        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    private Bitstream createBitstreamOfAnotherItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item otherItem = ItemBuilder.createItem(context, collection)
+                .withTitle("Another item with a restricted bitstream")
+                .withIssueDate("2026-09-10")
+                .build();
+        Bitstream otherBitstream = createRestrictedBitstream(otherItem, "other.txt", OTHER_CONTENT);
+        context.restoreAuthSystemState();
+        return otherBitstream;
+    }
+
+    private Bitstream createRestrictedBitstream(Item owner, String name, String content) throws Exception {
+        try (InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))) {
+            return BitstreamBuilder.createBitstream(context, owner, is)
+                    .withName(name)
+                    .withMimeType("text/plain")
+                    .withReaderGroup(readerGroup)
+                    .build();
+        }
     }
 
     /**
@@ -345,21 +621,47 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     }
 
     /**
-     * Records that the licence has been agreed, by creating the allowance row the CLARIN licence flow
-     * writes and whose token it hands back as the {@code dtoken} request parameter.
+     * Mints an accepted, unexpired request-a-copy access token for all files of an item.
      */
-    private void agreeToTheLicence() throws Exception {
+    private RequestItem acceptedAllFilesRequestFor(Item requested, String accessToken) throws Exception {
+        RequestItem requestItem = RequestItemBuilder.createRequestItem(context, requested, null)
+                .withAllFiles(true)
+                .withAcceptRequest(true)
+                .withDecisionDate(Instant.now())
+                .withAccessToken(accessToken)
+                .withAccessExpiry(Instant.now().plus(1, ChronoUnit.DAYS))
+                .build();
+        context.commit();
+        return requestItem;
+    }
+
+    /**
+     * Puts the CLARIN licence of this test on the bitstream.
+     */
+    private void attachTheLicence(Bitstream bitstream) throws Exception {
+        context.turnOffAuthorisationSystem();
+        clarinLicenseResourceMappingService.attachLicense(context, clarinLicense, bitstream);
+        context.restoreAuthSystemState();
+        bitstreamsWithLicence.add(bitstream);
+        context.commit();
+    }
+
+    /**
+     * Records that the licence of the bitstream has been agreed, by creating the allowance row the CLARIN licence
+     * flow writes and whose token it hands back as the {@code dtoken} request parameter.
+     */
+    private void agreeToTheLicence(Bitstream bitstream, String downloadToken) throws Exception {
         List<ClarinLicenseResourceMapping> mappings =
-                clarinLicenseResourceMappingService.findByBitstreamUUID(context, licensedBitstream.getID());
+                clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID());
         assertEquals("The CLARIN licence fixture did not attach exactly one resource mapping",
                 1, mappings.size());
 
         context.turnOffAuthorisationSystem();
-        allowance = ClarinLicenseResourceUserAllowanceBuilder.createClarinLicenseResourceUserAllowance(context)
-                .withToken(DOWNLOAD_TOKEN)
+        allowances.add(ClarinLicenseResourceUserAllowanceBuilder.createClarinLicenseResourceUserAllowance(context)
+                .withToken(downloadToken)
                 .withCreatedOn(new Date())
                 .withMapping(mappings.get(0))
-                .build();
+                .build());
         context.restoreAuthSystemState();
         context.commit();
     }

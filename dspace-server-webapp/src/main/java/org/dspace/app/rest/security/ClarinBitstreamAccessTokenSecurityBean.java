@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.requestitem.RequestItem;
 import org.dspace.app.requestitem.service.RequestItemService;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizationBitstreamUtils;
@@ -27,20 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Methods of this class are used on PreAuthorize annotations to decide whether a request-a-copy access
- * token may authorize a bitstream download.
+ * Decides whether a request-a-copy access token may authorize a bitstream download.
  * <p>
- * CLARIN gates every restricted download behind its own licence flow. Vanilla DSpace 9 added a second,
- * independent way in: {@code BitstreamRestController.retrieve} accepted a request-a-copy access token as
- * proof of authorization on its own. A non-null token therefore streamed the content past the resource
- * policies <i>and</i> past the CLARIN licence gate.
- * <p>
- * Request-a-copy stays enabled (owner decision O-8): a token still grants access to a file the caller has
- * no READ policy for, but only after the same CLARIN licence check a normal download goes through. That
- * check is not re-implemented here - {@link AuthorizationBitstreamUtils#authorizeBitstream} is the single
- * implementation, and it is the very method
- * {@code AuthorizeServiceImpl.authorizeAction} calls for a download without a token. Wiring the token path
- * into it is what keeps the {@code dtoken} licence flow and the {@code accessToken} flow in agreement.
+ * The token opens only bitstreams of the item of its request, and the CLARIN licence still applies, the same
+ * check a download without a token goes through.
  *
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
@@ -61,22 +52,12 @@ public class ClarinBitstreamAccessTokenSecurityBean {
     private RequestService requestService;
 
     /**
-     * Check whether the supplied request-a-copy access token authorizes downloading the given bitstream.
-     * <p>
-     * The token is accepted only when <b>both</b> hold:
-     * <ol>
-     *     <li>request-a-copy is enabled and the token is valid for this bitstream (accepted request, not
-     *     expired, right bitstream) - {@link RequestItemService#authorizeAccessByAccessToken};</li>
-     *     <li>the CLARIN licence gate lets the current user have the bitstream -
-     *     {@link AuthorizationBitstreamUtils#authorizeBitstream}.</li>
-     * </ol>
-     * A caller holding a valid token for a bitstream behind a CLARIN licence they have not agreed to gets
-     * {@code false} here, so Spring Security answers 401/403 exactly as it does for a normal download that
-     * the licence gate refuses, and the UI can send the user to the licence page.
+     * Used by {@code @PreAuthorize}: true when request-a-copy is enabled and the token authorizes the
+     * bitstream, see {@link #authorizeAccessToken}.
      *
      * @param uuid bitstream ID from the request path
      * @param accessToken request-a-copy access token from the request, may be null
-     * @return true only if the token is valid AND the CLARIN licence gate passes
+     * @return true only if the token authorizes downloading the bitstream
      */
     public boolean canDownloadWithAccessToken(UUID uuid, String accessToken) {
         if (uuid == null || StringUtils.isBlank(accessToken)) {
@@ -103,15 +84,7 @@ public class ClarinBitstreamAccessTokenSecurityBean {
                 // Let the REST layer answer 404; a token must not turn a missing bitstream into a 200.
                 return false;
             }
-
-            // 1. The access token itself must be valid for this bitstream.
-            requestItemService.authorizeAccessByAccessToken(context, bitstream, accessToken);
-
-            // 2. And the CLARIN licence gate must pass, the same call a download without a token makes
-            //    through AuthorizeServiceImpl.authorizeAction. Throws MissingLicenseAgreementException or
-            //    DownloadTokenExpiredException (both AuthorizeException) when the licence is not satisfied.
-            authorizationBitstreamUtils.authorizeBitstream(context, bitstream);
-
+            authorizeAccessToken(context, bitstream, accessToken);
             return true;
         } catch (AuthorizeException e) {
             log.debug("Access token did not authorize download of bitstream {}: {}", uuid, e.getMessage());
@@ -119,6 +92,50 @@ public class ClarinBitstreamAccessTokenSecurityBean {
         } catch (SQLException e) {
             log.error("Failed to check the access token for bitstream " + uuid, e);
             return false;
+        }
+    }
+
+    /**
+     * Checks that the token authorizes the bitstream: the request is accepted, the token matches and has not
+     * expired, the request covers this bitstream, the bitstream belongs to the item of the request, and the
+     * CLARIN licence lets the current user have the bitstream.
+     *
+     * @param context DSpace context
+     * @param bitstream bitstream to download
+     * @param accessToken request-a-copy access token
+     * @throws AuthorizeException if the token does not authorize this bitstream or the licence is not agreed
+     * @throws SQLException if the database cannot be read
+     */
+    public void authorizeAccessToken(Context context, Bitstream bitstream, String accessToken)
+            throws AuthorizeException, SQLException {
+        authorizeAccessTokenRequest(context, bitstream, accessToken);
+
+        // The same CLARIN licence check as a download without a token. Throws MissingLicenseAgreementException
+        // or DownloadTokenExpiredException when the licence is not satisfied.
+        authorizationBitstreamUtils.authorizeBitstream(context, bitstream);
+    }
+
+    /**
+     * The request-a-copy part of {@link #authorizeAccessToken}, without the CLARIN licence: the request is
+     * accepted, the token matches and has not expired, the request covers this bitstream, and the bitstream
+     * belongs to the item of the request.
+     *
+     * @param context DSpace context
+     * @param bitstream bitstream the token is used for
+     * @param accessToken request-a-copy access token
+     * @throws AuthorizeException if the token is not valid for this bitstream
+     * @throws SQLException if the database cannot be read
+     */
+    public void authorizeAccessTokenRequest(Context context, Bitstream bitstream, String accessToken)
+            throws AuthorizeException, SQLException {
+        RequestItem requestItem = requestItemService.findByAccessToken(context, accessToken);
+        requestItemService.authorizeAccessByAccessToken(context, requestItem, bitstream, accessToken);
+
+        boolean inRequestedItem = bitstream.getBundles().stream()
+                .anyMatch(bundle -> bundle.getItems().contains(requestItem.getItem()));
+        if (!inRequestedItem) {
+            throw new AuthorizeException("The access token belongs to another item than bitstream "
+                    + bitstream.getID());
         }
     }
 }
