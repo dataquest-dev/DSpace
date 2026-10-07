@@ -67,6 +67,7 @@ import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.content.service.clarin.ClarinUserMetadataService;
 import org.dspace.core.Email;
 import org.dspace.eperson.EPerson;
+import org.dspace.services.ConfigurationService;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
@@ -84,6 +85,8 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
     ClarinUserMetadataService clarinUserMetadataService;
     @Autowired
     ItemService itemService;
+    @Autowired
+    ConfigurationService configurationService;
 
     WorkspaceItem witem;
     WorkspaceItem witem2;
@@ -273,6 +276,36 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                     arguments.stream().noneMatch(argument -> String.valueOf(argument).contains("accessToken")));
         }
         RequestItemBuilder.deleteRequestItem(otherItemRequest.getToken());
+    }
+
+    /**
+     * With request-a-copy switched off ({@code request.item.type} not set) a valid access token does not go into
+     * the e-mailed download link. Once the key is back, it does.
+     */
+    @Test
+    public void emailedDownloadLinkLeavesOutTheAccessTokenWhenRequestACopyIsOff() throws Exception {
+        this.prepareEnvironment("SEND_TOKEN", Confirmation.ALLOW_ANONYMOUS);
+        RequestItem request = acceptedAllFilesRequestFor(witem.getItem(), "request-copy-off-token");
+        String requestItemType = configurationService.getProperty("request.item.type");
+
+        configurationService.setProperty("request.item.type", null);
+        List<Object> arguments;
+        try {
+            arguments = mailArgumentsForAccessToken(request.getAccess_token());
+        } finally {
+            configurationService.setProperty("request.item.type", requestItemType);
+        }
+        String plainLinkPattern = ".*/bitstreams/" + bitstream.getID() + "/download\\?dtoken=[^&]+";
+        assertTrue("No e-mail argument is the plain download link: " + arguments,
+                arguments.stream().anyMatch(argument -> String.valueOf(argument).matches(plainLinkPattern)));
+        assertTrue("The access token went into the e-mail: " + arguments,
+                arguments.stream().noneMatch(argument -> String.valueOf(argument).contains("accessToken")));
+
+        arguments = mailArgumentsForAccessToken(request.getAccess_token());
+        String linkWithTokenPattern = plainLinkPattern + "&accessToken=request-copy-off-token";
+        assertTrue("No e-mail argument is the download link with the access token: " + arguments,
+                arguments.stream().anyMatch(argument -> String.valueOf(argument).matches(linkWithTokenPattern)));
+        RequestItemBuilder.deleteRequestItem(request.getToken());
     }
 
     /**
