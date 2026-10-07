@@ -535,6 +535,65 @@ public class ClarinBitstreamAccessTokenGateIT extends AbstractControllerIntegrat
     }
 
     /**
+     * With request-a-copy switched off ({@code request.item.type} not set) a valid token opens nothing, for GET
+     * and for HEAD. Once the key is back, the same token serves the file.
+     */
+    @Test
+    public void accessTokenOpensNothingWhenRequestACopyIsOff() throws Exception {
+        RequestItem request = acceptedRequestFor(openBitstream);
+        String requestItemType = configurationService.getProperty("request.item.type");
+
+        configurationService.setProperty("request.item.type", null);
+        try {
+            getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                            .param("accessToken", request.getAccess_token()))
+                    .andExpect(status().isUnauthorized());
+            getClient().perform(head(String.format(CONTENT_URL, openBitstream.getID()))
+                            .param("accessToken", request.getAccess_token()))
+                    .andExpect(status().isUnauthorized());
+        } finally {
+            configurationService.setProperty("request.item.type", requestItemType);
+        }
+
+        getClient().perform(get(String.format(CONTENT_URL, openBitstream.getID()))
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(OPEN_CONTENT));
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
+     * With request-a-copy switched off the CLARIN authorization endpoint answers a valid token exactly as it
+     * answers without one. Once the key is back, the same token is accepted.
+     */
+    @Test
+    public void clarinAuthorizationIgnoresTheAccessTokenWhenRequestACopyIsOff() throws Exception {
+        RequestItem request = acceptedRequestFor(openBitstream);
+        String requestItemType = configurationService.getProperty("request.item.type");
+
+        configurationService.setProperty("request.item.type", null);
+        try {
+            String answerWithoutToken = getClient().perform(get(AUTHRN_URL + openBitstream.getID()))
+                    .andExpect(status().isUnauthorized())
+                    .andReturn().getResponse().getErrorMessage();
+
+            getClient().perform(get(AUTHRN_URL + openBitstream.getID())
+                            .param("accessToken", request.getAccess_token()))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(status().reason(answerWithoutToken));
+        } finally {
+            configurationService.setProperty("request.item.type", requestItemType);
+        }
+
+        getClient().perform(get(AUTHRN_URL + openBitstream.getID())
+                        .param("accessToken", request.getAccess_token()))
+                .andExpect(status().isOk());
+
+        RequestItemBuilder.deleteRequestItem(request.getToken());
+    }
+
+    /**
      * {@code BitstreamResourceAccessByToken} streams the bytes in its own context, so it checks the CLARIN
      * licence itself: a licence-protected bitstream is not served on an access token alone.
      */
