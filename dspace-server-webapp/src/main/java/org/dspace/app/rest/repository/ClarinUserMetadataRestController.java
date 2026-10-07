@@ -519,7 +519,7 @@ public class ClarinUserMetadataRestController {
         // Get anonymous user registration - user metadata should not have `user_registration_id = null`
         ClarinUserRegistration clarinUserRegistration = null;
         List<ClarinUserRegistration> clarinUserRegistrationList = clarinUserRegistrationService
-                .findByEmail(context, ANONYMOUS_USER_REGISTRATION);
+                .findByOrganization(context, ANONYMOUS_USER_REGISTRATION);
         for (ClarinUserRegistration fetchedClarinuserRegistration : clarinUserRegistrationList) {
             if (!StringUtils.equals(fetchedClarinuserRegistration.getOrganization(), ANONYMOUS_USER_REGISTRATION)) {
                 continue;

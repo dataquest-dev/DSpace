@@ -36,11 +36,12 @@ public class ClarinUserRegistrationDAOImpl extends AbstractHibernateDAO<ClarinUs
     }
 
     @Override
-    public List<ClarinUserRegistration> findByEmail(Context context, String email) throws SQLException {
+    public List<ClarinUserRegistration> findByOrganization(Context context, String organization)
+            throws SQLException {
         Query query = createQuery(context, "SELECT cur FROM ClarinUserRegistration as cur " +
-                "WHERE cur.email = :email");
+                "WHERE cur.organization = :organization");
 
-        query.setParameter("email", email);
+        query.setParameter("organization", organization);
         query.setHint("org.hibernate.cacheable", Boolean.TRUE);
 
         return list(query);

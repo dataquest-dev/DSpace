@@ -59,6 +59,24 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
                     "You must be an admin to create a CLARIN user registration");
         }
 
+        // Prevent duplicate registrations for the same eperson_id.
+        // If a registration already exists for this EPerson, update it instead of creating a new one.
+        UUID epersonId = clarinUserRegistration.getPersonID();
+        if (Objects.nonNull(epersonId)) {
+            List<ClarinUserRegistration> existing = clarinUserRegistrationDAO.findByEPersonUUID(context, epersonId);
+            if (!CollectionUtils.isEmpty(existing)) {
+                ClarinUserRegistration existingRegistration = existing.get(0);
+                log.info("ClarinUserRegistration already exists for eperson_id={}. " +
+                        "Updating existing registration (id={}) instead of creating a duplicate.",
+                        epersonId, existingRegistration.getID());
+                // Update the existing registration with new values
+                existingRegistration.setOrganization(clarinUserRegistration.getOrganization());
+                existingRegistration.setConfirmation(clarinUserRegistration.isConfirmation());
+                clarinUserRegistrationDAO.save(context, existingRegistration);
+                return existingRegistration;
+            }
+        }
+
         return clarinUserRegistrationDAO.create(context, clarinUserRegistration);
     }
 
@@ -96,9 +114,9 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
     }
 
     @Override
-    public List<ClarinUserRegistration> findByEmail(Context context, String email)
+    public List<ClarinUserRegistration> findByOrganization(Context context, String organization)
             throws SQLException {
-        return clarinUserRegistrationDAO.findByEmail(context, email);
+        return clarinUserRegistrationDAO.findByOrganization(context, organization);
     }
 
     @Override

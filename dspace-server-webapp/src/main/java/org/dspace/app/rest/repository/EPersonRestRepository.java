@@ -152,7 +152,6 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
             ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
             clarinUserRegistration.setOrganization(UNKNOWN_USER_REGISTRATION);
             clarinUserRegistration.setConfirmation(true);
-            clarinUserRegistration.setEmail(eperson.getEmail());
             clarinUserRegistration.setPersonID(eperson.getID());
             clarinUserRegistrationService.create(context, clarinUserRegistration);
         } catch (SQLException e) {

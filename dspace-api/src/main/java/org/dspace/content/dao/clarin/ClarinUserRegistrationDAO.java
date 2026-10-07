@@ -19,5 +19,5 @@ public interface ClarinUserRegistrationDAO extends GenericDAO<ClarinUserRegistra
 
     List<ClarinUserRegistration> findByEPersonUUID(Context context, UUID epersonUUID) throws SQLException;
 
-    List<ClarinUserRegistration> findByEmail(Context context, String email) throws SQLException;
+    List<ClarinUserRegistration> findByOrganization(Context context, String organization) throws SQLException;
 }
