@@ -70,8 +70,8 @@ public class OrcidAuthorityAssign
             performAuthorityAssignment();
             context.complete();
         } catch (Exception e) {
-            handler.handleException(e);
             context.abort();
+            handler.handleException(e);
         } finally {
             context.restoreAuthSystemState();
         }
