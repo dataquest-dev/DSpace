@@ -11,9 +11,12 @@ import static org.dspace.app.launcher.ScriptLauncher.handleScript;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -399,6 +402,143 @@ public class OrcidAuthorityAssignIT extends AbstractIntegrationTestWithDatabase 
         assertThat(authors, hasSize(1));
         assertEquals("1234-5678-9012-3456", authors.get(0).getAuthority());
         assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
+    }
+
+    /**
+     * Test that values without a well-formed ORCID iD or without an author name are skipped.
+     */
+    @Test
+    public void testMalformedOrcidValuesAreSkipped() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("Malformed ORCID publication")
+            .withAuthor("Smith, Donald")
+            .withAuthor("Doe, Jane")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1-7893-272XR")
+            .withMetadata("dc", "identifier", "orcid", "Doe, Jane 000-0002-5109-6693")
+            .withMetadata("dc", "identifier", "orcid", "1234-5678-9012-3456")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = runScript();
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), hasItems(
+            "Could not extract ORCID ID from value: Smith, Donald 1-7893-272XR",
+            "Could not extract ORCID ID from value: Doe, Jane 000-0002-5109-6693",
+            "Could not extract author name from value: 1234-5678-9012-3456"));
+
+        context.turnOffAuthorisationSystem();
+        item = context.reloadEntity(item);
+        List<MetadataValue> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
+        context.restoreAuthSystemState();
+
+        assertThat(authors, hasSize(2));
+        assertNull(authors.get(0).getAuthority());
+        assertNull(authors.get(1).getAuthority());
+    }
+
+    /**
+     * Test that one author name mapped to two different ORCID iDs is reported and all its values
+     * get the same one of them.
+     */
+    @Test
+    public void testSameAuthorNameWithDifferentOrcids() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item1 = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("First publication")
+            .withAuthor("Smith, Donald")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-3456")
+            .build();
+
+        Item item2 = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("Second publication")
+            .withAuthor("Smith, Donald")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-7890")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = runScript();
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(),
+            hasItem(startsWith("Duplicate author name 'Smith, Donald' with different ORCIDs")));
+
+        context.turnOffAuthorisationSystem();
+        item1 = context.reloadEntity(item1);
+        item2 = context.reloadEntity(item2);
+        String authority1 = itemService.getMetadata(item1, "dc", "contributor", "author", Item.ANY)
+            .get(0).getAuthority();
+        String authority2 = itemService.getMetadata(item2, "dc", "contributor", "author", Item.ANY)
+            .get(0).getAuthority();
+        context.restoreAuthSystemState();
+
+        assertThat(authority1, oneOf("1234-5678-9012-3456", "1234-5678-9012-7890"));
+        assertEquals(authority1, authority2);
+    }
+
+    /**
+     * Test that running the script again leaves the assigned authority unchanged.
+     */
+    @Test
+    public void testRerunIsIdempotent() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("Rerun publication")
+            .withAuthor("Smith, Donald")
+            .withMetadata("dc", "identifier", "orcid", "Smith, Donald 1234-5678-9012-3456")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler firstRun = runScript();
+        TestDSpaceRunnableHandler secondRun = runScript();
+
+        assertThat(firstRun.getErrorMessages(), empty());
+        assertThat(secondRun.getErrorMessages(), empty());
+
+        context.turnOffAuthorisationSystem();
+        item = context.reloadEntity(item);
+        List<MetadataValue> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
+        context.restoreAuthSystemState();
+
+        assertThat(authors, hasSize(1));
+        assertEquals("1234-5678-9012-3456", authors.get(0).getAuthority());
+        assertEquals(Choices.CF_ACCEPTED, authors.get(0).getConfidence());
+    }
+
+    /**
+     * Test that the script changes nothing when the dc.identifier.orcid field is not in the registry.
+     */
+    @Test
+    public void testMissingOrcidIdentifierFieldAborts() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        metadataFieldService.delete(context, metadataFieldService.findByElement(context, "dc", "identifier", "orcid"));
+        Item item = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("Publication without ORCID field")
+            .withAuthor("Smith, Donald")
+            .build();
+        context.commit();
+
+        context.restoreAuthSystemState();
+
+        TestDSpaceRunnableHandler handler = runScript();
+
+        assertThat(handler.getErrorMessages(),
+            hasItem("Metadata field dc.identifier.orcid not found in the registry. Aborting."));
+
+        context.turnOffAuthorisationSystem();
+        item = context.reloadEntity(item);
+        List<MetadataValue> authors = itemService.getMetadata(item, "dc", "contributor", "author", Item.ANY);
+        context.restoreAuthSystemState();
+
+        assertNull(authors.get(0).getAuthority());
     }
 
     /**
