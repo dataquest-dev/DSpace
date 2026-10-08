@@ -82,7 +82,6 @@ public class OrcidAuthorityAssign
      * based on matching author names in dc.identifier.orcid.
      */
     private void performAuthorityAssignment() throws SQLException, IOException, AuthorizeException {
-        // Build the author-name-to-ORCID map from dc.identifier.orcid
         MetadataField orcidField = metadataFieldService.findByElement(context, "dc", "identifier", "orcid");
         if (orcidField == null) {
             handler.logError("Metadata field dc.identifier.orcid not found in the registry. Aborting.");
@@ -92,7 +91,6 @@ public class OrcidAuthorityAssign
         List<MetadataValue> orcidValues = metadataValueService.findByField(context, orcidField);
         handler.logInfo("Found " + orcidValues.size() + " dc.identifier.orcid metadata entries.");
 
-        // Map: normalized author name -> ORCID ID
         Map<String, String> authorNameToOrcid = new HashMap<>();
 
         for (MetadataValue orcidMv : orcidValues) {
@@ -101,7 +99,6 @@ public class OrcidAuthorityAssign
                 continue;
             }
 
-            // Extract the ORCID ID from the value
             Matcher matcher = ORCID_PATTERN.matcher(rawValue);
             if (!matcher.find()) {
                 handler.logWarning("Could not extract ORCID ID from value: " + rawValue);
@@ -117,7 +114,6 @@ public class OrcidAuthorityAssign
             }
 
             String normalizedName = normalizeAuthorName(authorName);
-            // If there's a duplicate author name with different ORCID
             if (authorNameToOrcid.containsKey(normalizedName)
                     && !authorNameToOrcid.get(normalizedName).equals(orcidId)) {
                 handler.logWarning("Duplicate author name '" + authorName
@@ -134,7 +130,6 @@ public class OrcidAuthorityAssign
             return;
         }
 
-        // Load all dc.contributor.author values
         MetadataField authorField = metadataFieldService.findByElement(context, "dc", "contributor", "author");
         if (authorField == null) {
             handler.logError("Metadata field dc.contributor.author not found in the registry. Aborting.");
@@ -144,7 +139,6 @@ public class OrcidAuthorityAssign
         List<MetadataValue> authorValues = metadataValueService.findByField(context, authorField);
         handler.logInfo("Found " + authorValues.size() + " dc.contributor.author metadata entries to check.");
 
-        // Match and update
         int updated = 0;
         int batchSize = 50;
 
