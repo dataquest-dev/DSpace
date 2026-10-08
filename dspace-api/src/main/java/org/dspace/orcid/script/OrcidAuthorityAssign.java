@@ -38,6 +38,7 @@ import org.dspace.utils.DSpace;
  * Script that assigns ORCID-based authority values to dc.contributor.author metadata
  * by matching author names found in dc.identifier.orcid metadata entries.
  * The script always overwrites existing authority values to keep data up-to-date.
+ *
  * @author Matus Kasak (dspace at dataquest.sk)
  */
 public class OrcidAuthorityAssign
@@ -175,6 +176,7 @@ public class OrcidAuthorityAssign
 
         handler.logInfo("Authority assignment complete. Updated: " + updated
                 + ", Total author entries checked: " + authorValues.size());
+        LOGGER.info("OrcidAuthorityAssign updated {} dc.contributor.author entries.", updated);
     }
 
     /**
