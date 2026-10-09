@@ -76,6 +76,7 @@ import org.dspace.orcid.client.OrcidConfiguration;
 import org.dspace.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -138,6 +139,40 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     private EPersonRest adminRest;
     private final String feature = CanChangePasswordFeature.NAME;
 
+
+    private static final String AUTH_PLUGIN_KEY =
+            "plugin.sequence.org.dspace.authenticate.AuthenticationMethod";
+    private static final String HIDDEN_AUTH_METHODS_KEY = "authentication.hidden-methods";
+
+    /**
+     * Override the plugin sequence for advertisement tests so it survives configuration reloads.
+     */
+    private void setAuthenticationMethodSequence(String[] methods) {
+        System.setProperty(AUTH_PLUGIN_KEY, String.join(",", methods));
+        configurationService.reloadConfig();
+    }
+
+    /**
+     * Override hidden methods via a system property so the setting survives configuration reloads.
+     * @param methods comma-separated method names, or null to remove the override
+     */
+    private void setHiddenAuthenticationMethods(String methods) {
+        if (methods == null) {
+            System.clearProperty(HIDDEN_AUTH_METHODS_KEY);
+        } else {
+            System.setProperty(HIDDEN_AUTH_METHODS_KEY, methods);
+        }
+        configurationService.reloadConfig();
+    }
+
+    /**
+     * Clear authentication test overrides before the superclass restores configuration from disk.
+     */
+    @After
+    public void clearAuthenticationTestOverrides() {
+        System.clearProperty(AUTH_PLUGIN_KEY);
+        System.clearProperty(HIDDEN_AUTH_METHODS_KEY);
+    }
 
     @Before
     public void setup() throws Exception {
@@ -1276,6 +1311,94 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                         .andExpect(jsonPath("$.authenticationMethod").doesNotExist())
                         .andExpect(jsonPath("$.type", is("status")));
 
+    }
+
+    @Test
+    public void testHiddenPasswordAuthentication() throws Exception {
+        setHiddenAuthenticationMethods(null);
+        setAuthenticationMethodSequence(SHIB_ONLY);
+        String shibbolethHeader = getClient().perform(get("/api/authn/status")
+                .header("Referer", "http://my.uni.edu"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("WWW-Authenticate", containsString("shibboleth realm=")))
+            .andReturn().getResponse().getHeader("WWW-Authenticate");
+
+        // JCU keeps the same Shibboleth-only advertisement while enabling REST password login.
+        setAuthenticationMethodSequence(SHIB_AND_PASS);
+        setHiddenAuthenticationMethods("password");
+        // A later configuration rebuild must preserve the hidden-method override.
+        configurationService.reloadConfig();
+        getClient().perform(get("/api/authn/status").header("Referer", "http://my.uni.edu"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("WWW-Authenticate", shibbolethHeader));
+
+        getClient().perform(post("/api/authn/login").header("Referer", "http://my.uni.edu")
+                .param("user", eperson.getEmail()).param("password", "fakePassword"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(header().string("WWW-Authenticate", shibbolethHeader));
+
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token).perform(get("/api/authn/status"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.authenticated", is(true)))
+            .andExpect(jsonPath("$.authenticationMethod", is("password")));
+        getClient(token).perform(get("/api/authz/authorizations/" + authorization.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.is(AuthorizationMatcher.matchAuthorization(authorization))));
+        getClient(token).perform(post("/api/authn/logout"))
+            .andExpect(status().isNoContent());
+
+        token = getClient().perform(post("/api/authn/login")
+                .requestAttr("SHIB-MAIL", eperson.getEmail())
+                .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getHeader(AUTHORIZATION_HEADER).replace(AUTHORIZATION_TYPE, "");
+        getClient(token).perform(get("/api/authn/status"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.authenticated", is(true)))
+            .andExpect(jsonPath("$.authenticationMethod", is("shibboleth")));
+        getClient(token).perform(post("/api/authn/logout"))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testUnsetEmptyAndUnknownHiddenAuthenticationMethods() throws Exception {
+        setAuthenticationMethodSequence(SHIB_AND_PASS);
+        setHiddenAuthenticationMethods(null);
+        String originalHeader = getClient().perform(get("/api/authn/status")
+                .header("Referer", "http://my.uni.edu"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("WWW-Authenticate", containsString("shibboleth realm=")))
+            .andExpect(header().string("WWW-Authenticate", containsString("password realm=")))
+            .andReturn().getResponse().getHeader("WWW-Authenticate");
+
+        for (String hiddenMethods : new String[] {
+            null, "", "unknown", "Password", "org.dspace.authenticate.PasswordAuthentication"
+        }) {
+            setHiddenAuthenticationMethods(hiddenMethods);
+            getClient().perform(get("/api/authn/status").header("Referer", "http://my.uni.edu"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("WWW-Authenticate", originalHeader));
+        }
+    }
+
+    @Test
+    public void testHiddenAuthenticationMethodSeparators() throws Exception {
+        setAuthenticationMethodSequence(new String[] {
+            "org.dspace.authenticate.PasswordAuthentication",
+            "org.dspace.authenticate.ShibAuthentication",
+            "org.dspace.authenticate.IPAuthentication"
+        });
+        setHiddenAuthenticationMethods("shibboleth");
+        getClient().perform(get("/api/authn/status"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("WWW-Authenticate",
+                    "password realm=\"DSpace REST API\", ip realm=\"DSpace REST API\""));
+
+        setHiddenAuthenticationMethods("password, shibboleth");
+        getClient().perform(get("/api/authn/status"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("WWW-Authenticate", "ip realm=\"DSpace REST API\""));
     }
 
     @Test

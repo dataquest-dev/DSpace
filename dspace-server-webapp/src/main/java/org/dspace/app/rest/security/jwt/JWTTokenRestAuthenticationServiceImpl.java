@@ -10,7 +10,9 @@ package org.dspace.app.rest.security.jwt;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import com.nimbusds.jose.JOSEException;
 import jakarta.servlet.http.Cookie;
@@ -30,6 +32,7 @@ import org.dspace.authenticate.service.AuthenticationService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -185,6 +188,8 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
      * This list is sent to the client in the WWW-Authenticate header in order to inform it of all the enabled
      * authentication plugins *and* (optionally) to provide it with the "location" of the login page, if
      * the authentication plugin requires an external login page (e.g. Shibboleth).
+     * Methods listed in authentication.hidden-methods are omitted from this header,
+     * but remain enabled for authentication through the configured plugin stack.
      * <P>
      * Example output looks like:
      *    shibboleth realm="DSpace REST API" location=[shibboleth-url], password realm="DSpace REST API"
@@ -198,9 +203,17 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
                 = authenticationService.authenticationMethodIterator();
         Context context = ContextUtil.obtainContext(request);
 
+        // Hidden methods remain enabled for authentication but are not advertised to clients.
+        List<String> hiddenMethods = Arrays.asList(DSpaceServicesFactory.getInstance().getConfigurationService()
+                .getArrayProperty("authentication.hidden-methods", new String[0]));
+
         StringBuilder wwwAuthenticate = new StringBuilder();
         while (authenticationMethodIterator.hasNext()) {
             AuthenticationMethod authenticationMethod = authenticationMethodIterator.next();
+            if (hiddenMethods.contains(authenticationMethod.getName())) {
+                log.debug("Omitting authentication method '{}' from WWW-Authenticate", authenticationMethod.getName());
+                continue;
+            }
 
             if (wwwAuthenticate.length() > 0) {
                 wwwAuthenticate.append(", ");
