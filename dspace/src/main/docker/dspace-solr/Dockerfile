@@ -37,4 +37,12 @@ RUN chown -R solr:solr /opt/solr/server/solr/configsets
 
 COPY scripts/log4j2.solr.xml /var/solr/log4j2.xml
 
+
+# curl: used by the container healthcheck in docker-compose.yml, which asks the CoreAdmin
+# API whether the "search" core is registered. The solr:*-slim base ships curl today, but
+# the probe must not silently depend on that: without it Solr would never report healthy,
+# service_healthy would block the backend, and autoheal would restart a healthy container.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 USER solr
