@@ -129,14 +129,16 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         Assert.assertFalse(ObjectUtils.isEmpty(expectedExternalHandles));
         Handle externalHandle = expectedExternalHandles.get(0);
 
-        getClient().perform(get("/api/services/handles/magic"))
+        MvcResult result = getClient().perform(get("/api/services/handles/magic"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.valueOf("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$..reportemail").doesNotExist())
                 .andExpect(jsonPath("$", ExternalHandleMatcher.matchListOfExternalHandles(
                         expectedExternalHandles
-                )))
-        ;
+                ))).andReturn();
+        for (Handle expected : expectedExternalHandles) {
+            Assert.assertFalse(result.getResponse().getContentAsString().contains(expected.reportemail));
+        }
     }
 
     @Test
