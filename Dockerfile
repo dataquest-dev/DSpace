@@ -55,8 +55,11 @@ FROM docker.io/eclipse-temurin:${JDK_VERSION}
 # See https://github.com/DSpace/DSpace/blob/main/dspace/config/config-definition.xml
 # "dspace__P__dir" is setting the value of the "dspace.dir" configuration. This is our installation directory.
 ENV dspace__P__dir=/dspace
+# We create a 'dspace' user to run DSpace instead of running as root. An explicit UID is required
+# because Kubernetes deployment accepts only numeric user IDs when specifying the container user.
+RUN useradd -u 1100 -m -s /bin/bash dspace
 # Copy the /dspace directory from 'ant_build' container to /dspace in this container
-COPY --from=ant_build /dspace $dspace__P__dir
+COPY --chown=dspace:root --from=ant_build /dspace $dspace__P__dir
 WORKDIR $dspace__P__dir
 # Need host command for "[dspace]/bin/make-handle-config"
 RUN apt-get update \
@@ -68,10 +71,6 @@ EXPOSE 8080 8000
 # Give java extra memory (2GB)
 ENV JAVA_OPTS=-Xmx2000m
 
-# We create a 'dspace' user to run DSpace instead of running as root. An explicit UID is required 
-# because Kubernetes deployment accepts only numeric user IDs when specifying the container user.
-RUN useradd -u 1100 -m -s /bin/bash dspace \
-    && chown -Rv dspace: /dspace
 USER dspace
 
 # On startup, run DSpace Runnable JAR (uses the "dspace.dir" setting defined in "dspace__P__dir" env variable)
