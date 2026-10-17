@@ -121,4 +121,24 @@ public class ClarinUserMetadataRestRepositoryIT extends AbstractControllerIntegr
                         otherClarinUserMetadata.getID()))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    public void findOneWithoutUserRegistrationTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        ClarinUserMetadata clarinUserMetadata = ClarinUserMetadataBuilder.createClarinUserMetadata(context)
+                .build();
+        context.restoreAuthSystemState();
+
+        // User metadata without a user registration come from an anonymous download, only admin can read them
+        getClient().perform(get("/api/core/clarinusermetadata/" + clarinUserMetadata.getID()))
+                .andExpect(status().isUnauthorized());
+
+        String userToken = getAuthToken(eperson.getEmail(), password);
+        getClient(userToken).perform(get("/api/core/clarinusermetadata/" + clarinUserMetadata.getID()))
+                .andExpect(status().isForbidden());
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/core/clarinusermetadata/" + clarinUserMetadata.getID()))
+                .andExpect(status().isOk());
+    }
 }

@@ -10,7 +10,6 @@ package org.dspace.content.clarin;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.dspace.authorize.AuthorizeException;
@@ -104,18 +103,12 @@ public class ClarinUserMetadataServiceImpl implements ClarinUserMetadataService 
             return;
         }
 
-        // Check if the user is the same as from the userRegistration
-        // Do not allow to get the userRegistration of another user
+        // Only the owner may read it. Records without a user registration come from anonymous
+        // downloads, so only an admin may read them.
         EPerson currentUser = context.getCurrentUser();
-        ClarinUserMetadata userMetadatum = userMetadata.get(0);
-
-        // Check if the userRegistration is not null
-        if (Objects.isNull(userMetadatum.getEperson())) {
-            return;
-        }
-
-        UUID userRegistrationEpersonUUID = userMetadatum.getEperson().getPersonID();
-        if (currentUser.getID().equals(userRegistrationEpersonUUID)) {
+        ClarinUserRegistration userRegistration = userMetadata.get(0).getEperson();
+        if (Objects.nonNull(currentUser) && Objects.nonNull(userRegistration)
+                && currentUser.getID().equals(userRegistration.getPersonID())) {
             return;
         }
 
