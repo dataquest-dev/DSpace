@@ -12,9 +12,11 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
+import org.dspace.app.rest.exception.RESTAuthorizationException;
 import org.dspace.app.rest.model.ClarinLicenseResourceUserAllowanceRest;
 import org.dspace.app.rest.model.ClarinUserRegistrationRest;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
@@ -38,11 +40,16 @@ public class CLRUAUUserRegistrationLinkRepository extends AbstractDSpaceRestRepo
     public ClarinUserRegistrationRest getUserRegistration(@Nullable HttpServletRequest request,
                                                      Integer clruaID,
                                                      @Nullable Pageable optionalPageable,
-                                                     Projection projection) throws SQLException {
+                                                     Projection projection)
+            throws SQLException, RESTAuthorizationException {
         Context context = obtainContext();
 
-        ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance =
-                clarinLicenseResourceUserAllowanceService.find(context, clruaID);
+        ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance;
+        try {
+            clarinLicenseResourceUserAllowance = clarinLicenseResourceUserAllowanceService.find(context, clruaID);
+        } catch (AuthorizeException e) {
+            throw new RESTAuthorizationException(e);
+        }
         if (Objects.isNull(clarinLicenseResourceUserAllowance)) {
             throw new ResourceNotFoundException("The ClarinLicenseResourceUserAllowance for id: " + clruaID +
                     " couldn't be found");
