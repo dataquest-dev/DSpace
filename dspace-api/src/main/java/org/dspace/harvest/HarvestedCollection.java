@@ -65,6 +65,10 @@ public class HarvestedCollection implements ReloadableEntity<Integer> {
     @Column(name = "last_harvested", columnDefinition = "timestamp with time zone")
     private Instant lastHarvested;
 
+    // Widens the hosts an ORE ingest may fetch files from; internal addresses stay blocked either way.
+    @Column(name = "allow_external_urls")
+    private boolean allowExternalUrls;
+
     @Transient
     public static final int TYPE_NONE = 0;
     @Transient
@@ -165,6 +169,15 @@ public class HarvestedCollection implements ReloadableEntity<Integer> {
         this.harvestStartTime = date;
     }
 
+    /**
+     * Allows ORE ingest to fetch files from hosts other than the one hosting the OAI source.
+     *
+     * @param allowExternalUrls true to skip the host confinement check
+     */
+    public void setAllowExternalUrls(boolean allowExternalUrls) {
+        this.allowExternalUrls = allowExternalUrls;
+    }
+
 
     /* Getting for the appropriate harvesting-related columns */
     public Collection getCollection() {
@@ -205,5 +218,9 @@ public class HarvestedCollection implements ReloadableEntity<Integer> {
 
     public Instant getHarvestStartTime() {
         return harvestStartTime;
+    }
+
+    public boolean isAllowExternalUrls() {
+        return allowExternalUrls;
     }
 }

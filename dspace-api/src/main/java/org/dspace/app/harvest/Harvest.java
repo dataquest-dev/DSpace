@@ -54,6 +54,8 @@ public class Harvest extends DSpaceRunnable<HarvestScriptConfiguration> {
     private String oaiSetID = null;
     private String metadataKey = null;
     private int harvestType = 0;
+    // null means "-x was not given"; as in the REST contract, that leaves an existing setting untouched
+    private Boolean allowExternalUrls;
 
     protected Context context;
 
@@ -116,6 +118,9 @@ public class Harvest extends DSpaceRunnable<HarvestScriptConfiguration> {
         if (commandLine.hasOption('m')) {
             metadataKey = commandLine.getOptionValue('m');
         }
+        if (commandLine.hasOption('x')) {
+            allowExternalUrls = Boolean.TRUE;
+        }
     }
 
     /**
@@ -146,7 +151,7 @@ public class Harvest extends DSpaceRunnable<HarvestScriptConfiguration> {
             handler.logInfo("PING OAI server: Harvest -g -a oai_source -i oai_set_id");
             handler.logInfo(
                     "SETUP a collection for harvesting: Harvest -s -c collection -t harvest_type -a oai_source -i " +
-                            "oai_set_id -m metadata_format");
+                            "oai_set_id -m metadata_format [-x]");
             handler.logInfo("RUN harvest once: Harvest -r -e eperson -c collection");
             handler.logInfo("START harvest scheduler: Harvest -S");
             handler.logInfo("RESET all harvest status: Harvest -R");
@@ -227,7 +232,8 @@ public class Harvest extends DSpaceRunnable<HarvestScriptConfiguration> {
                         "A metadata key (commonly the prefix) must be specified for this collection");
             }
 
-            configureCollection(context, collection, harvestType, oaiSource, oaiSetID, metadataKey);
+            configureCollection(context, collection, harvestType, oaiSource, oaiSetID, metadataKey,
+                                allowExternalUrls);
         } else if ("ping".equals(command)) {
             if (oaiSource == null || oaiSetID == null) {
                 handler.logError(
@@ -287,7 +293,7 @@ public class Harvest extends DSpaceRunnable<HarvestScriptConfiguration> {
 
 
     private void configureCollection(Context context, String collectionID, int type, String oaiSource, String oaiSetId,
-                                     String mdConfigId) {
+                                     String mdConfigId, Boolean allowExternalUrls) {
         handler.logInfo("Running: configure collection");
 
         Collection collection = resolveCollection(context, collectionID);
@@ -301,6 +307,9 @@ public class Harvest extends DSpaceRunnable<HarvestScriptConfiguration> {
 
             context.turnOffAuthorisationSystem();
             hc.setHarvestParams(type, oaiSource, oaiSetId, mdConfigId);
+            if (allowExternalUrls != null) {
+                hc.setAllowExternalUrls(allowExternalUrls);
+            }
             hc.setHarvestStatus(HarvestedCollection.STATUS_READY);
             harvestedCollectionService.update(context, hc);
             context.restoreAuthSystemState();

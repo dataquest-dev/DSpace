@@ -10,6 +10,7 @@ package org.dspace.app.rest;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -99,11 +100,28 @@ public class CollectionHarvestSettingsControllerIT extends AbstractControllerInt
      */
     public JSONObject createHarvestSettingsJson(String harvestType,
                                                 String oaiSource, String oaiSetId, String metadataConfigId) {
+        return createHarvestSettingsJson(harvestType, oaiSource, oaiSetId, metadataConfigId, null);
+    }
+
+    /**
+     * Function to create a JSONObject containing the harvest settings
+     * @param harvestType           The harvest type
+     * @param oaiSource             The OAI source
+     * @param oaiSetId              The OAI set id
+     * @param metadataConfigId      The metadata config id
+     * @param allowExternalUrls     Whether external URLs are allowed; null omits the key from the body
+     * @return A JSONObject containing the given harvest settings
+     */
+    public JSONObject createHarvestSettingsJson(String harvestType, String oaiSource, String oaiSetId,
+                                                String metadataConfigId, Boolean allowExternalUrls) {
         JSONObject json = new JSONObject();
         json.put("harvest_type", harvestType);
         json.put("oai_source", oaiSource);
         json.put("oai_set_id", oaiSetId);
         json.put("metadata_config_id", metadataConfigId);
+        if (allowExternalUrls != null) {
+            json.put("allow_external_urls", allowExternalUrls.booleanValue());
+        }
         return json;
     }
 
@@ -137,6 +155,7 @@ public class CollectionHarvestSettingsControllerIT extends AbstractControllerInt
                 .andExpect(jsonPath("$.harvest_status", is("READY")))
                 .andExpect(jsonPath("$.harvest_start_time", is(nullValue())))
                 .andExpect(jsonPath("$.last_harvested", is(nullValue())))
+                .andExpect(jsonPath("$.allow_external_urls", is(false)))
                 .andExpect(jsonPath("$._links.self.href",
                     endsWith("api/core/collections/" + collection.getID() + "/harvester")))
                 .andExpect(jsonPath("$._embedded.harvestermetadata",  Matchers.allOf(
@@ -219,6 +238,7 @@ public class CollectionHarvestSettingsControllerIT extends AbstractControllerInt
             .andExpect(jsonPath("$.harvest_status", is(nullValue())))
             .andExpect(jsonPath("$.harvest_start_time", is(nullValue())))
             .andExpect(jsonPath("$.last_harvested", is(nullValue())))
+            .andExpect(jsonPath("$.allow_external_urls", is(false)))
             .andExpect(jsonPath("$._links.self.href",
                 endsWith("api/core/collections/" + collectionNoHarvestSettings.getID() + "/harvester")))
             .andExpect(jsonPath("$._embedded.harvestermetadata",  Matchers.allOf(
@@ -248,6 +268,93 @@ public class CollectionHarvestSettingsControllerIT extends AbstractControllerInt
         assertTrue(harvestedCollection.getOaiSource().equals(json.getString("oai_source")));
         assertTrue(harvestedCollection.getOaiSetId().equals(json.getString("oai_set_id")));
         assertTrue(harvestedCollection.getHarvestMetadataConfig().equals(json.getString("metadata_config_id")));
+    }
+
+    @Test
+    public void PutAllowExternalUrlsTrueIsStoredAndReturned() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+
+        JSONObject json = createHarvestSettingsJson("METADATA_ONLY", "https://dspace.org/oai/request",
+                "col_1721.1_114174", "dc", true);
+
+        getClient(token).perform(
+            put("/api/core/collections/" + collection.getID() + "/harvester")
+                .contentType("application/json")
+                .content(json.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.allow_external_urls", is(true)));
+
+        getClient(token).perform(
+            get("/api/core/collections/" + collection.getID() + "/harvester"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.allow_external_urls", is(true)));
+
+        assertTrue(harvestedCollectionService.find(context, collection).isAllowExternalUrls());
+    }
+
+    @Test
+    public void PutWithoutAllowExternalUrlsLeavesStoredValueUnchanged() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+
+        // Seed the flag through the endpoint, there is no HarvestedCollectionBuilder.
+        JSONObject withFlag = createHarvestSettingsJson("METADATA_ONLY", "https://dspace.org/oai/request",
+                "col_1721.1_114174", "dc", true);
+
+        getClient(token).perform(
+            put("/api/core/collections/" + collection.getID() + "/harvester")
+                .contentType("application/json")
+                .content(withFlag.toString()))
+            .andExpect(status().isOk());
+
+        // A body without the key must not silently reset the flag.
+        JSONObject withoutFlag = createHarvestSettingsJson("METADATA_ONLY", "https://dspace.org/oai/request",
+                "col_1721.1_114174", "dc");
+
+        getClient(token).perform(
+            put("/api/core/collections/" + collection.getID() + "/harvester")
+                .contentType("application/json")
+                .content(withoutFlag.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.allow_external_urls", is(true)));
+
+        getClient(token).perform(
+            get("/api/core/collections/" + collection.getID() + "/harvester"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.allow_external_urls", is(true)));
+
+        assertTrue(harvestedCollectionService.find(context, collection).isAllowExternalUrls());
+    }
+
+    @Test
+    public void PutAllowExternalUrlsFalseIsStored() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+
+        JSONObject flagOn = createHarvestSettingsJson("METADATA_ONLY", "https://dspace.org/oai/request",
+                "col_1721.1_114174", "dc", true);
+
+        getClient(token).perform(
+            put("/api/core/collections/" + collection.getID() + "/harvester")
+                .contentType("application/json")
+                .content(flagOn.toString()))
+            .andExpect(status().isOk());
+
+        // An explicit false must overwrite, unlike an absent key.
+        JSONObject flagOff = createHarvestSettingsJson("METADATA_ONLY", "https://dspace.org/oai/request",
+                "col_1721.1_114174", "dc", false);
+
+        getClient(token).perform(
+            put("/api/core/collections/" + collection.getID() + "/harvester")
+                .contentType("application/json")
+                .content(flagOff.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.allow_external_urls", is(false)));
+
+        getClient(token).perform(
+            get("/api/core/collections/" + collection.getID() + "/harvester"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.allow_external_urls", is(false)));
+
+        assertFalse(harvestedCollectionService.find(context, collection).isAllowExternalUrls());
     }
 
     @Test

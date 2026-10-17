@@ -48,6 +48,10 @@ public class HarvestedCollectionRest extends BaseObjectRest<Integer> {
     @JsonProperty("last_harvested")
     private Instant lastHarvested;
 
+    // Nullable on purpose: absent in a PUT body means "leave the stored value unchanged".
+    @JsonProperty("allow_external_urls")
+    private Boolean allowExternalUrls;
+
     private HarvesterMetadataRest metadata_configs;
 
     private CollectionRest collectionRest;
@@ -160,6 +164,14 @@ public class HarvestedCollectionRest extends BaseObjectRest<Integer> {
 
     public void setLastHarvested(Instant lastHarvested) {
         this.lastHarvested = lastHarvested;
+    }
+
+    public Boolean getAllowExternalUrls() {
+        return allowExternalUrls;
+    }
+
+    public void setAllowExternalUrls(Boolean allowExternalUrls) {
+        this.allowExternalUrls = allowExternalUrls;
     }
 
     @LinkRest(name = "harvestermetadata")
