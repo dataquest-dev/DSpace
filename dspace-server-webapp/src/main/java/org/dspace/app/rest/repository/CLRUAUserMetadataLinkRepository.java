@@ -14,9 +14,11 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.dspace.app.rest.exception.RESTAuthorizationException;
 import org.dspace.app.rest.model.ClarinLicenseResourceUserAllowanceRest;
 import org.dspace.app.rest.model.ClarinUserMetadataRest;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
 import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.service.clarin.ClarinLicenseResourceUserAllowanceService;
@@ -41,11 +43,16 @@ public class CLRUAUserMetadataLinkRepository extends AbstractDSpaceRestRepositor
     public Page<ClarinUserMetadataRest> getUserMetadata(@Nullable HttpServletRequest request,
                                                         Integer clruaID,
                                                         @Nullable Pageable optionalPageable,
-                                                        Projection projection) throws SQLException {
+                                                        Projection projection)
+            throws SQLException, RESTAuthorizationException {
         Context context = obtainContext();
-
-        ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance =
-                clarinLicenseResourceUserAllowanceService.find(context, clruaID);
+        ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance;
+        try {
+            clarinLicenseResourceUserAllowance =
+                    clarinLicenseResourceUserAllowanceService.find(context, clruaID);
+        } catch (AuthorizeException e) {
+            throw new RESTAuthorizationException(e);
+        }
         if (Objects.isNull(clarinLicenseResourceUserAllowance)) {
             throw new ResourceNotFoundException("The ClarinLicenseResourceUserAllowance for if: " + clruaID +
                     " couldn't be found");
