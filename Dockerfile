@@ -64,6 +64,9 @@ ENV DSPACE_INSTALL=/dspace
 RUN useradd -u 1100 -m -s /bin/bash dspace
 # Copy the /dspace directory from 'ant_build' container to /dspace in this container
 COPY --chown=dspace:root --from=ant_build /dspace $DSPACE_INSTALL
+# /dspace/sitemaps is created here so a Docker named volume mounted there
+# inherits the dspace owner instead of root.
+RUN mkdir -p /dspace/sitemaps && chown dspace:root /dspace/sitemaps
 WORKDIR $DSPACE_INSTALL
 # Need host command for "[dspace]/bin/make-handle-config"
 RUN apt-get update \
