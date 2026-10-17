@@ -59,8 +59,11 @@ RUN ant init_installation update_configs update_code update_webapps
 FROM docker.io/eclipse-temurin:${JDK_VERSION}
 # NOTE: DSPACE_INSTALL must align with the "dspace.dir" default configuration.
 ENV DSPACE_INSTALL=/dspace
+# We create a 'dspace' user to run DSpace instead of running as root. An explicit UID is required
+# because Kubernetes deployment accepts only numeric user IDs when specifying the container user.
+RUN useradd -u 1100 -m -s /bin/bash dspace
 # Copy the /dspace directory from 'ant_build' container to /dspace in this container
-COPY --from=ant_build /dspace $DSPACE_INSTALL
+COPY --chown=dspace:root --from=ant_build /dspace $DSPACE_INSTALL
 WORKDIR $DSPACE_INSTALL
 # Need host command for "[dspace]/bin/make-handle-config"
 RUN apt-get update \
@@ -72,11 +75,6 @@ EXPOSE 8080 8000
 # Give java extra memory (2GB)
 ENV JAVA_OPTS=-Xmx2000m
 # On startup, run DSpace Runnable JAR
-
-# We create a 'dspace' user to run DSpace instead of running as root. An explicit UID is required 
-# because Kubernetes deployment accepts only numeric user IDs when specifying the container user.
-RUN useradd -u 1100 -m -s /bin/bash dspace \
-    && chown -Rv dspace: /dspace
 
 USER dspace
 
