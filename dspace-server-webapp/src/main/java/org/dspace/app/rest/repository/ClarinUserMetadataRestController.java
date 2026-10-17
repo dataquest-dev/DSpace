@@ -230,6 +230,10 @@ public class ClarinUserMetadataRestController {
             // The current user doesn't fill in any user metadata, create a new UserMetadata objects
             newClarinUserMetadataList = this.createUserMetadataFromRequest(context,
                     clarinUserMetadataRestList);
+            // The signed-in user owns the new records, otherwise the update below is not allowed
+            for (ClarinUserMetadata clarinUserMetadata : newClarinUserMetadataList) {
+                clarinUserMetadata.setEperson(clarinUserRegistration);
+            }
         } else {
             // The current user does fill in any user metadata, update actual UserMetadata objects and create
             // the new ones is some are missing.
