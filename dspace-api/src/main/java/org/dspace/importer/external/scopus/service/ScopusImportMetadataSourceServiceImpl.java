@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import javax.el.MethodNotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.util.XMLUtils;
 import org.dspace.content.Item;
 import org.dspace.importer.external.datamodel.ImportRecord;
 import org.dspace.importer.external.datamodel.Query;
@@ -201,9 +202,7 @@ public class ScopusImportMetadataSourceServiceImpl extends AbstractImportMetadat
                 params.put(URI_PARAMETERS, requestParams);
                 String response = liveImportClient.executeHttpGetRequest(timeout, url, params);
 
-                SAXBuilder saxBuilder = new SAXBuilder();
-                // disallow DTD parsing to ensure no XXE attacks can occur
-                saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
+                SAXBuilder saxBuilder = XMLUtils.getSAXBuilder();
                 Document document = saxBuilder.build(new StringReader(response));
                 Element root = document.getRootElement();
 
@@ -378,9 +377,7 @@ public class ScopusImportMetadataSourceServiceImpl extends AbstractImportMetadat
 
     private List<Element> splitToRecords(String recordsSrc) {
         try {
-            SAXBuilder saxBuilder = new SAXBuilder();
-            // disallow DTD parsing to ensure no XXE attacks can occur
-            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
+            SAXBuilder saxBuilder = XMLUtils.getSAXBuilder();
             Document document = saxBuilder.build(new StringReader(recordsSrc));
             Element root = document.getRootElement();
             List<Element> records = root.getChildren("entry",Namespace.getNamespace("http://www.w3.org/2005/Atom"));

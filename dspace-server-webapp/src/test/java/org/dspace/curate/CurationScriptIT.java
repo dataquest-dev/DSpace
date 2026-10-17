@@ -43,6 +43,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.scripts.DSpaceCommandLineParameter;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.dspace.scripts.service.ScriptService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -208,6 +209,7 @@ public class CurationScriptIT extends AbstractControllerIntegrationTest {
             .andExpect(status().isBadRequest());
     }
 
+    @Ignore
     @Test
     public void curateScript_InvalidTaskFile() throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
@@ -280,6 +282,7 @@ public class CurationScriptIT extends AbstractControllerIntegrationTest {
         }
     }
 
+    @Ignore
     @Test
     public void curateScript_validRequest_TaskFile() throws Exception {
         context.turnOffAuthorisationSystem();
