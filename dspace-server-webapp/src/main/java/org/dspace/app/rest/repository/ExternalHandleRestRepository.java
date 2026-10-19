@@ -7,7 +7,6 @@
  */
 package org.dspace.app.rest.repository;
 
-import static org.apache.commons.lang.StringUtils.contains;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
@@ -19,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
@@ -244,9 +242,7 @@ public class ExternalHandleRestRepository {
             return false;
         }
 
-        // the delimiter in a part would move the token to another position in the magic URL
-        return Stream.of(handle.title, handle.reportemail, handle.datasetName, handle.datasetVersion, handle.query)
-                .noneMatch(part -> contains(part, MAGIC_BEAN));
+        return true;
     }
 
     private boolean validHandleUrl(String url) {

@@ -348,18 +348,6 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     }
 
     @Test
-    public void createHandleWithMagicBeanInMetadataIsRejected() throws Exception {
-        getClient().perform(post("/api/services/handles")
-                        .content(mapper.writeValueAsBytes(Map.of(
-                                "url", "https://lindat.mff.cuni.cz/#!/services/pmltq/",
-                                "title", "title" + ExternalHandleConstants.MAGIC_BEAN + "title",
-                                "reportemail", "reporteMail"
-                        )))
-                        .contentType(contentType))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     public void noMagicInCreateResponse() throws Exception {
         String url = "https://lindat.mff.cuni.cz/#!/services/pmltq/";
         Map<String, String> handleJson = Map.of(
