@@ -26,7 +26,7 @@
         </description>
         <!-- Select the grantor discovery strategy here. -->
         <constructor-arg index='0'
-                         ref='org.dspace.app.requestitem.RequestItemMetadataStrategy'/> 
+                         ref='org.dspace.app.requestitem.RequestItemHelpdeskStrategy'/>
     </bean>
 
     <bean class="org.dspace.app.requestitem.RequestItemMetadataStrategy"
