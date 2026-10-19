@@ -307,12 +307,13 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     public void coreHandlesEndpointHidesToken() throws Exception {
         org.dspace.handle.Handle handle = handlesWithMagicURLs.get(0);
         String hiddenUrl = handle.getUrl().replace("token0", "");
+        String adminToken = getAuthToken(admin.getEmail(), password);
 
-        getClient().perform(get("/api/core/handles/" + handle.getID()))
+        getClient(adminToken).perform(get("/api/core/handles/" + handle.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url", is(hiddenUrl)));
 
-        getClient().perform(get("/api/core/handles").param("size", "100"))
+        getClient(adminToken).perform(get("/api/core/handles").param("size", "100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.handles[*].url", hasItem(hiddenUrl)))
                 .andExpect(content().string(not(containsString(ExternalHandleConstants.MAGIC_BEAN + "token"))));
