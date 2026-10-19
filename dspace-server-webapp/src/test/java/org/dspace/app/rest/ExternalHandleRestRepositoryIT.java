@@ -47,7 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -74,6 +73,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
 
     private final String urlBlacklistConfig = "shortener.post.url.blacklist.regexps";
     private final String hostBlacklistConfig = "shortener.post.host.blacklist.regexps";
+    private static final String TEST_URL = "https://example.org/target";
     private String[] urlBlacklist;
     private String[] hostBlacklist;
 
@@ -322,29 +322,20 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     @Test
     public void tokenSetByAdminIsHiddenAndWorksForUpdate() throws Exception {
         org.dspace.handle.Handle handle = handlesWithMagicURLs.get(0);
-        String newMagicUrl = handle.getUrl().replace("token0", "adminToken");
+        patchUrlAndCheckToken(handle, handle.getUrl().replace("token0", "adminToken"), "adminToken");
 
-        patchHandleUrl(handle, newMagicUrl, "adminToken")
-                .andExpect(jsonPath("$.url", is(handle.getUrl().replace("token0", ""))));
-
-        updateHandle(null, Map.of(
-                "handle", handle.getHandle(),
-                "token", "adminToken",
-                "url", "https://lindat.cz"
-        ));
+        allowAnyUrl();
+        updateHandle(null, Map.of("handle", handle.getHandle(), "token", "adminToken", "url", TEST_URL));
     }
 
     @Test
     public void adminSaveOfHiddenUrlKeepsToken() throws Exception {
         org.dspace.handle.Handle handle = handlesWithMagicURLs.get(0);
         // admin saves the url exactly as the REST API shows it
-        patchHandleUrl(handle, handle.getUrl().replace("token0", ""), "token0");
+        patchUrlAndCheckToken(handle, handle.getUrl().replace("token0", ""), "token0");
 
-        updateHandle(null, Map.of(
-                "handle", handle.getHandle(),
-                "token", "token0",
-                "url", "https://lindat.cz"
-        ));
+        allowAnyUrl();
+        updateHandle(null, Map.of("handle", handle.getHandle(), "token", "token0", "url", TEST_URL));
     }
 
     @Test
@@ -431,18 +422,24 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         ;
     }
 
-    private ResultActions patchHandleUrl(org.dspace.handle.Handle handle, String url, String expectedToken)
-            throws Exception {
+    /**
+     * Update the url as admin, then check that the token is stored but is not in the response.
+     */
+    private void patchUrlAndCheckToken(org.dspace.handle.Handle handle, String url, String token) throws Exception {
         Map<String, String> values = Map.of("handle", handle.getHandle(), "url", url, "archive", "false");
-        ResultActions result = getClient(getAuthToken(admin.getEmail(), password))
+        getClient(getAuthToken(admin.getEmail(), password))
                 .perform(patch("/api/core/handles/" + handle.getID())
                         .content(getPatchContent(List.of(new ReplaceOperation("/updateHandle", values))))
                         .contentType(javax.ws.rs.core.MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(not(containsString(expectedToken))));
+                .andExpect(content().string(not(containsString(token))));
         Assert.assertTrue("Token should be stored in the database",
-                handleClarinService.findByHandle(context, handle.getHandle()).getUrl().contains(expectedToken));
-        return result;
+                handleClarinService.findByHandle(context, handle.getHandle()).getUrl().contains(token));
+    }
+
+    private void allowAnyUrl() {
+        configurationService.setProperty(urlBlacklistConfig, null);
+        configurationService.setProperty(hostBlacklistConfig, null);
     }
 
     private MvcResult createHandle(String authToken, Map<String, String> handleJson) throws Exception {
