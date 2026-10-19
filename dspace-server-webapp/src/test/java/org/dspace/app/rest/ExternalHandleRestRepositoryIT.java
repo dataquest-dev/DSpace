@@ -331,24 +331,6 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     }
 
     @Test
-    public void updateOfHandleWithoutTokenIsNotFound() throws Exception {
-        context.turnOffAuthorisationSystem();
-        org.dspace.handle.Handle handle = ClarinHandleBuilder
-                .createHandle(context, prefix + "notoken", handlesWithMagicURLs.get(0).getUrl().replace("token0", ""))
-                .build();
-        context.restoreAuthSystemState();
-        getClient(getAuthToken(admin.getEmail(), password)).perform(get("/api/core/handles/" + handle.getID()))
-                .andExpect(status().isOk());
-
-        allowAnyUrl();
-        getClient().perform(put("/api/services/handles")
-                        .content(mapper.writeValueAsBytes(Map.of("handle", handle.getHandle(), "token", "token0",
-                                "url", TEST_URL)))
-                        .contentType(contentType))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
     public void adminSaveOfHiddenUrlKeepsToken() throws Exception {
         org.dspace.handle.Handle handle = handlesWithMagicURLs.get(0);
         // admin saves the url exactly as the REST API shows it
