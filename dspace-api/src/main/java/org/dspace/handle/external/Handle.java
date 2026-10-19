@@ -26,6 +26,9 @@ import org.dspace.handle.HandlePlugin;
  */
 public class Handle {
 
+    private static final int MAGIC_URL_PARTS = 10;
+    private static final int TOKEN_INDEX = 8;
+
     private String handle;
     public String url;
     public String title;
@@ -65,7 +68,7 @@ public class Handle {
     public Handle(String handle, String magicURL) {
         this.handle = handle;
         //similar to HandlePlugin
-        String[] splits = magicURL.split(MAGIC_BEAN,10);
+        String[] splits = magicURL.split(MAGIC_BEAN, MAGIC_URL_PARTS);
         this.url = splits[splits.length - 1];
         this.title = splits[1];
         this.repository = splits[2];
@@ -80,10 +83,48 @@ public class Handle {
         if (isNotBlank(splits[7])) {
             this.query = splits[7];
         }
-        if (isNotBlank(splits[8])) {
-            this.token = splits[8];
+        if (isNotBlank(splits[TOKEN_INDEX])) {
+            this.token = splits[TOKEN_INDEX];
         }
         this.subprefix = handle.split("/",2)[1].split("-",2)[0];
+    }
+
+    /**
+     * Return the url with an empty token, so a magic URL can be shown without the secret that allows updating it.
+     * @param url handle url, magic or not
+     * @return the url with the token part left empty, or the url as it is when it is not a magic URL
+     */
+    public static String hideToken(String url) {
+        String[] splits = splitMagicUrl(url);
+        if (Objects.isNull(splits)) {
+            return url;
+        }
+        splits[TOKEN_INDEX] = "";
+        return String.join(MAGIC_BEAN, splits);
+    }
+
+    /**
+     * Put the stored token back into a magic URL whose token is empty, e.g. one loaded with a hidden token.
+     * @param url new handle url
+     * @param storedUrl handle url currently stored in the database
+     * @return the url with the stored token, or the url as it is when it has its own token or is not a magic URL
+     */
+    public static String restoreToken(String url, String storedUrl) {
+        String[] splits = splitMagicUrl(url);
+        String[] storedSplits = splitMagicUrl(storedUrl);
+        if (Objects.isNull(splits) || Objects.isNull(storedSplits) || isNotBlank(splits[TOKEN_INDEX])) {
+            return url;
+        }
+        splits[TOKEN_INDEX] = storedSplits[TOKEN_INDEX];
+        return String.join(MAGIC_BEAN, splits);
+    }
+
+    private static String[] splitMagicUrl(String url) {
+        if (isBlank(url)) {
+            return null;
+        }
+        String[] splits = url.split(MAGIC_BEAN, MAGIC_URL_PARTS);
+        return splits.length == MAGIC_URL_PARTS ? splits : null;
     }
 
     /**

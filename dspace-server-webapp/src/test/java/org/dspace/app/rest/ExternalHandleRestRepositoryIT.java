@@ -8,10 +8,14 @@
 package org.dspace.app.rest;
 
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -25,6 +29,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.matcher.ExternalHandleMatcher;
+import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.repository.RandomStringGenerator;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authorize.AuthorizeException;
@@ -42,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -298,6 +304,49 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     }
 
     @Test
+    public void coreHandlesEndpointHidesToken() throws Exception {
+        org.dspace.handle.Handle handle = handlesWithMagicURLs.get(0);
+        String hiddenUrl = handle.getUrl().replace("token0", "");
+
+        getClient().perform(get("/api/core/handles/" + handle.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url", is(hiddenUrl)));
+
+        getClient().perform(get("/api/core/handles").param("size", "100"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.handles[*].url", hasItem(hiddenUrl)))
+                .andExpect(content().string(not(containsString(ExternalHandleConstants.MAGIC_BEAN + "token"))));
+    }
+
+    @Test
+    public void tokenSetByAdminIsHiddenAndWorksForUpdate() throws Exception {
+        org.dspace.handle.Handle handle = handlesWithMagicURLs.get(0);
+        String newMagicUrl = handle.getUrl().replace("token0", "adminToken");
+
+        patchHandleUrl(handle, newMagicUrl)
+                .andExpect(jsonPath("$.url", is(handle.getUrl().replace("token0", ""))));
+
+        updateHandle(null, Map.of(
+                "handle", handle.getHandle(),
+                "token", "adminToken",
+                "url", "https://lindat.cz"
+        ));
+    }
+
+    @Test
+    public void adminSaveOfHiddenUrlKeepsToken() throws Exception {
+        org.dspace.handle.Handle handle = handlesWithMagicURLs.get(0);
+        // admin saves the url exactly as the REST API shows it
+        patchHandleUrl(handle, handle.getUrl().replace("token0", ""));
+
+        updateHandle(null, Map.of(
+                "handle", handle.getHandle(),
+                "token", "token0",
+                "url", "https://lindat.cz"
+        ));
+    }
+
+    @Test
     public void noMagicInCreateResponse() throws Exception {
         String url = "https://lindat.mff.cuni.cz/#!/services/pmltq/";
         Map<String, String> handleJson = Map.of(
@@ -379,6 +428,15 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
                 .andExpect(jsonPath("$.url", is(updatedHandleJson.get("url"))))
                 .andReturn()
         ;
+    }
+
+    private ResultActions patchHandleUrl(org.dspace.handle.Handle handle, String url) throws Exception {
+        Map<String, String> values = Map.of("handle", handle.getHandle(), "url", url, "archive", "false");
+        return getClient(getAuthToken(admin.getEmail(), password))
+                .perform(patch("/api/core/handles/" + handle.getID())
+                        .content(getPatchContent(List.of(new ReplaceOperation("/updateHandle", values))))
+                        .contentType(javax.ws.rs.core.MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
     }
 
     private MvcResult createHandle(String authToken, Map<String, String> handleJson) throws Exception {
