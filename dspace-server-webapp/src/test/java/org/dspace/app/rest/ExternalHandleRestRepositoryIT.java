@@ -313,8 +313,10 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url", is(hiddenUrl)));
 
-        getClient(adminToken).perform(get("/api/core/handles").param("size", "100"))
+        // the "sort" param is a filter: only handles with the shortener prefix, whatever else is in the DB
+        getClient(adminToken).perform(get("/api/core/handles").param("sort", "handle:" + prefix))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(handlesWithMagicURLs.size())))
                 .andExpect(jsonPath("$._embedded.handles[*].url", hasItem(hiddenUrl)))
                 .andExpect(content().string(not(containsString(ExternalHandleConstants.MAGIC_BEAN + "token"))));
     }
