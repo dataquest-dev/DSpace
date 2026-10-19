@@ -14,6 +14,8 @@ import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.handle.HandlePlugin;
 
 /**
@@ -25,6 +27,8 @@ import org.dspace.handle.HandlePlugin;
  * @author Milan Majchrak (milan.majchrak at dataquest.sk)
  */
 public class Handle {
+
+    private static final Logger log = LogManager.getLogger(Handle.class);
 
     private static final int MAGIC_URL_PARTS = 10;
     private static final int TOKEN_INDEX = 8;
@@ -120,11 +124,16 @@ public class Handle {
     }
 
     private static String[] splitMagicUrl(String url) {
-        if (isBlank(url)) {
+        if (isBlank(url) || !url.contains(MAGIC_BEAN)) {
             return null;
         }
         String[] splits = url.split(MAGIC_BEAN, MAGIC_URL_PARTS);
-        return splits.length == MAGIC_URL_PARTS ? splits : null;
+        if (splits.length != MAGIC_URL_PARTS) {
+            // the url is not logged, it may contain the token
+            log.warn("Magic URL has {} parts instead of {}, it is used unchanged.", splits.length, MAGIC_URL_PARTS);
+            return null;
+        }
+        return splits;
     }
 
     /**
