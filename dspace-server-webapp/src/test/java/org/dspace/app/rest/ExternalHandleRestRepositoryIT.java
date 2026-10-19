@@ -323,7 +323,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         org.dspace.handle.Handle handle = handlesWithMagicURLs.get(0);
         String newMagicUrl = handle.getUrl().replace("token0", "adminToken");
 
-        patchHandleUrl(handle, newMagicUrl)
+        patchHandleUrl(handle, newMagicUrl, "adminToken")
                 .andExpect(jsonPath("$.url", is(handle.getUrl().replace("token0", ""))));
 
         updateHandle(null, Map.of(
@@ -337,7 +337,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     public void adminSaveOfHiddenUrlKeepsToken() throws Exception {
         org.dspace.handle.Handle handle = handlesWithMagicURLs.get(0);
         // admin saves the url exactly as the REST API shows it
-        patchHandleUrl(handle, handle.getUrl().replace("token0", ""));
+        patchHandleUrl(handle, handle.getUrl().replace("token0", ""), "token0");
 
         updateHandle(null, Map.of(
                 "handle", handle.getHandle(),
@@ -430,13 +430,18 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         ;
     }
 
-    private ResultActions patchHandleUrl(org.dspace.handle.Handle handle, String url) throws Exception {
+    private ResultActions patchHandleUrl(org.dspace.handle.Handle handle, String url, String expectedToken)
+            throws Exception {
         Map<String, String> values = Map.of("handle", handle.getHandle(), "url", url, "archive", "false");
-        return getClient(getAuthToken(admin.getEmail(), password))
+        ResultActions result = getClient(getAuthToken(admin.getEmail(), password))
                 .perform(patch("/api/core/handles/" + handle.getID())
                         .content(getPatchContent(List.of(new ReplaceOperation("/updateHandle", values))))
                         .contentType(javax.ws.rs.core.MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString(expectedToken))));
+        Assert.assertTrue("Token should be stored in the database",
+                handleClarinService.findByHandle(context, handle.getHandle()).getUrl().contains(expectedToken));
+        return result;
     }
 
     private MvcResult createHandle(String authToken, Map<String, String> handleJson) throws Exception {
