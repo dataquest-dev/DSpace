@@ -43,7 +43,7 @@ public class Handle {
     public String datasetName;
     public String datasetVersion;
     public String query;
-    public String token;
+    private String token;
 
     public Handle() {
 
@@ -179,5 +179,21 @@ public class Handle {
      */
     public void setHandle(String handle) {
         this.handle = handle.replace(HandlePlugin.getCanonicalHandlePrefix(),"");
+    }
+
+    /**
+     * The token is needed to update the handle.
+     * @return the update token, or null when there is none
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * Set the token, e.g. from the update request.
+     * @param token
+     */
+    public void setToken(String token) {
+        this.token = token;
     }
 }

@@ -341,6 +341,26 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     }
 
     @Test
+    public void updateOfHandleWithoutTokenIsNotFound() throws Exception {
+        String urlWithoutToken = handlesWithMagicURLs.get(0).getUrl().replace("token0", "");
+        context.turnOffAuthorisationSystem();
+        org.dspace.handle.Handle handle = ClarinHandleBuilder
+                .createHandle(context, prefix + "notoken", urlWithoutToken)
+                .build();
+        context.commit();
+        context.restoreAuthSystemState();
+        getClient(getAuthToken(admin.getEmail(), password)).perform(get("/api/core/handles/" + handle.getID()))
+                .andExpect(status().isOk());
+
+        allowAnyUrl();
+        Map<String, String> update = Map.of("handle", handle.getHandle(), "token", "token0", "url", TEST_URL);
+        getClient().perform(put("/api/services/handles")
+                .content(mapper.writeValueAsBytes(update))
+                .contentType(contentType))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     public void noMagicInCreateResponse() throws Exception {
         String url = "https://lindat.mff.cuni.cz/#!/services/pmltq/";
         Map<String, String> handleJson = Map.of(
