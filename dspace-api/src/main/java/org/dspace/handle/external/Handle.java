@@ -43,14 +43,13 @@ public class Handle {
     public String datasetName;
     public String datasetVersion;
     public String query;
-    public String token;
 
     public Handle() {
 
     }
 
     public Handle(String handle, String url, String title, String repository, String submitdate, String reportemail,
-                  String datasetName, String datasetVersion, String query, String token, String subprefix) {
+                  String datasetName, String datasetVersion, String query, String subprefix) {
         this.handle = handle;
         this.url = url;
         this.title = title;
@@ -60,7 +59,6 @@ public class Handle {
         this.datasetName = datasetName;
         this.datasetVersion = datasetVersion;
         this.query = query;
-        this.token = token;
         this.subprefix = subprefix;
     }
 
@@ -87,10 +85,20 @@ public class Handle {
         if (isNotBlank(splits[7])) {
             this.query = splits[7];
         }
-        if (isNotBlank(splits[TOKEN_INDEX])) {
-            this.token = splits[TOKEN_INDEX];
-        }
         this.subprefix = handle.split("/",2)[1].split("-",2)[0];
+    }
+
+    /**
+     * Read the token from a magic URL. It is the secret that allows updating the handle, so it is not an attribute.
+     * @param magicUrl url with the `@magicLindat` string
+     * @return the token, or null when the url is not a complete magic URL or the token is empty
+     */
+    public static String tokenOf(String magicUrl) {
+        String[] splits = splitMagicUrl(magicUrl);
+        if (Objects.isNull(splits) || isBlank(splits[TOKEN_INDEX])) {
+            return null;
+        }
+        return splits[TOKEN_INDEX];
     }
 
     /**

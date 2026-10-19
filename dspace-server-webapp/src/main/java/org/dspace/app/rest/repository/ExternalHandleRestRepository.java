@@ -29,6 +29,7 @@ import org.dspace.core.Context;
 import org.dspace.handle.HandlePlugin;
 import org.dspace.handle.external.Handle;
 import org.dspace.handle.external.HandleRest;
+import org.dspace.handle.external.ShortenedHandleRest;
 import org.dspace.handle.service.HandleClarinService;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
@@ -120,7 +121,8 @@ public class ExternalHandleRestRepository {
                 }
                 context.complete();
 
-                return new ResponseEntity<>(new Handle(hdl, magicURL), HttpStatus.OK);
+                return new ResponseEntity<>(
+                        new ShortenedHandleRest(new Handle(hdl, magicURL), Handle.tokenOf(magicURL)), HttpStatus.OK);
             } catch (SQLException | AuthorizeException e) {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -135,7 +137,8 @@ public class ExternalHandleRestRepository {
     // change only the URL
     @RequestMapping(value = EXTERNAL_HANDLE_ENDPOINT_UPDATE, method = RequestMethod.PUT,
             produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public ResponseEntity<Object> updateHandle(@RequestBody Handle updatedHandle, HttpServletResponse response,
+    public ResponseEntity<Object> updateHandle(@RequestBody ShortenedHandleRest updatedHandle,
+                                               HttpServletResponse response,
                                                    HttpServletRequest request) {
         Context context = ContextUtil.obtainContext(request);
         if (Objects.isNull(context)) {
@@ -143,8 +146,8 @@ public class ExternalHandleRestRepository {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        if (validHandleUrl(updatedHandle.url)
-                && isNotBlank(updatedHandle.getHandle()) && isNotBlank(updatedHandle.token)) {
+        if (validHandleUrl(updatedHandle.getUrl())
+                && isNotBlank(updatedHandle.getHandle()) && isNotBlank(updatedHandle.getToken())) {
             try {
                 // remove canonical prefix from handle string because the handle is stored in the DB without
                 // the canonical prefix
@@ -154,7 +157,8 @@ public class ExternalHandleRestRepository {
 
                 // load Handle object from the DB
                 org.dspace.handle.Handle handleEntity =
-                        this.handleClarinService.findByHandleAndMagicToken(context, oldHandleStr, updatedHandle.token);
+                        this.handleClarinService.findByHandleAndMagicToken(context, oldHandleStr,
+                                updatedHandle.getToken());
 
                 if (Objects.isNull(handleEntity)) {
                     return new ResponseEntity<>("Cannot find the handle in the database.",
@@ -168,8 +172,8 @@ public class ExternalHandleRestRepository {
                 Handle oldExternalHandle = new Handle(hdl, oldHandleMagicUrl);
 
                 log.info("Handle [{}] changed url from \"{}\" to \"{}\".", hdl, oldExternalHandle.url,
-                        updatedHandle.url);
-                oldExternalHandle.url  = updatedHandle.url;
+                        updatedHandle.getUrl());
+                oldExternalHandle.url  = updatedHandle.getUrl();
 
                 // this has the new url and a new token
                 String newMagicUrl = oldExternalHandle.generateMagicUrl();
@@ -187,7 +191,9 @@ public class ExternalHandleRestRepository {
                 context.commit();
 
                 // return updated external handle
-                return new ResponseEntity<>(new Handle(hdl, newMagicUrl), HttpStatus.OK);
+                return new ResponseEntity<>(
+                        new ShortenedHandleRest(new Handle(hdl, newMagicUrl), Handle.tokenOf(newMagicUrl)),
+                        HttpStatus.OK);
             } catch (SQLException | AuthorizeException e) {
                 return new ResponseEntity<>("Cannot update the external handle because: " + e.getMessage(),
                         HttpStatus.INTERNAL_SERVER_ERROR);

@@ -481,9 +481,8 @@ public class HandleClarinServiceImpl implements HandleClarinService {
         if (Objects.isNull(h) || Objects.isNull(h.getUrl()) || !h.getUrl().contains(MAGIC_BEAN)) {
             return null;
         }
-        org.dspace.handle.external.Handle magicHandle =
-                new org.dspace.handle.external.Handle(h.getHandle(), h.getUrl());
-        if (magicHandle.token.equals(token)) {
+        String storedToken = org.dspace.handle.external.Handle.tokenOf(h.getUrl());
+        if (Objects.nonNull(storedToken) && storedToken.equals(token)) {
             return h;
         } else {
             return null;
