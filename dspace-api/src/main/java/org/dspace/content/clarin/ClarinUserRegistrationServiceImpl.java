@@ -19,10 +19,12 @@ import org.dspace.content.dao.clarin.ClarinUserRegistrationDAO;
 import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
+import org.dspace.eperson.EPerson;
 import org.hibernate.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 
 public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistrationService {
 
@@ -61,8 +63,15 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
     }
 
     @Override
-    public ClarinUserRegistration find(Context context, int valueId) throws SQLException {
-        return clarinUserRegistrationDAO.findByID(context, ClarinUserRegistration.class, valueId);
+    public ClarinUserRegistration find(Context context, int valueId) throws SQLException, AuthorizeException {
+        ClarinUserRegistration clarinUserRegistration = clarinUserRegistrationDAO
+                .findByID(context, ClarinUserRegistration.class, valueId);
+
+        if (Objects.isNull(clarinUserRegistration)) {
+            return null;
+        }
+        this.authorizeClarinUserRegistrationAction(context, List.of(clarinUserRegistration));
+        return clarinUserRegistration;
     }
 
     @Override
@@ -76,8 +85,14 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
     }
 
     @Override
-    public List<ClarinUserRegistration> findByEPersonUUID(Context context, UUID epersonUUID) throws SQLException {
-        return clarinUserRegistrationDAO.findByEPersonUUID(context, epersonUUID);
+    public List<ClarinUserRegistration> findByEPersonUUID(Context context, UUID epersonUUID)
+            throws SQLException, AuthorizeException {
+        List<ClarinUserRegistration> clarinUserRegistrationList = clarinUserRegistrationDAO
+                .findByEPersonUUID(context, epersonUUID);
+
+        this.authorizeClarinUserRegistrationAction(context, clarinUserRegistrationList);
+
+        return clarinUserRegistrationList;
     }
 
     @Override
@@ -104,5 +119,30 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
         }
 
         clarinUserRegistrationDAO.save(context, clarinUserRegistration);
+    }
+
+    /**
+     * Check if the user is admin or if the user is the same as from the userRegistration
+     */
+    private void authorizeClarinUserRegistrationAction(Context context, List<ClarinUserRegistration>
+            userRegistrationList)
+            throws SQLException, AuthorizeException {
+        if (authorizeService.isAdmin(context)) {
+            return;
+        }
+
+        if (CollectionUtils.isEmpty(userRegistrationList)) {
+            return;
+        }
+
+        // Only the owner may read it
+        EPerson currentUser = context.getCurrentUser();
+        ClarinUserRegistration clarinUserRegistration = userRegistrationList.get(0);
+        if (Objects.nonNull(currentUser) && currentUser.getID().equals(clarinUserRegistration.getPersonID())) {
+            return;
+        }
+
+        throw new AuthorizeException("You are not authorized to access the Clarin User Registration " +
+                "because it is not associated with your account.");
     }
 }
