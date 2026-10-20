@@ -103,6 +103,9 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     private static final DateTimeFormatter FORMATTER = DateFormatConstants.DATETIME_WITH_MILLIS_FORMATTER;
 
     private static final String REPORT_DIFF_FIELDS = "report-diff-fields.json";
+
+    /** Config property toggling the HTML report-diff email (defaults to true). */
+    private static final String EMAIL_HTML_PROPERTY = "reportdiff.email.html";
     private static final String FIELD_MAPPINGS_KEY = "fieldMappings";
     private static final String FIELD_ORDER_KEY = "fieldOrder";
     private static final Pattern SHORT_ARG_WITH_VALUE = Pattern.compile("^-([a-zA-Z]):\\s*(.*)$");
@@ -575,26 +578,282 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
                 return;
             }
 
-            String reportDif = generateReportComparison(fromReport, toReport);
+            ReportComparison comparison = generateReportComparison(fromReport, toReport);
             // send email to email address from argument
             if (emails != null && emails.length > 0) {
-                try {
-                    Email e = Email.getEmail(I18nUtil.getEmailFilename(Locale.getDefault(), "report_diff"));
-                    for (String recipient : emails) {
-                        e.addRecipient(recipient);
-                    }
-                    e.addArgument(reportDif);
-                    e.send();
-                    handler.logInfo("Report sent to: " + String.join(", ", emails));
-                } catch (IOException | MessagingException e) {
-                    handler.logError("Error sending email: " + e.getMessage());
-                }
+                sendReportEmail(comparison);
             }
 
-            handler.logInfo(reportDif);
+            handler.logInfo(comparison.text);
         } catch (Exception e) {
             handler.logError("Error comparing reports: " + e.getMessage());
         }
+    }
+
+    /**
+     * Email the comparison: HTML {@code report_diff_html} template (plus plain-text fallback) when
+     * {@link #EMAIL_HTML_PROPERTY} is true (default), otherwise the plain-text {@code report_diff}.
+     *
+     * @param comparison the rendered comparison (plain text + HTML model)
+     */
+    private void sendReportEmail(ReportComparison comparison) {
+        boolean html = DSpaceServicesFactory.getInstance().getConfigurationService()
+                .getBooleanProperty(EMAIL_HTML_PROPERTY, true);
+        String templateName = html ? "report_diff_html" : "report_diff";
+        try {
+            Email e = Email.getEmail(I18nUtil.getEmailFilename(Locale.getDefault(), templateName));
+            for (String recipient : emails) {
+                e.addRecipient(recipient);
+            }
+            if (html) {
+                // Template renders the model as HTML; plain text is the fallback (UTF-8 set in template).
+                e.addArgument(comparison.model);
+                e.setHtml(comparison.text);
+            } else {
+                e.addArgument(comparison.text);
+            }
+            e.send();
+            handler.logInfo("Report sent to: " + String.join(", ", emails));
+        } catch (IOException | MessagingException e) {
+            handler.logError("Error sending email: " + e.getMessage());
+        }
+    }
+
+    /**
+     * The plain-text rendering of a report comparison, plus the structured model the HTML
+     * email template renders from. {@code model} is {@code null} for the plain-text-only path.
+     */
+    private static class ReportComparison {
+        final String text;
+        final HtmlReportModel model;
+
+        ReportComparison(String text, HtmlReportModel model) {
+            this.text = text;
+            this.model = model;
+        }
+    }
+
+    /**
+     * HTML-escaped view model for the {@code report_diff_html} template. Public getters let
+     * Velocity read fields as {@code $model.property}.
+     */
+    public static class HtmlReportModel {
+        private final String title;
+        private final int execSection;
+        private final String reportType;
+        private final int sourceId;
+        private final String sourceDate;
+        private final int targetId;
+        private final String targetDate;
+        private final String reportPeriod;
+        private final boolean commonChecks;
+        private final List<TableRow> keyChanges;
+        private final boolean showSkipped;
+        private final int skippedSection;
+        private final List<String> onlyInSource;
+        private final List<String> onlyInTarget;
+        private final boolean differences;
+        private final int detailSection;
+        private final List<String> summaryLines;
+        private final List<DiffEntry> diffEntries;
+        private final String errorMessage;
+
+        HtmlReportModel(String title, int execSection, String reportType,
+                        int sourceId, String sourceDate, int targetId, String targetDate,
+                        String reportPeriod, boolean commonChecks, List<TableRow> keyChanges,
+                        boolean showSkipped, int skippedSection, List<String> onlyInSource,
+                        List<String> onlyInTarget, boolean differences, int detailSection,
+                        List<String> summaryLines, List<DiffEntry> diffEntries, String errorMessage) {
+            this.title = title;
+            this.execSection = execSection;
+            this.reportType = reportType;
+            this.sourceId = sourceId;
+            this.sourceDate = sourceDate;
+            this.targetId = targetId;
+            this.targetDate = targetDate;
+            this.reportPeriod = reportPeriod;
+            this.commonChecks = commonChecks;
+            this.keyChanges = keyChanges;
+            this.showSkipped = showSkipped;
+            this.skippedSection = skippedSection;
+            this.onlyInSource = onlyInSource;
+            this.onlyInTarget = onlyInTarget;
+            this.differences = differences;
+            this.detailSection = detailSection;
+            this.summaryLines = summaryLines;
+            this.diffEntries = diffEntries;
+            this.errorMessage = errorMessage;
+        }
+
+        /** Model carrying only an error message (e.g. a report had no value to compare). */
+        static HtmlReportModel error(String title, String errorMessage) {
+            return new HtmlReportModel(title, 0, null, 0, null, 0, null, null, false,
+                    List.of(), false, 0, List.of(), List.of(), false, 0,
+                    List.of(), List.of(), errorMessage);
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public int getExecSection() {
+            return execSection;
+        }
+
+        public String getReportType() {
+            return reportType;
+        }
+
+        public int getSourceId() {
+            return sourceId;
+        }
+
+        public String getSourceDate() {
+            return sourceDate;
+        }
+
+        public int getTargetId() {
+            return targetId;
+        }
+
+        public String getTargetDate() {
+            return targetDate;
+        }
+
+        public String getReportPeriod() {
+            return reportPeriod;
+        }
+
+        public boolean isCommonChecks() {
+            return commonChecks;
+        }
+
+        public List<TableRow> getKeyChanges() {
+            return keyChanges;
+        }
+
+        public boolean isShowSkipped() {
+            return showSkipped;
+        }
+
+        public int getSkippedSection() {
+            return skippedSection;
+        }
+
+        public List<String> getOnlyInSource() {
+            return onlyInSource;
+        }
+
+        public List<String> getOnlyInTarget() {
+            return onlyInTarget;
+        }
+
+        public boolean isDifferences() {
+            return differences;
+        }
+
+        public int getDetailSection() {
+            return detailSection;
+        }
+
+        public List<String> getSummaryLines() {
+            return summaryLines;
+        }
+
+        public List<DiffEntry> getDiffEntries() {
+            return diffEntries;
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+    }
+
+    /** A single JSON Patch difference, HTML-escaped, for the HTML email template. */
+    public static class DiffEntry {
+        private final String operation;
+        private final String path;
+        private final String detail;
+
+        DiffEntry(String operation, String path, String detail) {
+            this.operation = operation;
+            this.path = path;
+            this.detail = detail;
+        }
+
+        public String getOperation() {
+            return operation;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getDetail() {
+            return detail;
+        }
+    }
+
+    /** HTML-escape a dynamic value for the {@link HtmlReportModel} (markup lives in the template). */
+    static String escapeHtml(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
+    }
+
+    /**
+     * Build the list of JSON Patch differences as structured, HTML-escaped {@link DiffEntry}
+     * objects for the HTML email template. Mirrors the text rendering of {@link #generateDiff}.
+     *
+     * @param oldJson the old (source) report JSON
+     * @param newJson the new (target) report JSON
+     * @return the ordered list of diff entries (empty when the reports are identical)
+     * @throws IOException if JSON parsing fails
+     */
+    private static List<DiffEntry> buildDiffEntries(String oldJson, String newJson) throws IOException {
+        JsonNode oldNode = mapper.readTree(oldJson);
+        JsonNode newNode = mapper.readTree(newJson);
+        JsonNode patch = JsonDiff.asJson(oldNode, newNode);
+
+        List<DiffEntry> entries = new ArrayList<>();
+        if (!patch.isArray() || patch.isEmpty()) {
+            return entries;
+        }
+
+        Map<Integer, String> checkNames = buildCheckNameMap(oldNode);
+        for (JsonNode op : patch) {
+            String operation = op.path("op").asText();
+            String path = op.path("path").asText();
+            String displayPath = humanizeCheckPath(path, checkNames);
+            String detail;
+            switch (operation) {
+                case "replace":
+                    detail = escapeHtml(nodeToEscapedString(oldNode.at(path))) + " → "
+                            + escapeHtml(nodeToEscapedString(op.path("value")));
+                    break;
+                case "add":
+                    detail = "→ " + escapeHtml(nodeToEscapedString(op.path("value")));
+                    break;
+                case "remove":
+                    detail = escapeHtml(nodeToEscapedString(oldNode.at(path))) + " → (removed)";
+                    break;
+                case "move":
+                case "copy":
+                    detail = "from " + escapeHtml(humanizeCheckPath(op.path("from").asText(), checkNames));
+                    break;
+                case "test":
+                    detail = "must equal " + escapeHtml(nodeToEscapedString(op.path("value")));
+                    break;
+                default:
+                    detail = "";
+            }
+            entries.add(new DiffEntry(operation.toUpperCase(Locale.ROOT), escapeHtml(displayPath), detail));
+        }
+        return entries;
     }
 
     /**
@@ -726,15 +985,21 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
      *
      * @param fromReport the "from" report
      * @param toReport   the "to" report
-     * @return a string containing the comparison report
+     * @return the plain-text rendering of the comparison and the structured HTML model
      * @throws IOException if an error occurs while generating the diff
      */
-    private String generateReportComparison(ReportResult fromReport, ReportResult toReport) throws IOException {
+    private ReportComparison generateReportComparison(ReportResult fromReport, ReportResult toReport)
+            throws IOException {
+        ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        String dspaceName = configurationService.getProperty("dspace.name", "DSpace");
+        String title = escapeHtml(dspaceName);
+
         String fromJson = fromReport.getValue();
         String toJson = toReport.getValue();
 
         if (fromJson == null || toJson == null) {
-            return "One of the reports has no value. Cannot compare.";
+            String msg = "One of the reports has no value. Cannot compare.";
+            return new ReportComparison(msg, HtmlReportModel.error(title, escapeHtml(msg)));
         }
 
         // Normalize both reports to contain only intersection of check names
@@ -748,12 +1013,11 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         int sectionNumber = 1;
 
         // Header
-        ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-        String dspaceName = configurationService.getProperty("dspace.name", "DSpace");
         sb.append(dspaceName).append(": Repository Health Report Diff\n\n");
 
         // Executive Summary (always the first section)
-        sb.append("Section ").append(sectionNumber++).append(": Executive Summary\n");
+        int execSection = sectionNumber++;
+        sb.append("Section ").append(execSection).append(": Executive Summary\n");
         sb.append("\n");
 
         // Report metadata
@@ -767,42 +1031,103 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
         String timePeriod = calculateTimePeriod(fromReport.getLastModified(), toReport.getLastModified());
         sb.append("Report Period: ").append(timePeriod).append("\n\n");
 
+        // Executive-summary fields shared by every HTML model built below (already escaped).
+        String reportType = escapeHtml(String.valueOf(toReport.getType()));
+        String sourceDate = escapeHtml(String.valueOf(fromReport.getLastModified()));
+        String targetDate = escapeHtml(String.valueOf(toReport.getLastModified()));
+        String reportPeriod = escapeHtml(timePeriod);
+
         boolean hasSkippedChecks = !normalized.onlyInFrom.isEmpty() || !normalized.onlyInTo.isEmpty();
 
         // When there are no checks in common between the two reports there is nothing to diff.
         // In that case, only show the executive summary and the list of skipped checks so the
         // user can immediately see why the comparison was not performed.
         if (!normalized.hasCommonChecks) {
+            int skippedSection = 0;
             if (hasSkippedChecks) {
-                appendSkippedChecksSection(sb, sectionNumber++, normalized, fromReport, toReport);
+                skippedSection = sectionNumber++;
+                appendSkippedChecksSection(sb, skippedSection, normalized, fromReport, toReport);
             }
-            return sb.toString();
+            HtmlReportModel model = new HtmlReportModel(title, execSection, reportType,
+                    fromReport.getID(), sourceDate, toReport.getID(), targetDate, reportPeriod,
+                    false, List.of(), hasSkippedChecks, skippedSection,
+                    escapeList(normalized.onlyInFrom), escapeList(normalized.onlyInTo),
+                    false, 0, List.of(), List.of(), null);
+            return new ReportComparison(sb.toString(), model);
         }
 
         // Enhanced Key Changes Table
-        String keyChangesTable = generateEnhancedKeyChangesTable(normalizedFromJson, normalizedToJson,
-                fromReport.getID(), toReport.getID());
-        sb.append(keyChangesTable);
+        List<TableRow> keyChanges = computeKeyChanges(normalizedFromJson, normalizedToJson);
+        sb.append(renderKeyChangesText(keyChanges, fromReport.getID(), toReport.getID()));
 
         // Keep output concise when the compared (common) checks are identical.
         if (!hasDifferences(normalizedFromJson, normalizedToJson)) {
-            return sb.toString();
+            HtmlReportModel model = new HtmlReportModel(title, execSection, reportType,
+                    fromReport.getID(), sourceDate, toReport.getID(), targetDate, reportPeriod,
+                    true, escapeRows(keyChanges), false, 0, List.of(), List.of(),
+                    false, 0, List.of(), List.of(), null);
+            return new ReportComparison(sb.toString(), model);
         }
 
         // Skipped Checks
+        int skippedSection = 0;
         if (hasSkippedChecks) {
-            appendSkippedChecksSection(sb, sectionNumber++, normalized, fromReport, toReport);
+            skippedSection = sectionNumber++;
+            appendSkippedChecksSection(sb, skippedSection, normalized, fromReport, toReport);
         }
 
         // Detailed Change Log
-        sb.append("Section ").append(sectionNumber++).append(": Detailed Change Log\n\n");
+        int detailSection = sectionNumber++;
+        sb.append("Section ").append(detailSection).append(": Detailed Change Log\n\n");
         sb.append("Changes Summary\n");
         String detailedSummary = generateDetailedSummary(normalizedFromJson, normalizedToJson);
         sb.append(detailedSummary).append("\n");
-
         sb.append(generateDiff(normalizedFromJson, normalizedToJson));
 
-        return sb.toString();
+        HtmlReportModel model = new HtmlReportModel(title, execSection, reportType,
+                fromReport.getID(), sourceDate, toReport.getID(), targetDate, reportPeriod,
+                true, escapeRows(keyChanges), hasSkippedChecks, skippedSection,
+                escapeList(normalized.onlyInFrom), escapeList(normalized.onlyInTo),
+                true, detailSection, summaryLines(detailedSummary),
+                buildDiffEntries(normalizedFromJson, normalizedToJson), null);
+        return new ReportComparison(sb.toString(), model);
+    }
+
+    /** HTML-escape every row's values into new {@link TableRow} instances for the HTML model. */
+    private static List<TableRow> escapeRows(List<TableRow> rows) {
+        List<TableRow> escaped = new ArrayList<>(rows.size());
+        for (TableRow r : rows) {
+            escaped.add(new TableRow(escapeHtml(r.field), escapeHtml(r.oldValue),
+                    escapeHtml(r.newValue), escapeHtml(r.difference)));
+        }
+        return escaped;
+    }
+
+    /** HTML-escape every element of a string list for the HTML model. */
+    private static List<String> escapeList(List<String> values) {
+        List<String> escaped = new ArrayList<>(values.size());
+        for (String v : values) {
+            escaped.add(escapeHtml(v));
+        }
+        return escaped;
+    }
+
+    /**
+     * Turn the multi-line "Changes Summary" text into clean, HTML-escaped lines (bullet prefixes
+     * and blank lines removed) for the HTML model.
+     */
+    private static List<String> summaryLines(String detailedSummary) {
+        List<String> lines = new ArrayList<>();
+        for (String line : detailedSummary.split("\\r?\\n")) {
+            String t = line.trim();
+            if (t.startsWith("- ")) {
+                t = t.substring(2);
+            }
+            if (!t.isEmpty()) {
+                lines.add(escapeHtml(t));
+            }
+        }
+        return lines;
     }
 
     /**
@@ -1183,20 +1508,16 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
-     * Generate enhanced key changes table with dynamic sizing and configurable field names.
+     * Compute the key-change rows for the configured fields, comparing old vs new report JSON.
      * Uses selector-based field resolution that works regardless of check ordering or selection.
      * Field paths use XPath-like syntax, e.g. {@code /checks/[name=Item summary]/report/publishedItems}.
      *
      * @param oldJson the old JSON report
      * @param newJson the new JSON report
-     * @param sourceReportId the ID of the source (older) report, used in column headers
-     * @param targetReportId the ID of the target (newer) report, used in column headers
-     * @return formatted table string
+     * @return the rows whose value changed between the two reports
      * @throws IOException if JSON parsing fails
      */
-    private String generateEnhancedKeyChangesTable(String oldJson, String newJson,
-                                                   Integer sourceReportId, Integer targetReportId)
-            throws IOException {
+    private List<TableRow> computeKeyChanges(String oldJson, String newJson) throws IOException {
         loadFieldConfiguration();
 
         JsonNode oldNode = mapper.readTree(oldJson);
@@ -1241,6 +1562,19 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             }
         }
 
+        return changes;
+    }
+
+    /**
+     * Render key-change rows as the plain-text ASCII table with dynamically sized columns.
+     *
+     * @param changes        the rows to render
+     * @param sourceReportId the ID of the source (older) report, used in column headers
+     * @param targetReportId the ID of the target (newer) report, used in column headers
+     * @return formatted table string
+     */
+    private String renderKeyChangesText(List<TableRow> changes,
+                                        Integer sourceReportId, Integer targetReportId) {
         if (changes.isEmpty()) {
             return "Key Changes Between Reports\n\n" +
                    "No significant changes detected between reports.\n\n";
@@ -1291,9 +1625,10 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
     }
 
     /**
-     * Simple data class for table rows.
+     * Simple data class for table rows. Getters are public so Velocity can render the rows
+     * as {@code $row.field} in the HTML email template.
      */
-    private static class TableRow {
+    public static class TableRow {
         final String field;
         final String oldValue;
         final String newValue;
@@ -1304,6 +1639,22 @@ public class ReportDiff extends DSpaceRunnable<ReportDiffScriptConfiguration> {
             this.oldValue = oldValue;
             this.newValue = newValue;
             this.difference = difference;
+        }
+
+        public String getField() {
+            return field;
+        }
+
+        public String getOldValue() {
+            return oldValue;
+        }
+
+        public String getNewValue() {
+            return newValue;
+        }
+
+        public String getDifference() {
+            return difference;
         }
     }
 
