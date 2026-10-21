@@ -23,12 +23,11 @@ import org.springframework.lang.NonNull;
 
 /**
  * RequestItem strategy to allow DSpace support team's help desk to receive
- * requestItem requests.  When this strategy is configured, all requests are
- * sent to the help desk address ({@code mail.helpdesk}) instead of the Item
- * author/submitter.
+ * requestItem requests.  With this enabled, the Item author/submitter doesn't
+ * receive the request, but the help desk instead does.
  *
  * <p>Fails over to the {@link RequestItemSubmitterStrategy}, which means the
- * submitter would get the request if {@code mail.helpdesk} is not set.
+ * submitter would get the request if there is no specified help desk email.
  *
  * @author Sam Ottenhoff
  * @author Peter Dietz
@@ -46,15 +45,6 @@ public class RequestItemHelpdeskStrategy
     public RequestItemHelpdeskStrategy() {
     }
 
-    /**
-     * Returns the help desk ({@code mail.helpdesk}) as the only recipient, or
-     * falls back to the Item's submitter if {@code mail.helpdesk} is not set.
-     *
-     * @param context DSpace context object
-     * @param item item to request
-     * @return the help desk, else the submitter (empty if the submitter was deleted).
-     * @throws SQLException if database error
-     */
     @Override
     @NonNull
     public List<RequestItemAuthor> getRequestItemAuthor(Context context, Item item)
