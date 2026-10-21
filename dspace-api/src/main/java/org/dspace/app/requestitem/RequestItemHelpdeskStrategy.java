@@ -23,19 +23,18 @@ import org.springframework.lang.NonNull;
 
 /**
  * RequestItem strategy to allow DSpace support team's help desk to receive
- * requestItem requests.  With this enabled, the Item author/submitter doesn't
- * receive the request, but the help desk instead does.
+ * requestItem requests.  When this strategy is configured, all requests are
+ * sent to the help desk address ({@code mail.helpdesk}) instead of the Item
+ * author/submitter.
  *
  * <p>Fails over to the {@link RequestItemSubmitterStrategy}, which means the
- * submitter would get the request if there is no specified help desk email.
+ * submitter would get the request if {@code mail.helpdesk} is not set.
  *
  * @author Sam Ottenhoff
  * @author Peter Dietz
  */
 public class RequestItemHelpdeskStrategy
         extends RequestItemSubmitterStrategy {
-    static final String P_HELPDESK_OVERRIDE
-            = "request.item.helpdesk.override";
     static final String P_MAIL_HELPDESK = "mail.helpdesk";
 
     @Autowired(required = true)
@@ -47,20 +46,27 @@ public class RequestItemHelpdeskStrategy
     public RequestItemHelpdeskStrategy() {
     }
 
+    /**
+     * Returns the help desk ({@code mail.helpdesk}) as the only recipient, or
+     * falls back to the Item's submitter if {@code mail.helpdesk} is not set.
+     *
+     * @param context DSpace context object
+     * @param item item to request
+     * @return the help desk, else the submitter (empty if the submitter was deleted).
+     * @throws SQLException if database error
+     */
     @Override
     @NonNull
     public List<RequestItemAuthor> getRequestItemAuthor(Context context, Item item)
             throws SQLException {
-        boolean helpdeskOverridesSubmitter = configurationService
-            .getBooleanProperty("request.item.helpdesk.override", false);
         String helpDeskEmail = configurationService.getProperty("mail.helpdesk");
 
-        if (helpdeskOverridesSubmitter && StringUtils.isNotBlank(helpDeskEmail)) {
+        if (StringUtils.isNotBlank(helpDeskEmail)) {
             List<RequestItemAuthor> authors = new ArrayList<>(1);
             authors.add(getHelpDeskPerson(context, helpDeskEmail));
             return authors;
         } else {
-            //Fallback to default logic (author of Item) if helpdesk isn't fully enabled or setup
+            //Fallback to default logic (author of Item) if helpdesk isn't setup
             return super.getRequestItemAuthor(context, item);
         }
     }

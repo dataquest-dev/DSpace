@@ -51,7 +51,9 @@
     <bean class="org.dspace.app.requestitem.RequestItemHelpdeskStrategy"
           id="org.dspace.app.requestitem.RequestItemHelpdeskStrategy">
         <description>
-            HelpDesk to instead get RequestItem emails
+            Send all request emails to the help desk address
+            (mail.helpdesk).  Falls back to the Item's submitter if
+            mail.helpdesk is empty.
         </description>
     </bean>
 

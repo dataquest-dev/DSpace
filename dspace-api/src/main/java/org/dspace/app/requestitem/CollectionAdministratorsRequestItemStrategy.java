@@ -21,7 +21,9 @@ import org.springframework.lang.NonNull;
 /**
  * Derive request recipients from groups of the Collection which owns an Item.
  * The list will include all members of the administrators group.  If the
- * resulting list is empty, delegates to {@link RequestItemHelpdeskStrategy}.
+ * resulting list is empty (no collection administrators), delegates to
+ * {@link RequestItemHelpdeskStrategy}, which sends the request to
+ * {@code mail.helpdesk} or, if that is not set, to the submitter.
  *
  * @author Mark H. Wood <mwood@iupui.edu>
  */
