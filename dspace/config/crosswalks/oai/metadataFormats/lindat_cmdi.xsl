@@ -83,7 +83,7 @@
     <xsl:template name="Header">
     	<xsl:param name="profile"/>
         <cmd:Header>
-            <cmd:MdCreationDate><xsl:value-of select="$modifyDate"/></cmd:MdCreationDate>
+            <cmd:MdCreationDate><xsl:value-of select="substring(normalize-space($modifyDate), 1, 10)"/></cmd:MdCreationDate>
             <cmd:MdSelfLink><xsl:value-of select="$dc_identifier_uri"/>@format=cmdi</cmd:MdSelfLink>
             <cmd:MdProfile><xsl:value-of select="$profile"/></cmd:MdProfile>
             <cmd:MdCollectionDisplayName><xsl:value-of select="/doc:metadata/doc:element[@name='others']/doc:field[@name='owningCollection']/text()"/></cmd:MdCollectionDisplayName>
