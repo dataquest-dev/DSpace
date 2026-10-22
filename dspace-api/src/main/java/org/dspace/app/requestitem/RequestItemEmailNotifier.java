@@ -210,12 +210,26 @@ public class RequestItemEmailNotifier {
                     }
                 } else {
                     Bitstream bitstream = ri.getBitstream();
-                    // #8636 Anyone receiving the email can respond to the request without authenticating into DSpace
-                    context.turnOffAuthorisationSystem();
-                    email.addAttachment(bitstreamService.retrieve(context, bitstream),
-                            bitstream.getName(),
-                            bitstream.getFormat(context).getMIMEType());
-                    context.restoreAuthSystemState();
+                    // Defence in depth: never attach a bitstream that does not belong to
+                    // the requested item, nor an internal format. A malicious request that
+                    // names a foreign bitstream must not leak the file on approval.
+                    if (bitstream != null
+                            && !bitstream.getFormat(context).isInternal()
+                            && belongsToItem(bitstream, ri.getItem())) {
+                        // #8636 Anyone receiving the email can respond to the request
+                        // without authenticating into DSpace
+                        context.turnOffAuthorisationSystem();
+                        email.addAttachment(bitstreamService.retrieve(context, bitstream),
+                                bitstream.getName(),
+                                bitstream.getFormat(context).getMIMEType());
+                        context.restoreAuthSystemState();
+                    } else {
+                        LOG.warn(LogHelper.getHeader(context,
+                                "refused_attach_requestItem",
+                                "token={},bitstream_id={}"),
+                                ri.getToken(),
+                                bitstream == null ? "null" : bitstream.getID());
+                    }
                 }
                 email.send();
             } else {
@@ -234,6 +248,26 @@ public class RequestItemEmailNotifier {
         }
         LOG.info(LogHelper.getHeader(context,
                 "sent_attach_requestItem", "token={}"), ri.getToken());
+    }
+
+    /**
+     * Is the given bitstream contained in one of the item's bundles?
+     *
+     * @param bitstream the bitstream to check.
+     * @param item the item it is expected to belong to.
+     * @return {@code true} if the bitstream belongs to the item.
+     * @throws SQLException passed through.
+     */
+    private boolean belongsToItem(Bitstream bitstream, Item item)
+            throws SQLException {
+        for (Bundle bundle : bitstream.getBundles()) {
+            for (Item owner : bundle.getItems()) {
+                if (owner.getID().equals(item.getID())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
