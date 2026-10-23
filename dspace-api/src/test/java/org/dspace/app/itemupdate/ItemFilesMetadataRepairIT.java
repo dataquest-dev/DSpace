@@ -7,10 +7,17 @@
  */
 package org.dspace.app.itemupdate;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +25,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.builder.BitstreamBuilder;
+import org.dspace.builder.BundleBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
@@ -27,6 +35,7 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,24 +72,76 @@ public class ItemFilesMetadataRepairIT extends AbstractIntegrationTestWithDataba
     }
 
     @Test
-    public void dryRunDoesNotChangeStaleFilesSize() throws Exception {
-        runRepair("-d");
+    public void dryRunReportsStaleFilesSizeWithoutChangingIt() throws Exception {
+        Date lastModified = reloadLastModified(item);
 
-        assertFilesMetadata("2", String.valueOf(firstFileSize), "yes");
+        String output = runRepair("-i", item.getID().toString(), "-d");
+
+        assertThat(output, containsString("Files metadata are incorrect."));
+        assertFilesMetadata(item, "2", String.valueOf(firstFileSize), "yes");
+        assertEquals(lastModified, reloadLastModified(item));
     }
 
     @Test
     public void repairRecalculatesNonZeroStaleFilesSize() throws Exception {
-        runRepair();
+        Date lastModified = reloadLastModified(item);
 
-        assertFilesMetadata("2", String.valueOf(totalFilesSize), "yes");
+        String output = runRepair("-i", item.getID().toString());
+
+        assertThat(output, containsString("Files metadata were updated."));
+        assertFilesMetadata(item, "2", String.valueOf(totalFilesSize), "yes");
+        // itemService.update ran: the change is announced to search/OAI with a new modification date
+        assertTrue(reloadLastModified(item).after(lastModified));
     }
 
     @Test
-    public void collectionRepairRecalculatesNonZeroStaleFilesSize() throws Exception {
-        ItemFilesMetadataRepair.main(new String[] {"-e", admin.getEmail(), "-c", collection.getID().toString()});
+    public void repairLeavesCorrectFilesMetadataUntouched() throws Exception {
+        runRepair("-i", item.getID().toString());
+        Date lastModified = reloadLastModified(item);
 
-        assertFilesMetadata("2", String.valueOf(totalFilesSize), "yes");
+        String output = runRepair("-i", item.getID().toString());
+
+        assertThat(output, containsString("Files metadata are correct."));
+        assertEquals(lastModified, reloadLastModified(item));
+    }
+
+    @Test
+    public void repairResetsFilesMetadataOfEmptyOriginalBundle() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item emptyItem = ItemBuilder.createItem(context, collection)
+                .withTitle("Item whose files were removed")
+                .withMetadata("local", "has", "files", "yes")
+                .withMetadata("local", "files", "count", "2")
+                .withMetadata("local", "files", "size", "29")
+                .build();
+        BundleBuilder.createBundle(context, emptyItem).withName(Constants.CONTENT_BUNDLE_NAME).build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        runRepair("-i", emptyItem.getID().toString());
+
+        assertFilesMetadata(emptyItem, "0", "0", "no");
+    }
+
+    @Test
+    public void collectionRepairFixesItemsBeyondOneBatch() throws Exception {
+        // One more than the batch size, so the run commits and clears the session mid-iteration.
+        context.turnOffAuthorisationSystem();
+        List<Item> emptyItems = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            emptyItems.add(createItemWithEmptyOriginalBundle());
+        }
+        context.restoreAuthSystemState();
+        context.commit();
+
+        String output = runRepair("-c", collection.getID().toString());
+
+        assertThat(output, containsString("Checked 101 items"));
+        assertThat(output, containsString("Updated 101 items."));
+        assertFilesMetadata(item, "2", String.valueOf(totalFilesSize), "yes");
+        for (Item emptyItem : emptyItems) {
+            assertFilesMetadata(emptyItem, "0", "0", "no");
+        }
     }
 
     private Bitstream createBitstream(String content) throws Exception {
@@ -89,14 +150,33 @@ public class ItemFilesMetadataRepairIT extends AbstractIntegrationTestWithDataba
         }
     }
 
-    private void runRepair(String... extraArgs) throws Exception {
-        String[] args = {"-e", admin.getEmail(), "-i", item.getID().toString()};
-        ItemFilesMetadataRepair.main(ArrayUtils.addAll(args, extraArgs));
+    private Item createItemWithEmptyOriginalBundle() throws Exception {
+        Item emptyItem = ItemBuilder.createItem(context, collection).withTitle("Item without files").build();
+        BundleBuilder.createBundle(context, emptyItem).withName(Constants.CONTENT_BUNDLE_NAME).build();
+        return emptyItem;
     }
 
-    private void assertFilesMetadata(String count, String size, String hasFiles) throws Exception {
+    private String runRepair(String... args) throws Exception {
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+        try {
+            ItemFilesMetadataRepair.main(ArrayUtils.addAll(new String[] {"-e", admin.getEmail()}, args));
+        } finally {
+            System.setOut(originalOut);
+        }
+        return output.toString(StandardCharsets.UTF_8);
+    }
+
+    private Date reloadLastModified(Item target) throws Exception {
         try (Context verifyContext = new Context()) {
-            Item reloaded = itemService.find(verifyContext, item.getID());
+            return itemService.find(verifyContext, target.getID()).getLastModified();
+        }
+    }
+
+    private void assertFilesMetadata(Item target, String count, String size, String hasFiles) throws Exception {
+        try (Context verifyContext = new Context()) {
+            Item reloaded = itemService.find(verifyContext, target.getID());
             assertEquals(List.of(count), values(reloaded, "files", "count"));
             assertEquals(List.of(size), values(reloaded, "files", "size"));
             assertEquals(List.of(hasFiles), values(reloaded, "has", "files"));
