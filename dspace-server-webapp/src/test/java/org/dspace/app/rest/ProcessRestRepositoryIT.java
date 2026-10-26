@@ -956,4 +956,18 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient(adminToken).perform(get("/api/system/processes/" + process.getID()))
                              .andExpect(status().isOk());
     }
+
+    @Test
+    public void deleteProcessNotExisting() throws Exception {
+        // Unknown IDs must not be distinguishable from forbidden ones, and must not cause a 500 for admins
+        String notExistingId = String.valueOf(Integer.MAX_VALUE);
+        getClient().perform(delete("/api/system/processes/" + notExistingId))
+                   .andExpect(status().isUnauthorized());
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+        getClient(epersonToken).perform(delete("/api/system/processes/" + notExistingId))
+                               .andExpect(status().isForbidden());
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(delete("/api/system/processes/" + notExistingId))
+                             .andExpect(status().isForbidden());
+    }
 }

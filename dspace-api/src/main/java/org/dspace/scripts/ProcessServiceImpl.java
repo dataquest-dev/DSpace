@@ -198,7 +198,8 @@ public class ProcessServiceImpl implements ProcessService {
     @Override
     public void delete(Context context, Process process) throws SQLException, IOException, AuthorizeException {
         if (!authorizeActionBoolean(context, process)) {
-            throw new AuthorizeException("Cannot delete process " + process.getID());
+            // process is null for an unknown ID requested by an admin (the REST permission check lets admins through)
+            throw new AuthorizeException("Cannot delete process " + (process == null ? null : process.getID()));
         }
         for (Bitstream bitstream : ListUtils.emptyIfNull(process.getBitstreams())) {
             bitstreamService.delete(context, bitstream);
