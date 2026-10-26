@@ -64,9 +64,13 @@ env:
   # For a new tag, copy that tag name as the tag for Docker image.
   # For a pull request, use the name of the base branch that the PR was created against or "latest" (for main).
   #   e.g. PR against 'main' will use "latest". a PR against 'dspace-7_x' will use 'dspace-7_x'.
+  # For a new commit on a branch, also add an immutable tag '<branch>-<commit date>-<short sha>',
+  #   e.g. 'customer-jcu-20261019-1551-d6cdee3' (Europe/Bratislava time). All images of one commit share it.
+  #   Highest priority, so it is also the 'org.opencontainers.image.version' label of the image.
   IMAGE_TAGS: |
     type=raw,value=latest,enable=${{ github.ref_name == github.event.repository.default_branch }}
     type=raw,value=${{ github.sha }}
+    type=raw,value={{branch}}-{{commit_date 'YYYYMMDD-HHmm' tz='Europe/Bratislava'}}-{{sha}},enable=${{ startsWith(github.ref, 'refs/heads/') }},priority=1000
     type=ref,event=branch,enable=${{ github.ref_name != github.event.repository.default_branch }}
     type=ref,event=tag
   # Define default tag "flavor" for docker/metadata-action per
