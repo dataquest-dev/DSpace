@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -1649,7 +1650,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             URI expectedUrl = URI.create("https://example.com");
             doReturn(expectedUrl.toString())
                     .when(s3DirectDownloadService)
-                    .generatePresignedUrl(anyString(), anyString(), anyInt(), anyString());
+                    .generatePresignedUrl(anyString(), anyString(), anyInt(), anyString(), nullable(String.class));
 
             // Create and upload a bitstream
             bitstream = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))
@@ -1705,7 +1706,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             URI expectedUrl = URI.create("https://example.com");
             doReturn(expectedUrl.toString())
                     .when(s3DirectDownloadService)
-                    .generatePresignedUrl(anyString(), anyString(), anyInt(), anyString());
+                    .generatePresignedUrl(anyString(), anyString(), anyInt(), anyString(), nullable(String.class));
 
             // Create and upload a bitstream
             bitstream = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8), false)
