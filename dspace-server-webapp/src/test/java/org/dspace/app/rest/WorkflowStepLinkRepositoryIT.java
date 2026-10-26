@@ -24,13 +24,8 @@ import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.junit.Test;
 
 /**
- * Authorization regression tests for the workflow "step" link subresources:
- * {@code /api/workflow/{pooltasks,claimedtasks,workflowitems}/{id}/step}.
- *
- * These {@code @LinkRest} subresources previously had no method-level authorization, so the
- * access control enforced on their parent endpoints was bypassed and an anonymous caller could
- * reach the handler. Each /step subresource must now enforce the same READ permission as its
- * parent. (Found during internal security audit 2026_07_20_dq.)
+ * Authorization tests for {@code /api/workflow/{pooltasks,claimedtasks,workflowitems}/{id}/step}.
+ * Each /step subresource requires the same READ permission as its parent.
  */
 public class WorkflowStepLinkRepositoryIT extends AbstractControllerIntegrationTest {
 
@@ -159,8 +154,7 @@ public class WorkflowStepLinkRepositoryIT extends AbstractControllerIntegrationT
 
         String token = getAuthToken(ePerson.getEmail(), password);
 
-        // an authenticated (non-admin) user requesting an unknown workflow item id must get 404, not a 500
-        // caused by an unchecked null in the WORKFLOWITEM permission evaluator
+        // unknown id must give 404, not 500
         getClient(token).perform(get("/api/workflow/workflowitems/" + Integer.MAX_VALUE + "/step"))
                 .andExpect(status().isNotFound());
     }
