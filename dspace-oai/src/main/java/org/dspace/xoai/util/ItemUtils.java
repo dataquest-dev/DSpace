@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lyncode.xoai.dataprovider.xml.xoai.Element;
@@ -376,8 +377,10 @@ public class ItemUtils {
 
         other.getField().add(createValue("handle", item.getHandle()));
         other.getField().add(createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
-        other.getField().add(createValue("lastModifyDate",
-                new SimpleDateFormat("yyyy-MM-dd").format(item.getLastModified())));
+        // UTC, like the OAI-PMH datestamp (DateUtils#format), so both name the same day on any server
+        SimpleDateFormat lastModifyDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        lastModifyDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        other.getField().add(createValue("lastModifyDate", lastModifyDateFormat.format(item.getLastModified())));
 
         if (restricted.get()) {
             other.getField().add(createValue("restrictedAccess", "true"));
