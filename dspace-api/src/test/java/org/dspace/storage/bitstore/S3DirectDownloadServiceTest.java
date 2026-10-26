@@ -183,6 +183,17 @@ public class S3DirectDownloadServiceTest extends AbstractUnitTest {
         assertEquals(supplied, captureRequest().getObjectRequest().responseContentDisposition());
     }
 
+    // S3 sends the caller's header itself, so control characters must not reach it
+    @Test
+    public void controlCharsInSuppliedDispositionAreReplaced() throws Exception {
+        presignReturns("https://control");
+
+        s3DirectDownloadService.generatePresignedUrl("b", "k", 60, "a.pdf", "attachment; filename=\"a\nb\t.pdf\"");
+
+        assertEquals("attachment; filename=\"a b .pdf\"",
+                captureRequest().getObjectRequest().responseContentDisposition());
+    }
+
     // ... and a blank override still falls back to attachment
     @Test
     public void blankDispositionFallsBackToAttachment() throws Exception {

@@ -179,8 +179,9 @@ public class S3DirectDownloadServiceImpl implements S3DirectDownloadService {
         // Add custom response header for filename - to download the file with the desired name.
         // The caller passes the disposition it would have served itself, so that redirecting to S3 does not
         // silently turn an inline preview into a download; falling back to `attachment` is the safe default.
+        // S3 sends this header, not Tomcat, so control characters are replaced here the way Tomcat would.
         String contentDisposition = StringUtils.isNotBlank(contentDispositionOverride)
-                ? contentDispositionOverride
+                ? contentDispositionOverride.replaceAll("[\\x00-\\x1F\\x7F]", " ")
                 : ContentDispositionUtils.build(ContentDispositionUtils.ATTACHMENT, desiredFilename);
 
         try {
