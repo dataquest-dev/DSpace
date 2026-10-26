@@ -372,6 +372,8 @@ public class ProcessServiceImpl implements ProcessService {
         List<Process> processesToBeFailed = findByStatusAndCreationTimeOlderThan(
                 context, List.of(ProcessStatus.RUNNING, ProcessStatus.SCHEDULED), new Date());
         for (Process process : processesToBeFailed) {
+            // appendFile() grants the log bitstream policies to the current user, which must not be null
+            context.setCurrentUser(process.getEPerson());
             context.turnOffAuthorisationSystem();
             try {
                 // Fail the process.
