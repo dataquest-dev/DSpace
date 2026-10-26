@@ -24,6 +24,7 @@ import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.BundleBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.PreviewContentBuilder;
 import org.dspace.content.Bitstream;
@@ -33,6 +34,7 @@ import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.PreviewContent;
 import org.dspace.content.service.PreviewContentService;
+import org.dspace.eperson.Group;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,7 +94,8 @@ public class PreviewContentRestRepositoryIT  extends AbstractControllerIntegrati
         String adminToken = getAuthToken(admin.getEmail(), password);
 
         getClient(adminToken).perform(get("/api/core/previewContents/" + previewContent.getID()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is("test1.txt")));
     }
 
     @Test
@@ -106,6 +109,29 @@ public class PreviewContentRestRepositoryIT  extends AbstractControllerIntegrati
         String epersonToken = getAuthToken(eperson.getEmail(), password);
 
         getClient(epersonToken).perform(get("/api/core/previewContents/" + previewContent.getID()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void findOnePrivateBitstreamIsNotReadable() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Group readers = GroupBuilder.createGroup(context).withName("Preview readers").build();
+        Bitstream privateBitstream;
+        try (InputStream is = IOUtils.toInputStream("PrivateText", CharEncoding.UTF_8)) {
+            privateBitstream = BitstreamBuilder.createBitstream(context, bitstream.getBundles().get(0), is)
+                    .withName("Private bitstream")
+                    .withReaderGroup(readers)
+                    .build();
+        }
+        PreviewContent privatePreview = PreviewContentBuilder.createPreviewContent(context, privateBitstream,
+                "private.txt", "PrivateText", false, "100", null).build();
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/core/previewContents/" + privatePreview.getID()))
+                .andExpect(status().isUnauthorized());
+
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+        getClient(epersonToken).perform(get("/api/core/previewContents/" + privatePreview.getID()))
                 .andExpect(status().isForbidden());
     }
 
