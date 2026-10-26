@@ -103,6 +103,17 @@ public class WorkspaceItemServerFileTest {
     }
 
     @Test
+    public void siblingDirWithSamePrefixIsRefused() throws Exception {
+        File sibling = new File(allowedDir.getPath() + "-evil", "data.zip");
+        Files.createDirectories(sibling.toPath().getParent());
+        Files.createFile(sibling.toPath());
+
+        IOException e = assertThrows(IOException.class,
+            () -> repository.getAllowedServerFile(context, sibling.getAbsolutePath()));
+        assertThat(e.getMessage(), containsString("Illegal file path"));
+    }
+
+    @Test
     public void symlinkLeadingOutsideIsRefused() throws Exception {
         File link = new File(allowedDir, "link.cfg");
         try {

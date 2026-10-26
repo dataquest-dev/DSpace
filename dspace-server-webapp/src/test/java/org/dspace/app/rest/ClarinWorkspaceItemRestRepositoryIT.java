@@ -187,7 +187,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isForbidden());
 
-        assertNoFileAttached(wItem);
+        assertPatchRolledBack(wItem);
     }
 
     @Test
@@ -201,9 +201,10 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                 .perform(patch("/api/submission/workspaceitems/" + wItem.getID())
                         .content(getReplaceTitlePatch())
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(status().reason(containsString("Illegal file path")));
 
-        assertNoFileAttached(wItem);
+        assertPatchRolledBack(wItem);
     }
 
     @Test
@@ -1384,11 +1385,13 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
         return getPatchContent(operations);
     }
 
-    private void assertNoFileAttached(WorkspaceItem wItem) throws Exception {
+    private void assertPatchRolledBack(WorkspaceItem wItem) throws Exception {
         getClient(getAuthToken(admin.getEmail(), password))
                 .perform(get("/api/submission/workspaceitems/" + wItem.getID()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sections.upload.files", hasSize(0)));
+                .andExpect(jsonPath("$.sections.upload.files", hasSize(0)))
+                .andExpect(jsonPath("$.sections.traditionalpageone['dc.title'][0].value",
+                        is("Test WorkspaceItem")));
     }
 
     /**
