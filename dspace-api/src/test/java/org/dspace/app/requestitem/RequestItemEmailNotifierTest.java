@@ -11,6 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import javax.mail.Address;
@@ -33,6 +34,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
@@ -61,6 +63,7 @@ public class RequestItemEmailNotifierTest
 
     private static ConfigurationService configurationService;
     private static BitstreamService bitstreamService;
+    private static BitstreamFormatService bitstreamFormatService;
     private static HandleService handleService;
     private static RequestItemService requestItemService;
 
@@ -76,6 +79,8 @@ public class RequestItemEmailNotifierTest
                 = DSpaceServicesFactory.getInstance().getConfigurationService();
         bitstreamService
                 = ContentServiceFactory.getInstance().getBitstreamService();
+        bitstreamFormatService
+                = ContentServiceFactory.getInstance().getBitstreamFormatService();
         handleService
                 = HandleServiceFactory.getInstance().getHandleService();
         requestItemService
@@ -264,7 +269,7 @@ public class RequestItemEmailNotifierTest
 
     /**
      * A single-file approval must not attach a bitstream that does not belong to
-     * the requested item (issue #1092). The message body must stay a single text
+     * the requested item. The message body must stay a single text
      * part, with no attachment multipart.
      *
      * @throws java.lang.Exception passed through.
@@ -309,7 +314,7 @@ public class RequestItemEmailNotifierTest
 
     /**
      * A single-file approval for a bitstream that belongs to the requested item
-     * still attaches the file (regression guard for the #1092 fix).
+     * still attaches the file.
      *
      * @throws java.lang.Exception passed through.
      */
@@ -345,6 +350,48 @@ public class RequestItemEmailNotifierTest
         Object content = JavaMailTestTransport.getMessage().getContent();
         assertThat("Item-owned bitstream must be attached",
                 content, instanceOf(Multipart.class));
+    }
+
+    /**
+     * A single-file approval must not attach a bitstream in an internal format,
+     * even when it belongs to the requested item.
+     *
+     * @throws java.lang.Exception passed through.
+     */
+    @Test
+    public void testSendResponseDoesNotAttachInternalFormat() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Community com = CommunityBuilder.createCommunity(context)
+                .withName("Top Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, com).build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withTitle("Requested Item")
+                .build();
+        Bitstream license = BitstreamBuilder
+                .createBitstream(context, item,
+                        new ByteArrayInputStream("license".getBytes()))
+                .withName("license.txt")
+                .build();
+        license.setFormat(context, bitstreamFormatService.findByShortDescription(context, "License"));
+        bitstreamService.update(context, license);
+        context.restoreAuthSystemState();
+        assertTrue("License format must be internal", license.getFormat(context).isInternal());
+
+        RequestItem ri = new RequestItem();
+        ri.setAccept_request(true);
+        ri.setItem(item);
+        ri.setBitstream(license);
+        ri.setAllfiles(false);
+        ri.setReqEmail(REQUESTOR_ADDRESS);
+        ri.setReqName(REQUESTOR_NAME);
+
+        RequestItemEmailNotifier notifier = newGrantingNotifier();
+        notifier.sendResponse(context, ri, null, TEST_MESSAGE);
+
+        Object content = JavaMailTestTransport.getMessage().getContent();
+        assertThat("Internal-format bitstream must not be attached",
+                content, instanceOf(String.class));
     }
 
     /**

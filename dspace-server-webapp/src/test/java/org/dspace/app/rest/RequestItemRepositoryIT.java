@@ -393,7 +393,7 @@ public class RequestItemRepositoryIT
     /**
      * A single-bitstream request must name a bitstream that belongs to the
      * requested item. Naming a foreign bitstream together with one's own item
-     * (issue #1092) must be rejected with 422, not created.
+     * must be rejected with 422, not created.
      *
      * @throws java.lang.Exception passed through.
      */
@@ -438,7 +438,7 @@ public class RequestItemRepositoryIT
 
     /**
      * A request for a withdrawn (or otherwise non-archived) item must be
-     * rejected with 422 (issue #1092).
+     * rejected with 422.
      *
      * @throws java.lang.Exception passed through.
      */
