@@ -58,8 +58,10 @@ public class ProcessRestPermissionEvaluatorPlugin extends RestObjectPermissionEv
         try {
             int processId = Integer.parseInt(targetId.toString());
             Process process = processService.find(context, processId);
+            // This previously returned true, to allow a 404 to be thrown later. However, this assists enumeration
+            // of sequential process IDs. It is better to simply return 'unauthorized' here.
             if (process == null) {
-                return true;
+                return false;
             }
             if (!((context.getCurrentUser() == null) || (!context.getCurrentUser().equals(process.getEPerson())
                 && !authorizeService.isAdmin(context)))) {
