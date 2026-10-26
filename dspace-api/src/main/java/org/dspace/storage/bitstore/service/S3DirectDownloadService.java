@@ -37,7 +37,8 @@ public interface S3DirectDownloadService {
      * @param key                         The bitstream path in the S3 bucket
      * @param expirationSeconds           The number of seconds until the URL expires
      * @param bitstreamName               The name of the bitstream, used when no override is given
-     * @param contentDispositionOverride  The exact Content-Disposition to serve, or null for `attachment`
+     * @param contentDispositionOverride  The Content-Disposition to serve (control characters become
+     *                                    spaces), or null for `attachment`
      * @return                            A string containing the presigned URL for direct download access
      */
     String generatePresignedUrl(String bucket, String key, int expirationSeconds, String bitstreamName,
