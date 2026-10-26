@@ -970,4 +970,18 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient(adminToken).perform(delete("/api/system/processes/" + notExistingId))
                              .andExpect(status().isForbidden());
     }
+
+    @Test
+    public void getProcessOutputNotExisting() throws Exception {
+        String notExistingId = String.valueOf(Integer.MAX_VALUE);
+        getClient().perform(get("/api/system/processes/" + notExistingId + "/output"))
+                   .andExpect(status().isUnauthorized());
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+        getClient(epersonToken).perform(get("/api/system/processes/" + notExistingId + "/output"))
+                               .andExpect(status().isForbidden());
+        // admins pass the REST permission check, so the repository must handle the missing process (no 500)
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/system/processes/" + notExistingId + "/output"))
+                             .andExpect(status().isNotFound());
+    }
 }
