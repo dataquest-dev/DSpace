@@ -8,12 +8,14 @@
 package org.dspace.app.rest;
 
 import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
+import static org.dspace.app.rest.repository.WorkspaceItemRestRepository.BIG_FILE_UPLOAD_ALLOWED_DIR;
 import static org.dspace.content.InstallItemServiceImpl.SET_OWNING_COLLECTION_EVENT_DETAIL;
 import static org.dspace.content.clarin.ClarinLicense.Confirmation;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -61,7 +63,9 @@ import org.dspace.event.Event;
 import org.dspace.handle.PIDConfiguration;
 import org.dspace.services.ConfigurationService;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -76,6 +80,9 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
             "info:eu-repo/grantAgreement/Test funding code";
     private static final String NON_EU_SPONSOR = "No EU;Test funding code;Test funding organization;Test funding name";
     private static final String EU_SPONSOR_RELATION = "info:eu-repo/grantAgreement/Test funding code";
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Autowired
     private ConfigurationService configurationService;
@@ -121,6 +128,7 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                     .build();
 
             context.restoreAuthSystemState();
+            configurationService.setProperty(BIG_FILE_UPLOAD_ALLOWED_DIR, TMP_DIR);
             String tokenAdmin = getAuthToken(admin.getEmail(), password);
 
             List<Operation> addAccessCondition = new ArrayList<Operation>();
@@ -165,6 +173,37 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                 throw new Exception("Cannot delete the file in the end of the test: " + e.getMessage());
             }
         }
+    }
+
+    @Test
+    public void uploadFileFromServerIsRefusedForNonAdmin() throws Exception {
+        File file = tempFolder.newFile("data.txt");
+        configurationService.setProperty(BIG_FILE_UPLOAD_ALLOWED_DIR, tempFolder.getRoot().getAbsolutePath());
+        WorkspaceItem wItem = createWorkspaceItemWithServerFile(file);
+
+        getClient(getAuthToken(eperson.getEmail(), password))
+                .perform(patch("/api/submission/workspaceitems/" + wItem.getID())
+                        .content(getReplaceTitlePatch())
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isForbidden());
+
+        assertNoFileAttached(wItem);
+    }
+
+    @Test
+    public void uploadFileFromServerOutsideAllowedDirIsRefused() throws Exception {
+        File allowedDir = tempFolder.newFolder("allowed");
+        File file = tempFolder.newFile("local.cfg");
+        configurationService.setProperty(BIG_FILE_UPLOAD_ALLOWED_DIR, allowedDir.getAbsolutePath());
+        WorkspaceItem wItem = createWorkspaceItemWithServerFile(file);
+
+        getClient(getAuthToken(admin.getEmail(), password))
+                .perform(patch("/api/submission/workspaceitems/" + wItem.getID())
+                        .content(getReplaceTitlePatch())
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isBadRequest());
+
+        assertNoFileAttached(wItem);
     }
 
     @Test
@@ -1322,6 +1361,34 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
         context.restoreAuthSystemState();
 
         return witem;
+    }
+
+    private WorkspaceItem createWorkspaceItemWithServerFile(File file) throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection").build();
+        WorkspaceItem wItem = WorkspaceItemBuilder.createWorkspaceItem(context, col)
+                .withTitle("Test WorkspaceItem")
+                .withMetadata("local", "bitstream", "redirectToURL", file.getAbsolutePath())
+                .build();
+        context.restoreAuthSystemState();
+        return wItem;
+    }
+
+    private String getReplaceTitlePatch() {
+        List<Operation> operations = new ArrayList<Operation>();
+        operations.add(new ReplaceOperation("/sections/traditionalpageone/dc.title/0", Map.of("value", "New")));
+        return getPatchContent(operations);
+    }
+
+    private void assertNoFileAttached(WorkspaceItem wItem) throws Exception {
+        getClient(getAuthToken(admin.getEmail(), password))
+                .perform(get("/api/submission/workspaceitems/" + wItem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections.upload.files", hasSize(0)));
     }
 
     /**
