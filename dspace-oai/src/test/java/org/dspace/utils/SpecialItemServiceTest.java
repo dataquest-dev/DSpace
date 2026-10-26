@@ -51,7 +51,7 @@ public class SpecialItemServiceTest {
 
     private static final String HANDLE = "123456789/1";
     private static final String CMD_NS = "http://www.clarin.eu/cmd/";
-    private static final String SECRET = "r38-secret-file-content";
+    private static final String SECRET = "secret-file-content";
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -117,7 +117,10 @@ public class SpecialItemServiceTest {
     @Test
     public void normalCmdiIsStillParsed() throws Exception {
         uploadCmdi("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                + "<CMD xmlns=\"" + CMD_NS + "\"><Header><MdCreator>Tom &amp; Jerry</MdCreator></Header></CMD>");
+                + "<CMD xmlns=\"" + CMD_NS + "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+                + " xsi:schemaLocation=\"" + CMD_NS + " http://catalog.clarin.eu/ds/ComponentRegistry/rest/"
+                + "registry/profiles/clarin.eu:cr1:p_1403526079380/xsd\">"
+                + "<Header><MdCreator>Tom &amp; Jerry</MdCreator></Header></CMD>");
 
         Element root = ((Document) SpecialItemService.getUploadedMetadata(HANDLE)).getDocumentElement();
 
