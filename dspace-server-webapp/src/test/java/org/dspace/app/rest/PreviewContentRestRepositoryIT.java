@@ -7,8 +7,9 @@
  */
 package org.dspace.app.rest;
 
-
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
@@ -95,11 +96,41 @@ public class PreviewContentRestRepositoryIT  extends AbstractControllerIntegrati
     }
 
     @Test
+    public void findOneAnonymousIsUnauthorized() throws Exception {
+        getClient().perform(get("/api/core/previewContents/" + previewContent.getID()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void findOneNonAdminIsForbidden() throws Exception {
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(epersonToken).perform(get("/api/core/previewContents/" + previewContent.getID()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     public void findAll() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
 
         getClient(adminToken).perform(get("/api/core/previewContents")
                         .param("size", String.valueOf(100)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.previewContents[0].name", is("test1.txt")));
+    }
+
+    @Test
+    public void findAllAnonymousIsUnauthorized() throws Exception {
+        getClient().perform(get("/api/core/previewContents"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void findAllNonAdminIsForbidden() throws Exception {
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(epersonToken).perform(get("/api/core/previewContents"))
+                .andExpect(status().isForbidden());
     }
 }
