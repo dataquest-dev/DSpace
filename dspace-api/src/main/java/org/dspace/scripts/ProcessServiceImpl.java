@@ -380,6 +380,11 @@ public class ProcessServiceImpl implements ProcessService {
                 log.info("Process with ID {} did not complete before tomcat shutdown, failing it now.",
                         process.getID());
                 fail(context, process);
+                // The owner is null when its EPerson was deleted (process.user_id ON DELETE SET NULL); the log
+                // bitstream policies cannot be granted to nobody, and throwing here would block webapp startup.
+                if (process.getEPerson() == null) {
+                    continue;
+                }
                 // But still attach its log to the process.
                 appendLog(process.getID(), process.getName(),
                         "Process did not complete before tomcat shutdown.",

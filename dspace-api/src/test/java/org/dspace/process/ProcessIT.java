@@ -127,4 +127,21 @@ public class ProcessIT extends AbstractIntegrationTestWithDatabase {
         assertTrue(AuthorizeServiceFactory.getInstance().getAuthorizeService()
                                           .authorizeActionBoolean(context, eperson, log, Constants.READ, false));
     }
+
+    @Test
+    public void failRunningProcessesWithoutOwnerTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // the owner is null when the EPerson who started the process has been deleted
+        Process runningProcess = ProcessBuilder.createProcess(context, null, "mock-script", new LinkedList<>())
+                                               .withProcessStatus(ProcessStatus.RUNNING)
+                                               .withCreationTime(new Date(System.currentTimeMillis() - 60000))
+                                               .build();
+        context.restoreAuthSystemState();
+
+        context.setCurrentUser(null);
+        processService.failRunningProcesses(context);
+
+        Process process = processService.find(context, runningProcess.getID());
+        assertEquals(ProcessStatus.FAILED, process.getProcessStatus());
+    }
 }
