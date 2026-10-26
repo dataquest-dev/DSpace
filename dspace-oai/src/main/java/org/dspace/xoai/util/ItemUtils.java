@@ -377,7 +377,6 @@ public class ItemUtils {
 
         other.getField().add(createValue("handle", item.getHandle()));
         other.getField().add(createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
-        // UTC, like the OAI-PMH datestamp (DateUtils#format), so both name the same day on any server
         SimpleDateFormat lastModifyDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         lastModifyDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         other.getField().add(createValue("lastModifyDate", lastModifyDateFormat.format(item.getLastModified())));
