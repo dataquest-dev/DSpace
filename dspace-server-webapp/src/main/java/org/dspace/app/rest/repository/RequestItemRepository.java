@@ -308,6 +308,23 @@ public class RequestItemRepository
      * @throws URISyntaxException passed through.
      * @throws MalformedURLException passed through.
      */
+    public String getLinkTokenEmail(String token)
+            throws URISyntaxException, MalformedURLException {
+        final String base = configurationService.getProperty("dspace.ui.url");
+
+        // Construct the link, making sure to support sub-paths
+        URIBuilder uriBuilder = new URIBuilder(base);
+        List<String> segments = new LinkedList<>();
+        if (StringUtils.isNotBlank(uriBuilder.getPath())) {
+            segments.add(StringUtils.strip(uriBuilder.getPath(), "/"));
+        }
+        segments.add("request-a-copy");
+        segments.add(token);
+
+        // Build and return the URL from segments (or throw exception)
+        return uriBuilder.setPathSegments(segments).build().toURL().toExternalForm();
+    }
+
     /**
      * Does the given bitstream belong to the given item?
      *
@@ -327,22 +344,5 @@ public class RequestItemRepository
             }
         }
         return false;
-    }
-
-    public String getLinkTokenEmail(String token)
-            throws URISyntaxException, MalformedURLException {
-        final String base = configurationService.getProperty("dspace.ui.url");
-
-        // Construct the link, making sure to support sub-paths
-        URIBuilder uriBuilder = new URIBuilder(base);
-        List<String> segments = new LinkedList<>();
-        if (StringUtils.isNotBlank(uriBuilder.getPath())) {
-            segments.add(StringUtils.strip(uriBuilder.getPath(), "/"));
-        }
-        segments.add("request-a-copy");
-        segments.add(token);
-
-        // Build and return the URL from segments (or throw exception)
-        return uriBuilder.setPathSegments(segments).build().toURL().toExternalForm();
     }
 }
