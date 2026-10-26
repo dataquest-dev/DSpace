@@ -7,7 +7,7 @@
 --
 
 -----------------------------------------------------------------------------------
--- Shibboleth autoregistration rework (dspace-customers#1091): rows written before
+-- Shibboleth autoregistration rework: rows written before
 -- the change carry e-mailed tokens whose e-mail was never tied to the netid owner.
 -- Drop every pending row; affected users simply repeat the Shibboleth login.
 -----------------------------------------------------------------------------------
