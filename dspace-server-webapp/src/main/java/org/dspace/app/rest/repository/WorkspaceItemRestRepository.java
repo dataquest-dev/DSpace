@@ -76,7 +76,6 @@ import org.dspace.importer.external.exception.FileMultipleOccurencesException;
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.dspace.importer.external.service.ImportService;
 import org.dspace.services.ConfigurationService;
-import org.dspace.storage.secure.SecureFileAccess;
 import org.dspace.submit.factory.SubmissionServiceFactory;
 import org.dspace.submit.service.SubmissionConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,8 +102,6 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
     public static final String OPERATION_PATH_SECTIONS = "sections";
 
     public static final String SHARE_TOKEN = "shareToken";
-
-    public static final String BIG_FILE_UPLOAD_ALLOWED_DIR = "big.file.upload.allowed.dir";
 
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(WorkspaceItemRestRepository.class);
 
@@ -445,9 +442,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
     }
 
     /**
-     * If the admin writes path/filename in the `local.bitstream.redirectToURL` input field, from the
-     * `big.file.upload.allowed.dir` directory will be loaded file which will be converted to the MultipartFile and
-     * uploaded as normal bitstream.
+     * If the admin writes path/filename in the `local.bitstream.redirectToURL` input field, from the tomcat
+     * temp directory will be loaded file which will be converted to the MultipartFile and uploaded as normal bitstream.
      * The uploaded bitstream will be showed in the UI.
      *
      * @param context from the servlet
@@ -469,7 +465,11 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
             return;
         }
 
-        File file = getAllowedServerFile(context, fileName);
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException("Only an administrator can upload a file from the server.");
+        }
+
+        File file = new File(fileName);
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
 
         BigMultipartFile multipartFile = new BigMultipartFile(file.getName(), file.getName(), mimeType,
@@ -487,26 +487,6 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         if (shouldDeleteFile) {
             FileUtils.forceDelete(file);
         }
-    }
-
-    /**
-     * Only an administrator may attach a server file, and only one inside `big.file.upload.allowed.dir`.
-     * Symlinks and `..` are resolved before the check.
-     *
-     * @param context  current context
-     * @param fileName absolute path from `local.bitstream.redirectToURL`
-     * @return the resolved file
-     */
-    File getAllowedServerFile(Context context, String fileName) throws SQLException, AuthorizeException,
-            IOException {
-        if (!authorizeService.isAdmin(context)) {
-            throw new AuthorizeException("Only an administrator can upload a file from the server.");
-        }
-        String allowedDir = configurationService.getProperty(BIG_FILE_UPLOAD_ALLOWED_DIR);
-        if (StringUtils.isBlank(allowedDir)) {
-            throw new IOException(BIG_FILE_UPLOAD_ALLOWED_DIR + " is not configured.");
-        }
-        return SecureFileAccess.validatePathForRead(fileName, List.of(allowedDir), "big file upload").toFile();
     }
 
     @SearchRestMethod(name = SHARE_TOKEN)

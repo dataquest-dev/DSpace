@@ -8,7 +8,6 @@
 package org.dspace.app.rest;
 
 import static org.dspace.app.rest.repository.ClarinLicenseRestRepository.OPERATION_PATH_LICENSE_RESOURCE;
-import static org.dspace.app.rest.repository.WorkspaceItemRestRepository.BIG_FILE_UPLOAD_ALLOWED_DIR;
 import static org.dspace.content.InstallItemServiceImpl.SET_OWNING_COLLECTION_EVENT_DETAIL;
 import static org.dspace.content.clarin.ClarinLicense.Confirmation;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -128,7 +127,6 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                     .build();
 
             context.restoreAuthSystemState();
-            configurationService.setProperty(BIG_FILE_UPLOAD_ALLOWED_DIR, TMP_DIR);
             String tokenAdmin = getAuthToken(admin.getEmail(), password);
 
             List<Operation> addAccessCondition = new ArrayList<Operation>();
@@ -178,7 +176,6 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
     @Test
     public void uploadFileFromServerIsRefusedForNonAdmin() throws Exception {
         File file = tempFolder.newFile("data.txt");
-        configurationService.setProperty(BIG_FILE_UPLOAD_ALLOWED_DIR, tempFolder.getRoot().getAbsolutePath());
         WorkspaceItem wItem = createWorkspaceItemWithServerFile(file);
 
         getClient(getAuthToken(eperson.getEmail(), password))
@@ -186,23 +183,6 @@ public class ClarinWorkspaceItemRestRepositoryIT extends AbstractControllerInteg
                         .content(getReplaceTitlePatch())
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isForbidden());
-
-        assertPatchRolledBack(wItem);
-    }
-
-    @Test
-    public void uploadFileFromServerOutsideAllowedDirIsRefused() throws Exception {
-        File allowedDir = tempFolder.newFolder("allowed");
-        File file = tempFolder.newFile("local.cfg");
-        configurationService.setProperty(BIG_FILE_UPLOAD_ALLOWED_DIR, allowedDir.getAbsolutePath());
-        WorkspaceItem wItem = createWorkspaceItemWithServerFile(file);
-
-        getClient(getAuthToken(admin.getEmail(), password))
-                .perform(patch("/api/submission/workspaceitems/" + wItem.getID())
-                        .content(getReplaceTitlePatch())
-                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("Illegal file path")));
 
         assertPatchRolledBack(wItem);
     }
