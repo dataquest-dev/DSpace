@@ -50,6 +50,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.ResultActions;
 
 /**
  * Basic integration testing for the bulk access Import feature via UI {@link BulkAccessControl}.
@@ -497,6 +498,87 @@ public class BulkAccessControlScriptIT extends AbstractEntityIntegrationTest {
                     .file(bitstreamFile)
                     .param("properties", new ObjectMapper().writeValueAsString(list)))
             .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void bulkAccessScriptWithLongUuidOptionOfNotAdministeredCommunityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        CommunityBuilder.createCommunity(context)
+                        .withName("Administered Community")
+                        .withAdminGroup(eperson)
+                        .build();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Other Community")
+                                          .build();
+        context.restoreAuthSystemState();
+
+        performBulkAccessScript(eperson.getEmail(),
+            new DSpaceCommandLineParameter("--uuid", parentCommunity.getID().toString()))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void bulkAccessScriptWithAttachedUuidOptionOfNotAdministeredCommunityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        CommunityBuilder.createCommunity(context)
+                        .withName("Administered Community")
+                        .withAdminGroup(eperson)
+                        .build();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Other Community")
+                                          .build();
+        context.restoreAuthSystemState();
+
+        performBulkAccessScript(eperson.getEmail(),
+            new DSpaceCommandLineParameter("--uuid=" + parentCommunity.getID(), null))
+            .andExpect(status().isForbidden());
+
+        performBulkAccessScript(eperson.getEmail(),
+            new DSpaceCommandLineParameter("-u" + parentCommunity.getID(), null))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void bulkAccessScriptWithLongUuidOptionOfAdministeredCommunityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Administered Community")
+                                          .withAdminGroup(eperson)
+                                          .build();
+        context.restoreAuthSystemState();
+
+        performBulkAccessScript(eperson.getEmail(),
+            new DSpaceCommandLineParameter("--uuid", parentCommunity.getID().toString()))
+            .andExpect(status().isAccepted());
+    }
+
+    private ResultActions performBulkAccessScript(String email, DSpaceCommandLineParameter uuidParameter)
+        throws Exception {
+        String json = "{ \"item\": {\n" +
+            "      \"mode\": \"replace\",\n" +
+            "      \"accessConditions\": [\n" +
+            "          {\n" +
+            "            \"name\": \"openaccess\"\n" +
+            "          }\n" +
+            "      ]\n" +
+            "   }}\n";
+
+        MockMultipartFile bitstreamFile = new MockMultipartFile("file", "test.json", MediaType.TEXT_PLAIN_VALUE,
+            new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+
+        List<ParameterValueRest> list =
+            List.of(uuidParameter, new DSpaceCommandLineParameter("-f", "test.json")).stream()
+                .map(dSpaceCommandLineParameter -> dSpaceRunnableParameterConverter
+                    .convert(dSpaceCommandLineParameter, Projection.DEFAULT))
+                .collect(Collectors.toList());
+
+        String token = getAuthToken(email, password);
+
+        return getClient(token)
+            .perform(
+                multipart(CURATE_SCRIPT_ENDPOINT)
+                    .file(bitstreamFile)
+                    .param("properties", new ObjectMapper().writeValueAsString(list)));
     }
 
 }

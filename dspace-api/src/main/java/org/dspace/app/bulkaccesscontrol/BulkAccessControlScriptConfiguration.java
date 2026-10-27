@@ -9,12 +9,14 @@ package org.dspace.app.bulkaccesscontrol;
 
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.dspace.app.util.DSpaceObjectUtilsImpl;
 import org.dspace.app.util.service.DSpaceObjectUtils;
 import org.dspace.content.DSpaceObject;
@@ -38,16 +40,11 @@ public class BulkAccessControlScriptConfiguration<T extends BulkAccessControl> e
     public boolean isAllowedToExecute(Context context, List<DSpaceCommandLineParameter> commandLineParameters) {
 
         try {
-            if (Objects.isNull(commandLineParameters)) {
+            String[] dspaceObjectIDs = getTargetUuids(commandLineParameters);
+            if (Objects.isNull(dspaceObjectIDs)) {
                 return authorizeService.isAdmin(context) || authorizeService.isComColAdmin(context)
                     || authorizeService.isItemAdmin(context);
             } else {
-                List<String> dspaceObjectIDs =
-                    commandLineParameters.stream()
-                                         .filter(parameter -> "-u".equals(parameter.getName()))
-                                         .map(DSpaceCommandLineParameter::getValue)
-                                         .collect(Collectors.toList());
-
                 DSpaceObjectUtils dSpaceObjectUtils = new DSpace().getServiceManager().getServiceByName(
                     DSpaceObjectUtilsImpl.class.getName(), DSpaceObjectUtilsImpl.class);
 
@@ -69,6 +66,34 @@ public class BulkAccessControlScriptConfiguration<T extends BulkAccessControl> e
         }
 
         return true;
+    }
+
+    /**
+     * Resolve the target uuids exactly as the runnable will, by parsing the parameters with the same parser and
+     * options. Matching parameter names (e.g. only "-u") is not enough: "--uuid", "--uuid=X", "-uX" or an
+     * abbreviated "--uu" are all accepted by the parser and would otherwise skip the per-object check.
+     *
+     * @return the target uuids, or null when no parameters are given or they cannot be parsed. Unparseable
+     *         arguments fail the same way when the script initializes, so no object is ever modified.
+     */
+    private String[] getTargetUuids(List<DSpaceCommandLineParameter> commandLineParameters) {
+        if (Objects.isNull(commandLineParameters)) {
+            return null;
+        }
+
+        List<String> args = new ArrayList<>();
+        for (DSpaceCommandLineParameter parameter : commandLineParameters) {
+            args.add(parameter.getName());
+            if (parameter.getValue() != null) {
+                args.add(parameter.getValue());
+            }
+        }
+
+        try {
+            return new DefaultParser().parse(getOptions(), args.toArray(new String[0])).getOptionValues('u');
+        } catch (ParseException e) {
+            return null;
+        }
     }
 
     @Override
