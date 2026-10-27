@@ -273,7 +273,7 @@ public class UsageReportUtils {
                 UsageReportPointDsoTotalVisitsRest totalDownloadsPoint = new UsageReportPointDsoTotalVisitsRest();
                 totalDownloadsPoint.setType("bitstream");
 
-                totalDownloadsPoint.setId(bitstreamId);
+                totalDownloadsPoint.setId(bitstream.getID().toString());
                 totalDownloadsPoint.setLabel(dataset.getColLabels().get(i));
 
                 totalDownloadsPoint.addValue("views", Integer.valueOf(dataset.getMatrix()[0][i]));

@@ -23,12 +23,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.rest.matcher.UsageReportMatcher;
 import org.dspace.app.rest.model.UsageReportPointCityRest;
 import org.dspace.app.rest.model.UsageReportPointCountryRest;
@@ -55,10 +57,13 @@ import org.dspace.content.Item;
 import org.dspace.content.Site;
 import org.dspace.content.service.SiteService;
 import org.dspace.core.Constants;
+import org.dspace.core.HibernateTestUtil;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
+import org.dspace.statistics.SolrStatisticsCore;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.hamcrest.Matchers;
+import org.hibernate.Session;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -79,6 +84,8 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
     protected AuthorizeService authorizeService;
     @Autowired
     protected SiteService siteService;
+    @Autowired
+    private SolrStatisticsCore solrStatisticsCore;
 
     private Community communityNotVisited;
     private Community communityVisited;
@@ -826,13 +833,11 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
     @Test
     public void TotalDownloadsReport_Item_OnlyReadableBitstreams() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collectionNotVisited).build();
-        Bitstream openBitstream = BitstreamBuilder
-            .createBitstream(context, item, toInputStream("test", UTF_8))
-            .withName("OpenBitstream").build();
-        Bitstream restrictedBitstream = BitstreamBuilder
-            .createBitstream(context, item, toInputStream("test", UTF_8))
-            .withName("RestrictedBitstream").build();
+        Item item = context.reloadEntity(itemNotVisitedWithBitstreams);
+        Bitstream openBitstream = context.reloadEntity(bitstreamNotVisited);
+        Bitstream restrictedBitstream = context.reloadEntity(bitstreamVisited);
+        UsageReportPointDsoTotalVisitsRest openPoint = getExpectedDsoViews(openBitstream, 1);
+        UsageReportPointDsoTotalVisitsRest restrictedPoint = getExpectedDsoViews(restrictedBitstream, 1);
         context.restoreAuthSystemState();
 
         // ** WHEN **
@@ -857,6 +862,7 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
 
         // Remove read access from the restricted bitstream so it must not leak to unauthorized callers
         context.turnOffAuthorisationSystem();
+        restrictedBitstream = context.reloadEntity(restrictedBitstream);
         authorizeService.removeAllPolicies(context, restrictedBitstream);
         context.restoreAuthSystemState();
 
@@ -874,7 +880,7 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                            downloadsReportId,
                            TOTAL_DOWNLOADS_REPORT_ID,
                            List.of(
-                               getExpectedDsoViews(openBitstream, 1)
+                               openPoint
                            )
                        )
                    )));
@@ -887,8 +893,8 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                            downloadsReportId,
                            TOTAL_DOWNLOADS_REPORT_ID,
                            List.of(
-                               getExpectedDsoViews(openBitstream, 1),
-                               getExpectedDsoViews(restrictedBitstream, 1)
+                               openPoint,
+                               restrictedPoint
                            )
                        )
                    )));
@@ -897,13 +903,11 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
     @Test
     public void TotalDownloadsReport_Item_RestrictedBitstream_NonAdminWithReadPolicy() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collectionNotVisited).build();
-        Bitstream openBitstream = BitstreamBuilder
-            .createBitstream(context, item, toInputStream("test", UTF_8))
-            .withName("OpenBitstream").build();
-        Bitstream restrictedBitstream = BitstreamBuilder
-            .createBitstream(context, item, toInputStream("test", UTF_8))
-            .withName("RestrictedBitstream").build();
+        Item item = context.reloadEntity(itemNotVisitedWithBitstreams);
+        Bitstream openBitstream = context.reloadEntity(bitstreamNotVisited);
+        Bitstream restrictedBitstream = context.reloadEntity(bitstreamVisited);
+        UsageReportPointDsoTotalVisitsRest openPoint = getExpectedDsoViews(openBitstream, 1);
+        UsageReportPointDsoTotalVisitsRest restrictedPoint = getExpectedDsoViews(restrictedBitstream, 1);
         EPerson authorizedEperson = EPersonBuilder.createEPerson(context)
                                                   .withEmail("authorized@mail.com")
                                                   .withPassword(password)
@@ -932,7 +936,9 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
 
         // Restrict the bitstream to a single eperson via an explicit READ policy
         context.turnOffAuthorisationSystem();
+        restrictedBitstream = context.reloadEntity(restrictedBitstream);
         authorizeService.removeAllPolicies(context, restrictedBitstream);
+        authorizedEperson = context.reloadEntity(authorizedEperson);
         ResourcePolicyBuilder.createResourcePolicy(context, authorizedEperson, null)
                              .withDspaceObject(restrictedBitstream)
                              .withAction(Constants.READ).build();
@@ -953,8 +959,8 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                            downloadsReportId,
                            TOTAL_DOWNLOADS_REPORT_ID,
                            List.of(
-                               getExpectedDsoViews(openBitstream, 1),
-                               getExpectedDsoViews(restrictedBitstream, 1)
+                               openPoint,
+                               restrictedPoint
                            )
                        )
                    )));
@@ -967,10 +973,55 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                            downloadsReportId,
                            TOTAL_DOWNLOADS_REPORT_ID,
                            List.of(
-                               getExpectedDsoViews(openBitstream, 1)
+                               openPoint
                            )
                        )
                    )));
+    }
+
+    @Test
+    public void TotalDownloadsReport_Item_LegacyIdsRespectReadPolicies() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Bitstream openBitstream = context.reloadEntity(bitstreamNotVisited);
+        Bitstream restrictedBitstream = context.reloadEntity(bitstreamVisited);
+        // Legacy IDs are read-only in Hibernate; populate them as a migration would.
+        Session session = HibernateTestUtil.getHibernateSession(context);
+        session.createNativeQuery("UPDATE bitstream SET bitstream_id = :id WHERE uuid = :uuid")
+            .setParameter("id", 12345).setParameter("uuid", openBitstream.getID()).executeUpdate();
+        session.createNativeQuery("UPDATE bitstream SET bitstream_id = :id WHERE uuid = :uuid")
+            .setParameter("id", 23456).setParameter("uuid", restrictedBitstream.getID()).executeUpdate();
+        session.refresh(openBitstream);
+        session.refresh(restrictedBitstream);
+        authorizeService.removeAllPolicies(context, restrictedBitstream);
+        context.restoreAuthSystemState();
+
+        // Historical statistics contain numeric IDs, including one for a deleted bitstream.
+        for (String id : List.of("12345", "23456", "99999")) {
+            SolrInputDocument document = new SolrInputDocument();
+            document.addField("id", id);
+            document.addField("type", Constants.BITSTREAM);
+            document.addField("owningItem", itemNotVisitedWithBitstreams.getID().toString());
+            document.addField("time", new Date());
+            document.addField("isBot", false);
+            solrStatisticsCore.getSolr().add(document);
+        }
+        solrStatisticsCore.getSolr().commit();
+
+        configurationService.setProperty("usage-statistics.authorization.admin.usage", false);
+        String reportId = itemNotVisitedWithBitstreams.getID() + "_" + TOTAL_DOWNLOADS_REPORT_ID;
+        UsageReportPointDsoTotalVisitsRest openPoint = getExpectedDsoViews(openBitstream, 1);
+        openPoint.setLabel(openBitstream.getName() + "(legacy)");
+        UsageReportPointDsoTotalVisitsRest restrictedPoint = getExpectedDsoViews(restrictedBitstream, 1);
+        restrictedPoint.setLabel(restrictedBitstream.getName() + "(legacy)");
+
+        getClient().perform(get("/api/statistics/usagereports/" + reportId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.is(UsageReportMatcher.matchUsageReport(
+                reportId, TOTAL_DOWNLOADS_REPORT_ID, List.of(openPoint)))));
+        getClient(adminToken).perform(get("/api/statistics/usagereports/" + reportId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.is(UsageReportMatcher.matchUsageReport(
+                reportId, TOTAL_DOWNLOADS_REPORT_ID, List.of(openPoint, restrictedPoint)))));
     }
 
     @Test
