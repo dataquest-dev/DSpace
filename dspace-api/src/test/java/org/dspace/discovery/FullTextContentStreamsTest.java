@@ -18,12 +18,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.core.Constants;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.service.GroupService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +49,21 @@ public class FullTextContentStreamsTest {
 
     @Mock
     private BitstreamService bitstreamService;
+
+    @Mock
+    private AuthorizeService authorizeService;
+
+    @Mock
+    private ResourcePolicyService resourcePolicyService;
+
+    @Mock
+    private GroupService groupService;
+
+    @Mock
+    private Group anonymousGroup;
+
+    @Mock
+    private ResourcePolicy anonymousReadPolicy;
 
     @Mock
     private Item item;
@@ -83,7 +105,21 @@ public class FullTextContentStreamsTest {
         when(bitstreamService.retrieve(null, textBitstream3))
             .thenReturn(new ByteArrayInputStream("This is text 3".getBytes(StandardCharsets.UTF_8)));
 
+        // By default every TEXT bitstream is readable by anonymous users.
+        when(groupService.findByName(null, Group.ANONYMOUS)).thenReturn(anonymousGroup);
+        when(anonymousReadPolicy.getGroup()).thenReturn(anonymousGroup);
+        when(resourcePolicyService.isDateValid(anonymousReadPolicy)).thenReturn(true);
+        when(authorizeService.getPoliciesActionFilter(null, textBitstream1, Constants.READ))
+            .thenReturn(Collections.singletonList(anonymousReadPolicy));
+        when(authorizeService.getPoliciesActionFilter(null, textBitstream2, Constants.READ))
+            .thenReturn(Collections.singletonList(anonymousReadPolicy));
+        when(authorizeService.getPoliciesActionFilter(null, textBitstream3, Constants.READ))
+            .thenReturn(Collections.singletonList(anonymousReadPolicy));
+
         streams.bitstreamService = bitstreamService;
+        streams.authorizeService = authorizeService;
+        streams.resourcePolicyService = resourcePolicyService;
+        streams.groupService = groupService;
     }
 
     @Test
@@ -199,6 +235,31 @@ public class FullTextContentStreamsTest {
                    content.contains("java.io.IOException"));
         assertTrue("The data should contain data on the exception that occurred",
                    content.contains("NOTFOUND"));
+    }
+
+    @Test
+    public void testRestrictedTextBitstreamIsNotIndexed() throws Exception {
+        when(item.getBundles()).thenReturn(Arrays.asList(originalBundle, textBundle));
+        when(textBundle.getBitstreams()).thenReturn(Arrays.asList(textBitstream1, textBitstream2, textBitstream3));
+        // The second bitstream is not readable by anonymous users and must be skipped.
+        when(authorizeService.getPoliciesActionFilter(null, textBitstream2, Constants.READ))
+            .thenReturn(Collections.emptyList());
+
+        streams.init(item);
+
+        assertEquals("Only the anonymously readable bitstreams should be included",
+                     "Full Text 1;Full Text 3", streams.getName());
+        assertEquals("The size should exclude the restricted bitstream", (Long) 4L, streams.getSize());
+        assertFalse("Content stream should not be empty", streams.isEmpty());
+        InputStream inputStream = streams.getStream();
+        assertNotNull(inputStream);
+        String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        assertTrue("The data should contain the text of the first (readable) bitstream",
+                   content.contains("This is text 1"));
+        assertFalse("The data should NOT contain the text of the restricted bitstream",
+                    content.contains("This is text 2"));
+        assertTrue("The data should contain the text of the third (readable) bitstream",
+                   content.contains("This is text 3"));
     }
 
 }
