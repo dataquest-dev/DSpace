@@ -13,6 +13,8 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -30,6 +32,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.matcher.ExternalHandleMatcher;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
+import org.dspace.app.rest.repository.ExternalHandleRestRepository;
 import org.dspace.app.rest.repository.RandomStringGenerator;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authorize.AuthorizeException;
@@ -46,7 +49,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -59,6 +64,9 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
 
     @Autowired
     ConfigurationService configurationService;
+
+    @Autowired
+    private ExternalHandleRestRepository externalHandleRestRepository;
 
     private String prefix;
 
@@ -74,6 +82,9 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     private final String urlBlacklistConfig = "shortener.post.url.blacklist.regexps";
     private final String hostBlacklistConfig = "shortener.post.host.blacklist.regexps";
     private static final String TEST_URL = "https://example.org/target";
+    private static final String TEST_EMAIL = "submitter@example.org";
+    // allowed by the default shortener.post.host.whitelist.regexps
+    private static final String ALLOWED_URL = "https://lindat.cz/";
     private String[] urlBlacklist;
     private String[] hostBlacklist;
 
@@ -163,7 +174,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         MvcResult result = createHandle(null, Map.of(
                 "url", "https://lindat.mff.cuni.cz/#!/services/pmltq/",
                 "title", "title",
-                "reportemail", "reporteMail"
+                "reportemail", TEST_EMAIL
         ));
         Map<String, String> handleResponse = mapper.readValue(result.getResponse().getContentAsString(),
                 Map.class);
@@ -180,7 +191,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         Map<String, String> handleJson = Map.of(
             "url", url,
             "title", "title",
-            "reportemail", "reporteMail",
+            "reportemail", TEST_EMAIL,
             "subprefix", "subprefix",
             "datasetName", "datasetName",
             "datasetVersion", "datasetVersion",
@@ -228,7 +239,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         Map<String, String> handleJson = Map.of(
                 "url", url,
                 "title", "title",
-                "reportemail", "reporteMail",
+                "reportemail", TEST_EMAIL,
                 "subprefix", "subprefix",
                 "datasetName", "datasetName",
                 "datasetVersion", "datasetVersion",
@@ -366,7 +377,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         Map<String, String> handleJson = Map.of(
                 "url", url,
                 "title", "title",
-                "reportemail", "reporteMail",
+                "reportemail", TEST_EMAIL,
                 "subprefix", "subprefix",
                 "datasetName", "datasetName",
                 "datasetVersion", "datasetVersion",
@@ -389,7 +400,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
                             .content(mapper.writeValueAsBytes(Map.of(
                                     "url", "https://example" + tld,
                                     "title", "title",
-                                    "reportemail", "reporteMail"
+                                    "reportemail", TEST_EMAIL
                             )))
                             .contentType(contentType))
                     .andExpect(status().isBadRequest());
@@ -401,7 +412,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
                         .content(mapper.writeValueAsBytes(Map.of(
                                 "url", "https://junk",
                                 "title", "title",
-                                "reportemail", "reporteMail"
+                                "reportemail", TEST_EMAIL
                         )))
                         .contentType(contentType))
                 .andExpect(status().isBadRequest());
@@ -418,7 +429,7 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
                             .content(mapper.writeValueAsBytes(Map.of(
                                     "url", url,
                                     "title", "title",
-                                    "reportemail", "reporteMail"
+                                    "reportemail", TEST_EMAIL
                             )))
                             .contentType(contentType))
                     .andExpect(status().isBadRequest());
@@ -427,8 +438,95 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         createHandle(null, Map.of(
                 "url", "https://example.cz",
                 "title", "title",
-                "reportemail", "email"
+                "reportemail", TEST_EMAIL
         ));
+    }
+
+    @Test
+    public void createRejectsMagicDelimiterInMetadata() throws Exception {
+        // the resolver reads the destination after the 9th delimiter of the stored record, i.e. the
+        // text after the 8 delimiters injected in the title, so the host rules would not apply to it
+        String title = "title" + ExternalHandleConstants.MAGIC_BEAN.repeat(8) + "https://evil.example/";
+        postHandle(ALLOWED_URL, title, TEST_EMAIL)
+                .andExpect(content().string(not(containsString("\"url\":\"https://evil.example/"))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void createRejectsUrlWithBackslashBeforeAt() throws Exception {
+        // java.net.URL reads the allowed host after '@', browsers end the host at the backslash
+        postHandle("https://evil.example\\@lindat.cz/", "title", TEST_EMAIL)
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void createRejectsNonHttpUrl() throws Exception {
+        postHandle("file://lindat.cz/etc/passwd", "title", TEST_EMAIL)
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void hostRulesIgnoreCaseRootDotAndUnicodeSpelling() throws Exception {
+        configurationService.setProperty(urlBlacklistConfig, null);
+        configurationService.setProperty(hostBlacklistConfig, "blocked\\.example");
+        // the last one is blocked.example in fullwidth letters, which browsers map to blocked.example
+        for (String url : List.of("https://BLOCKED.example/", "https://blocked.example./",
+                "https://ｂｌｏｃｋｅｄ.example/")) {
+            postHandle(url, "title", TEST_EMAIL).andExpect(status().isBadRequest());
+        }
+        // with the default deny-all rules only the lowercase allow rule can let this host through
+        configurationService.setProperty(urlBlacklistConfig, urlBlacklist);
+        configurationService.setProperty(hostBlacklistConfig, hostBlacklist);
+        createHandle(null, Map.of("url", "https://LINDAT.CZ/", "title", "title", "reportemail", TEST_EMAIL));
+    }
+
+    @Test
+    public void createRejectsInvalidReportEmail() throws Exception {
+        postHandle(ALLOWED_URL, "title", "not-an-email")
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void recordLongerThanUrlColumnIsRejected() throws Exception {
+        // the stored record would exceed the handle.url column (varchar(8192) in the H2 schema)
+        String longText = "a".repeat(8192);
+        postHandle(ALLOWED_URL, longText, TEST_EMAIL)
+                .andExpect(status().isBadRequest());
+        getClient().perform(put("/api/services/handles")
+                        .content(mapper.writeValueAsBytes(Map.of(
+                                "handle", prefix + "0",
+                                "token", "token0",
+                                "url", ALLOWED_URL + longText
+                        )))
+                        .contentType(contentType))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void updateErrorDoesNotRevealDatabaseDetails() throws Exception {
+        HandleClarinService failingService = mock(HandleClarinService.class);
+        when(failingService.findByHandleAndMagicToken(any(), any(), any()))
+                .thenThrow(new SQLException("synthetic database detail"));
+        ReflectionTestUtils.setField(externalHandleRestRepository, "handleClarinService", failingService);
+        try {
+            getClient().perform(put("/api/services/handles")
+                            .content(mapper.writeValueAsBytes(Map.of(
+                                    "handle", prefix + "0",
+                                    "token", "token0",
+                                    "url", ALLOWED_URL
+                            )))
+                            .contentType(contentType))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(content().string(not(containsString("synthetic database detail"))));
+        } finally {
+            ReflectionTestUtils.setField(externalHandleRestRepository, "handleClarinService", handleClarinService);
+        }
+    }
+
+    private ResultActions postHandle(String url, String title, String reportemail) throws Exception {
+        return getClient().perform(post("/api/services/handles")
+                .content(mapper.writeValueAsBytes(Map.of("url", url, "title", title, "reportemail", reportemail)))
+                .contentType(contentType));
     }
 
     private MvcResult updateHandle(String authToken, Map<String, String> updatedHandleJson) throws Exception {

@@ -7,21 +7,26 @@
  */
 package org.dspace.app.rest.repository;
 
+import static org.apache.commons.lang.StringUtils.contains;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang.StringUtils.removeEnd;
 import static org.dspace.handle.external.ExternalHandleConstants.MAGIC_BEAN;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.validator.routines.EmailValidator;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DCDate;
@@ -50,6 +55,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExternalHandleRestRepository {
 
     private static final Logger log = LoggerFactory.getLogger(ExternalHandleRestRepository.class);
+
+    // the handle.url column is varchar(8192) in the H2 schema, PostgreSQL does not limit it
+    private static final int MAX_MAGIC_URL_LENGTH = 8192;
+
+    private static final String UPDATE_ERROR = "Cannot update the external handle.";
 
     private final String EXTERNAL_HANDLE_ENDPOINT_FIND_ALL = "handles/magic";
     private final String EXTERNAL_HANDLE_ENDPOINT_SHORTEN = "handles";
@@ -113,6 +123,9 @@ public class ExternalHandleRestRepository {
                 handle.submitdate = new DCDate(new Date()).toString();
                 String subprefix = (isNotBlank(handle.subprefix)) ? handle.subprefix + "-" : "";
                 String magicURL = handle.generateMagicUrl();
+                if (magicURL.length() > MAX_MAGIC_URL_LENGTH) {
+                    return invalidShortenRequest();
+                }
                 String hdl = createHandle(subprefix, magicURL, context);
                 if (Objects.isNull(hdl)) {
                     return new ResponseEntity<>("Failed to create the shortened handle.",
@@ -126,6 +139,10 @@ public class ExternalHandleRestRepository {
             }
         }
 
+        return invalidShortenRequest();
+    }
+
+    private ResponseEntity<Object> invalidShortenRequest() {
         return new ResponseEntity<>(configurationService.getProperty("shortener.post.error",
                 "Cannot create handle because some parameter is null or the URL is not valid"),
                 HttpStatus.BAD_REQUEST);
@@ -174,6 +191,9 @@ public class ExternalHandleRestRepository {
 
                 // this has the new url and a new token
                 String newMagicUrl = oldExternalHandle.generateMagicUrl();
+                if (newMagicUrl.length() > MAX_MAGIC_URL_LENGTH) {
+                    return new ResponseEntity<>(UPDATE_ERROR, HttpStatus.BAD_REQUEST);
+                }
 
                 // set the new magic url as url on the entity object
                 handleEntity.setUrl(newMagicUrl);
@@ -190,13 +210,12 @@ public class ExternalHandleRestRepository {
                 // return updated external handle
                 return new ResponseEntity<>(new Handle(hdl, newMagicUrl), HttpStatus.OK);
             } catch (SQLException | AuthorizeException e) {
-                return new ResponseEntity<>("Cannot update the external handle because: " + e.getMessage(),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
+                log.error(UPDATE_ERROR, e);
+                return new ResponseEntity<>(UPDATE_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 
-        return new ResponseEntity<>("Cannot update the external handle.",
-                HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(UPDATE_ERROR, HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -243,7 +262,13 @@ public class ExternalHandleRestRepository {
             return false;
         }
 
-        return true;
+        if (!EmailValidator.getInstance().isValid(handle.reportemail)) {
+            return false;
+        }
+
+        // the delimiter in a part shifts the parts of the stored magic URL, including the destination URL
+        return Stream.of(handle.title, handle.reportemail, handle.datasetName, handle.datasetVersion, handle.query)
+                .noneMatch(part -> contains(part, MAGIC_BEAN));
     }
 
     private boolean validHandleUrl(String url) {
@@ -254,27 +279,34 @@ public class ExternalHandleRestRepository {
             return false;
         }
         try {
-            final URL url_o = new URL(url);
-            final String host = url_o.getHost();
+            // java.net.URI rejects characters that browsers parse differently (e.g. a backslash in the authority)
+            // and has a host only for an ASCII host name, so an IDN host must be sent in its punycode form
+            final URI uri = new URI(url);
+            final String scheme = uri.getScheme();
+            if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) || isBlank(uri.getHost())) {
+                return false;
+            }
+            // host names are case-insensitive and may end with the DNS root dot
+            final String host = removeEnd(uri.getHost(), ".");
             //whitelist host
-            if (matchesAnyOf(host, "shortener.post.host.whitelist.regexps")) {
+            if (matchesAnyOf(host, "shortener.post.host.whitelist.regexps", Pattern.CASE_INSENSITIVE)) {
                 return true;
             }
             //blacklist url
-            if (matchesAnyOf(url, "shortener.post.url.blacklist.regexps")) {
+            if (matchesAnyOf(url, "shortener.post.url.blacklist.regexps", 0)) {
                 return false;
             }
             //blacklist host
-            if (matchesAnyOf(host, "shortener.post.host.blacklist.regexps")) {
+            if (matchesAnyOf(host, "shortener.post.host.blacklist.regexps", Pattern.CASE_INSENSITIVE)) {
                 return false;
             }
-        } catch (MalformedURLException e) {
+        } catch (URISyntaxException e) {
             return false;
         }
         return true;
     }
 
-    private boolean matchesAnyOf(String tested, String configPropertyWithPatterns) {
+    private boolean matchesAnyOf(String tested, String configPropertyWithPatterns, int flags) {
         final String[] patterns = this.configurationService.getArrayProperty(configPropertyWithPatterns);
         if (Objects.isNull(patterns)) {
             return false;
@@ -284,7 +316,7 @@ public class ExternalHandleRestRepository {
 
         String[] list = pattern.split(";");
         for (String regexp : list) {
-            if (tested.matches(regexp.trim())) {
+            if (Pattern.compile(regexp.trim(), flags).matcher(tested).matches()) {
                 return true;
             }
         }
