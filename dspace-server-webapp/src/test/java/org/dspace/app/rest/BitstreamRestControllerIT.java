@@ -1456,11 +1456,11 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         for (String mimeType : mimeTypes) {
             context.turnOffAuthorisationSystem();
             // Known formats exercise the guard instead of the unknown-format fallback.
-            BitstreamFormat format = createBitstreamFormat(context).withMimeType(mimeType)
+            createBitstreamFormat(context).withMimeType(mimeType)
                 .withShortDescription("Active " + mimeType).withSupportLevel(KNOWN).build();
-            Bitstream file = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8)).build();
-            file.setFormat(context, format);
-            bitstreamService.update(context, file);
+            item = context.reloadEntity(item);
+            Bitstream file = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))
+                .withMimeType(mimeType).build();
             context.restoreAuthSystemState();
 
             String contentType = mimeType.split(";")[0] + ";charset=UTF-8";
@@ -1492,6 +1492,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         configurationService.setProperty("webui.content_disposition_inline", new String[] {"pdf"});
         for (String mimeType : new String[] {null, "", " "}) {
             context.turnOffAuthorisationSystem();
+            supportedFormat = context.reloadEntity(supportedFormat);
             supportedFormat.setMIMEType(mimeType);
             bitstreamFormatService.update(context, supportedFormat);
             context.restoreAuthSystemState();
