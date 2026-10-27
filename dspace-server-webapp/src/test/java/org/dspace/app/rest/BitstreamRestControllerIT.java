@@ -94,6 +94,7 @@ import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.storage.bitstore.S3BitStoreService;
 import org.dspace.storage.bitstore.factory.StorageServiceFactory;
+import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.dspace.storage.bitstore.service.S3DirectDownloadService;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -1315,6 +1316,80 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         Mockito.verify(inputStreamSpy, times(1)).close();
     }
 
+    /**
+     * Creates a public item with a text bitstream (stored in {@link #bitstream}) and replaces the bitstream
+     * storage service with a spy so that calls to {@code retrieve(...)} can be verified.
+     *
+     * @return the spied bitstream storage service
+     */
+    private BitstreamStorageService setUpBitstreamWithStorageSpy() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 =
+            CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+
+        try (InputStream is = IOUtils.toInputStream("0123456789", CharEncoding.UTF_8)) {
+
+            Item publicItem1 = ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                .build();
+
+            bitstream = BitstreamBuilder
+                .createBitstream(context, publicItem1, is)
+                .withName("Test bitstream")
+                .withDescription("This is a bitstream to test range requests")
+                .withMimeType("text/plain")
+                .build();
+        }
+        context.restoreAuthSystemState();
+
+        var bitstreamStorageService = StorageServiceFactory.getInstance().getBitstreamStorageService();
+        var bitstreamStorageServiceSpy = spy(bitstreamStorageService);
+        ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService", bitstreamStorageServiceSpy);
+        return bitstreamStorageServiceSpy;
+    }
+
+    @Test
+    public void doesNotOpenStreamForHeadRequest() throws Exception {
+        var bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
+
+        //A HEAD request only needs the headers, so the storage stream must never be opened.
+        getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+            .andExpect(status().isOk());
+
+        Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
+    }
+
+    @Test
+    public void doesNotOpenStreamForNotModifiedRequest() throws Exception {
+        var bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
+
+        //A matching If-None-Match results in a 304 without a body, so the storage stream must never be opened.
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
+                .header("If-None-Match", bitstream.getChecksum()))
+            .andExpect(status().isNotModified());
+
+        Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
+    }
+
+    @Test
+    public void doesNotOpenStreamForPreconditionFailedRequest() throws Exception {
+        var bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
+
+        //An If-Unmodified-Since in the past results in a 412 without a body, so the stream must never be opened.
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
+                .header("If-Unmodified-Since", "Sat, 29 Oct 1994 19:43:31 GMT"))
+            .andExpect(status().isPreconditionFailed());
+
+        Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
+    }
+
     @Test
     public void checkContentDispositionOfFormats() throws Exception {
         configurationService.setProperty("webui.content_disposition_format", new String[] {
@@ -1645,11 +1720,18 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             context.restoreAuthSystemState();
             context.commit();
 
+            var bitstreamStorageService = StorageServiceFactory.getInstance().getBitstreamStorageService();
+            var bitstreamStorageServiceSpy = spy(bitstreamStorageService);
+            ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService", bitstreamStorageServiceSpy);
+
             // Make a request to the /content endpoint and check the redirect URL
             getClient().perform(get("/api/core/bitstreams/" + bitstreamId + "/content"))
                     .andExpect(status().isFound()) // 302 Redirect
                     .andExpect(header().exists("Location"))
                     .andExpect(header().string("Location", containsString(expectedUrl.toString())));
+
+            // The redirect response has no body, so the storage stream must never be opened.
+            Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
 
             // Check that the not found response is returned when the bitstream does not exist
             getClient().perform(get("/api/core/bitstreams/" + UUID.randomUUID() + "/content"))

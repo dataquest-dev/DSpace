@@ -52,9 +52,10 @@ public class BitstreamResource extends AbstractResource {
         new DSpace().getServiceManager()
             .getServicesByType(CitationDocumentService.class).get(0);
 
+    private boolean fetched = false;
     private String documentEtag;
     private long documentLength;
-    private InputStream documentInputStream = null;
+    private byte[] coverPageBytes;
 
     public BitstreamResource(String name, UUID uuid, UUID currentUserUUID, Set<UUID> currentSpecialGroups,
         boolean shouldGenerateCoverPage) {
@@ -94,7 +95,17 @@ public class BitstreamResource extends AbstractResource {
     public InputStream getInputStream() throws IOException {
         fetchDocument();
 
-        return this.documentInputStream;
+        // Open the storage stream lazily, only when the response body is actually written. This avoids leaking
+        // an open stream on the paths that never read the body (HEAD, 304, 412, S3 redirect).
+        if (shouldGenerateCoverPage) {
+            return new ByteArrayInputStream(coverPageBytes);
+        }
+
+        try (Context context = initializeContext()) {
+            return bitstreamService.retrieve(context, bitstreamService.find(context, uuid));
+        } catch (SQLException | AuthorizeException e) {
+            throw new IOException(e);
+        }
     }
 
     @Override
@@ -116,7 +127,7 @@ public class BitstreamResource extends AbstractResource {
     }
 
     private void fetchDocument() {
-        if (this.documentInputStream != null) {
+        if (this.fetched) {
             return;
         }
 
@@ -127,19 +138,19 @@ public class BitstreamResource extends AbstractResource {
 
                 this.documentEtag = etag(bitstream);
                 this.documentLength = coverPage.length;
-                this.documentInputStream = new ByteArrayInputStream(coverPage);
+                this.coverPageBytes = coverPage;
 
             } else {
 
                 this.documentEtag = bitstream.getChecksum();
                 this.documentLength = bitstream.getSizeBytes();
-                this.documentInputStream = bitstreamService.retrieve(context, bitstream);
 
             }
         } catch (SQLException | AuthorizeException | IOException e) {
             throw new RuntimeException(e);
         }
 
+        this.fetched = true;
         LOG.debug("fetched document {} {} {}", shouldGenerateCoverPage, this.documentEtag, this.documentLength);
     }
 
