@@ -432,6 +432,21 @@ public class BulkAccessControlScriptIT extends AbstractEntityIntegrationTest {
 
     @Test
     public void bulkAccessScriptWithoutTargetUUIDParameterTest() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token)
+            .perform(
+                multipart(CURATE_SCRIPT_ENDPOINT)
+                    .param("properties", new ObjectMapper().writeValueAsString(List.of()))
+            )
+            .andExpect(status().isInternalServerError())
+            .andExpect(result -> assertTrue(result.getResolvedException()
+                                                  .getMessage()
+                                                  .contains("At least one target uuid must be provided")));
+    }
+
+    @Test
+    public void bulkAccessScriptWithoutTargetUUIDParameterWithAdminUserOfCommunityTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
@@ -448,10 +463,7 @@ public class BulkAccessControlScriptIT extends AbstractEntityIntegrationTest {
                 multipart(CURATE_SCRIPT_ENDPOINT)
                     .param("properties", new ObjectMapper().writeValueAsString(List.of()))
             )
-            .andExpect(status().isInternalServerError())
-            .andExpect(result -> assertTrue(result.getResolvedException()
-                                                  .getMessage()
-                                                  .contains("At least one target uuid must be provided")));
+            .andExpect(status().isForbidden());
     }
 
     @Test
@@ -514,6 +526,23 @@ public class BulkAccessControlScriptIT extends AbstractEntityIntegrationTest {
 
         performBulkAccessScript(eperson.getEmail(),
             new DSpaceCommandLineParameter("--uuid", parentCommunity.getID().toString()))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void bulkAccessScriptWithAbbreviatedUuidOptionOfNotAdministeredCommunityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        CommunityBuilder.createCommunity(context)
+                        .withName("Administered Community")
+                        .withAdminGroup(eperson)
+                        .build();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Other Community")
+                                          .build();
+        context.restoreAuthSystemState();
+
+        performBulkAccessScript(eperson.getEmail(),
+            new DSpaceCommandLineParameter("--uu", parentCommunity.getID().toString()))
             .andExpect(status().isForbidden());
     }
 

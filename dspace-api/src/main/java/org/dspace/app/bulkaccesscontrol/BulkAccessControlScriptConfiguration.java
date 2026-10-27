@@ -40,10 +40,16 @@ public class BulkAccessControlScriptConfiguration<T extends BulkAccessControl> e
     public boolean isAllowedToExecute(Context context, List<DSpaceCommandLineParameter> commandLineParameters) {
 
         try {
-            String[] dspaceObjectIDs = getTargetUuids(commandLineParameters);
-            if (Objects.isNull(dspaceObjectIDs)) {
+            if (Objects.isNull(commandLineParameters)) {
                 return authorizeService.isAdmin(context) || authorizeService.isComColAdmin(context)
                     || authorizeService.isItemAdmin(context);
+            }
+
+            String[] dspaceObjectIDs = getTargetUuids(commandLineParameters);
+            if (Objects.isNull(dspaceObjectIDs)) {
+                // Without target uuids there is nothing to check per object, so fail closed: only a site admin
+                // may go on. The run would fail before modifying anything, but this check must not rely on that.
+                return authorizeService.isAdmin(context);
             } else {
                 DSpaceObjectUtils dSpaceObjectUtils = new DSpace().getServiceManager().getServiceByName(
                     DSpaceObjectUtilsImpl.class.getName(), DSpaceObjectUtilsImpl.class);
@@ -73,14 +79,9 @@ public class BulkAccessControlScriptConfiguration<T extends BulkAccessControl> e
      * options. Matching parameter names (e.g. only "-u") is not enough: "--uuid", "--uuid=X", "-uX" or an
      * abbreviated "--uu" are all accepted by the parser and would otherwise skip the per-object check.
      *
-     * @return the target uuids, or null when no parameters are given or they cannot be parsed. Unparseable
-     *         arguments fail the same way when the script initializes, so no object is ever modified.
+     * @return the target uuids, or null when there is no uuid or the parameters cannot be parsed
      */
     private String[] getTargetUuids(List<DSpaceCommandLineParameter> commandLineParameters) {
-        if (Objects.isNull(commandLineParameters)) {
-            return null;
-        }
-
         List<String> args = new ArrayList<>();
         for (DSpaceCommandLineParameter parameter : commandLineParameters) {
             args.add(parameter.getName());
