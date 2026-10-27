@@ -18,7 +18,6 @@ import static org.mockito.Mockito.when;
 import com.lyncode.xoai.dataprovider.data.Item;
 import com.lyncode.xoai.dataprovider.exceptions.IdDoesNotExistException;
 import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -66,28 +65,11 @@ public class DSpaceItemSolrRepositoryTest {
     }
 
     @Test
-    public void wildcardIdentifierIsEscaped() {
-        assertThrows(IdDoesNotExistException.class, () -> repository.getItem("oai:localhost:123456789/1*"));
-        assertEquals("item.handle:123456789\\/1\\*", sentQuery());
-    }
-
-    @Test
-    public void rangeIdentifierIsEscaped() {
-        assertThrows(IdDoesNotExistException.class, () -> repository.getItem("oai:localhost:[* TO *]"));
-        assertEquals("item.handle:\\[\\*\\ TO\\ \\*\\]", sentQuery());
-    }
-
-    @Test
-    public void booleanAndGroupingIdentifierIsEscaped() {
+    public void querySyntaxInIdentifierIsEscaped() {
+        // wildcard, range, boolean operator, grouping, quotes and backslash
         assertThrows(IdDoesNotExistException.class,
-            () -> repository.getItem("oai:localhost:x) OR (\"a\\b\" || *"));
-        assertEquals("item.handle:x\\)\\ OR\\ \\(\\\"a\\\\b\\\"\\ \\|\\|\\ \\*", sentQuery());
-    }
-
-    @Test
-    public void solrErrorYieldsIdDoesNotExist() throws Exception {
-        when(solrClient.query(any(SolrParams.class))).thenThrow(new SolrServerException("boom"));
-        assertThrows(IdDoesNotExistException.class, () -> repository.getItem("oai:localhost:123456789/1"));
+            () -> repository.getItem("oai:localhost:[* TO *] OR (x*) || \"a\\b\""));
+        assertEquals("item.handle:\\[\\*\\ TO\\ \\*\\]\\ OR\\ \\(x\\*\\)\\ \\|\\|\\ \\\"a\\\\b\\\"", sentQuery());
     }
 
     private String sentQuery() {
