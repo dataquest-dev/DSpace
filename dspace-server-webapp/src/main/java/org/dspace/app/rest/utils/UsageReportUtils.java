@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -262,8 +261,10 @@ public class UsageReportUtils {
             UsageReportRest usageReportRest = new UsageReportRest();
             for (int i = 0; i < dataset.getColLabels().size(); i++) {
                 String bitstreamId = dataset.getColLabelsAttrs().get(i).get("id");
-                // Only expose bitstreams the current user is allowed to read
-                Bitstream bitstream = bitstreamService.find(context, UUID.fromString(bitstreamId));
+                // Only expose bitstreams the current user is allowed to read; resolve in a
+                // legacy-id-safe way so migrated statistics rows don't break the report
+                Bitstream bitstream = StringUtils.isBlank(bitstreamId)
+                    ? null : bitstreamService.findByIdOrLegacyId(context, bitstreamId);
                 if (bitstream == null
                     || !authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ)) {
                     continue;

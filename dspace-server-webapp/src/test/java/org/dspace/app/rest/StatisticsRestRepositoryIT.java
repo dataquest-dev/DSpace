@@ -895,6 +895,85 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
     }
 
     @Test
+    public void TotalDownloadsReport_Item_RestrictedBitstream_NonAdminWithReadPolicy() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collectionNotVisited).build();
+        Bitstream openBitstream = BitstreamBuilder
+            .createBitstream(context, item, toInputStream("test", UTF_8))
+            .withName("OpenBitstream").build();
+        Bitstream restrictedBitstream = BitstreamBuilder
+            .createBitstream(context, item, toInputStream("test", UTF_8))
+            .withName("RestrictedBitstream").build();
+        EPerson authorizedEperson = EPersonBuilder.createEPerson(context)
+                                                  .withEmail("authorized@mail.com")
+                                                  .withPassword(password)
+                                                  .build();
+        context.restoreAuthSystemState();
+
+        // ** WHEN **
+        // We download both bitstreams (while both are still readable so the events are recorded)
+        ViewEventRest openViewEvent = new ViewEventRest();
+        openViewEvent.setTargetType("bitstream");
+        openViewEvent.setTargetId(openBitstream.getID());
+        ViewEventRest restrictedViewEvent = new ViewEventRest();
+        restrictedViewEvent.setTargetType("bitstream");
+        restrictedViewEvent.setTargetId(restrictedBitstream.getID());
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        getClient().perform(post("/api/statistics/viewevents")
+            .content(mapper.writeValueAsBytes(openViewEvent))
+            .contentType(contentType))
+                   .andExpect(status().isCreated());
+        getClient().perform(post("/api/statistics/viewevents")
+            .content(mapper.writeValueAsBytes(restrictedViewEvent))
+            .contentType(contentType))
+                   .andExpect(status().isCreated());
+
+        // Restrict the bitstream to a single eperson via an explicit READ policy
+        context.turnOffAuthorisationSystem();
+        authorizeService.removeAllPolicies(context, restrictedBitstream);
+        ResourcePolicyBuilder.createResourcePolicy(context, authorizedEperson, null)
+                             .withDspaceObject(restrictedBitstream)
+                             .withAction(Constants.READ).build();
+        context.restoreAuthSystemState();
+
+        // Allow non-admin access to the (readable) item's usage report
+        configurationService.setProperty("usage-statistics.authorization.admin.usage", false);
+
+        String downloadsReportId = item.getID() + "_" + TOTAL_DOWNLOADS_REPORT_ID;
+        String authorizedToken = getAuthToken(authorizedEperson.getEmail(), password);
+
+        // ** THEN **
+        // A non-admin eperson holding explicit READ on the restricted bitstream still sees it
+        getClient(authorizedToken).perform(get("/api/statistics/usagereports/" + downloadsReportId))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$", Matchers.is(
+                       UsageReportMatcher.matchUsageReport(
+                           downloadsReportId,
+                           TOTAL_DOWNLOADS_REPORT_ID,
+                           List.of(
+                               getExpectedDsoViews(openBitstream, 1),
+                               getExpectedDsoViews(restrictedBitstream, 1)
+                           )
+                       )
+                   )));
+
+        // A different non-admin eperson without that policy only sees the open bitstream
+        getClient(loggedInToken).perform(get("/api/statistics/usagereports/" + downloadsReportId))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$", Matchers.is(
+                       UsageReportMatcher.matchUsageReport(
+                           downloadsReportId,
+                           TOTAL_DOWNLOADS_REPORT_ID,
+                           List.of(
+                               getExpectedDsoViews(openBitstream, 1)
+                           )
+                       )
+                   )));
+    }
+
+    @Test
     public void TotalDownloadsReport_Item_NotVisited() throws Exception {
         // ** WHEN **
         // You don't visit an item's bitstreams
