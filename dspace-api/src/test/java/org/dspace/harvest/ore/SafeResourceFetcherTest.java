@@ -10,6 +10,7 @@ package org.dspace.harvest.ore;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
@@ -17,14 +18,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -154,6 +161,25 @@ public class SafeResourceFetcherTest {
         }
     }
 
+    @Test
+    public void pinsTheConnectionToTheValidatedAddressAndDoesNotReResolve() throws Exception {
+        // the validator vets the host once; the connection must then target that exact address rather than
+        // look the host up a second time, which is what defeats DNS rebinding between check and connect
+        RecordingDnsResolver dns = new RecordingDnsResolver();
+        httpClientFactory.when(() -> DSpaceHttpClientFactory.getInstance())
+                         .thenReturn(new PinningProbeClientFactory(dns));
+        server.enqueue(new MockResponse().setBody("pinned"));
+
+        try (InputStream body = fetcher.fetch(url("/pin"), policy())) {
+            assertEquals("pinned", new String(body.readAllBytes(), UTF_8));
+        }
+
+        // a regression such as dropping the explicit port in pinnedHost makes DefaultRoutePlanner rebuild the
+        // target by name, which sends the connect back through the resolver; a pinned address never does
+        assertTrue("the connection must not re-resolve the pinned host, but it looked up " + dns.resolvedHosts(),
+                   dns.resolvedHosts().isEmpty());
+    }
+
     private URI url(String path) {
         return URI.create("http://127.0.0.1:" + server.getPort() + path);
     }
@@ -201,6 +227,49 @@ public class SafeResourceFetcherTest {
                 .register("https", PlainConnectionSocketFactory.getSocketFactory())
                 .build();
             return HttpClients.custom().setConnectionManager(new PoolingHttpClientConnectionManager(plaintext));
+        }
+    }
+
+    /**
+     * Like {@link PlaintextClientFactory}, but wires a resolver into the connection manager that records every
+     * host the client asks it to look up, so a test can prove the connect bypassed it.
+     */
+    private static class PinningProbeClientFactory extends DSpaceHttpClientFactory {
+
+        private final DnsResolver dnsResolver;
+
+        PinningProbeClientFactory(DnsResolver dnsResolver) {
+            this.dnsResolver = dnsResolver;
+        }
+
+        @Override
+        public HttpClientBuilder builder(boolean setProxy) {
+            Registry<ConnectionSocketFactory> plaintext = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                .register("https", PlainConnectionSocketFactory.getSocketFactory())
+                .build();
+            PoolingHttpClientConnectionManager manager =
+                new PoolingHttpClientConnectionManager(plaintext, null, null, dnsResolver, -1, TimeUnit.MILLISECONDS);
+            return HttpClients.custom().setConnectionManager(manager);
+        }
+    }
+
+    /**
+     * Records the hosts it is asked to resolve. It still answers with loopback so that, if a regression does
+     * route a connect through here, the test fails on the recorded lookup rather than on a connection error.
+     */
+    private static class RecordingDnsResolver implements DnsResolver {
+
+        private final List<String> hosts = Collections.synchronizedList(new ArrayList<>());
+
+        @Override
+        public InetAddress[] resolve(String host) throws UnknownHostException {
+            hosts.add(host);
+            return new InetAddress[] {InetAddress.getByName("127.0.0.1")};
+        }
+
+        List<String> resolvedHosts() {
+            return hosts;
         }
     }
 }
