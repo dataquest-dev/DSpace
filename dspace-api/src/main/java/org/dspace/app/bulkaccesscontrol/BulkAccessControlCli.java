@@ -8,11 +8,14 @@
 package org.dspace.app.bulkaccesscontrol;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.scripts.DSpaceCommandLineParameter;
 
 /**
  * Extension of {@link BulkAccessControl} for CLI.
@@ -45,5 +48,19 @@ public class BulkAccessControlCli extends BulkAccessControl {
         }
 
         context.setCurrentUser(myEPerson);
+    }
+
+    @Override
+    protected boolean isAuthorized(Context context) {
+
+        if (context.getCurrentUser() == null) {
+            return false;
+        }
+
+        return getScriptConfiguration().isAllowedToExecute(context,
+            Arrays.stream(commandLine.getOptions())
+                  .map(option ->
+                      new DSpaceCommandLineParameter("-" + option.getOpt(), option.getValue()))
+                  .collect(Collectors.toList()));
     }
 }

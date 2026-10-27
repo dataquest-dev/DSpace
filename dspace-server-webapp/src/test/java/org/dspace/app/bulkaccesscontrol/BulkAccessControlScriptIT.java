@@ -513,7 +513,7 @@ public class BulkAccessControlScriptIT extends AbstractEntityIntegrationTest {
     }
 
     @Test
-    public void bulkAccessScriptWithLongUuidOptionOfNotAdministeredCommunityTest() throws Exception {
+    public void bulkAccessScriptWithAlternativeUuidSpellingsOfNotAdministeredCommunityTest() throws Exception {
         context.turnOffAuthorisationSystem();
         CommunityBuilder.createCommunity(context)
                         .withName("Administered Community")
@@ -524,47 +524,15 @@ public class BulkAccessControlScriptIT extends AbstractEntityIntegrationTest {
                                           .build();
         context.restoreAuthSystemState();
 
-        performBulkAccessScript(eperson.getEmail(),
-            new DSpaceCommandLineParameter("--uuid", parentCommunity.getID().toString()))
-            .andExpect(status().isForbidden());
-    }
-
-    @Test
-    public void bulkAccessScriptWithAbbreviatedUuidOptionOfNotAdministeredCommunityTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        CommunityBuilder.createCommunity(context)
-                        .withName("Administered Community")
-                        .withAdminGroup(eperson)
-                        .build();
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                                          .withName("Other Community")
-                                          .build();
-        context.restoreAuthSystemState();
-
-        performBulkAccessScript(eperson.getEmail(),
-            new DSpaceCommandLineParameter("--uu", parentCommunity.getID().toString()))
-            .andExpect(status().isForbidden());
-    }
-
-    @Test
-    public void bulkAccessScriptWithAttachedUuidOptionOfNotAdministeredCommunityTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        CommunityBuilder.createCommunity(context)
-                        .withName("Administered Community")
-                        .withAdminGroup(eperson)
-                        .build();
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                                          .withName("Other Community")
-                                          .build();
-        context.restoreAuthSystemState();
-
-        performBulkAccessScript(eperson.getEmail(),
-            new DSpaceCommandLineParameter("--uuid=" + parentCommunity.getID(), null))
-            .andExpect(status().isForbidden());
-
-        performBulkAccessScript(eperson.getEmail(),
-            new DSpaceCommandLineParameter("-u" + parentCommunity.getID(), null))
-            .andExpect(status().isForbidden());
+        String uuid = parentCommunity.getID().toString();
+        for (DSpaceCommandLineParameter uuidParameter : List.of(
+            new DSpaceCommandLineParameter("--uuid", uuid),
+            new DSpaceCommandLineParameter("--uu", uuid),
+            new DSpaceCommandLineParameter("--uuid=" + uuid, null),
+            new DSpaceCommandLineParameter("-u" + uuid, null))) {
+            performBulkAccessScript(eperson.getEmail(), uuidParameter)
+                .andExpect(status().isForbidden());
+        }
     }
 
     @Test

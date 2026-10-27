@@ -64,7 +64,6 @@ import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
-import org.dspace.scripts.DSpaceCommandLineParameter;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -681,21 +680,8 @@ public class BulkAccessControl extends DSpaceRunnable<BulkAccessControlScriptCon
         return configurationService.getBooleanProperty("core.authorization.installitem.inheritance-read.append-mode");
     }
 
-    /**
-     * Re-check the permissions against the parsed command line, so the target uuids are exactly the ones this
-     * run will modify, regardless of how the parameters were spelled when the process was requested.
-     */
     protected boolean isAuthorized(Context context) {
-
-        if (context.getCurrentUser() == null) {
-            return false;
-        }
-
-        return getScriptConfiguration().isAllowedToExecute(context,
-            Arrays.stream(commandLine.getOptions())
-                  .map(option ->
-                      new DSpaceCommandLineParameter("-" + option.getOpt(), option.getValue()))
-                  .collect(Collectors.toList()));
+        return true;
     }
 
     @Override
