@@ -640,6 +640,21 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
     }
 
     @Test
+    public void manageWithoutReadOnParentItemIsDenied() throws Exception {
+        Item item = createArchivedItemWithLicensedFiles(Confirmation.ALLOW_ANONYMOUS);
+        Bitstream file = item.getBundles("ORIGINAL").get(0).getBitstreams().get(0);
+        context.turnOffAuthorisationSystem();
+        authorizeService.removePoliciesActionFilter(context, item, Constants.READ);
+        context.restoreAuthSystemState();
+
+        getClient().perform(post("/api/core/clarinusermetadata/manage?bitstreamUUID=" + file.getID())
+                        .content(userMetadataBody())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+        assertNoDownloadTokenCreated();
+    }
+
+    @Test
     public void manageZipWithoutReadOnItemIsDenied() throws Exception {
         Item item = createArchivedItemWithLicensedFiles(Confirmation.ALLOW_ANONYMOUS);
         context.turnOffAuthorisationSystem();
