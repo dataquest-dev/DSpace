@@ -1317,12 +1317,8 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     @Test
     public void checkContentDispositionOfFormats() throws Exception {
-        configurationService.setProperty("webui.content_disposition_format", new String[] {
-            "text/richtext",
-            "text/xml",
-            "txt"
-        });
-
+        // This test verifies that, by default, common text formats will be downloaded instead of being served inline.
+        // The next two tests will verify behavior of non-default settings of "webui.content_disposition_inline"
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, community).build();
@@ -1344,18 +1340,26 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
         context.restoreAuthSystemState();
 
-        // these formats are configured and files should be downloaded
+        // Based on default configuration all files should be downloaded
         verifyBitstreamDownload(rtf, "text/richtext;charset=UTF-8", true);
         verifyBitstreamDownload(xml, "text/xml;charset=UTF-8", true);
         verifyBitstreamDownload(txt, "text/plain;charset=UTF-8", true);
-        // this format is not configured and should open inline
-        verifyBitstreamDownload(csv, "text/csv;charset=UTF-8", false);
+        verifyBitstreamDownload(csv, "text/csv;charset=UTF-8", true);
     }
 
     @Test
-    public void checkHardcodedContentDispositionFormats() throws Exception {
-        // This test is similar to the above test, but it verifies that our *hardcoded settings* for
-        // webui.content_disposition_format are protecting us from loading specific formats *inline*.
+    public void checkBannedContentDispositionInlineFormats() throws Exception {
+        configurationService.setProperty("webui.content_disposition_inline", new String[] {
+            "text/html",
+            "text/javascript",
+            "rdf",
+            "text/xml",
+            "image/svg+xml"
+        });
+
+        // This test is similar to the above test, but it verifies that if a site specifies
+        // a banned format (e.g. HTML, XML, etc) in their "webui.content_disposition_inline" setting
+        // DSpace will still protect them by refusing to load the format *inline*.
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, community).build();
@@ -1385,8 +1389,9 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
         context.restoreAuthSystemState();
 
-        // By default, HTML, JS & XML should all download. This protects us from possible XSS attacks, as
-        // each of these formats can embed JavaScript which may execute when the file is loaded *inline*.
+        // By default, HTML, JS & XML should all download regardless of inline configuration.
+        // This protects us from possible XSS attacks, as each of these formats can embed JavaScript
+        // which may execute when the file is loaded *inline*.
         verifyBitstreamDownload(html, "text/html;charset=UTF-8", true);
         verifyBitstreamDownload(js, "text/javascript;charset=UTF-8", true);
         verifyBitstreamDownload(rdf, "application/rdf+xml;charset=UTF-8", true);
@@ -1399,22 +1404,29 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    public void checkWildcardContentDispositionFormats() throws Exception {
-        // Setting "*" should result in all formats being downloaded (nothing will be opened inline)
-        configurationService.setProperty("webui.content_disposition_format", "*");
-
+    public void checkContentDispositionInlineFormats() throws Exception {
+        // Set PDF and a few image formats to verify they will display inline. But leave off "text/plain"
+        configurationService.setProperty("webui.content_disposition_inline", new String[] {
+            "text/csv",
+            "application/pdf",
+            "image/jpeg",
+            "video/mpeg"
+        });
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, community).build();
         Item item = ItemBuilder.createItem(context, collection).build();
         String content = "Test Content";
         Bitstream csv;
+        Bitstream txt;
         Bitstream jpg;
         Bitstream mpg;
         Bitstream pdf;
         try (InputStream is = IOUtils.toInputStream(content, CharEncoding.UTF_8)) {
             csv = BitstreamBuilder.createBitstream(context, item, is)
                                   .withMimeType("text/csv").build();
+            txt = BitstreamBuilder.createBitstream(context, item, is)
+                                  .withMimeType("text/plain").build();
             jpg = BitstreamBuilder.createBitstream(context, item, is)
                                    .withMimeType("image/jpeg").build();
             mpg = BitstreamBuilder.createBitstream(context, item, is)
@@ -1424,11 +1436,53 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
         context.restoreAuthSystemState();
 
-        // All formats should be download only
-        verifyBitstreamDownload(csv, "text/csv;charset=UTF-8", true);
-        verifyBitstreamDownload(jpg, "image/jpeg;charset=UTF-8", true);
-        verifyBitstreamDownload(mpg, "video/mpeg;charset=UTF-8", true);
-        verifyBitstreamDownload(pdf, "application/pdf;charset=UTF-8", true);
+        // Only text/plain should download, while other formats should be served inline based on the configuration
+        verifyBitstreamDownload(csv, "text/csv;charset=UTF-8", false);
+        verifyBitstreamDownload(jpg, "image/jpeg;charset=UTF-8", false);
+        verifyBitstreamDownload(mpg, "video/mpeg;charset=UTF-8", false);
+        verifyBitstreamDownload(pdf, "application/pdf;charset=UTF-8", false);
+        // This is the only format not listed in the inline configuration, so it will be downloaded
+        verifyBitstreamDownload(txt, "text/plain;charset=UTF-8", true);
+    }
+
+    @Test
+    public void checkActiveContentFormatsNeverServedInline() throws Exception {
+        // Active-content formats that resolve to a KNOWN format (e.g. SVG and XHTML, which can carry scripts) must
+        // never be served inline, even when a deployment explicitly adds them to "webui.content_disposition_inline".
+        // These are the stored XSS vector: inline rendering would execute their embedded JavaScript in the repository
+        // origin. The "+xml" guard forces them to download regardless of configuration.
+        configurationService.setProperty("webui.content_disposition_inline", new String[] {
+            "image/svg+xml",
+            "application/xhtml+xml"
+        });
+
+        context.turnOffAuthorisationSystem();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        String content = "Test Content";
+
+        // Register SVG and XHTML as KNOWN formats so they are served with their real MIME type instead of octet-stream
+        createBitstreamFormat(context).withMimeType("image/svg+xml")
+                                      .withShortDescription("SVG image")
+                                      .withSupportLevel(KNOWN).build();
+        createBitstreamFormat(context).withMimeType("application/xhtml+xml")
+                                      .withShortDescription("XHTML document")
+                                      .withSupportLevel(KNOWN).build();
+
+        Bitstream svg;
+        Bitstream xhtml;
+        try (InputStream is = IOUtils.toInputStream(content, CharEncoding.UTF_8)) {
+            svg = BitstreamBuilder.createBitstream(context, item, is)
+                                  .withMimeType("image/svg+xml").build();
+            xhtml = BitstreamBuilder.createBitstream(context, item, is)
+                                    .withMimeType("application/xhtml+xml").build();
+        }
+        context.restoreAuthSystemState();
+
+        // Both must be forced to download (attachment), never served inline.
+        verifyBitstreamDownload(svg, "image/svg+xml;charset=UTF-8", true);
+        verifyBitstreamDownload(xhtml, "application/xhtml+xml;charset=UTF-8", true);
     }
 
 
