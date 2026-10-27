@@ -487,16 +487,19 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     }
 
     @Test
-    public void recordLongerThanUrlColumnIsRejected() throws Exception {
+    public void createRejectsRecordLongerThanUrlColumn() throws Exception {
         // the stored record would exceed the handle.url column (varchar(8192) in the H2 schema)
-        String longText = "a".repeat(8192);
-        postHandle(ALLOWED_URL, longText, TEST_EMAIL)
+        postHandle(ALLOWED_URL, "a".repeat(8192), TEST_EMAIL)
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void updateRejectsRecordLongerThanUrlColumn() throws Exception {
         getClient().perform(put("/api/services/handles")
                         .content(mapper.writeValueAsBytes(Map.of(
                                 "handle", prefix + "0",
                                 "token", "token0",
-                                "url", ALLOWED_URL + longText
+                                "url", ALLOWED_URL + "a".repeat(8192)
                         )))
                         .contentType(contentType))
                 .andExpect(status().isBadRequest());
