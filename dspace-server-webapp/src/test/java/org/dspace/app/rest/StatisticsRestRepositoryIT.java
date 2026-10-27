@@ -824,6 +824,77 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
     }
 
     @Test
+    public void TotalDownloadsReport_Item_OnlyReadableBitstreams() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collectionNotVisited).build();
+        Bitstream openBitstream = BitstreamBuilder
+            .createBitstream(context, item, toInputStream("test", UTF_8))
+            .withName("OpenBitstream").build();
+        Bitstream restrictedBitstream = BitstreamBuilder
+            .createBitstream(context, item, toInputStream("test", UTF_8))
+            .withName("RestrictedBitstream").build();
+        context.restoreAuthSystemState();
+
+        // ** WHEN **
+        // We download both bitstreams (while both are still readable so the events are recorded)
+        ViewEventRest openViewEvent = new ViewEventRest();
+        openViewEvent.setTargetType("bitstream");
+        openViewEvent.setTargetId(openBitstream.getID());
+        ViewEventRest restrictedViewEvent = new ViewEventRest();
+        restrictedViewEvent.setTargetType("bitstream");
+        restrictedViewEvent.setTargetId(restrictedBitstream.getID());
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        getClient().perform(post("/api/statistics/viewevents")
+            .content(mapper.writeValueAsBytes(openViewEvent))
+            .contentType(contentType))
+                   .andExpect(status().isCreated());
+        getClient().perform(post("/api/statistics/viewevents")
+            .content(mapper.writeValueAsBytes(restrictedViewEvent))
+            .contentType(contentType))
+                   .andExpect(status().isCreated());
+
+        // Remove read access from the restricted bitstream so it must not leak to unauthorized callers
+        context.turnOffAuthorisationSystem();
+        authorizeService.removeAllPolicies(context, restrictedBitstream);
+        context.restoreAuthSystemState();
+
+        // Allow anonymous access to the (readable) item's usage report
+        configurationService.setProperty("usage-statistics.authorization.admin.usage", false);
+
+        String downloadsReportId = item.getID() + "_" + TOTAL_DOWNLOADS_REPORT_ID;
+
+        // ** THEN **
+        // Anonymous only sees the readable bitstream, the restricted bitstream's id/filename are absent
+        getClient().perform(get("/api/statistics/usagereports/" + downloadsReportId))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$", Matchers.is(
+                       UsageReportMatcher.matchUsageReport(
+                           downloadsReportId,
+                           TOTAL_DOWNLOADS_REPORT_ID,
+                           List.of(
+                               getExpectedDsoViews(openBitstream, 1)
+                           )
+                       )
+                   )));
+
+        // Admin sees both bitstreams, including the restricted one
+        getClient(adminToken).perform(get("/api/statistics/usagereports/" + downloadsReportId))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$", Matchers.is(
+                       UsageReportMatcher.matchUsageReport(
+                           downloadsReportId,
+                           TOTAL_DOWNLOADS_REPORT_ID,
+                           List.of(
+                               getExpectedDsoViews(openBitstream, 1),
+                               getExpectedDsoViews(restrictedBitstream, 1)
+                           )
+                       )
+                   )));
+    }
+
+    @Test
     public void TotalDownloadsReport_Item_NotVisited() throws Exception {
         // ** WHEN **
         // You don't visit an item's bitstreams
@@ -1256,6 +1327,76 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                     List.of(
                         getExpectedDsoViews(itemVisited, 1),
                         getExpectedDsoViews(itemVisited2, 2)
+                    )
+                )
+            )));
+    }
+
+    @Test
+    public void usageReportsSearch_Site_TopItems_OnlyReadableItems() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Site site = SiteBuilder.createSite(context).build();
+        Item publicItem = ItemBuilder.createItem(context, collectionNotVisited).build();
+        Item hiddenItem = ItemBuilder.createItem(context, collectionNotVisited).build();
+        context.restoreAuthSystemState();
+
+        // ** WHEN **
+        // We visit both items (while both are still readable so the events are recorded)
+        ViewEventRest publicViewEvent = new ViewEventRest();
+        publicViewEvent.setTargetType("item");
+        publicViewEvent.setTargetId(publicItem.getID());
+        ViewEventRest hiddenViewEvent = new ViewEventRest();
+        hiddenViewEvent.setTargetType("item");
+        hiddenViewEvent.setTargetId(hiddenItem.getID());
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        getClient().perform(post("/api/statistics/viewevents")
+            .content(mapper.writeValueAsBytes(publicViewEvent))
+            .contentType(contentType))
+                   .andExpect(status().isCreated());
+        getClient().perform(post("/api/statistics/viewevents")
+            .content(mapper.writeValueAsBytes(hiddenViewEvent))
+            .contentType(contentType))
+                   .andExpect(status().isCreated());
+
+        // Remove read access from the hidden item so it must not leak to unauthorized callers
+        context.turnOffAuthorisationSystem();
+        authorizeService.removeAllPolicies(context, hiddenItem);
+        context.restoreAuthSystemState();
+
+        // Allow anonymous access to the Site usage report
+        configurationService.setProperty("usage-statistics.authorization.admin.usage", false);
+
+        String siteReportUri = "/api/statistics/usagereports/search/object?uri=http://localhost:8080/server/api/core" +
+                               "/sites/" + site.getID();
+
+        // ** THEN **
+        // Anonymous only sees the readable item, the hidden item's UUID/title are absent
+        getClient()
+            .perform(get(siteReportUri))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.usagereports", Matchers.containsInAnyOrder(
+                UsageReportMatcher.matchUsageReport(
+                    site.getID() + "_" + TOTAL_VISITS_REPORT_ID,
+                    TOTAL_VISITS_REPORT_ID,
+                    List.of(
+                        getExpectedDsoViews(publicItem, 1)
+                    )
+                )
+            )));
+
+        // Admin sees both items, including the hidden one
+        getClient(adminToken)
+            .perform(get(siteReportUri))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.usagereports", Matchers.containsInAnyOrder(
+                UsageReportMatcher.matchUsageReport(
+                    site.getID() + "_" + TOTAL_VISITS_REPORT_ID,
+                    TOTAL_VISITS_REPORT_ID,
+                    List.of(
+                        getExpectedDsoViews(publicItem, 1),
+                        getExpectedDsoViews(hiddenItem, 1)
                     )
                 )
             )));
