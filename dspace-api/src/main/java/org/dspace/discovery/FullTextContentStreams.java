@@ -60,6 +60,8 @@ public class FullTextContentStreams extends ContentStreamBase {
     protected AuthorizeService authorizeService;
     protected ResourcePolicyService resourcePolicyService;
     protected GroupService groupService;
+    protected Group anonymousGroup;
+    private boolean anonymousGroupResolved;
 
     public FullTextContentStreams(Context context, Item parentItem) throws SQLException {
         this.context = context;
@@ -148,7 +150,7 @@ public class FullTextContentStreams extends ContentStreamBase {
      * @return true if the Anonymous group has a date-valid READ policy on the given bitstream.
      */
     private boolean hasAnonymousRead(Bitstream bitstream) throws SQLException {
-        Group anonymous = getGroupService().findByName(context, Group.ANONYMOUS);
+        Group anonymous = getAnonymousGroup();
         if (anonymous == null) {
             return false;
         }
@@ -160,6 +162,18 @@ public class FullTextContentStreams extends ContentStreamBase {
             }
         }
         return false;
+    }
+
+    /**
+     * Resolve the Anonymous group once and reuse it, to avoid a repeated lookup for every
+     * bitstream processed during a (re)index.
+     */
+    private Group getAnonymousGroup() throws SQLException {
+        if (!anonymousGroupResolved) {
+            anonymousGroup = getGroupService().findByName(context, Group.ANONYMOUS);
+            anonymousGroupResolved = true;
+        }
+        return anonymousGroup;
     }
 
     /**

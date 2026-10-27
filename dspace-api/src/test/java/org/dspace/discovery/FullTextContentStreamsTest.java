@@ -83,6 +83,12 @@ public class FullTextContentStreamsTest {
     @Mock
     private Bitstream textBitstream3;
 
+    @Mock
+    private Bitstream derivedTextBitstream;
+
+    @Mock
+    private Bitstream sourceBitstream;
+
 
     @Before
     public void setUp() throws Exception {
@@ -260,6 +266,29 @@ public class FullTextContentStreamsTest {
                     content.contains("This is text 2"));
         assertTrue("The data should contain the text of the third (readable) bitstream",
                    content.contains("This is text 3"));
+    }
+
+    @Test
+    public void testTextWithRestrictedSourceOriginalIsNotIndexed() throws Exception {
+        when(derivedTextBitstream.getName()).thenReturn("doc.pdf.txt");
+        when(sourceBitstream.getName()).thenReturn("doc.pdf");
+
+        when(item.getBundles()).thenReturn(Arrays.asList(originalBundle, textBundle));
+        when(originalBundle.getBitstreams()).thenReturn(Arrays.asList(sourceBitstream));
+        when(textBundle.getBitstreams()).thenReturn(Arrays.asList(derivedTextBitstream));
+
+        // The extracted-text derivative itself is readable by anonymous users ...
+        when(authorizeService.getPoliciesActionFilter(null, derivedTextBitstream, Constants.READ))
+            .thenReturn(Collections.singletonList(anonymousReadPolicy));
+        // ... but its matching source file in the ORIGINAL bundle is restricted (policy drift).
+        when(authorizeService.getPoliciesActionFilter(null, sourceBitstream, Constants.READ))
+            .thenReturn(Collections.emptyList());
+
+        streams.init(item);
+
+        assertTrue("Text must be excluded when its source file is not anonymously readable",
+                   streams.isEmpty());
+        assertEquals("The name should be empty", "", streams.getName());
     }
 
 }
