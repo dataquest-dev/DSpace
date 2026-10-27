@@ -1317,7 +1317,12 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     @Test
     public void checkContentDispositionOfFormats() throws Exception {
-        // Unlisted text formats should download by default.
+        configurationService.setProperty("webui.content_disposition_format", new String[] {
+            "text/richtext",
+            "text/xml",
+            "txt"
+        });
+
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, community).build();
@@ -1339,24 +1344,18 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
         context.restoreAuthSystemState();
 
-        // Based on default configuration all files should be downloaded
+        // these formats are configured and files should be downloaded
         verifyBitstreamDownload(rtf, "text/richtext;charset=UTF-8", true);
         verifyBitstreamDownload(xml, "text/xml;charset=UTF-8", true);
         verifyBitstreamDownload(txt, "text/plain;charset=UTF-8", true);
-        verifyBitstreamDownload(csv, "text/csv;charset=UTF-8", true);
+        // this format is not configured and should open inline
+        verifyBitstreamDownload(csv, "text/csv;charset=UTF-8", false);
     }
 
     @Test
-    public void checkBannedContentDispositionInlineFormats() throws Exception {
-        configurationService.setProperty("webui.content_disposition_inline", new String[] {
-            "text/html",
-            "text/javascript",
-            "rdf",
-            "text/xml",
-            "image/svg+xml"
-        });
-
-        // Explicit configuration must not bypass the active-content guard.
+    public void checkHardcodedContentDispositionFormats() throws Exception {
+        // This test is similar to the above test, but it verifies that our *hardcoded settings* for
+        // webui.content_disposition_format are protecting us from loading specific formats *inline*.
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, community).build();
@@ -1386,40 +1385,36 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
         context.restoreAuthSystemState();
 
+        // By default, HTML, JS & XML should all download. This protects us from possible XSS attacks, as
+        // each of these formats can embed JavaScript which may execute when the file is loaded *inline*.
         verifyBitstreamDownload(html, "text/html;charset=UTF-8", true);
         verifyBitstreamDownload(js, "text/javascript;charset=UTF-8", true);
         verifyBitstreamDownload(rdf, "application/rdf+xml;charset=UTF-8", true);
         verifyBitstreamDownload(xml, "text/xml;charset=UTF-8", true);
         // Unknown file formats should also always download
         verifyBitstreamDownload(unknown, "application/octet-stream;charset=UTF-8", true);
-        // Unregistered SVG falls back to the unknown format.
+        // SVG does NOT currently exist as a recognized format in DSpace's bitstream-formats.xml, but it's another
+        // format that allows embedded JavaScript. This test is a reminder that SVGs should NOT be opened inline.
         verifyBitstreamDownload(svg, "application/octet-stream;charset=UTF-8", true);
     }
 
     @Test
-    public void checkContentDispositionInlineFormats() throws Exception {
-        // Set PDF and a few image formats to verify they will display inline. But leave off "text/plain"
-        configurationService.setProperty("webui.content_disposition_inline", new String[] {
-            "text/csv",
-            "application/pdf",
-            "image/jpeg",
-            "video/mpeg"
-        });
+    public void checkWildcardContentDispositionFormats() throws Exception {
+        // Setting "*" should result in all formats being downloaded (nothing will be opened inline)
+        configurationService.setProperty("webui.content_disposition_format", "*");
+
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, community).build();
         Item item = ItemBuilder.createItem(context, collection).build();
         String content = "Test Content";
         Bitstream csv;
-        Bitstream txt;
         Bitstream jpg;
         Bitstream mpg;
         Bitstream pdf;
         try (InputStream is = IOUtils.toInputStream(content, CharEncoding.UTF_8)) {
             csv = BitstreamBuilder.createBitstream(context, item, is)
                                   .withMimeType("text/csv").build();
-            txt = BitstreamBuilder.createBitstream(context, item, is)
-                                  .withMimeType("text/plain").build();
             jpg = BitstreamBuilder.createBitstream(context, item, is)
                                    .withMimeType("image/jpeg").build();
             mpg = BitstreamBuilder.createBitstream(context, item, is)
@@ -1429,13 +1424,13 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
         context.restoreAuthSystemState();
 
-        // Only text/plain should download, while other formats should be served inline based on the configuration
-        verifyBitstreamDownload(csv, "text/csv;charset=UTF-8", false);
-        verifyBitstreamDownload(jpg, "image/jpeg;charset=UTF-8", false);
-        verifyBitstreamDownload(mpg, "video/mpeg;charset=UTF-8", false);
-        verifyBitstreamDownload(pdf, "application/pdf;charset=UTF-8", false);
-        verifyBitstreamDownload(txt, "text/plain;charset=UTF-8", true);
+        // All formats should be download only
+        verifyBitstreamDownload(csv, "text/csv;charset=UTF-8", true);
+        verifyBitstreamDownload(jpg, "image/jpeg;charset=UTF-8", true);
+        verifyBitstreamDownload(mpg, "video/mpeg;charset=UTF-8", true);
+        verifyBitstreamDownload(pdf, "application/pdf;charset=UTF-8", true);
     }
+
 
     @Test
     public void checkActiveContentFormatsNeverServedInline() throws Exception {
@@ -1445,7 +1440,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             "text/ecmascript", "application/x-javascript", "application/x-ecmascript",
             "text/x-javascript", "text/x-ecmascript", "text/jscript", "text/livescript", "text/javascript1.5"
         };
-        configurationService.setProperty("webui.content_disposition_inline", mimeTypes);
+        configurationService.setProperty("webui.content_disposition_format", new String[0]);
 
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
@@ -1455,7 +1450,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
         for (String mimeType : mimeTypes) {
             context.turnOffAuthorisationSystem();
-            // Known formats exercise the guard instead of the unknown-format fallback.
+            // Exercise registered active formats, not the unknown-format fallback.
             createBitstreamFormat(context).withMimeType(mimeType)
                 .withShortDescription("Active " + mimeType).withSupportLevel(KNOWN).build();
             item = context.reloadEntity(item);
@@ -1473,7 +1468,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     @Test
     public void checkInlineDispositionSizeLimit() throws Exception {
-        configurationService.setProperty("webui.content_disposition_inline", new String[] {"application/pdf"});
         context.turnOffAuthorisationSystem();
         bitstream.setFormat(context, bitstreamFormatService.findByMIMEType(context, "application/pdf"));
         bitstreamService.update(context, bitstream);
@@ -1489,7 +1483,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     @Test
     public void checkMissingMimeTypeDownloads() throws Exception {
-        configurationService.setProperty("webui.content_disposition_inline", new String[] {"pdf"});
+        configurationService.setProperty("webui.content_disposition_format", new String[0]);
         for (String mimeType : new String[] {null, "", " "}) {
             context.turnOffAuthorisationSystem();
             supportedFormat = context.reloadEntity(supportedFormat);
