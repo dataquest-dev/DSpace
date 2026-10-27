@@ -7,23 +7,17 @@
  */
 package org.dspace.content.crosswalk;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ConnectException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
@@ -38,6 +32,12 @@ import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.harvest.ore.HarvestPolicyAware;
+import org.dspace.harvest.ore.OreEgressPolicy;
+import org.dspace.harvest.ore.OreResourceRejectedException;
+import org.dspace.harvest.ore.OreUrlValidator;
+import org.dspace.harvest.ore.RejectionReason;
+import org.dspace.harvest.ore.SafeResourceFetcher;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.jdom2.Attribute;
@@ -56,7 +56,7 @@ import org.jdom2.xpath.XPathFactory;
  * @author Alexey Maslov
  */
 public class OREIngestionCrosswalk
-    implements IngestionCrosswalk {
+    implements IngestionCrosswalk, HarvestPolicyAware {
     /**
      * log4j category
      */
@@ -83,6 +83,25 @@ public class OREIngestionCrosswalk
     protected BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
     protected ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     protected ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+
+    private final SafeResourceFetcher resourceFetcher = new SafeResourceFetcher();
+    private OreEgressPolicy oreEgressPolicy;
+
+    @Override
+    public void setOreEgressPolicy(OreEgressPolicy policy) {
+        this.oreEgressPolicy = policy;
+    }
+
+    /**
+     * The packagers and the XSLT CLI reach this crosswalk with no harvest context, so they get the
+     * fail-closed policy rather than no policy at all.
+     */
+    private OreEgressPolicy egressPolicy() {
+        if (oreEgressPolicy == null) {
+            oreEgressPolicy = OreEgressPolicy.strictest(configurationService);
+        }
+        return oreEgressPolicy;
+    }
 
 
     @Override
@@ -174,23 +193,18 @@ public class OREIngestionCrosswalk
                 targetBundle = targetBundles.get(0);
             }
 
-            URL ARurl = null;
             InputStream in = null;
             if (href != null) {
                 try {
                     // Make sure the url string escapes all the oddball characters
                     String processedURL = encodeForURL(href);
-                    if (validResourceUri(entryId, processedURL)) {
-                        // Generate a request for the aggregated resource
-                        ARurl = new URL(processedURL);
-                        in = ARurl.openStream();
-                    } else {
-                        throw new FileNotFoundException("Failed to validate " + processedURL);
-                    }
-                } catch (FileNotFoundException fe) {
-                    log.error("The provided URI failed to return a resource: " + href);
-                } catch (ConnectException fe) {
-                    log.error("The provided URI was invalid: " + href);
+                    // The trust anchor of the egress policy is the collection's oai_source, not entryId:
+                    // entryId is read from this remote document and is therefore attacker-controlled.
+                    in = resourceFetcher.fetch(OreUrlValidator.parse(processedURL), egressPolicy());
+                } catch (IOException ioe) {
+                    // a transport failure has to drop this record only; escaping here would stop the whole
+                    // collection, and after removeAllBundles it would commit the item without its files
+                    throw transferFailed(href, ioe);
                 }
             } else {
                 throw new CrosswalkException("Entry did not contain link to resource: " + entryId);
@@ -198,7 +212,14 @@ public class OREIngestionCrosswalk
 
             // ingest and update
             if (in != null) {
-                Bitstream newBitstream = bitstreamService.create(context, targetBundle, in);
+                Bitstream newBitstream;
+                try {
+                    newBitstream = bitstreamService.create(context, targetBundle, in);
+                } catch (IOException ioe) {
+                    // the body is only read here, and the bitstore wraps everything it catches in a plain
+                    // IOException, so both the size cap and a mid-transfer failure surface at this point
+                    throw transferFailed(href, ioe);
+                }
 
                 String bsName = resource.getAttributeValue("title");
                 newBitstream.setName(context, bsName);
@@ -263,60 +284,19 @@ public class OREIngestionCrosswalk
     }
 
     /**
-     * Validate a resource URI against the host and scheme of the remote OAI endpoint, or a configured
-     * list of allowed prefixes.
-     * This still implicitly "trusts" the remote OAI server, but will reject resource URIs with a totally
-     * different hostname to avoid downloading malicious resources from a compromised endpoint.
-     * Even if the URL prefix validation is disabled, schemes will still be enforced to http(s) so file:/// and
-     * other unwanted schemes cannot be used
-     * @param entryUrl the entryId of the parent ORE resource
-     * @param resourceUrl the resource URL of the aggregated ORE resource
-     * @return result of the validation
+     * Turn an I/O failure while fetching or storing a file into a rejection of this one record.
+     *
+     * @param href  the resource that could not be transferred
+     * @param cause the failure, kept so the real reason still reaches the log
+     * @return the rejection to throw
      */
-    private boolean validResourceUri(String entryUrl, String resourceUrl) {
-        try {
-            Set<String> allowedSchemes = Set.of("http", "https");
-            URI entryUri = new URI(entryUrl).normalize();
-            URI resourceUri = new URI(resourceUrl).normalize();
-            String scheme = resourceUri.getScheme();
-
-            if (scheme == null ||
-                    !allowedSchemes.contains(scheme.toLowerCase(Locale.ROOT))) {
-                log.warn("Illegal scheme requested for ORE resource: {}", resourceUri);
-                return false;
-            }
-
-            if (configurationService.getBooleanProperty("oai.harvester.ore.file.validateUrlPrefix", false)) {
-                for (String allowedPrefix : configurationService
-                        .getArrayProperty("oai.harvester.ore.file.allowedUrlPrefix")) {
-                    URI allowedUri = new URI(allowedPrefix).normalize();
-                    // Return true on the first allowed prefix match
-                    if (Objects.equals(resourceUri.getScheme(), allowedUri.getScheme())
-                            && Objects.equals(resourceUri.getHost().toLowerCase(Locale.ROOT),
-                            allowedUri.getHost().toLowerCase(Locale.ROOT))) {
-                        return true;
-                    }
-                }
-
-                // If no allowed prefixes were matched, we require scheme + host to match the remote OAI server
-                if (!Objects.equals(entryUri.getScheme(), resourceUri.getScheme())) {
-                    log.warn("Illegal scheme requested for ORE resource: {}", resourceUri);
-                    return false;
-                }
-                if (!Objects.equals(
-                        entryUri.getHost().toLowerCase(Locale.ROOT),
-                        resourceUri.getHost().toLowerCase(Locale.ROOT))) {
-                    log.warn("Illegal host requested for ORE resource: {}", resourceUri);
-                    return false;
-                }
-            }
-
-            return true;
-
-        } catch (URISyntaxException e) {
-            log.warn("Could not validate ORE resource URI: {}", resourceUrl);
-            return false;
-        }
+    private OreResourceRejectedException transferFailed(String href, IOException cause) {
+        // the cap is enforced while the body streams, so it arrives wrapped rather than as itself
+        boolean tooLarge =
+            ExceptionUtils.indexOfType(cause, SafeResourceFetcher.ResponseTooLargeException.class) >= 0;
+        return new OreResourceRejectedException(
+            tooLarge ? RejectionReason.RESPONSE_TOO_LARGE : RejectionReason.FETCH_FAILED, href,
+            tooLarge ? "size cap exceeded" : "transfer failed", cause);
     }
 
 }
