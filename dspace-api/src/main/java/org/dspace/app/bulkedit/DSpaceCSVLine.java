@@ -190,7 +190,7 @@ public class DSpaceCSVLine implements Serializable {
         // Get on with the work
         String s;
         if (values.size() == 1) {
-            s = values.get(0);
+            s = neutralizeFormula(values.get(0));
         } else {
             // Concatenate any fields together
             StringBuilder str = new StringBuilder();
@@ -200,22 +200,34 @@ public class DSpaceCSVLine implements Serializable {
                     str.append(valueSeparator);
                 }
 
-                str.append(value);
+                str.append(neutralizeFormula(value));
             }
 
             s = str.toString();
         }
 
-        // Neutralize values that a spreadsheet application could interpret as a formula
-        if (!s.isEmpty()) {
-            char first = s.charAt(0);
-            if (first == '=' || first == '+' || first == '-' || first == '@' || first == '\t' || first == '\r') {
-                s = "'" + s;
-            }
-        }
-
         // Replace internal quotes with two sets of quotes
         return "\"" + s.replaceAll("\"", "\"\"") + "\"";
+    }
+
+    /**
+     * Prefix a single quote to any value that a spreadsheet application could interpret as a formula,
+     * or that already begins with a single quote. The prefix is removed again on import, so an
+     * export followed by a re-import leaves every value unchanged.
+     *
+     * @param value the value to neutralize
+     * @return the value, with a leading single quote added when needed
+     */
+    private String neutralizeFormula(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        char first = value.charAt(0);
+        if (first == '=' || first == '+' || first == '-' || first == '@'
+                || first == '\t' || first == '\r' || first == '\'') {
+            return "'" + value;
+        }
+        return value;
     }
 }
 

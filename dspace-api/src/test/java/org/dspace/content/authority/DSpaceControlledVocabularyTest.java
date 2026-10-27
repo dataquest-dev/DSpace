@@ -132,6 +132,18 @@ public class DSpaceControlledVocabularyTest extends AbstractDSpaceTest {
     }
 
     /**
+     * getMatches filters are bound as variables, so XPath metacharacters cannot
+     * broaden the match.
+     */
+    @Test
+    public void testGetMatchesRejectsXPathInjection() throws ClassNotFoundException {
+        DSpaceControlledVocabulary instance = getFarmVocabulary();
+
+        assertEquals(0, instance.getMatches("' or '1'='1", 0, 10, null).values.length);
+        assertEquals(0, instance.getMatches("x'] | //node | foo['", 0, 10, null).values.length);
+    }
+
+    /**
      * getBestMatch filters are bound as variables, so XPath metacharacters cannot
      * broaden the match.
      */

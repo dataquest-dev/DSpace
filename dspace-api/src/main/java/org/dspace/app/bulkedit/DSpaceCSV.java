@@ -41,6 +41,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
@@ -344,10 +345,18 @@ public class DSpaceCSV implements Serializable {
         boolean ignoreHiddenMetadata = DSpaceServicesFactory.getInstance().getConfigurationService()
                 .getBooleanProperty("bulkedit.ignore-on-export.include-metadata-hide", true);
         if (ignoreHiddenMetadata) {
-            List<String> hiddenMetadata = DSpaceServicesFactory.getInstance().getConfigurationService()
-                    .getPropertyKeys(MetadataExposureServiceImpl.CONFIG_PREFIX);
+            ConfigurationService configurationService =
+                    DSpaceServicesFactory.getInstance().getConfigurationService();
+            List<String> hiddenMetadata =
+                    configurationService.getPropertyKeys(MetadataExposureServiceImpl.CONFIG_PREFIX);
             for (String hiddenMetadataKey : hiddenMetadata) {
-                String key = hiddenMetadataKey.split(MetadataExposureServiceImpl.CONFIG_PREFIX)[1];
+                // Only ignore fields that are actually hidden; a field explicitly exposed must still export
+                boolean hidden = configurationService.getBooleanProperty(hiddenMetadataKey, true)
+                        || "submitter".equals(configurationService.getProperty(hiddenMetadataKey));
+                if (!hidden) {
+                    continue;
+                }
+                String key = hiddenMetadataKey.substring(MetadataExposureServiceImpl.CONFIG_PREFIX.length());
                 ignore.put(key.trim(), key.trim());
             }
         }
@@ -618,6 +627,10 @@ public class DSpaceCSV implements Serializable {
                 String[] elements = part.split(escapedValueSeparator);
                 for (String element : elements) {
                     if ((element != null) && !element.isEmpty()) {
+                        // Reverse the export-side formula neutralization: drop a single leading quote
+                        if (element.startsWith("'")) {
+                            element = element.substring(1);
+                        }
                         csvLine.add(headings.get(i - 1), element);
                     }
                 }

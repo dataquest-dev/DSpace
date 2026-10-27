@@ -165,7 +165,74 @@ public class DSpaceCSVTest extends AbstractUnitTest {
         assertThat(line.valueToCSV(Arrays.asList("\tx"), "||"), equalTo("\"'\tx\""));
         assertThat(line.valueToCSV(Arrays.asList("\rx"), "||"), equalTo("\"'\rx\""));
 
+        // A value that already starts with a quote is escaped so it survives re-import
+        assertThat(line.valueToCSV(Arrays.asList("'x"), "||"), equalTo("\"''x\""));
+
+        // Each value of a multi-valued cell is neutralized independently
+        assertThat(line.valueToCSV(Arrays.asList("a", "=x", "'y"), "||"), equalTo("\"a||'=x||''y\""));
+
         // A harmless value is left untouched
         assertThat(line.valueToCSV(Arrays.asList("normal"), "||"), equalTo("\"normal\""));
+    }
+
+    /**
+     * Export followed by re-import must be the identity for every value, including values that
+     * begin with a formula trigger character or with a single quote.
+     *
+     * Note: this exercises {@code DSpaceCSV(InputStream, Context)} and therefore needs the DSpace
+     * test kernel; it is intended to run in CI.
+     */
+    @Test
+    public void testFormulaNeutralizationRoundTrip() {
+        try {
+            String[] values = {"=SUM(A1)", "+421900000000", "-1", "@handle", "'=x", "normal"};
+
+            // Build an export-encoded CSV: one row, one value per column
+            StringBuilder header = new StringBuilder("id,collection");
+            StringBuilder row = new StringBuilder("+,56599ad5-c7d2-4ac3-8354-a1f277d5a31f");
+            DSpaceCSVLine encoder = new DSpaceCSVLine();
+            for (int i = 0; i < values.length; i++) {
+                header.append(",dc.description.abstract[").append(i).append("]");
+                row.append(",").append(encoder.valueToCSV(Arrays.asList(values[i]), "||"));
+            }
+
+            String filename = "test-roundtrip.csv";
+            BufferedWriter out = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(filename), "UTF-8"));
+            out.write(header.toString() + "\n");
+            out.write(row.toString() + "\n");
+            out.flush();
+            out.close();
+
+            DSpaceCSV dcsv = new DSpaceCSV(FileUtils.openInputStream(new File(filename)), context);
+            DSpaceCSVLine parsed = dcsv.getCSVLines().get(0);
+
+            for (int i = 0; i < values.length; i++) {
+                List<String> parsedValues = parsed.get("dc.description.abstract[" + i + "]");
+                assertThat("round-trip value " + i, parsedValues.get(0), equalTo(values[i]));
+            }
+
+            // Multi-valued cell round-trips per value
+            String[] multi = {"a", "=x", "'y"};
+            String multiHeader = "id,collection,dc.subject";
+            String multiRow = "+,56599ad5-c7d2-4ac3-8354-a1f277d5a31f,"
+                + encoder.valueToCSV(Arrays.asList(multi), "||");
+            filename = "test-roundtrip-multi.csv";
+            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "UTF-8"));
+            out.write(multiHeader + "\n");
+            out.write(multiRow + "\n");
+            out.flush();
+            out.close();
+
+            dcsv = new DSpaceCSV(FileUtils.openInputStream(new File(filename)), context);
+            List<String> parsedMulti = dcsv.getCSVLines().get(0).get("dc.subject");
+            assertThat(parsedMulti, equalTo(Arrays.asList(multi)));
+
+            new File("test-roundtrip.csv").delete();
+            new File("test-roundtrip-multi.csv").delete();
+        } catch (Exception ex) {
+            log.error("IO Error while creating round-trip test CSV file", ex);
+            fail("IO Error while creating round-trip test CSV file");
+        }
     }
 }
