@@ -206,6 +206,14 @@ public class DSpaceCSVLine implements Serializable {
             s = str.toString();
         }
 
+        // Neutralize values that a spreadsheet application could interpret as a formula
+        if (!s.isEmpty()) {
+            char first = s.charAt(0);
+            if (first == '=' || first == '+' || first == '-' || first == '@' || first == '\t' || first == '\r') {
+                s = "'" + s;
+            }
+        }
+
         // Replace internal quotes with two sets of quotes
         return "\"" + s.replaceAll("\"", "\"\"") + "\"";
     }

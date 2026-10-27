@@ -3,5 +3,6 @@
     <isComposedBy>
         <node label='north 40'/>
         <node id='s40' label='south 40'/>
+        <node id="o'reilly" label="o'reilly"/>
     </isComposedBy>
 </node>

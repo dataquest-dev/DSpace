@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -146,5 +147,25 @@ public class DSpaceCSVTest extends AbstractUnitTest {
             log.error("IO Error while creating test CSV file", ex);
             fail("IO Error while creating test CSV file");
         }
+    }
+
+    /**
+     * Values that a spreadsheet application could interpret as a formula must be
+     * prefixed with a single quote so they are emitted as plain text.
+     */
+    @Test
+    public void testFormulaInjectionNeutralized() {
+        DSpaceCSVLine line = new DSpaceCSVLine();
+
+        assertThat(line.valueToCSV(Arrays.asList("=cmd|'/C calc'!A0"), "||"),
+                   equalTo("\"'=cmd|'/C calc'!A0\""));
+        assertThat(line.valueToCSV(Arrays.asList("+x"), "||"), equalTo("\"'+x\""));
+        assertThat(line.valueToCSV(Arrays.asList("-x"), "||"), equalTo("\"'-x\""));
+        assertThat(line.valueToCSV(Arrays.asList("@x"), "||"), equalTo("\"'@x\""));
+        assertThat(line.valueToCSV(Arrays.asList("\tx"), "||"), equalTo("\"'\tx\""));
+        assertThat(line.valueToCSV(Arrays.asList("\rx"), "||"), equalTo("\"'\rx\""));
+
+        // A harmless value is left untouched
+        assertThat(line.valueToCSV(Arrays.asList("normal"), "||"), equalTo("\"normal\""));
     }
 }

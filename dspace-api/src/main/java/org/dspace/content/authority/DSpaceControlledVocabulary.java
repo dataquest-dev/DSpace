@@ -18,6 +18,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathVariableResolver;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -60,10 +61,10 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
 
     private static Logger log = org.apache.logging.log4j.LogManager.getLogger(DSpaceControlledVocabulary.class);
     protected static String xpathTemplate = "//node[contains(translate(@label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ'," +
-        "'abcdefghijklmnopqrstuvwxyz'),'%s')]";
-    protected static String idTemplate = "//node[@id = '%s']";
-    protected static String labelTemplate = "//node[@label = '%s']";
-    protected static String idParentTemplate = "//node[@id = '%s']/parent::isComposedBy/parent::node";
+        "'abcdefghijklmnopqrstuvwxyz'),%s)]";
+    protected static String idTemplate = "//node[@id = $id]";
+    protected static String labelTemplate = "//node[@label = %s]";
+    protected static String idParentTemplate = "//node[@id = $id]/parent::isComposedBy/parent::node";
     protected static String rootTemplate = "/node";
     protected static String pluginNames[] = null;
 
@@ -165,9 +166,17 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
         String xpathExpression = "";
         String[] textHierarchy = text.split(hierarchyDelimiter, -1);
         for (int i = 0; i < textHierarchy.length; i++) {
-            xpathExpression += String.format(xpathTemplate, textHierarchy[i].replaceAll("'", "&apos;").toLowerCase());
+            xpathExpression += String.format(xpathTemplate, "$var" + i);
         }
         XPath xpath = XPathFactory.newInstance().newXPath();
+        xpath.setXPathVariableResolver(variableName -> {
+            String varName = variableName.getLocalPart();
+            if (varName.startsWith("var")) {
+                int index = Integer.parseInt(varName.substring(3));
+                return textHierarchy[index].toLowerCase();
+            }
+            throw new IllegalArgumentException("Unexpected variable: " + varName);
+        });
         int total = 0;
         List<Choice> choices = new ArrayList<Choice>();
         try {
@@ -189,9 +198,17 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
         String xpathExpression = "";
         String[] textHierarchy = text.split(hierarchyDelimiter, -1);
         for (int i = 0; i < textHierarchy.length; i++) {
-            xpathExpression += String.format(labelTemplate, textHierarchy[i].replaceAll("'", "&apos;"));
+            xpathExpression += String.format(labelTemplate, "$var" + i);
         }
         XPath xpath = XPathFactory.newInstance().newXPath();
+        xpath.setXPathVariableResolver(variableName -> {
+            String varName = variableName.getLocalPart();
+            if (varName.startsWith("var")) {
+                int index = Integer.parseInt(varName.substring(3));
+                return textHierarchy[index];
+            }
+            throw new IllegalArgumentException("Unexpected variable: " + varName);
+        });
         List<Choice> choices = new ArrayList<Choice>();
         try {
             NodeList results = (NodeList) xpath.evaluate(xpathExpression, vocabulary, XPathConstants.NODESET);
@@ -234,22 +251,20 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
     public Choices getTopChoices(String authorityName, int start, int limit, String locale) {
         init();
         String xpathExpression = rootTemplate;
-        return getChoicesByXpath(xpathExpression, start, limit);
+        return getChoicesByXpath(xpathExpression, start, limit, null);
     }
 
     @Override
     public Choices getChoicesByParent(String authorityName, String parentId, int start, int limit, String locale) {
         init();
-        String xpathExpression = String.format(idTemplate, parentId);
-        return getChoicesByXpath(xpathExpression, start, limit);
+        return getChoicesByXpath(idTemplate, start, limit, idResolver(parentId));
     }
 
     @Override
     public Choice getParentChoice(String authorityName, String childId, String locale) {
         init();
         try {
-            String xpathExpression = String.format(idParentTemplate, childId);
-            Choice choice = createChoiceFromNode(getNodeFromXPath(xpathExpression));
+            Choice choice = createChoiceFromNode(getNodeFromXPath(idParentTemplate, idResolver(childId)));
             return choice;
         } catch (XPathExpressionException e) {
             log.error(e.getMessage(), e);
@@ -272,15 +287,31 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
 
     private Node getNode(String key) throws XPathExpressionException {
         init();
-        String xpathExpression = String.format(idTemplate, key);
-        Node node = getNodeFromXPath(xpathExpression);
+        Node node = getNodeFromXPath(idTemplate, idResolver(key));
         return node;
     }
 
-    private Node getNodeFromXPath(String xpathExpression) throws XPathExpressionException {
+    private Node getNodeFromXPath(String xpathExpression, XPathVariableResolver resolver)
+            throws XPathExpressionException {
         XPath xpath = XPathFactory.newInstance().newXPath();
+        if (resolver != null) {
+            xpath.setXPathVariableResolver(resolver);
+        }
         Node node = (Node) xpath.evaluate(xpathExpression, vocabulary, XPathConstants.NODE);
         return node;
+    }
+
+    /**
+     * Builds a resolver that binds the {@code $id} XPath variable to the given untrusted value,
+     * so the value is matched literally rather than concatenated into the expression.
+     */
+    private static XPathVariableResolver idResolver(String id) {
+        return variableName -> {
+            if ("id".equals(variableName.getLocalPart())) {
+                return id;
+            }
+            throw new IllegalArgumentException("Unexpected variable: " + variableName.getLocalPart());
+        };
     }
 
     private List<Choice> getChoicesFromNodeList(NodeList results, int start, int limit) {
@@ -417,9 +448,12 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
         }
     }
 
-    private Choices getChoicesByXpath(String xpathExpression, int start, int limit) {
+    private Choices getChoicesByXpath(String xpathExpression, int start, int limit, XPathVariableResolver resolver) {
         List<Choice> choices = new ArrayList<Choice>();
         XPath xpath = XPathFactory.newInstance().newXPath();
+        if (resolver != null) {
+            xpath.setXPathVariableResolver(resolver);
+        }
         try {
             Node parentNode = (Node) xpath.evaluate(xpathExpression, vocabulary, XPathConstants.NODE);
             int count = 0;
