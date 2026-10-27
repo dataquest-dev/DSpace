@@ -58,6 +58,9 @@ public class ExternalHandleRestRepository {
 
     // the handle.url column is varchar(8192) in the H2 schema, PostgreSQL does not limit it
     private static final int MAX_MAGIC_URL_LENGTH = 8192;
+    // the handle column is VARCHAR(256)
+    private static final int MAX_HANDLE_LENGTH = 256;
+    private static final int RANDOM_HANDLE_PART_LENGTH = 4;
 
     private static final String UPDATE_ERROR = "Cannot update the external handle.";
 
@@ -123,7 +126,9 @@ public class ExternalHandleRestRepository {
                 handle.submitdate = new DCDate(new Date()).toString();
                 String subprefix = (isNotBlank(handle.subprefix)) ? handle.subprefix + "-" : "";
                 String magicURL = handle.generateMagicUrl();
-                if (magicURL.length() > MAX_MAGIC_URL_LENGTH) {
+                this.loadPrefix();
+                if (magicURL.length() > MAX_MAGIC_URL_LENGTH ||
+                        (prefix + "/" + subprefix).length() + RANDOM_HANDLE_PART_LENGTH > MAX_HANDLE_LENGTH) {
                     return invalidShortenRequest();
                 }
                 String hdl = createHandle(subprefix, magicURL, context);
@@ -233,7 +238,7 @@ public class ExternalHandleRestRepository {
 
         for (int attempt = 0; attempt < attempts; attempt++) {
             // generate short handle
-            String rnd = randomStringGenerator.generate(4).toUpperCase();
+            String rnd = randomStringGenerator.generate(RANDOM_HANDLE_PART_LENGTH).toUpperCase();
             handle = prefix + "/" + subprefix + rnd;
             // check if exists, create and return if not
             if (handleClarinService.findByHandle(context, handle) == null) {

@@ -494,6 +494,20 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
     }
 
     @Test
+    public void createRejectsSubprefixLongerThanHandleColumn() throws Exception {
+        // <prefix>/<subprefix>-<random> would exceed the handle column (VARCHAR(256))
+        getClient().perform(post("/api/services/handles")
+                        .content(mapper.writeValueAsBytes(Map.of(
+                                "url", ALLOWED_URL,
+                                "title", "title",
+                                "reportemail", TEST_EMAIL,
+                                "subprefix", "s".repeat(256)
+                        )))
+                        .contentType(contentType))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void updateRejectsRecordLongerThanUrlColumn() throws Exception {
         getClient().perform(put("/api/services/handles")
                         .content(mapper.writeValueAsBytes(Map.of(
