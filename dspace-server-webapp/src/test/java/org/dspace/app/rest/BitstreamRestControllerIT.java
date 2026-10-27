@@ -1747,6 +1747,58 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
     }
 
+    @Test
+    public void s3DirectDownloadRedirectDoesNotOpenStream() throws Exception {
+        // Enable S3 direct download so the controller takes the redirect branch, without standing up real S3.
+        configurationService.setProperty("s3.download.direct.enabled", true);
+        configurationService.setProperty("assetstore.s3.bucketName", "test");
+        try {
+            context.turnOffAuthorisationSystem();
+            parentCommunity = CommunityBuilder.createCommunity(context)
+                    .withName("Parent Community")
+                    .build();
+
+            Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                    .withName("Collection 1").build();
+            Item item = ItemBuilder.createItem(context, col1)
+                    .withTitle("Public item 1")
+                    .withIssueDate("2017-10-17")
+                    .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                    .build();
+
+            URI expectedUrl = URI.create("https://example.com");
+            doReturn(expectedUrl.toString())
+                    .when(s3DirectDownloadService)
+                    .generatePresignedUrl(anyString(), anyString(), anyInt(), anyString());
+
+            // Bitstream in the ORIGINAL bundle so hasOriginalBundle is true and the redirect branch is taken.
+            bitstream = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))
+                    .withName("testfile.txt")
+                    .build();
+            String bitstreamId = bitstream.getID().toString();
+            context.restoreAuthSystemState();
+            context.commit();
+
+            var bitstreamStorageService = StorageServiceFactory.getInstance().getBitstreamStorageService();
+            var bitstreamStorageServiceSpy = spy(bitstreamStorageService);
+            ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService", bitstreamStorageServiceSpy);
+
+            // Flip the assetstore flag only now, after the bitstream has been stored, so it cannot affect storage.
+            configurationService.setProperty("assetstore.s3.enabled", true);
+
+            getClient().perform(get("/api/core/bitstreams/" + bitstreamId + "/content"))
+                    .andExpect(status().isFound()) // 302 Redirect
+                    .andExpect(header().string("Location", containsString(expectedUrl.toString())));
+
+            // The redirect response has no body, so the storage stream must never be opened.
+            Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
+        } finally {
+            configurationService.setProperty("s3.download.direct.enabled", false);
+            configurationService.setProperty("assetstore.s3.enabled", false);
+            configurationService.setProperty("assetstore.s3.bucketName", null);
+        }
+    }
+
     // Do not directly download the file which is not in the `ORIGINAL` bundle, because there could be problem
     // with working with that file, e.g. showing the process output
     @Test
