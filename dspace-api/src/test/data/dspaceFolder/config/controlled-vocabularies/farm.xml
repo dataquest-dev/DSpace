@@ -2,7 +2,11 @@
 <node label='the farm'>
     <isComposedBy>
         <node label='north 40'/>
-        <node id='s40' label='south 40'/>
+        <node id='s40' label='south 40'>
+            <isComposedBy>
+                <node id='pond' label='pond'/>
+            </isComposedBy>
+        </node>
         <node id="o'reilly" label="o'reilly"/>
     </isComposedBy>
 </node>
