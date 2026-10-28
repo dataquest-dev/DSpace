@@ -55,6 +55,8 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -1314,6 +1316,50 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
         Mockito.verify(bitstreamStorageServiceSpy, times(1)).retrieve(any(), eq(bitstream));
         Mockito.verify(inputStreamSpy, times(1)).close();
+    }
+
+    @Test
+    public void closesFallbackStreamsWhenCoverPageGenerationFails() throws Exception {
+        var storageSpy = setUpBitstreamWithStorageSpy();
+        List<InputStream> openedStreams = new ArrayList<>();
+        try {
+            configurationService.setProperty("citation-page.enable_globally", true);
+            citationDocumentService.afterPropertiesSet();
+            context.turnOffAuthorisationSystem();
+            bitstream = context.reloadEntity(bitstream);
+            // Plain text labelled as PDF forces cover-page generation to fail.
+            bitstream.setFormat(context, bitstreamFormatService.findByMIMEType(context, "application/pdf"));
+            bitstreamService.update(context, bitstream);
+            context.restoreAuthSystemState();
+
+            Mockito.doAnswer(invocation -> {
+                InputStream stream = spy((InputStream) invocation.callRealMethod());
+                openedStreams.add(stream);
+                return stream;
+            }).when(storageSpy).retrieve(any(), eq(bitstream));
+
+            String uri = "/api/core/bitstreams/" + bitstream.getID() + "/content";
+            String etag = getClient().perform(head(uri))
+                .andExpect(status().isOk()).andReturn().getResponse().getHeader("ETag");
+            getClient().perform(get(uri).header("If-None-Match", etag))
+                .andExpect(status().isNotModified());
+            getClient().perform(get(uri).header("If-Unmodified-Since", "Sat, 29 Oct 1994 19:43:31 GMT"))
+                .andExpect(status().isPreconditionFailed());
+            getClient().perform(get(uri))
+                .andExpect(status().isOk())
+                .andExpect(content().string("0123456789"));
+
+            // Each request opens one stream for the failed attempt and one for the fallback.
+            assertEquals(8, openedStreams.size());
+            for (InputStream stream : openedStreams) {
+                Mockito.verify(stream, times(1)).close();
+            }
+        } finally {
+            ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService",
+                StorageServiceFactory.getInstance().getBitstreamStorageService());
+            configurationService.setProperty("citation-page.enable_globally", false);
+            citationDocumentService.afterPropertiesSet();
+        }
     }
 
     /**

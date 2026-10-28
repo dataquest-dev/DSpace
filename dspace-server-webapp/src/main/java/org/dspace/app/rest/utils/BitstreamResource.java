@@ -82,7 +82,9 @@ public class BitstreamResource extends AbstractResource {
         } catch (Exception e) {
             LOG.warn("Could not generate cover page. Will fallback to original document", e);
             // Return the original bitstream without the cover page
-            return IOUtils.toByteArray(bitstreamService.retrieve(context, bitstream));
+            try (InputStream in = bitstreamService.retrieve(context, bitstream)) {
+                return IOUtils.toByteArray(in);
+            }
         }
     }
 
