@@ -66,6 +66,12 @@ public class FullTextContentStreamsTest {
     private ResourcePolicy anonymousReadPolicy;
 
     @Mock
+    private Group nestedAnonymousGroup;
+
+    @Mock
+    private ResourcePolicy nestedGroupReadPolicy;
+
+    @Mock
     private Item item;
 
     @Mock
@@ -289,6 +295,25 @@ public class FullTextContentStreamsTest {
         assertTrue("Text must be excluded when its source file is not anonymously readable",
                    streams.isEmpty());
         assertEquals("The name should be empty", "", streams.getName());
+    }
+
+    @Test
+    public void testTextReadableViaGroupContainingAnonymousIsIndexed() throws Exception {
+        when(item.getBundles()).thenReturn(Arrays.asList(originalBundle, textBundle));
+        when(textBundle.getBitstreams()).thenReturn(Arrays.asList(textBitstream1));
+        // The READ policy is granted not to Anonymous directly, but to a group that contains Anonymous,
+        // which still makes the bitstream anonymously readable.
+        when(nestedGroupReadPolicy.getGroup()).thenReturn(nestedAnonymousGroup);
+        when(resourcePolicyService.isDateValid(nestedGroupReadPolicy)).thenReturn(true);
+        when(groupService.isParentOf(null, nestedAnonymousGroup, anonymousGroup)).thenReturn(true);
+        when(authorizeService.getPoliciesActionFilter(null, textBitstream1, Constants.READ))
+            .thenReturn(Collections.singletonList(nestedGroupReadPolicy));
+
+        streams.init(item);
+
+        assertFalse("Text readable through a group that contains Anonymous must be indexed",
+                    streams.isEmpty());
+        assertEquals("Only the readable bitstream should be included", "Full Text 1", streams.getName());
     }
 
 }

@@ -147,7 +147,9 @@ public class FullTextContentStreams extends ContentStreamBase {
     }
 
     /**
-     * @return true if the Anonymous group has a date-valid READ policy on the given bitstream.
+     * @return true if the Anonymous group has a date-valid READ policy on the given bitstream, either
+     *         directly or through a group that contains Anonymous (a READ policy on such a group also
+     *         grants anonymous access).
      */
     private boolean hasAnonymousRead(Bitstream bitstream) throws SQLException {
         Group anonymous = getAnonymousGroup();
@@ -157,7 +159,14 @@ public class FullTextContentStreams extends ContentStreamBase {
         List<ResourcePolicy> policies =
             getAuthorizeService().getPoliciesActionFilter(context, bitstream, Constants.READ);
         for (ResourcePolicy policy : policies) {
-            if (anonymous.equals(policy.getGroup()) && getResourcePolicyService().isDateValid(policy)) {
+            Group policyGroup = policy.getGroup();
+            if (policyGroup == null || !getResourcePolicyService().isDateValid(policy)) {
+                continue;
+            }
+            // a policy on Anonymous, or on any group that (transitively) contains Anonymous, is readable
+            // by anonymous users
+            if (anonymous.equals(policyGroup)
+                    || getGroupService().isParentOf(context, policyGroup, anonymous)) {
                 return true;
             }
         }
