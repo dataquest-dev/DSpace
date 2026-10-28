@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.ConnectException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -524,10 +526,44 @@ public class OAIHarvester {
             rejectedRecords++;
         }
         log.warn("Skipping record {} for collection {}: ORE file {} harvested from {} was rejected ({})",
-                 itemOaiID, targetCollection.getID(), ore.getUrl(), harvestRow.getOaiSource(), ore.getReason());
+                 itemOaiID, targetCollection.getID(), redactUrl(ore.getUrl()), harvestRow.getOaiSource(),
+                 ore.getReason());
         ourContext.restoreAuthSystemState();
         ourContext.rollback();
         reloadRequiredEntities();
+    }
+
+    /**
+     * Strip the query string and any userinfo from a rejected URL before logging it: a rejected presigned
+     * S3/CDN URL can carry reusable credentials in those parts, which must not leak into the logs.
+     *
+     * @param url the rejected URL
+     * @return scheme, host, port and path only, or a placeholder when the URL cannot be parsed
+     */
+    private static String redactUrl(String url) {
+        if (url == null) {
+            return "";
+        }
+        try {
+            URI uri = new URI(url);
+            if (uri.getHost() != null) {
+                StringBuilder redacted = new StringBuilder();
+                if (uri.getScheme() != null) {
+                    redacted.append(uri.getScheme()).append("://");
+                }
+                redacted.append(uri.getHost());
+                if (uri.getPort() > 0) {
+                    redacted.append(':').append(uri.getPort());
+                }
+                if (uri.getRawPath() != null) {
+                    redacted.append(uri.getRawPath());
+                }
+                return redacted.toString();
+            }
+        } catch (URISyntaxException e) {
+            // fall through to the placeholder
+        }
+        return "<unparseable url>";
     }
 
     /**

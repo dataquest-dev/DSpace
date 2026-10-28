@@ -154,6 +154,23 @@ public class OREIngestionCrosswalk
                                  Filters.attribute(), null, ATOM_NS);
         entryId = xpathAltHref.evaluateFirst(doc).getValue();
 
+        // Validate every aggregated resource URL up front, before any bitstream is created, so a URL rejected
+        // by the egress policy cannot leave the bitstreams of earlier resources orphaned in the assetstore
+        // when the record is rolled back. The fetch below still re-validates each URL (and every redirect hop)
+        // to guard against TOCTOU.
+        OreUrlValidator preValidator = new OreUrlValidator();
+        for (Element resource : aggregatedResources) {
+            String href = resource.getAttributeValue("href");
+            if (href == null) {
+                throw new CrosswalkException("Entry did not contain link to resource: " + entryId);
+            }
+            OreUrlValidator.Decision decision =
+                preValidator.validate(OreUrlValidator.parse(encodeForURL(href)), egressPolicy());
+            if (!decision.isAllowed()) {
+                throw new OreResourceRejectedException(decision.getReason(), href, decision.getDetail());
+            }
+        }
+
         // Next for each resource, create a bitstream
         NumberFormat nf = NumberFormat.getInstance();
         nf.setGroupingUsed(false);
@@ -193,51 +210,36 @@ public class OREIngestionCrosswalk
                 targetBundle = targetBundles.get(0);
             }
 
-            InputStream in = null;
-            if (href != null) {
-                try {
-                    // Make sure the url string escapes all the oddball characters
-                    String processedURL = encodeForURL(href);
-                    // The trust anchor of the egress policy is the collection's oai_source, not entryId:
-                    // entryId is read from this remote document and is therefore attacker-controlled.
-                    in = resourceFetcher.fetch(OreUrlValidator.parse(processedURL), egressPolicy());
-                } catch (IOException ioe) {
-                    // a transport failure has to drop this record only; escaping here would stop the whole
-                    // collection, and after removeAllBundles it would commit the item without its files
-                    throw transferFailed(href, ioe);
-                }
-            } else {
-                throw new CrosswalkException("Entry did not contain link to resource: " + entryId);
+            // Make sure the url string escapes all the oddball characters
+            String processedURL = encodeForURL(href);
+            Bitstream newBitstream;
+            // try-with-resources so the fetched stream - and the underlying HTTP connection/client it holds -
+            // is always closed, including when bitstream creation fails part way through.
+            // The trust anchor of the egress policy is the collection's oai_source, not entryId: entryId is
+            // read from this remote document and is therefore attacker-controlled.
+            try (InputStream in = resourceFetcher.fetch(OreUrlValidator.parse(processedURL), egressPolicy())) {
+                newBitstream = bitstreamService.create(context, targetBundle, in);
+            } catch (IOException ioe) {
+                // a transport failure - or the size cap, which the bitstore surfaces here wrapped in an
+                // IOException - has to drop this record only; escaping would stop the whole collection and,
+                // after removeAllBundles, commit the item without its files
+                throw transferFailed(href, ioe);
             }
 
-            // ingest and update
-            if (in != null) {
-                Bitstream newBitstream;
-                try {
-                    newBitstream = bitstreamService.create(context, targetBundle, in);
-                } catch (IOException ioe) {
-                    // the body is only read here, and the bitstore wraps everything it catches in a plain
-                    // IOException, so both the size cap and a mid-transfer failure surface at this point
-                    throw transferFailed(href, ioe);
-                }
+            String bsName = resource.getAttributeValue("title");
+            newBitstream.setName(context, bsName);
 
-                String bsName = resource.getAttributeValue("title");
-                newBitstream.setName(context, bsName);
-
-                // Identify the format
-                String mimeString = resource.getAttributeValue("type");
-                BitstreamFormat bsFormat = bitstreamFormatService.findByMIMEType(context, mimeString);
-                if (bsFormat == null) {
-                    bsFormat = bitstreamFormatService.guessFormat(context, newBitstream);
-                }
-                newBitstream.setFormat(context, bsFormat);
-                bitstreamService.update(context, newBitstream);
-
-                bundleService.addBitstream(context, targetBundle, newBitstream);
-                bundleService.update(context, targetBundle);
-            } else {
-                throw new CrosswalkException("Could not retrieve bitstream: " + entryId);
+            // Identify the format
+            String mimeString = resource.getAttributeValue("type");
+            BitstreamFormat bsFormat = bitstreamFormatService.findByMIMEType(context, mimeString);
+            if (bsFormat == null) {
+                bsFormat = bitstreamFormatService.guessFormat(context, newBitstream);
             }
+            newBitstream.setFormat(context, bsFormat);
+            bitstreamService.update(context, newBitstream);
+
+            bundleService.addBitstream(context, targetBundle, newBitstream);
+            bundleService.update(context, targetBundle);
 
         }
         log.info(
