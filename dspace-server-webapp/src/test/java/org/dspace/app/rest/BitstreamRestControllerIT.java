@@ -1576,6 +1576,68 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     }
 
 
+    @Test
+    public void checkActiveContentFormatsNeverServedInline() throws Exception {
+        String[] mimeTypes = {
+            "image/svg+xml", "application/xhtml+xml", "image/SVG+XML", "APPLICATION/XHTML+XML",
+            "text/html; charset=utf-8", "application/javascript", "application/ecmascript",
+            "text/ecmascript", "application/x-javascript", "application/x-ecmascript",
+            "text/x-javascript", "text/x-ecmascript", "text/jscript", "text/livescript", "text/javascript1.5"
+        };
+        configurationService.setProperty("webui.content_disposition_format", new String[0]);
+
+        context.turnOffAuthorisationSystem();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        context.restoreAuthSystemState();
+
+        for (String mimeType : mimeTypes) {
+            context.turnOffAuthorisationSystem();
+            // Exercise registered active formats, not the unknown-format fallback.
+            createBitstreamFormat(context).withMimeType(mimeType)
+                .withShortDescription("Active " + mimeType).withSupportLevel(KNOWN).build();
+            item = context.reloadEntity(item);
+            Bitstream file = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))
+                .withMimeType(mimeType).build();
+            context.restoreAuthSystemState();
+
+            String contentType = mimeType.split(";")[0] + ";charset=UTF-8";
+            configurationService.setProperty("webui.content_disposition_threshold", 8388608);
+            verifyBitstreamDownload(file, contentType, true);
+            configurationService.setProperty("webui.content_disposition_threshold", -1);
+            verifyBitstreamDownload(file, contentType, true);
+        }
+    }
+
+    @Test
+    public void checkInlineDispositionSizeLimit() throws Exception {
+        context.turnOffAuthorisationSystem();
+        bitstream.setFormat(context, bitstreamFormatService.findByMIMEType(context, "application/pdf"));
+        bitstreamService.update(context, bitstream);
+        context.restoreAuthSystemState();
+
+        configurationService.setProperty("webui.content_disposition_threshold", bitstream.getSizeBytes());
+        verifyBitstreamDownload(bitstream, "application/pdf;charset=UTF-8", false);
+        configurationService.setProperty("webui.content_disposition_threshold", bitstream.getSizeBytes() - 1);
+        verifyBitstreamDownload(bitstream, "application/pdf;charset=UTF-8", true);
+        configurationService.setProperty("webui.content_disposition_threshold", -1);
+        verifyBitstreamDownload(bitstream, "application/pdf;charset=UTF-8", false);
+    }
+
+    @Test
+    public void checkMissingMimeTypeDownloads() throws Exception {
+        configurationService.setProperty("webui.content_disposition_format", new String[0]);
+        for (String mimeType : new String[] {null, "", " "}) {
+            context.turnOffAuthorisationSystem();
+            supportedFormat = context.reloadEntity(supportedFormat);
+            supportedFormat.setMIMEType(mimeType);
+            bitstreamFormatService.update(context, supportedFormat);
+            context.restoreAuthSystemState();
+            verifyBitstreamDownload(bitstream, "application/octet-stream;charset=UTF-8", true);
+        }
+    }
+
     private void verifyBitstreamDownload(Bitstream file, String contentType, boolean shouldDownload) throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
         String header = getClient(token).perform(get("/api/core/bitstreams/" + file.getID() + "/content")
