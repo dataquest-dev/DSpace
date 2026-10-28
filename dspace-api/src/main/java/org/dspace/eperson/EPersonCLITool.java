@@ -229,7 +229,6 @@ public class EPersonCLITool {
             ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
             clarinUserRegistration.setOrganization(command.getOptionValue(OPT_ORGANIZATION.getOpt()));
             clarinUserRegistration.setConfirmation(true);
-            clarinUserRegistration.setEmail(eperson.getEmail());
             clarinUserRegistration.setPersonID(eperson.getID());
             clarinUserRegistrationService.create(context, clarinUserRegistration);
 

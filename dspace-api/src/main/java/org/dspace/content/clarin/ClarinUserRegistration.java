@@ -48,9 +48,6 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
     @Column(name = "eperson_id")
     private UUID ePersonID = null;
 
-    @Column(name = "email")
-    private String email = null;
-
     @Column(name = "organization")
     private String organization = null;
 
@@ -84,14 +81,6 @@ public class ClarinUserRegistration implements ReloadableEntity<Integer> {
     @Override
     public Integer getID() {
         return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getOrganization() {

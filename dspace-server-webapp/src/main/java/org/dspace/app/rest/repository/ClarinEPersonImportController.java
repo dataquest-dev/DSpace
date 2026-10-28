@@ -147,60 +147,27 @@ public class ClarinEPersonImportController {
             throw new UnprocessableEntityException("Error parsing request body", e1);
         }
 
-        ClarinUserRegistration clarinUserRegistration = null;
-        boolean foundByEmail = false;
-
-        // Check if user registration already exists by email or ePersonID
-        if (StringUtils.isNotBlank(userRegistrationRest.getEmail())) {
-            List<ClarinUserRegistration> existingRegistrations = clarinUserRegistrationService.findByEmail(context,
-                    userRegistrationRest.getEmail());
-            if (!existingRegistrations.isEmpty()) {
-                clarinUserRegistration = existingRegistrations.get(0);
-                foundByEmail = true;
-            }
+        if (Objects.isNull(userRegistrationRest.getePersonID())) {
+            throw new UnprocessableEntityException("Cannot import user registration: ePersonID must not be null.");
         }
 
-        // If not found by email, try by ePersonID
-        if (Objects.isNull(clarinUserRegistration) && Objects.nonNull(userRegistrationRest.getePersonID())) {
-            List<ClarinUserRegistration> existingRegistrationsByEPerson =
-                    clarinUserRegistrationService.findByEPersonUUID(context,
-                    userRegistrationRest.getePersonID());
-            if (!existingRegistrationsByEPerson.isEmpty()) {
-                clarinUserRegistration = existingRegistrationsByEPerson.get(0);
-            }
-        }
+        // Look up existing registration by ePersonID
+        List<ClarinUserRegistration> existingRegistrationsByEPerson =
+                clarinUserRegistrationService.findByEPersonUUID(context, userRegistrationRest.getePersonID());
+        ClarinUserRegistration clarinUserRegistration =
+                existingRegistrationsByEPerson.isEmpty() ? null : existingRegistrationsByEPerson.get(0);
 
         if (Objects.nonNull(clarinUserRegistration)) {
-            // Update existing registration if values are different
-            boolean needsUpdate = false;
-
+            // Update organization and registration if the values have changed
+            boolean requiresUpdate = false;
             if (!Objects.equals(clarinUserRegistration.getOrganization(), userRegistrationRest.getOrganization())) {
                 clarinUserRegistration.setOrganization(userRegistrationRest.getOrganization());
-                needsUpdate = true;
+                requiresUpdate = true;
             }
-
-            if (!Objects.equals(clarinUserRegistration.isConfirmation(), userRegistrationRest.isConfirmation())) {
+            if (clarinUserRegistration.isConfirmation() != userRegistrationRest.isConfirmation()) {
                 clarinUserRegistration.setConfirmation(userRegistrationRest.isConfirmation());
-                needsUpdate = true;
+                requiresUpdate = true;
             }
-
-            // Do not update email if registration was matched by ePersonID instead of email
-            // to prevent data inconsistency
-            if (!Objects.equals(clarinUserRegistration.getEmail(), userRegistrationRest.getEmail())) {
-                if (foundByEmail) {
-                    clarinUserRegistration.setEmail(userRegistrationRest.getEmail());
-                    needsUpdate = true;
-                } else {
-                    // Registration found by ePersonID but email differs - potential data corruption
-                    log.warn("User registration found by ePersonID={} has different email. " +
-                            "Existing email='{}', incoming email='{}'. " +
-                            "Email will NOT be updated to prevent data inconsistency.",
-                            userRegistrationRest.getePersonID(),
-                            clarinUserRegistration.getEmail(),
-                            userRegistrationRest.getEmail());
-                }
-            }
-
             if (!Objects.equals(clarinUserRegistration.getPersonID(), userRegistrationRest.getePersonID())) {
                 boolean canUpdate = true;
 
@@ -211,33 +178,23 @@ public class ClarinEPersonImportController {
                     if (!conflictingRegs.isEmpty() &&
                             !conflictingRegs.get(0).getID().equals(clarinUserRegistration.getID())) {
                         // Conflict detected - log appropriate message based on how registration was found
-                        if (foundByEmail) {
-                            log.warn("User registration found by email='{}' has different ePersonID. " +
-                                    "Incoming ePersonID={} is already associated with another registration ID={}. " +
-                                    "ePersonID will NOT be updated to prevent data inconsistency.",
-                                    clarinUserRegistration.getEmail(),
-                                    userRegistrationRest.getePersonID(),
-                                    conflictingRegs.get(0).getID());
-                        } else {
-                            log.warn("User registration found by ePersonID={} has different incoming ePersonID. " +
-                                    "Incoming ePersonID={} is already associated with another registration ID={}. " +
-                                    "ePersonID will NOT be updated to prevent data inconsistency.",
-                                    clarinUserRegistration.getPersonID(),
-                                    userRegistrationRest.getePersonID(),
-                                    conflictingRegs.get(0).getID());
-                        }
+                        log.warn("User registration found by ePersonID={} has different incoming ePersonID. " +
+                                "Incoming ePersonID={} is already associated with another registration ID={}. " +
+                                "ePersonID will NOT be updated to prevent data inconsistency.",
+                                clarinUserRegistration.getPersonID(),
+                                userRegistrationRest.getePersonID(),
+                                conflictingRegs.get(0).getID());
                         canUpdate = false;
                     }
                 }
-
                 // Update ePersonID if no conflict was detected
                 if (canUpdate) {
                     clarinUserRegistration.setPersonID(userRegistrationRest.getePersonID());
-                    needsUpdate = true;
+                    requiresUpdate = true;
                 }
             }
-
-            if (needsUpdate) {
+            // Update ePersonID if no conflict was detected
+            if (requiresUpdate) {
                 clarinUserRegistrationService.update(context, clarinUserRegistration);
             }
         } else {
@@ -245,7 +202,6 @@ public class ClarinEPersonImportController {
             clarinUserRegistration = new ClarinUserRegistration();
             clarinUserRegistration.setOrganization(userRegistrationRest.getOrganization());
             clarinUserRegistration.setConfirmation(userRegistrationRest.isConfirmation());
-            clarinUserRegistration.setEmail(userRegistrationRest.getEmail());
             clarinUserRegistration.setPersonID(userRegistrationRest.getePersonID());
             clarinUserRegistration = clarinUserRegistrationService.create(context, clarinUserRegistration);
         }
