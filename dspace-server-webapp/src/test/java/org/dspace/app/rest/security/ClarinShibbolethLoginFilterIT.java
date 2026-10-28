@@ -970,6 +970,60 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 ePersonService.find(context, localUser.getID()).getNetid());
     }
 
+    // An IdP that sends no netid creates an account without one, so the next login finds it by e-mail.
+    @Test
+    public void accountWithoutNetIdSignsInAgainOnlyThroughItsIdp() throws Exception {
+        String email = "no-netid@mail.epic";
+        for (int login = 0; login < 2; login++) {
+            String token = getClient().perform(get("/api/authn/shibboleth")
+                            .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                            .header("SHIB-MAIL", email))
+                    .andExpect(status().isFound())
+                    .andExpect(redirectedUrl("http://localhost:4000"))
+                    .andReturn().getResponse().getHeader("Authorization");
+            checkUserIsSignedIn(token);
+        }
+
+        getClient().perform(get("/api/authn/shibboleth")
+                        .header("Shib-Identity-Provider", "Different IdP")
+                        .header("SHIB-MAIL", email))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl(duplicateUserUrl(email)));
+
+        // Once the IdP sends a netid, the account gets it.
+        getClient().perform(get("/api/authn/shibboleth")
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header("SHIB-NETID", "late-netid")
+                        .header("SHIB-MAIL", email))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost:4000"));
+
+        deleteShibbolethUser(checkUserWasCreated("late-netid", IDP_TEST_EPERSON, email, null));
+    }
+
+    // The e-mail in a verification token is typed by the user, so it must not take an account without netid.
+    @Test
+    public void registrationByTokenDoesNotTakeAccountRegisteredWithoutNetId() throws Exception {
+        String email = "no-netid-owner@mail.epic";
+        getClient().perform(get("/api/authn/shibboleth")
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header("SHIB-MAIL", email))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("http://localhost:4000"));
+
+        String netId = "registration-" + UUID.randomUUID();
+        getClient().perform(post("/api/autoregistration").param("netid", loginWithoutEmail(netId, IDP_TEST_EPERSON))
+                        .param("email", email))
+                .andExpect(status().isOk());
+        getClient().perform(get("/api/autoregistration").param("verification-token", reloadToken(netId).getToken()))
+                .andExpect(status().isForbidden());
+
+        EPerson ePerson = checkUserWasCreated(null, null, email, null);
+        assertNull(ePerson.getNetid());
+        deleteToken(netId);
+        deleteShibbolethUser(ePerson);
+    }
+
     /**
      * Shibboleth login that carries a netid but no e-mail: the user is redirected to the page where he fills in the
      * e-mail. The redirect carries the one-time registration token of the pending registration, not the netid.

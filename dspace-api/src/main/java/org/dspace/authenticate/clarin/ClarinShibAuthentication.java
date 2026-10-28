@@ -629,7 +629,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                                     + email + "'" + ".");
                 }
 
-                if (eperson != null && !canBindNetIdByEmail(context, eperson)) {
+                if (eperson != null && !canBindNetIdByEmail(context, eperson, shibheaders.get_idp())) {
                     // The account is locked to its netid, or e-mail based binding is not allowed for it.
                     // Don't let anyone else try and steal the account.
                     log.error(
@@ -659,7 +659,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                     log.info("Identified EPerson based upon Tomcat's remote user: '" + email + "'.");
                 }
 
-                if (eperson != null && !canBindNetIdByEmail(context, eperson)) {
+                if (eperson != null && !canBindNetIdByEmail(context, eperson, shibheaders.get_idp())) {
                     // If the user has a netID it has been locked to that netid, don't let anyone else try and steal
                     // the account.
                     log.error(
@@ -685,18 +685,40 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
     /**
      * Whether an account that was found by its e-mail only may be bound to the netid of the current login.
-     * Allowed only when {@value #EMAIL_FALLBACK_PROPERTY} is on, the account has no netid yet and it is not an
-     * administrator.
+     * Allowed only when the account has no netid yet, it is not an administrator, and either
+     * {@value #EMAIL_FALLBACK_PROPERTY} is on or the IdP itself sent the e-mail and the account was registered
+     * through that IdP. An e-mail from a verification token was typed by the user, not sent by the IdP.
      *
      * @param context The DSpace database context
      * @param eperson The account found by e-mail
+     * @param idp     The IdP of the current login
      * @return true if the login may bind its netid to the account
      * @throws SQLException if database error
      */
-    public boolean canBindNetIdByEmail(Context context, EPerson eperson) throws SQLException {
-        return configurationService.getBooleanProperty(EMAIL_FALLBACK_PROPERTY, false)
-                && eperson.getNetid() == null
-                && !authorizeService.isAdmin(context, eperson);
+    public boolean canBindNetIdByEmail(Context context, EPerson eperson, String idp) throws SQLException {
+        return eperson.getNetid() == null
+                && !authorizeService.isAdmin(context, eperson)
+                && (configurationService.getBooleanProperty(EMAIL_FALLBACK_PROPERTY, false)
+                    || (!headersFromToken && isRegisteredThroughIdp(context, eperson, idp)));
+    }
+
+    /**
+     * Whether a Shibboleth login through this IdP created the account. An IdP that sends no netid leaves the account
+     * without one, so this is how its users sign in again.
+     */
+    private boolean isRegisteredThroughIdp(Context context, EPerson eperson, String idp) throws SQLException {
+        if (StringUtils.isEmpty(idp)) {
+            return false;
+        }
+        context.turnOffAuthorisationSystem();
+        try {
+            return clarinUserRegistrationService.findByEPersonUUID(context, eperson.getID()).stream()
+                    .anyMatch(registration -> idp.equals(registration.getOrganization()));
+        } catch (AuthorizeException e) {
+            throw new IllegalStateException(e);
+        } finally {
+            context.restoreAuthSystemState();
+        }
     }
 
     /**
