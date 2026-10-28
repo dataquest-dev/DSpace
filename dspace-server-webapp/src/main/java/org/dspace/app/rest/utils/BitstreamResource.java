@@ -98,7 +98,7 @@ public class BitstreamResource extends AbstractResource {
         fetchDocument();
 
         // Open the storage stream lazily, only when the response body is actually written. This avoids leaking
-        // an open stream on the paths that never read the body (HEAD, 304, 412, S3 redirect).
+        // an open stream on the paths that never read the body (HEAD, 304, 412, 416, S3 redirect).
         if (shouldGenerateCoverPage) {
             return new ByteArrayInputStream(coverPageBytes);
         }

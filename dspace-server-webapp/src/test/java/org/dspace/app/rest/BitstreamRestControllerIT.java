@@ -1320,7 +1320,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     @Test
     public void closesFallbackStreamsWhenCoverPageGenerationFails() throws Exception {
-        var storageSpy = setUpBitstreamWithStorageSpy();
+        BitstreamStorageService storageSpy = setUpBitstreamWithStorageSpy();
         List<InputStream> openedStreams = new ArrayList<>();
         try {
             configurationService.setProperty("citation-page.enable_globally", true);
@@ -1395,15 +1395,16 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
         context.restoreAuthSystemState();
 
-        var bitstreamStorageService = StorageServiceFactory.getInstance().getBitstreamStorageService();
-        var bitstreamStorageServiceSpy = spy(bitstreamStorageService);
+        BitstreamStorageService bitstreamStorageService =
+            StorageServiceFactory.getInstance().getBitstreamStorageService();
+        BitstreamStorageService bitstreamStorageServiceSpy = spy(bitstreamStorageService);
         ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService", bitstreamStorageServiceSpy);
         return bitstreamStorageServiceSpy;
     }
 
     @Test
     public void doesNotOpenStreamForHeadRequest() throws Exception {
-        var bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
+        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
 
         //A HEAD request only needs the headers, so the storage stream must never be opened.
         getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content"))
@@ -1414,7 +1415,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     @Test
     public void doesNotOpenStreamForNotModifiedRequest() throws Exception {
-        var bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
+        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
 
         //A matching If-None-Match results in a 304 without a body, so the storage stream must never be opened.
         getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
@@ -1426,7 +1427,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
     @Test
     public void doesNotOpenStreamForPreconditionFailedRequest() throws Exception {
-        var bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
+        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
 
         //An If-Unmodified-Since in the past results in a 412 without a body, so the stream must never be opened.
         getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
@@ -1434,6 +1435,28 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             .andExpect(status().isPreconditionFailed());
 
         Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
+    }
+
+    @Test
+    public void doesNotOpenStreamForRangeNotSatisfiableRequest() throws Exception {
+        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
+
+        //A non-matching If-Match results in a 416 without a body, so the storage stream must never be opened.
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
+                .header("If-Match", "not-the-etag"))
+            .andExpect(status().isRequestedRangeNotSatisfiable());
+
+        Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
+    }
+
+    @Test
+    public void returnsServerErrorWhenFileIsMissing() throws Exception {
+        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
+        assertTrue(bitstreamStorageServiceSpy.retrieveFile(context, bitstream).delete());
+
+        //The file is opened only when the body is written, so a missing file must still end in an error.
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+            .andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -1766,8 +1789,9 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             context.restoreAuthSystemState();
             context.commit();
 
-            var bitstreamStorageService = StorageServiceFactory.getInstance().getBitstreamStorageService();
-            var bitstreamStorageServiceSpy = spy(bitstreamStorageService);
+            BitstreamStorageService bitstreamStorageService =
+                StorageServiceFactory.getInstance().getBitstreamStorageService();
+            BitstreamStorageService bitstreamStorageServiceSpy = spy(bitstreamStorageService);
             ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService", bitstreamStorageServiceSpy);
 
             // Make a request to the /content endpoint and check the redirect URL
@@ -1825,8 +1849,9 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             context.restoreAuthSystemState();
             context.commit();
 
-            var bitstreamStorageService = StorageServiceFactory.getInstance().getBitstreamStorageService();
-            var bitstreamStorageServiceSpy = spy(bitstreamStorageService);
+            BitstreamStorageService bitstreamStorageService =
+                StorageServiceFactory.getInstance().getBitstreamStorageService();
+            BitstreamStorageService bitstreamStorageServiceSpy = spy(bitstreamStorageService);
             ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService", bitstreamStorageServiceSpy);
 
             // Flip the assetstore flag only now, after the bitstream has been stored, so it cannot affect storage.
