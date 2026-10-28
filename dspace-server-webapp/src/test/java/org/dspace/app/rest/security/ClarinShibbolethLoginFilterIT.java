@@ -25,6 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -258,7 +260,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-NETID", netId)
                         .header("Shib-Identity-Provider", differentIdP))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user?email=" + email))
+                .andExpect(redirectedUrl(duplicateUserUrl(email)))
                 .andReturn().getResponse().getHeader("Authorization");
 
         // Delete created eperson - clean after the test
@@ -287,7 +289,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-MAIL", email)
                         .header("Shib-Identity-Provider", IDP_TEST_EPERSON))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user?email=" + email))
+                .andExpect(redirectedUrl(duplicateUserUrl(email)))
                 .andReturn().getResponse().getHeader("Authorization");
 
         // Check if was created a user with such email and netid.
@@ -612,7 +614,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header(NET_ID_PERSISTENT_ID, NET_ID_TEST_EPERSON)
                         .header("SHIB-MAIL", userWithEppnEmail))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user?email=" + userWithEppnEmail));
+                .andExpect(redirectedUrl(duplicateUserUrl(userWithEppnEmail)));
 
         // Check if was created a user with such email and netid.
         EPerson ePerson = checkUserWasCreated(customEppn, IDP_TEST_EPERSON, userWithEppnEmail, null);
@@ -676,7 +678,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(redirectedUrl("http://localhost:4000/login?error=shibboleth-authentication-failed"));
     }
 
-    // Issue dspace-customers#1091 B: only the browser that did the Shibboleth login can have the e-mail sent.
+    // Only the browser that did the Shibboleth login can have the e-mail sent.
     @Test
     public void autoregistrationRequiresTheRegistrationToken() throws Exception {
         String netId = "registration-" + UUID.randomUUID();
@@ -714,7 +716,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         deleteToken(netId);
     }
 
-    // Issue dspace-customers#1091 C/D: the registration by token uses the verified e-mail and the stored IdP headers.
+    // The registration by token uses the verified e-mail and the stored IdP headers.
     @Test
     public void registrationByTokenIgnoresLiveHeadersAndNeverBindsAnExistingAccount() throws Exception {
         String netId = "registration-" + UUID.randomUUID();
@@ -877,7 +879,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
         deleteShibbolethUser(ePerson);
     }
 
-    // Issue dspace-customers#1091 D: Shibboleth headers are trusted only on /api/authn/shibboleth.
+    // Shibboleth headers are trusted only on /api/authn/shibboleth.
     @Test
     public void loginEndpointIgnoresShibbolethHeaders() throws Exception {
         getClient().perform(post("/api/authn/login")
@@ -911,12 +913,12 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(redirectedUrl("http://localhost:4000"));
     }
 
-    // Issue dspace-customers#1091 C: an account found only by e-mail is never bound to the incoming netid.
+    // An account found only by e-mail is never bound to the incoming netid.
     @Test
     public void emailOfAccountWithoutNetIdIsNotBoundToNewNetId() throws Exception {
         context.turnOffAuthorisationSystem();
         EPerson localUser = EPersonBuilder.createEPerson(context)
-                .withEmail("local-password-user@email.com")
+                .withEmail("local+password-user@email.com")
                 .withPassword(password)
                 .build();
         context.restoreAuthSystemState();
@@ -926,7 +928,8 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-NETID", "new-netid")
                         .header("SHIB-MAIL", localUser.getEmail()))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user?email=" + localUser.getEmail()));
+                .andExpect(redirectedUrl(
+                        "http://localhost:4000/login/duplicate-user?email=local%2Bpassword-user%40email.com"));
 
         assertNull(ePersonService.find(context, localUser.getID()).getNetid());
     }
@@ -940,7 +943,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("SHIB-NETID", "new-netid")
                         .header("SHIB-MAIL", admin.getEmail()))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user?email=" + admin.getEmail()));
+                .andExpect(redirectedUrl(duplicateUserUrl(admin.getEmail())));
 
         assertNull(ePersonService.find(context, admin.getID()).getNetid());
     }
@@ -984,7 +987,7 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                         .header("Shib-Identity-Provider", "Different IdP")
                         .header("SHIB-MAIL", email))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("http://localhost:4000/login/duplicate-user?email=" + email));
+                .andExpect(redirectedUrl(duplicateUserUrl(email)));
 
         // Once the IdP sends a netid, the account gets it.
         getClient().perform(get("/api/authn/shibboleth")
@@ -1045,6 +1048,10 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
 
     private static String authFailedUrl(String registrationToken) {
         return "http://localhost:4000/login/auth-failed?netid=" + registrationToken;
+    }
+
+    private static String duplicateUserUrl(String email) {
+        return "http://localhost:4000/login/duplicate-user?email=" + URLEncoder.encode(email, StandardCharsets.UTF_8);
     }
 
     private ClarinVerificationToken reloadToken(String netId) throws SQLException {
