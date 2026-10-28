@@ -350,9 +350,11 @@ public class DSpaceCSV implements Serializable {
             List<String> hiddenMetadata =
                     configurationService.getPropertyKeys(MetadataExposureServiceImpl.CONFIG_PREFIX);
             for (String hiddenMetadataKey : hiddenMetadata) {
-                // Only ignore fields that are actually hidden; a field explicitly exposed must still export
-                boolean hidden = configurationService.getBooleanProperty(hiddenMetadataKey, true)
-                        || "submitter".equals(configurationService.getProperty(hiddenMetadataKey));
+                // Only ignore fields that are actually hidden; a field explicitly exposed must still export.
+                // Check the "submitter" string first: getBooleanProperty throws on a non-boolean value, so it
+                // must not be the left operand (matches MetadataExposureServiceImpl).
+                boolean hidden = "submitter".equals(configurationService.getProperty(hiddenMetadataKey))
+                        || configurationService.getBooleanProperty(hiddenMetadataKey, true);
                 if (!hidden) {
                     continue;
                 }
@@ -627,10 +629,6 @@ public class DSpaceCSV implements Serializable {
                 String[] elements = part.split(escapedValueSeparator);
                 for (String element : elements) {
                     if ((element != null) && !element.isEmpty()) {
-                        // Reverse the export-side formula neutralization: drop a single leading quote
-                        if (element.startsWith("'")) {
-                            element = element.substring(1);
-                        }
                         csvLine.add(headings.get(i - 1), element);
                     }
                 }
