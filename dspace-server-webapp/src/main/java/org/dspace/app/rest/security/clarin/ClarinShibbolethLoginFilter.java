@@ -239,7 +239,8 @@ public class ClarinShibbolethLoginFilter extends StatelessLoginFilter {
         if (!foundByNetId && StringUtils.isNotEmpty(email)) {
             ePerson = ePersonService.findByEmail(context, email);
         }
-        if (Objects.nonNull(ePerson) && (foundByNetId || !shibAuthentication.canBindNetIdByEmail(context, ePerson))) {
+        if (Objects.nonNull(ePerson) && (foundByNetId
+                || !shibAuthentication.canBindNetIdByEmail(context, ePerson, shibHeaders.get_idp()))) {
             log.error("The users email is already associated with a different user");
             return loginUrl + "duplicate-user?email=" + email;
         }
