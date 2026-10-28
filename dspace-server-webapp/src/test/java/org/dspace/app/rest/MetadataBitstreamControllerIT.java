@@ -33,6 +33,8 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.service.GroupService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,6 +51,8 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
 
     @Autowired
     AuthorizeService authorizeService;
+    @Autowired
+    GroupService groupService;
 
 
     @Override
@@ -162,5 +166,58 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
                         "attachment; filename=\"Prilis zlutoucky kun.zip\";"
                         + " filename*=UTF-8''P%C5%99%C3%ADli%C5%A1%20%C5%BElu%C5%A5ou%C4%8Dk%C3%BD"
                         + "%20k%C5%AF%C5%88.zip"));
+    }
+
+    /**
+     * READ is checked on {uuid}, so the zip must not be built from an item identified by another handle:
+     * neither its files nor its title in Content-Disposition may reach the caller.
+     */
+    @Test
+    public void downloadAllZipRefusesHandleOfAnotherItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item privateItem = ItemBuilder.createItem(context, col)
+                .withTitle("Private item title")
+                .withAuthor(AUTHOR)
+                .withReaderGroup(groupService.findByName(context, Group.ADMIN))
+                .build();
+        try (InputStream is = IOUtils.toInputStream("PrivateContent", CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, privateItem, is)
+                    .withName("private.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+        context.restoreAuthSystemState();
+
+        // uuid of a readable item + handle of a private one
+        getClient().perform(get(METADATABITSTREAM_ENDPOINT + "/" + publicItem.getID() +
+                        "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, privateItem.getHandle()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(header().doesNotExist("Content-Disposition"));
+        // an unknown handle gets the same answer
+        getClient().perform(get(METADATABITSTREAM_ENDPOINT + "/" + publicItem.getID() +
+                        "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, "123456789/does-not-exist"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(header().doesNotExist("Content-Disposition"));
+        // the reverse is refused by the READ check on {uuid}
+        getClient().perform(get(METADATABITSTREAM_ENDPOINT + "/" + privateItem.getID() +
+                        "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, publicItem.getHandle()))
+                .andExpect(status().isUnauthorized());
+        // a mismatch is refused for an admin too
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get(METADATABITSTREAM_ENDPOINT + "/" + publicItem.getID() +
+                        "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, privateItem.getHandle()))
+                .andExpect(status().isUnprocessableEntity());
+
+        // the matching pair still works, for an anonymous caller on the public item and for an admin on the
+        // private one
+        getClient().perform(get(METADATABITSTREAM_ENDPOINT + "/" + publicItem.getID() +
+                        "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, publicItem.getHandle()))
+                .andExpect(status().isOk());
+        getClient(token).perform(get(METADATABITSTREAM_ENDPOINT + "/" + privateItem.getID() +
+                        "/" + ALL_ZIP_PATH).param(HANDLE_PARAM, privateItem.getHandle()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition",
+                        "attachment; filename=\"Private item title.zip\";"
+                        + " filename*=UTF-8''Private%20item%20title.zip"));
     }
 }
