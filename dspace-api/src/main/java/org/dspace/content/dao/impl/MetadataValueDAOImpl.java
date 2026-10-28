@@ -73,6 +73,30 @@ public class MetadataValueDAOImpl extends AbstractHibernateDAO<MetadataValue> im
     }
 
     @Override
+    public List<MetadataValue> findByAuthorityAndLanguage(Context context, String authority, String language)
+            throws SQLException {
+        StringBuilder queryString = new StringBuilder();
+        queryString.append("SELECT m FROM MetadataValue m WHERE m.authority = :authority");
+
+        if (language != null) {
+            queryString.append(" AND m.language = :language");
+        }
+
+        queryString.append(" ORDER BY m.place ASC");
+
+        Query query = createQuery(context, queryString.toString());
+        query.setParameter("authority", authority);
+
+        if (language != null) {
+            query.setParameter("language", language);
+        }
+
+        @SuppressWarnings("unchecked")
+        List<MetadataValue> results = query.getResultList();
+        return results;
+    }
+
+    @Override
     public void deleteByMetadataField(Context context, MetadataField metadataField) throws SQLException {
         String queryString = "delete from MetadataValue where metadataField= :metadataField";
         Query query = createQuery(context, queryString);

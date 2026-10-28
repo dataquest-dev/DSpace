@@ -295,7 +295,13 @@ public class HibernateDBConnection implements DBConnection<Session> {
             } else if (entity instanceof Bundle) {
                 Bundle bundle = (Bundle) entity;
 
-                if (Hibernate.isInitialized(bundle.getBitstreams())) {
+                // Bundle.getBitstreams() creates a defensive copy via new ArrayList<>(bitstreams)
+                // which iterates the Hibernate proxy, triggering lazy loading unconditionally.
+                // Unlike Item.getBundles() which returns the raw proxy, we cannot safely call
+                // getBitstreams() when the bundle is detached from the session.
+                // Guard with session.contains(): if the bundle is still managed,
+                // lazy loading will work; if detached (e.g. after session.clear()), we skip.
+                if (getSession().contains(bundle)) {
                     for (Bitstream bitstream : Utils.emptyIfNull(bundle.getBitstreams())) {
                         uncacheEntity(bitstream);
                     }
