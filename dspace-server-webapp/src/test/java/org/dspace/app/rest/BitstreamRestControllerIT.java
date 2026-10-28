@@ -1403,6 +1403,17 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    public void doesNotOpenStreamForHeadRequest() throws Exception {
+        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
+
+        //A HEAD request only needs the headers, so the storage stream must never be opened.
+        getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+            .andExpect(status().isOk());
+
+        Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
+    }
+
+    @Test
     public void doesNotOpenStreamForNotModifiedRequest() throws Exception {
         BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
 
