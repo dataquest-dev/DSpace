@@ -172,7 +172,8 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
     public void invalidateAuthenticationCookie(HttpServletRequest request, HttpServletResponse response) {
         // Re-send the same cookie (as addTokenToResponse()) with no value and a Max-Age of 0 seconds
         ResponseCookie cookie = ResponseCookie.from(AUTHORIZATION_COOKIE, "")
-                                              .maxAge(0).httpOnly(true).secure(true).sameSite("None").build();
+                                              .maxAge(0).httpOnly(true).secure(true).sameSite("None")
+                                              .path(getAuthorizationCookiePath()).build();
 
         // Write the cookie to the Set-Cookie header in order to send it
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -248,20 +249,6 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
      */
     private void addTokenToResponse(final HttpServletRequest request, final HttpServletResponse response,
                                     final String token, final Boolean addCookie) {
-
-        String cookiePath = "";
-
-        try {
-            String serverUrl = configurationService.getProperty("dspace.server.url");
-
-            URL url = new URL(serverUrl);
-            String contextPath = url.getPath();
-
-            cookiePath = contextPath + "/api/authn";
-
-        } catch (MalformedURLException e) {
-            log.error("Failed to parse the dspace.server.url property.", e);
-        }
         // If addCookie=true, create a temporary authentication cookie. This is primarily used for the initial
         // Shibboleth response (which requires a number of redirects), as headers cannot be sent via a redirect. As soon
         // as the UI (or Hal Browser) obtains the Shibboleth login data, it makes a call to /login (addCookie=false)
@@ -271,7 +258,7 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
                                                   .httpOnly(true)
                                                   .secure(true)
                                                   .sameSite("None")
-                                                  .path(cookiePath)
+                                                  .path(getAuthorizationCookiePath())
                                                   .build();
 
             // Write the cookie to the Set-Cookie header in order to send it
@@ -316,6 +303,28 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
         }
 
         return tokenValue;
+    }
+
+    /**
+     * Get the path of the (temporary) authorization cookie: the /api/authn endpoints under the path of
+     * dspace.server.url. The cookie is created and invalidated with this same path, so both refer to the same cookie.
+     * @return cookie path
+     */
+    private String getAuthorizationCookiePath() {
+        String cookiePath = "";
+
+        try {
+            String serverUrl = configurationService.getProperty("dspace.server.url");
+
+            URL url = new URL(serverUrl);
+            String contextPath = url.getPath();
+
+            cookiePath = contextPath + "/api/authn";
+
+        } catch (MalformedURLException e) {
+            log.error("Failed to parse the dspace.server.url property.", e);
+        }
+        return cookiePath;
     }
 
     /**

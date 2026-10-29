@@ -370,6 +370,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
                 .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"))
                 .andExpect(cookie().exists(AUTHORIZATION_COOKIE))
+                .andExpect(cookie().path(AUTHORIZATION_COOKIE, "/api/authn"))
                 .andReturn().getResponse().getCookie(AUTHORIZATION_COOKIE);
 
         // Verify the temporary cookie now exists & obtain its token for use below
@@ -416,6 +417,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .andExpect(status().isOk())
                 // Verify the Auth cookie has been destroyed
                 .andExpect(cookie().value(AUTHORIZATION_COOKIE, ""))
+                .andExpect(cookie().path(AUTHORIZATION_COOKIE, "/api/authn"))
                 // Verify Authorization header is returned
                 .andExpect(header().exists(AUTHORIZATION_HEADER))
                 // Verify that the CSRF token has been changed
@@ -453,6 +455,39 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
         //Logout, invalidating the token
         getClient(headerToken).perform(post("/api/authn/logout").header("Origin", uiURL))
                         .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testShibAuthCookiePathFollowsServerURL() throws Exception {
+        //Enable Shibboleth login only
+        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", SHIB_ONLY);
+        // REST API is deployed under a path other than /server
+        configurationService.setProperty("dspace.server.url", "http://localhost/repository/server");
+
+        String uiURL = configurationService.getProperty("dspace.ui.url");
+
+        // The temporary auth cookie must be scoped to /api/authn under the path of dspace.server.url. Otherwise the
+        // browser never sends it to /api/authn/login and the Shibboleth login fails.
+        Cookie authCookie = getClient().perform(get("/api/authn/shibboleth")
+                .header("Referer", "https://myshib.example.com")
+                .param("redirectUrl", uiURL)
+                .requestAttr("SHIB-MAIL", eperson.getEmail())
+                .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(uiURL))
+                .andExpect(cookie().exists(AUTHORIZATION_COOKIE))
+                .andExpect(cookie().path(AUTHORIZATION_COOKIE, "/repository/server/api/authn"))
+                .andReturn().getResponse().getCookie(AUTHORIZATION_COOKIE);
+
+        // Calling /login destroys the auth cookie. It is sent back with the same path as the cookie created above.
+        getClient().perform(post("/api/authn/login").header("Origin", uiURL)
+                                                   .secure(true)
+                                                   .cookie(authCookie))
+                .andExpect(status().isOk())
+                .andExpect(cookie().value(AUTHORIZATION_COOKIE, ""))
+                .andExpect(cookie().maxAge(AUTHORIZATION_COOKIE, 0))
+                .andExpect(cookie().path(AUTHORIZATION_COOKIE, "/repository/server/api/authn"))
+                .andExpect(header().exists(AUTHORIZATION_HEADER));
     }
 
     @Test
