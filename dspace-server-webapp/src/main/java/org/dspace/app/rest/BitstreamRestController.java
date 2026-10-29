@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -132,7 +133,7 @@ public class BitstreamRestController {
 
         Long lastModified = bitstreamService.getLastModified(bit);
         BitstreamFormat format = bit.getFormat(context);
-        String mimetype = format.getMIMEType();
+        String mimetype = StringUtils.defaultIfBlank(format.getMIMEType(), "application/octet-stream");
         String name = getBitstreamName(bit, format);
 
         if (StringUtils.isBlank(request.getHeader("Range"))) {
@@ -299,7 +300,14 @@ public class BitstreamRestController {
      */
     private boolean checkFormatForContentDispositionInline(BitstreamFormat format) {
         // Undefined or Unknown formats should ALWAYS be downloaded for additional security.
-        if (format == null || format.getSupportLevel() == BitstreamFormat.UNKNOWN) {
+        if (format == null || format.getSupportLevel() == BitstreamFormat.UNKNOWN
+            || StringUtils.isBlank(format.getMIMEType())) {
+            return false;
+        }
+
+        // Compare MIME types without parameters or case differences.
+        String mimeType = StringUtils.substringBefore(format.getMIMEType(), ";").trim().toLowerCase(Locale.ROOT);
+        if (mimeType.isEmpty()) {
             return false;
         }
 
@@ -308,10 +316,12 @@ public class BitstreamRestController {
         // displayed inline for security purposes.
         // NOTE: "+xml" in this list will match any MIME Type that ends in "+xml", as those are XML-based formats.
         List<String> bannedInlineFormats = List.of("text/html", "text/javascript", "text/xml", "application/xml",
-                                             "+xml");
+            "+xml", "rdf", "application/javascript", "application/ecmascript", "text/ecmascript",
+            "application/x-javascript", "application/x-ecmascript", "text/x-javascript", "text/x-ecmascript",
+            "text/jscript", "text/livescript");
         for (String bannedInlineFormat : bannedInlineFormats) {
             // If our format MIME Type contains one of the banned inline formats, we refuse to display it inline
-            if (format.getMIMEType().contains(bannedInlineFormat)) {
+            if (mimeType.contains(bannedInlineFormat)) {
                 return false;
             }
         }
