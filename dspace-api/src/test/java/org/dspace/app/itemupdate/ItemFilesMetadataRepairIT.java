@@ -16,8 +16,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,7 +73,7 @@ public class ItemFilesMetadataRepairIT extends AbstractIntegrationTestWithDataba
 
     @Test
     public void dryRunReportsStaleFilesSizeWithoutChangingIt() throws Exception {
-        Date lastModified = reloadLastModified(item);
+        Instant lastModified = reloadLastModified(item);
 
         String output = runRepair("-i", item.getID().toString(), "-d");
 
@@ -84,20 +84,20 @@ public class ItemFilesMetadataRepairIT extends AbstractIntegrationTestWithDataba
 
     @Test
     public void repairRecalculatesNonZeroStaleFilesSize() throws Exception {
-        Date lastModified = reloadLastModified(item);
+        Instant lastModified = reloadLastModified(item);
 
         String output = runRepair("-i", item.getID().toString());
 
         assertThat(output, containsString("Files metadata were updated."));
         assertFilesMetadata(item, "2", String.valueOf(totalFilesSize), "yes");
         // itemService.update ran: the change is announced to search/OAI with a new modification date
-        assertTrue(reloadLastModified(item).after(lastModified));
+        assertTrue(reloadLastModified(item).isAfter(lastModified));
     }
 
     @Test
     public void repairLeavesCorrectFilesMetadataUntouched() throws Exception {
         runRepair("-i", item.getID().toString());
-        Date lastModified = reloadLastModified(item);
+        Instant lastModified = reloadLastModified(item);
 
         String output = runRepair("-i", item.getID().toString());
 
@@ -168,7 +168,7 @@ public class ItemFilesMetadataRepairIT extends AbstractIntegrationTestWithDataba
         return output.toString(StandardCharsets.UTF_8);
     }
 
-    private Date reloadLastModified(Item target) throws Exception {
+    private Instant reloadLastModified(Item target) throws Exception {
         try (Context verifyContext = new Context()) {
             return itemService.find(verifyContext, target.getID()).getLastModified();
         }
