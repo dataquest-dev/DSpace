@@ -1634,14 +1634,20 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         verifyBitstreamDownload(bitstream, "application/pdf;charset=UTF-8", false);
         configurationService.setProperty("webui.content_disposition_threshold", bitstream.getSizeBytes() - 1);
         verifyBitstreamDownload(bitstream, "application/pdf;charset=UTF-8", true);
+        // Since 7.6.7 a negative threshold serves nothing inline
+        configurationService.setProperty("webui.content_disposition_threshold", -1);
+        verifyBitstreamDownload(bitstream, "application/pdf;charset=UTF-8", true);
     }
 
     @Test
     public void checkMissingMimeTypeDownloads() throws Exception {
+        // The extension is allowed inline, so only the missing MIME type makes these download
+        configurationService.setProperty("webui.content_disposition_inline", new String[] {"txt"});
         for (String mimeType : new String[] {null, "", " "}) {
             context.turnOffAuthorisationSystem();
             supportedFormat = context.reloadEntity(supportedFormat);
             supportedFormat.setMIMEType(mimeType);
+            supportedFormat.setExtensions(List.of("txt"));
             bitstreamFormatService.update(context, supportedFormat);
             context.restoreAuthSystemState();
             verifyBitstreamDownload(bitstream, "application/octet-stream;charset=UTF-8", true);
