@@ -250,7 +250,8 @@ public class RequestItemEmailNotifier {
                         if (bitstream != null
                                 && !bitstream.getFormat(context).isInternal()
                                 && belongsToItem(bitstream, ri.getItem())) {
-                            //#8636 Anyone receiving the email can respond to the request without authenticating into DSpace
+                            //#8636 Anyone receiving the email can respond to the request
+                            // without authenticating into DSpace
                             context.turnOffAuthorisationSystem();
                             InputStream is = bitstreamService.retrieve(context, bitstream);
                             email.addAttachment(
