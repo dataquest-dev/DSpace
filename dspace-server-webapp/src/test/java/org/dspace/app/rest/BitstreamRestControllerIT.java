@@ -1903,7 +1903,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             URI expectedUrl = URI.create("https://example.com");
             doReturn(expectedUrl.toString())
                     .when(s3DirectDownloadService)
-                    .generatePresignedUrl(anyString(), anyString(), anyInt(), anyString());
+                    .generatePresignedUrl(anyString(), anyString(), anyInt(), anyString(), nullable(String.class));
 
             // Bitstream in the ORIGINAL bundle so hasOriginalBundle is true and the redirect branch is taken.
             bitstream = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))
