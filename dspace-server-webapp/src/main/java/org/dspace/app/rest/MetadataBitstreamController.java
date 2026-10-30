@@ -39,6 +39,7 @@ import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
@@ -116,10 +117,17 @@ public class MetadataBitstreamController {
         }
 
         Item item = (Item) dso;
+        List<Bundle> bundles = item.getBundles("ORIGINAL");
+        // Refuse before the headers go out: once the zip stream is open, an AuthorizeException
+        // can no longer become a 401/403 response.
+        for (Bundle original : bundles) {
+            for (Bitstream bitstream : original.getBitstreams()) {
+                authorizeService.authorizeAction(context, bitstream, Constants.READ);
+            }
+        }
         name = item.getName() + ".zip";
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, buildContentDisposition(name));
         response.setContentType("application/zip");
-        List<Bundle> bundles = item.getBundles("ORIGINAL");
 
         ZipArchiveOutputStream zip = new ZipArchiveOutputStream(response.getOutputStream());
         zip.setCreateUnicodeExtraFields(ZipArchiveOutputStream.UnicodeExtraFieldPolicy.ALWAYS);
