@@ -143,7 +143,7 @@ public class ExternalHandleRestRepository {
         }
 
         if (validHandleUrl(updatedHandle.url)
-                && isNotBlank(updatedHandle.getHandle()) && isNotBlank(updatedHandle.token)) {
+                && isNotBlank(updatedHandle.getHandle()) && isNotBlank(updatedHandle.getToken())) {
             try {
                 // remove canonical prefix from handle string because the handle is stored in the DB without
                 // the canonical prefix
@@ -153,7 +153,8 @@ public class ExternalHandleRestRepository {
 
                 // load Handle object from the DB
                 org.dspace.handle.Handle handleEntity =
-                        this.handleClarinService.findByHandleAndMagicToken(context, oldHandleStr, updatedHandle.token);
+                        this.handleClarinService.findByHandleAndMagicToken(context, oldHandleStr,
+                                updatedHandle.getToken());
 
                 if (Objects.isNull(handleEntity)) {
                     return new ResponseEntity<>("Cannot find the handle in the database.",
