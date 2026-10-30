@@ -140,14 +140,10 @@ public class ClarinUserRegistrationServiceImpl implements ClarinUserRegistration
             return;
         }
 
-        // Check if the user is the same as from the userRegistration
-        // Do not allow to get the userRegistration of another user
+        // Only the owner may read it
         EPerson currentUser = context.getCurrentUser();
         ClarinUserRegistration clarinUserRegistration = userRegistrationList.get(0);
-        UUID userRegistrationEpersonUUID = clarinUserRegistration.getPersonID();
-        // An anonymous request has no current user. Deny it here instead of throwing a NullPointerException,
-        // so that the callers can translate the AuthorizeException into 401/403.
-        if (Objects.nonNull(currentUser) && currentUser.getID().equals(userRegistrationEpersonUUID)) {
+        if (Objects.nonNull(currentUser) && currentUser.getID().equals(clarinUserRegistration.getPersonID())) {
             return;
         }
 
