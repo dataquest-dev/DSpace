@@ -126,11 +126,11 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         runScriptForItemWithBitstreams(item2, ePerson, PASSWORD);
 
         Bitstream b = bitstreamService.findAll(context).stream()
-                .filter(bitstream -> bitstream.getName().equals("logos.tgz"))
+                .filter(bitstream -> bitstream.getName().equals("logos.tar"))
                 .findFirst().orElse(null);
 
         assertNotNull(b);
-        assertEquals("logos.tgz", b.getName());
+        assertEquals("logos.tar", b.getName());
 
         // the preview content was created since the item was created by the same user as the script was run
         assertTrue("Expects preview content created.", previewContentService.hasPreview(context, b));
@@ -144,11 +144,11 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         runScriptForItemWithBitstreams(item2, ePerson, PASSWORD);
 
         Bitstream b = bitstreamService.findAll(context).stream()
-                .filter(bitstream -> bitstream.getName().equals("logos.tgz"))
+                .filter(bitstream -> bitstream.getName().equals("logos.tar"))
                 .findFirst().orElse(null);
 
         assertNotNull(b);
-        assertEquals("logos.tgz", b.getName());
+        assertEquals("logos.tar", b.getName());
 
         // the preview content cannot be created since the item was created by another user (eperson)
         // than the user (ePerson) who runs the script
@@ -203,9 +203,9 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         context.turnOffAuthorisationSystem();
         context.setCurrentUser(user);
         WorkspaceItem wItem2;
-        try (InputStream tgzFile = getClass().getResourceAsStream("logos.tgz")) {
+        try (InputStream tarFile = getClass().getResourceAsStream("logos.tar")) {
             wItem2 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
-                    .withBitstream("logos.tgz", "/local/path/logos.tgz", tgzFile, storageNumber)
+                    .withBitstream("logos.tar", "/local/path/logos.tar", tarFile, storageNumber)
                     .build();
         }
         context.restoreAuthSystemState();
@@ -215,7 +215,7 @@ public class FilePreviewIT extends AbstractIntegrationTestWithDatabase {
         Bitstream bitstream2 = bundles.get(0).getBitstreams().get(0);
 
         // Set the bitstream format to application/zip
-        BitstreamFormat bitstreamFormat = bitstreamFormatService.findByMIMEType(context, "application/x-gtar");
+        BitstreamFormat bitstreamFormat = bitstreamFormatService.findByMIMEType(context, "application/x-tar");
         bitstream2.setFormat(context, bitstreamFormat);
         bitstreamService.update(context, bitstream2);
         context.commit();

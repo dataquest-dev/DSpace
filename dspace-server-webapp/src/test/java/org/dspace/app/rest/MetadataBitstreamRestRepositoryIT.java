@@ -290,12 +290,12 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
         try {
             // create bitstream with ADMIN reader group,
             // so the non admin user cannot read the bitstream and preview content is not available for non admin user
-            try (InputStream is = getClass().getResourceAsStream("assetstore/logos.tgz")) {
+            try (InputStream is = getClass().getResourceAsStream("assetstore/logos.tar")) {
                 BitstreamBuilder.
                         createBitstream(context, item, is)
                         .withName("Bitstream")
                         .withDescription("Description")
-                        .withMimeType("application/x-gtar")
+                        .withMimeType("application/x-tar")
                         .withReaderGroup(groupService.findByName(context, Group.ADMIN))
                         .build();
             }
@@ -385,12 +385,12 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
 
         try {
             Bitstream bitstream;
-            try (InputStream is = getClass().getResourceAsStream("assetstore/logos.tgz")) {
+            try (InputStream is = getClass().getResourceAsStream("assetstore/logos.tar")) {
                 bitstream = BitstreamBuilder.
                         createBitstream(context, item, is)
                         .withName("Bitstream")
                         .withDescription("Description")
-                        .withMimeType("application/x-gtar")
+                        .withMimeType("application/x-tar")
                         .build();
             }
 
