@@ -26,7 +26,7 @@ import org.dspace.web.ContextUtil;
 
 /**
  * ChoiceAuthority using the ORCID API for search and local DB for label resolution.
- * Uses ORCID API for getMatches/getBestMatch (submission workflow).
+ * Uses ORCID API for getMatches, and for getBestMatch unless orcid.authority.disable-autoassign is set.
  * Falls back to metadata_value table for getLabel when ORCID returns null (browse).
  *
  * @author Michaela Paurikova (dspace at dataquest.sk)
@@ -36,21 +36,32 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
 
     private static final Logger log = LogManager.getLogger(SimpleORCIDAuthority.class);
     private static final int MAX_RESULTS = 100;
+    private static final String DISABLE_AUTOASSIGN_PROPERTY = "orcid.authority.disable-autoassign";
 
     private String pluginInstanceName;
     private final CachingOrcidRestConnector orcidRestConnector;
     private final MetadataValueService metadataValueService;
+    private final boolean autoAssignDisabled;
 
     public SimpleORCIDAuthority() {
         this.orcidRestConnector = new DSpace().getServiceManager()
             .getServiceByName("CachingOrcidRestConnector", CachingOrcidRestConnector.class);
         this.metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
+        this.autoAssignDisabled = new DSpace().getConfigurationService()
+            .getBooleanProperty(DISABLE_AUTOASSIGN_PROPERTY, false);
     }
 
     SimpleORCIDAuthority(CachingOrcidRestConnector orcidRestConnector,
                          MetadataValueService metadataValueService) {
+        this(orcidRestConnector, metadataValueService, false);
+    }
+
+    SimpleORCIDAuthority(CachingOrcidRestConnector orcidRestConnector,
+                         MetadataValueService metadataValueService,
+                         boolean autoAssignDisabled) {
         this.orcidRestConnector = orcidRestConnector;
         this.metadataValueService = metadataValueService;
+        this.autoAssignDisabled = autoAssignDisabled;
     }
 
     /**
@@ -109,6 +120,10 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
      * This call is typically used in non-interactive metadata ingest
      * where there is no interactive agent to choose from among options.
      *
+     * <p>
+     * Returns nothing when {@code orcid.authority.disable-autoassign} is set. That covers batch ingest
+     * and the REST lookup with {@code exact=true}, which resolves a stored value to an entry.
+     *
      * @param text   user's value to match
      * @param locale explicit localization key if available, or null
      * @return a Choices object (never null) with 1 or 0 values.
@@ -116,6 +131,10 @@ public class SimpleORCIDAuthority implements ChoiceAuthority {
     @Override
     public Choices getBestMatch(String text, String locale) {
         log.debug("getBestMatch: {}", text);
+        if (autoAssignDisabled) {
+            // An exact name match is not a person: ORCID answers with the first of many namesakes.
+            return new Choices(false);
+        }
         Choices matches = getMatches(text, 0, 1, locale);
         if (matches.values.length != 0 && !matches.values[0].value.equalsIgnoreCase(text)) {
             // novalue
