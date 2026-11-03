@@ -50,6 +50,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.ResultActions;
 
 /**
  * Basic integration testing for the bulk access Import feature via UI {@link BulkAccessControl}.
@@ -434,6 +435,24 @@ public class BulkAccessControlScriptIT extends AbstractEntityIntegrationTest {
 
     @Test
     public void bulkAccessScriptWithoutTargetUUIDParameterTest() throws Exception {
+        // A site admin with no target uuid passes authorization and fails later on the missing target.
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token)
+            .perform(
+                multipart(CURATE_SCRIPT_ENDPOINT)
+                    .param("properties", mapper.writeValueAsString(List.of()))
+            )
+            .andExpect(status().isInternalServerError())
+            .andExpect(result -> assertTrue(result.getResolvedException()
+                                                  .getMessage()
+                                                  .contains("At least one target uuid must be provided")));
+    }
+
+    @Test
+    public void bulkAccessScriptWithoutTargetUUIDParameterWithAdminUserOfCommunityTest() throws Exception {
+        // A community admin with no resolvable target uuid must not pass authorization: an empty target list is
+        // not treated as blanket-allowed.
         context.turnOffAuthorisationSystem();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
@@ -450,10 +469,7 @@ public class BulkAccessControlScriptIT extends AbstractEntityIntegrationTest {
                 multipart(CURATE_SCRIPT_ENDPOINT)
                     .param("properties", mapper.writeValueAsString(List.of()))
             )
-            .andExpect(status().isInternalServerError())
-            .andExpect(result -> assertTrue(result.getResolvedException()
-                                                  .getMessage()
-                                                  .contains("At least one target uuid must be provided")));
+            .andExpect(status().isForbidden());
     }
 
     @Test
@@ -500,6 +516,85 @@ public class BulkAccessControlScriptIT extends AbstractEntityIntegrationTest {
                     .file(bitstreamFile)
                     .param("properties", mapper.writeValueAsString(list)))
             .andExpect(status().isForbidden());
+    }
+
+    /**
+     * Regression guard for the authorization bypass (CWE-863): a non-admin must be denied for a non-administered
+     * target regardless of how the uuid option is spelled. "--uuid", the abbreviated "--uu", "--uuid=X" and "-uX"
+     * are all accepted by the parser and must each be rejected, just like the canonical "-u"
+     * ({@link #bulkAccessScriptWithNormalUserTest()}).
+     */
+    @Test
+    public void bulkAccessScriptWithAlternativeUuidSpellingsOfNotAdministeredCommunityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // The user administers an unrelated community, so they are a com/col admin but not for the target below.
+        CommunityBuilder.createCommunity(context)
+                        .withName("Administered Community")
+                        .withAdminGroup(eperson)
+                        .build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Other Community")
+                                          .build();
+
+        context.restoreAuthSystemState();
+
+        String uuid = parentCommunity.getID().toString();
+        for (DSpaceCommandLineParameter uuidParameter : List.of(
+            new DSpaceCommandLineParameter("--uuid", uuid),
+            new DSpaceCommandLineParameter("--uu", uuid),
+            new DSpaceCommandLineParameter("--uuid=" + uuid, null),
+            new DSpaceCommandLineParameter("-u" + uuid, null))) {
+            performBulkAccessScript(eperson.getEmail(), uuidParameter)
+                .andExpect(status().isForbidden());
+        }
+    }
+
+    @Test
+    public void bulkAccessScriptWithLongUuidOptionOfAdministeredCommunityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Administered Community")
+                                          .withAdminGroup(eperson)
+                                          .build();
+
+        context.restoreAuthSystemState();
+
+        // The long "--uuid" form still works for a legitimate admin of the target.
+        performBulkAccessScript(eperson.getEmail(),
+            new DSpaceCommandLineParameter("--uuid", parentCommunity.getID().toString()))
+            .andExpect(status().isAccepted());
+    }
+
+    private ResultActions performBulkAccessScript(String email, DSpaceCommandLineParameter uuidParameter)
+        throws Exception {
+        String json = "{ \"item\": {\n" +
+            "      \"mode\": \"replace\",\n" +
+            "      \"accessConditions\": [\n" +
+            "          {\n" +
+            "            \"name\": \"openaccess\"\n" +
+            "          }\n" +
+            "      ]\n" +
+            "   }}\n";
+
+        MockMultipartFile bitstreamFile = new MockMultipartFile("file", "test.json", MediaType.TEXT_PLAIN_VALUE,
+            new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+
+        List<ParameterValueRest> list =
+            List.of(uuidParameter, new DSpaceCommandLineParameter("-f", "test.json")).stream()
+                .map(dSpaceCommandLineParameter -> dSpaceRunnableParameterConverter
+                    .convert(dSpaceCommandLineParameter, Projection.DEFAULT))
+                .collect(Collectors.toList());
+
+        String token = getAuthToken(email, password);
+
+        return getClient(token)
+            .perform(
+                multipart(CURATE_SCRIPT_ENDPOINT)
+                    .file(bitstreamFile)
+                    .param("properties", mapper.writeValueAsString(list)));
     }
 
 }
