@@ -53,6 +53,7 @@
     <element name="others">
         <field name="handle">20.500.12801/1-2</field>
         <field name="identifier">oai:lindat.mff.cuni.cz:20.500.12801/1-2</field>
+        <field name="anonymousAccess">open</field>
         <!-- DSpace computed this from the primary bitstream policies; the file downloads anyway -->
         <element name="access-status">
             <field name="value">restricted</field>

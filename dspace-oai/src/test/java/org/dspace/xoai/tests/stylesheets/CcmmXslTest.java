@@ -12,6 +12,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.commons.io.IOUtils;
 import org.dspace.xoai.tests.support.XmlMatcherBuilder;
 import org.junit.Test;
 
@@ -139,7 +144,6 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmContainsSubjects() throws Exception {
-        // the FORD field leads the subject list, so a keyword is matched by value, not position
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:dataset/ccmm:subject/ccmm:title[.='linguistics'])", equalTo("1"))));
@@ -149,7 +153,6 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmHierarchicalSubjectKeepsThePathAsAClassificationCode() throws Exception {
         // "People::Masaryk ..." is a path through a thesaurus, not a subject heading
         String result = apply("ccmm.xsl").to(resource(MAIN));
-        // the FORD field also carries a classification code, so match on the code itself
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:subject[ccmm:classification_code="
                 + "'People::Masaryk Tomas Garrigue (1850-1937)']/ccmm:title",
@@ -220,13 +223,66 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmAccessRightsFollowTheClarinLicenceGate() throws Exception {
-        // A PUB licence with files is downloadable by anyone, whatever DefaultAccessStatusHelper
-        // computed from the primary bitstream's policies.
+    public void ccmmAccessRightsFollowTheComputedAnonymousAccess() throws Exception {
+        // ItemUtils computed others/anonymousAccess=open from the READ policies and the licence
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:terms_of_use/ccmm:access_rights/ccmm:label",
             equalTo("open access"))));
+    }
+
+    @Test
+    public void ccmmPubLabelIsNotOpenWhenAnonymousCannotDownload() throws Exception {
+        // dc.rights.label says PUB, but the files are not downloadable anonymously (no Anonymous
+        // READ policy, or a licence that requires sign-in): the real gate wins over the label
+        String result = apply("ccmm.xsl").to(withAnonymousAccess(CLARIN, "restricted"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
+            equalTo("http://purl.org/coar/access_right/c_16ec"))));
+    }
+
+    @Test
+    public void ccmmPubLabelWithAnEmbargoIsEmbargoedNotOpen() throws Exception {
+        String result = apply("ccmm.xsl").to(withAnonymousAccess(CLARIN, "embargo"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
+            equalTo("http://purl.org/coar/access_right/c_f1cf"))));
+    }
+
+    @Test
+    public void ccmmAcademicLabelIsOpenWhenAnonymousCanDownload() throws Exception {
+        // the other direction: the label says ACA, the policies and the licence let anyone in
+        String result = apply("ccmm.xsl").to(withAnonymousAccess(ACA, "open"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
+            equalTo("http://purl.org/coar/access_right/c_abf2"))));
+    }
+
+    @Test
+    public void ccmmMissingAnonymousAccessIsNeverOpen() throws Exception {
+        // a record cached before ItemUtils computed the field: PUB label, files and
+        // access-status=open.access are all present, and still nothing proves the download works
+        String result = apply("ccmm.xsl").to(withAnonymousAccess(MAIN, null));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
+            equalTo("http://purl.org/coar/access_right/c_16ec"))));
+    }
+
+    @Test
+    public void ccmmMetadataOnlyAnonymousAccessIsMetadataOnly() throws Exception {
+        String result = apply("ccmm.xsl").to(withAnonymousAccess(MAIN, "metadata.only"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
+            equalTo("http://purl.org/coar/access_right/c_14cb"))));
+    }
+
+    @Test
+    public void ccmmAnItemWithNoFilesIsMetadataOnlyWhateverItsLabel() throws Exception {
+        // ACA with no files used to come out as restricted; there is nothing to restrict
+        String result = apply("ccmm.xsl").to(withAnonymousAccess(MINIMAL, "restricted"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
+            equalTo("http://purl.org/coar/access_right/c_14cb"))));
     }
 
     @Test
@@ -351,15 +407,47 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmRecordWithNoKeywordsStillCarriesTheFordSubject() throws Exception {
-        // subject is 1..n; the mandatory FORD field satisfies it, so no placeholder is needed
+    public void ccmmRecordWithNoSubjectGetsTheConfiguredDefaultSubject() throws Exception {
+        // subject is 1..n; dc.subject is required at submission, this is only the safety net
+        String result = apply("ccmm.xsl").withProperty("oai.ccmm.subject.default", "Research data")
+            .to(resource(MINIMAL));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:dataset/ccmm:subject)", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:subject/ccmm:title", equalTo("Research data"))));
+    }
+
+    @Test
+    public void ccmmRecordWithNoSubjectAndNoDefaultDeclaresTheSubjectUnavailable() throws Exception {
         String result = apply("ccmm.xsl").to(resource(MINIMAL));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:dataset/ccmm:subject)", equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:subject/ccmm:classification_code", equalTo("60203"))));
+            "//ccmm:dataset/ccmm:subject/ccmm:title", equalTo(":unav"))));
+    }
+
+    @Test
+    public void ccmmDefaultSubjectIsNotAddedWhenTheItemHasSubjects() throws Exception {
+        String result = apply("ccmm.xsl").withProperty("oai.ccmm.subject.default", "Research data")
+            .to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:subject/ccmm:title[.='unspecified'])", equalTo("0"))));
+            "count(//ccmm:subject/ccmm:title[.='Research data' or .=':unav'])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmNoFordFieldIsDerivedFromTheResourceType() throws Exception {
+        // DSpace records no discipline; deriving one from dc.type would publish one the depositor
+        // never stated, e.g. "Linguistics" for every dataset of a non-linguistic repository
+        for (String fixture : new String[] {MAIN, MINIMAL, CLIP, TOOL, STOCK}) {
+            String result = apply("ccmm.xsl").to(resource(fixture));
+            assertThat(fixture, result, is(ccmm().withXPath(
+                "count(//ccmm:subject_scheme[contains(ccmm:iri, 'SubjectCategory')])", equalTo("0"))));
+            assertThat(fixture, result, is(ccmm().withXPath(
+                "count(//ccmm:subject/ccmm:iri[contains(., 'SubjectCategory')])", equalTo("0"))));
+            assertThat(fixture, result, is(ccmm().withXPath(
+                "count(//ccmm:subject/ccmm:title[.='Linguistics' or .='Lingvistika'"
+                    + " or .='History' or .='Historie'])", equalTo("0"))));
+        }
     }
 
     @Test
@@ -727,8 +815,9 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmPubLicenceWithFilesIsOpenEvenWhenAccessStatusSaysRestricted() throws Exception {
-        // 1161 live records are anonymously downloadable while access-status calls them restricted
+    public void ccmmAccessStatusOfThePrimaryBitstreamDoesNotDecide() throws Exception {
+        // access-status says restricted (it only looks at the primary bitstream); the computed
+        // value over all files says open
         String result = apply("ccmm.xsl").to(resource(CLARIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
@@ -785,7 +874,8 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmAcademicLicenceIsRestrictedEvenWhenAccessStatusSaysOpen() throws Exception {
-        // the CLARIN identity form gates the download; open.access on the bitstream does not
+        // the licence requires sign-in, so anonymousAccess is restricted; open.access on the
+        // primary bitstream does not override it
         String result = apply("ccmm.xsl").to(resource(ACA));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
@@ -793,9 +883,8 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmRestrictedAccessFlagOutranksAPubLicence() throws Exception {
-        // ItemUtils sets others/restrictedAccess when a bitstream licence demands the identity
-        // form; that gate outranks the PUB licence category
+    public void ccmmRestrictedAnonymousAccessOutranksAPubLicence() throws Exception {
+        // the PUB label is a description; anonymousAccess=restricted is what the download does
         String result = apply("ccmm.xsl").to(resource(FLAG));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
@@ -806,8 +895,7 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmEmbargoedAccessStatusMapsToTheCoarEmbargoTerm() throws Exception {
-        // with no CLARIN licence category present, others/access-status decides
+    public void ccmmEmbargoedAnonymousAccessMapsToTheCoarEmbargoTerm() throws Exception {
         String result = apply("ccmm.xsl").to(resource(EMBARGO));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:terms_of_use/ccmm:access_rights/ccmm:iri",
@@ -818,58 +906,7 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmEveryRecordCarriesAFrascatiFordSubject() throws Exception {
-        // CCMM: "At least one subject must be a value from FRASCATI FORD vocabulary."  The XSD
-        // does not enforce it, a CCMM conformance check does.
-        String result = apply("ccmm.xsl").to(resource(MAIN));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:subject_scheme/ccmm:iri",
-            equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/"))));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:subject_scheme/ccmm:label[@xml:lang='en']",
-            equalTo("OECD FORD Subject Category (Frascati)"))));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:subject[ccmm:subject_scheme])", equalTo("1"))));
-    }
-
-    @Test
-    public void ccmmFordSubjectCarriesTheConceptIriCodeAndBothLabels() throws Exception {
-        String result = apply("ccmm.xsl").to(resource(MAIN));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:iri",
-            equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/60000/60200/60203"))));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:classification_code", equalTo("60203"))));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:title[@xml:lang='en']", equalTo("Linguistics"))));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:title[@xml:lang='cs']", equalTo("Lingvistika"))));
-    }
-
-    @Test
-    public void ccmmNewsreelClipIsClassifiedAsHistoryNotLinguistics() throws Exception {
-        // a digitised newsreel is a primary historical source, not a language resource
-        String result = apply("ccmm.xsl").to(resource(CLIP));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:classification_code", equalTo("60101"))));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:title[@xml:lang='en']", equalTo("History"))));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:title[@xml:lang='cs']", equalTo("Historie"))));
-    }
-
-    @Test
-    public void ccmmToolIsClassifiedAsComputerScience() throws Exception {
-        String result = apply("ccmm.xsl").to(resource(TOOL));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:classification_code", equalTo("10201"))));
-        assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject[ccmm:subject_scheme]/ccmm:iri",
-            equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/10000/10200/10201"))));
-    }
-
-    @Test
-    public void ccmmFordSubjectKeepsTheSchemaElementOrder() throws Exception {
+    public void ccmmSubjectKeepsTheSchemaElementOrder() throws Exception {
         // subject is a sequence: iri, title+, definition*, classification_code?, subject_scheme?
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
@@ -886,8 +923,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
-            equalTo("https://lindat.mff.cuni.cz/repository/server/api/core/bitstreams/handle/"
-                + "11234/1-5678/corpus.txt"))));
+            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/11234/1-5678/corpus.txt"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:download_url/ccmm:iri[contains(., '/bitstream/')])", equalTo("0"))));
     }
@@ -900,8 +936,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file[ccmm:title='morphodita.zip']"
                 + "/ccmm:download_url/ccmm:iri",
-            equalTo("https://lindat.mff.cuni.cz/repository/server/api/core/bitstreams/handle/"
-                + "11234/1-2000/morphodita.zip"))));
+            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/11234/1-2000/morphodita.zip"))));
     }
 
     @Test
@@ -1170,7 +1205,7 @@ public class CcmmXslTest extends AbstractXSLTest {
             "count(//ccmm:distribution_downloadable_file)", equalTo("3"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file[ccmm:byte_size='128']/ccmm:download_url/ccmm:iri",
-            equalTo("https://example.org/repository/server/api/core/bitstreams/handle/"
+            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/"
                 + "11234/1-9001/zpr%C3%A1va%20fin%C3%A1ln%C3%AD.txt"))));
     }
 
@@ -1217,15 +1252,60 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmRepositoryUrlThatIsNotAbsoluteBuildsNoDownloadUrl() throws Exception {
+    public void ccmmServerUrlThatIsNotAbsoluteBuildsNoDownloadUrl() throws Exception {
         // guessing a route from "localhost:8080" would put an unresolvable IRI in a
         // mandatory slot, so the url XOAI supplied is kept instead
-        String result = apply("ccmm.xsl").to(resource(BAD_REPO));
+        String result = apply("ccmm.xsl").withProperty("dspace.server.url", "localhost:8080/server")
+            .to(resource(BAD_REPO));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
             equalTo("https://files.example.org/data.csv"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:iri[starts-with(., 'localhost')])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmUnsetServerUrlBuildsNoDownloadUrl() throws Exception {
+        String result = apply("ccmm.xsl").withProperty("dspace.server.url", null).to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:download_url/ccmm:iri[contains(., '/api/core/bitstreams/handle/')])",
+            equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmDownloadUrlUsesTheConfiguredServerNotTheUiUrl() throws Exception {
+        // the fixture's repository url is the UI on lindat.mff.cuni.cz; the backend is configured
+        // on another host, as lindat_cmdi.xsl reads it, and the UI url plus "/server" is not it
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:download_url/ccmm:iri[starts-with(., '" + TEST_SERVER_URL + "/api/')])",
+            equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:download_url/ccmm:iri[contains(., 'lindat.mff.cuni.cz/repository/server')])",
+            equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmTrailingSlashOnTheServerUrlIsNotDoubled() throws Exception {
+        String result = apply("ccmm.xsl").withProperty("dspace.server.url", TEST_SERVER_URL + "/")
+            .to(resource(MAIN));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
+            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/11234/1-5678/corpus.txt"))));
+    }
+
+    /**
+     * The fixture with others/anonymousAccess set to the given value, or removed when it is null, so
+     * one record can be checked against every value ItemUtils may compute for it.
+     */
+    private InputStream withAnonymousAccess(String fixture, String value) throws Exception {
+        String xml = IOUtils.toString(resource(fixture), StandardCharsets.UTF_8)
+            .replaceAll("\\s*<field name=\"anonymousAccess\">[^<]*</field>", "");
+        if (value != null) {
+            xml = xml.replaceFirst("<element name=\"others\">",
+                "<element name=\"others\"><field name=\"anonymousAccess\">" + value + "</field>");
+        }
+        return new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
     }
 
     private XmlMatcherBuilder ccmm() {

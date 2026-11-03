@@ -14,7 +14,8 @@
                 xmlns:doc="http://www.lyncode.com/xoai"
                 xmlns:ccmm="https://schema.ccmm.cz/research-data/1.1"
                 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-                exclude-result-prefixes="doc xs"
+                xmlns:fn="http://custom.crosswalk.functions"
+                exclude-result-prefixes="doc xs fn"
                 version="2.0">
 
     <xsl:output omit-xml-declaration="yes" method="xml" indent="yes" />
@@ -27,30 +28,8 @@
     <xsl:variable name="FALLBACK_REPOSITORY_URL" select="'urn:x-ccmm:repository-unknown'"/>
     <xsl:variable name="FALLBACK_TITLE" select="'Untitled'"/>
     <xsl:variable name="FALLBACK_PUBLICATION_YEAR" select="'9999'"/>
-
-    <!-- ============================================================ -->
-    <!-- FRASCATI FORD research field.                                 -->
-    <!-- CCMM (en/dsv.ttl, Dataset.hasSubject): "At least one subject  -->
-    <!-- must be a value from FRASCATI FORD vocabulary."  The XSD does -->
-    <!-- not enforce this, but a CCMM conformance check does.          -->
-    <!--                                                               -->
-    <!-- The field is read off dc.type, which is the only evidence     -->
-    <!-- DSpace holds about what the resource is.  FORD_DEFAULT_CODE   -->
-    <!-- is the discipline of the repository itself and is the one     -->
-    <!-- value another deployment has to change - but fordTerms below -->
-    <!-- is a seed, not the whole FRASCATI list, so a new code needs a -->
-    <!-- row adding beside it.  Without one the lookup falls back to a -->
-    <!-- row that exists rather than emitting empty mandatory          -->
-    <!-- elements: wrong beats malformed, and both stay visible.       -->
-    <!-- ============================================================ -->
-    <xsl:variable name="FORD_SCHEME_IRI" select="'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/'"/>
-    <xsl:variable name="FORD_DEFAULT_CODE" select="'60203'"/>
-    <!-- code, its division/group path, and both prefLabels exactly as the register spells them -->
-    <xsl:variable name="fordTerms">
-        <f code="60101" path="60000/60100" en="History" cs="Historie"/>
-        <f code="60203" path="60000/60200" en="Linguistics" cs="Lingvistika"/>
-        <f code="10201" path="10000/10200" en="Computer sciences, information science, bioinformathics" cs="Po&#269;&#237;ta&#269;ov&#233; v&#283;dy, informa&#269;n&#237; v&#283;da, bioinformatika"/>
-    </xsl:variable>
+    <!-- used only when an item has no subject at all and oai.ccmm.subject.default is unset -->
+    <xsl:variable name="FALLBACK_SUBJECT" select="':unav'"/>
 
     <!-- ============================================================ -->
     <!-- EU file types.                                                -->
@@ -255,20 +234,21 @@
         bytes itself, so it does not pass through the front end.  And it is not part of vanilla
         DSpace: a deployment without that controller resolves none of these URLs.
 
-        XOAI publishes dspace.ui.url as the repository url; the REST base is that plus /server,
-        which is where DSpace puts it by default.
+        The server URL is read from the configuration, as lindat_cmdi.xsl does, not derived from
+        the UI URL: the backend does not have to live under {ui}/server.
     -->
     <xsl:variable name="repoUrlRaw"
         select="normalize-space((/doc:metadata/doc:element[@name='repository']/doc:field[@name='url'])[1])"/>
+    <xsl:variable name="serverUrl" select="normalize-space(string(fn:getProperty('dspace.server.url')))"/>
     <!--
-        Only an absolute http(s) repository URL can carry a resolvable route; anything else
-        (a bare host, a relative path, an unset property) would put a non-resolvable IRI into
-        download_url, which is mandatory.  In that case the crosswalk keeps whatever URL XOAI
-        supplied rather than publishing one it made up.
+        Only an absolute http(s) server URL can carry a resolvable route; anything else (a bare
+        host, a relative path, an unset property) would put a non-resolvable IRI into
+        download_url.  In that case the crosswalk keeps whatever URL XOAI supplied rather than
+        publishing one it made up.
     -->
     <xsl:variable name="downloadBase"
-        select="if (matches($repoUrlRaw, '^https?://\S+$'))
-                then concat(replace($repoUrlRaw, '/+$', ''), '/server/api/core/bitstreams/handle/')
+        select="if (matches($serverUrl, '^https?://\S+$'))
+                then concat(replace($serverUrl, '/+$', ''), '/api/core/bitstreams/handle/')
                 else ''"/>
     <!-- the bare Handle the endpoint takes, from whichever of the two places carries it -->
     <xsl:variable name="itemHandle"
@@ -302,21 +282,6 @@
             <xsl:when test="count($approxYears) &gt; 0"><xsl:value-of select="$approxMax"/></xsl:when>
             <xsl:when test="$accessionedYear"><xsl:value-of select="$accessionedYear"/></xsl:when>
             <xsl:otherwise><xsl:value-of select="$FALLBACK_PUBLICATION_YEAR"/></xsl:otherwise>
-        </xsl:choose>
-    </xsl:variable>
-
-    <!--
-        The FORD field, from dc.type.  A tool or a service is computer science; a newsreel clip
-        is a historical source, not a language resource - on this corpus every dc.type "clip" is
-        a segment of a digitised newsreel held for historical research.  Everything else is a
-        language resource, which is what the repository collects.
-    -->
-    <xsl:variable name="fordCode">
-        <xsl:variable name="dt" select="lower-case(normalize-space((/doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'])[1]))"/>
-        <xsl:choose>
-            <xsl:when test="$dt = ('toolservice', 'software')">10201</xsl:when>
-            <xsl:when test="$dt = 'clip'">60101</xsl:when>
-            <xsl:otherwise><xsl:value-of select="$FORD_DEFAULT_CODE"/></xsl:otherwise>
         </xsl:choose>
     </xsl:variable>
 
@@ -1133,26 +1098,20 @@
     <!-- ============================================================ -->
     <xsl:template name="TermsOfUse">
         <!--
-            access_rights.  others/access-status is DSpace's own computation, but
-            DefaultAccessStatusHelper derives it from the READ policies of the primary bitstream
-            alone, which on a CLARIN repository does not say whether the resource can actually be
-            downloaded: the download gate is the licence category in dc.rights.label
-            (PUB / ACA / RES) together with others/restrictedAccess, which ItemUtils sets whenever
-            a bitstream licence demands the identity form.  Those two decide first and
-            others/access-status is the fallback for repositories that do not use them.
+            access_rights says whether an anonymous user can download the files.  ItemUtils
+            computes it into others/anonymousAccess from what actually gates the download - the
+            Anonymous READ policy and the Clarin license confirmation of every ORIGINAL
+            bitstream.  dc.rights.label is only a description of the license and decides nothing
+            here.  Without the computed value the record is never published as open.
         -->
-        <xsl:variable name="accessStatus"
-            select="normalize-space((doc:metadata/doc:element[@name='others']/doc:element[@name='access-status']/doc:field[@name='value'])[1])"/>
+        <xsl:variable name="anonymousAccess"
+            select="normalize-space((doc:metadata/doc:element[@name='others']/doc:field[@name='anonymousAccess'])[1])"/>
         <xsl:variable name="licenseUriRaw"
             select="normalize-space((doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])[1])"/>
-        <xsl:variable name="licenseLabel"
-            select="normalize-space((doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='label']/doc:element/doc:field[@name='value'])[1])"/>
         <xsl:variable name="ccUri"
             select="normalize-space((doc:metadata/doc:element[@name='others']/doc:element[@name='cc']/doc:field[@name='uri'])[1])"/>
         <xsl:variable name="ccName"
             select="normalize-space((doc:metadata/doc:element[@name='others']/doc:element[@name='cc']/doc:field[@name='name'])[1])"/>
-        <xsl:variable name="restrictedFlag"
-            select="normalize-space((doc:metadata/doc:element[@name='others']/doc:field[@name='restrictedAccess'])[1])"/>
         <xsl:variable name="hasFiles"
             select="boolean(doc:metadata/doc:element[@name='bundles']/doc:element[@name='bundle'][doc:field[@name='name'] = 'ORIGINAL']/doc:element[@name='bitstreams']/doc:element[@name='bitstream'])"/>
         <!-- a licence IRI must be an IRI; free text belongs in the description -->
@@ -1165,33 +1124,23 @@
         <ccmm:terms_of_use>
             <ccmm:access_rights>
                 <xsl:choose>
-                    <xsl:when test="$restrictedFlag = 'true' or $licenseLabel = 'ACA' or $licenseLabel = 'RES'">
-                        <!-- CLARIN licence gate: the download needs the identity form, or the
-                             licence is academic-use-only or restricted -->
-                        <ccmm:iri>http://purl.org/coar/access_right/c_16ec</ccmm:iri>
-                        <ccmm:label xml:lang="en">restricted access</ccmm:label>
+                    <xsl:when test="not($hasFiles) or $anonymousAccess = 'metadata.only'">
+                        <!-- nothing to download -->
+                        <ccmm:iri>http://purl.org/coar/access_right/c_14cb</ccmm:iri>
+                        <ccmm:label xml:lang="en">metadata only access</ccmm:label>
                     </xsl:when>
-                    <xsl:when test="$licenseLabel = 'PUB' and $hasFiles">
-                        <ccmm:iri>http://purl.org/coar/access_right/c_abf2</ccmm:iri>
-                        <ccmm:label xml:lang="en">open access</ccmm:label>
-                    </xsl:when>
-                    <xsl:when test="$accessStatus = 'open.access'">
-                        <ccmm:iri>http://purl.org/coar/access_right/c_abf2</ccmm:iri>
-                        <ccmm:label xml:lang="en">open access</ccmm:label>
-                    </xsl:when>
-                    <xsl:when test="$accessStatus = 'embargo'">
+                    <xsl:when test="$anonymousAccess = 'embargo'">
                         <ccmm:iri>http://purl.org/coar/access_right/c_f1cf</ccmm:iri>
                         <!-- spelling as listed in the CCMM 1.1.0 specification -->
                         <ccmm:label xml:lang="en">embargoes access</ccmm:label>
                     </xsl:when>
-                    <xsl:when test="not($hasFiles)">
-                        <!-- nothing to download: metadata only, whether or not the plugin said so -->
-                        <ccmm:iri>http://purl.org/coar/access_right/c_14cb</ccmm:iri>
-                        <ccmm:label xml:lang="en">metadata only access</ccmm:label>
+                    <xsl:when test="$anonymousAccess = 'open'">
+                        <ccmm:iri>http://purl.org/coar/access_right/c_abf2</ccmm:iri>
+                        <ccmm:label xml:lang="en">open access</ccmm:label>
                     </xsl:when>
                     <xsl:otherwise>
-                        <!-- 'restricted', 'unknown' and a missing value all mean "not freely
-                             downloadable"; never default to claiming open access -->
+                        <!-- 'restricted' and a missing value both mean "not freely downloadable";
+                             never default to claiming open access -->
                         <ccmm:iri>http://purl.org/coar/access_right/c_16ec</ccmm:iri>
                         <ccmm:label xml:lang="en">restricted access</ccmm:label>
                     </xsl:otherwise>
@@ -1326,8 +1275,6 @@
     <!-- ============================================================ -->
     <xsl:template name="Subjects">
         <xsl:variable name="deduped">
-        <!-- the mandatory FORD field leads, as it does in CCMM's own samples -->
-        <xsl:call-template name="FordSubject"/>
         <!-- dc.subject -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
             <xsl:call-template name="EmitSubject"/>
@@ -1354,39 +1301,25 @@
         <xsl:for-each select="$amLangOther[. != '']">
             <ccmm:subject><ccmm:title xml:lang="en"><xsl:value-of select="."/></ccmm:title></ccmm:subject>
         </xsl:for-each>
-        <!--
-            No "unspecified" fallback: subject is 1..unbounded and the FORD field above always
-            satisfies it, so a placeholder subject would add nothing but noise.
-        -->
         </xsl:variable>
         <xsl:call-template name="CopyDistinct">
             <xsl:with-param name="nodes" select="$deduped/*"/>
         </xsl:call-template>
-    </xsl:template>
-
-    <!--
-        The FRASCATI FORD field, in the shape CCMM's own samples use: the concept IRI, both
-        prefLabels, the bare code as the classification code, and the codelist itself as the
-        subject scheme.  This is the one subject that carries a subject_scheme, because it is
-        the one whose scheme publishes an IRI.
-    -->
-    <xsl:template name="FordSubject">
-        <!-- never empty: an unknown code would otherwise emit ".../SubjectCategory//" and
-             three empty mandatory elements -->
-        <xsl:variable name="f" select="($fordTerms/f[@code = $fordCode],
-                                        $fordTerms/f[@code = $FORD_DEFAULT_CODE],
-                                        $fordTerms/f[1])[1]"/>
-        <ccmm:subject>
-            <ccmm:iri><xsl:value-of select="concat($FORD_SCHEME_IRI, $f/@path, '/', $f/@code)"/></ccmm:iri>
-            <ccmm:title xml:lang="cs"><xsl:value-of select="$f/@cs"/></ccmm:title>
-            <ccmm:title xml:lang="en"><xsl:value-of select="$f/@en"/></ccmm:title>
-            <ccmm:classification_code><xsl:value-of select="$f/@code"/></ccmm:classification_code>
-            <ccmm:subject_scheme>
-                <ccmm:iri><xsl:value-of select="$FORD_SCHEME_IRI"/></ccmm:iri>
-                <ccmm:label xml:lang="en">OECD FORD Subject Category (Frascati)</ccmm:label>
-                <ccmm:label xml:lang="cs">Oborov&#233; t&#345;&#237;d&#283;n&#237; OECD FORD (Frascati)</ccmm:label>
-            </ccmm:subject_scheme>
-        </ccmm:subject>
+        <!--
+            subject is 1..unbounded and dc.subject is required at submission, so this is only a
+            safety net that keeps the record schema-valid.  No FRASCATI FORD field is derived:
+            DSpace does not record one, and guessing it from dc.type would publish a discipline
+            the depositor never stated.
+        -->
+        <xsl:if test="not($deduped/*)">
+            <ccmm:subject>
+                <ccmm:title xml:lang="en">
+                    <xsl:value-of select="if (normalize-space(string(fn:getProperty('oai.ccmm.subject.default'))) != '')
+                                          then normalize-space(string(fn:getProperty('oai.ccmm.subject.default')))
+                                          else $FALLBACK_SUBJECT"/>
+                </ccmm:title>
+            </ccmm:subject>
+        </xsl:if>
     </xsl:template>
 
     <!--

@@ -54,6 +54,7 @@
     <element name="others">
         <field name="handle">11234/1-11</field>
         <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-11</field>
+        <field name="anonymousAccess">restricted</field>
         <field name="restrictedAccess">true</field>
         <element name="access-status">
             <field name="value">open.access</field>

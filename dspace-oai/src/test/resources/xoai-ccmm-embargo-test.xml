@@ -43,6 +43,7 @@
     <element name="others">
         <field name="handle">123/999</field>
         <field name="identifier">oai:repo.example.org:123/999</field>
+        <field name="anonymousAccess">embargo</field>
         <element name="access-status">
             <field name="value">embargo</field>
         </element>

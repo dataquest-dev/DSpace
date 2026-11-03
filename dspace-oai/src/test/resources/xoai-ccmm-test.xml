@@ -215,6 +215,7 @@
     <element name="others">
         <field name="handle">11234/1-5678</field>
         <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-5678</field>
+        <field name="anonymousAccess">open</field>
         <field name="owningCollection">Test Collection</field>
         <field name="lastModifyDate">2025-06-15 10:30:00.000</field>
         <!-- computed by org.dspace.access.status.DefaultAccessStatusHelper and injected by
