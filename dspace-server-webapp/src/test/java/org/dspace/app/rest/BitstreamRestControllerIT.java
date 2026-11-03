@@ -1513,10 +1513,10 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     public void doesNotOpenStreamForRangeNotSatisfiableRequest() throws Exception {
         BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
 
-        //A non-matching If-Match results in a 416 without a body, so the storage stream must never be opened.
+        //A non-matching If-Match results in a 412 without a body, so the storage stream must never be opened.
         getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
                 .header("If-Match", "not-the-etag"))
-            .andExpect(status().isRequestedRangeNotSatisfiable());
+            .andExpect(status().isPreconditionFailed());
 
         Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
     }
