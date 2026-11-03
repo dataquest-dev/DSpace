@@ -267,11 +267,11 @@ public class MetadataBitstreamRestRepositoryIT extends AbstractControllerIntegra
                 .withReaderGroup(groupService.findByName(context, Group.ADMIN))
                 .build();
         Bitstream privateBitstream;
-        try (InputStream is = getClass().getResourceAsStream("assetstore/logos.tgz")) {
+        try (InputStream is = getClass().getResourceAsStream("assetstore/logos.tar")) {
             privateBitstream = BitstreamBuilder.
                     createBitstream(context, privateItem, is)
                     .withName("Bitstream")
-                    .withMimeType("application/x-gtar")
+                    .withMimeType("application/x-tar")
                     .build();
         }
         context.restoreAuthSystemState();
