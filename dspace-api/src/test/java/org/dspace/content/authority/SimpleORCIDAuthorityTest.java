@@ -238,6 +238,17 @@ public class SimpleORCIDAuthorityTest {
         verifyNoInteractions(mockMetadataValueService);
     }
 
+    @Test
+    public void testGetBestMatchReturnsNothingWhenAutoAssignDisabled() {
+        SimpleORCIDAuthority noAutoAssign =
+            new SimpleORCIDAuthority(mockOrcidConnector, mockMetadataValueService, true);
+
+        Choices matches = noAutoAssign.getBestMatch(AUTHOR_NAME, LOCALE_EN);
+
+        assertEquals(0, matches.values.length);
+        verifyNoInteractions(mockOrcidConnector);
+    }
+
     // ========== helpers ==========
 
     private MetadataValue createMockMetadataValue(String value) {

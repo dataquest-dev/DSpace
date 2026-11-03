@@ -15,9 +15,11 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -31,13 +33,16 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.dspace.app.util.SafEmbargoConstants;
+import org.dspace.app.util.SafEmbargoDateParser;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
-import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -103,12 +108,22 @@ public class ItemUpdate {
     protected static final ResourcePolicyService resourcePolicyService = AuthorizeServiceFactory.getInstance()
         .getResourcePolicyService();
 
+    /** API logging; the operator console output is written by {@link #pr(String)} and its siblings. */
+    private static final Logger log = LogManager.getLogger(ItemUpdate.class);
+
     private static final String EMBARGO_FIELD_RIGHTS_ACCESS = "dc.rights.access";
     private static final String EMBARGO_FIELD_DATE_END = "dc.date.embargoend";
+    private static final String OPEN_ACCESS = "openAccess";
     private static final String EMBARGOED_ACCESS = "embargoedAccess";
-    private static final String STANDARD_EMBARGO_POLICY_NAME = "Standard Embargo";
-    // Must fit resourcepolicy.rpname length (varchar(30))
-    private static final String SPECIAL_CASE_EMBARGO_POLICY_NAME = "Special Case Embargo";
+
+    /** The only supported way of changing access to an ORIGINAL bitstream this tool refuses to touch. */
+    private static final String BULK_ACCESS_CONTROL_HINT =
+        "Use the 'dspace bulk-access-control' script to grant or restore access to it.";
+
+    /** Derived bundles are out of reach of bulk-access-control, which walks the ORIGINAL bundle only. */
+    private static final String DERIVATIVE_ACCESS_HINT =
+        "Change its access in the administrative UI, or let 'dspace filter-media' recreate it from the"
+            + " source file.";
 
     static {
         filterAliases.put("ORIGINAL", "org.dspace.app.itemupdate.OriginalBitstreamFilter");
@@ -140,6 +155,8 @@ public class ItemUpdate {
     protected ActionManager actionMgr = new ActionManager();
     protected List<String> undoActionList = new ArrayList<>();
     protected String eperson;
+    /** Bitstreams and items whose embargo could not be synchronised; a non-zero count fails the run. */
+    protected int embargoSyncFailures = 0;
 
     /**
      * @param argv the command line arguments given
@@ -382,6 +399,8 @@ public class ItemUpdate {
             context.restoreAuthSystemState();
         }
 
+        status = exitStatus(status, iu.embargoSyncFailures);
+
         if (isTest) {
             pr("***End of Test Run***");
         } else {
@@ -389,6 +408,22 @@ public class ItemUpdate {
 
         }
         System.exit(status);
+    }
+
+    /**
+     * Exit code of a run. Embargo problems are reported per item without aborting the run, but a run that
+     * reported them must not exit as a success: a script around this tool sees the exit code only.
+     *
+     * @param status              exit code the run has produced so far
+     * @param embargoSyncFailures number of bitstreams/items whose embargo could not be synchronised
+     * @return {@code 1} when anything went wrong, the unchanged status otherwise
+     */
+    protected static int exitStatus(int status, int embargoSyncFailures) {
+        if (embargoSyncFailures > 0) {
+            prErr(embargoSyncFailures + " embargo synchronisation problem(s) reported above.");
+            return 1;
+        }
+        return status;
     }
 
     /**
@@ -470,7 +505,14 @@ public class ItemUpdate {
                 if (!isTest) {
                     Item item = itarch.getItem();
                     if (syncEmbargoPolicies) {
-                        this.syncEmbargoPolicies(context, item);
+                        try {
+                            this.syncEmbargoPolicies(context, item);
+                        } catch (Exception embargoFailure) {
+                            // The catch below only prints the exception, which would leave the run exiting 0.
+                            // Synchronisation is idempotent, so re-running the SAF package repairs the item.
+                            embargoSyncFailures++;
+                            throw embargoFailure;
+                        }
                     }
                     itemService.update(context, item);  //need to update before commit
                     context.uncacheEntity(item);
@@ -604,7 +646,28 @@ public class ItemUpdate {
      * @param s String
      */
     static void pr(String s) {
+        log.info(s);
         System.out.println(s);
+    }
+
+    /**
+     * report something the operator has to look at which does not stop the run
+     *
+     * @param s String
+     */
+    static void prWarn(String s) {
+        log.warn(s);
+        System.out.println("WARNING: " + s);
+    }
+
+    /**
+     * report something that made this tool refuse to do what it was asked to do
+     *
+     * @param s String
+     */
+    static void prErr(String s) {
+        log.error(s);
+        System.out.println("ERROR: " + s);
     }
 
     /**
@@ -636,119 +699,268 @@ public class ItemUpdate {
         return false;
     }
 
+    /**
+     * Bring the {@code Anonymous}/{@code READ} resource policies of the item bitstreams in line with the
+     * embargo metadata of the item ({@code dc.rights.access}, {@code dc.date.embargoend}). The metadata is
+     * validated before any policy is touched, and the surviving policy is re-dated instead of being replaced,
+     * so that a failure cannot leave a bitstream without any policy.
+     *
+     * @param context DSpace context
+     * @param item    item that has just been updated from the SAF archive
+     * @throws SQLException       if a database error occurs
+     * @throws AuthorizeException if the policy update is not permitted
+     */
     protected void syncEmbargoPolicies(Context context, Item item) throws SQLException, AuthorizeException {
-        clearExistingSafEmbargoPolicies(context, item);
-
-        List<MetadataValue> embargoEndDates = itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY);
-        if (embargoEndDates.size() > 1) {
-            ItemUpdate.pr("WARNING: Multiple dc.date.embargoend values found. Using first value only.");
-        }
-        if (embargoEndDates.isEmpty()) {
-            List<MetadataValue> accessRights = itemService.getMetadata(item, "dc", "rights", "access", Item.ANY);
-            for (MetadataValue accessRight : accessRights) {
-                if (EMBARGOED_ACCESS.equals(accessRight.getValue())) {
-                    ItemUpdate.pr("WARNING: Item has dc.rights.access=embargoedAccess but no dc.date.embargoend. "
-                                      + "Cannot set embargo without end date.");
-                    break;
-                }
-            }
+        if (item.isWithdrawn()) {
+            prWarn("Item " + itemLabel(item) + " is withdrawn, its bitstream policies are left untouched."
+                       + " A withdrawn item must never regain a READ policy, or the takedown would undo itself"
+                       + " as soon as the embargo lapses.");
             return;
         }
 
-        String embargoEndDateStr = embargoEndDates.get(0).getValue();
-        if (StringUtils.isBlank(embargoEndDateStr)) {
-            ItemUpdate.pr("WARNING: dc.date.embargoend is empty. Cannot set embargo.");
+        if (!item.isArchived()) {
+            prWarn("Item " + itemLabel(item) + " is not archived (workspace or workflow submission),"
+                       + " its bitstream policies are left untouched.");
             return;
         }
-
-        DCDate embargoEndDate = new DCDate(embargoEndDateStr);
-        Date endDate = embargoEndDate.toDate();
-        if (endDate == null) {
-            ItemUpdate.pr("ERROR: Invalid embargo end date format: " + embargoEndDateStr);
-            return;
-        }
-
-        if (endDate.before(new Date())) {
-            ItemUpdate.pr("WARNING: Embargo end date is in the past: " + embargoEndDateStr
-                              + ". Embargo will not be applied.");
-            return;
-        }
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(endDate);
-        cal.add(Calendar.DAY_OF_MONTH, 1);
-        Date accessStartDate = cal.getTime();
 
         List<MetadataValue> accessRights = itemService.getMetadata(item, "dc", "rights", "access", Item.ANY);
         boolean hasEmbargoedAccess = false;
         for (MetadataValue accessRight : accessRights) {
-            if (EMBARGOED_ACCESS.equals(accessRight.getValue())) {
+            String value = StringUtils.trimToEmpty(accessRight.getValue());
+            if (EMBARGOED_ACCESS.equals(value)) {
                 hasEmbargoedAccess = true;
-                break;
+            } else if (!OPEN_ACCESS.equals(value)) {
+                // restrictedAccess, metadataOnlyAccess or an unknown value blocks the whole item, even next
+                // to an openAccess one: contradictory metadata is not resolved towards disclosure.
+                prWarn("Item " + itemLabel(item) + " carries " + EMBARGO_FIELD_RIGHTS_ACCESS + "='"
+                           + accessRight.getValue() + "', which is not an embargo access right ("
+                           + OPEN_ACCESS + ", " + EMBARGOED_ACCESS + "), its bitstream policies are left"
+                           + " untouched.");
+                return;
             }
         }
 
-        String policyReason = hasEmbargoedAccess ? STANDARD_EMBARGO_POLICY_NAME
-                : SPECIAL_CASE_EMBARGO_POLICY_NAME;
-        applyEmbargoToItemBitstreams(context, item, accessStartDate, policyReason);
-    }
+        List<MetadataValue> embargoEndDates = itemService.getMetadata(item, "dc", "date", "embargoend", Item.ANY);
 
-    protected void clearExistingSafEmbargoPolicies(Context context, Item item) throws SQLException, AuthorizeException {
-        Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
-        if (anonymousGroup == null) {
+        if (embargoEndDates.isEmpty()) {
+            if (hasEmbargoedAccess) {
+                prWarn("Item " + itemLabel(item) + " has " + EMBARGO_FIELD_RIGHTS_ACCESS + "=" + EMBARGOED_ACCESS
+                           + " but no " + EMBARGO_FIELD_DATE_END + ". Cannot set an embargo without an end date,"
+                           + " its bitstream policies are left untouched.");
+                embargoSyncFailures++;
+                return;
+            }
+            // A missing dc.date.embargoend is no instruction, not a request to lift the embargo: it may have
+            // been set outside this tool, and this method runs for every item of the batch.
+            pr("Item " + itemLabel(item) + " has no " + EMBARGO_FIELD_DATE_END + ", resource policies left"
+                   + " untouched. To end an embargo, set " + EMBARGO_FIELD_DATE_END + " to a date in the past.");
             return;
         }
 
-        List<Bundle> originalBundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
-        for (Bundle bundle : originalBundles) {
-            for (Bitstream bitstream : bundle.getBitstreams()) {
-                List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, bitstream, Constants.READ);
-                for (ResourcePolicy policy : readPolicies) {
-                    if (policy.getGroup() != null
-                            && anonymousGroup.equals(policy.getGroup())
-                            && policy.getStartDate() != null
-                            && (STANDARD_EMBARGO_POLICY_NAME.equals(policy.getRpName())
-                                    || SPECIAL_CASE_EMBARGO_POLICY_NAME.equals(policy.getRpName()))) {
-                        resourcePolicyService.delete(context, policy);
-                    }
-                }
-            }
+        if (embargoEndDates.size() > 1) {
+            prWarn("Multiple " + EMBARGO_FIELD_DATE_END + " values found. Using first value only.");
         }
-    }
 
-    protected void applyEmbargoToItemBitstreams(Context context, Item item, Date startDate, String policyReason)
-            throws SQLException, AuthorizeException {
-        Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
-        if (anonymousGroup == null) {
+        String embargoEndDateStr = embargoEndDates.get(0).getValue();
+        if (StringUtils.isBlank(embargoEndDateStr)) {
+            prErr(EMBARGO_FIELD_DATE_END + " is empty on item " + itemLabel(item) + ", its bitstream policies"
+                      + " are left untouched.");
+            embargoSyncFailures++;
             return;
         }
 
-        List<Bundle> originalBundles = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
-        for (Bundle bundle : originalBundles) {
-            for (Bitstream bitstream : bundle.getBitstreams()) {
-                removeImmediateAnonymousReadPolicies(context, bitstream, anonymousGroup);
+        LocalDate embargoEndDay;
+        try {
+            // Strict parsing: DCDate rolls 2026-02-30 over into 2026-03-02 and would turn a typo into a real
+            // embargo date. The import path uses the same parser, so a package means one day in both tools.
+            embargoEndDay = SafEmbargoDateParser.parseEmbargoEndDay(embargoEndDateStr);
+        } catch (DateTimeParseException e) {
+            prErr("Invalid " + EMBARGO_FIELD_DATE_END + " '" + embargoEndDateStr + "' on item "
+                      + itemLabel(item) + ", expected " + SafEmbargoDateParser.ACCEPTED_FORMATS + ". Its"
+                      + " bitstream policies are left untouched.");
+            embargoSyncFailures++;
+            return;
+        }
 
-                ResourcePolicy policy = resourcePolicyService.create(context, null, anonymousGroup);
-                policy.setdSpaceObject(bitstream);
-                policy.setAction(Constants.READ);
-                policy.setStartDate(startDate);
-                policy.setRpName(policyReason);
-                bitstream.getResourcePolicies().add(policy);
-                resourcePolicyService.update(context, policy);
+        // dc.date.embargoend is the last day of the embargo, so access starts the day after at midnight UTC:
+        // startDate is mapped @Temporal(DATE) and the other DSpace embargo paths store that same day.
+        LocalDate accessStartDay = embargoEndDay.plusDays(1);
+        Date accessStartDate = Date.from(accessStartDay.atStartOfDay(ZoneOffset.UTC).toInstant());
+
+        int failuresBefore = embargoSyncFailures;
+        applyEmbargoToItemBitstreams(context, item, accessStartDate);
+
+        if (embargoSyncFailures == failuresBefore && !accessStartDay.isAfter(LocalDate.now(ZoneOffset.UTC))) {
+            // An expired embargo is a publication, not a deletion: the start date that has already passed
+            // makes the policy effective immediately. Reported once every bitstream is done, so that a
+            // bitstream the tool had to refuse is never announced as public.
+            pr("Embargo of item " + itemLabel(item) + " already expired on " + embargoEndDay
+                   + ", its bitstreams are public since " + accessStartDay + ".");
+        }
+    }
+
+    /**
+     * Write the target embargo state onto the {@code Anonymous}/{@code READ} policy of every bitstream in
+     * {@link SafEmbargoConstants#EMBARGOED_BUNDLE_NAMES}, leaving exactly one such policy per bitstream, as a
+     * second undated one would defeat the embargo. Where there is no such policy none is created: the bitstream
+     * was not public, and creating one would widen access instead of re-dating it. The embargo belongs to the
+     * item, so the derived bundles get the same start date as the file they were derived from.
+     *
+     * @param context   DSpace context
+     * @param item      item whose bitstreams are synchronised
+     * @param startDate day the files become publicly readable; a day in the past takes effect immediately
+     * @throws SQLException       if a database error occurs
+     * @throws AuthorizeException if the policy update is not permitted
+     */
+    protected void applyEmbargoToItemBitstreams(Context context, Item item, Date startDate)
+            throws SQLException, AuthorizeException {
+        Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
+        if (anonymousGroup == null) {
+            prErr("Group '" + Group.ANONYMOUS + "' not found, no embargo policy was synchronised for item "
+                      + itemLabel(item) + ".");
+            embargoSyncFailures++;
+            return;
+        }
+
+        for (Bundle bundle : item.getBundles()) {
+            String bundleName = bundle.getName();
+            if (!SafEmbargoConstants.isEmbargoed(bundleName)) {
+                continue;
+            }
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                applyEmbargoToBitstream(context, item, bundleName, bitstream, anonymousGroup, startDate);
             }
         }
     }
 
-    protected void removeImmediateAnonymousReadPolicies(Context context, Bitstream bitstream, Group anonymousGroup)
-            throws SQLException, AuthorizeException {
-        List<ResourcePolicy> readPolicies = resourcePolicyService.find(context, bitstream, Constants.READ);
-        for (ResourcePolicy policy : readPolicies) {
-            if (policy.getGroup() != null
-                    && anonymousGroup.equals(policy.getGroup())
-                    && policy.getStartDate() == null) {
+    /**
+     * Synchronise the {@code Anonymous}/{@code READ} policy of a single bitstream, reporting the bundle it
+     * belongs to so that the operator sees which file of the item a problem is about.
+     *
+     * @param context        DSpace context
+     * @param item           item the bitstream belongs to
+     * @param bundleName     bundle the bitstream lives in
+     * @param bitstream      bitstream to synchronise
+     * @param anonymousGroup the {@code Anonymous} group
+     * @param startDate      day the file becomes publicly readable
+     * @throws SQLException       if a database error occurs
+     * @throws AuthorizeException if the policy update is not permitted
+     */
+    protected void applyEmbargoToBitstream(Context context, Item item, String bundleName, Bitstream bitstream,
+            Group anonymousGroup, Date startDate) throws SQLException, AuthorizeException {
+        // Located by (group, action) rather than by rpName: policies written under earlier names have to be
+        // adopted and normalised instead of being left behind next to a new one.
+        List<ResourcePolicy> anonymousReadPolicies = new ArrayList<>();
+        for (ResourcePolicy policy : resourcePolicyService.find(context, bitstream, Constants.READ)) {
+            if (anonymousGroup.equals(policy.getGroup())) {
+                anonymousReadPolicies.add(policy);
+            }
+        }
+
+        if (anonymousReadPolicies.isEmpty()) {
+            prErr("Bitstream " + bitstreamLabel(bundleName, bitstream) + " of item " + itemLabel(item)
+                      + " has no " + Group.ANONYMOUS + " READ policy, so there is nothing to re-date and its"
+                      + " embargo could not be synchronised. No policy is created: that would grant access"
+                      + " nobody ever granted. " + accessChangeHint(bundleName));
+            embargoSyncFailures++;
+            return;
+        }
+
+        // A policy with an end date is a lease, not an embargo: re-dating it would either close the file for
+        // good or drop the end date, and either way decide access for the operator.
+        ResourcePolicy leasePolicy = firstPolicyWithEndDate(anonymousReadPolicies);
+        if (leasePolicy != null) {
+            prErr("Bitstream " + bitstreamLabel(bundleName, bitstream) + " of item " + itemLabel(item)
+                      + " has an " + Group.ANONYMOUS + " READ policy with an end date (policy #"
+                      + leasePolicy.getID() + ", rpName='" + leasePolicy.getRpName() + "'), which this tool"
+                      + " does not manage, so its embargo could not be synchronised and the bitstream is left"
+                      + " untouched. " + accessChangeHint(bundleName));
+            embargoSyncFailures++;
+            return;
+        }
+
+        ResourcePolicy survivor = selectSurvivorPolicy(anonymousReadPolicies);
+        survivor.setStartDate(startDate);
+        survivor.setRpType(ResourcePolicy.TYPE_CUSTOM);
+        survivor.setRpName(SafEmbargoConstants.EMBARGO_POLICY_NAME);
+        resourcePolicyService.update(context, survivor);
+
+        // The duplicates go only once the survivor is stored. Reference identity rather than equals():
+        // ResourcePolicy.equals compares values, which the lines above just changed.
+        for (ResourcePolicy policy : anonymousReadPolicies) {
+            if (policy != survivor) {
                 resourcePolicyService.delete(context, policy);
             }
         }
+    }
+
+    /**
+     * Bundle, name and id of a bitstream, so that a report identifies exactly one file of the item.
+     *
+     * @param bundleName bundle the bitstream lives in
+     * @param bitstream  bitstream to describe
+     * @return label of the form {@code BUNDLE/name (uuid)}
+     */
+    protected String bitstreamLabel(String bundleName, Bitstream bitstream) {
+        return bundleName + "/'" + bitstream.getName() + "' (" + bitstream.getID() + ")";
+    }
+
+    /**
+     * How to change access to a bitstream this tool refuses to touch. {@code bulk-access-control} walks the
+     * ORIGINAL bundle only, so it cannot be recommended for a derived one.
+     *
+     * @param bundleName bundle the bitstream lives in
+     * @return the hint matching the bundle
+     */
+    protected String accessChangeHint(String bundleName) {
+        return Constants.CONTENT_BUNDLE_NAME.equals(bundleName) ? BULK_ACCESS_CONTROL_HINT
+            : DERIVATIVE_ACCESS_HINT;
+    }
+
+    /**
+     * First policy of the list that expires by itself.
+     *
+     * @param anonymousReadPolicies the Anonymous READ policies of a single bitstream
+     * @return a policy with a non-null end date, or {@code null} when none of them has one
+     */
+    protected ResourcePolicy firstPolicyWithEndDate(List<ResourcePolicy> anonymousReadPolicies) {
+        for (ResourcePolicy policy : anonymousReadPolicies) {
+            if (policy.getEndDate() != null) {
+                return policy;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Pick the policy that has been in force the longest: the dated one with the oldest start date or, when none
+     * of them is dated, the first one. Adopting the newest would resurrect an obsolete embargo date.
+     *
+     * @param anonymousReadPolicies the Anonymous READ policies of a single bitstream, never empty
+     * @return the policy to be mutated into the embargo policy
+     */
+    protected ResourcePolicy selectSurvivorPolicy(List<ResourcePolicy> anonymousReadPolicies) {
+        ResourcePolicy oldestDated = null;
+        for (ResourcePolicy policy : anonymousReadPolicies) {
+            if (policy.getStartDate() == null) {
+                continue;
+            }
+            if (oldestDated == null || policy.getStartDate().before(oldestDated.getStartDate())) {
+                oldestDated = policy;
+            }
+        }
+        return oldestDated == null ? anonymousReadPolicies.get(0) : oldestDated;
+    }
+
+    /**
+     * Handle of the item, or its UUID while it has none. Only used in operator messages.
+     *
+     * @param item item to describe
+     * @return handle or UUID
+     */
+    protected static String itemLabel(Item item) {
+        return item.getHandle() == null ? String.valueOf(item.getID()) : item.getHandle();
     }
 
 } //end of class
