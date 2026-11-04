@@ -57,9 +57,13 @@ ENV DSPACE_INSTALL=/dspace
 ENV TOMCAT_INSTALL=/usr/local/tomcat
 # Copy the /dspace directory from 'ant_build' containger to /dspace in this container
 COPY --from=ant_build /dspace $DSPACE_INSTALL
-# Need host command for "[dspace]/bin/make-handle-config"
+# host: needed by "[dspace]/bin/make-handle-config"
+# curl: used by the container healthcheck in docker-compose.yml. The tomcat base image
+#       ships it today, but the probe must not silently depend on that staying true: if
+#       curl went away the container would never report healthy, service_healthy would
+#       block dspace-angular, and autoheal would restart a container that is actually fine.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends host \
+    && apt-get install -y --no-install-recommends host curl \
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
 # Enable the AJP connector in Tomcat's server.xml
