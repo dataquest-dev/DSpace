@@ -58,6 +58,8 @@ ENV dspace__P__dir=/dspace
 # Copy the /dspace directory from 'ant_build' container to /dspace in this container
 COPY --from=ant_build /dspace $dspace__P__dir
 WORKDIR $dspace__P__dir
+# /dspace/sitemaps exists in the image so a named volume mounted there inherits the directory owner.
+RUN mkdir -p /dspace/sitemaps
 # Need host command for "[dspace]/bin/make-handle-config"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends host \
