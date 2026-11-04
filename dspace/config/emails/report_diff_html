@@ -1,0 +1,90 @@
+## HTML version of the report-diff (-e) e-mail. Used when reportdiff.email.html = true.
+## Param {0} is ReportDiff.HtmlReportModel; its String values are already HTML-escaped,
+## so this template only lays out markup + inline styles (mail clients strip <style>).
+#set($subject = "${config.get('dspace.name')}: Repository health report diff")
+## UTF-8 (read by Email.send() via mail.message.headers) keeps non-ASCII and the arrow.
+#set($charset = "UTF-8")
+#set($m = $params.get(0))
+#set($th = "border:1px solid #cccccc; padding:6px 12px; background:#f2f2f2; text-align:left;")
+#set($td = "border:1px solid #cccccc; padding:6px 12px; text-align:left;")
+#set($codeStyle = "background:#f2f2f2; padding:1px 4px; border-radius:3px; font-family:monospace;")
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,Helvetica,sans-serif; color:#222222; font-size:14px; line-height:1.5;">
+<h2>$m.title: Repository Health Report Diff</h2>
+#if($m.errorMessage)
+<p>$m.errorMessage</p>
+#else
+<h3>Section $m.execSection: Executive Summary</h3>
+<p>
+Report Type: $m.reportType<br>
+Source Report: ID $m.sourceId at $m.sourceDate<br>
+Target Report: ID $m.targetId at $m.targetDate<br>
+Report Period: $m.reportPeriod
+</p>
+#if($m.commonChecks)
+<h3>Key Changes Between Reports</h3>
+#if($m.keyChanges.isEmpty())
+<p>No significant changes detected between reports.</p>
+#else
+<table style="border-collapse:collapse; border:1px solid #cccccc; margin:4px 0 16px;">
+<thead><tr>
+<th style="$th">Field</th>
+<th style="$th">Source: ID $m.sourceId</th>
+<th style="$th">Target: ID $m.targetId</th>
+<th style="$th">Difference</th>
+</tr></thead>
+<tbody>
+#foreach($row in $m.keyChanges)
+<tr>
+<td style="$td">$row.field</td>
+<td style="$td">$row.oldValue</td>
+<td style="$td">$row.newValue</td>
+<td style="$td">$row.difference</td>
+</tr>
+#end
+</tbody>
+</table>
+#end
+#end
+#if($m.showSkipped)
+<h3>Section $m.skippedSection: Skipped Checks</h3>
+<p>The following checks could not be compared because they were not present in both reports.</p>
+#if(!$m.onlyInSource.isEmpty())
+<p>Only in source report (ID $m.sourceId):</p>
+<ul>
+#foreach($name in $m.onlyInSource)
+<li>$name</li>
+#end
+</ul>
+#end
+#if(!$m.onlyInTarget.isEmpty())
+<p>Only in target report (ID $m.targetId):</p>
+<ul>
+#foreach($name in $m.onlyInTarget)
+<li>$name</li>
+#end
+</ul>
+#end
+#end
+#if($m.differences)
+<h3>Section $m.detailSection: Detailed Change Log</h3>
+<p>
+#foreach($line in $m.summaryLines)
+$line#if($foreach.hasNext)<br>#end
+
+#end
+</p>
+#if($m.diffEntries.isEmpty())
+<p>No differences found.</p>
+#else
+<ul style="margin:0; padding-left:20px; line-height:1.6;">
+#foreach($d in $m.diffEntries)
+<li><strong>$d.operation</strong> <code style="$codeStyle">$d.path</code>#if($d.detail.length() > 0): $d.detail#end</li>
+#end
+</ul>
+#end
+#end
+#end
+</body>
+</html>
