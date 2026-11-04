@@ -17,6 +17,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.services.ConfigurationService;
@@ -87,7 +88,7 @@ public class CCLicenseConnectorServiceImplIT extends AbstractIntegrationTestWith
 
         List<CCLicenseFieldEnum> enums = getJurisdictionEnums();
 
-        assertThat(enums.stream().map(CCLicenseFieldEnum::getId).toList(), contains("de"));
+        assertThat(enums.stream().map(CCLicenseFieldEnum::getId).collect(Collectors.toList()), contains("de"));
     }
 
     @Test
@@ -96,14 +97,14 @@ public class CCLicenseConnectorServiceImplIT extends AbstractIntegrationTestWith
 
         List<CCLicenseFieldEnum> enums = getJurisdictionEnums();
 
-        assertThat(enums.stream().map(CCLicenseFieldEnum::getId).toList(), contains(""));
+        assertThat(enums.stream().map(CCLicenseFieldEnum::getId).collect(Collectors.toList()), contains(""));
     }
 
     @Test
     public void retrieveLicensesUserSelectedJurisdictionTest() {
         configurationService.setProperty("cc.license.jurisdiction", "none");
 
-        List<String> ids = getJurisdictionEnums().stream().map(CCLicenseFieldEnum::getId).toList();
+        List<String> ids = getJurisdictionEnums().stream().map(CCLicenseFieldEnum::getId).collect(Collectors.toList());
 
         // generic/unported option first, followed by all 3.0 jurisdictions of the CSV
         assertThat(ids, hasSize(44));
@@ -131,7 +132,7 @@ public class CCLicenseConnectorServiceImplIT extends AbstractIntegrationTestWith
 
         assertThat(sampling.getCcLicenseFieldList(), hasSize(1));
         assertThat(sampling.getCcLicenseFieldList().get(0).getFieldEnum().stream()
-                        .map(CCLicenseFieldEnum::getId).toList(),
+                        .map(CCLicenseFieldEnum::getId).collect(Collectors.toList()),
                 contains("sampling", "samplingplus", "ncsamplingplus"));
         assertThat(ccLicenseConnectorService.retrieveRightsByQuestion(SAMPLING, "en", Map.of("sampling", "sampling")),
                 is("https://creativecommons.org/licenses/sampling/1.0/"));

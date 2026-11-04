@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.opencsv.CSVReader;
 import org.dspace.services.ConfigurationService;
@@ -153,7 +154,7 @@ public class CCLicenseCSVRepository implements InitializingBean {
                 .map(CCLicenseCSVRow::getJurisdiction)
                 .filter(j -> j != null && !j.isBlank())
                 .distinct()
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public CCLicenseCSVRow getByURI(String uri) {
