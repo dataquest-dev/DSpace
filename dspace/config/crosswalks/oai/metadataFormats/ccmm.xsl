@@ -401,8 +401,9 @@
             </xsl:if>
             <!-- conforms_to_standard -->
             <ccmm:conforms_to_standard>
-                <!-- the profile identifier CCMM uses for itself in its own samples, not the XML namespace -->
-                <ccmm:iri>https://schema.ccmm.cz/research-data/1.1.0</ccmm:iri>
+                <!-- the profile identifier CCMM uses for itself in its own 1.1.0 samples
+                     (_metadata-samples/xml), not the XML namespace -->
+                <ccmm:iri>https://model.ccmm.cz/research-data/1.1.0</ccmm:iri>
                 <ccmm:label xml:lang="en">CCMM RD 1.1.0</ccmm:label>
             </ccmm:conforms_to_standard>
             <!-- original_repository -->
@@ -666,8 +667,10 @@
     </xsl:template>
 
     <!--
-        One qualified_relation per agent named in $values.  A single DSpace value can pack several
-        agents ("A; B; C", or four or more comma-separated names), so it is split first.
+        One qualified_relation per agent named in $values.  DSpace stores each agent as a value of
+        its own; a legacy value that packs several ("A; B; C") is split on semicolons only.  Commas
+        stay part of the name: "Family, Given" and organization names such as "Charles University,
+        Faculty of ..., Prague" are one agent each.
     -->
     <xsl:template name="AgentRelations">
         <xsl:param name="values"/>
@@ -676,9 +679,7 @@
         <xsl:param name="preferOrganization" select="false()"/>
         <xsl:for-each select="$values">
             <xsl:variable name="raw" select="normalize-space(.)"/>
-            <xsl:variable name="agents" select="if (contains($raw, ';')) then tokenize($raw, '\s*;\s*')
-                                                else if (string-length(replace($raw, '[^,]', '')) &gt;= 3) then tokenize($raw, '\s*,\s*')
-                                                else $raw"/>
+            <xsl:variable name="agents" select="tokenize($raw, '\s*;\s*')"/>
             <xsl:for-each select="$agents">
                 <xsl:variable name="v" select="normalize-space(.)"/>
                 <!-- ANVL placeholders and "et al." name nobody -->
@@ -1710,10 +1711,8 @@
                 <xsl:when test="$relType = 'isbasedon'">IsDerivedFrom</xsl:when>
                 <xsl:when test="$relType = 'isformatof'">IsVariantFormOf</xsl:when>
                 <xsl:when test="$relType = 'hasformat'">IsOriginalFormOf</xsl:when>
-                <!-- dc.relation.uri asserts a relation without saying which; the register has a
-                     term for exactly that, and resource_relation_type is how a consumer tells
-                     related resources apart -->
-                <xsl:when test="$relType = 'uri'">Other</xsl:when>
+                <!-- dc.relation.uri asserts a relation without saying which, and the register has
+                     no term for that; resource_relation_type is optional, so it is left out -->
                 <xsl:otherwise/>
             </xsl:choose>
         </xsl:variable>
@@ -1732,7 +1731,6 @@
                 <xsl:when test="$term = 'IsDerivedFrom'">is derived from</xsl:when>
                 <xsl:when test="$term = 'IsVariantFormOf'">is variant form of</xsl:when>
                 <xsl:when test="$term = 'IsOriginalFormOf'">is original form of</xsl:when>
-                <xsl:when test="$term = 'Other'">other</xsl:when>
                 <xsl:otherwise/>
             </xsl:choose>
         </xsl:variable>

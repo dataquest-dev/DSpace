@@ -102,6 +102,36 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
+    public void ccmmCommasNeverSplitOneAgentValue() throws Exception {
+        // DSpace stores each agent as its own value, so a long organization name with three or
+        // more commas is still one agent
+        String name = "Charles University, Faculty of Mathematics and Physics,"
+            + " Institute of Formal and Applied Linguistics, Prague";
+        String result = apply("ccmm.xsl").to(withReplaced(MAIN,
+            "Institute of Formal and Applied Linguistics</field>",
+            "Institute of Formal and Applied Linguistics, Prague</field>"));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:qualified_relation/ccmm:relation/ccmm:organization[ccmm:name='" + name + "'])",
+            equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:qualified_relation/ccmm:relation/*[ccmm:name='Prague'])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmSemicolonsStillSplitAPackedAgentValue() throws Exception {
+        // a legacy value packing several people is split on semicolons only; each part keeps
+        // its "Family, Given" comma
+        String result = apply("ccmm.xsl").to(withReplaced(MAIN, ">Svobodova, Marie<",
+            ">Svobodova, Marie; Dvorak, Petr<"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:person[ccmm:name='Svobodova, Marie']/ccmm:family_name", equalTo("Svobodova"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:person[ccmm:name='Dvorak, Petr']/ccmm:given_name", equalTo("Petr"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:person[contains(ccmm:name, ';')])", equalTo("0"))));
+    }
+
+    @Test
     public void ccmmTypesCorporateCreditsAsOrganizationsNotPeople() throws Exception {
         // a film producer is not a natural person, and the shipped pattern says so without
         // any per-repository list
@@ -355,7 +385,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:metadata_identification/ccmm:conforms_to_standard/ccmm:iri",
-            equalTo("https://schema.ccmm.cz/research-data/1.1.0"))));
+            equalTo("https://model.ccmm.cz/research-data/1.1.0"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:metadata_identification/ccmm:conforms_to_standard/ccmm:label",
             equalTo("CCMM RD 1.1.0"))));
@@ -652,7 +682,7 @@ public class CcmmXslTest extends AbstractXSLTest {
             "count(//ccmm:date_type/ccmm:label[.='Issued' or .='Created'"
                 + " or .='Accepted' or .='Available'])", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:iri[contains(., 'model.ccmm.cz')])", equalTo("0"))));
+            "count(//ccmm:iri[contains(., 'model.ccmm.cz/vocabulary')])", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:iri[contains(., 'w3.org/ns/iana')])", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
@@ -1029,16 +1059,19 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmUnqualifiedRelationUriStillGetsARelationType() throws Exception {
-        // dc.relation.uri asserts a relation without saying which, and the register has a term
-        // for exactly that; a related resource with no type cannot be told apart from any other
+    public void ccmmUnqualifiedRelationUriHasNoRelationType() throws Exception {
+        // dc.relation.uri asserts a relation without saying which, and the CCMM register has no
+        // term for that ("RelationType/Other" does not exist); resource_relation_type is optional
         String result = apply("ccmm.xsl").to(resource(CLIP));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/20.500.12801/3900007-01']"
-                + "/ccmm:resource_relation_type/ccmm:iri",
-            equalTo("https://vocabs.ccmm.cz/registry/codelist/RelationType/Other"))));
+            "count(//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/20.500.12801/3900007-01'])",
+            equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:related_resource[not(ccmm:resource_relation_type)])", equalTo("0"))));
+            "count(//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/20.500.12801/3900007-01']"
+                + "/ccmm:resource_relation_type)", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:resource_relation_type/ccmm:iri[contains(., 'RelationType/Other')])",
+            equalTo("0"))));
     }
 
     @Test
@@ -1305,6 +1338,20 @@ public class CcmmXslTest extends AbstractXSLTest {
             xml = xml.replaceFirst("<element name=\"others\">",
                 "<element name=\"others\"><field name=\"anonymousAccess\">" + value + "</field>");
         }
+        return new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** The fixture with one piece of text, which must occur exactly once, replaced literally. */
+    private InputStream withReplaced(String fixture, String text, String replacement) throws Exception {
+        String xml = IOUtils.toString(resource(fixture), StandardCharsets.UTF_8);
+        int at = xml.indexOf(text);
+        if (at < 0) {
+            throw new IllegalArgumentException("'" + text + "' is not in " + fixture);
+        }
+        if (xml.indexOf(text, at + 1) >= 0) {
+            throw new IllegalArgumentException("'" + text + "' is not unique in " + fixture);
+        }
+        xml = xml.substring(0, at) + replacement + xml.substring(at + text.length());
         return new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
     }
 
