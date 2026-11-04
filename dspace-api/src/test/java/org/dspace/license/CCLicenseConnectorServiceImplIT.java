@@ -151,6 +151,17 @@ public class CCLicenseConnectorServiceImplIT extends AbstractIntegrationTestWith
                 nullValue());
     }
 
+    @Test
+    public void retrieveLicenseNameOfLegacyUriTest() {
+        // the retired CC API stored http URIs, and records typed by hand often lack the trailing slash
+        assertThat(ccLicenseConnectorService.retrieveLicenseName("http://creativecommons.org/licenses/by/4.0/"),
+                is("Attribution 4.0 International"));
+        assertThat(ccLicenseConnectorService.retrieveLicenseName("http://creativecommons.org/licenses/by/4.0"),
+                is("Attribution 4.0 International"));
+        assertThat(ccLicenseConnectorService.retrieveLicenseName("http://creativecommons.org/licenses/by/3.0/cz/"),
+                is("Uveďte autora 3.0 Česko"));
+    }
+
     private List<CCLicenseFieldEnum> getJurisdictionEnums() {
         CCLicense cc30 = ccLicenseConnectorService.retrieveLicenses("en").get(CC_30);
         return cc30.getCcLicenseFieldList().stream()

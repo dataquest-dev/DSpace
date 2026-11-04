@@ -102,7 +102,7 @@ public class CCLicenseCSVRepository implements InitializingBean {
             // identifier lookup (for PD)
             byIdentifier.put(row.getId(), row);
 
-            byUri.put(row.getUrl(), row);
+            byUri.put(normalizeUri(row.getUrl()), row);
 
             // entry points
             if (row.getEntryPoint() != null && !row.getEntryPoint().isBlank()) {
@@ -158,7 +158,22 @@ public class CCLicenseCSVRepository implements InitializingBean {
     }
 
     public CCLicenseCSVRow getByURI(String uri) {
-        return byUri.get(uri);
+        return byUri.get(normalizeUri(uri));
+    }
+
+    /**
+     * Normalises a license URI for lookup. The retired CC API issued http URIs, which existing items still
+     * carry, and URIs entered by hand often lack the trailing slash; the CSV holds the canonical https form.
+     *
+     * @param uri the license URI
+     * @return the URI with an https scheme and a trailing slash, or null for a null URI
+     */
+    private static String normalizeUri(String uri) {
+        if (uri == null) {
+            return null;
+        }
+        String normalized = uri.trim().replaceFirst("(?i)^http://", "https://");
+        return normalized.endsWith("/") ? normalized : normalized + "/";
     }
 
     /**
