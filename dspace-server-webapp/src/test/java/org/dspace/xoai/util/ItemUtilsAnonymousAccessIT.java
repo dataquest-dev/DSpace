@@ -111,16 +111,18 @@ public class ItemUtilsAnonymousAccessIT extends AbstractControllerIntegrationTes
     @Test
     public void anonymousReadStartingInTheFutureIsEmbargo() throws Exception {
         Item item = item();
-        Bitstream bitstream = file(item);
-        removeRead(bitstream);
-        context.turnOffAuthorisationSystem();
-        ResourcePolicyBuilder.createResourcePolicy(context, null, anonymous)
-            .withDspaceObject(bitstream)
-            .withAction(Constants.READ)
-            .withStartDate(new Date(System.currentTimeMillis() + 30L * 24 * 3600 * 1000))
-            .build();
-        context.restoreAuthSystemState();
+        embargo(file(item));
         assertEquals(ItemUtils.ACCESS_EMBARGO, ItemUtils.getAnonymousAccess(context, item));
+    }
+
+    @Test
+    public void embargoedFileWithALicenseThatRequiresSignInIsRestricted() throws Exception {
+        // the license keeps the file closed to anonymous users after the embargo ends too
+        Item item = item();
+        Bitstream bitstream = file(item);
+        embargo(bitstream);
+        license(bitstream, Confirmation.ASK_ALWAYS);
+        assertEquals(ItemUtils.ACCESS_RESTRICTED, ItemUtils.getAnonymousAccess(context, item));
     }
 
     @Test
@@ -172,6 +174,17 @@ public class ItemUtilsAnonymousAccessIT extends AbstractControllerIntegrationTes
         mapping.setLicense(license);
         mapping.setBitstream(bitstream);
         mappingService.update(context, mapping);
+        context.restoreAuthSystemState();
+    }
+
+    private void embargo(Bitstream bitstream) throws Exception {
+        removeRead(bitstream);
+        context.turnOffAuthorisationSystem();
+        ResourcePolicyBuilder.createResourcePolicy(context, null, anonymous)
+            .withDspaceObject(bitstream)
+            .withAction(Constants.READ)
+            .withStartDate(new Date(System.currentTimeMillis() + 30L * 24 * 3600 * 1000))
+            .build();
         context.restoreAuthSystemState();
     }
 

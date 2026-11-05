@@ -247,7 +247,8 @@ public class ItemUtils {
                         clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID()));
                 if (readNow && licenseOk) {
                     open++;
-                } else if (!readNow && readLater) {
+                } else if (!readNow && readLater && licenseOk) {
+                    // A license that requires a signed-in user keeps the file closed after the embargo too
                     embargoed++;
                 }
             }
