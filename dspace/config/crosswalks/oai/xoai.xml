@@ -248,7 +248,7 @@
             <Prefix>ccmm-xml</Prefix>
             <XSLT>metadataFormats/ccmm.xsl</XSLT>
             <Namespace>https://schema.ccmm.cz/research-data/1.1</Namespace>
-            <SchemaLocation>https://techlib.github.io/CCMM/dataset/schema.xsd</SchemaLocation>
+            <SchemaLocation>https://model.ccmm.cz/research-data/1.1.0/dataset/schema.xsd</SchemaLocation>
         </Format>
     </Formats>
 

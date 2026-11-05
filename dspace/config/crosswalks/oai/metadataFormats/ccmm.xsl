@@ -3,7 +3,8 @@
     CCMM (Czech Common Metadata Model) crosswalk for OAI-PMH export.
     Produces CCMM 1.1.0 dataset XML from the XOAI internal DSpace metadata format.
 
-    CCMM schema: https://techlib.github.io/CCMM/dataset/schema.xsd
+    CCMM schema: https://model.ccmm.cz/research-data/1.1.0/dataset/schema.xsd
+                 (versioned on purpose: techlib.github.io/CCMM/ always serves the latest major)
     Namespace:   https://schema.ccmm.cz/research-data/1.1
     metadataPrefix: ccmm-xml
 
@@ -195,7 +196,7 @@
     -->
     <xsl:variable name="ORGANIZATION_AGENT_NAMES" select="'||'"/>
     <xsl:variable name="ORGANIZATION_AGENT_PATTERN"
-        select="'(univ|institu|akadem|academi|ústav|ustav|fondazione|s\.r\.o|gmbh|(^|[^a-z])(ltd|inc)([^a-z]|$)|archiv|mus[ez]um|society|consortium|cent(re|er|rum)|agency|association|foundation|council|library|knihovna|press|ministr|company|film|journal|news|studio|produkc|production|facult|fakult|school|college|dept|departmen|laborat|(^|[^a-z])union([^a-z]|$)|nakladatel|vydavatel)'"/>
+        select="'(univ|institu|akadem|academi|(^|\P{L})[uú]stav|fondazione|s\.r\.o|gmbh|(^|[^a-z])(ltd|inc)([^a-z]|$)|archiv|mus[ez]um|society|consortium|cent(re|er|rum)|agency|association|foundation|council|library|knihovna|press|ministr|company|film|journal|news|studio|produkc|production|facult|fakult|school|college|dept|departmen|laborat|(^|[^a-z])union([^a-z]|$)|nakladatel|vydavatel)'"/>
     <xsl:variable name="creatorValues"
         select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value']
               | /doc:metadata/doc:element[@name='dc']/doc:element[@name='creator']/doc:element/doc:field[@name='value']"/>
@@ -288,7 +289,7 @@
     <!-- Main template -->
     <xsl:template match="/">
         <ccmm:dataset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                      xsi:schemaLocation="https://schema.ccmm.cz/research-data/1.1 https://techlib.github.io/CCMM/dataset/schema.xsd">
+                      xsi:schemaLocation="https://schema.ccmm.cz/research-data/1.1 https://model.ccmm.cz/research-data/1.1.0/dataset/schema.xsd">
 
             <!-- iri (optional) - the dataset's own resolvable identity, which is its landing page -->
             <xsl:if test="$landingPage != ''">
@@ -743,7 +744,9 @@
         xml:lang for a text value, taken from the XOAI language wrapper that encloses it.
         XOAI nests every metadata value inside an element named after its language qualifier
         ("en_US", "cs_CZ", ... or "none" when the field has no language).  Called with the
-        doc:field as the context node.
+        doc:field as the context node.  Without a language the attribute is empty, which XML
+        defines as "language unknown" and CCMM's own samples use; claiming "en" would label
+        Czech text as English.  The attribute itself is required by the CCMM schema.
     -->
     <xsl:template name="XmlLangAttribute">
         <xsl:variable name="wrapper" select="string(../@name)"/>
@@ -752,7 +755,7 @@
                 <xsl:when test="matches($wrapper, '^[a-z]{2,3}(_[A-Za-z]{2,4})?$')">
                     <xsl:value-of select="substring-before(concat($wrapper, '_'), '_')"/>
                 </xsl:when>
-                <xsl:otherwise>en</xsl:otherwise>
+                <xsl:otherwise/>
             </xsl:choose>
         </xsl:attribute>
     </xsl:template>
@@ -1932,14 +1935,23 @@
         would also let <title>AB</title><iri>C</iri> collide with <title>A</title><iri>BC</iri>.
         Only the key is normalised - the text is copied through untouched, so paragraph breaks
         in an abstract survive.
+
+        DSpace often stores one value twice, once without a language ("none", xml:lang="") and
+        once with one ("en_US").  Such a pair is one value too: when a copy whose every xml:lang
+        is known exists, the copies with an unknown language are dropped.  Copies in different
+        known languages stay apart.
     -->
     <xsl:template name="CopyDistinct">
         <xsl:param name="nodes"/>
         <xsl:for-each-group select="$nodes"
             group-by="concat(string-join(descendant-or-self::*/name(), '|'), '#',
-                             string-join(for $t in descendant::text() return normalize-space($t), '|'), '#',
-                             string-join(descendant-or-self::*/@xml:lang, '|'))">
-            <xsl:copy-of select="current-group()[1]"/>
+                             string-join(for $t in descendant::text() return normalize-space($t), '|'))">
+            <xsl:variable name="withKnownLanguage"
+                select="current-group()[not(descendant-or-self::*/@xml:lang = '')]"/>
+            <xsl:for-each-group select="if (exists($withKnownLanguage)) then $withKnownLanguage else current-group()"
+                group-by="string-join(descendant-or-self::*/@xml:lang, '|')">
+                <xsl:copy-of select="current-group()[1]"/>
+            </xsl:for-each-group>
         </xsl:for-each-group>
     </xsl:template>
 

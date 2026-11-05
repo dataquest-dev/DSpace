@@ -118,6 +118,31 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
+    public void ccmmAGivenNameContainingUstavIsStillAPerson() throws Exception {
+        // "ustav" (Czech "institute") is matched only at the start of a word, so the
+        // G-ustav-o inside a given name does not make its bearer an organization
+        String result = apply("ccmm.xsl").to(withReplaced(MAIN, ">Svobodova, Marie<",
+            ">Mendonça, Gustavo<"));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:person[ccmm:name='Mendonça, Gustavo']/ccmm:given_name", equalTo("Gustavo"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:organization[ccmm:name='Mendonça, Gustavo'])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmAnUstavAtTheStartOfAWordIsStillAnOrganization() throws Exception {
+        String result = apply("ccmm.xsl").to(withReplaced(MAIN, ">Svobodova, Marie<",
+            ">Ústav formální a aplikované lingvistiky<"));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:qualified_relation/ccmm:relation/ccmm:organization"
+                + "[ccmm:name='Ústav formální a aplikované lingvistiky'])", equalTo("1"))));
+        result = apply("ccmm.xsl").to(withReplaced(MAIN, ">Svobodova, Marie<",
+            ">Orientální ústav<"));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:organization[ccmm:name='Orientální ústav'])", equalTo("1"))));
+    }
+
+    @Test
     public void ccmmSemicolonsStillSplitAPackedAgentValue() throws Exception {
         // a legacy value packing several people is split on semicolons only; each part keeps
         // its "Family, Given" comma
@@ -538,8 +563,29 @@ public class CcmmXslTest extends AbstractXSLTest {
             "//ccmm:subject/ccmm:title[.='korpus']/@xml:lang", equalTo("cs"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:subject/ccmm:title[.='Korpus']/@xml:lang", equalTo("de"))));
+        // "none" means DSpace does not know the language: xml:lang stays empty ("unknown")
+        // instead of claiming English, and the text itself is copied unchanged
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:subject/ccmm:title[.='linguistics']/@xml:lang", equalTo("en"))));
+            "count(//ccmm:subject/ccmm:title[.='linguistics'][@xml:lang=''])", equalTo("1"))));
+    }
+
+    @Test
+    public void ccmmTextWithoutALanguageIsNotLabelledEnglish() throws Exception {
+        String result = apply("ccmm.xsl").to(withReplaced(MAIN, ">linguistics<", ">Galerie osobností<"));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:subject/ccmm:title[.='Galerie osobností'][@xml:lang=''])", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:subject/ccmm:title[.='Galerie osobností'][@xml:lang='en'])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmSchemaLocationPointsAtTheVersionedOneDotOneSchema() throws Exception {
+        // techlib.github.io/CCMM/ always serves the latest major (2.0 by now), whose target
+        // namespace is not the one these records use
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        assertThat(result, is(ccmm().withNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
+            .withXPath("/ccmm:dataset/@xsi:schemaLocation", equalTo("https://schema.ccmm.cz/research-data/1.1"
+                + " https://model.ccmm.cz/research-data/1.1.0/dataset/schema.xsd"))));
     }
 
     // ---- Contact, distribution, relations ----
@@ -1131,6 +1177,17 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(TOOL));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:dataset/ccmm:subject/ccmm:title[.='tagger'])", equalTo("1"))));
+        // of the "none" and "en_US" copies, the one whose language is known is kept
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:subject/ccmm:title[.='tagger']/@xml:lang", equalTo("en"))));
+    }
+
+    @Test
+    public void ccmmSameValueInTwoKnownLanguagesStaysTwoElements() throws Exception {
+        // "korpus" tagged cs and a German "korpus" are two statements, not one
+        String result = apply("ccmm.xsl").to(withReplaced(MAIN, ">Korpus<", ">korpus<"));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:dataset/ccmm:subject/ccmm:title[.='korpus'])", equalTo("2"))));
     }
 
     @Test
