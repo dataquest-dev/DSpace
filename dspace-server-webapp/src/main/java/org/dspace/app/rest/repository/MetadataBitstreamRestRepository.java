@@ -19,9 +19,12 @@ import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.MetadataBitstreamWrapperConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
+import org.dspace.app.rest.exception.RESTAuthorizationException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.MetadataBitstreamWrapperRest;
 import org.dspace.app.rest.model.wrapper.MetadataBitstreamWrapper;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
@@ -30,6 +33,7 @@ import org.dspace.content.PreviewContent;
 import org.dspace.content.Thumbnail;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.PreviewContentService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
@@ -63,6 +67,14 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
     @Autowired
     ConfigurationService configurationService;
 
+    @Autowired
+    AuthorizeService authorizeService;
+
+    /**
+     * List the bitstreams of the item identified by the handle, with their preview content.
+     * The caller needs READ on that item (401 for anonymous, 403 otherwise); the check runs before any preview
+     * content is generated or stored.
+     */
     @SearchRestMethod(name = "byHandle")
     public Page<MetadataBitstreamWrapperRest> findByHandle(@Parameter(value = "handle", required = true) String handle,
                                                            @Parameter(value = "fileGrpType") String fileGrpType,
@@ -92,6 +104,12 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
         }
 
         Item item = (Item) dso;
+        // The handle is resolved here rather than by a uuid path variable, so no @PreAuthorize covers this item.
+        try {
+            authorizeService.authorizeAction(context, item, Constants.READ);
+        } catch (AuthorizeException e) {
+            throw new RESTAuthorizationException(e);
+        }
         List<String> fileGrpTypes = (fileGrpType == null ? List.of() : Arrays.asList(fileGrpType.split(",")));
         List<Bundle> bundles = findEnabledBundles(fileGrpTypes, item);
         for (Bundle bundle : bundles) {
@@ -108,7 +126,7 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
             for (Bitstream bitstream : bitstreams) {
                 String url = previewContentService.composePreviewURL(context, item, bitstream, contextPath);
                 List<FileInfo> fileInfos = new ArrayList<>();
-                boolean canPreview = previewContentService.canPreview(context, bitstream, false);
+                boolean canPreview = previewContentService.canPreview(context, bitstream, true);
                 String mimeType = bitstream.getFormat(context).getMIMEType();
                 // HTML content could be longer than the limit, so we do not store it in the DB.
                 // It has to be generated even if property is false.
@@ -119,7 +137,12 @@ public class MetadataBitstreamRestRepository extends DSpaceRestRepository<Metada
                             boolean allowComposePreviewContent = configurationService.getBooleanProperty
                                     ("create.file-preview.on-item-page-load", false);
                             if (allowComposePreviewContent) {
-                                fileInfos.addAll(previewContentService.getFilePreviewContent(context, bitstream));
+                                try {
+                                    fileInfos.addAll(previewContentService.getFilePreviewContent(context, bitstream));
+                                } catch (AuthorizeException e) {
+                                    log.warn("Cannot create preview content for bitstream: {} because: {}",
+                                            bitstream.getID(), e.getMessage());
+                                }
                                 // Do not store HTML content in the database because it could be longer than the limit
                                 // of the database column
                                 if (!fileInfos.isEmpty() &&
