@@ -43,7 +43,7 @@ public class ElgXslTest extends AbstractXSLTest {
     private static final String ELLIPSIS = "\u2026";
 
     private static final String DESCRIPTION = "A short description of the test corpus.";
-    private static final String SPONSOR = "euFunds;101129751;European Commission;Test Project;";
+    private static final String SPONSOR = "euFunds;123456;Example Funder;Example Project;";
     private static final String SIZE = "1000;tokens";
     private static final String LANGUAGE = "<field name=\"value\">ces</field>";
     private static final String TOOL_LANGUAGE = "<field name=\"value\">lat</field>";
@@ -136,10 +136,10 @@ public class ElgXslTest extends AbstractXSLTest {
     @Test
     public void projectNamedNotApplicableIsKept() throws Exception {
         String result = apply(XSL).to(withReplaced(CORPUS, SPONSOR,
-            "Other;074-U01;Government of Russian Federation;n/a;"));
-        assertThat(result, is(elg().withXPath("//ms:fundingProject/ms:grantNumber", equalTo("074-U01"))));
+            "Other;G-42;Example Funder;n/a;"));
+        assertThat(result, is(elg().withXPath("//ms:fundingProject/ms:grantNumber", equalTo("G-42"))));
         assertThat(result, is(elg().withXPath("//ms:funder/ms:Organization/ms:organizationName",
-            equalTo("Government of Russian Federation"))));
+            equalTo("Example Funder"))));
     }
 
     @Test
@@ -184,10 +184,20 @@ public class ElgXslTest extends AbstractXSLTest {
         // other xs:float forms ELG accepted before
         assertAmount(".5;hours", ".5");
         assertAmount("1.5E3;files", "1.5E3");
+        assertAmount("+5;files", "+5");
+        assertAmount("+1.5E3;files", "+1.5E3");
+    }
+
+    /** A size cannot be negative: the value is a typo, the file size is used instead. */
+    @Test
+    public void negativeAmountIsLeftOut() throws Exception {
+        assertAmount("-5;files", "2048");
+        assertAmount("-30,000;words", "2048");
     }
 
     @Test
     public void thousandsSeparatorsAreRemoved() throws Exception {
+        assertAmount("+30,000,000;sentences", "+30000000");
         assertAmount("30,000,000;sentences", "30000000");
         assertAmount("757,072;utterances", "757072");
         assertAmount("5 490 000 000;words", "5490000000");
@@ -241,6 +251,10 @@ public class ElgXslTest extends AbstractXSLTest {
         assertLanguageIds("oji", "oj");
         assertLanguageIds("mon", "mn");
         assertLanguageIds("ita", "it");
+        // ISO 639-2 collective code Bihari, ELG lists "bh"
+        assertLanguageIds("bih", "bh");
+        // retired Moldavian, merged into Romanian; ELG has no "mo"
+        assertLanguageIds("mol", "ro");
     }
 
     /** its is Isekiri, not Italian; ISO 639-3 has no two-letter form for it. */
@@ -283,11 +297,11 @@ public class ElgXslTest extends AbstractXSLTest {
     public void undeterminedCodeTakesTheNamesFromDcLanguage() throws Exception {
         String result = apply(XSL).to(withReplaced(CORPUS, LANGUAGE, "<field name=\"value\">und</field>"
             + "</element></element>"
-            + "<element name=\"none\"><field name=\"value\">Baiga</field><field name=\"value\">Himachali</field>"
+            + "<element name=\"none\"><field name=\"value\">Variety A</field><field name=\"value\">Variety B</field>"
             + "</element><element name=\"iso\"><element name=\"none\">"));
         assertLanguageIdsInOrder(result, "und", "und");
-        assertThat(result, is(elg().withXPath("(//ms:language)[1]/ms:languageVarietyName", equalTo("Baiga"))));
-        assertThat(result, is(elg().withXPath("(//ms:language)[2]/ms:languageVarietyName", equalTo("Himachali"))));
+        assertThat(result, is(elg().withXPath("(//ms:language)[1]/ms:languageVarietyName", equalTo("Variety A"))));
+        assertThat(result, is(elg().withXPath("(//ms:language)[2]/ms:languageVarietyName", equalTo("Variety B"))));
     }
 
     @Test
@@ -301,7 +315,7 @@ public class ElgXslTest extends AbstractXSLTest {
     public void undeterminedAndUncodedListTheNamesOnce() throws Exception {
         String result = apply(XSL).to(withReplaced(CORPUS, LANGUAGE, "<field name=\"value\">und; mis</field>"
             + "</element></element>"
-            + "<element name=\"none\"><field name=\"value\">Baiga</field>"
+            + "<element name=\"none\"><field name=\"value\">Variety A</field>"
             + "</element><element name=\"iso\"><element name=\"none\">"));
         assertLanguageIdsInOrder(result, "und");
     }

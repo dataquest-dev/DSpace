@@ -30,7 +30,7 @@
         <element name="identifier">
             <element name="uri">
                 <element name="none">
-                    <field name="value">http://hdl.handle.net/11234/1-9998</field>
+                    <field name="value">http://hdl.handle.net/123456789/9998</field>
                 </element>
             </element>
         </element>
@@ -48,7 +48,7 @@
         </element>
         <element name="publisher">
             <element name="none">
-                <field name="value">Charles University, ÚFAL</field>
+                <field name="value">Example University</field>
             </element>
         </element>
         <element name="rights">
@@ -96,14 +96,14 @@
                     <field name="name">models.zip</field>
                     <field name="format">application/zip</field>
                     <field name="size">4096</field>
-                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/11234/1-9998/1/models.zip</field>
+                    <field name="url">https://repository.example.org/bitstream/123456789/9998/1/models.zip</field>
                 </element>
             </element>
         </element>
     </element>
     <element name="others">
-        <field name="handle">11234/1-9998</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-9998</field>
+        <field name="handle">123456789/9998</field>
+        <field name="identifier">oai:repository.example.org:123456789/9998</field>
         <field name="lastModifyDate">2025-11-10 10:50:00.000</field>
     </element>
 </metadata>

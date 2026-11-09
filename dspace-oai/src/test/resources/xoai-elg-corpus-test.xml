@@ -18,7 +18,7 @@
         <element name="contributor">
             <element name="author">
                 <element name="none">
-                    <field name="value">Novák, Jan</field>
+                    <field name="value">Doe, Jane</field>
                 </element>
             </element>
         </element>
@@ -37,7 +37,7 @@
         <element name="identifier">
             <element name="uri">
                 <element name="none">
-                    <field name="value">http://hdl.handle.net/11234/1-9999</field>
+                    <field name="value">http://hdl.handle.net/123456789/9999</field>
                 </element>
             </element>
         </element>
@@ -55,7 +55,7 @@
         </element>
         <element name="publisher">
             <element name="none">
-                <field name="value">Charles University, ÚFAL</field>
+                <field name="value">Example University</field>
             </element>
         </element>
         <element name="rights">
@@ -82,7 +82,7 @@
     <element name="local">
         <element name="sponsor">
             <element name="none">
-                <field name="value">euFunds;101129751;European Commission;Test Project;</field>
+                <field name="value">euFunds;123456;Example Funder;Example Project;</field>
             </element>
         </element>
         <element name="size">
@@ -110,14 +110,14 @@
                     <field name="name">corpus.zip</field>
                     <field name="format">application/zip</field>
                     <field name="size">2048</field>
-                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/11234/1-9999/1/corpus.zip</field>
+                    <field name="url">https://repository.example.org/bitstream/123456789/9999/1/corpus.zip</field>
                 </element>
             </element>
         </element>
     </element>
     <element name="others">
-        <field name="handle">11234/1-9999</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-9999</field>
+        <field name="handle">123456789/9999</field>
+        <field name="identifier">oai:repository.example.org:123456789/9999</field>
         <field name="lastModifyDate">2025-01-15 10:00:00.000</field>
     </element>
 </metadata>

@@ -20,10 +20,10 @@
 
     <!-- ELG-SHARE restricts ms:description to this many characters; longer texts are rejected by the harvest -->
     <xsl:variable name="DESCRIPTION_MAX_LENGTH" select="10000"/>
-    <!-- ms:amount is an xs:float (sizes are not negative) -->
-    <xsl:variable name="PLAIN_AMOUNT_REGEX" select="'^([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?$'"/>
+    <!-- ms:amount is an xs:float; a negative size is a typo, so "-" is not accepted and the file size is used -->
+    <xsl:variable name="PLAIN_AMOUNT_REGEX" select="'^\+?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?$'"/>
     <!-- 30,000,000 / 5 490 000 000 / 19,376.84 - only groups of exactly three digits, "1,5" stays ambiguous -->
-    <xsl:variable name="THOUSANDS_AMOUNT_REGEX" select="'^[0-9]{1,3}([,\s&#160;][0-9]{3})+(\.[0-9]+)?$'"/>
+    <xsl:variable name="THOUSANDS_AMOUNT_REGEX" select="'^\+?[0-9]{1,3}([,\s&#160;][0-9]{3})+(\.[0-9]+)?$'"/>
     <xsl:variable name="THOUSANDS_SEPARATOR_REGEX" select="'[,\s&#160;]'"/>
     <xsl:variable name="LANGUAGE_CODE_REGEX" select="'^[a-z]{2,3}$'"/>
     <!-- what submitters type into a local.sponsor component when there is nothing to say (compared lower-cased) -->
@@ -629,6 +629,10 @@ elg.xml:62: element typeOfVideoContent: Schemas validity error : Element '{http:
                 <xsl:when test="$isoCode = 'nbl'">nr</xsl:when>
                 <xsl:when test="$isoCode = 'nde'">nd</xsl:when>
                 <xsl:when test="$isoCode = 'oji'">oj</xsl:when>
+                <!-- ISO 639-2 collective code, not in ISO 639-3; ELG lists its 639-1 form -->
+                <xsl:when test="$isoCode = 'bih'">bh</xsl:when>
+                <!-- Moldavian was retired into Romanian (ISO 639-3 change 2008); ELG has no "mo" -->
+                <xsl:when test="$isoCode = 'mol'">ro</xsl:when>
                 <xsl:otherwise><xsl:value-of select="$isoCode"/></xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
