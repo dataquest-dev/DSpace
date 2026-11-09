@@ -45,14 +45,14 @@
                     <field name="name">film.mp4</field>
                     <field name="format">video/mp4</field>
                     <field name="size">1048576</field>
-                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/1/2/film.mp4</field>
+                    <field name="url">https://repository.example.org/repository/bitstream/1/2/film.mp4</field>
                 </element>
             </element>
         </element>
     </element>
     <element name="others">
-        <field name="handle">20.500.12801/1-2</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:20.500.12801/1-2</field>
+        <field name="handle">123456789/1-2</field>
+        <field name="identifier">oai:repository.example.org:123456789/1-2</field>
         <field name="anonymousAccess">open</field>
         <!-- DSpace computed this from the primary bitstream policies; the file downloads anyway -->
         <element name="access-status">
@@ -60,7 +60,7 @@
         </element>
     </element>
     <element name="repository">
-        <field name="name">LINDAT/CLARIAH-CZ</field>
-        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
+        <field name="name">Example Repository</field>
+        <field name="url">https://repository.example.org/repository/</field>
     </element>
 </metadata>

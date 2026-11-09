@@ -10,7 +10,7 @@
 -->
 <!--
     Test XOAI metadata XML for CCMM crosswalk testing.
-    Includes fields commonly found in NMD/NRP dataset submissions.
+    Includes fields commonly found in dataset submissions.
 -->
 <metadata xmlns="http://www.lyncode.com/xoai" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://www.lyncode.com/xoai http://www.lyncode.com/xsd/xoai.xsd">
@@ -20,10 +20,10 @@
                 <element name="none">
                     <field name="value">Novak, Jan</field>
                     <field name="value">Svobodova, Marie</field>
-                    <!-- a corporate credit the shipped pattern recognises, one it cannot, and an
-                         ANVL placeholder; all three occur in production -->
-                    <field name="value">Lucernafilm</field>
-                    <field name="value">Kinofa</field>
+                    <!-- two corporate credits, which an author field still names as persons, and an
+                         ANVL placeholder; the shapes of all three occur in production -->
+                    <field name="value">Example Film Co.</field>
+                    <field name="value">Zorvex</field>
                     <field name="value">(:unav) Unknown author</field>
                 </element>
             </element>
@@ -65,7 +65,7 @@
         <element name="identifier">
             <element name="uri">
                 <element name="none">
-                    <field name="value">http://hdl.handle.net/11234/1-5678</field>
+                    <field name="value">http://hdl.handle.net/123456789/1-5678</field>
                 </element>
             </element>
             <element name="other">
@@ -94,16 +94,16 @@
         </element>
         <element name="publisher">
             <element name="none">
-                <field name="value">Charles University, Faculty of Mathematics and Physics, Institute of Formal and Applied Linguistics</field>
+                <field name="value">Example University, Faculty of Sciences, Institute of Example Linguistics</field>
             </element>
         </element>
         <element name="relation">
             <element name="none">
-                <field name="value">info:eu-repo/grantAgreement/EC/H2020/731015/EU//ELEXIS</field>
+                <field name="value">info:eu-repo/grantAgreement/EC/H2020/900002/EU//ExampleBeta</field>
             </element>
             <element name="replaces">
                 <element name="none">
-                    <field name="value">http://hdl.handle.net/11234/1-1111</field>
+                    <field name="value">http://hdl.handle.net/123456789/1-1111</field>
                 </element>
             </element>
         </element>
@@ -136,7 +136,7 @@
                 <field name="value">Czech language</field>
                 <field name="value">NLP</field>
                 <!-- a path through a controlled vocabulary, as the digitised collections use -->
-                <field name="value">People::Masaryk Tomas Garrigue (1850-1937)</field>
+                <field name="value">People::Example Person (1801-1870)</field>
             </element>
             <element name="cs_CZ">
                 <field name="value">korpus</field>
@@ -165,7 +165,7 @@
         <element name="contact">
             <element name="person">
                 <element name="none">
-                    <field name="value">Rudolf;Rosa;rosa@example.org;Charles University</field>
+                    <field name="value">Tomas;Kovar;kovar@example.org;Example University</field>
                 </element>
             </element>
         </element>
@@ -203,7 +203,7 @@
                     <field name="originalName">corpus.txt</field>
                     <field name="format">text/plain</field>
                     <field name="size">2048</field>
-                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/11234/1-5678/1/corpus.txt</field>
+                    <field name="url">https://repository.example.org/repository/bitstream/123456789/1-5678/1/corpus.txt</field>
                     <field name="checksum">ee1c4e448a8f9f838df348dfee1fc11f</field>
                     <field name="checksumAlgorithm">MD5</field>
                     <field name="sid">1</field>
@@ -213,8 +213,8 @@
         </element>
     </element>
     <element name="others">
-        <field name="handle">11234/1-5678</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-5678</field>
+        <field name="handle">123456789/1-5678</field>
+        <field name="identifier">oai:repository.example.org:123456789/1-5678</field>
         <field name="anonymousAccess">open</field>
         <field name="owningCollection">Test Collection</field>
         <field name="lastModifyDate">2025-06-15 10:30:00.000</field>
@@ -225,8 +225,8 @@
         </element>
     </element>
     <element name="repository">
-        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
-        <field name="name">LINDAT/CLARIAH-CZ</field>
-        <field name="mail">lindat-help@ufal.mff.cuni.cz</field>
+        <field name="url">https://repository.example.org/repository/</field>
+        <field name="name">Example Repository</field>
+        <field name="mail">help@repository.example.org</field>
     </element>
 </metadata>

@@ -38,19 +38,19 @@
         <element name="additional">
             <element name="metadata">
                 <element name="none">
-                    <field name="value">Nid:2307
-Begin year of resource creation (field_year):1787
+                    <field name="value">Nid:1
+Begin year of resource creation (field_year):1801
 Readily Available (field_resource_available):Yes</field>
                 </element>
             </element>
         </element>
     </element>
     <element name="others">
-        <field name="handle">20.500.12801/3-4</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:20.500.12801/3-4</field>
+        <field name="handle">123456789/3-4</field>
+        <field name="identifier">oai:repository.example.org:123456789/3-4</field>
     </element>
     <element name="repository">
-        <field name="name">LINDAT/CLARIAH-CZ</field>
-        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
+        <field name="name">Example Repository</field>
+        <field name="url">https://repository.example.org/repository/</field>
     </element>
 </metadata>

@@ -23,7 +23,7 @@
         </element>
         <element name="rights">
             <element name="none">
-                <field name="value">CLARIN ACA End-User Licence Agreement</field>
+                <field name="value">Example Academic Use Licence</field>
             </element>
             <element name="label">
                 <element name="none">
@@ -45,21 +45,21 @@
                     <field name="name">corpus.zip</field>
                     <field name="format">application/zip</field>
                     <field name="size">4096</field>
-                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/1/3/corpus.zip</field>
+                    <field name="url">https://repository.example.org/repository/bitstream/1/3/corpus.zip</field>
                 </element>
             </element>
         </element>
     </element>
     <element name="others">
-        <field name="handle">11234/1-9</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-9</field>
+        <field name="handle">123456789/1-9</field>
+        <field name="identifier">oai:repository.example.org:123456789/1-9</field>
         <field name="anonymousAccess">restricted</field>
         <element name="access-status">
             <field name="value">open.access</field>
         </element>
     </element>
     <element name="repository">
-        <field name="name">LINDAT/CLARIAH-CZ</field>
-        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
+        <field name="name">Example Repository</field>
+        <field name="url">https://repository.example.org/repository/</field>
     </element>
 </metadata>
