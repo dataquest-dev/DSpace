@@ -22,22 +22,10 @@
 
     <xsl:output omit-xml-declaration="yes" method="xml" indent="yes" />
 
-    <!-- ============================================================ -->
-    <!-- Values the repository holds wrongly                           -->
-    <!-- ============================================================ -->
     <!--
-        A value that only stands where data is missing: nothing but punctuation ("?", "-", "..."),
-        "n/a" or "n.a.", or a word for "no value" however it is wrapped ("None", "-none-",
-        "(unknown)").  A bare "NA" or "Na" is not one: it is as likely North America or sodium.
-        Such a value is left out wherever the element is optional.
+        Wrong values in the metadata are published as they are stored: correcting them is the
+        repository's job, not the crosswalk's.
     -->
-    <xsl:function name="cw:isPlaceholder" as="xs:boolean">
-        <xsl:param name="value"/>
-        <xsl:variable name="v" select="lower-case(normalize-space(string($value)))"/>
-        <xsl:sequence select="matches($v, '^[\p{P}\p{S}\s]*$')
-                              or matches($v, '^n\s*[/.]\s*a\.?$')
-                              or replace($v, '^[\p{P}\p{S}\s]+|[\p{P}\p{S}\s]+$', '') = ('none', 'null', 'unknown', 'undefined')"/>
-    </xsl:function>
 
     <!--
         A free-text URL as an IRI: the characters RFC 3986 never allows ("|", "{", "}", "^", "\",
@@ -50,21 +38,6 @@
                                   normalize-space(string($url)),
                                   '\|', '%7C'), '\{', '%7B'), '\}', '%7D'), '\^', '%5E'), '\\', '%5C'),
                                   '`', '%60'), '&lt;', '%3C'), '&gt;', '%3E'), '&quot;', '%22')"/>
-    </xsl:function>
-
-    <!--
-        A copy of the repository's data can carry "/XXX/" where the repository's own address
-        belongs ("http://host:85/XXX/static/licence-UD-2.2.html"): that URL resolves nowhere, the
-        page itself is served under the repository URL of the record.  Without a repository URL
-        to put there, there is no URL at all.  Any other value is returned unchanged.
-    -->
-    <xsl:function name="cw:repositoryPage" as="xs:string">
-        <xsl:param name="url"/>
-        <xsl:variable name="u" select="normalize-space(string($url))"/>
-        <xsl:sequence select="if (not(matches($u, '^https?://[^/]+/XXX/'))) then $u
-                              else if (matches($repoUrlRaw, '^https?://\S+$'))
-                              then concat(replace($repoUrlRaw, '/+$', ''), '/', replace($u, '^https?://[^/]+/XXX/', ''))
-                              else ''"/>
     </xsl:function>
 
     <!-- ============================================================ -->
@@ -145,13 +118,7 @@
     <!-- ============================================================ -->
     <xsl:variable name="issuedAll"
         select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']"/>
-    <!--
-        "0000", and a year below 1000 ("0194" for 194x) that is a typo, not a date: unknown.  The
-        year is the first four-digit group, as $issuedYear reads it, so "[0194]" is caught too.
-    -->
-    <xsl:variable name="issuedFirst"
-        select="$issuedAll[not(matches(normalize-space(.), '^0[0-9]{3}'))]
-                          [not(starts-with(tokenize(normalize-space(.), '[^0-9]+')[matches(., '^[0-9]{4}$')][1], '0'))][1]"/>
+    <xsl:variable name="issuedFirst" select="$issuedAll[not(starts-with(normalize-space(.), '0000'))][1]"/>
     <xsl:variable name="approxRaw"
         select="normalize-space(string((/doc:metadata/doc:element[@name='local']/doc:element[@name='approximateDate']/doc:element[@name='issued']/doc:element/doc:field[@name='value'])[1]))"/>
     <xsl:variable name="approxYears" select="tokenize($approxRaw, '[^0-9]+')[string-length(.) = 4]"/>
@@ -1166,9 +1133,9 @@
         <xsl:variable name="anonymousAccess"
             select="normalize-space((doc:metadata/doc:element[@name='others']/doc:field[@name='anonymousAccess'])[1])"/>
         <xsl:variable name="licenseUriRaw"
-            select="cw:repositoryPage((doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])[1])"/>
+            select="normalize-space((doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])[1])"/>
         <xsl:variable name="ccUri"
-            select="cw:repositoryPage((doc:metadata/doc:element[@name='others']/doc:element[@name='cc']/doc:field[@name='uri'])[1])"/>
+            select="normalize-space((doc:metadata/doc:element[@name='others']/doc:element[@name='cc']/doc:field[@name='uri'])[1])"/>
         <xsl:variable name="ccName"
             select="normalize-space((doc:metadata/doc:element[@name='others']/doc:element[@name='cc']/doc:field[@name='name'])[1])"/>
         <xsl:variable name="hasFiles"
@@ -1319,26 +1286,7 @@
                 </xsl:if>
             </xsl:for-each>
         </xsl:if>
-        <!--
-            "Technical;Contact;lindat@nfa.cz;Národní filmový archiv" names a role, not a person:
-            one part is "Contact", the other a role word or nothing.  It is the affiliation's
-            mailbox, published as that organization (unknown when the value has none).
-        -->
-        <xsl:variable name="roleWords" select="('', 'technical', 'support', 'help', 'general', 'administrative', 'admin', 'info')"/>
-        <xsl:variable name="isRoleContact"
-            select="(lower-case($family) = 'contact' and lower-case($given) = $roleWords)
-                    or (lower-case($given) = 'contact' and lower-case($family) = $roleWords)"/>
-        <xsl:if test="$isRoleContact">
-            <ccmm:contact_point>
-                <ccmm:organization>
-                    <ccmm:name><xsl:value-of select="if ($org != '') then $org else ':unkn'"/></ccmm:name>
-                    <xsl:if test="matches($mail, '^[^\s@]+@[^\s@]+\.[^\s@]+$')">
-                        <ccmm:contact_point><ccmm:email><xsl:value-of select="$mail"/></ccmm:email></ccmm:contact_point>
-                    </xsl:if>
-                </ccmm:organization>
-            </ccmm:contact_point>
-        </xsl:if>
-        <xsl:if test="concat($given, $family) != '' and not($isRoleContact)">
+        <xsl:if test="concat($given, $family) != ''">
             <ccmm:contact_point>
                 <ccmm:person>
                     <ccmm:name><xsl:value-of select="normalize-space(if ($family != '' and $given != '') then concat($family, ', ', $given) else concat($family, $given))"/></ccmm:name>
@@ -1403,7 +1351,7 @@
             <xsl:call-template name="EmitSubject"/>
         </xsl:for-each>
         <!-- languages named only in prose, which the language register cannot express -->
-        <xsl:for-each select="$amLangOther[not(cw:isPlaceholder(.))]">
+        <xsl:for-each select="$amLangOther[. != '']">
             <ccmm:subject><ccmm:title xml:lang="en"><xsl:value-of select="."/></ccmm:title></ccmm:subject>
         </xsl:for-each>
         </xsl:variable>
@@ -1435,8 +1383,7 @@
     -->
     <xsl:template name="EmitSubject">
         <xsl:variable name="v" select="normalize-space(.)"/>
-        <!-- "?" or "undefined" is no subject; the safety net in Subjects keeps the record valid -->
-        <xsl:if test="not(cw:isPlaceholder($v))">
+        <xsl:if test="$v != ''">
             <ccmm:subject>
                 <ccmm:title>
                     <xsl:call-template name="XmlLangAttribute"/>
@@ -1591,10 +1538,10 @@
     <!-- funding_reference (optional, unbounded)                       -->
     <!-- ============================================================ -->
     <xsl:template name="FundingReferences">
-        <!-- sponsors that yield a grant: something real in code, funder or project -->
+        <!-- sponsors that yield a grant: something in code, funder or project -->
         <xsl:variable name="sponsorValues"
             select="doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value']
-                    [some $p in tokenize(normalize-space(.), ';')[position() = (2, 3, 4)] satisfies not(cw:isPlaceholder($p))]"/>
+                    [some $p in tokenize(normalize-space(.), ';')[position() = (2, 3, 4)] satisfies normalize-space($p) != '']"/>
         <!--
             The grant numbers already published from the info:eu-repo URIs.  local.sponsor spells
             the same grant differently - "288487" there, "FP7-ICT-2011-7-288487" here - so the
@@ -1619,9 +1566,8 @@
                 <xsl:variable name="sponsor"
                     select="(/doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value'][contains(., $parts[5])])[1]"/>
                 <xsl:variable name="sponsorParts" select="tokenize(string($sponsor), ';')"/>
-                <!-- a placeholder ("None", "unknown") names nobody, as in the local.sponsor loop below -->
-                <xsl:variable name="sponsorFunder" select="if (cw:isPlaceholder($sponsorParts[3])) then '' else normalize-space($sponsorParts[3])"/>
-                <xsl:variable name="sponsorProject" select="if (cw:isPlaceholder($sponsorParts[4])) then '' else normalize-space($sponsorParts[4])"/>
+                <xsl:variable name="sponsorFunder" select="normalize-space($sponsorParts[3])"/>
+                <xsl:variable name="sponsorProject" select="normalize-space($sponsorParts[4])"/>
                 <ccmm:funding_reference>
                     <ccmm:local_identifier><xsl:value-of select="replace(replace($parts[5], '%2F', '/'), '%2f', '/')"/></ccmm:local_identifier>
                     <xsl:if test="$sponsorProject != ''">
@@ -1649,8 +1595,8 @@
         </xsl:for-each>
         <!--
             The migrated META-SHARE project tree has a project name but no grant number, prefixes
-            every value of a repeated field with its position ("#1-EuroMatrix Plus"), and has no
-            funder at all: fundingType is a category (euFunds, nationalFunds, ownFunds), not who
+            every value of a repeated field with its position ("#1-EuroMatrix Plus" - storage, not
+            part of the name), and has no funder at all: fundingType is a category (euFunds, nationalFunds, ownFunds), not who
             paid.  local.sponsor holds the same grants properly, with numbers and funder names that
             cannot be matched to these titles reliably, so the tree is used only for a record
             without local.sponsor; the funder, required by the schema, is then stated as unknown.
@@ -1658,7 +1604,7 @@
         <xsl:if test="not($sponsorValues)">
             <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ResourceCreationInfo#FundingInfo#ProjectInfo']/doc:element[@name='projectName']/doc:element/doc:field[@name='value']">
                 <xsl:variable name="project" select="normalize-space(replace(normalize-space(.), '^#[0-9]+-', ''))"/>
-                <xsl:if test="not(cw:isPlaceholder($project))">
+                <xsl:if test="$project != ''">
                     <ccmm:funding_reference>
                         <ccmm:award_title><xsl:value-of select="$project"/></ccmm:award_title>
                         <ccmm:funder>
@@ -1676,15 +1622,15 @@
         -->
         <xsl:for-each select="doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value']">
             <!--
-                "type;code;funder;project;uri".  A part holding only a placeholder ("-", "None",
-                "unknown") is left out on its own - a grant without a number is still a grant of
-                its funder - and a value with nothing real in code, funder or project is none.
-                The type (euFunds, nationalFunds, ownFunds, Other) is a category, never the funder.
+                "type;code;funder;project;uri".  An empty part is left out on its own - a grant
+                without a number is still a grant of its funder - and a value with nothing in code,
+                funder or project is none.  The type (euFunds, nationalFunds, ownFunds, Other) is a
+                category, never the funder.
             -->
             <xsl:variable name="sp" select="tokenize(normalize-space(.), ';')"/>
-            <xsl:variable name="code" select="if (cw:isPlaceholder($sp[2])) then '' else normalize-space($sp[2])"/>
-            <xsl:variable name="funderName" select="if (cw:isPlaceholder($sp[3])) then '' else normalize-space($sp[3])"/>
-            <xsl:variable name="project" select="if (cw:isPlaceholder($sp[4])) then '' else normalize-space($sp[4])"/>
+            <xsl:variable name="code" select="normalize-space($sp[2])"/>
+            <xsl:variable name="funderName" select="normalize-space($sp[3])"/>
+            <xsl:variable name="project" select="normalize-space($sp[4])"/>
             <xsl:if test="concat($code, $funderName, $project) != ''
                       and not($code != '' and (some $g in $uriGrantCodes satisfies
                               (string-length($g) &gt;= 4 and (contains($code, $g) or contains($g, $code)))))">
@@ -1772,47 +1718,40 @@
         </xsl:for-each>
         </xsl:variable>
         <!--
-            CCMM gives a related resource at most one relation type, but a record may state
-            several for one IRI (isbasedon and replaces, say) or repeat it untyped (dc.relation.uri)
-            or as an assumed reference (dc.source.uri).  One element per IRI is kept: the one whose
-            type cw:relationRank puts first, the earliest among equals.  Resources known only by a
-            title have no identity to compare and all stay.
+            A record may name one IRI with a stated relation and again untyped (dc.relation.uri)
+            or as an assumed reference (dc.source.uri).  The repetition gives way to the stated
+            relation, an untyped one to an assumed one.  Every relation the record states is
+            published, also two different ones to one resource - choosing between them would be
+            correcting the record.  The same relation stated twice (dc.relation and the migrated
+            catalogue's publications) is one element, the first.  Resources known only by a title
+            have no identity to compare and all stay.
         -->
-        <xsl:variable name="onePerIri" as="element()*">
+        <xsl:variable name="perIri" as="element()*">
             <xsl:for-each-group select="$deduped/*" group-by="if (ccmm:iri) then string(ccmm:iri) else generate-id()">
-                <xsl:for-each select="current-group()">
-                    <xsl:sort select="cw:relationRank(.)" data-type="number"/>
-                    <xsl:if test="position() = 1">
+                <xsl:variable name="best" select="min(for $r in current-group() return cw:relationRank($r))"/>
+                <xsl:for-each-group select="current-group()[cw:relationRank(.) = $best]"
+                                    group-by="string(ccmm:resource_relation_type/ccmm:iri)">
+                    <xsl:for-each select="current-group()[1]">
                         <!-- without the cw:assumed mark and its namespace, on every level -->
                         <xsl:copy copy-namespaces="no"><xsl:copy-of select="node()" copy-namespaces="no"/></xsl:copy>
-                    </xsl:if>
-                </xsl:for-each>
+                    </xsl:for-each>
+                </xsl:for-each-group>
             </xsl:for-each-group>
         </xsl:variable>
         <xsl:call-template name="CopyDistinct">
-            <xsl:with-param name="nodes" select="$onePerIri"/>
+            <xsl:with-param name="nodes" select="$perIri"/>
         </xsl:call-template>
     </xsl:template>
 
     <!--
-        Which of several relation types for one resource is kept: the lower the number, the more
-        the type says.  Superseding beats versioning beats part-whole beats dependency beats
-        derivation beats format beats a mere reference; an untyped relation comes last, after a
-        reference that is only assumed (cw:assumed, from dc.source.uri or local.demo.uri).
+        1 for a relation the record states with a type, 2 for one the crosswalk only assumes
+        (cw:assumed, from dc.source.uri or local.demo.uri), 3 for an untyped one.
     -->
     <xsl:function name="cw:relationRank" as="xs:integer">
         <xsl:param name="resource" as="element()"/>
-        <xsl:variable name="term" select="replace(string($resource/ccmm:resource_relation_type/ccmm:iri), '^.*/', '')"/>
-        <xsl:sequence select="if ($resource/@cw:assumed) then 9
-                              else if ($term = '') then 10
-                              else if ($term = ('Obsoletes', 'IsObsoletedBy')) then 1
-                              else if ($term = ('IsVersionOf', 'HasVersion')) then 2
-                              else if ($term = ('IsPartOf', 'HasPart')) then 3
-                              else if ($term = ('Requires', 'IsRequiredBy')) then 4
-                              else if ($term = 'IsDerivedFrom') then 5
-                              else if ($term = ('IsVariantFormOf', 'IsOriginalFormOf')) then 6
-                              else if ($term = ('References', 'IsReferencedBy')) then 7
-                              else 8"/>
+        <xsl:sequence select="if ($resource/@cw:assumed) then 2
+                              else if (normalize-space($resource/ccmm:resource_relation_type/ccmm:iri) = '') then 3
+                              else 1"/>
     </xsl:function>
 
     <!--
