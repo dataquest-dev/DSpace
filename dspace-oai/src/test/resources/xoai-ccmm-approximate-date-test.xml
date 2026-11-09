@@ -18,13 +18,13 @@
     <element name="dc">
         <element name="title">
             <element name="none">
-                <field name="value">Film professionals 1</field>
+                <field name="value">Example Oral History 1</field>
             </element>
         </element>
         <element name="identifier">
             <element name="uri">
                 <element name="none">
-                    <field name="value">http://hdl.handle.net/123456789/3901034-01</field>
+                    <field name="value">http://hdl.handle.net/123456789/1-7101</field>
                 </element>
             </element>
         </element>
@@ -56,14 +56,14 @@
         </element>
     </element>
     <element name="others">
-        <field name="handle">123456789/3901034-01</field>
-        <field name="identifier">oai:repository.example.org:123456789/3901034-01</field>
+        <field name="handle">123456789/1-7101</field>
+        <field name="identifier">oai:repository.example.org:123456789/1-7101</field>
         <field name="lastModifyDate">2025-01-01 00:00:00.000</field>
         <element name="access-status">
             <field name="value">restricted</field>
         </element>
     </element>
     <element name="repository">
-        <field name="name">LINDAT/CLARIAH-CZ</field>
+        <field name="name">Example Repository</field>
     </element>
 </metadata>

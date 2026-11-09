@@ -688,7 +688,7 @@
     <!--
         One qualified_relation per agent named in $values.  DSpace stores each agent as a value of
         its own; a legacy value that packs several ("A; B; C") is split on semicolons only.  Commas
-        stay part of the name: "Family, Given" and organization names such as "Charles University,
+        stay part of the name: "Family, Given" and organization names such as "Example University,
         Faculty of ..., Prague" are one agent each.
     -->
     <xsl:template name="AgentRelations">
@@ -1244,8 +1244,8 @@
             The migrated catalogue holds the contact as free text: "Name", "Name (email)",
             "Name, email", "Name email", and several people joined by ';'.  A ccmm:person is one
             physical person, so the value is split on ';' - but not on a ';' inside a "(...)"
-            note, as in "Wegera (terms of usage; history and conception)".  A part that is only
-            an address belongs to the person before it ("Vasiljevs; andrejs@tilde.lv").  The
+            note, as in "Vzorová (licensing; project history)".  A part that is only
+            an address belongs to the person before it ("Novák; jan.novak@example.org").  The
             address and any "(...)" note are taken out of the name.
         -->
         <xsl:variable name="amc" select="normalize-space($amContact[1])"/>
@@ -1544,7 +1544,7 @@
                     [some $p in tokenize(normalize-space(.), ';')[position() = (2, 3, 4)] satisfies normalize-space($p) != '']"/>
         <!--
             The grant numbers already published from the info:eu-repo URIs.  local.sponsor spells
-            the same grant differently - "288487" there, "FP7-ICT-2011-7-288487" here - so the
+            the same grant differently - "900001" there, "FP7-TEST-0000-0-900001" here - so the
             guard below has to compare both ways round, not just look for one inside the other.
         -->
         <xsl:variable name="uriGrantCodes"
@@ -1595,7 +1595,7 @@
         </xsl:for-each>
         <!--
             The migrated META-SHARE project tree has a project name but no grant number, prefixes
-            every value of a repeated field with its position ("#1-EuroMatrix Plus" - storage, not
+            every value of a repeated field with its position ("#1-Example Project Gamma" - storage, not
             part of the name), and has no funder at all: fundingType is a category (euFunds, nationalFunds, ownFunds), not who
             paid.  local.sponsor holds the same grants properly, with numbers and funder names that
             cannot be matched to these titles reliably, so the tree is used only for a record

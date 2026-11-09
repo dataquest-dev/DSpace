@@ -51,8 +51,8 @@
     <element name="local">
         <element name="sponsor">
             <element name="none">
-                <field name="value">euFunds;FP7-TEST-0000-0-900001;European Union;ExampleAlpha;info:eu-repo/grantAgreement/EC/FP7/900001</field>
-                <field name="value">Other;GA00-00002S;Czech Science Foundation;A separately funded project;</field>
+                <field name="value">euFunds;FP7-TEST-0000-0-900001;Example Funding Agency;ExampleAlpha;info:eu-repo/grantAgreement/EC/FP7/900001</field>
+                <field name="value">Other;GA00-00002S;Example Science Foundation;A separately funded project;</field>
             </element>
         </element>
     </element>

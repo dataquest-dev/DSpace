@@ -60,7 +60,7 @@
         </element>
     </element>
     <element name="repository">
-        <field name="name">LINDAT/CLARIAH-CZ</field>
+        <field name="name">Example Repository</field>
         <field name="url">https://repository.example.org/repository/</field>
     </element>
 </metadata>

@@ -105,11 +105,11 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmCommasNeverSplitOneAgentValue() throws Exception {
         // DSpace stores each agent as its own value, so a long organization name with three or
         // more commas is still one agent
-        String name = "Charles University, Faculty of Mathematics and Physics,"
-            + " Institute of Formal and Applied Linguistics, Prague";
+        String name = "Example University, Faculty of Sciences,"
+            + " Institute of Example Linguistics, Prague";
         String result = apply("ccmm.xsl").to(withReplaced(MAIN,
-            "Institute of Formal and Applied Linguistics</field>",
-            "Institute of Formal and Applied Linguistics, Prague</field>"));
+            "Institute of Example Linguistics</field>",
+            "Institute of Example Linguistics, Prague</field>"));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:qualified_relation/ccmm:relation/ccmm:organization[ccmm:name='" + name + "'])",
             equalTo("1"))));
@@ -121,24 +121,24 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmAGivenNameContainingUstavIsStillAPerson() throws Exception {
         // "ustav" (Czech "institute") is matched only at the start of a word, so the
         // G-ustav-o inside a given name does not make its bearer an organization
-        String result = ccmmOf(add(fixture(MAIN), "dc", field("contributor.other", "none", "Mendonça, Gustavo")));
+        String result = ccmmOf(add(fixture(MAIN), "dc", field("contributor.other", "none", "Exemplo, Gustavo")));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:person[ccmm:name='Mendonça, Gustavo']/ccmm:given_name", equalTo("Gustavo"))));
+            "//ccmm:person[ccmm:name='Exemplo, Gustavo']/ccmm:given_name", equalTo("Gustavo"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:organization[ccmm:name='Mendonça, Gustavo'])", equalTo("0"))));
+            "count(//ccmm:organization[ccmm:name='Exemplo, Gustavo'])", equalTo("0"))));
     }
 
     @Test
     public void ccmmAnUstavAtTheStartOfAWordIsStillAnOrganization() throws Exception {
         // the type is read off the name for every field but dc.contributor.author and dc.creator
         String result = ccmmOf(add(fixture(MAIN), "dc",
-            field("contributor.other", "none", "Ústav formální a aplikované lingvistiky")));
+            field("contributor.other", "none", "Ústav ukázkové lingvistiky")));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:qualified_relation/ccmm:relation/ccmm:organization"
-                + "[ccmm:name='Ústav formální a aplikované lingvistiky'])", equalTo("1"))));
-        result = ccmmOf(add(fixture(MAIN), "dc", field("contributor.other", "none", "Orientální ústav")));
+                + "[ccmm:name='Ústav ukázkové lingvistiky'])", equalTo("1"))));
+        result = ccmmOf(add(fixture(MAIN), "dc", field("contributor.other", "none", "Ukázkový ústav")));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:organization[ccmm:name='Orientální ústav'])", equalTo("1"))));
+            "count(//ccmm:organization[ccmm:name='Ukázkový ústav'])", equalTo("1"))));
     }
 
     @Test
@@ -160,7 +160,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         // dc.contributor.author and dc.creator name people; a corporate name there is an error
         // the repository has to fix, so the crosswalk does not guess the type from the name
         String result = ccmmOf(add(fixture(MAIN), "dc", field("creator", "none", "Example Film Studio")));
-        for (String name : new String[] {"Lucernafilm", "Kinofa", "Example Film Studio"}) {
+        for (String name : new String[] {"Example Film Co.", "Zorvex", "Example Film Studio"}) {
             assertThat(name, result, is(ccmm().withXPath(
                 "count(//ccmm:qualified_relation[ccmm:role/ccmm:label='Creator']"
                     + "/ccmm:relation/ccmm:person[ccmm:name='" + name + "'])", equalTo("1"))));
@@ -206,15 +206,15 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmHierarchicalSubjectKeepsThePathAsAClassificationCode() throws Exception {
-        // "People::Masaryk ..." is a path through a thesaurus, not a subject heading
+        // "People::Example ..." is a path through a thesaurus, not a subject heading
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:subject[ccmm:classification_code="
-                + "'People::Masaryk Tomas Garrigue (1850-1937)']/ccmm:title",
-            equalTo("Masaryk Tomas Garrigue (1850-1937)"))));
+                + "'People::Example Person (1801-1870)']/ccmm:title",
+            equalTo("Example Person (1801-1870)"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:subject/ccmm:classification_code"
-                + "[.='People::Masaryk Tomas Garrigue (1850-1937)'])",
+                + "[.='People::Example Person (1801-1870)'])",
             equalTo("1"))));
     }
 
@@ -393,8 +393,8 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:qualified_relation[ccmm:role/ccmm:label='Publisher']"
                 + "/ccmm:relation/ccmm:organization/ccmm:name",
-            equalTo("Charles University, Faculty of Mathematics and Physics, "
-                + "Institute of Formal and Applied Linguistics"))));
+            equalTo("Example University, Faculty of Sciences, "
+                + "Institute of Example Linguistics"))));
     }
 
     @Test
@@ -571,11 +571,11 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmTextWithoutALanguageIsNotLabelledEnglish() throws Exception {
-        String result = apply("ccmm.xsl").to(withReplaced(MAIN, ">linguistics<", ">Galerie osobností<"));
+        String result = apply("ccmm.xsl").to(withReplaced(MAIN, ">linguistics<", ">Ukázková kategorie<"));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:subject/ccmm:title[.='Galerie osobností'][@xml:lang='und'])", equalTo("1"))));
+            "count(//ccmm:subject/ccmm:title[.='Ukázková kategorie'][@xml:lang='und'])", equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:subject/ccmm:title[.='Galerie osobností'][@xml:lang='en'])", equalTo("0"))));
+            "count(//ccmm:subject/ccmm:title[.='Ukázková kategorie'][@xml:lang='en'])", equalTo("0"))));
     }
 
     @Test
@@ -916,7 +916,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:time_reference[ccmm:date_type/ccmm:label='Date Created']"
                 + "/ccmm:temporal_representation/ccmm:time_instant/ccmm:date",
-            equalTo("1787-01-01"))));
+            equalTo("1801-01-01"))));
     }
 
     @Test
@@ -1010,9 +1010,9 @@ public class CcmmXslTest extends AbstractXSLTest {
         // needs, so the link is built anyway
         String result = apply("ccmm.xsl").to(resource(TOOL));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:distribution_downloadable_file[ccmm:title='morphodita.zip']"
+            "//ccmm:distribution_downloadable_file[ccmm:title='exampletagger.zip']"
                 + "/ccmm:download_url/ccmm:iri",
-            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/123456789/1-2000/morphodita.zip"))));
+            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/123456789/1-2000/exampletagger.zip"))));
     }
 
     @Test
@@ -1087,7 +1087,7 @@ public class CcmmXslTest extends AbstractXSLTest {
             "count(//ccmm:distribution_downloadable_file[ccmm:title='models.tar.gz']/ccmm:media_type)",
             equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:distribution_downloadable_file[ccmm:title='morphodita.zip']/ccmm:media_type)",
+            "count(//ccmm:distribution_downloadable_file[ccmm:title='exampletagger.zip']/ccmm:media_type)",
             equalTo("1"))));
     }
 
@@ -1110,10 +1110,10 @@ public class CcmmXslTest extends AbstractXSLTest {
         // term for that ("RelationType/Other" does not exist); resource_relation_type is optional
         String result = apply("ccmm.xsl").to(resource(CLIP));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/123456789/3900007-01'])",
+            "count(//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/123456789/1-7001'])",
             equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/123456789/3900007-01']"
+            "count(//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/123456789/1-7001']"
                 + "/ccmm:resource_relation_type)", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:resource_relation_type/ccmm:iri[contains(., 'RelationType/Other')])",
@@ -1138,13 +1138,13 @@ public class CcmmXslTest extends AbstractXSLTest {
         // them whenever they differ in language
         String result = apply("ccmm.xsl").to(resource(TOOL));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:alternate_title[ccmm:title='MorphoDiTa']/ccmm:alternate_title_type/ccmm:iri",
+            "//ccmm:alternate_title[ccmm:title='ExampleTagger']/ccmm:alternate_title_type/ccmm:iri",
             equalTo("https://vocabs.ccmm.cz/registry/codelist/AlternateTitle/AlternativeTitle"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:alternate_title[ccmm:title='MorphoDiTa']/ccmm:alternate_title_type/ccmm:label",
+            "//ccmm:alternate_title[ccmm:title='ExampleTagger']/ccmm:alternate_title_type/ccmm:label",
             equalTo("Alternative Title"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:title", equalTo("MorphoDiTa Morphological Tagger"))));
+            "//ccmm:dataset/ccmm:title", equalTo("ExampleTagger Morphological Tagger"))));
     }
 
     @Test
@@ -1152,10 +1152,10 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(TOOL));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:identifier[ccmm:scheme/ccmm:label='DOI']/ccmm:value",
-            equalTo("10.5555/morphodita"))));
+            equalTo("10.5555/exampletagger"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:identifier[ccmm:scheme/ccmm:label='DOI']/ccmm:iri",
-            equalTo("https://doi.org/10.5555/morphodita"))));
+            equalTo("https://doi.org/10.5555/exampletagger"))));
     }
 
     @Test
@@ -1172,8 +1172,8 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     /** ENUM carries local.additional.metadata and no local.contact.person; add a migrated contact. */
     private String withMigratedContact(String contact) throws Exception {
-        return apply("ccmm.xsl").to(withReplaced(ENUM, "Nid:2307",
-            "Nid:2307\nContact Person (field_contact_person):" + contact));
+        return apply("ccmm.xsl").to(withReplaced(ENUM, "Nid:1",
+            "Nid:1\nContact Person (field_contact_person):" + contact));
     }
 
     private static final String MIGRATED_PERSON = "//ccmm:terms_of_use/ccmm:contact_point/ccmm:person";
@@ -1181,21 +1181,21 @@ public class CcmmXslTest extends AbstractXSLTest {
     @Test
     public void ccmmMigratedContactOfTwoPeopleIsTwoPersons() throws Exception {
         // a ccmm:person is one physical person
-        String result = withMigratedContact("Terrence Kaufman; Mark Sicoli");
+        String result = withMigratedContact("Pavel Cerny; Jana Kralova");
         assertThat(result, is(ccmm().withXPath("count(" + MIGRATED_PERSON + ")", equalTo("2"))));
-        assertThat(result, is(ccmm().withXPath("(" + MIGRATED_PERSON + ")[1]/ccmm:name", equalTo("Terrence Kaufman"))));
-        assertThat(result, is(ccmm().withXPath("(" + MIGRATED_PERSON + ")[2]/ccmm:name", equalTo("Mark Sicoli"))));
+        assertThat(result, is(ccmm().withXPath("(" + MIGRATED_PERSON + ")[1]/ccmm:name", equalTo("Pavel Cerny"))));
+        assertThat(result, is(ccmm().withXPath("(" + MIGRATED_PERSON + ")[2]/ccmm:name", equalTo("Jana Kralova"))));
     }
 
     @Test
     public void ccmmSemicolonInsideANoteDoesNotSplitTheContact() throws Exception {
-        String result = withMigratedContact("Prof. Dr. Karel Dvořák (terms of usage); "
-            + "Prof. Dr. Anna Horáková (terms of usage; history and conception)");
+        String result = withMigratedContact("Prof. Dr. Karel Ukázka (licensing); "
+            + "Prof. Dr. Anna Vzorová (licensing; project history)");
         assertThat(result, is(ccmm().withXPath("count(" + MIGRATED_PERSON + ")", equalTo("2"))));
         assertThat(result, is(ccmm().withXPath(
-            "(" + MIGRATED_PERSON + ")[1]/ccmm:name", equalTo("Prof. Dr. Karel Dvořák"))));
+            "(" + MIGRATED_PERSON + ")[1]/ccmm:name", equalTo("Prof. Dr. Karel Ukázka"))));
         assertThat(result, is(ccmm().withXPath(
-            "(" + MIGRATED_PERSON + ")[2]/ccmm:name", equalTo("Prof. Dr. Anna Horáková"))));
+            "(" + MIGRATED_PERSON + ")[2]/ccmm:name", equalTo("Prof. Dr. Anna Vzorová"))));
     }
 
     @Test
@@ -1251,7 +1251,7 @@ public class CcmmXslTest extends AbstractXSLTest {
             "count(//ccmm:related_resource/ccmm:iri[contains(., ' ')])", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:related_resource/ccmm:title",
-            equalTo("https://tools.example.org/morphodita Project page"))));
+            equalTo("https://tools.example.org/exampletagger Project page"))));
     }
 
     @Test
@@ -1313,7 +1313,7 @@ public class CcmmXslTest extends AbstractXSLTest {
             equalTo("ExampleAlpha"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:funding_reference[ccmm:local_identifier='900001']/ccmm:funder/ccmm:organization/ccmm:name",
-            equalTo("European Union"))));
+            equalTo("Example Funding Agency"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:funding_reference[ccmm:local_identifier][not(ccmm:award_title)])",
             equalTo("0"))));
@@ -1466,7 +1466,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         return new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
     }
 
-    // ---- Findings of the dev-5 run (2 515 live records) ----
+    // ---- Findings of a real-data validation run ----
 
     @Test
     public void ccmmRefboxFormatStringIsNotPublished() throws Exception {
@@ -1537,9 +1537,9 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmSponsorKnownOnlyByItsFunderIsAGrantOfThatFunder() throws Exception {
-        String result = ccmmOf(add(fixture(FUNDING), "local", field("sponsor", "none", ";;Lexical Computing Ltd.;;")));
+        String result = ccmmOf(add(fixture(FUNDING), "local", field("sponsor", "none", ";;Example Lexicon Ltd.;;")));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:funding_reference[ccmm:funder/ccmm:organization/ccmm:name='Lexical Computing Ltd.']"
+            "count(//ccmm:funding_reference[ccmm:funder/ccmm:organization/ccmm:name='Example Lexicon Ltd.']"
                 + "[not(ccmm:local_identifier)][not(ccmm:award_title)])", equalTo("1"))));
     }
 
@@ -1568,7 +1568,8 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmInfoEuRepoGrantTakesTheSponsorPartsAsStored() throws Exception {
-        String result = ccmmOf(once(fixture(FUNDING), "euFunds;FP7-TEST-0000-0-900001;European Union;ExampleAlpha;",
+        String result = ccmmOf(once(fixture(FUNDING),
+            "euFunds;FP7-TEST-0000-0-900001;Example Funding Agency;ExampleAlpha;",
             "euFunds;FP7-TEST-0000-0-900001;None;unknown;"));
         String grant = "//ccmm:funding_reference[ccmm:local_identifier='900001']";
         assertThat(result, is(ccmm().withXPath(grant + "/ccmm:funder/ccmm:organization/ccmm:name", equalTo("None"))));
@@ -1709,19 +1710,19 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmRoleContactIsPublishedAsStored() throws Exception {
         // "Technical;Contact;..." in the person field is a data error the repository fixes; the
         // value comes out as the person it claims to be
-        String result = ccmmOf(once(fixture(MAIN), "Tomas;Kovar;kovar@example.org;Charles University",
-            "Technical;Contact;archive@example.org;Národní filmový archiv"));
+        String result = ccmmOf(once(fixture(MAIN), "Tomas;Kovar;kovar@example.org;Example University",
+            "Technical;Contact;archive@example.org;Ukázkový filmový archiv"));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:terms_of_use/ccmm:contact_point/ccmm:person/ccmm:name", equalTo("Contact, Technical"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:terms_of_use/ccmm:contact_point/ccmm:organization[ccmm:name='Národní filmový archiv'])",
+            "count(//ccmm:terms_of_use/ccmm:contact_point/ccmm:organization[ccmm:name='Ukázkový filmový archiv'])",
             equalTo("0"))));
     }
 
     @Test
     public void ccmmCharacterAUriForbidsIsEscapedInTheIri() throws Exception {
-        String badUrl = "https://catalogue.example.org/de/meta/index?input0=r:(19|2)&amp;input1=is:Thesaurus";
-        String escaped = "https://catalogue.example.org/de/meta/index?input0=r:(19%7C2)&input1=is:Thesaurus";
+        String badUrl = "https://catalogue.example.org/search?q=r:(19|2)&amp;type=thesaurus";
+        String escaped = "https://catalogue.example.org/search?q=r:(19%7C2)&type=thesaurus";
         String result = ccmmOf(once(fixture(MAIN), SOURCE_URI, badUrl));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:related_resource[ccmm:iri='" + escaped + "'][ccmm:resource_url='" + escaped + "'])",
@@ -1808,7 +1809,7 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     private static final String RELATION = "https://vocabs.ccmm.cz/registry/codelist/RelationType/";
-    private static final String XXX_LICENCE = "http://copy.example.org:85/XXX/static/licence-UD-2.2.html";
+    private static final String XXX_LICENCE = "http://copy.example.org:85/XXX/static/licence-example-1.0.html";
     /** funding_reference elements FUNDING yields on its own */
     private static final int FUNDING_GRANTS = 2;
 
@@ -1862,7 +1863,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         return xml.toString();
     }
 
-    /** The migrated META-SHARE project tree, as LINDAT holds it. */
+    /** The migrated META-SHARE project tree, as the repository holds it. */
     private static String metashareProjects(String[] projectNames, String[] fundingTypes) {
         String base = "ResourceInfo#ResourceCreationInfo#FundingInfo#ProjectInfo";
         return "<element name=\"" + base + "\">"

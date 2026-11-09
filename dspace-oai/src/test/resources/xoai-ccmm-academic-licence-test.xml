@@ -23,7 +23,7 @@
         </element>
         <element name="rights">
             <element name="none">
-                <field name="value">CLARIN ACA End-User Licence Agreement</field>
+                <field name="value">Example Academic Use Licence</field>
             </element>
             <element name="label">
                 <element name="none">
@@ -59,7 +59,7 @@
         </element>
     </element>
     <element name="repository">
-        <field name="name">LINDAT/CLARIAH-CZ</field>
+        <field name="name">Example Repository</field>
         <field name="url">https://repository.example.org/repository/</field>
     </element>
 </metadata>
