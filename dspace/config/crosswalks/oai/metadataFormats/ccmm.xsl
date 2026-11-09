@@ -1218,24 +1218,51 @@
         <xsl:variable name="msSur"   select="normalize-space(($msBase/doc:element[@name='ResourceInfo#ContactInfo#PersonInfo']/doc:element[@name='surname']/doc:element/doc:field[@name='value'])[1])"/>
         <xsl:variable name="msMail"  select="normalize-space(($msBase/doc:element[@name='ResourceInfo#ContactInfo#PersonInfo#OrganizationInfo#CommunicationInfo']/doc:element[@name='email']/doc:element/doc:field[@name='value'])[1])"/>
         <xsl:variable name="msOrg"   select="normalize-space(($msBase/doc:element[@name='ResourceInfo#ContactInfo#PersonInfo#OrganizationInfo']/doc:element[@name='organizationName']/doc:element/doc:field[@name='value'])[1])"/>
-        <!-- the migrated catalogue holds the contact as one "Name (email)" string -->
+        <!--
+            The migrated catalogue holds the contact as free text: "Name", "Name (email)",
+            "Name, email", "Name email", and several people joined by ';'.  A ccmm:person is one
+            physical person, so the value is split on ';' - but not on a ';' inside a "(...)"
+            note, as in "Wegera (terms of usage; history and conception)".  A part that is only
+            an address belongs to the person before it ("Vasiljevs; andrejs@tilde.lv").  The
+            address and any "(...)" note are taken out of the name.
+        -->
         <xsl:variable name="amc" select="normalize-space($amContact[1])"/>
-        <xsl:variable name="amcMail" select="if (matches($amc, '[^\s(),;]+@[^\s(),;]+'))
-                                             then replace($amc, '^.*?([^\s(),;]+@[^\s(),;]+).*$', '$1') else ''"/>
-        <xsl:variable name="amcName" select="normalize-space(replace(replace($amc, '[(,][^(,]*[^\s(),;]+@[^\s(),;]+.*$', ''), '[\s,(]+$', ''))"/>
+        <xsl:variable name="emailPattern" select="'[^\s(),;]+@[^\s(),;]+'"/>
+        <xsl:variable name="amcNotesHidden">
+            <xsl:analyze-string select="$amc" regex="\([^)]*\)">
+                <xsl:matching-substring><xsl:value-of select="translate(., ';', '&#xE000;')"/></xsl:matching-substring>
+                <xsl:non-matching-substring><xsl:value-of select="."/></xsl:non-matching-substring>
+            </xsl:analyze-string>
+        </xsl:variable>
+        <xsl:variable name="amcParts" select="for $p in tokenize(string($amcNotesHidden), ';') return translate($p, '&#xE000;', ';')"/>
+        <xsl:variable name="amcNames"
+            select="for $p in $amcParts
+                    return normalize-space(replace(replace(replace($p, $emailPattern, ''), '\([^)]*\)', ''), '^[\s,]+|[\s,]+$', ''))"/>
+        <xsl:variable name="amcMails"
+            select="for $p in $amcParts
+                    return (if (matches($p, $emailPattern)) then replace($p, concat('^.*?(', $emailPattern, ').*$'), '$1') else '')"/>
         <xsl:variable name="given"  select="normalize-space((($msGiven, $cp[1])[normalize-space(.) != ''], '')[1])"/>
         <xsl:variable name="family" select="normalize-space((($msSur,   $cp[2])[normalize-space(.) != ''], '')[1])"/>
         <xsl:variable name="mail"   select="normalize-space((($msMail,  $cp[3])[normalize-space(.) != ''], '')[1])"/>
         <xsl:variable name="org"    select="normalize-space((($msOrg,   $cp[4])[normalize-space(.) != ''], '')[1])"/>
-        <xsl:if test="concat($given, $family) = '' and $amcName != ''">
-            <ccmm:contact_point>
-                <ccmm:person>
-                    <ccmm:name><xsl:value-of select="$amcName"/></ccmm:name>
-                    <xsl:if test="$amcMail != ''">
-                        <ccmm:contact_point><ccmm:email><xsl:value-of select="$amcMail"/></ccmm:email></ccmm:contact_point>
-                    </xsl:if>
-                </ccmm:person>
-            </ccmm:contact_point>
+        <xsl:if test="concat($given, $family) = ''">
+            <xsl:for-each select="1 to count($amcParts)">
+                <xsl:variable name="i" select="."/>
+                <!-- a bare address stands for itself, as before, unless it follows its person -->
+                <xsl:if test="$amcNames[$i] != ''
+                              or ($amcMails[$i] != '' and not($i gt 1 and $amcNames[$i - 1] != ''))">
+                    <xsl:variable name="personMail"
+                        select="($amcMails[$i][. != ''], $amcMails[$i + 1][$amcNames[$i + 1] = ''][. != ''], '')[1]"/>
+                    <ccmm:contact_point>
+                        <ccmm:person>
+                            <ccmm:name><xsl:value-of select="($amcNames[$i][. != ''], $amcMails[$i])[1]"/></ccmm:name>
+                            <xsl:if test="$personMail != ''">
+                                <ccmm:contact_point><ccmm:email><xsl:value-of select="$personMail"/></ccmm:email></ccmm:contact_point>
+                            </xsl:if>
+                        </ccmm:person>
+                    </ccmm:contact_point>
+                </xsl:if>
+            </xsl:for-each>
         </xsl:if>
         <xsl:if test="concat($given, $family) != ''">
             <ccmm:contact_point>

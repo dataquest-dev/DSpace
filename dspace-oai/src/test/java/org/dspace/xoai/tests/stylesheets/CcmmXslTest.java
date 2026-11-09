@@ -1170,6 +1170,60 @@ public class CcmmXslTest extends AbstractXSLTest {
             equalTo("0"))));
     }
 
+    /** ENUM carries local.additional.metadata and no local.contact.person; add a migrated contact. */
+    private String withMigratedContact(String contact) throws Exception {
+        return apply("ccmm.xsl").to(withReplaced(ENUM, "Nid:2307",
+            "Nid:2307\nContact Person (field_contact_person):" + contact));
+    }
+
+    private static final String MIGRATED_PERSON = "//ccmm:terms_of_use/ccmm:contact_point/ccmm:person";
+
+    @Test
+    public void ccmmMigratedContactOfTwoPeopleIsTwoPersons() throws Exception {
+        // a ccmm:person is one physical person
+        String result = withMigratedContact("Terrence Kaufman; Mark Sicoli");
+        assertThat(result, is(ccmm().withXPath("count(" + MIGRATED_PERSON + ")", equalTo("2"))));
+        assertThat(result, is(ccmm().withXPath("(" + MIGRATED_PERSON + ")[1]/ccmm:name", equalTo("Terrence Kaufman"))));
+        assertThat(result, is(ccmm().withXPath("(" + MIGRATED_PERSON + ")[2]/ccmm:name", equalTo("Mark Sicoli"))));
+    }
+
+    @Test
+    public void ccmmSemicolonInsideANoteDoesNotSplitTheContact() throws Exception {
+        String result = withMigratedContact("Prof. Dr. Bernhard Schröder (terms of usage); "
+            + "Prof. Dr. Klaus-Peter Wegera (terms of usage; history and conception)");
+        assertThat(result, is(ccmm().withXPath("count(" + MIGRATED_PERSON + ")", equalTo("2"))));
+        assertThat(result, is(ccmm().withXPath(
+            "(" + MIGRATED_PERSON + ")[1]/ccmm:name", equalTo("Prof. Dr. Bernhard Schröder"))));
+        assertThat(result, is(ccmm().withXPath(
+            "(" + MIGRATED_PERSON + ")[2]/ccmm:name", equalTo("Prof. Dr. Klaus-Peter Wegera"))));
+    }
+
+    @Test
+    public void ccmmAddressAfterTheSemicolonBelongsToThePersonBeforeIt() throws Exception {
+        String result = withMigratedContact("Andrejs Vasiljevs; andrejs@tilde.lv");
+        assertThat(result, is(ccmm().withXPath("count(" + MIGRATED_PERSON + ")", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(MIGRATED_PERSON + "/ccmm:name", equalTo("Andrejs Vasiljevs"))));
+        assertThat(result, is(ccmm().withXPath(
+            MIGRATED_PERSON + "/ccmm:contact_point/ccmm:email", equalTo("andrejs@tilde.lv"))));
+    }
+
+    @Test
+    public void ccmmAddressAfterASpaceIsNotPartOfTheName() throws Exception {
+        String result = withMigratedContact("Adam Przepiórkowski adamp@ipipan.waw.pl");
+        assertThat(result, is(ccmm().withXPath(MIGRATED_PERSON + "/ccmm:name", equalTo("Adam Przepiórkowski"))));
+        assertThat(result, is(ccmm().withXPath(
+            MIGRATED_PERSON + "/ccmm:contact_point/ccmm:email", equalTo("adamp@ipipan.waw.pl"))));
+    }
+
+    @Test
+    public void ccmmBareMigratedAddressIsStillAContact() throws Exception {
+        // nothing but an address: kept, rather than dropping the only way to reach anyone
+        String result = withMigratedContact("dwds@dwds.de");
+        assertThat(result, is(ccmm().withXPath("count(" + MIGRATED_PERSON + ")", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            MIGRATED_PERSON + "/ccmm:contact_point/ccmm:email", equalTo("dwds@dwds.de"))));
+    }
+
     @Test
     public void ccmmSameValueUnderTwoLanguageWrappersIsOneElement() throws Exception {
         // DSpace stores one value under several wrappers; two byte-identical siblings are one
