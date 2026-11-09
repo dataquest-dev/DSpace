@@ -682,7 +682,7 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmFundingReferenceSpellsOutTheFunderAndTheProgramme() throws Exception {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:funding_reference/ccmm:local_identifier", equalTo("731015"))));
+            "//ccmm:funding_reference/ccmm:local_identifier", equalTo("900002"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:funding_reference/ccmm:funding_program", equalTo("H2020"))));
         assertThat(result, is(ccmm().withXPath(
@@ -1309,10 +1309,10 @@ public class CcmmXslTest extends AbstractXSLTest {
         // project name and the funder's own name
         String result = apply("ccmm.xsl").to(resource(FUNDING));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:funding_reference[ccmm:local_identifier='288487']/ccmm:award_title",
-            equalTo("MosesCore"))));
+            "//ccmm:funding_reference[ccmm:local_identifier='900001']/ccmm:award_title",
+            equalTo("ExampleAlpha"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:funding_reference[ccmm:local_identifier='288487']/ccmm:funder/ccmm:organization/ccmm:name",
+            "//ccmm:funding_reference[ccmm:local_identifier='900001']/ccmm:funder/ccmm:organization/ccmm:name",
             equalTo("European Union"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:funding_reference[ccmm:local_identifier][not(ccmm:award_title)])",
@@ -1321,14 +1321,14 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmOneGrantRecordedTwiceIsPublishedOnce() throws Exception {
-        // dc.relation spells it 288487 and local.sponsor spells it FP7-ICT-2011-7-288487
+        // dc.relation spells it 900001 and local.sponsor spells it FP7-TEST-0000-0-900001
         String result = apply("ccmm.xsl").to(resource(FUNDING));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:funding_reference[ccmm:award_title='MosesCore'])", equalTo("1"))));
+            "count(//ccmm:funding_reference[ccmm:award_title='ExampleAlpha'])", equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:funding_reference)", equalTo("2"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:funding_reference[ccmm:local_identifier='GA20-12345S']/ccmm:award_title",
+            "//ccmm:funding_reference[ccmm:local_identifier='GA00-00002S']/ccmm:award_title",
             equalTo("A separately funded project"))));
     }
 
@@ -1486,12 +1486,12 @@ public class CcmmXslTest extends AbstractXSLTest {
         // FUNDING has no metashare element; the tree goes in front of local
         String result = ccmmOf(once(fixture(FUNDING), "<element name=\"local\">",
             "<element name=\"metashare\">" + metashareProjects(
-                new String[] {"#1-LINDAT-CLARIN project (LM2010013)"}, new String[] {"#1-euFunds"})
+                new String[] {"#1-Example infrastructure project (LM0000001)"}, new String[] {"#1-euFunds"})
                 + "</element><element name=\"local\">"));
         assertThat(result, is(ccmm().withXPath("count(//ccmm:funding_reference)",
             equalTo(String.valueOf(FUNDING_GRANTS)))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:funding_reference[contains(., 'LM2010013') or contains(., 'euFunds')])",
+            "count(//ccmm:funding_reference[contains(., 'LM0000001') or contains(., 'euFunds')])",
             equalTo("0"))));
     }
 
@@ -1500,8 +1500,8 @@ public class CcmmXslTest extends AbstractXSLTest {
         // "#1-" is how the migrated tree numbers repeated values, not part of the name; a value
         // that is wrong in itself ("N/A") is published as stored
         String result = ccmmOf(add(fixture(MAIN), "metashare", metashareProjects(
-            new String[] {"#1-EuroMatrix Plus", "#2-N/A"}, new String[] {"#1-euFunds", "#2-ownFunds"})));
-        for (String title : new String[] {"EuroMatrix Plus", "N/A"}) {
+            new String[] {"#1-Example Project Gamma", "#2-N/A"}, new String[] {"#1-euFunds", "#2-ownFunds"})));
+        for (String title : new String[] {"Example Project Gamma", "N/A"}) {
             assertThat(title, result, is(ccmm().withXPath(
                 "count(//ccmm:funding_reference[ccmm:award_title='" + title + "'])", equalTo("1"))));
         }
@@ -1513,9 +1513,10 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmFundingCategoryIsNotAFunderName() throws Exception {
         // "euFunds" says which kind of money it was, not who gave it; the name is unknown
         String result = ccmmOf(add(fixture(MAIN), "metashare", metashareProjects(
-            new String[] {"Faust"}, new String[] {"euFunds"})));
+            new String[] {"Example Project Delta"}, new String[] {"euFunds"})));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:funding_reference[ccmm:award_title='Faust']/ccmm:funder/ccmm:organization/ccmm:name",
+            "//ccmm:funding_reference[ccmm:award_title='Example Project Delta']"
+                + "/ccmm:funder/ccmm:organization/ccmm:name",
             equalTo(":unkn"))));
     }
 
@@ -1557,19 +1558,19 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmPlaceholderSponsorStillStandsForTheMetashareGrants() throws Exception {
         // "ownFunds;unknown;;;" is a local.sponsor grant like any other, so the META-SHARE tree is not used
         String result = ccmmOf(add(add(fixture(MAIN), "metashare", metashareProjects(
-                new String[] {"Faust"}, new String[] {"euFunds"})),
+                new String[] {"Example Project Delta"}, new String[] {"euFunds"})),
             "local", field("sponsor", "none", "ownFunds;unknown;;;")));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:funding_reference[ccmm:award_title='Faust'])", equalTo("0"))));
+            "count(//ccmm:funding_reference[ccmm:award_title='Example Project Delta'])", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:funding_reference[ccmm:local_identifier='unknown'])", equalTo("1"))));
     }
 
     @Test
     public void ccmmInfoEuRepoGrantTakesTheSponsorPartsAsStored() throws Exception {
-        String result = ccmmOf(once(fixture(FUNDING), "euFunds;FP7-ICT-2011-7-288487;European Union;MosesCore;",
-            "euFunds;FP7-ICT-2011-7-288487;None;unknown;"));
-        String grant = "//ccmm:funding_reference[ccmm:local_identifier='288487']";
+        String result = ccmmOf(once(fixture(FUNDING), "euFunds;FP7-TEST-0000-0-900001;European Union;ExampleAlpha;",
+            "euFunds;FP7-TEST-0000-0-900001;None;unknown;"));
+        String grant = "//ccmm:funding_reference[ccmm:local_identifier='900001']";
         assertThat(result, is(ccmm().withXPath(grant + "/ccmm:funder/ccmm:organization/ccmm:name", equalTo("None"))));
         assertThat(result, is(ccmm().withXPath(grant + "/ccmm:award_title", equalTo("unknown"))));
     }
@@ -1794,9 +1795,9 @@ public class CcmmXslTest extends AbstractXSLTest {
     @Test
     public void ccmmBlankLocalSponsorLeavesTheMetashareGrants() throws Exception {
         String result = ccmmOf(add(add(fixture(MAIN), "local", field("sponsor", "none", "   ")),
-            "metashare", metashareProjects(new String[] {"Faust"}, new String[] {"euFunds"})));
+            "metashare", metashareProjects(new String[] {"Example Project Delta"}, new String[] {"euFunds"})));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:funding_reference[ccmm:award_title='Faust'])", equalTo("1"))));
+            "count(//ccmm:funding_reference[ccmm:award_title='Example Project Delta'])", equalTo("1"))));
     }
 
     @Test

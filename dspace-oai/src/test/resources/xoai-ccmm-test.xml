@@ -99,7 +99,7 @@
         </element>
         <element name="relation">
             <element name="none">
-                <field name="value">info:eu-repo/grantAgreement/EC/H2020/731015/EU//ELEXIS</field>
+                <field name="value">info:eu-repo/grantAgreement/EC/H2020/900002/EU//ExampleBeta</field>
             </element>
             <element name="replaces">
                 <element name="none">
