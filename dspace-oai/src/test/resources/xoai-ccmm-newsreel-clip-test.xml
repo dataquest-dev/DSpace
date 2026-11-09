@@ -39,7 +39,7 @@
         <element name="relation">
             <element name="uri">
                 <element name="none">
-                    <field name="value">http://hdl.handle.net/20.500.12801/3900007-01</field>
+                    <field name="value">http://hdl.handle.net/123456789/3900007-01</field>
                 </element>
             </element>
         </element>
@@ -67,20 +67,20 @@
                     <field name="name">segment.mov</field>
                     <field name="format">video/quicktime</field>
                     <field name="size">104857600</field>
-                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/1/9/segment.mov</field>
+                    <field name="url">https://repository.example.org/repository/bitstream/1/9/segment.mov</field>
                 </element>
             </element>
         </element>
     </element>
     <element name="others">
-        <field name="handle">20.500.12801/3900007-02</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:20.500.12801/3900007-02</field>
+        <field name="handle">123456789/3900007-02</field>
+        <field name="identifier">oai:repository.example.org:123456789/3900007-02</field>
         <element name="access-status">
             <field name="value">open.access</field>
         </element>
     </element>
     <element name="repository">
         <field name="name">LINDAT/CLARIAH-CZ</field>
-        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
+        <field name="url">https://repository.example.org/repository/</field>
     </element>
 </metadata>

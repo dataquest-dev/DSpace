@@ -24,7 +24,7 @@
         <element name="identifier">
             <element name="uri">
                 <element name="none">
-                    <field name="value">http://hdl.handle.net/20.500.12801/3901034-01</field>
+                    <field name="value">http://hdl.handle.net/123456789/3901034-01</field>
                 </element>
             </element>
         </element>
@@ -56,8 +56,8 @@
         </element>
     </element>
     <element name="others">
-        <field name="handle">20.500.12801/3901034-01</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:20.500.12801/3901034-01</field>
+        <field name="handle">123456789/3901034-01</field>
+        <field name="identifier">oai:repository.example.org:123456789/3901034-01</field>
         <field name="lastModifyDate">2025-01-01 00:00:00.000</field>
         <element name="access-status">
             <field name="value">restricted</field>

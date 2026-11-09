@@ -76,7 +76,7 @@
                     <field name="format">application/pdf</field>
                     <field name="size">256</field>
                     <field name="originalName">report-final.pdf</field>
-                    <field name="url">https://example.org/repository/bitstream/11234/1-9001/2/report-final.pdf</field>
+                    <field name="url">https://example.org/repository/bitstream/123456789/1-9001/2/report-final.pdf</field>
                     <field name="sid">2</field>
                     <field name="id">a2c4e6f8-1111-4222-8333-444455556666</field>
                 </element>
@@ -85,7 +85,7 @@
                 <element name="bitstream">
                     <field name="format">text/csv</field>
                     <field name="size">512</field>
-                    <field name="url">https://example.org/repository/bitstream/11234/1-9001/3/data-table.csv</field>
+                    <field name="url">https://example.org/repository/bitstream/123456789/1-9001/3/data-table.csv</field>
                     <field name="sid">3</field>
                     <field name="id">b3d5f7a9-2222-4333-8444-555566667777</field>
                 </element>
@@ -93,8 +93,8 @@
         </element>
     </element>
     <element name="others">
-        <field name="handle">11234/1-9001</field>
-        <field name="identifier">oai:test.repository:11234/1-9001</field>
+        <field name="handle">123456789/1-9001</field>
+        <field name="identifier">oai:test.repository:123456789/1-9001</field>
         <field name="lastModifyDate">2025-01-01 00:00:00.000</field>
     </element>
     <element name="repository">

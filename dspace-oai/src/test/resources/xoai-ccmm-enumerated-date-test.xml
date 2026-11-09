@@ -46,11 +46,11 @@ Readily Available (field_resource_available):Yes</field>
         </element>
     </element>
     <element name="others">
-        <field name="handle">20.500.12801/3-4</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:20.500.12801/3-4</field>
+        <field name="handle">123456789/3-4</field>
+        <field name="identifier">oai:repository.example.org:123456789/3-4</field>
     </element>
     <element name="repository">
         <field name="name">LINDAT/CLARIAH-CZ</field>
-        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
+        <field name="url">https://repository.example.org/repository/</field>
     </element>
 </metadata>

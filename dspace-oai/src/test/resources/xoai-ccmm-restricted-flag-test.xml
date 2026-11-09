@@ -46,14 +46,14 @@
                     <field name="name">data.zip</field>
                     <field name="format">application/zip</field>
                     <field name="size">8192</field>
-                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/1/4/data.zip</field>
+                    <field name="url">https://repository.example.org/repository/bitstream/1/4/data.zip</field>
                 </element>
             </element>
         </element>
     </element>
     <element name="others">
-        <field name="handle">11234/1-11</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-11</field>
+        <field name="handle">123456789/1-11</field>
+        <field name="identifier">oai:repository.example.org:123456789/1-11</field>
         <field name="anonymousAccess">restricted</field>
         <field name="restrictedAccess">true</field>
         <element name="access-status">
@@ -62,6 +62,6 @@
     </element>
     <element name="repository">
         <field name="name">LINDAT/CLARIAH-CZ</field>
-        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
+        <field name="url">https://repository.example.org/repository/</field>
     </element>
 </metadata>

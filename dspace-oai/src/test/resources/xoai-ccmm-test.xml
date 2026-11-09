@@ -65,7 +65,7 @@
         <element name="identifier">
             <element name="uri">
                 <element name="none">
-                    <field name="value">http://hdl.handle.net/11234/1-5678</field>
+                    <field name="value">http://hdl.handle.net/123456789/1-5678</field>
                 </element>
             </element>
             <element name="other">
@@ -103,7 +103,7 @@
             </element>
             <element name="replaces">
                 <element name="none">
-                    <field name="value">http://hdl.handle.net/11234/1-1111</field>
+                    <field name="value">http://hdl.handle.net/123456789/1-1111</field>
                 </element>
             </element>
         </element>
@@ -165,7 +165,7 @@
         <element name="contact">
             <element name="person">
                 <element name="none">
-                    <field name="value">Rudolf;Rosa;rosa@example.org;Charles University</field>
+                    <field name="value">Tomas;Kovar;kovar@example.org;Charles University</field>
                 </element>
             </element>
         </element>
@@ -203,7 +203,7 @@
                     <field name="originalName">corpus.txt</field>
                     <field name="format">text/plain</field>
                     <field name="size">2048</field>
-                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/11234/1-5678/1/corpus.txt</field>
+                    <field name="url">https://repository.example.org/repository/bitstream/123456789/1-5678/1/corpus.txt</field>
                     <field name="checksum">ee1c4e448a8f9f838df348dfee1fc11f</field>
                     <field name="checksumAlgorithm">MD5</field>
                     <field name="sid">1</field>
@@ -213,8 +213,8 @@
         </element>
     </element>
     <element name="others">
-        <field name="handle">11234/1-5678</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-5678</field>
+        <field name="handle">123456789/1-5678</field>
+        <field name="identifier">oai:repository.example.org:123456789/1-5678</field>
         <field name="anonymousAccess">open</field>
         <field name="owningCollection">Test Collection</field>
         <field name="lastModifyDate">2025-06-15 10:30:00.000</field>
@@ -225,8 +225,8 @@
         </element>
     </element>
     <element name="repository">
-        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
+        <field name="url">https://repository.example.org/repository/</field>
         <field name="name">LINDAT/CLARIAH-CZ</field>
-        <field name="mail">lindat-help@ufal.mff.cuni.cz</field>
+        <field name="mail">help@repository.example.org</field>
     </element>
 </metadata>

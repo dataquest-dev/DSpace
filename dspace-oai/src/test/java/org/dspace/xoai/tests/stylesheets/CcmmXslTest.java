@@ -68,10 +68,10 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmContainsIdentifier() throws Exception {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:identifier[1]/ccmm:value", equalTo("11234/1-5678"))));
+            "//ccmm:dataset/ccmm:identifier[1]/ccmm:value", equalTo("123456789/1-5678"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:identifier[1]/ccmm:iri",
-            equalTo("http://hdl.handle.net/11234/1-5678"))));
+            equalTo("http://hdl.handle.net/123456789/1-5678"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:identifier[1]/ccmm:scheme/ccmm:label", equalTo("Handle"))));
     }
@@ -422,7 +422,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:metadata_identification/ccmm:iri",
-            equalTo("oai:lindat.mff.cuni.cz:11234/1-5678"))));
+            equalTo("oai:repository.example.org:123456789/1-5678"))));
     }
 
     @Test
@@ -543,7 +543,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:metadata_identification/ccmm:original_repository/ccmm:iri",
-            equalTo("https://lindat.mff.cuni.cz/repository/"))));
+            equalTo("https://repository.example.org/repository/"))));
     }
 
     @Test
@@ -595,10 +595,10 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmContainsANamedContactPoint() throws Exception {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:terms_of_use/ccmm:contact_point/ccmm:person/ccmm:name", equalTo("Rosa, Rudolf"))));
+            "//ccmm:terms_of_use/ccmm:contact_point/ccmm:person/ccmm:name", equalTo("Kovar, Tomas"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:terms_of_use/ccmm:contact_point/ccmm:person/ccmm:contact_point/ccmm:email",
-            equalTo("rosa@example.org"))));
+            equalTo("kovar@example.org"))));
     }
 
     @Test
@@ -606,7 +606,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:contact_point/ccmm:organization/ccmm:contact_point/ccmm:email",
-            equalTo("lindat-help@ufal.mff.cuni.cz"))));
+            equalTo("help@repository.example.org"))));
     }
 
     @Test
@@ -638,7 +638,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         // the register has no "Replaces"; superseding is Obsoletes
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/11234/1-1111']"
+            "//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/123456789/1-1111']"
                 + "/ccmm:resource_relation_type/ccmm:iri",
             equalTo("https://vocabs.ccmm.cz/registry/codelist/RelationType/Obsoletes"))));
     }
@@ -1000,7 +1000,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
-            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/11234/1-5678/corpus.txt"))));
+            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/123456789/1-5678/corpus.txt"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:download_url/ccmm:iri[contains(., '/bitstream/')])", equalTo("0"))));
     }
@@ -1013,7 +1013,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file[ccmm:title='morphodita.zip']"
                 + "/ccmm:download_url/ccmm:iri",
-            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/11234/1-2000/morphodita.zip"))));
+            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/123456789/1-2000/morphodita.zip"))));
     }
 
     @Test
@@ -1022,7 +1022,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         // published record has
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
-            "/ccmm:dataset/ccmm:iri", equalTo("http://hdl.handle.net/11234/1-5678"))));
+            "/ccmm:dataset/ccmm:iri", equalTo("http://hdl.handle.net/123456789/1-5678"))));
     }
 
     @Test
@@ -1040,10 +1040,10 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:identifier[ccmm:scheme/ccmm:label='Handle']/ccmm:value",
-            equalTo("11234/1-5678"))));
+            equalTo("123456789/1-5678"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:identifier[ccmm:scheme/ccmm:label='Handle']/ccmm:iri",
-            equalTo("http://hdl.handle.net/11234/1-5678"))));
+            equalTo("http://hdl.handle.net/123456789/1-5678"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:dataset/ccmm:identifier/ccmm:value[starts-with(., 'http')"
                 + " and ../ccmm:scheme/ccmm:label='Handle'])",
@@ -1111,10 +1111,10 @@ public class CcmmXslTest extends AbstractXSLTest {
         // term for that ("RelationType/Other" does not exist); resource_relation_type is optional
         String result = apply("ccmm.xsl").to(resource(CLIP));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/20.500.12801/3900007-01'])",
+            "count(//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/123456789/3900007-01'])",
             equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/20.500.12801/3900007-01']"
+            "count(//ccmm:related_resource[ccmm:iri='http://hdl.handle.net/123456789/3900007-01']"
                 + "/ccmm:resource_relation_type)", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:resource_relation_type/ccmm:iri[contains(., 'RelationType/Other')])",
@@ -1165,7 +1165,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         // omits the email shifts the affiliation into its place
         String result = apply("ccmm.xsl").to(resource(TOOL));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:contact_point/ccmm:person/ccmm:name", equalTo("Strakova, Jana"))));
+            "//ccmm:contact_point/ccmm:person/ccmm:name", equalTo("Benesova, Lucie"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:contact_point/ccmm:person/ccmm:contact_point/ccmm:email)",
             equalTo("0"))));
@@ -1190,39 +1190,39 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmSemicolonInsideANoteDoesNotSplitTheContact() throws Exception {
-        String result = withMigratedContact("Prof. Dr. Bernhard Schröder (terms of usage); "
-            + "Prof. Dr. Klaus-Peter Wegera (terms of usage; history and conception)");
+        String result = withMigratedContact("Prof. Dr. Karel Dvořák (terms of usage); "
+            + "Prof. Dr. Anna Horáková (terms of usage; history and conception)");
         assertThat(result, is(ccmm().withXPath("count(" + MIGRATED_PERSON + ")", equalTo("2"))));
         assertThat(result, is(ccmm().withXPath(
-            "(" + MIGRATED_PERSON + ")[1]/ccmm:name", equalTo("Prof. Dr. Bernhard Schröder"))));
+            "(" + MIGRATED_PERSON + ")[1]/ccmm:name", equalTo("Prof. Dr. Karel Dvořák"))));
         assertThat(result, is(ccmm().withXPath(
-            "(" + MIGRATED_PERSON + ")[2]/ccmm:name", equalTo("Prof. Dr. Klaus-Peter Wegera"))));
+            "(" + MIGRATED_PERSON + ")[2]/ccmm:name", equalTo("Prof. Dr. Anna Horáková"))));
     }
 
     @Test
     public void ccmmAddressAfterTheSemicolonBelongsToThePersonBeforeIt() throws Exception {
-        String result = withMigratedContact("Andrejs Vasiljevs; andrejs@tilde.lv");
+        String result = withMigratedContact("Jan Novák; jan.novak@example.org");
         assertThat(result, is(ccmm().withXPath("count(" + MIGRATED_PERSON + ")", equalTo("1"))));
-        assertThat(result, is(ccmm().withXPath(MIGRATED_PERSON + "/ccmm:name", equalTo("Andrejs Vasiljevs"))));
+        assertThat(result, is(ccmm().withXPath(MIGRATED_PERSON + "/ccmm:name", equalTo("Jan Novák"))));
         assertThat(result, is(ccmm().withXPath(
-            MIGRATED_PERSON + "/ccmm:contact_point/ccmm:email", equalTo("andrejs@tilde.lv"))));
+            MIGRATED_PERSON + "/ccmm:contact_point/ccmm:email", equalTo("jan.novak@example.org"))));
     }
 
     @Test
     public void ccmmAddressAfterASpaceIsNotPartOfTheName() throws Exception {
-        String result = withMigratedContact("Adam Przepiórkowski adamp@ipipan.waw.pl");
-        assertThat(result, is(ccmm().withXPath(MIGRATED_PERSON + "/ccmm:name", equalTo("Adam Przepiórkowski"))));
+        String result = withMigratedContact("Eva Svobodová eva.svobodova@example.org");
+        assertThat(result, is(ccmm().withXPath(MIGRATED_PERSON + "/ccmm:name", equalTo("Eva Svobodová"))));
         assertThat(result, is(ccmm().withXPath(
-            MIGRATED_PERSON + "/ccmm:contact_point/ccmm:email", equalTo("adamp@ipipan.waw.pl"))));
+            MIGRATED_PERSON + "/ccmm:contact_point/ccmm:email", equalTo("eva.svobodova@example.org"))));
     }
 
     @Test
     public void ccmmBareMigratedAddressIsStillAContact() throws Exception {
         // nothing but an address: kept, rather than dropping the only way to reach anyone
-        String result = withMigratedContact("dwds@dwds.de");
+        String result = withMigratedContact("office@example.org");
         assertThat(result, is(ccmm().withXPath("count(" + MIGRATED_PERSON + ")", equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            MIGRATED_PERSON + "/ccmm:contact_point/ccmm:email", equalTo("dwds@dwds.de"))));
+            MIGRATED_PERSON + "/ccmm:contact_point/ccmm:email", equalTo("office@example.org"))));
     }
 
     @Test
@@ -1252,7 +1252,7 @@ public class CcmmXslTest extends AbstractXSLTest {
             "count(//ccmm:related_resource/ccmm:iri[contains(., ' ')])", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:related_resource/ccmm:title",
-            equalTo("https://ufal.mff.cuni.cz/morphodita Project page"))));
+            equalTo("https://tools.example.org/morphodita Project page"))));
     }
 
     @Test
@@ -1262,7 +1262,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file/ccmm:access_url/ccmm:iri",
-            equalTo("http://hdl.handle.net/11234/1-5678"))));
+            equalTo("http://hdl.handle.net/123456789/1-5678"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:access_url/ccmm:iri[contains(., '/bitstream/')])", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
@@ -1351,7 +1351,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file[ccmm:byte_size='128']/ccmm:download_url/ccmm:iri",
             equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/"
-                + "11234/1-9001/zpr%C3%A1va%20fin%C3%A1ln%C3%AD.txt"))));
+                + "123456789/1-9001/zpr%C3%A1va%20fin%C3%A1ln%C3%AD.txt"))));
     }
 
     @Test
@@ -1373,7 +1373,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         String result = apply("ccmm.xsl").to(resource(FUNDING));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file[ccmm:byte_size='256']/ccmm:download_url/ccmm:iri",
-            equalTo("https://example.org/repository/bitstream/11234/1-9001/2/report-final.pdf"))));
+            equalTo("https://example.org/repository/bitstream/123456789/1-9001/2/report-final.pdf"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:download_url/ccmm:iri[contains(., 'report-final.pdf') "
                 + "and contains(., '/handle/')])", equalTo("0"))));
@@ -1419,14 +1419,14 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmDownloadUrlUsesTheConfiguredServerNotTheUiUrl() throws Exception {
-        // the fixture's repository url is the UI on lindat.mff.cuni.cz; the backend is configured
+        // the fixture's repository url is the UI on repository.example.org; the backend is configured
         // on another host, as lindat_cmdi.xsl reads it, and the UI url plus "/server" is not it
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:download_url/ccmm:iri[starts-with(., '" + TEST_SERVER_URL + "/api/')])",
             equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:download_url/ccmm:iri[contains(., 'lindat.mff.cuni.cz/repository/server')])",
+            "count(//ccmm:download_url/ccmm:iri[contains(., 'repository.example.org/repository/server')])",
             equalTo("0"))));
     }
 
@@ -1436,7 +1436,7 @@ public class CcmmXslTest extends AbstractXSLTest {
             .to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:distribution_downloadable_file/ccmm:download_url/ccmm:iri",
-            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/11234/1-5678/corpus.txt"))));
+            equalTo(TEST_SERVER_URL + "/api/core/bitstreams/handle/123456789/1-5678/corpus.txt"))));
     }
 
     /**
@@ -1726,14 +1726,31 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmRequiresWinsOverIsDerivedFrom() throws Exception {
-        String other = "http://hdl.handle.net/11234/1-2222";
+        String other = "http://hdl.handle.net/123456789/1-2222";
         String result = ccmmOf(add(fixture(MAIN), "dc",
             field("relation.isbasedon", "none", other), field("relation.requires", "none", other)));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:related_resource[ccmm:iri='" + other + "'])", equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:related_resource[ccmm:iri='" + other + "']/ccmm:resource_relation_type/ccmm:iri",
-            equalTo("https://vocabs.ccmm.cz/registry/codelist/RelationType/Requires"))));
+            equalTo(RELATION + "Requires"))));
+    }
+
+    @Test
+    public void ccmmLandingPageAndDownloadUrlAreValidIris() throws Exception {
+        // the Handle ends up in the dataset iri, access_url and download_url alike
+        String xml = once(fixture(MAIN), "http://hdl.handle.net/123456789/1-5678<",
+            "http://hdl.handle.net/123456789/1-5678|a<");
+        xml = once(xml, "<field name=\"handle\">123456789/1-5678<", "<field name=\"handle\">123456789/1-5678|a<");
+        String result = ccmmOf(xml);
+        assertThat(result, is(ccmm().withXPath("count(//ccmm:iri[contains(., '|')])", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "/ccmm:dataset/ccmm:iri", equalTo("http://hdl.handle.net/123456789/1-5678%7Ca"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:access_url/ccmm:iri[. = 'http://hdl.handle.net/123456789/1-5678%7Ca']) > 0",
+            equalTo("true"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:download_url/ccmm:iri[contains(., '/123456789/1-5678%7Ca/')]) > 0", equalTo("true"))));
     }
 
     @Test
@@ -1785,13 +1802,13 @@ public class CcmmXslTest extends AbstractXSLTest {
     @Test
     public void ccmmRoleContactIsTheOrganizationNotAPerson() throws Exception {
         // "Technical;Contact;..." is a role mailbox of the affiliation, not somebody's name
-        String result = ccmmOf(once(fixture(MAIN), "Rudolf;Rosa;rosa@example.org;Charles University",
-            "Technical;Contact;lindat@nfa.cz;Národní filmový archiv"));
+        String result = ccmmOf(once(fixture(MAIN), "Tomas;Kovar;kovar@example.org;Charles University",
+            "Technical;Contact;archive@example.org;Národní filmový archiv"));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:terms_of_use/ccmm:contact_point/ccmm:person)", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:terms_of_use/ccmm:contact_point/ccmm:organization[ccmm:name='Národní filmový archiv']"
-                + "/ccmm:contact_point/ccmm:email", equalTo("lindat@nfa.cz"))));
+                + "/ccmm:contact_point/ccmm:email", equalTo("archive@example.org"))));
     }
 
     @Test
@@ -1804,7 +1821,7 @@ public class CcmmXslTest extends AbstractXSLTest {
             {"Technical;Contact;tech@example.org;", ":unkn"},
         };
         for (String[] c : cases) {
-            String result = ccmmOf(once(fixture(MAIN), "Rudolf;Rosa;rosa@example.org;Charles University", c[0]));
+            String result = ccmmOf(once(fixture(MAIN), "Tomas;Kovar;kovar@example.org;Charles University", c[0]));
             assertThat(c[0], result, is(ccmm().withXPath(
                 "count(//ccmm:terms_of_use/ccmm:contact_point/ccmm:person)", equalTo("0"))));
             assertThat(c[0], result, is(ccmm().withXPath(
@@ -1815,7 +1832,7 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmRoleWordsWithoutContactAreStillAPerson() throws Exception {
-        String result = ccmmOf(once(fixture(MAIN), "Rudolf;Rosa;rosa@example.org;Charles University",
+        String result = ccmmOf(once(fixture(MAIN), "Tomas;Kovar;kovar@example.org;Charles University",
             "Technical;Support;support@example.org;Org E"));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:terms_of_use/ccmm:contact_point/ccmm:person)", equalTo("1"))));
@@ -1823,8 +1840,8 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmCharacterAUriForbidsIsEscapedInTheIri() throws Exception {
-        String badUrl = "https://publikationen.badw.de/de/meta/index?input0=r:(19|2)&amp;input1=is:Thesaurus";
-        String escaped = "https://publikationen.badw.de/de/meta/index?input0=r:(19%7C2)&input1=is:Thesaurus";
+        String badUrl = "https://catalogue.example.org/de/meta/index?input0=r:(19|2)&amp;input1=is:Thesaurus";
+        String escaped = "https://catalogue.example.org/de/meta/index?input0=r:(19%7C2)&input1=is:Thesaurus";
         String result = ccmmOf(once(fixture(MAIN), SOURCE_URI, badUrl));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:related_resource[ccmm:iri='" + escaped + "'][ccmm:resource_url='" + escaped + "'])",
@@ -1949,8 +1966,8 @@ public class CcmmXslTest extends AbstractXSLTest {
     @Test
     public void ccmmLicencePagePlaceholderPathJoinsARepositoryUrlWithoutSlash() throws Exception {
         String xml = once(fixture(MAIN), "https://creativecommons.org/licenses/by/4.0/", XXX_LICENCE);
-        xml = once(xml, "<field name=\"url\">https://lindat.mff.cuni.cz/repository/</field>",
-            "<field name=\"url\">https://lindat.mff.cuni.cz/repository</field>");
+        xml = once(xml, "<field name=\"url\">https://repository.example.org/repository/</field>",
+            "<field name=\"url\">https://repository.example.org/repository</field>");
         assertThat(ccmmOf(xml), is(ccmm().withXPath("//ccmm:terms_of_use/ccmm:license/ccmm:iri",
             equalTo(REPOSITORY_LICENCE))));
     }
@@ -1958,7 +1975,7 @@ public class CcmmXslTest extends AbstractXSLTest {
     @Test
     public void ccmmLicencePagePlaceholderPathWithoutRepositoryUrlIsNoIri() throws Exception {
         String xml = once(fixture(MAIN), "https://creativecommons.org/licenses/by/4.0/", XXX_LICENCE);
-        xml = once(xml, "<field name=\"url\">https://lindat.mff.cuni.cz/repository/</field>", "");
+        xml = once(xml, "<field name=\"url\">https://repository.example.org/repository/</field>", "");
         String result = ccmmOf(xml);
         assertThat(result, is(ccmm().withXPath("count(//ccmm:terms_of_use/ccmm:license/ccmm:iri)", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath("count(//*[contains(., '/XXX/')])", equalTo("0"))));
@@ -2000,8 +2017,8 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     private static final String ORGANIZATION_NAMES = "oai.ccmm.organization.names";
     private static final String RELATION = "https://vocabs.ccmm.cz/registry/codelist/RelationType/";
-    private static final String XXX_LICENCE = "http://dev-5.pc:85/XXX/static/licence-UD-2.2.html";
-    private static final String REPOSITORY_LICENCE = "https://lindat.mff.cuni.cz/repository/static/licence-UD-2.2.html";
+    private static final String XXX_LICENCE = "http://copy.example.org:85/XXX/static/licence-UD-2.2.html";
+    private static final String REPOSITORY_LICENCE = "https://repository.example.org/repository/static/licence-UD-2.2.html";
     /** funding_reference elements FUNDING yields on its own */
     private static final int FUNDING_GRANTS = 2;
 
@@ -2011,7 +2028,7 @@ public class CcmmXslTest extends AbstractXSLTest {
     /** dc.source.uri of MAIN */
     private static final String SOURCE_URI = "https://example.org/czech-nlp-dataset";
     /** dc.relation.replaces of MAIN */
-    private static final String REPLACED = "http://hdl.handle.net/11234/1-1111";
+    private static final String REPLACED = "http://hdl.handle.net/123456789/1-1111";
 
     /** A fixture as text, to edit with {@link #once} or {@link #add} and transform with {@link #ccmmOf}. */
     private String fixture(String name) throws Exception {

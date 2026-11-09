@@ -31,7 +31,7 @@
         <element name="source">
             <element name="uri">
                 <element name="none">
-                    <field name="value">https://ufal.mff.cuni.cz/morphodita Project page</field>
+                    <field name="value">https://tools.example.org/morphodita Project page</field>
                 </element>
             </element>
         </element>
@@ -61,7 +61,7 @@
         <element name="contact">
             <element name="person">
                 <element name="none">
-                    <field name="value">Jana;Strakova;Charles University</field>
+                    <field name="value">Lucie;Benesova;Charles University</field>
                 </element>
             </element>
         </element>
@@ -83,23 +83,23 @@
                     <field name="name">morphodita.zip</field>
                     <field name="format">application/zip</field>
                     <field name="size">4096</field>
-                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/1/10/morphodita.zip</field>
+                    <field name="url">https://repository.example.org/repository/bitstream/1/10/morphodita.zip</field>
                 </element>
                 <element name="bitstream">
                     <field name="name">models.tar.gz</field>
                     <field name="format">application/x-gzip</field>
                     <field name="size">8192</field>
-                    <field name="url">https://lindat.mff.cuni.cz/repository/bitstream/1/10/models.tar.gz</field>
+                    <field name="url">https://repository.example.org/repository/bitstream/1/10/models.tar.gz</field>
                 </element>
             </element>
         </element>
     </element>
     <element name="others">
-        <field name="handle">11234/1-2000</field>
-        <field name="identifier">oai:lindat.mff.cuni.cz:11234/1-2000</field>
+        <field name="handle">123456789/1-2000</field>
+        <field name="identifier">oai:repository.example.org:123456789/1-2000</field>
     </element>
     <element name="repository">
         <field name="name">LINDAT/CLARIAH-CZ</field>
-        <field name="url">https://lindat.mff.cuni.cz/repository/</field>
+        <field name="url">https://repository.example.org/repository/</field>
     </element>
 </metadata>

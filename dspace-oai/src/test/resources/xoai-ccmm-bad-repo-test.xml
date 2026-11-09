@@ -44,8 +44,8 @@
         </element>
     </element>
     <element name="others">
-        <field name="handle">11234/1-9002</field>
-        <field name="identifier">oai:test.repository:11234/1-9002</field>
+        <field name="handle">123456789/1-9002</field>
+        <field name="identifier">oai:test.repository:123456789/1-9002</field>
         <field name="lastModifyDate">2025-01-01 00:00:00.000</field>
     </element>
     <element name="repository">

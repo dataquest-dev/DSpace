@@ -274,10 +274,10 @@
     <xsl:variable name="handleField"
         select="(/doc:metadata/doc:element[@name='others']/doc:field[@name='handle'])[1]"/>
     <xsl:variable name="landingPage"
-        select="if ($handleUri) then normalize-space(string($handleUri))
-                else if (normalize-space(string($handleField)) != '')
-                     then concat('http://hdl.handle.net/', normalize-space(string($handleField)))
-                     else ''"/>
+        select="cw:iri(if ($handleUri) then normalize-space(string($handleUri))
+                       else if (normalize-space(string($handleField)) != '')
+                            then concat('http://hdl.handle.net/', normalize-space(string($handleField)))
+                            else '')"/>
 
     <!--
         Where the repository serves a bitstream, in the shape the CMDI crosswalk already publishes:
@@ -1928,9 +1928,9 @@
             -->
             <xsl:variable name="fileName" select="normalize-space((doc:field[@name='name'])[1])"/>
             <xsl:variable name="downloadUrl"
-                select="if ($downloadBase != '' and $itemHandle != '' and $fileName != '')
-                        then concat($downloadBase, $itemHandle, '/', encode-for-uri($fileName))
-                        else $url"/>
+                select="cw:iri(if ($downloadBase != '' and $itemHandle != '' and $fileName != '')
+                               then concat($downloadBase, $itemHandle, '/', encode-for-uri($fileName))
+                               else $url)"/>
             <xsl:variable name="sum" select="normalize-space((doc:field[@name='checksum'])[1])"/>
             <xsl:variable name="alg" select="normalize-space((doc:field[@name='checksumAlgorithm'])[1])"/>
             <!--
