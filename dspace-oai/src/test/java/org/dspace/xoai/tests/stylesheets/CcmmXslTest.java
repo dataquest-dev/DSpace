@@ -121,8 +121,7 @@ public class CcmmXslTest extends AbstractXSLTest {
     public void ccmmAGivenNameContainingUstavIsStillAPerson() throws Exception {
         // "ustav" (Czech "institute") is matched only at the start of a word, so the
         // G-ustav-o inside a given name does not make its bearer an organization
-        String result = apply("ccmm.xsl").to(withReplaced(MAIN, ">Svobodova, Marie<",
-            ">Mendonça, Gustavo<"));
+        String result = ccmmOf(add(fixture(MAIN), "dc", field("contributor.other", "none", "Mendonça, Gustavo")));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:person[ccmm:name='Mendonça, Gustavo']/ccmm:given_name", equalTo("Gustavo"))));
         assertThat(result, is(ccmm().withXPath(
@@ -131,13 +130,13 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmAnUstavAtTheStartOfAWordIsStillAnOrganization() throws Exception {
-        String result = apply("ccmm.xsl").to(withReplaced(MAIN, ">Svobodova, Marie<",
-            ">Ústav formální a aplikované lingvistiky<"));
+        // the type is read off the name for every field but dc.contributor.author and dc.creator
+        String result = ccmmOf(add(fixture(MAIN), "dc",
+            field("contributor.other", "none", "Ústav formální a aplikované lingvistiky")));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:qualified_relation/ccmm:relation/ccmm:organization"
                 + "[ccmm:name='Ústav formální a aplikované lingvistiky'])", equalTo("1"))));
-        result = apply("ccmm.xsl").to(withReplaced(MAIN, ">Svobodova, Marie<",
-            ">Orientální ústav<"));
+        result = ccmmOf(add(fixture(MAIN), "dc", field("contributor.other", "none", "Orientální ústav")));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:organization[ccmm:name='Orientální ústav'])", equalTo("1"))));
     }
@@ -157,27 +156,27 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmTypesCorporateCreditsAsOrganizationsNotPeople() throws Exception {
-        // a film producer is not a natural person, and the shipped pattern says so without
-        // any per-repository list
-        String result = apply("ccmm.xsl").to(resource(MAIN));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:qualified_relation[ccmm:relation/ccmm:organization/ccmm:name='Lucernafilm'])",
-            equalTo("1"))));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:person[ccmm:name='Lucernafilm'])", equalTo("0"))));
+    public void ccmmAuthorIsAlwaysAPerson() throws Exception {
+        // dc.contributor.author and dc.creator name people; a corporate name there is an error
+        // the repository has to fix, so the crosswalk does not guess the type from the name
+        String result = ccmmOf(add(fixture(MAIN), "dc", field("creator", "none", "Example Film Studio")));
+        for (String name : new String[] {"Lucernafilm", "Kinofa", "Example Film Studio"}) {
+            assertThat(name, result, is(ccmm().withXPath(
+                "count(//ccmm:qualified_relation[ccmm:role/ccmm:label='Creator']"
+                    + "/ccmm:relation/ccmm:person[ccmm:name='" + name + "'])", equalTo("1"))));
+            assertThat(name, result, is(ccmm().withXPath(
+                "count(//ccmm:organization[ccmm:name='" + name + "'])", equalTo("0"))));
+        }
     }
 
     @Test
-    public void ccmmBareProperNounStaysAPersonUntilTheDeploymentSaysOtherwise() throws Exception {
-        // ORGANIZATION_AGENT_NAMES ships empty, so a corporate name carrying no corporate word
-        // is typed as a person. Repository-specific names belong in the configuration
-        // property oai.ccmm.organization.names, not in the stylesheet.
-        String result = apply("ccmm.xsl").to(resource(MAIN));
+    public void ccmmCorporateNameOutsideTheAuthorsIsAnOrganization() throws Exception {
+        String result = ccmmOf(add(fixture(MAIN), "dc", field("contributor.other", "none", "Example Film Studio")));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:person[ccmm:name='Kinofa'])", equalTo("1"))));
+            "count(//ccmm:qualified_relation[ccmm:role/ccmm:label!='Creator']"
+                + "/ccmm:relation/ccmm:organization[ccmm:name='Example Film Studio'])", equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:organization[ccmm:name='Kinofa'])", equalTo("0"))));
+            "count(//ccmm:person[ccmm:name='Example Film Studio'])", equalTo("0"))));
     }
 
     @Test
@@ -1604,35 +1603,6 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmConfiguredOrganizationNameIsAnOrganization() throws Exception {
-        String result = apply("ccmm.xsl").withProperty(ORGANIZATION_NAMES, "|kinofa|aktualita|")
-            .to(resource(MAIN));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:organization[ccmm:name='Kinofa'])", equalTo("1"))));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:person[ccmm:name='Kinofa'])", equalTo("0"))));
-    }
-
-    @Test
-    public void ccmmConfiguredOrganizationNamesIgnoreCaseAndSpacing() throws Exception {
-        String result = apply("ccmm.xsl").withProperty(ORGANIZATION_NAMES, "Aktualita | KINOFA")
-            .to(resource(MAIN));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:organization[ccmm:name='Kinofa'])", equalTo("1"))));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:person[ccmm:name='Kinofa'])", equalTo("0"))));
-    }
-
-    @Test
-    public void ccmmConfiguredOrganizationNameMustMatchTheWholeName() throws Exception {
-        // "kino" is not "Kinofa"; a configured name is a whole name, not a pattern
-        String result = apply("ccmm.xsl").withProperty(ORGANIZATION_NAMES, "|kino|")
-            .to(resource(MAIN));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:person[ccmm:name='Kinofa'])", equalTo("1"))));
-    }
-
-    @Test
     public void ccmmNoTextHasAnEmptyLanguage() throws Exception {
         // CCMM wants language-tagged text; an unknown language is "und", never ""
         String result = apply("ccmm.xsl").to(resource(MAIN));
@@ -1990,32 +1960,12 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmConfiguredOrganizationNameOfSeveralWordsAppliesToEveryAgentRole() throws Exception {
-        String result = apply("ccmm.xsl").withProperty(ORGANIZATION_NAMES, "|paramount praha|")
-            .to(new ByteArrayInputStream(add(fixture(MAIN), "dc",
-                field("contributor.other", "none", "Paramount  Praha")).getBytes(StandardCharsets.UTF_8)));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:organization[ccmm:name='Paramount  Praha' or ccmm:name='Paramount Praha'])",
-            equalTo("1"))));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:person[contains(ccmm:name, 'Paramount')])", equalTo("0"))));
-    }
-
-    @Test
-    public void ccmmBlankOrganizationNamesPropertyChangesNothing() throws Exception {
-        String result = apply("ccmm.xsl").withProperty(ORGANIZATION_NAMES, "  |  ").to(resource(MAIN));
-        assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:person[ccmm:name='Kinofa'])", equalTo("1"))));
-    }
-
-    @Test
     public void ccmmFundingFixtureHasTwoGrants() throws Exception {
         // the baseline the funding tests compare against
         assertThat(apply("ccmm.xsl").to(resource(FUNDING)), is(ccmm().withXPath(
             "count(//ccmm:funding_reference)", equalTo(String.valueOf(FUNDING_GRANTS)))));
     }
 
-    private static final String ORGANIZATION_NAMES = "oai.ccmm.organization.names";
     private static final String RELATION = "https://vocabs.ccmm.cz/registry/codelist/RelationType/";
     private static final String XXX_LICENCE = "http://copy.example.org:85/XXX/static/licence-UD-2.2.html";
     private static final String REPOSITORY_LICENCE = "https://repository.example.org/repository/static/licence-UD-2.2.html";

@@ -238,18 +238,10 @@
     <!--
         Agent names.  DSpace has one string per agent and no type, so the type has to be read off
         the value.  ORGANIZATION_AGENT_PATTERN carries the corporate forms any repository produces
-        and decides the type on its own.  ANVL placeholders and "et al." are not agents at all and
-        produce no relation, which lets the Creator fallback in QualifiedRelations fire instead.
-
-        Names a repository knows to be corporate but that carry no such word - a studio or an
-        imprint known only by a proper noun - are deployment data, so they are read from the
-        configuration property oai.ccmm.organization.names ("Aktualita|Kinofa|Paramount Praha"):
-        separated by "|", compared with the WHOLE agent name, ignoring case and extra spaces.
-        Unset, it costs only the type on those few values.
+        and decides the type on its own, for every field but dc.contributor.author and dc.creator.
+        ANVL placeholders and "et al." are not agents at all and produce no relation, which lets
+        the Creator fallback in QualifiedRelations fire instead.
     -->
-    <xsl:variable name="organizationAgentNames"
-        select="for $n in tokenize(lower-case(string(fn:getProperty('oai.ccmm.organization.names'))), '\|')
-                return normalize-space($n)[. != '']"/>
     <xsl:variable name="ORGANIZATION_AGENT_PATTERN"
         select="'(univ|institu|akadem|academi|(^|\P{L})[uú]stav|fondazione|s\.r\.o|gmbh|(^|[^a-z])(ltd|inc)([^a-z]|$)|archiv|mus[ez]um|society|consortium|cent(re|er|rum)|agency|association|foundation|council|library|knihovna|press|ministr|company|film|journal|news|studio|produkc|production|facult|fakult|school|college|dept|departmen|laborat|(^|[^a-z])union([^a-z]|$)|nakladatel|vydavatel)'"/>
     <xsl:variable name="creatorValues"
@@ -647,11 +639,15 @@
     <!-- ============================================================ -->
     <xsl:template name="QualifiedRelations">
         <xsl:variable name="deduped">
-        <!-- dc.contributor.author and dc.creator -> Creator -->
+        <!--
+            dc.contributor.author and dc.creator -> Creator.  These fields name people: a corporate
+            name there is a data error the repository fixes, not one the type is guessed around.
+        -->
         <xsl:call-template name="AgentRelations">
             <xsl:with-param name="values" select="$creatorValues"/>
             <xsl:with-param name="roleIri" select="'https://vocabs.ccmm.cz/registry/codelist/AgentRole/Creator'"/>
             <xsl:with-param name="roleLabel" select="'Creator'"/>
+            <xsl:with-param name="alwaysPerson" select="true()"/>
         </xsl:call-template>
         <!-- dc.contributor.editor -> Editor -->
         <xsl:call-template name="AgentRelations">
@@ -733,6 +729,7 @@
         <xsl:param name="roleIri"/>
         <xsl:param name="roleLabel"/>
         <xsl:param name="preferOrganization" select="false()"/>
+        <xsl:param name="alwaysPerson" select="false()"/>
         <xsl:for-each select="$values">
             <xsl:variable name="raw" select="normalize-space(.)"/>
             <xsl:variable name="agents" select="tokenize($raw, '\s*;\s*')"/>
@@ -745,6 +742,7 @@
                             <xsl:call-template name="AgentNode">
                                 <xsl:with-param name="v" select="$v"/>
                                 <xsl:with-param name="preferOrganization" select="$preferOrganization"/>
+                                <xsl:with-param name="alwaysPerson" select="$alwaysPerson"/>
                             </xsl:call-template>
                         </ccmm:relation>
                         <ccmm:role>
@@ -758,16 +756,17 @@
     </xsl:template>
 
     <!--
-        A person or an organization, decided from the name itself.  A publisher defaults to an
-        organization unless the same string is also credited as an author of the same record.
+        A person or an organization, decided from the name itself - except for an author, who is
+        always a person.  A publisher defaults to an organization unless the same string is also
+        credited as an author of the same record.
         "Family, Given" - exactly one comma - additionally yields the name parts CCMM asks for.
     -->
     <xsl:template name="AgentNode">
         <xsl:param name="v"/>
         <xsl:param name="preferOrganization" select="false()"/>
+        <xsl:param name="alwaysPerson" select="false()"/>
         <xsl:variable name="isNamedOrg"
-            select="lower-case(normalize-space($v)) = $organizationAgentNames
-                    or matches($v, $ORGANIZATION_AGENT_PATTERN, 'i')"/>
+            select="not($alwaysPerson) and matches($v, $ORGANIZATION_AGENT_PATTERN, 'i')"/>
         <xsl:variable name="alsoAnAuthor" select="exists($creatorValues[normalize-space(.) = $v])"/>
         <xsl:choose>
             <xsl:when test="$isNamedOrg or ($preferOrganization and not($alsoAnAuthor))">
