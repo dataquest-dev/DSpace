@@ -145,8 +145,13 @@
     <!-- ============================================================ -->
     <xsl:variable name="issuedAll"
         select="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']"/>
-    <!-- "0000", and a year below 1000 ("0194" for 194x) that is a typo, not a date: unknown -->
-    <xsl:variable name="issuedFirst" select="$issuedAll[not(matches(normalize-space(.), '^0[0-9]{3}'))][1]"/>
+    <!--
+        "0000", and a year below 1000 ("0194" for 194x) that is a typo, not a date: unknown.  The
+        year is the first four-digit group, as $issuedYear reads it, so "[0194]" is caught too.
+    -->
+    <xsl:variable name="issuedFirst"
+        select="$issuedAll[not(matches(normalize-space(.), '^0[0-9]{3}'))]
+                          [not(starts-with(tokenize(normalize-space(.), '[^0-9]+')[matches(., '^[0-9]{4}$')][1], '0'))][1]"/>
     <xsl:variable name="approxRaw"
         select="normalize-space(string((/doc:metadata/doc:element[@name='local']/doc:element[@name='approximateDate']/doc:element[@name='issued']/doc:element/doc:field[@name='value'])[1]))"/>
     <xsl:variable name="approxYears" select="tokenize($approxRaw, '[^0-9]+')[string-length(.) = 4]"/>
@@ -1587,8 +1592,10 @@
     <!-- funding_reference (optional, unbounded)                       -->
     <!-- ============================================================ -->
     <xsl:template name="FundingReferences">
+        <!-- sponsors that yield a grant: something real in code, funder or project -->
         <xsl:variable name="sponsorValues"
-            select="doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value'][normalize-space(.) != '']"/>
+            select="doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value']
+                    [some $p in tokenize(normalize-space(.), ';')[position() = (2, 3, 4)] satisfies not(cw:isPlaceholder($p))]"/>
         <!--
             The grant numbers already published from the info:eu-repo URIs.  local.sponsor spells
             the same grant differently - "288487" there, "FP7-ICT-2011-7-288487" here - so the
@@ -1613,10 +1620,13 @@
                 <xsl:variable name="sponsor"
                     select="(/doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value'][contains(., $parts[5])])[1]"/>
                 <xsl:variable name="sponsorParts" select="tokenize(string($sponsor), ';')"/>
+                <!-- a placeholder ("None", "unknown") names nobody, as in the local.sponsor loop below -->
+                <xsl:variable name="sponsorFunder" select="if (cw:isPlaceholder($sponsorParts[3])) then '' else normalize-space($sponsorParts[3])"/>
+                <xsl:variable name="sponsorProject" select="if (cw:isPlaceholder($sponsorParts[4])) then '' else normalize-space($sponsorParts[4])"/>
                 <ccmm:funding_reference>
                     <ccmm:local_identifier><xsl:value-of select="replace(replace($parts[5], '%2F', '/'), '%2f', '/')"/></ccmm:local_identifier>
-                    <xsl:if test="normalize-space($sponsorParts[4]) != ''">
-                        <ccmm:award_title><xsl:value-of select="normalize-space($sponsorParts[4])"/></ccmm:award_title>
+                    <xsl:if test="$sponsorProject != ''">
+                        <ccmm:award_title><xsl:value-of select="$sponsorProject"/></ccmm:award_title>
                     </xsl:if>
                     <xsl:if test="normalize-space($parts[4]) != ''">
                         <ccmm:funding_program><xsl:value-of select="normalize-space($parts[4])"/></ccmm:funding_program>
@@ -1625,7 +1635,7 @@
                         <ccmm:organization>
                             <ccmm:name>
                                 <xsl:choose>
-                                    <xsl:when test="normalize-space($sponsorParts[3]) != ''"><xsl:value-of select="normalize-space($sponsorParts[3])"/></xsl:when>
+                                    <xsl:when test="$sponsorFunder != ''"><xsl:value-of select="$sponsorFunder"/></xsl:when>
                                     <xsl:when test="$parts[3] = 'EC'">European Commission</xsl:when>
                                     <xsl:when test="$parts[3] = 'MSM'">Ministry of Education, Youth and Sports of the Czech Republic</xsl:when>
                                     <xsl:when test="$parts[3] = 'GACR'">Czech Science Foundation</xsl:when>

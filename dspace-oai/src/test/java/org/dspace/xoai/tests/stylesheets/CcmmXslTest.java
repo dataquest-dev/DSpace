@@ -1579,6 +1579,31 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
+    public void ccmmSponsorWithNothingButPlaceholdersKeepsTheMetashareGrants() throws Exception {
+        // such a sponsor yields no grant, so it must not stand in for the META-SHARE projects either
+        String result = ccmmOf(add(add(fixture(MAIN), "metashare", metashareProjects(
+                new String[] {"Faust"}, new String[] {"euFunds"})),
+            "local", field("sponsor", "none", "ownFunds;unknown;;;", "nationalFunds;-;;-;")));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:funding_reference[ccmm:award_title='Faust'])", equalTo("1"))));
+    }
+
+    @Test
+    public void ccmmPlaceholderSponsorPartsAreLeftOutOfAnInfoEuRepoGrant() throws Exception {
+        // the sponsor matching info:eu-repo/grantAgreement/EC/FP7/288487 names no funder or project
+        String result = ccmmOf(once(fixture(FUNDING), "euFunds;FP7-ICT-2011-7-288487;European Union;MosesCore;",
+            "euFunds;FP7-ICT-2011-7-288487;None;unknown;"));
+        String grant = "//ccmm:funding_reference[ccmm:local_identifier='288487']";
+        assertThat(result, is(ccmm().withXPath(
+            grant + "/ccmm:funder/ccmm:organization/ccmm:name", equalTo("European Commission"))));
+        assertThat(result, is(ccmm().withXPath("count(" + grant + "/ccmm:award_title)", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:funding_reference//*[.='None' or .='unknown'])", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath("count(//ccmm:funding_reference)",
+            equalTo(String.valueOf(FUNDING_GRANTS)))));
+    }
+
+    @Test
     public void ccmmConfiguredOrganizationNameIsAnOrganization() throws Exception {
         String result = apply("ccmm.xsl").withProperty(ORGANIZATION_NAMES, "|kinofa|aktualita|")
             .to(resource(MAIN));
@@ -1728,6 +1753,21 @@ public class CcmmXslTest extends AbstractXSLTest {
             is(ccmm().withXPath("//ccmm:dataset/ccmm:publication_year", equalTo("2025"))));
         assertThat(ccmmOf(once(fixture(MAIN), "2025-03-20", "1000")),
             is(ccmm().withXPath("//ccmm:dataset/ccmm:publication_year", equalTo("1000"))));
+    }
+
+    @Test
+    public void ccmmIssueYearBeforeTheYearThousandIsUnknownAlsoAfterAPrefix() throws Exception {
+        // the year is read from the first four-digit group, so the check has to read the same one
+        for (String issued : new String[] {"[0194]", "c. 0194", "cca 0194-0195"}) {
+            String result = ccmmOf(once(fixture(MAIN), "2025-03-20", issued));
+            assertThat(issued, result, is(ccmm().withXPath(
+                "//ccmm:dataset/ccmm:publication_year", equalTo("2025"))));
+            assertThat(issued, result, is(ccmm().withXPath(
+                "count(//ccmm:date_information[starts-with(., 'Issue date unknown')])", equalTo("1"))));
+        }
+        // a real year behind the same prefix is still the year
+        assertThat(ccmmOf(once(fixture(MAIN), "2025-03-20", "[1994]")),
+            is(ccmm().withXPath("//ccmm:dataset/ccmm:publication_year", equalTo("1994"))));
     }
 
     @Test
