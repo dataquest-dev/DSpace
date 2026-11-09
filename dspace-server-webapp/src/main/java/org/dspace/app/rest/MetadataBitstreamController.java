@@ -81,6 +81,7 @@ public class MetadataBitstreamController {
 
     /**
      * Download all Item's bitstreams as single ZIP file.
+     * The {@code handleId} must identify the item {@code uuid}; otherwise the request is refused with 422.
      */
     @PreAuthorize("hasPermission(#uuid, 'ITEM', 'READ')")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "allzip")
@@ -106,13 +107,12 @@ public class MetadataBitstreamController {
             throw new RuntimeException("Cannot resolve handle: " + handleId);
         }
 
-        if (Objects.isNull(dso)) {
-            log.error("DSO is null");
-            throw new UnprocessableEntityException("Retrieved DSO is null, handle: " + handleId);
-        }
-
-        if (!(dso instanceof Item)) {
-            log.info("DSO is not instance of Item");
+        // @PreAuthorize checks READ on {uuid} only, so the zip must be built from that very item. A handle of
+        // another object would otherwise stream its files and put its title into Content-Disposition.
+        // An unknown handle gets the same answer, so the response does not tell whether a handle exists.
+        if (!(dso instanceof Item) || !Objects.equals(dso.getID(), uuid)) {
+            log.error("Handle {} does not identify the item {}", handleId, uuid);
+            throw new UnprocessableEntityException("Handle " + handleId + " does not identify the item " + uuid);
         }
 
         Item item = (Item) dso;
