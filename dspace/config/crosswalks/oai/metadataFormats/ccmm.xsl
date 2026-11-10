@@ -51,6 +51,8 @@
     <!-- FRASCATI FORD discipline published when an item has none: CCMM wants at least one subject
          from FORD and DSpace does not record it -->
     <xsl:variable name="FORD_SCHEME" select="'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/'"/>
+    <xsl:variable name="FORD_SCHEME_EN" select="'OECD FORD Subject Category (Frascati)'"/>
+    <xsl:variable name="FORD_SCHEME_CS" select="'Oborové třídění OECD FORD (Frascati)'"/>
     <xsl:variable name="DEFAULT_FORD_CODE" select="'50000'"/>
     <xsl:variable name="DEFAULT_FORD_EN" select="'Social sciences'"/>
     <xsl:variable name="DEFAULT_FORD_CS" select="'Společenské vědy'"/>
@@ -1381,8 +1383,8 @@
                 <ccmm:classification_code><xsl:value-of select="$DEFAULT_FORD_CODE"/></ccmm:classification_code>
                 <ccmm:subject_scheme>
                     <ccmm:iri><xsl:value-of select="$FORD_SCHEME"/></ccmm:iri>
-                    <ccmm:label xml:lang="en">OECD FORD Subject Category (Frascati)</ccmm:label>
-                    <ccmm:label xml:lang="cs">Oborové třídění OECD FORD (Frascati)</ccmm:label>
+                    <ccmm:label xml:lang="en"><xsl:value-of select="$FORD_SCHEME_EN"/></ccmm:label>
+                    <ccmm:label xml:lang="cs"><xsl:value-of select="$FORD_SCHEME_CS"/></ccmm:label>
                 </ccmm:subject_scheme>
             </ccmm:subject>
         </xsl:if>
