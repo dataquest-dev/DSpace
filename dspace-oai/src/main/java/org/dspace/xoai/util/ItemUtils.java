@@ -50,6 +50,8 @@ import org.dspace.core.Utils;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.core.service.LicenseService;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.xoai.data.DSpaceItem;
@@ -88,6 +90,8 @@ public class ItemUtils {
 
     private static final ResourcePolicyService resourcePolicyService
         = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+
+    private static final GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
 
     /** Values of others/anonymousAccess, see {@link #getAnonymousAccess(Context, Item)}. */
     public static final String ACCESS_OPEN = "open";
@@ -258,7 +262,8 @@ public class ItemUtils {
 
     /**
      * Whether an anonymous user can download the files of the item, decided by the same two gates the
-     * download goes through: a READ policy of the Anonymous group on the bitstream, and a Clarin license
+     * download goes through: a READ policy on the bitstream for a group anonymous users belong to (Anonymous
+     * itself or a group that has Anonymous as a subgroup, as GroupService.isMember decides), and a Clarin license
      * that does not require a signed-in user. Every bitstream of the ORIGINAL bundle is checked, not only
      * the primary one.
      *
@@ -273,6 +278,7 @@ public class ItemUtils {
         int files = 0;
         int open = 0;
         int embargoed = 0;
+        Group anonymous = groupService.findByName(context, Group.ANONYMOUS);
         for (Bundle bundle : itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME)) {
             for (Bitstream bitstream : bundle.getBitstreams()) {
                 files++;
@@ -280,7 +286,7 @@ public class ItemUtils {
                 boolean readLater = false;
                 for (ResourcePolicy policy : authorizeService.getPoliciesActionFilter(context, bitstream,
                         Constants.READ)) {
-                    if (policy.getGroup() == null || !Group.ANONYMOUS.equals(policy.getGroup().getName())) {
+                    if (!includesAnonymous(context, policy.getGroup(), anonymous)) {
                         continue;
                     }
                     if (resourcePolicyService.isDateValid(policy)) {
@@ -309,6 +315,19 @@ public class ItemUtils {
             return ACCESS_EMBARGO;
         }
         return ACCESS_RESTRICTED;
+    }
+
+    /**
+     * Whether anonymous users are members of the group: it is Anonymous, or Anonymous is one of its
+     * subgroups. The same two cases GroupService.isMember lets through for a user without an account;
+     * special groups (IP authentication) are left out, they depend on who asks.
+     */
+    private static boolean includesAnonymous(Context context, Group group, Group anonymous) throws SQLException {
+        if (group == null) {
+            return false;
+        }
+        return Group.ANONYMOUS.equals(group.getName())
+            || (anonymous != null && groupService.isParentOf(context, group, anonymous));
     }
 
     private static Element createLicenseElement(Context context, Item item)
