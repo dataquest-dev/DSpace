@@ -70,7 +70,7 @@ public class SubmissionFormsLocaleConsistencyTest {
     private static final Set<String> FIELD_LOCALIZED_TAGS = Set.of("label", "hint", "required");
 
     /** {@code <relation-field>} children whose *text* may legitimately differ between locales. */
-    private static final Set<String> RELATION_FIELD_LOCALIZED_TAGS = Set.of("label", "hint");
+    private static final Set<String> RELATION_FIELD_LOCALIZED_TAGS = Set.of("label", "hint", "required");
 
     /** {@code <pair>} children whose *text* may legitimately differ between locales. */
     private static final Set<String> PAIR_LOCALIZED_TAGS = Set.of("displayed-value");
@@ -192,6 +192,13 @@ public class SubmissionFormsLocaleConsistencyTest {
             assertEquals("form '" + name + "': row count mismatch", enRows.size(), localeRows.size());
 
             for (int r = 0; r < enRows.size(); r++) {
+                List<String> enRowTags = tagsOf(childElements(enRows.get(r)));
+                List<String> localeRowTags = tagsOf(childElements(localeRows.get(r)));
+                assertEquals("form '" + name + "' row " + r + ": child element order mismatch\n"
+                                + "  original : " + enRowTags + "\n"
+                                + "  localized: " + localeRowTags,
+                        enRowTags, localeRowTags);
+
                 List<Element> enFields = childElementsByTag(enRows.get(r), "field");
                 List<Element> localeFields = childElementsByTag(localeRows.get(r), "field");
                 assertEquals("form '" + name + "' row " + r + ": field count mismatch",
