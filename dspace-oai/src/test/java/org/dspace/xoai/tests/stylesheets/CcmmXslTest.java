@@ -464,22 +464,47 @@ public class CcmmXslTest extends AbstractXSLTest {
 
     @Test
     public void ccmmRecordWithNoSubjectGetsTheConfiguredDefaultSubject() throws Exception {
-        // subject is 1..n; dc.subject is required at submission, this is only the safety net
         String result = apply("ccmm.xsl").withProperty("oai.ccmm.subject.default", "Research data")
             .to(resource(MINIMAL));
         assertThat(result, is(ccmm().withXPath(
-            "count(//ccmm:dataset/ccmm:subject)", equalTo("1"))));
+            "count(//ccmm:dataset/ccmm:subject[not(ccmm:subject_scheme)])", equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:subject/ccmm:title", equalTo("Research data"))));
+            "//ccmm:dataset/ccmm:subject[not(ccmm:subject_scheme)]/ccmm:title", equalTo("Research data"))));
+        assertThat(result, is(ccmm().withXPath(
+            "//ccmm:dataset/ccmm:subject[ccmm:subject_scheme]/ccmm:classification_code", equalTo("50000"))));
     }
 
     @Test
-    public void ccmmRecordWithNoSubjectAndNoDefaultDeclaresTheSubjectUnavailable() throws Exception {
+    public void ccmmRecordWithNoSubjectAndNoDefaultHasOnlyTheDefaultFord() throws Exception {
+        // the FORD subject already fills the required subject, so no ":unav" stand-in is needed
         String result = apply("ccmm.xsl").to(resource(MINIMAL));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:dataset/ccmm:subject)", equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:subject/ccmm:title", equalTo(":unav"))));
+            "//ccmm:dataset/ccmm:subject/ccmm:classification_code", equalTo("50000"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:subject/ccmm:title[.=':unav'])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmItemWithoutFordGetsSocialSciences() throws Exception {
+        // CCMM: at least one subject must come from FRASCATI FORD; DSpace records none, so the
+        // repository's default discipline is published, next to the item's own keywords
+        String result = apply("ccmm.xsl").to(resource(MAIN));
+        String ford = "//ccmm:dataset/ccmm:subject[ccmm:subject_scheme/ccmm:iri="
+            + "'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/']";
+        assertThat(result, is(ccmm().withXPath("count(" + ford + ")", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/50000"))));
+        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:title[@xml:lang='en']", equalTo("Social sciences"))));
+        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:title[@xml:lang='cs']", equalTo("Společenské vědy"))));
+        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:classification_code", equalTo("50000"))));
+        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:subject_scheme/ccmm:label[@xml:lang='en']",
+            equalTo("OECD FORD Subject Category (Frascati)"))));
+        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:subject_scheme/ccmm:label[@xml:lang='cs']",
+            equalTo("Oborové třídění OECD FORD (Frascati)"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:dataset/ccmm:subject/ccmm:title[.='linguistics'])", equalTo("1"))));
     }
 
     @Test
@@ -493,13 +518,16 @@ public class CcmmXslTest extends AbstractXSLTest {
     @Test
     public void ccmmNoFordFieldIsDerivedFromTheResourceType() throws Exception {
         // DSpace records no discipline; deriving one from dc.type would publish one the depositor
-        // never stated, e.g. "Linguistics" for every dataset of a non-linguistic repository
+        // never stated, e.g. "Linguistics" for every dataset of a non-linguistic repository. The
+        // only FORD subject is the fixed default.
         for (String fixture : new String[] {MAIN, MINIMAL, CLIP, TOOL, STOCK}) {
             String result = apply("ccmm.xsl").to(resource(fixture));
             assertThat(fixture, result, is(ccmm().withXPath(
-                "count(//ccmm:subject_scheme[contains(ccmm:iri, 'SubjectCategory')])", equalTo("0"))));
+                "count(//ccmm:subject_scheme[contains(ccmm:iri, 'SubjectCategory')])", equalTo("1"))));
             assertThat(fixture, result, is(ccmm().withXPath(
-                "count(//ccmm:subject/ccmm:iri[contains(., 'SubjectCategory')])", equalTo("0"))));
+                "count(//ccmm:subject/ccmm:iri[contains(., 'SubjectCategory')]"
+                    + "[. != 'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/50000'])",
+                equalTo("0"))));
             assertThat(fixture, result, is(ccmm().withXPath(
                 "count(//ccmm:subject/ccmm:title[.='Linguistics' or .='Lingvistika'"
                     + " or .='History' or .='Historie'])", equalTo("0"))));
