@@ -84,11 +84,11 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 WORKDIR /usr/local/tomcat/bin
 RUN chmod u+x redebug.sh undebug.sh custom_run.sh
 
-RUN mkdir -p /dspace/assetstore \
-    && chown dspace:dspace /dspace/assetstore \
+RUN mkdir -p /dspace/assetstore /dspace/sitemaps \
+    && chown dspace:dspace /dspace/assetstore /dspace/sitemaps \
     && chown -Rv dspace:dspace /usr/local/tomcat
-# NOTE: /dspace/assetstore does not exist in the base image.
-# We create it so Docker named volumes inherit the correct ownership.
+# NOTE: /dspace/assetstore and /dspace/sitemaps do not exist in the base image.
+# We create them so Docker named volumes inherit the correct ownership.
 # This only works for *named volumes* — bind mounts use host permissions.
 
 USER dspace
