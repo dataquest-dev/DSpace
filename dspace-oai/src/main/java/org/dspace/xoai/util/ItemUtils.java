@@ -25,7 +25,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.app.util.service.MetadataExposureService;
-import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -263,8 +262,9 @@ public class ItemUtils {
     /**
      * Whether an anonymous user can download the files of the item, decided by the same two gates the
      * download goes through: a READ policy on the bitstream for a group anonymous users belong to (Anonymous
-     * itself or a group that has Anonymous as a subgroup, as GroupService.isMember decides), and a Clarin license
-     * that does not require a signed-in user. Every bitstream of the ORIGINAL bundle is checked, not only
+     * itself or a group that has Anonymous as a subgroup, as GroupService.isMember decides), and no Clarin license
+     * left to agree to (ClarinLicenseResourceMappingService.getLicenseToAgree for an anonymous user, so only
+     * no license or NOT_REQUIRED passes). Every bitstream of the ORIGINAL bundle is checked, not only
      * the primary one.
      *
      * @param context DSpace context
@@ -295,12 +295,14 @@ public class ItemUtils {
                         readLater = true;
                     }
                 }
-                boolean licenseOk = AuthorizationBitstreamUtils.licenseAllowsAnonymous(
-                        clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID()));
+                // the download gate itself: a license still to agree to (ALLOW_ANONYMOUS too, which mails a
+                // token) keeps the file closed to an anonymous user
+                boolean licenseOk = clarinLicenseResourceMappingService
+                        .getLicenseToAgree(context, null, bitstream.getID()) == null;
                 if (readNow && licenseOk) {
                     open++;
                 } else if (!readNow && readLater && licenseOk) {
-                    // A license that requires a signed-in user keeps the file closed after the embargo too
+                    // A license to agree to keeps the file closed after the embargo too
                     embargoed++;
                 }
             }

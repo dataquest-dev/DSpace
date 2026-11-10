@@ -82,19 +82,17 @@ public class ItemUtilsAnonymousAccessIT extends AbstractControllerIntegrationTes
     }
 
     @Test
-    public void licenseThatAllowsAnonymousIsOpen() throws Exception {
-        for (Confirmation confirmation : new Confirmation[] {Confirmation.NOT_REQUIRED,
-            Confirmation.ALLOW_ANONYMOUS}) {
-            Item item = item();
-            license(file(item), confirmation);
-            assertEquals(confirmation.name(), ItemUtils.ACCESS_OPEN, ItemUtils.getAnonymousAccess(context, item));
-        }
+    public void licenseWithoutConfirmationIsOpen() throws Exception {
+        Item item = item();
+        license(file(item), Confirmation.NOT_REQUIRED);
+        assertEquals(ItemUtils.ACCESS_OPEN, ItemUtils.getAnonymousAccess(context, item));
     }
 
     @Test
-    public void licenseThatRequiresSignInIsRestrictedDespiteAnonymousRead() throws Exception {
+    public void licenseThatAsksForConfirmationIsRestrictedDespiteAnonymousRead() throws Exception {
+        // ALLOW_ANONYMOUS too: the download still wants the license agreed and a token sent by e-mail
         for (Confirmation confirmation : new Confirmation[] {Confirmation.ASK_ONLY_ONCE,
-            Confirmation.ASK_ALWAYS}) {
+            Confirmation.ASK_ALWAYS, Confirmation.ALLOW_ANONYMOUS}) {
             Item item = item();
             license(file(item), confirmation);
             assertEquals(confirmation.name(), ItemUtils.ACCESS_RESTRICTED,
