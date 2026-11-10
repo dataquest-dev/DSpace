@@ -15,6 +15,8 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.dspace.xoai.tests.support.XmlMatcherBuilder;
@@ -678,12 +680,14 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmFundingReferenceSpellsOutTheFunderAndTheProgramme() throws Exception {
+    public void ccmmFundingReferenceSpellsOutTheFunderButNoProgrammeCode() throws Exception {
+        // funding_program is a reference (xsd:anyURI) to the programme; "H2020" from the
+        // info:eu-repo path is only a code, so the optional element is left out
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:funding_reference/ccmm:local_identifier", equalTo("900002"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:funding_reference/ccmm:funding_program", equalTo("H2020"))));
+            "count(//ccmm:funding_reference/ccmm:funding_program)", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:funding_reference/ccmm:funder/ccmm:organization/ccmm:name",
             equalTo("European Commission"))));
@@ -1667,6 +1671,41 @@ public class CcmmXslTest extends AbstractXSLTest {
                 "count(//ccmm:related_resource[ccmm:iri='" + REPLACED + "']"
                     + "[ccmm:resource_relation_type/ccmm:iri='" + RELATION + type + "'])", equalTo("1"))));
         }
+    }
+
+    @Test
+    public void ccmmDemoUriThatIsAFeaturedServiceIsOnlyADistribution() throws Exception {
+        // CCMM: distributions of the dataset SHALL NOT be modeled as related resource
+        String demo = "https://example.org/demo";
+        String result = ccmmOf(add(fixture(MAIN), "local", field("featuredService.kontext", "none", "Search|" + demo)));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:distribution_data_service/ccmm:access_service[ccmm:iri='" + demo + "'])", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:related_resource[ccmm:iri='" + demo + "'])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmSourceUriThatIsTheWebServiceIsOnlyADistribution() throws Exception {
+        String result = ccmmOf(add(fixture(MAIN), "local", field("additional.metadata", "none",
+            "Webservice link (field_tool_webservice_link):" + SOURCE_URI)));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:distribution_data_service/ccmm:access_service[ccmm:iri='" + SOURCE_URI + "'])",
+            equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:related_resource[ccmm:iri='" + SOURCE_URI + "'])", equalTo("0"))));
+    }
+
+    @Test
+    public void ccmmStatedRelationToADownloadableFileIsOnlyADistribution() throws Exception {
+        Matcher download = Pattern.compile("<ccmm:download_url>\\s*<ccmm:iri>([^<]+)</ccmm:iri>")
+            .matcher(ccmmOf(fixture(MAIN)));
+        assertThat(download.find(), is(true));
+        String file = download.group(1);
+        String result = ccmmOf(add(fixture(MAIN), "dc", field("relation.haspart", "none", file)));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:download_url[ccmm:iri='" + file + "'])", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:related_resource[ccmm:iri='" + file + "'])", equalTo("0"))));
     }
 
     @Test

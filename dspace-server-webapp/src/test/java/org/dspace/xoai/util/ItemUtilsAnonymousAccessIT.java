@@ -23,6 +23,7 @@ import org.dspace.builder.ClarinLicenseBuilder;
 import org.dspace.builder.ClarinLicenseResourceMappingBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.ResourcePolicyBuilder;
 import org.dspace.content.Bitstream;
@@ -37,6 +38,7 @@ import org.dspace.content.service.clarin.ClarinLicenseService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,6 +54,7 @@ public class ItemUtilsAnonymousAccessIT extends AbstractControllerIntegrationTes
         ClarinServiceFactory.getInstance().getClarinLicenseService();
     private final ClarinLicenseResourceMappingService mappingService =
         ClarinServiceFactory.getInstance().getClarinLicenseResourceMappingService();
+    private final GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
 
     private Collection collection;
     private Group anonymous;
@@ -61,7 +64,7 @@ public class ItemUtilsAnonymousAccessIT extends AbstractControllerIntegrationTes
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context).withName("Community").build();
         collection = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection").build();
-        anonymous = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
+        anonymous = groupService.findByName(context, Group.ANONYMOUS);
         context.restoreAuthSystemState();
     }
 
@@ -135,6 +138,37 @@ public class ItemUtilsAnonymousAccessIT extends AbstractControllerIntegrationTes
     }
 
     @Test
+    public void readOfAGroupContainingAnonymousIsOpen() throws Exception {
+        // the download lets in every member of a group that has Anonymous as a subgroup
+        Item item = item();
+        Bitstream bitstream = file(item);
+        removeRead(bitstream);
+        read(bitstream, groupContainingAnonymous(), null);
+        assertEquals(ItemUtils.ACCESS_OPEN, ItemUtils.getAnonymousAccess(context, item));
+    }
+
+    @Test
+    public void futureReadOfAGroupContainingAnonymousIsEmbargo() throws Exception {
+        Item item = item();
+        Bitstream bitstream = file(item);
+        removeRead(bitstream);
+        read(bitstream, groupContainingAnonymous(), inThirtyDays());
+        assertEquals(ItemUtils.ACCESS_EMBARGO, ItemUtils.getAnonymousAccess(context, item));
+    }
+
+    @Test
+    public void readOfAGroupWithoutAnonymousIsRestricted() throws Exception {
+        Item item = item();
+        Bitstream bitstream = file(item);
+        removeRead(bitstream);
+        context.turnOffAuthorisationSystem();
+        Group readers = GroupBuilder.createGroup(context).withName("Readers without Anonymous").build();
+        context.restoreAuthSystemState();
+        read(bitstream, readers, null);
+        assertEquals(ItemUtils.ACCESS_RESTRICTED, ItemUtils.getAnonymousAccess(context, item));
+    }
+
+    @Test
     public void retrieveMetadataPublishesTheValueUnderOthers() throws Exception {
         Item item = item();
         file(item);
@@ -179,13 +213,30 @@ public class ItemUtilsAnonymousAccessIT extends AbstractControllerIntegrationTes
 
     private void embargo(Bitstream bitstream) throws Exception {
         removeRead(bitstream);
+        read(bitstream, anonymous, inThirtyDays());
+    }
+
+    private void read(Bitstream bitstream, Group group, LocalDate startDate) throws Exception {
         context.turnOffAuthorisationSystem();
-        ResourcePolicyBuilder.createResourcePolicy(context, null, anonymous)
+        ResourcePolicyBuilder.createResourcePolicy(context, null, group)
             .withDspaceObject(bitstream)
             .withAction(Constants.READ)
-            .withStartDate(LocalDate.now().plusDays(30))
+            .withStartDate(startDate)
             .build();
         context.restoreAuthSystemState();
+    }
+
+    private Group groupContainingAnonymous() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Group readers = GroupBuilder.createGroup(context).withName("Readers with Anonymous").build();
+        groupService.addMember(context, readers, anonymous);
+        groupService.update(context, readers);
+        context.restoreAuthSystemState();
+        return readers;
+    }
+
+    private static LocalDate inThirtyDays() {
+        return LocalDate.now().plusDays(30);
     }
 
     private void removeRead(Bitstream bitstream) throws Exception {
