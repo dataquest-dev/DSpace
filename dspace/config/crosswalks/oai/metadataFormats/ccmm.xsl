@@ -358,11 +358,19 @@
             <!-- funding_reference (optional, unbounded) -->
             <xsl:call-template name="FundingReferences"/>
 
+            <!-- built before the related resources, which must not repeat a distribution -->
+            <xsl:variable name="distributions" as="element()*">
+                <xsl:call-template name="Distributions"/>
+            </xsl:variable>
+
             <!-- related_resource (optional, unbounded) -->
-            <xsl:call-template name="RelatedResources"/>
+            <xsl:call-template name="RelatedResources">
+                <xsl:with-param name="distributionIris" as="xs:string*"
+                    select="$distributions//(ccmm:download_url | ccmm:access_service | ccmm:endpoint_url)/ccmm:iri/string()"/>
+            </xsl:call-template>
 
             <!-- distribution (optional, unbounded) -->
-            <xsl:call-template name="Distributions"/>
+            <xsl:sequence select="$distributions"/>
 
             <!-- validation_result (optional, unbounded) -->
             <xsl:call-template name="ValidationResults"/>
@@ -1660,6 +1668,8 @@
     <!-- ============================================================ -->
     <!-- (funding continues below in FundingReferences) -->
     <xsl:template name="RelatedResources">
+        <!-- the URLs the record's distributions are reached at -->
+        <xsl:param name="distributionIris" as="xs:string*" select="()"/>
         <xsl:variable name="deduped">
         <!-- every dc.relation qualifier that names another resource -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name = ('uri', 'ispartof', 'haspart', 'replaces', 'isreplacedby', 'isreferencedby', 'references', 'isbasedon', 'isversionof', 'hasversion', 'requires', 'isrequiredby', 'isformatof', 'hasformat')]/doc:element/doc:field[@name='value']">
@@ -1724,10 +1734,13 @@
             published, also two different ones to one resource - choosing between them would be
             correcting the record.  The same relation stated twice (dc.relation and the migrated
             catalogue's publications) is one element, the first.  Resources known only by a title
-            have no identity to compare and all stay.
+            have no identity to compare and all stay.  A URL that is already one of the record's
+            distributions (a featured service also given as the demo, a web service also given as
+            the source) is not repeated as a related resource: CCMM says distributions SHALL NOT be
+            modeled as related resources.
         -->
         <xsl:variable name="perIri" as="element()*">
-            <xsl:for-each-group select="$deduped/*" group-by="if (ccmm:iri) then string(ccmm:iri) else generate-id()">
+            <xsl:for-each-group select="$deduped/*[not(ccmm:iri = $distributionIris)]" group-by="if (ccmm:iri) then string(ccmm:iri) else generate-id()">
                 <xsl:variable name="best" select="min(for $r in current-group() return cw:relationRank($r))"/>
                 <xsl:for-each-group select="current-group()[cw:relationRank(.) = $best]"
                                     group-by="string(ccmm:resource_relation_type/ccmm:iri)">
