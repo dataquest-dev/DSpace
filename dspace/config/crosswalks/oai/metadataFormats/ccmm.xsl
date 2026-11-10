@@ -48,8 +48,12 @@
     <xsl:variable name="FALLBACK_REPOSITORY_URL" select="'urn:x-ccmm:repository-unknown'"/>
     <xsl:variable name="FALLBACK_TITLE" select="'Untitled'"/>
     <xsl:variable name="FALLBACK_PUBLICATION_YEAR" select="'9999'"/>
-    <!-- used only when an item has no subject at all and oai.ccmm.subject.default is unset -->
-    <xsl:variable name="FALLBACK_SUBJECT" select="':unav'"/>
+    <!-- FRASCATI FORD discipline published when an item has none: CCMM wants at least one subject
+         from FORD and DSpace does not record it -->
+    <xsl:variable name="FORD_SCHEME" select="'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/'"/>
+    <xsl:variable name="DEFAULT_FORD_CODE" select="'50000'"/>
+    <xsl:variable name="DEFAULT_FORD_EN" select="'Social sciences'"/>
+    <xsl:variable name="DEFAULT_FORD_CS" select="'Společenské vědy'"/>
 
     <!-- ============================================================ -->
     <!-- EU file types.                                                -->
@@ -1363,21 +1367,33 @@
             <ccmm:subject><ccmm:title xml:lang="en"><xsl:value-of select="."/></ccmm:title></ccmm:subject>
         </xsl:for-each>
         </xsl:variable>
+        <!--
+            CCMM: "At least one subject must be a value from FRASCATI FORD vocabulary."  DSpace does
+            not record a discipline, and guessing one from dc.type would publish one the depositor
+            never stated, so an item without a FORD subject gets the repository's fixed default.
+            It also fills the required subject (1..unbounded) of an item without any.
+        -->
+        <xsl:if test="not($deduped/*[ccmm:subject_scheme/ccmm:iri = $FORD_SCHEME])">
+            <ccmm:subject>
+                <ccmm:iri><xsl:value-of select="concat($FORD_SCHEME, $DEFAULT_FORD_CODE)"/></ccmm:iri>
+                <ccmm:title xml:lang="en"><xsl:value-of select="$DEFAULT_FORD_EN"/></ccmm:title>
+                <ccmm:title xml:lang="cs"><xsl:value-of select="$DEFAULT_FORD_CS"/></ccmm:title>
+                <ccmm:classification_code><xsl:value-of select="$DEFAULT_FORD_CODE"/></ccmm:classification_code>
+                <ccmm:subject_scheme>
+                    <ccmm:iri><xsl:value-of select="$FORD_SCHEME"/></ccmm:iri>
+                    <ccmm:label xml:lang="en">OECD FORD Subject Category (Frascati)</ccmm:label>
+                    <ccmm:label xml:lang="cs">Oborové třídění OECD FORD (Frascati)</ccmm:label>
+                </ccmm:subject_scheme>
+            </ccmm:subject>
+        </xsl:if>
         <xsl:call-template name="CopyDistinct">
             <xsl:with-param name="nodes" select="$deduped/*"/>
         </xsl:call-template>
-        <!--
-            subject is 1..unbounded and dc.subject is required at submission, so this is only a
-            safety net that keeps the record schema-valid.  No FRASCATI FORD field is derived:
-            DSpace does not record one, and guessing it from dc.type would publish a discipline
-            the depositor never stated.
-        -->
-        <xsl:if test="not($deduped/*)">
+        <!-- an item without subjects of its own: the subject the repository configured, if any -->
+        <xsl:if test="not($deduped/*) and normalize-space(string(fn:getProperty('oai.ccmm.subject.default'))) != ''">
             <ccmm:subject>
                 <ccmm:title xml:lang="en">
-                    <xsl:value-of select="if (normalize-space(string(fn:getProperty('oai.ccmm.subject.default'))) != '')
-                                          then normalize-space(string(fn:getProperty('oai.ccmm.subject.default')))
-                                          else $FALLBACK_SUBJECT"/>
+                    <xsl:value-of select="normalize-space(string(fn:getProperty('oai.ccmm.subject.default')))"/>
                 </ccmm:title>
             </ccmm:subject>
         </xsl:if>
