@@ -35,7 +35,6 @@ public class ClarinUserRegistrationRest extends BaseObjectRest<Integer> {
     public static final String USER_METADATA = "userMetadata";
 
     public UUID ePersonID;
-    public String email;
     public String organization;
     public boolean confirmation;
 
@@ -48,14 +47,6 @@ public class ClarinUserRegistrationRest extends BaseObjectRest<Integer> {
 
     public void setePersonID(UUID ePersonID) {
         this.ePersonID = ePersonID;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getOrganization() {

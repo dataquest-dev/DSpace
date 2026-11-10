@@ -24,6 +24,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.clarin.ClarinUserRegistration;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -77,6 +80,9 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
 
     @Autowired
     private OrcidTokenService orcidTokenService;
+
+    private ClarinUserRegistrationService clarinUserRegistrationService =
+            ClarinServiceFactory.getInstance().getClarinUserRegistration();
 
     @Override
     public int authenticate(Context context, String username, String password, String realm, HttpServletRequest request)
@@ -244,6 +250,12 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
             ePersonService.update(context, eperson);
             context.setCurrentUser(eperson);
             context.dispatchEvents();
+
+            ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
+            clarinUserRegistration.setPersonID(eperson.getID());
+            clarinUserRegistration.setOrganization(ClarinUserRegistration.UNKNOWN_USER_REGISTRATION);
+            clarinUserRegistration.setConfirmation(false);
+            clarinUserRegistrationService.create(context, clarinUserRegistration);
 
             return SUCCESS;
 
