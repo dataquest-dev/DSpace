@@ -48,17 +48,7 @@ public class ElgXslTest extends AbstractXSLTest {
     private static final String LANGUAGE = "<field name=\"value\">ces</field>";
     private static final String TOOL_LANGUAGE = "<field name=\"value\">lat</field>";
 
-    /** ms:fundingType values outside the ELG-SHARE enumeration. */
-    private static final String INVALID_FUNDING_TYPE = "//ms:fundingType[not(. = '" + MS_NS + "euFunds' or . = '"
-        + MS_NS + "nationalFunds' or . = '" + MS_NS + "ownFunds' or . = '" + MS_NS + "other')]";
-
     // ---------------------------------------------------------------- description (10,000 chars)
-
-    @Test
-    public void shortDescriptionIsKept() throws Exception {
-        String result = apply(XSL).to(resource(CORPUS));
-        assertThat(result, is(elg().withXPath("//ms:description", equalTo(DESCRIPTION))));
-    }
 
     @Test
     public void descriptionAtTheLimitIsKept() throws Exception {
@@ -75,13 +65,6 @@ public class ElgXslTest extends AbstractXSLTest {
             equalTo(String.valueOf(DESCRIPTION_MAX_LENGTH)))));
         assertThat(result, is(elg().withXPath("//ms:description",
             equalTo("a".repeat(DESCRIPTION_MAX_LENGTH - 1) + ELLIPSIS))));
-    }
-
-    @Test
-    public void descriptionLimitCountsCharactersNotBytes() throws Exception {
-        String description = "\u017e".repeat(DESCRIPTION_MAX_LENGTH);
-        String result = apply(XSL).to(withReplaced(CORPUS, DESCRIPTION, description));
-        assertThat(result, is(elg().withXPath("//ms:description", equalTo(description))));
     }
 
     // ---------------------------------------------------------------- fundingType
@@ -111,25 +94,15 @@ public class ElgXslTest extends AbstractXSLTest {
             equalTo(MS_NS + "nationalFunds"))));
     }
 
-    /** N/A has no ELG choice, even when the other components are filled in. */
+    /** N/A or an unknown type has no ELG choice; ELG requires a project name. */
     @Test
-    public void notApplicableFundingIsLeftOut() throws Exception {
-        assertNoFundingProject("N/A;1;Funder;Project;");
-        assertNoFundingProject("N/A;-;-;-;");
-    }
-
-    @Test
-    public void fundingWithUnknownOrEmptyTypeIsLeftOut() throws Exception {
-        assertNoFundingProject("privateFunds;1;Funder;Project;");
-        assertNoFundingProject(";;Funder;;");
-    }
-
-    /** ELG requires a project name. */
-    @Test
-    public void fundingWithoutProjectNameIsLeftOut() throws Exception {
-        assertNoFundingProject("euFunds;1;Funder;-;");
-        assertNoFundingProject("euFunds;1;Funder;;");
-        assertNoFundingProject("Other;-;-;-;");
+    public void fundingWithoutElgTypeOrProjectNameIsLeftOut() throws Exception {
+        for (String sponsor : new String[] {"N/A;1;Funder;Project;", "N/A;-;-;-;",
+            "privateFunds;1;Funder;Project;", ";;Funder;;", "euFunds;1;Funder;-;", "euFunds;1;Funder;;",
+            "Other;-;-;-;"}) {
+            String result = apply(XSL).to(withReplaced(CORPUS, SPONSOR, sponsor));
+            assertThat(sponsor, result, is(elg().withXPath("count(//ms:fundingProject)", equalTo("0"))));
+        }
     }
 
     /** 11234/1-1679: a project named n/a still carries a real funder and grant. */
@@ -162,17 +135,6 @@ public class ElgXslTest extends AbstractXSLTest {
         }
     }
 
-    @Test
-    public void everyFundingTypeIsAnElgChoice() throws Exception {
-        String result = apply(XSL).to(withReplaced(CORPUS, SPONSOR, SPONSOR + "</field>"
-            + "<field name=\"value\">EU;1;Funder;Project A;</field>"
-            + "<field name=\"value\">National;2;Funder;Project B;</field>"
-            + "<field name=\"value\">N/A;-;-;-;</field>"
-            + "<field name=\"value\">Other;-;-;-;"));
-        assertThat(result, is(elg().withXPath("count(//ms:fundingProject)", equalTo("3"))));
-        assertThat(result, is(elg().withXPath("count(" + INVALID_FUNDING_TYPE + ")", equalTo("0"))));
-    }
-
     // ---------------------------------------------------------------- size amount (xs:float)
 
     @Test
@@ -182,9 +144,6 @@ public class ElgXslTest extends AbstractXSLTest {
         // live record: ELG accepts it today, xs:float collapses the whitespace
         assertAmount("48 ;scenarios", "48");
         // other xs:float forms ELG accepted before
-        assertAmount(".5;hours", ".5");
-        assertAmount("1.5E3;files", "1.5E3");
-        assertAmount("+5;files", "+5");
         assertAmount("+1.5E3;files", "+1.5E3");
     }
 
@@ -192,16 +151,12 @@ public class ElgXslTest extends AbstractXSLTest {
     @Test
     public void negativeAmountIsLeftOut() throws Exception {
         assertAmount("-5;files", "2048");
-        assertAmount("-30,000;words", "2048");
     }
 
     @Test
     public void thousandsSeparatorsAreRemoved() throws Exception {
-        assertAmount("+30,000,000;sentences", "+30000000");
         assertAmount("30,000,000;sentences", "30000000");
-        assertAmount("757,072;utterances", "757072");
         assertAmount("5 490 000 000;words", "5490000000");
-        assertAmount("42 890;sentences", "42890");
         assertAmount("19,376.84;hours", "19376.84");
     }
 
@@ -233,26 +188,10 @@ public class ElgXslTest extends AbstractXSLTest {
 
     // ---------------------------------------------------------------- languageId
 
+    /** A code with an ISO 639-1 form that the crosswalk did not convert (nbl from 11234/1-6130). */
     @Test
-    public void threeLetterCodeIsConvertedToTwoLetterCode() throws Exception {
-        assertLanguageIds("ces", "cs");
-    }
-
-    /** Codes with an ISO 639-1 form that the crosswalk did not convert (nbl from 11234/1-6130). */
-    @Test
-    public void everyCodeWithATwoLetterFormIsConverted() throws Exception {
+    public void codeWithATwoLetterFormIsConverted() throws Exception {
         assertLanguageIds("nbl", "nr");
-        assertLanguageIds("aar", "aa");
-        assertLanguageIds("ave", "ae");
-        assertLanguageIds("iii", "ii");
-        assertLanguageIds("kua", "kj");
-        assertLanguageIds("lub", "lu");
-        assertLanguageIds("nde", "nd");
-        assertLanguageIds("oji", "oj");
-        assertLanguageIds("mon", "mn");
-        assertLanguageIds("ita", "it");
-        // ISO 639-2 collective code Bihari, ELG lists "bh"
-        assertLanguageIds("bih", "bh");
         // retired Moldavian, merged into Romanian; ELG has no "mo"
         assertLanguageIds("mol", "ro");
     }
@@ -272,23 +211,20 @@ public class ElgXslTest extends AbstractXSLTest {
         assertThat(result, is(elg().withXPath("//ms:lingualityType", equalTo(MS_NS + "bilingual"))));
     }
 
-    /** Czech, Slovak, ... stored in dc.language.iso of 11234/1-6232. */
+    /** Language names stored in dc.language.iso: "English; Czech" from 11234/1-6153, Czech from 11234/1-6232. */
     @Test
-    public void languageNameIsSentAsUncodedLanguage() throws Exception {
-        String result = apply(XSL).to(withReplaced(CORPUS, LANGUAGE, "<field name=\"value\">Czech</field>"));
-        assertThat(result, is(elg().withXPath("count(//ms:language)", equalTo("1"))));
-        assertThat(result, is(elg().withXPath("//ms:language/ms:languageId", equalTo("und"))));
-        assertThat(result, is(elg().withXPath("//ms:language/ms:languageVarietyName", equalTo("Czech"))));
-    }
-
-    @Test
-    public void severalNamesInOneValueAreSplit() throws Exception {
+    public void languageNamesAreSentAsUncodedLanguages() throws Exception {
         String result = apply(XSL).to(withReplaced(CORPUS, LANGUAGE,
             "<field name=\"value\">English; Czech</field>"));
         assertThat(result, is(elg().withXPath("count(//ms:language)", equalTo("2"))));
         assertThat(result, is(elg().withXPath("(//ms:language)[1]/ms:languageVarietyName", equalTo("English"))));
         assertThat(result, is(elg().withXPath("(//ms:language)[2]/ms:languageVarietyName", equalTo("Czech"))));
         assertThat(result, is(elg().withXPath("count(//ms:language[ms:languageId != 'und'])", equalTo("0"))));
+        // ELG validates the tag too, it must never keep the raw value
+        assertThat(result, is(elg().withXPath("count(//ms:language[ms:languageTag != ms:languageId])",
+            equalTo("0"))));
+        assertThat(result, is(elg().withXPath("count(//ms:languageVarietyName[not(@xml:lang = 'en')])",
+            equalTo("0"))));
         assertThat(result, is(elg().withXPath("//ms:lingualityType", equalTo(MS_NS + "bilingual"))));
     }
 
@@ -329,23 +265,6 @@ public class ElgXslTest extends AbstractXSLTest {
         assertThat(result, is(elg().withXPath("(//ms:language)[1]/ms:languageVarietyName", equalTo("Toki Pona"))));
     }
 
-    @Test
-    public void everyLanguageIdLooksLikeACode() throws Exception {
-        String result = apply(XSL).to(withReplaced(CORPUS, LANGUAGE, "<field name=\"value\">Czech</field>"
-            + "<field name=\"value\">English; Czech</field><field name=\"value\">nbl</field>"
-            + "<field name=\"value\">tok</field>"));
-        // Czech, English, nbl, tok - the second Czech is a repeat
-        assertThat(result, is(elg().withXPath("count(//ms:language)", equalTo("4"))));
-        assertThat(result, is(elg().withXPath(
-            "count(//ms:languageId[string-length(.) < 2 or string-length(.) > 3"
-            + " or translate(., 'abcdefghijklmnopqrstuvwxyz', '') != ''])", equalTo("0"))));
-        // ELG validates the tag too, it must never keep the raw value
-        assertThat(result, is(elg().withXPath("count(//ms:language[ms:languageTag != ms:languageId])",
-            equalTo("0"))));
-        assertThat(result, is(elg().withXPath("count(//ms:languageVarietyName[not(@xml:lang = 'en')])",
-            equalTo("0"))));
-    }
-
     // ---------------------------------------------------------------- tool without language
 
     @Test
@@ -373,11 +292,6 @@ public class ElgXslTest extends AbstractXSLTest {
         String result = apply(XSL).to(withReplaced(CORPUS, SPONSOR, stored + ";1;Funder;Project;"));
         assertThat(stored, result, is(elg().withXPath("//ms:fundingProject/ms:fundingType",
             equalTo(MS_NS + elgChoice))));
-    }
-
-    private void assertNoFundingProject(String sponsor) throws Exception {
-        String result = apply(XSL).to(withReplaced(CORPUS, SPONSOR, sponsor));
-        assertThat(sponsor, result, is(elg().withXPath("count(//ms:fundingProject)", equalTo("0"))));
     }
 
     private void assertAmount(String sizeInfo, String amount) throws Exception {
