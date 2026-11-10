@@ -681,12 +681,14 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
-    public void ccmmFundingReferenceSpellsOutTheFunderAndTheProgramme() throws Exception {
+    public void ccmmFundingReferenceSpellsOutTheFunderButNoProgrammeCode() throws Exception {
+        // funding_program is a reference (xsd:anyURI) to the programme; "H2020" from the
+        // info:eu-repo path is only a code, so the optional element is left out
         String result = apply("ccmm.xsl").to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:funding_reference/ccmm:local_identifier", equalTo("900002"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:funding_reference/ccmm:funding_program", equalTo("H2020"))));
+            "count(//ccmm:funding_reference/ccmm:funding_program)", equalTo("0"))));
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:funding_reference/ccmm:funder/ccmm:organization/ccmm:name",
             equalTo("European Commission"))));

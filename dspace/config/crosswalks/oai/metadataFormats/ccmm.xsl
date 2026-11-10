@@ -1581,9 +1581,10 @@
                     <xsl:if test="$sponsorProject != ''">
                         <ccmm:award_title><xsl:value-of select="$sponsorProject"/></ccmm:award_title>
                     </xsl:if>
-                    <xsl:if test="normalize-space($parts[4]) != ''">
-                        <ccmm:funding_program><xsl:value-of select="normalize-space($parts[4])"/></ccmm:funding_program>
-                    </xsl:if>
+                    <!--
+                        No funding_program: CCMM wants a reference (xsd:anyURI) to the programme,
+                        and the PROGRAMME segment is only a code (FP7, H2020) - not a reference.
+                    -->
                     <ccmm:funder>
                         <ccmm:organization>
                             <ccmm:name>
