@@ -21,10 +21,12 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -282,6 +284,48 @@ public class DiscoverQueryBuilderTest {
                             "TEST", pageSize, offset, sortProperty, sortDirection);
     }
 
+    @Test
+    public void testBuildQueryMaximumOffset() throws Exception {
+        DiscoverQuery discoverQuery = queryBuilder.buildQuery(context, scope, discoveryConfiguration, query,
+                Collections.singletonList(searchFilter), "item", pageSize, (long) Integer.MAX_VALUE,
+                sortProperty, sortDirection);
+
+        assertThat(discoverQuery.getStart(), is(Integer.MAX_VALUE));
+    }
+
+    @Test
+    public void testBuildQueryNullAndZeroOffsets() throws Exception {
+        for (Long queryOffset : Arrays.asList(null, 0L)) {
+            DiscoverQuery discoverQuery = queryBuilder.buildQuery(context, scope, discoveryConfiguration, query,
+                    Collections.singletonList(searchFilter), "item", pageSize, queryOffset,
+                    sortProperty, sortDirection);
+
+            assertThat(discoverQuery.getStart(), is(0));
+        }
+    }
+
+    @Test
+    public void testBuildQueryRejectsOffsetBeforeQueryPreparation() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> queryBuilder.buildQuery(context, scope,
+                discoveryConfiguration, query, Collections.singletonList(searchFilter), "item", pageSize,
+                Long.MAX_VALUE, sortProperty, sortDirection));
+
+        verifyNoInteractions(searchService);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testBuildQueryOverflowingOffset() throws Exception {
+        queryBuilder.buildQuery(context, scope, discoveryConfiguration, query,
+                Collections.singletonList(searchFilter), "item", pageSize, (long) Integer.MAX_VALUE + 1,
+                sortProperty, sortDirection);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testBuildQueryNegativeOffset() throws Exception {
+        queryBuilder.buildQuery(context, scope, discoveryConfiguration, query,
+                Collections.singletonList(searchFilter), "item", pageSize, -1L, sortProperty, sortDirection);
+    }
+
     @Test(expected = SearchServiceException.class)
     public void testInvalidSortField() throws Exception {
         queryBuilder
@@ -333,6 +377,45 @@ public class DiscoverQueryBuilderTest {
     public void testInvalidSearchFacet() throws Exception {
         queryBuilder.buildFacetQuery(context, scope, discoveryConfiguration, null, query,
                                      Collections.singletonList(searchFilter), "item", pageSize, offset, "test");
+    }
+
+    @Test
+    public void testBuildFacetQueryMaximumOffset() throws Exception {
+        DiscoverQuery discoverQuery = queryBuilder.buildFacetQuery(context, scope, discoveryConfiguration, null,
+                query, Collections.singletonList(searchFilter), "item", pageSize, (long) Integer.MAX_VALUE, "subject");
+
+        assertThat(discoverQuery.getFacetOffset(), is(Integer.MAX_VALUE));
+    }
+
+    @Test
+    public void testBuildFacetQueryNullAndZeroOffsets() throws Exception {
+        for (Long queryOffset : Arrays.asList(null, 0L)) {
+            DiscoverQuery discoverQuery = queryBuilder.buildFacetQuery(context, scope, discoveryConfiguration, null,
+                    query, Collections.singletonList(searchFilter), "item", pageSize, queryOffset, "subject");
+
+            assertThat(discoverQuery.getFacetOffset(), is(0));
+        }
+    }
+
+    @Test
+    public void testBuildFacetQueryRejectsOffsetBeforeQueryPreparation() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> queryBuilder.buildFacetQuery(context, scope,
+                discoveryConfiguration, null, query, Collections.singletonList(searchFilter), "item", pageSize,
+                Long.MAX_VALUE, "dateIssued"));
+
+        verifyNoInteractions(searchService);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testBuildFacetQueryOverflowingOffset() throws Exception {
+        queryBuilder.buildFacetQuery(context, scope, discoveryConfiguration, null, query,
+                Collections.singletonList(searchFilter), "item", pageSize, (long) Integer.MAX_VALUE + 1, "subject");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testBuildFacetQueryNegativeOffset() throws Exception {
+        queryBuilder.buildFacetQuery(context, scope, discoveryConfiguration, null, query,
+                Collections.singletonList(searchFilter), "item", pageSize, -1L, "subject");
     }
 
     public Matcher<DiscoverFacetField> discoverFacetFieldMatcher(DiscoverFacetField expected) {

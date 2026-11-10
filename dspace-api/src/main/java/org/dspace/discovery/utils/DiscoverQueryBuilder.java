@@ -110,6 +110,8 @@ public class DiscoverQueryBuilder implements InitializingBean {
                                     String sortDirection)
             throws IllegalArgumentException, SearchServiceException {
 
+        validateOffset(offset);
+
         DiscoverQuery queryArgs = buildCommonDiscoverQuery(context, discoveryConfiguration, query, searchFilters,
                                                            dsoTypes);
 
@@ -183,6 +185,8 @@ public class DiscoverQueryBuilder implements InitializingBean {
                                          String prefix, String query, List<QueryBuilderSearchFilter> searchFilters,
                                          List<String> dsoTypes, Integer pageSize, Long offset, String facetName)
             throws IllegalArgumentException {
+
+        validateOffset(offset);
 
         DiscoverQuery queryArgs = buildCommonDiscoverQuery(context, discoveryConfiguration, query, searchFilters,
                                                            dsoTypes);
@@ -360,6 +364,12 @@ public class DiscoverQueryBuilder implements InitializingBean {
     private void configurePagination(Integer size, Long offset, DiscoverQuery queryArgs) {
         queryArgs.setMaxResults(size != null ? Math.min(pageSizeLimit, size) : pageSizeLimit);
         queryArgs.setStart(offset != null ? Math.toIntExact(offset) : 0);
+    }
+
+    private void validateOffset(Long offset) {
+        if (offset != null && (offset < 0 || offset > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException("The offset must be between 0 and " + Integer.MAX_VALUE);
+        }
     }
 
     private String getDsoType(String dsoType) throws IllegalArgumentException {
