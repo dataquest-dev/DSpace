@@ -510,6 +510,18 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
+    public void ccmmOtherLanguageResourcesWithoutFordGetLinguistics() throws Exception {
+        for (String type : new String[] {"languageDescription", "lexicalConceptualResource"}) {
+            String result = apply("ccmm.xsl").to(withReplaced(MAIN,
+                "<field name=\"value\">corpus</field>", "<field name=\"value\">" + type + "</field>"));
+            assertThat(type, result, is(ccmm().withXPath("count(" + FORD + ")", equalTo("1"))));
+            assertThat(type, result, is(ccmm().withXPath(FORD + "/ccmm:iri",
+                equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/60000/60200/60203"))));
+            assertThat(type, result, is(ccmm().withXPath(FORD + "/ccmm:classification_code", equalTo("60203"))));
+        }
+    }
+
+    @Test
     public void ccmmToolWithoutFordGetsComputerSciences() throws Exception {
         String result = apply("ccmm.xsl").to(resource(TOOL));
         assertThat(result, is(ccmm().withXPath("count(" + FORD + ")", equalTo("1"))));
