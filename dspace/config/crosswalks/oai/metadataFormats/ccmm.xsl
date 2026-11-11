@@ -1950,9 +1950,11 @@
                 supplied is kept instead.
             -->
             <xsl:variable name="fileName" select="normalize-space((doc:field[@name='name'])[1])"/>
-            <!-- two files of the item with one name: the name cannot tell them apart, the uuid can -->
+            <!-- two files of the item with one name: the name cannot tell them apart, the uuid can.
+                 The by-handle endpoint looks a name up in every ORIGINAL bundle, so count there. -->
             <xsl:variable name="nameShared"
-                select="$fileName != '' and count(../doc:element[@name='bitstream'][normalize-space((doc:field[@name='name'])[1]) = $fileName]) gt 1"/>
+                select="$fileName != '' and count(ancestor::doc:element[@name='bundles']/doc:element[@name='bundle'][doc:field[@name='name'] = 'ORIGINAL']
+                        /doc:element[@name='bitstreams']/doc:element[@name='bitstream'][normalize-space((doc:field[@name='name'])[1]) = $fileName]) gt 1"/>
             <xsl:variable name="downloadUrl"
                 select="cw:iri(if ($nameShared and $downloadBase != '' and $uuid != '')
                                then concat(replace($downloadBase, 'handle/$', ''), encode-for-uri($uuid), '/content')

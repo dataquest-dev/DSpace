@@ -2014,6 +2014,21 @@ public class CcmmXslTest extends AbstractXSLTest {
     }
 
     @Test
+    public void ccmmFilesWithTheSameNameInTwoOriginalBundlesGetDistinctDownloadUrls() throws Exception {
+        // the by-handle endpoint looks the name up in every ORIGINAL bundle of the item
+        String result = ccmmOf(add(fixture(MAIN), "bundles",
+            "<element name=\"bundle\"><field name=\"name\">ORIGINAL</field><element name=\"bitstreams\">"
+                + "<element name=\"bitstream\"><field name=\"name\">corpus.txt</field>"
+                + "<field name=\"format\">text/plain</field><field name=\"size\">4096</field>"
+                + "<field name=\"id\">5c1b4f7e-2d3a-4e5f-9a8b-1c2d3e4f5a6b</field></element>"
+                + "</element></element>"));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:download_url/ccmm:iri[contains(., '/bitstreams/handle/')])", equalTo("0"))));
+        assertThat(result, is(ccmm().withXPath(
+            "count(//ccmm:download_url/ccmm:iri[contains(., '/content')])", equalTo("2"))));
+    }
+
+    @Test
     public void ccmmMetashareFillsInTheAddressOfTheSamePerson() throws Exception {
         // the affiliation shifted into the email slot; META-SHARE has the same person with an address
         String result = ccmmOf(add(once(fixture(MAIN), KOVAR,
