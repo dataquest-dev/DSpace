@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.util.MetadataExposureServiceImpl;
 import org.dspace.authority.AuthorityValue;
 import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.service.AuthorityValueService;
@@ -40,6 +41,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
@@ -321,15 +323,46 @@ public class DSpaceCSV implements Serializable {
         // Set the metadata fields to ignore
         ignore = new HashMap<>();
 
+        getConfiguredIgnoreFields();
+    }
+
+    /**
+     * Sets the ignored fields with 'bulkedit.ignore-on-export'
+     *
+     * Also adds 'metadata.hide.*' fields to ignored if 'bulkedit.ignore-on-export.include-metadata-hide' is true
+     */
+    private void getConfiguredIgnoreFields() {
         // Specify default values
         String[] defaultValues =
             new String[] {
                 "dc.date.accessioned", "dc.date.available", "dc.date.updated", "dc.description.provenance"
             };
         String[] toIgnoreArray =
-            DSpaceServicesFactory.getInstance()
-                                 .getConfigurationService()
-                                 .getArrayProperty("bulkedit.ignore-on-export", defaultValues);
+                DSpaceServicesFactory.getInstance()
+                        .getConfigurationService()
+                        .getArrayProperty("bulkedit.ignore-on-export", defaultValues);
+
+        boolean ignoreHiddenMetadata = DSpaceServicesFactory.getInstance().getConfigurationService()
+                .getBooleanProperty("bulkedit.ignore-on-export.include-metadata-hide", true);
+        if (ignoreHiddenMetadata) {
+            ConfigurationService configurationService =
+                    DSpaceServicesFactory.getInstance().getConfigurationService();
+            List<String> hiddenMetadata =
+                    configurationService.getPropertyKeys(MetadataExposureServiceImpl.CONFIG_PREFIX);
+            for (String hiddenMetadataKey : hiddenMetadata) {
+                // Only ignore fields that are actually hidden; a field explicitly exposed must still export.
+                // Check the "submitter" string first: getBooleanProperty throws on a non-boolean value, so it
+                // must not be the left operand (matches MetadataExposureServiceImpl).
+                boolean hidden = "submitter".equals(configurationService.getProperty(hiddenMetadataKey))
+                        || configurationService.getBooleanProperty(hiddenMetadataKey, true);
+                if (!hidden) {
+                    continue;
+                }
+                String key = hiddenMetadataKey.substring(MetadataExposureServiceImpl.CONFIG_PREFIX.length());
+                ignore.put(key.trim(), key.trim());
+            }
+        }
+
         for (String toIgnoreString : toIgnoreArray) {
             if (!"".equals(toIgnoreString.trim())) {
                 ignore.put(toIgnoreString.trim(), toIgnoreString.trim());
