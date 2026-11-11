@@ -53,9 +53,11 @@
     <xsl:variable name="FORD_SCHEME" select="'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/'"/>
     <xsl:variable name="FORD_SCHEME_EN" select="'OECD FORD Subject Category (Frascati)'"/>
     <xsl:variable name="FORD_SCHEME_CS" select="'Oborové třídění OECD FORD (Frascati)'"/>
-    <xsl:variable name="DEFAULT_FORD_CODE" select="'50000'"/>
-    <xsl:variable name="DEFAULT_FORD_EN" select="'Social sciences'"/>
-    <xsl:variable name="DEFAULT_FORD_CS" select="'Společenské vědy'"/>
+    <!-- (IRI path under FORD_SCHEME, code, English title, Czech title), as in the SubjectCategory codelist -->
+    <xsl:variable name="FORD_LINGUISTICS" select="('60000/60200/60203', '60203', 'Linguistics', 'Lingvistika')"/>
+    <xsl:variable name="FORD_COMPUTER_SCIENCES" select="('10000/10200/10201', '10201',
+        'Computer sciences, information science, bioinformathics', 'Počítačové vědy, informační věda, bioinformatika')"/>
+    <xsl:variable name="FORD_HUMANITIES" select="('60000', '60000', 'Humanities and the arts', 'Humanitní vědy a umění')"/>
 
     <!-- ============================================================ -->
     <!-- EU file types.                                                -->
@@ -1371,16 +1373,22 @@
         </xsl:variable>
         <!--
             CCMM: "At least one subject must be a value from FRASCATI FORD vocabulary."  DSpace does
-            not record a discipline, and guessing one from dc.type would publish one the depositor
-            never stated, so an item without a FORD subject gets the repository's fixed default.
-            It also fills the required subject (1..unbounded) of an item without any.
+            not record a discipline, so an item without a FORD subject gets one by its dc.type, as
+            the repository agreed: language resources are Linguistics, tools Computer sciences,
+            everything else Humanities and the arts.  It also fills the required subject
+            (1..unbounded) of an item without any.
         -->
+        <xsl:variable name="type" select="lower-case(normalize-space((doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value'])[1]))"/>
+        <xsl:variable name="ford" select="if ($type = ('corpus', 'languagedescription', 'lexicalconceptualresource'))
+                                          then $FORD_LINGUISTICS
+                                          else if ($type = 'toolservice') then $FORD_COMPUTER_SCIENCES
+                                          else $FORD_HUMANITIES"/>
         <xsl:if test="not($deduped/*[ccmm:subject_scheme/ccmm:iri = $FORD_SCHEME])">
             <ccmm:subject>
-                <ccmm:iri><xsl:value-of select="concat($FORD_SCHEME, $DEFAULT_FORD_CODE)"/></ccmm:iri>
-                <ccmm:title xml:lang="en"><xsl:value-of select="$DEFAULT_FORD_EN"/></ccmm:title>
-                <ccmm:title xml:lang="cs"><xsl:value-of select="$DEFAULT_FORD_CS"/></ccmm:title>
-                <ccmm:classification_code><xsl:value-of select="$DEFAULT_FORD_CODE"/></ccmm:classification_code>
+                <ccmm:iri><xsl:value-of select="concat($FORD_SCHEME, $ford[1])"/></ccmm:iri>
+                <ccmm:title xml:lang="en"><xsl:value-of select="$ford[3]"/></ccmm:title>
+                <ccmm:title xml:lang="cs"><xsl:value-of select="$ford[4]"/></ccmm:title>
+                <ccmm:classification_code><xsl:value-of select="$ford[2]"/></ccmm:classification_code>
                 <ccmm:subject_scheme>
                     <ccmm:iri><xsl:value-of select="$FORD_SCHEME"/></ccmm:iri>
                     <ccmm:label xml:lang="en"><xsl:value-of select="$FORD_SCHEME_EN"/></ccmm:label>
