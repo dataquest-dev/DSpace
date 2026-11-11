@@ -472,7 +472,7 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "//ccmm:dataset/ccmm:subject[not(ccmm:subject_scheme)]/ccmm:title", equalTo("Research data"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:subject[ccmm:subject_scheme]/ccmm:classification_code", equalTo("50000"))));
+            "//ccmm:dataset/ccmm:subject[ccmm:subject_scheme]/ccmm:classification_code", equalTo("60000"))));
     }
 
     @Test
@@ -482,30 +482,60 @@ public class CcmmXslTest extends AbstractXSLTest {
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:dataset/ccmm:subject)", equalTo("1"))));
         assertThat(result, is(ccmm().withXPath(
-            "//ccmm:dataset/ccmm:subject/ccmm:classification_code", equalTo("50000"))));
+            "//ccmm:dataset/ccmm:subject/ccmm:classification_code", equalTo("60000"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:subject/ccmm:title[.=':unav'])", equalTo("0"))));
     }
 
+    private static final String FORD = "//ccmm:dataset/ccmm:subject[ccmm:subject_scheme/ccmm:iri="
+        + "'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/']";
+
     @Test
-    public void ccmmItemWithoutFordGetsSocialSciences() throws Exception {
-        // CCMM: at least one subject must come from FRASCATI FORD; DSpace records none, so the
-        // repository's default discipline is published, next to the item's own keywords
+    public void ccmmLanguageResourceWithoutFordGetsLinguistics() throws Exception {
+        // CCMM: at least one subject must come from FRASCATI FORD; DSpace records none, so a
+        // corpus gets Linguistics, next to the item's own keywords
         String result = apply("ccmm.xsl").to(resource(MAIN));
-        String ford = "//ccmm:dataset/ccmm:subject[ccmm:subject_scheme/ccmm:iri="
-            + "'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/']";
-        assertThat(result, is(ccmm().withXPath("count(" + ford + ")", equalTo("1"))));
-        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:iri",
-            equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/50000"))));
-        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:title[@xml:lang='en']", equalTo("Social sciences"))));
-        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:title[@xml:lang='cs']", equalTo("Společenské vědy"))));
-        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:classification_code", equalTo("50000"))));
-        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:subject_scheme/ccmm:label[@xml:lang='en']",
+        assertThat(result, is(ccmm().withXPath("count(" + FORD + ")", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(FORD + "/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/60000/60200/60203"))));
+        assertThat(result, is(ccmm().withXPath(FORD + "/ccmm:title[@xml:lang='en']", equalTo("Linguistics"))));
+        assertThat(result, is(ccmm().withXPath(FORD + "/ccmm:title[@xml:lang='cs']", equalTo("Lingvistika"))));
+        assertThat(result, is(ccmm().withXPath(FORD + "/ccmm:classification_code", equalTo("60203"))));
+        assertThat(result, is(ccmm().withXPath(FORD + "/ccmm:subject_scheme/ccmm:label[@xml:lang='en']",
             equalTo("OECD FORD Subject Category (Frascati)"))));
-        assertThat(result, is(ccmm().withXPath(ford + "/ccmm:subject_scheme/ccmm:label[@xml:lang='cs']",
+        assertThat(result, is(ccmm().withXPath(FORD + "/ccmm:subject_scheme/ccmm:label[@xml:lang='cs']",
             equalTo("Oborové třídění OECD FORD (Frascati)"))));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:dataset/ccmm:subject/ccmm:title[.='linguistics'])", equalTo("1"))));
+    }
+
+    @Test
+    public void ccmmToolWithoutFordGetsComputerSciences() throws Exception {
+        String result = apply("ccmm.xsl").to(resource(TOOL));
+        assertThat(result, is(ccmm().withXPath("count(" + FORD + ")", equalTo("1"))));
+        assertThat(result, is(ccmm().withXPath(FORD + "/ccmm:iri",
+            equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/10000/10200/10201"))));
+        assertThat(result, is(ccmm().withXPath(FORD + "/ccmm:title[@xml:lang='en']",
+            equalTo("Computer sciences, information science, bioinformathics"))));
+        assertThat(result, is(ccmm().withXPath(FORD + "/ccmm:title[@xml:lang='cs']",
+            equalTo("Počítačové vědy, informační věda, bioinformatika"))));
+        assertThat(result, is(ccmm().withXPath(FORD + "/ccmm:classification_code", equalTo("10201"))));
+    }
+
+    @Test
+    public void ccmmOtherItemWithoutFordGetsHumanities() throws Exception {
+        // any other dc.type (clip, Article) or none at all
+        for (String fixture : new String[] {MINIMAL, CLIP, STOCK}) {
+            String result = apply("ccmm.xsl").to(resource(fixture));
+            assertThat(fixture, result, is(ccmm().withXPath("count(" + FORD + ")", equalTo("1"))));
+            assertThat(fixture, result, is(ccmm().withXPath(FORD + "/ccmm:iri",
+                equalTo("https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/60000"))));
+            assertThat(fixture, result, is(ccmm().withXPath(FORD + "/ccmm:title[@xml:lang='en']",
+                equalTo("Humanities and the arts"))));
+            assertThat(fixture, result, is(ccmm().withXPath(FORD + "/ccmm:title[@xml:lang='cs']",
+                equalTo("Humanitní vědy a umění"))));
+            assertThat(fixture, result, is(ccmm().withXPath(FORD + "/ccmm:classification_code", equalTo("60000"))));
+        }
     }
 
     @Test
@@ -514,25 +544,6 @@ public class CcmmXslTest extends AbstractXSLTest {
             .to(resource(MAIN));
         assertThat(result, is(ccmm().withXPath(
             "count(//ccmm:subject/ccmm:title[.='Research data' or .=':unav'])", equalTo("0"))));
-    }
-
-    @Test
-    public void ccmmNoFordFieldIsDerivedFromTheResourceType() throws Exception {
-        // DSpace records no discipline; deriving one from dc.type would publish one the depositor
-        // never stated, e.g. "Linguistics" for every dataset of a non-linguistic repository. The
-        // only FORD subject is the fixed default.
-        for (String fixture : new String[] {MAIN, MINIMAL, CLIP, TOOL, STOCK}) {
-            String result = apply("ccmm.xsl").to(resource(fixture));
-            assertThat(fixture, result, is(ccmm().withXPath(
-                "count(//ccmm:subject_scheme[contains(ccmm:iri, 'SubjectCategory')])", equalTo("1"))));
-            assertThat(fixture, result, is(ccmm().withXPath(
-                "count(//ccmm:subject/ccmm:iri[contains(., 'SubjectCategory')]"
-                    + "[. != 'https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/50000'])",
-                equalTo("0"))));
-            assertThat(fixture, result, is(ccmm().withXPath(
-                "count(//ccmm:subject/ccmm:title[.='Linguistics' or .='Lingvistika'"
-                    + " or .='History' or .='Historie'])", equalTo("0"))));
-        }
     }
 
     @Test
