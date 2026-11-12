@@ -55,6 +55,9 @@ ENV DSPACE_INSTALL=/dspace
 COPY --from=ant_build /dspace $DSPACE_INSTALL
 # Give java extra memory (1GB)
 ENV JAVA_OPTS=-Xmx1000m
+# IPv4 only, for every JVM (Tomcat, CLI, handle server); compose JAVA_OPTS does not override it.
+# Containers have no IPv6: an AAAA-only DNS answer for the DB host failed the BE start (VSB 2026-11-12).
+ENV JAVA_TOOL_OPTIONS=-Djava.net.preferIPv4Stack=true
 # Install unzip for AIPs
 RUN apt-get update \
     && apt-get install -y --no-install-recommends unzip \
