@@ -40,12 +40,20 @@ public class FilePreviewConfiguration<T extends FilePreview> extends ScriptConfi
             options.getOption("u").setRequired(false);
 
             options.addOption("f", "force", false, "Force to create preview, even when the preview exists.");
+<<<<<<< HEAD
 
             options.addOption("e", "email", true,
                     "Email of the eperson to run the script as.");
             options.getOption("e").setType(String.class);
             options.getOption("e").setRequired(true);
 
+=======
+
+            options.addOption("e", "email", true,
+                    "Email of the eperson to run the script as.");
+            options.getOption("e").setType(String.class);
+
+>>>>>>> origin/dtq-dev-767-base
             super.options = options;
         }
         return options;

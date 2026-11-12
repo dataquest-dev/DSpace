@@ -46,6 +46,10 @@ import org.dspace.app.rest.utils.Utils;
 import org.dspace.app.util.Util;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.GroupBuilder;
+<<<<<<< HEAD
+=======
+import org.dspace.content.Item;
+>>>>>>> origin/dtq-dev-767-base
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.Context;
@@ -678,6 +682,25 @@ public class ClarinShibbolethLoginFilterIT extends AbstractControllerIntegration
                 .andExpect(redirectedUrl("http://localhost:4000/login?error=shibboleth-authentication-failed"));
     }
 
+<<<<<<< HEAD
+=======
+    // The headers in `authentication-shibboleth.eperson.metadata` are stored in the eperson metadata.
+    @Test
+    public void loginStoresMappedHeaderInEpersonMetadata() throws Exception {
+        getClient().perform(get("/api/authn/shibboleth")
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header("SHIB-MAIL", clarinEperson.getEmail())
+                        .header(NET_ID_EPPN_HEADER, NET_ID_TEST_EPERSON)
+                        .header("SHIB-telephone", "+420 123 456"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost:4000"));
+
+        context.uncacheEntity(clarinEperson);
+        EPerson ePerson = ePersonService.find(context, clarinEperson.getID());
+        assertEquals("+420 123 456", ePersonService.getMetadataFirstValue(ePerson, "eperson", "phone", null, Item.ANY));
+    }
+
+>>>>>>> origin/dtq-dev-767-base
     // Only the browser that did the Shibboleth login can have the e-mail sent.
     @Test
     public void autoregistrationRequiresTheRegistrationToken() throws Exception {

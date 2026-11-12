@@ -233,8 +233,13 @@ public class RequestItemEmailNotifier {
                     } else {
                         LOG.warn(LogHelper.getHeader(context,
                                 "refused_attach_requestItem",
+<<<<<<< HEAD
                                 "token={},bitstream_id={}"),
                                 ri.getToken(),
+=======
+                                "request_id={},bitstream_id={}"),
+                                ri.getID(),
+>>>>>>> origin/dtq-dev-767-base
                                 bitstream == null ? "null" : bitstream.getID());
                     }
                 }
@@ -258,7 +263,27 @@ public class RequestItemEmailNotifier {
             }
         }
         LOG.info(LogHelper.getHeader(context,
-                "sent_attach_requestItem", "token={}"), ri.getToken());
+                "sent_attach_requestItem", "request_id={}"), ri.getID());
+    }
+
+    /**
+     * Is the given bitstream contained in one of the item's bundles?
+     *
+     * @param bitstream the bitstream to check.
+     * @param item the item it is expected to belong to.
+     * @return {@code true} if the bitstream belongs to the item.
+     * @throws SQLException passed through.
+     */
+    private boolean belongsToItem(Bitstream bitstream, Item item)
+            throws SQLException {
+        for (Bundle bundle : bitstream.getBundles()) {
+            for (Item owner : bundle.getItems()) {
+                if (owner.getID().equals(item.getID())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

@@ -31,10 +31,20 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
+<<<<<<< HEAD
+=======
+ * This check runs the "metadataqa" curation task on the whole repository,
+ * and provides a report about the number of errors and warnings.
+ *
+>>>>>>> origin/dtq-dev-767-base
  * @author Milan Kuchtiak
  */
 public class MetadataCheck extends Check {
 
+<<<<<<< HEAD
+=======
+    private static final String CURATION_TASK_NAME = "metadataqa";
+>>>>>>> origin/dtq-dev-767-base
     private static final String QA_METADATA_ERROR_PATTERNS_JSON = "metadata-check-patterns.json";
     private static final String VALIDATION_TYPE_OTHER = "validation.other";
     private static final int COUNT_INDENTATION = 30;
@@ -88,7 +98,11 @@ public class MetadataCheck extends Check {
         JSONObject root = new JSONObject();
 
         Curator curator = new Curator();
+<<<<<<< HEAD
         curator.addTask("metadataqa");
+=======
+        curator.addTask(CURATION_TASK_NAME);
+>>>>>>> origin/dtq-dev-767-base
 
         MetadataReporter reporter = new MetadataReporter(
                 maxErrorsToShow,
@@ -381,14 +395,27 @@ public class MetadataCheck extends Check {
          *                        comparing to the frequency of the new message
          */
         private void replaceMessage(Message message, StoredMessagesInfo storedMessagesInfo, int dispersionQuota) {
+<<<<<<< HEAD
             int highestMessageFrequency = storedMessagesInfo.getHighestFrequency();
+=======
+            Map<String, List<String>> storedMessages = storedMessagesInfo.getStoredMessages();
+
+            // calculate the highest frequency of messages for any short message in stored messages,
+            String messageKeyWithHighestFrequency = Objects.requireNonNull(getMessageWithHighestCount(storedMessages));
+            int highestMessageFrequency = storedMessages.get(messageKeyWithHighestFrequency).size();
+
+            // int highestMessageFrequency = storedMessagesInfo.getHighestFrequency();
+>>>>>>> origin/dtq-dev-767-base
             if (highestMessageFrequency <= 1) {
                 // no replacement, as there are no messages with the frequency higher than 1, so the replacement
                 // of any message would not increase the diversity of messages in stored messages
                 return;
             }
             String messageKey = message.getMessageKey();
+<<<<<<< HEAD
             Map<String, List<String>> storedMessages = storedMessagesInfo.getStoredMessages();
+=======
+>>>>>>> origin/dtq-dev-767-base
             List<String> storedMessagesForMessageKey = storedMessages.get(messageKey);
 
             if (storedMessagesForMessageKey != null &&
@@ -398,11 +425,18 @@ public class MetadataCheck extends Check {
                 return;
             }
 
+<<<<<<< HEAD
             // recalculate the highest frequency of messages for any short message in storedmessages,
             // because it can be changed after each replacement
             String messageKeyWithHighestFrequency = Objects.requireNonNull(getMessageWithHighestCount(storedMessages));
             highestMessageFrequency = storedMessages.get(messageKeyWithHighestFrequency).size();
             storedMessagesInfo.setHighestFrequency(highestMessageFrequency);
+=======
+            // recalculate the highest frequency of messages for any short message in stored messages,
+            // because it can be changed after each replacement
+            messageKeyWithHighestFrequency = Objects.requireNonNull(getMessageWithHighestCount(storedMessages));
+            highestMessageFrequency = storedMessages.get(messageKeyWithHighestFrequency).size();
+>>>>>>> origin/dtq-dev-767-base
 
             if (highestMessageFrequency <= 1) {
                 // no replacement, as there are no messages with the frequency higher than 1 anymore
@@ -451,12 +485,18 @@ public class MetadataCheck extends Check {
      */
     private static class StoredMessagesInfo {
         private int count;
+<<<<<<< HEAD
         private int highestFrequency;
+=======
+>>>>>>> origin/dtq-dev-767-base
         private final Map<String, List<String>> storedMessages;
 
         StoredMessagesInfo() {
             this.count = 0;
+<<<<<<< HEAD
             this.highestFrequency = Integer.MAX_VALUE;
+=======
+>>>>>>> origin/dtq-dev-767-base
             storedMessages = new TreeMap<>();
         }
 
@@ -464,6 +504,7 @@ public class MetadataCheck extends Check {
             return count;
         }
 
+<<<<<<< HEAD
         public int getHighestFrequency() {
             return highestFrequency;
         }
@@ -472,6 +513,8 @@ public class MetadataCheck extends Check {
             this.highestFrequency = highestFrequency;
         }
 
+=======
+>>>>>>> origin/dtq-dev-767-base
         public Map<String, List<String>> getStoredMessages() {
             return storedMessages;
         }
