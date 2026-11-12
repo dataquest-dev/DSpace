@@ -73,6 +73,9 @@ ENV LDAPTLS_CACERT=/etc/ssl/certs/ca-certificates.crt
 EXPOSE 8080 8009 8000
 # Give java extra memory (2GB)
 ENV JAVA_OPTS=-Xmx2000m
+# IPv4 only, for every JVM (Tomcat, CLI, handle server); compose JAVA_OPTS does not override it.
+# Containers have no IPv6: an AAAA-only DNS answer for the DB host failed the BE start (VSB 2026-11-12).
+ENV JAVA_TOOL_OPTIONS=-Djava.net.preferIPv4Stack=true
 COPY scripts/restart_debug/* /usr/local/tomcat/bin
 COPY scripts/index-scripts/* /dspace/bin
 # Link the DSpace 'server' webapp into Tomcat's webapps directory.
