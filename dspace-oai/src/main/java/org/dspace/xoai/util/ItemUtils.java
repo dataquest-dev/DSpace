@@ -12,10 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-<<<<<<< HEAD
-=======
 import java.util.Date;
->>>>>>> origin/dtq-dev-767-base
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

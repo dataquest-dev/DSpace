@@ -44,13 +44,7 @@ public class RootConverter {
         } else {
             rootRest.setDspaceServer(dspaceUrl);
         }
-<<<<<<< HEAD
         rootRest.setDspaceVersion("CLARIN-DSpace " + getSourceVersion());
-=======
-        String versionPrefix = StringUtils.defaultIfBlank(
-                configurationService.getProperty("dspace.version.prefix", "CLARIN-DSpace"), "CLARIN-DSpace");
-        rootRest.setDspaceVersion(versionPrefix + " " + getSourceVersion());
->>>>>>> origin/dtq-dev-767-base
         rootRest.setBuildVersion(getBuildVersion());
         return rootRest;
     }

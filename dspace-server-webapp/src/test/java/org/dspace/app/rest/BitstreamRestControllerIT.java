@@ -1332,144 +1332,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             bitstream.setFormat(context, bitstreamFormatService.findByMIMEType(context, "application/pdf"));
             bitstreamService.update(context, bitstream);
             context.restoreAuthSystemState();
-<<<<<<< HEAD
-
-            Mockito.doAnswer(invocation -> {
-                InputStream stream = spy((InputStream) invocation.callRealMethod());
-                openedStreams.add(stream);
-                return stream;
-            }).when(storageSpy).retrieve(any(), eq(bitstream));
-
-            String uri = "/api/core/bitstreams/" + bitstream.getID() + "/content";
-            String etag = getClient().perform(head(uri))
-                .andExpect(status().isOk()).andReturn().getResponse().getHeader("ETag");
-            getClient().perform(get(uri).header("If-None-Match", etag))
-                .andExpect(status().isNotModified());
-            getClient().perform(get(uri).header("If-Unmodified-Since", "Sat, 29 Oct 1994 19:43:31 GMT"))
-                .andExpect(status().isPreconditionFailed());
-            getClient().perform(get(uri))
-                .andExpect(status().isOk())
-                .andExpect(content().string("0123456789"));
-
-            // Each request opens one stream for the failed attempt and one for the fallback.
-            assertEquals(8, openedStreams.size());
-            for (InputStream stream : openedStreams) {
-                Mockito.verify(stream, times(1)).close();
-            }
-        } finally {
-            ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService",
-                StorageServiceFactory.getInstance().getBitstreamStorageService());
-            configurationService.setProperty("citation-page.enable_globally", false);
-            citationDocumentService.afterPropertiesSet();
-        }
-    }
-
-    /**
-     * Creates a public item with a text bitstream (stored in {@link #bitstream}) and replaces the bitstream
-     * storage service with a spy so that calls to {@code retrieve(...)} can be verified.
-     *
-     * @return the spied bitstream storage service
-     */
-    private BitstreamStorageService setUpBitstreamWithStorageSpy() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        parentCommunity = CommunityBuilder.createCommunity(context)
-            .withName("Parent Community")
-            .build();
-
-        Collection col1 =
-            CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
-
-        try (InputStream is = IOUtils.toInputStream("0123456789", CharEncoding.UTF_8)) {
-
-            Item publicItem1 = ItemBuilder.createItem(context, col1)
-                .withTitle("Public item 1")
-                .withIssueDate("2017-10-17")
-                .withAuthor("Smith, Donald").withAuthor("Doe, John")
-                .build();
-
-            bitstream = BitstreamBuilder
-                .createBitstream(context, publicItem1, is)
-                .withName("Test bitstream")
-                .withDescription("This is a bitstream to test range requests")
-                .withMimeType("text/plain")
-                .build();
-        }
-        context.restoreAuthSystemState();
-
-        BitstreamStorageService bitstreamStorageService =
-            StorageServiceFactory.getInstance().getBitstreamStorageService();
-        BitstreamStorageService bitstreamStorageServiceSpy = spy(bitstreamStorageService);
-        ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService", bitstreamStorageServiceSpy);
-        return bitstreamStorageServiceSpy;
-    }
-
-    @Test
-    public void doesNotOpenStreamForHeadRequest() throws Exception {
-        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
-
-        //A HEAD request only needs the headers, so the storage stream must never be opened.
-        getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-            .andExpect(status().isOk());
-
-        Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
-    }
-
-    @Test
-    public void doesNotOpenStreamForNotModifiedRequest() throws Exception {
-        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
-
-        //A matching If-None-Match results in a 304 without a body, so the storage stream must never be opened.
-        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                .header("If-None-Match", bitstream.getChecksum()))
-            .andExpect(status().isNotModified());
-
-        Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
-    }
-
-    @Test
-    public void doesNotOpenStreamForPreconditionFailedRequest() throws Exception {
-        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
-
-        //An If-Unmodified-Since in the past results in a 412 without a body, so the stream must never be opened.
-        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                .header("If-Unmodified-Since", "Sat, 29 Oct 1994 19:43:31 GMT"))
-            .andExpect(status().isPreconditionFailed());
-
-        Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
-    }
-
-    @Test
-    public void doesNotOpenStreamForRangeNotSatisfiableRequest() throws Exception {
-        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
-
-        //A non-matching If-Match results in a 416 without a body, so the storage stream must never be opened.
-        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                .header("If-Match", "not-the-etag"))
-            .andExpect(status().isRequestedRangeNotSatisfiable());
-
-        Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
-    }
-
-    @Test
-    public void returnsServerErrorWhenFileIsMissing() throws Exception {
-        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
-        assertTrue(bitstreamStorageServiceSpy.retrieveFile(context, bitstream).delete());
-
-        //The file is opened only when the body is written, so a missing file must still end in an error.
-        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-            .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    public void checkContentDispositionOfFormats() throws Exception {
-        configurationService.setProperty("webui.content_disposition_format", new String[] {
-            "text/richtext",
-            "text/xml",
-            "txt"
-        });
-=======
->>>>>>> origin/dtq-dev-767-base
 
             Mockito.doAnswer(invocation -> {
                 InputStream stream = spy((InputStream) invocation.callRealMethod());
@@ -1737,11 +1599,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             "text/ecmascript", "application/x-javascript", "application/x-ecmascript",
             "text/x-javascript", "text/x-ecmascript", "text/jscript", "text/livescript", "text/javascript1.5"
         };
-<<<<<<< HEAD
-        configurationService.setProperty("webui.content_disposition_format", new String[0]);
-=======
         configurationService.setProperty("webui.content_disposition_inline", mimeTypes);
->>>>>>> origin/dtq-dev-767-base
 
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
@@ -1762,11 +1620,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             String contentType = mimeType.split(";")[0] + ";charset=UTF-8";
             configurationService.setProperty("webui.content_disposition_threshold", 8388608);
             verifyBitstreamDownload(file, contentType, true);
-<<<<<<< HEAD
-            configurationService.setProperty("webui.content_disposition_threshold", -1);
-            verifyBitstreamDownload(file, contentType, true);
-=======
->>>>>>> origin/dtq-dev-767-base
         }
     }
 
@@ -1781,32 +1634,20 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         verifyBitstreamDownload(bitstream, "application/pdf;charset=UTF-8", false);
         configurationService.setProperty("webui.content_disposition_threshold", bitstream.getSizeBytes() - 1);
         verifyBitstreamDownload(bitstream, "application/pdf;charset=UTF-8", true);
-<<<<<<< HEAD
-        configurationService.setProperty("webui.content_disposition_threshold", -1);
-        verifyBitstreamDownload(bitstream, "application/pdf;charset=UTF-8", false);
-=======
         // Since 7.6.7 a negative threshold serves nothing inline
         configurationService.setProperty("webui.content_disposition_threshold", -1);
         verifyBitstreamDownload(bitstream, "application/pdf;charset=UTF-8", true);
->>>>>>> origin/dtq-dev-767-base
     }
 
     @Test
     public void checkMissingMimeTypeDownloads() throws Exception {
-<<<<<<< HEAD
-        configurationService.setProperty("webui.content_disposition_format", new String[0]);
-=======
         // The extension is allowed inline, so only the missing MIME type makes these download
         configurationService.setProperty("webui.content_disposition_inline", new String[] {"txt"});
->>>>>>> origin/dtq-dev-767-base
         for (String mimeType : new String[] {null, "", " "}) {
             context.turnOffAuthorisationSystem();
             supportedFormat = context.reloadEntity(supportedFormat);
             supportedFormat.setMIMEType(mimeType);
-<<<<<<< HEAD
-=======
             supportedFormat.setExtensions(List.of("txt"));
->>>>>>> origin/dtq-dev-767-base
             bitstreamFormatService.update(context, supportedFormat);
             context.restoreAuthSystemState();
             verifyBitstreamDownload(bitstream, "application/octet-stream;charset=UTF-8", true);
@@ -2068,11 +1909,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             URI expectedUrl = URI.create("https://example.com");
             doReturn(expectedUrl.toString())
                     .when(s3DirectDownloadService)
-<<<<<<< HEAD
-                    .generatePresignedUrl(anyString(), anyString(), anyInt(), anyString());
-=======
                     .generatePresignedUrl(anyString(), anyString(), anyInt(), anyString(), nullable(String.class));
->>>>>>> origin/dtq-dev-767-base
 
             // Bitstream in the ORIGINAL bundle so hasOriginalBundle is true and the redirect branch is taken.
             bitstream = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))

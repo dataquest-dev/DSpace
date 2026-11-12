@@ -60,24 +60,8 @@ import org.xml.sax.InputSource;
 public class DSpaceControlledVocabulary extends SelfNamedPlugin implements HierarchicalAuthority {
 
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger();
-<<<<<<< HEAD
     protected static String xpathTemplate = "//node[contains(translate(@label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ'," +
         "'abcdefghijklmnopqrstuvwxyz'),%s)]";
-=======
-    protected static final String xpathTemplate;
-    static {
-        StringBuilder upper = new StringBuilder();
-        StringBuilder lower = new StringBuilder();
-        for (int cp = 'A'; cp <= Character.MAX_CODE_POINT; cp++) {
-            if (Character.isLetter(cp) && Character.isUpperCase(cp)) {
-                int lcp = Character.toLowerCase(cp);
-                upper.appendCodePoint(cp);
-                lower.appendCodePoint(lcp);
-            }
-        }
-        xpathTemplate = "//node[contains(translate(@label,'" + upper + "','" + lower + "'),%s)]";
-    }
->>>>>>> origin/dtq-dev-767-base
     protected static String idTemplate = "//node[@id = %s]";
     protected static String idTemplateQuoted = "//node[@id = $nodeId]";
     protected static String labelTemplate = "//node[@label = %s]";

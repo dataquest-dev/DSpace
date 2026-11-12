@@ -302,11 +302,7 @@ public class BitstreamRestController {
         // Undefined or Unknown formats should ALWAYS be downloaded for additional security.
         if (format == null || format.getSupportLevel() == BitstreamFormat.UNKNOWN
             || StringUtils.isBlank(format.getMIMEType())) {
-<<<<<<< HEAD
-            return true;
-=======
             return false;
->>>>>>> origin/dtq-dev-767-base
         }
 
         // Compare MIME types without parameters or case differences.
@@ -315,19 +311,6 @@ public class BitstreamRestController {
             return false;
         }
 
-<<<<<<< HEAD
-        // Compare MIME types without parameters or case differences.
-        String mimeType = StringUtils.substringBefore(format.getMIMEType(), ";").trim().toLowerCase(Locale.ROOT);
-        if (mimeType.isEmpty() || mimeType.endsWith("+xml") || mimeType.startsWith("text/javascript")) {
-            return true;
-        }
-
-        // Active formats must download regardless of configuration.
-        List<String> downloadOnlyFormats = List.of("text/html", "text/javascript", "text/xml", "application/xml",
-            "rdf", "application/javascript", "application/ecmascript", "text/ecmascript",
-            "application/x-javascript", "application/x-ecmascript", "text/x-javascript", "text/x-ecmascript",
-            "text/jscript", "text/livescript");
-=======
         // Return false for BANNED inline formats. Some formats, especially XML / HTML / Javascript based formats,
         // when loaded inline may be susceptible to XSS attacks. Therefore, we will refuse to allow those formats to be
         // displayed inline for security purposes.
@@ -342,21 +325,14 @@ public class BitstreamRestController {
                 return false;
             }
         }
->>>>>>> origin/dtq-dev-767-base
 
         // Load formats configured to allow inline display
         List<String> formats = List.of(configurationService.
                                                      getArrayProperty("webui.content_disposition_inline"));
 
         // See if the passed in format's MIME type or file extension is listed.
-<<<<<<< HEAD
-        boolean download = formats.stream().anyMatch(value ->
-            mimeType.equalsIgnoreCase(StringUtils.substringBefore(value, ";").trim()));
-        if (!download) {
-=======
         boolean inline = formats.contains(format.getMIMEType());
         if (!inline) {
->>>>>>> origin/dtq-dev-767-base
             for (String ext : format.getExtensions()) {
                 if (formats.contains(ext)) {
                     inline = true;

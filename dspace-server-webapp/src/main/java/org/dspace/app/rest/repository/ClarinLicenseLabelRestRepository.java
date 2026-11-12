@@ -139,10 +139,7 @@ public class ClarinLicenseLabelRestRepository extends DSpaceRestRepository<Clari
                     " already exists");
         }
 
-<<<<<<< HEAD
         clarinLicenseLabel.setId(id);
-=======
->>>>>>> origin/dtq-dev-767-base
         updateClarinLicenseLabel(clarinLicenseLabel, clarinLicenseLabelRest);
 
         clarinLicenseLabelService.update(context, clarinLicenseLabel);
