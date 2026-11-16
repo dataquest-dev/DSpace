@@ -8,10 +8,12 @@
 package org.dspace.authenticate;
 
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -30,6 +32,26 @@ public class OidcAuthentication implements AuthenticationMethod {
     private final ServiceManager serviceManager = new DSpace().getServiceManager();
 
     private static final String OIDC_AUTHENTICATED = "oidc.authenticated";
+
+    /**
+     * Check if OidcAuthentication plugin is enabled
+     * @return true if enabled, false otherwise
+     */
+    public static boolean isEnabled() {
+
+        String pluginName = new OidcAuthentication().getName();
+
+        Iterator<AuthenticationMethod> authenticationMethodIterator = AuthenticateServiceFactory.getInstance()
+            .getAuthenticationService().authenticationMethodIterator();
+
+        while (authenticationMethodIterator.hasNext()) {
+            if (pluginName.equals(authenticationMethodIterator.next().getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     @Override
     public boolean canSelfRegister(Context context, HttpServletRequest request, String username) throws SQLException {
