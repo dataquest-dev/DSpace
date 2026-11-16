@@ -7,9 +7,14 @@
  */
 package org.dspace.app.rest.security;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.ws.rs.core.MediaType;
 import org.dspace.app.rest.authorization.AuthorizationFeature;
 import org.dspace.app.rest.authorization.AuthorizationFeatureService;
@@ -29,6 +35,7 @@ import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.GroupBuilder;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.junit.Before;
@@ -225,6 +232,72 @@ public class ShibbolethLoginFilterIT extends AbstractControllerIntegrationTest {
                                          .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                         .andExpect(status().isForbidden());
 
+    }
+
+    @Test
+    public void loginEndpointIgnoresShibbolethHeaders() throws Exception {
+        getClient().perform(post("/api/authn/login").header("SHIB-MAIL", eperson.getEmail()))
+                   .andExpect(status().isUnauthorized())
+                   .andExpect(header().doesNotExist("Authorization"));
+    }
+
+    @Test
+    public void oidcEndpointIgnoresShibbolethHeaders() throws Exception {
+        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod",
+                                         new String[] {"org.dspace.authenticate.OidcAuthentication", SHIB_ONLY[0]});
+
+        getClient().perform(get("/api/authn/oidc").header("SHIB-MAIL", admin.getEmail()))
+                   .andExpect(status().isUnauthorized())
+                   .andExpect(cookie().doesNotExist("Authorization-cookie"));
+    }
+
+    @Test
+    public void roleHeaderOnOrdinaryRequestAddsNoSpecialGroup() throws Exception {
+        context.turnOffAuthorisationSystem();
+        GroupBuilder.createGroup(context).withName("Shibboleth Faculty").build();
+        context.restoreAuthSystemState();
+        configurationService.setProperty("authentication-shibboleth.role.faculty", "Shibboleth Faculty");
+
+        // A real Shibboleth login without any affiliation, so the user gets no special groups.
+        String token = getClient().perform(get("/api/authn/shibboleth").requestAttr("SHIB-MAIL", eperson.getEmail()))
+                                  .andExpect(status().is3xxRedirection())
+                                  .andReturn().getResponse().getHeader("Authorization");
+
+        getClient(token).perform(get("/api/authn/status/specialGroups").header("SHIB-SCOPED-AFFILIATION", "faculty"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$._embedded.specialGroups[*].name",
+                                            not(hasItem("Shibboleth Faculty"))));
+    }
+
+    @Test
+    public void shibbolethLoginReadsHeadersWithContextPath() throws Exception {
+        getClient().perform(get("/server/api/authn/shibboleth").contextPath("/server")
+                                .header("SHIB-MAIL", eperson.getEmail()))
+                   .andExpect(status().is3xxRedirection())
+                   .andExpect(redirectedUrl("http://localhost:4000"));
+    }
+
+    @Test
+    public void roleHeaderOnShibbolethLoginIsKeptAfterCookieExchange() throws Exception {
+        context.turnOffAuthorisationSystem();
+        GroupBuilder.createGroup(context).withName("Shibboleth Faculty").build();
+        context.restoreAuthSystemState();
+        configurationService.setProperty("authentication-shibboleth.role.faculty", "Shibboleth Faculty");
+
+        Cookie authCookie = getClient().perform(get("/api/authn/shibboleth")
+                                                    .header("SHIB-MAIL", eperson.getEmail())
+                                                    .header("SHIB-SCOPED-AFFILIATION", "faculty"))
+                                       .andExpect(status().is3xxRedirection())
+                                       .andReturn().getResponse().getCookie("Authorization-cookie");
+
+        // Same exchange as the UI: the cookie is turned into an Authorization header on /api/authn/login.
+        String token = getClient().perform(post("/api/authn/login").secure(true).cookie(authCookie))
+                                  .andExpect(status().isOk())
+                                  .andReturn().getResponse().getHeader("Authorization");
+
+        getClient(token).perform(get("/api/authn/status/specialGroups"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$._embedded.specialGroups[*].name", hasItem("Shibboleth Faculty")));
     }
 
 }
