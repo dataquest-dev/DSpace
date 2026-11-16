@@ -15,6 +15,7 @@ import java.util.UUID;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
+import org.dspace.app.rest.exception.RESTAuthorizationException;
 import org.dspace.app.rest.model.ClarinLicenseResourceUserAllowanceRest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinLicenseResourceUserAllowance;
@@ -34,13 +35,16 @@ public class ClarinLicenseResourceUserAllowanceRestRepository
     ClarinLicenseResourceUserAllowanceService clarinLicenseResourceUserAllowanceService;
 
     @Override
-    @PreAuthorize("permitAll()")
-    public ClarinLicenseResourceUserAllowanceRest findOne(Context context, Integer integer) {
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
+    public ClarinLicenseResourceUserAllowanceRest findOne(Context context, Integer integer)
+            throws RESTAuthorizationException {
         ClarinLicenseResourceUserAllowance clarinLicenseResourceUserAllowance;
         try {
             clarinLicenseResourceUserAllowance = clarinLicenseResourceUserAllowanceService.find(context, integer);
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
+        } catch (AuthorizeException e) {
+            throw new RESTAuthorizationException(e);
         }
 
         if (Objects.isNull(clarinLicenseResourceUserAllowance)) {
@@ -56,12 +60,15 @@ public class ClarinLicenseResourceUserAllowanceRestRepository
             List<ClarinLicenseResourceUserAllowance> clarinLicenseResourceUserAllowanceList =
                     clarinLicenseResourceUserAllowanceService.findAll(context);
             return converter.toRestPage(clarinLicenseResourceUserAllowanceList, pageable, utils.obtainProjection());
-        } catch (SQLException | AuthorizeException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
+        } catch (AuthorizeException e) {
+            throw new RESTAuthorizationException(e);
         }
     }
 
     @SearchRestMethod(name = "byBitstreamAndUser")
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public Page<ClarinLicenseResourceUserAllowanceRest> findByValue(
             @Parameter(value = "bitstreamUUID", required = true) UUID bitstreamUUID,
             @Parameter(value = "userUUID", required = true) UUID userUUID,
@@ -69,9 +76,13 @@ public class ClarinLicenseResourceUserAllowanceRestRepository
 
         Context context = obtainContext();
 
-        List<ClarinLicenseResourceUserAllowance> clarinLicenseResourceUserAllowance =
-                clarinLicenseResourceUserAllowanceService.findByEPersonIdAndBitstreamId(context, userUUID,
-                        bitstreamUUID);
+        List<ClarinLicenseResourceUserAllowance> clarinLicenseResourceUserAllowance;
+        try {
+            clarinLicenseResourceUserAllowance = clarinLicenseResourceUserAllowanceService
+                    .findByEPersonIdAndBitstreamId(context, userUUID, bitstreamUUID);
+        } catch (AuthorizeException e) {
+            throw new RESTAuthorizationException(e);
+        }
 
         if (CollectionUtils.isEmpty(clarinLicenseResourceUserAllowance)) {
             return null;
