@@ -12,6 +12,7 @@ import static org.dspace.app.rest.repository.ClarinUserMetadataRestController.CH
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.model.ClarinUserMetadataRest;
@@ -45,9 +47,11 @@ import org.dspace.content.Community;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.content.service.clarin.ClarinUserMetadataService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -58,6 +62,8 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
     ClarinLicenseService clarinLicenseService;
     @Autowired
     ClarinLicenseLabelService clarinLicenseLabelService;
+    @Autowired
+    ClarinUserMetadataService clarinUserMetadataService;
 
     WorkspaceItem witem;
     ClarinLicense clarinLicense;
@@ -406,6 +412,39 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
                         .contentType(contentType))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
+    }
+
+    @Test
+    public void signedInUserWithoutMetadata_ownsTheCreatedMetadata() throws Exception {
+        this.prepareEnvironment("NAME", 0);
+        context.turnOffAuthorisationSystem();
+        ClarinUserRegistration clarinUserRegistration = ClarinUserRegistrationBuilder
+                .createClarinUserRegistration(context).withEPersonID(eperson.getID()).build();
+        context.restoreAuthSystemState();
+        ObjectMapper mapper = new ObjectMapper();
+        ClarinUserMetadataRest clarinUserMetadata1 = new ClarinUserMetadataRest();
+        clarinUserMetadata1.setMetadataKey("NAME");
+        clarinUserMetadata1.setMetadataValue("Test");
+        List<ClarinUserMetadataRest> clarinUserMetadataRestList = new ArrayList<>();
+        clarinUserMetadataRestList.add(clarinUserMetadata1);
+
+        // A non-admin user fills in the form for the first time and gets the token
+        String userToken = getAuthToken(eperson.getEmail(), password);
+        getClient(userToken).perform(post("/api/core/clarinusermetadata/manage?bitstreamUUID=" + bitstream.getID())
+                        .content(mapper.writeValueAsBytes(clarinUserMetadataRestList.toArray()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", not(CHECK_EMAIL_RESPONSE_CONTENT)));
+
+        // The created metadata belong to the user, so the user may read them
+        context.turnOffAuthorisationSystem();
+        List<ClarinUserMetadata> own = clarinUserMetadataService.findAll(context).stream()
+                .filter(m -> m.getEperson() != null && m.getEperson().getID().equals(clarinUserRegistration.getID()))
+                .collect(Collectors.toList());
+        context.restoreAuthSystemState();
+        assertEquals(1, own.size());
+        getClient(userToken).perform(get("/api/core/clarinusermetadata/" + own.get(0).getID()))
+                .andExpect(status().isOk());
     }
 
     private WorkspaceItem createWorkspaceItemWithFile() {

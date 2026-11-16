@@ -18,8 +18,8 @@ public interface ClarinUserMetadataService {
 
     ClarinUserMetadata create(Context context) throws SQLException;
 
-    ClarinUserMetadata find(Context context, int valueId) throws SQLException;
-    List<ClarinUserMetadata> findAll(Context context) throws SQLException;
-    void update(Context context, ClarinUserMetadata clarinUserMetadata) throws SQLException;
+    ClarinUserMetadata find(Context context, int valueId) throws SQLException, AuthorizeException;
+    List<ClarinUserMetadata> findAll(Context context) throws SQLException, AuthorizeException;
+    void update(Context context, ClarinUserMetadata clarinUserMetadata) throws SQLException, AuthorizeException;
     void delete(Context context, ClarinUserMetadata clarinUserMetadata) throws SQLException, AuthorizeException;
 }
