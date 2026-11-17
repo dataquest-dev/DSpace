@@ -1154,7 +1154,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
         //Simulate that a shibboleth authentication has happened
         String token = getClient().perform(post("/api/authn/login")
                     .with(ip("123.123.123.123"))
-                    .header("SHIB-MAIL", eperson.getEmail()))
+                    .requestAttr("SHIB-MAIL", eperson.getEmail()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getHeader(AUTHORIZATION_HEADER).replace(AUTHORIZATION_TYPE, "");
 
@@ -1175,7 +1175,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
         //Simulate that a new shibboleth authentication has happened from another IP
         token = getClient().perform(post("/api/authn/login")
                 .with(ip("234.234.234.234"))
-                .header("SHIB-MAIL", eperson.getEmail()))
+                .requestAttr("SHIB-MAIL", eperson.getEmail()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getHeader(AUTHORIZATION_HEADER).replace(AUTHORIZATION_TYPE, "");
 
