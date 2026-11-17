@@ -234,7 +234,7 @@ public class HttpHeadersInitializer {
         String ifMatch = request.getHeader(IF_MATCH);
         if (nonNull(ifMatch) && !matches(ifMatch, checksum)) {
             log.error("If-Match header should contain \"*\" or ETag. If not, then return 412.");
-            response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+            response.sendError(HttpServletResponse.SC_PRECONDITION_FAILED);
             return false;
         }
 

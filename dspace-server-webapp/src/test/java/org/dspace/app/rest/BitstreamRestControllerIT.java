@@ -1426,6 +1426,18 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    public void doesNotOpenStreamForNotModifiedHeadRequest() throws Exception {
+        BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
+
+        //A matching If-None-Match on HEAD returns 304 without opening the storage stream.
+        getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content")
+                .header("If-None-Match", bitstream.getChecksum()))
+            .andExpect(status().isNotModified());
+
+        Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
+    }
+
+    @Test
     public void doesNotOpenStreamForPreconditionFailedRequest() throws Exception {
         BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
 
@@ -1438,15 +1450,25 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    public void doesNotOpenStreamForRangeNotSatisfiableRequest() throws Exception {
+    public void doesNotOpenStreamForIfMatchMismatch() throws Exception {
         BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
 
-        //A non-matching If-Match results in a 416 without a body, so the storage stream must never be opened.
+        //A non-matching If-Match results in a 412 without a body, so the storage stream must never be opened.
         getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
                 .header("If-Match", "not-the-etag"))
-            .andExpect(status().isRequestedRangeNotSatisfiable());
+            .andExpect(status().isPreconditionFailed());
 
         Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
+    }
+
+    @Test
+    public void returnsRangeNotSatisfiableForUnsatisfiableRange() throws Exception {
+        setUpBitstreamWithStorageSpy();
+
+        //The bitstream has ten bytes, so a range starting at byte ten is unsatisfiable.
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
+                .header("Range", "bytes=10-20"))
+            .andExpect(status().isRequestedRangeNotSatisfiable());
     }
 
     @Test

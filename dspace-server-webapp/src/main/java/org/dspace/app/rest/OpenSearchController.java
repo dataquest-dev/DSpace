@@ -23,6 +23,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.ScopeResolver;
 import org.dspace.app.util.SyndicationFeed;
@@ -30,7 +31,6 @@ import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.app.util.service.OpenSearchService;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
-import org.dspace.core.Utils;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
 import org.dspace.discovery.DiscoverResult;
@@ -63,6 +63,8 @@ public class OpenSearchController {
 
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger();
 
+    private static final String HTML_FORMAT = "html";
+
     private List<String> searchIndices = null;
 
     private OpenSearchService openSearchService;
@@ -72,8 +74,6 @@ public class OpenSearchController {
 
     @Autowired
     private DiscoveryConfigurationService searchConfigurationService;
-
-    private Context context;
 
     @Autowired
     private ScopeResolver scopeResolver;
@@ -93,13 +93,20 @@ public class OpenSearchController {
                          @RequestParam(name = "sort_direction", required = false) String sortDirection,
                          @RequestParam(name = "scope", required = false) String dsoObject)
         throws IOException, ServletException {
-        context = ContextUtil.obtainContext(request);
-
         if (openSearchService == null) {
             openSearchService = UtilServiceFactory.getInstance().getOpenSearchService();
         }
 
         if (openSearchService.isEnabled()) {
+            if (StringUtils.isEmpty(format)) {
+                format = "atom";
+            }
+            // HTML is advertised through the UI URL in the service description, not this feed endpoint.
+            if (HTML_FORMAT.equals(format) || !openSearchService.getFormats().contains(format)) {
+                throw new DSpaceBadRequestException("Unsupported OpenSearch format");
+            }
+
+            Context context = ContextUtil.obtainContext(request);
             init();
 
             if (start == null) {
@@ -111,22 +118,7 @@ public class OpenSearchController {
             }
             count = Math.min(count, openSearchService.getMaxNumOfItemsPerRequest());
 
-            // get enough request parameters to decide on action to take
-            if (StringUtils.isEmpty(format)) {
-                // default to atom
-                format = "atom";
-            }
-
             log.debug("Searching for " + query + " in format " + format);
-
-            // do some sanity checking
-            if (!openSearchService.getFormats().contains(format)) {
-                // Since we are returning error response as HTML, escape any HTML in "format" param
-                String err = "Format " + Utils.addEntities(format) + " is not supported.";
-                response.setContentType("text/html");
-                response.setContentLength(err.length());
-                response.getWriter().write(err);
-            }
 
             // then the rest - we are processing the query
             IndexableObject container = null;
