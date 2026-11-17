@@ -12,6 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -301,6 +302,34 @@ public class OidcAuthenticationRestControllerIT extends AbstractControllerIntegr
         verify(oidcClientMock).getUserInfo(ACCESS_TOKEN);
         verifyNoMoreInteractions(oidcClientMock);
 
+    }
+
+    @Test
+    public void testLoginRefusedWhenOidcDisabled() throws Exception {
+        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod",
+            asList("org.dspace.authenticate.ShibAuthentication", "org.dspace.authenticate.PasswordAuthentication"));
+
+        getClient().perform(get("/api/" + AuthnRest.CATEGORY + "/oidc")
+            .requestAttr("SHIB-MAIL", admin.getEmail()))
+            .andExpect(status().isUnauthorized())
+            .andExpect(cookie().doesNotExist("Authorization-cookie"))
+            .andExpect(header().exists("WWW-Authenticate"));
+    }
+
+    @Test
+    public void testNoEPersonRegisteredWhenOidcDisabled() throws Exception {
+        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod",
+            asList("org.dspace.authenticate.ShibAuthentication", "org.dspace.authenticate.PasswordAuthentication"));
+
+        getClient().perform(get("/api/" + AuthnRest.CATEGORY + "/oidc")
+            .requestAttr("SHIB-NETID", "new-netid")
+            .requestAttr("SHIB-MAIL", "new-user@email.it")
+            .requestAttr("SHIB-GIVENNAME", "New")
+            .requestAttr("SHIB-SURNAME", "User"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(cookie().doesNotExist("Authorization-cookie"));
+
+        assertThat(ePersonService.findByEmail(context, "new-user@email.it"), nullValue());
     }
 
     private OidcTokenResponseDTO buildOidcTokenResponse(String accessToken) {
