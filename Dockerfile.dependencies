@@ -7,7 +7,7 @@
 ARG JDK_VERSION=11
 
 # Step 1 - Run Maven Build
-FROM docker.io/eclipse-temurin:${JDK_VERSION} AS ant_build
+FROM docker.io/maven:3-eclipse-temurin-${JDK_VERSION} AS base
 ARG TARGET_DIR=dspace-installer
 WORKDIR /app
 # Create the 'dspace' user account & home directory
@@ -15,12 +15,9 @@ RUN useradd dspace \
     && mkdir -p /home/dspace \
     && chown -Rv dspace: /home/dspace
 RUN chown -Rv dspace: /app
-# Need git to support buildnumber-maven-plugin, which lets us know what version of DSpace is being run.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends git maven\
-    && apt-get purge -y --auto-remove \
-    && rm -rf /var/lib/apt/lists/*
 
+# Resolve dependencies in a disposable stage; build outputs must not enter the published image.
+FROM base AS build
 # Switch to dspace user & run below commands as that user
 USER dspace
 
@@ -30,7 +27,7 @@ ADD --chown=dspace . /app/
 # Trigger the installation of all maven dependencies (hide download progress messages)
 RUN mvn --no-transfer-progress package
 
-# Clear the contents of the /app directory (including all maven builds), so no artifacts remain.
-# This ensures when dspace:dspace is built, it will use the Maven local cache (~/.m2) for dependencies
-USER root
-RUN rm -rf /app/*
+# Publish only the Maven cache on the clean build-tool base.
+# Deleting /app in a later layer would retain sources and build artifacts in the image.
+FROM base AS final
+COPY --from=build --chown=dspace:dspace /home/dspace/.m2 /home/dspace/.m2
