@@ -81,6 +81,8 @@ RUN for dir in assetstore ctqueues exports handle-server imports log reports sit
     && chown root:dspace /dspace /dspace/solr/search/conf \
     && chmod 1775 /dspace /dspace/solr/search/conf \
     && chmod -R a+rX /dspace/bin
+# /dspace is the working folder, so Spring Boot must not read ./application.properties from it.
+ENV SPRING_CONFIG_LOCATION=optional:classpath:/,optional:classpath:/config/,optional:file:./config/,optional:file:./config/*/
 
 USER dspace
 
