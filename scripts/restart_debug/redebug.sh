@@ -1,3 +1,3 @@
 #!/bin/bash
-touch /usr/local/tomcat/temp/do_debug.txt
+touch /home/dspace/do_debug.txt
 ./shutdown.sh
