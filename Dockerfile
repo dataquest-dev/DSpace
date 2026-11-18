@@ -84,17 +84,16 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 WORKDIR /usr/local/tomcat/bin
 RUN chmod a+rx redebug.sh undebug.sh custom_run.sh
 
-# App files stay owned by root. dspace writes only to the data folders, Tomcat's webapps (namespace link),
-# solr/search/conf (reindex.flag) and item-submission.xml. /dspace and config are sticky, so dspace can add
-# and remove its own entries there (temp folders, config backups), but not replace the others.
+# App files stay owned by root. dspace writes only to the data folders, Tomcat's webapps (namespace link)
+# and item-submission.xml. /dspace, config and solr/search/conf are sticky, so dspace can add and remove
+# its own entries there (temp folders, config backups, reindex.flag), but not replace the others.
 # Missing folders are created so named volumes (not bind mounts) inherit the owner.
 RUN for dir in assetstore ctqueues exports handle-server imports log matomo_reports reports sitemaps \
                temp triplestore upload var; do \
         mkdir -p /dspace/$dir && chown -R dspace:dspace /dspace/$dir; \
     done \
-    && chown dspace:dspace /dspace/solr/search/conf \
-    && chown root:dspace /dspace \
-    && chmod 1775 /dspace \
+    && chown root:dspace /dspace /dspace/solr/search/conf \
+    && chmod 1775 /dspace /dspace/solr/search/conf \
     && chmod -R a+rX /dspace/bin \
     && mkdir -p /usr/local/tomcat/conf/Catalina/localhost \
     && chown dspace:dspace /usr/local/tomcat/webapps \
