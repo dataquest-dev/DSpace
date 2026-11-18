@@ -85,12 +85,13 @@ RUN chmod +x redebug.sh undebug.sh custom_run.sh
 # NOTE: missing folders are created so Docker named volumes inherit the correct ownership.
 # This only works for *named volumes* — bind mounts use host permissions.
 # Tomcat only reads conf/Catalina/localhost, but logs an error at start when it cannot create it.
-RUN chmod -R a+rX /dspace/bin \
-    && mkdir -p /dspace/assetstore /dspace/ctqueues /dspace/imports /dspace/matomo_reports /dspace/sitemaps /dspace/temp \
-       /usr/local/tomcat/conf/Catalina/localhost \
-    && chown -R dspace:dspace /dspace/assetstore /dspace/ctqueues /dspace/exports /dspace/handle-server \
-       /dspace/imports /dspace/log /dspace/matomo_reports /dspace/reports /dspace/sitemaps /dspace/temp \
-       /dspace/triplestore /dspace/upload /dspace/var /usr/local/tomcat/webapps \
+RUN for dir in assetstore ctqueues exports handle-server imports log matomo_reports reports sitemaps temp \
+               triplestore upload var; do \
+        mkdir -p /dspace/$dir && chown -R dspace:dspace /dspace/$dir; \
+    done \
+    && chmod -R a+rX /dspace/bin \
+    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost \
+    && chown dspace:dspace /usr/local/tomcat/webapps \
     && chown root:dspace /dspace/config \
     && chmod 1775 /dspace/config \
     && chown dspace:dspace /dspace/config/item-submission.xml
