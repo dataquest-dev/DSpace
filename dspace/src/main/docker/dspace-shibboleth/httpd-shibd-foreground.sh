@@ -14,6 +14,14 @@ set -e
 # $APACHE_SERVER_NAME environment variable.
 sed -i "s/\${APACHE_SERVER_NAME}/$APACHE_SERVER_NAME/g" /etc/shibboleth/shibboleth2.xml
 
+# Create the SP key pair on the first start, so it is never part of the image.
+# -b skips it when the files already exist (e.g. after a restart or when mounted).
+shib-keygen -b -o /etc/shibboleth
+if [ ! -s /etc/shibboleth/sp-key.pem ] || [ ! -s /etc/shibboleth/sp-cert.pem ]; then
+    echo "Both sp-key.pem and sp-cert.pem must exist in /etc/shibboleth." >&2
+    exit 1
+fi
+
 # Start the Shibboleth daemon
 /etc/init.d/shibd start
 
