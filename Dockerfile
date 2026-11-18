@@ -63,7 +63,7 @@ ENV DSPACE_INSTALL=/dspace
 # because Kubernetes deployment accepts only numeric user IDs when specifying the container user.
 RUN useradd -u 1100 -m -s /bin/bash dspace
 # Copy the /dspace directory from 'ant_build' container to /dspace in this container
-COPY --chown=dspace:root --from=ant_build /dspace $DSPACE_INSTALL
+COPY --from=ant_build /dspace $DSPACE_INSTALL
 WORKDIR $DSPACE_INSTALL
 # Need host command for "[dspace]/bin/make-handle-config"
 RUN apt-get update \
@@ -74,8 +74,17 @@ RUN apt-get update \
 EXPOSE 8080 8000
 # Give java extra memory (2GB)
 ENV JAVA_OPTS=-Xmx2000m
-# On startup, run DSpace Runnable JAR
+
+# App files stay owned by root. dspace writes only to the data folders and solr/search/conf (reindex.flag).
+# Missing folders are created so named volumes (not bind mounts) inherit the owner.
+RUN for dir in assetstore ctqueues exports handle-server imports log reports sitemaps solr-export temp \
+               triplestore upload var; do \
+        mkdir -p /dspace/$dir && chown -R dspace:dspace /dspace/$dir; \
+    done \
+    && chown dspace:dspace /dspace/solr/search/conf \
+    && chmod -R a+rX /dspace/bin
 
 USER dspace
 
+# On startup, run DSpace Runnable JAR
 ENTRYPOINT ["java", "-jar", "webapps/server-boot.jar", "--dspace.dir=$DSPACE_INSTALL"]
