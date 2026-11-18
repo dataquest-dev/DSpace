@@ -21,7 +21,7 @@ ENV APACHE_PID_FILE /var/run/apache2/apache2.pid
 ENV APACHE_SERVER_NAME localhost
 
 # Ensure Apache2, mod_shib & shibboleth daemon are installed.
-# Also install ssl-cert to provide a local SSL cert for use with Apache
+# Also install ssl-cert to provide a local SSL cert for use with Apache (created at container start)
 RUN apt-get update \
       && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
            apache2 \
@@ -30,7 +30,8 @@ RUN apt-get update \
            libapache2-mod-shib2 \
       && apt-get clean \
       && rm -rf /var/lib/apt/lists/* \
-      && rm -rf /tmp/*
+      && rm -rf /tmp/* \
+      && rm -f /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/certs/ssl-cert-snakeoil.pem
 
 # Setup Apache configs & enable mod-shib & dspace vhost
 COPY dspace-vhost.conf /etc/apache2/sites-available/
