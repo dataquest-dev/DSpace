@@ -76,12 +76,15 @@ EXPOSE 8080 8000
 ENV JAVA_OPTS=-Xmx2000m
 
 # App files stay owned by root. dspace writes only to the data folders and solr/search/conf (reindex.flag).
+# /dspace is sticky, so dspace can add and remove its own entries there, but not replace the others.
 # Missing folders are created so named volumes (not bind mounts) inherit the owner.
 RUN for dir in assetstore ctqueues exports handle-server imports log reports sitemaps temp \
                triplestore upload var; do \
         mkdir -p /dspace/$dir && chown -R dspace:dspace /dspace/$dir; \
     done \
     && chown dspace:dspace /dspace/solr/search/conf \
+    && chown root:dspace /dspace \
+    && chmod 1775 /dspace \
     && chmod -R a+rX /dspace/bin
 
 USER dspace
