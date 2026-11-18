@@ -84,14 +84,9 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 WORKDIR /usr/local/tomcat/bin
 RUN chmod a+rx redebug.sh undebug.sh custom_run.sh
 
-# App files stay owned by root. The dspace user writes only to the data folders, Tomcat's webapps
-# (the compose entrypoint links the namespace there), solr/search/conf (reindex.flag after a migration)
-# and item-submission.xml (config.admin.updateable.files).
-# The sticky /dspace/config lets DSpace add its backups there, but not replace other files.
-# The empty local.cfg is root-owned too; a mounted local.cfg replaces it.
-# NOTE: missing folders are created so Docker named volumes inherit the correct ownership.
-# This only works for *named volumes* — bind mounts use host permissions.
-# Tomcat only reads conf/Catalina/localhost, but logs an error at start when it cannot create it.
+# App files stay owned by root. dspace writes only to the data folders, Tomcat's webapps (namespace link),
+# solr/search/conf (reindex.flag) and item-submission.xml. The sticky config folder takes its backups.
+# Missing folders are created so named volumes (not bind mounts) inherit the owner.
 RUN for dir in assetstore ctqueues exports handle-server imports log matomo_reports reports sitemaps \
                solr-export temp triplestore upload var; do \
         mkdir -p /dspace/$dir && chown -R dspace:dspace /dspace/$dir; \
