@@ -88,7 +88,7 @@ RUN chmod a+rx redebug.sh undebug.sh custom_run.sh
 # solr/search/conf (reindex.flag) and item-submission.xml. The sticky config folder takes its backups.
 # Missing folders are created so named volumes (not bind mounts) inherit the owner.
 RUN for dir in assetstore ctqueues exports handle-server imports log matomo_reports reports sitemaps \
-               solr-export temp triplestore upload var; do \
+               temp triplestore upload var; do \
         mkdir -p /dspace/$dir && chown -R dspace:dspace /dspace/$dir; \
     done \
     && chown dspace:dspace /dspace/solr/search/conf \

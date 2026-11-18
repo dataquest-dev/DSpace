@@ -1,5 +1,5 @@
 #!/bin/bash
-FILE=/usr/local/tomcat/temp/do_debug.txt
+FILE=/home/dspace/do_debug.txt
 if [ -f "$FILE" ]; then
   export JPDA_ADDRESS="*:8000"
   ./catalina.sh jpda run
