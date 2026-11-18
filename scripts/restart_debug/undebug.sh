@@ -1,3 +1,3 @@
 #!/bin/bash
-rm do_debug.txt
+rm /usr/local/tomcat/temp/do_debug.txt
 ./shutdown.sh
