@@ -55,7 +55,7 @@ ENV DSPACE_INSTALL=/dspace
 # because Kubernetes deployment accepts only numeric user IDs when specifying the container user.
 RUN useradd -u 1100 -m -s /bin/bash dspace
 # Copy the /dspace directory from 'ant_build' container to /dspace in this container
-COPY --chown=dspace:dspace --from=ant_build /dspace $DSPACE_INSTALL
+COPY --from=ant_build /dspace $DSPACE_INSTALL
 # Need host command for "[dspace]/bin/make-handle-config"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends host \
@@ -66,7 +66,7 @@ EXPOSE 8080 8009 8000
 # Give java extra memory (2GB)
 ENV JAVA_OPTS=-Xmx2000m
 COPY scripts/restart_debug/* /usr/local/tomcat/bin
-COPY --chown=dspace:dspace scripts/index-scripts/* /dspace/bin
+COPY scripts/index-scripts/* /dspace/bin
 # Link the DSpace 'server' webapp into Tomcat's webapps directory.
 # This ensures that when we start Tomcat, it runs from /server path (e.g. http://localhost:8080/server/)
 RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
@@ -77,13 +77,22 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 #    ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/ROOT
 
 WORKDIR /usr/local/tomcat/bin
-RUN chmod u+x redebug.sh undebug.sh custom_run.sh
+RUN chmod +x redebug.sh undebug.sh custom_run.sh
 
-RUN mkdir -p /dspace/assetstore \
-    && chown dspace:dspace /dspace/assetstore \
-    && chown -Rv dspace:dspace /usr/local/tomcat
-# NOTE: /dspace/assetstore does not exist in the base image.
-# We create it so Docker named volumes inherit the correct ownership.
+# App files stay owned by root. The dspace user writes only to the data folders, Tomcat's webapps
+# (the compose entrypoint links the namespace there) and item-submission.xml (config.admin.updateable.files).
+# The sticky /dspace/config lets DSpace add its backups there, but not replace other files.
+# NOTE: missing folders are created so Docker named volumes inherit the correct ownership.
 # This only works for *named volumes* — bind mounts use host permissions.
+# Tomcat only reads conf/Catalina/localhost, but logs an error at start when it cannot create it.
+RUN chmod -R a+rX /dspace/bin \
+    && mkdir -p /dspace/assetstore /dspace/ctqueues /dspace/imports /dspace/matomo_reports /dspace/sitemaps /dspace/temp \
+       /usr/local/tomcat/conf/Catalina/localhost \
+    && chown -R dspace:dspace /dspace/assetstore /dspace/ctqueues /dspace/exports /dspace/handle-server \
+       /dspace/imports /dspace/log /dspace/matomo_reports /dspace/reports /dspace/sitemaps /dspace/temp \
+       /dspace/triplestore /dspace/upload /dspace/var /usr/local/tomcat/webapps \
+    && chown root:dspace /dspace/config \
+    && chmod 1775 /dspace/config \
+    && chown dspace:dspace /dspace/config/item-submission.xml
 
 USER dspace
