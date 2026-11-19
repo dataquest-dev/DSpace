@@ -50,6 +50,15 @@ RUN mkdir $ANT_HOME && \
     rm /tmp/apache-ant.tar.gz
 # Run necessary 'ant' deploy scripts
 RUN ant init_installation update_configs update_code update_webapps
+# dspace (uid 1100, created below) owns everything except the code and config. Doing it here keeps the
+# final image small, because COPY keeps the owner. The admin config API saves item-submission.xml in place,
+# and "stats-util -u" updates config/spiders.
+# assetstore and sitemaps are created so that new named volumes get this owner. Bind mounts keep the host's.
+RUN mkdir -p /dspace/assetstore /dspace/sitemaps \
+    && chown -R 1100:1100 /dspace \
+    && chown -R root:root /dspace/bin /dspace/config /dspace/lib /dspace/webapps \
+    && chown -R 1100:1100 /dspace/config/item-submission.xml /dspace/config/spiders \
+    && chmod -R a+rX /dspace/bin
 
 # Step 3 - Run tomcat
 # Create a new tomcat image that does not retain the the build directory contents
@@ -84,19 +93,11 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 WORKDIR /usr/local/tomcat/bin
 RUN chmod a+rx redebug.sh undebug.sh custom_run.sh
 
-# dspace owns only what it writes. The code, config and Tomcat stay owned by root.
-# /dspace and config are sticky: dspace can add its own files there (temp, config backups), but cannot replace
-# root's. The empty local.cfg stops it from adding that one.
-RUN mkdir -p /dspace/assetstore /dspace/sitemaps /usr/local/tomcat/conf/Catalina/localhost \
-    && chown -R dspace:dspace /dspace/assetstore /dspace/exports /dspace/handle-server /dspace/log \
-       /dspace/reports /dspace/sitemaps /dspace/solr /dspace/triplestore /dspace/upload /dspace/var \
-       /dspace/config/item-submission.xml /dspace/config/spiders /usr/local/tomcat/webapps \
-    && chown root:dspace /dspace /dspace/config \
-    && chmod 1775 /dspace /dspace/config \
-    && chmod -R a+rX /dspace/bin \
-    && touch /dspace/config/local.cfg
-# NOTE: /dspace/assetstore and /dspace/sitemaps do not exist in the base image.
-# We create them so Docker named volumes inherit the correct ownership.
-# This only works for *named volumes* — bind mounts use host permissions.
+# /dspace is sticky: DSpace can create and delete its temp folder there, but cannot replace root's folders.
+# Tomcat stays root's, except webapps, where the deploy entrypoint links the namespace.
+RUN chown root:dspace /dspace \
+    && chmod 1775 /dspace \
+    && chown dspace:dspace /usr/local/tomcat/webapps \
+    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost
 
 USER dspace

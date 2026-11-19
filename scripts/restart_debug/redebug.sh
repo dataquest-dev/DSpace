@@ -1,3 +1,3 @@
 #!/bin/bash
-touch /home/dspace/do_debug.txt
+touch do_debug.txt || exit 1
 ./shutdown.sh
