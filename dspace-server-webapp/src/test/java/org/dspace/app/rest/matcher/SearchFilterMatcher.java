@@ -44,7 +44,7 @@ public class SearchFilterMatcher {
         return allOf(
                 hasJsonPath("$.filter", is("subject")),
                 hasJsonPath("$.hasFacets", is(true)),
-                hasJsonPath("$.type", is("hierarchical")),
+                hasJsonPath("$.type", is("text")),
                 hasJsonPath("$.openByDefault", is(false)),
                 checkOperators()
 

@@ -139,7 +139,7 @@ public class ExternalHandleRestRepository {
         }
 
         if (validHandleUrl(updatedHandle.url)
-                && isNotBlank(updatedHandle.getHandle()) && isNotBlank(updatedHandle.token)) {
+                && isNotBlank(updatedHandle.getHandle()) && isNotBlank(updatedHandle.getToken())) {
             try {
                 // remove canonical prefix from handle string because the handle is stored in the DB without
                 // the canonical prefix
@@ -148,24 +148,30 @@ public class ExternalHandleRestRepository {
                         updatedHandle.getHandle().replace(canonicalPrefix, "");
 
                 // load Handle object from the DB
-                org.dspace.handle.Handle oldHandle =
-                        this.handleClarinService.findByHandle(context, oldHandleStr);
+                org.dspace.handle.Handle handleEntity =
+                        this.handleClarinService.findByHandleAndMagicToken(context, oldHandleStr,
+                                updatedHandle.getToken());
 
-                if (Objects.isNull(oldHandle)) {
+                if (Objects.isNull(handleEntity)) {
                     return new ResponseEntity<>("Cannot find the handle in the database.",
-                            HttpStatus.BAD_REQUEST);
+                            HttpStatus.NOT_FOUND);
                 }
 
                 // create externalHandle based on the handle and the URL with the `@magicLindat` string
-                Handle oldExternalHandle = new Handle(oldHandle.getHandle(), oldHandle.getUrl());
+                Handle oldExternalHandle = new Handle(handleEntity.getHandle(), handleEntity.getUrl());
 
                 oldExternalHandle.url  = updatedHandle.url;
 
-                // generate new magicURL for the oldHandle
-                oldHandle.setUrl(oldExternalHandle.getMagicUrl());
+                // the new url and a new token
+                handleEntity.setUrl(oldExternalHandle.getMagicUrl());
 
-                // update handle in the DB
-                this.handleClarinService.save(context, oldHandle);
+                // update handle in the DB, the token checked above is the authorization
+                context.turnOffAuthorisationSystem();
+                try {
+                    this.handleClarinService.save(context, handleEntity);
+                } finally {
+                    context.restoreAuthSystemState();
+                }
                 context.commit();
 
                 // return updated external handle

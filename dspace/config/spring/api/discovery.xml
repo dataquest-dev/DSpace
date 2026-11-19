@@ -2444,7 +2444,11 @@
 
     </bean>
 
-    <bean id="searchFilterSubject" class="org.dspace.discovery.configuration.HierarchicalSidebarFacetConfiguration">
+    <!-- TUL: dc.subject holds free-text keywords, not a controlled hierarchy, so this is a
+         plain facet. Using HierarchicalSidebarFacetConfiguration makes the Angular UI probe
+         vocabularyEntryDetails/search/top with vocabulary=undefined (no srsc vocabulary is
+         wired for TUL), yielding an HTTP 400 on every search-page render. See dspace-customers#781. -->
+    <bean id="searchFilterSubject" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
         <property name="indexFieldName" value="subject"/>
         <property name="metadataFields">
             <list>
@@ -2454,8 +2458,6 @@
         <property name="facetLimit" value="5"/>
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
-        <property name="splitter" value="::"/>
-
     </bean>
 
     <bean id="searchFilterIssued" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">

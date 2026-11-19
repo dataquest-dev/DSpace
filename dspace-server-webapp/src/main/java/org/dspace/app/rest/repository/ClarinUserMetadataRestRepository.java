@@ -11,7 +11,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
+import org.dspace.app.rest.exception.RESTAuthorizationException;
 import org.dspace.app.rest.model.ClarinUserMetadataRest;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinUserMetadata;
 import org.dspace.content.service.clarin.ClarinUserMetadataService;
 import org.dspace.core.Context;
@@ -27,13 +29,15 @@ public class ClarinUserMetadataRestRepository extends DSpaceRestRepository<Clari
     ClarinUserMetadataService clarinUserMetadataService;
 
     @Override
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public ClarinUserMetadataRest findOne(Context context, Integer integer) {
         ClarinUserMetadata clarinUserMetadata;
         try {
             clarinUserMetadata = clarinUserMetadataService.find(context, integer);
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
+        } catch (AuthorizeException e) {
+            throw new RESTAuthorizationException(e);
         }
 
         if (Objects.isNull(clarinUserMetadata)) {
@@ -43,6 +47,7 @@ public class ClarinUserMetadataRestRepository extends DSpaceRestRepository<Clari
     }
 
     @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Page<ClarinUserMetadataRest> findAll(Context context, Pageable pageable) {
         try {
             List<ClarinUserMetadata> clarinUserMetadataList =
@@ -50,6 +55,8 @@ public class ClarinUserMetadataRestRepository extends DSpaceRestRepository<Clari
             return converter.toRestPage(clarinUserMetadataList, pageable, utils.obtainProjection());
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
+        } catch (AuthorizeException e) {
+            throw new RESTAuthorizationException(e);
         }
     }
 
