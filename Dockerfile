@@ -84,22 +84,19 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 WORKDIR /usr/local/tomcat/bin
 RUN chmod a+rx redebug.sh undebug.sh custom_run.sh
 
-# App files stay owned by root. dspace writes only to the data folders, Tomcat's webapps (namespace link)
-# and item-submission.xml. /dspace, config and solr/search/conf are sticky, so dspace can add and remove
-# its own entries there (temp folders, config backups, reindex.flag), but not replace the others.
-# Missing folders are created so named volumes (not bind mounts) inherit the owner.
-RUN for dir in assetstore ctqueues exports handle-server imports log matomo_reports reports sitemaps \
-               temp triplestore upload var; do \
-        mkdir -p /dspace/$dir && chown -R dspace:dspace /dspace/$dir; \
-    done \
-    && chown root:dspace /dspace /dspace/solr/search/conf \
-    && chmod 1775 /dspace /dspace/solr/search/conf \
+# dspace owns only what it writes. The code, config and Tomcat stay owned by root.
+# /dspace and config are sticky: dspace can add its own files there (temp, config backups), but cannot replace
+# root's. The empty local.cfg stops it from adding that one.
+RUN mkdir -p /dspace/assetstore /dspace/sitemaps /usr/local/tomcat/conf/Catalina/localhost \
+    && chown -R dspace:dspace /dspace/assetstore /dspace/exports /dspace/handle-server /dspace/log \
+       /dspace/reports /dspace/sitemaps /dspace/solr /dspace/triplestore /dspace/upload /dspace/var \
+       /dspace/config/item-submission.xml /dspace/config/spiders /usr/local/tomcat/webapps \
+    && chown root:dspace /dspace /dspace/config \
+    && chmod 1775 /dspace /dspace/config \
     && chmod -R a+rX /dspace/bin \
-    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost \
-    && chown dspace:dspace /usr/local/tomcat/webapps \
-    && touch /dspace/config/local.cfg \
-    && chown root:dspace /dspace/config \
-    && chmod 1775 /dspace/config \
-    && chown dspace:dspace /dspace/config/item-submission.xml
+    && touch /dspace/config/local.cfg
+# NOTE: /dspace/assetstore and /dspace/sitemaps do not exist in the base image.
+# We create them so Docker named volumes inherit the correct ownership.
+# This only works for *named volumes* — bind mounts use host permissions.
 
 USER dspace
