@@ -28,10 +28,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.app.util.service.MetadataExposureService;
+import org.dspace.authorize.AuthorizationBitstreamUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
@@ -48,6 +50,7 @@ import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.xoai.data.DSpaceItem;
@@ -79,6 +82,15 @@ public class ItemUtils {
 
     private static final AuthorizeService authorizeService
             = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+
+    private static final ResourcePolicyService resourcePolicyService
+        = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+
+    /** Values of others/anonymousAccess, see {@link #getAnonymousAccess(Context, Item)}. */
+    public static final String ACCESS_OPEN = "open";
+    public static final String ACCESS_EMBARGO = "embargo";
+    public static final String ACCESS_RESTRICTED = "restricted";
+    public static final String ACCESS_METADATA_ONLY = "metadata.only";
 
     /**
      * Default constructor
@@ -255,6 +267,61 @@ public class ItemUtils {
         }
 
         return bundles;
+    }
+
+    /**
+     * Whether an anonymous user can download the files of the item, decided by the same two gates the
+     * download goes through: a READ policy of the Anonymous group on the bitstream, and a Clarin license
+     * that does not require a signed-in user. Every bitstream of the ORIGINAL bundle is checked, not only
+     * the primary one.
+     *
+     * @param context DSpace context
+     * @param item    the item
+     * @return {@link #ACCESS_METADATA_ONLY} when there are no files, {@link #ACCESS_OPEN} when every file
+     * is downloadable anonymously, {@link #ACCESS_EMBARGO} when some file opens to anonymous users only
+     * later and none is closed for good, otherwise {@link #ACCESS_RESTRICTED}
+     */
+    public static String getAnonymousAccess(Context context, Item item) throws SQLException {
+        LocalDate today = LocalDate.now();
+        int files = 0;
+        int open = 0;
+        int embargoed = 0;
+        for (Bundle bundle : itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME)) {
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                files++;
+                boolean readNow = false;
+                boolean readLater = false;
+                for (ResourcePolicy policy : authorizeService.getPoliciesActionFilter(context, bitstream,
+                        Constants.READ)) {
+                    if (policy.getGroup() == null || !Group.ANONYMOUS.equals(policy.getGroup().getName())) {
+                        continue;
+                    }
+                    if (resourcePolicyService.isDateValid(policy)) {
+                        readNow = true;
+                    } else if (policy.getStartDate() != null && policy.getStartDate().isAfter(today)) {
+                        readLater = true;
+                    }
+                }
+                boolean licenseOk = AuthorizationBitstreamUtils.licenseAllowsAnonymous(
+                        clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID()));
+                if (readNow && licenseOk) {
+                    open++;
+                } else if (!readNow && readLater && licenseOk) {
+                    // A license that requires a signed-in user keeps the file closed after the embargo too
+                    embargoed++;
+                }
+            }
+        }
+        if (files == 0) {
+            return ACCESS_METADATA_ONLY;
+        }
+        if (open == files) {
+            return ACCESS_OPEN;
+        }
+        if (embargoed > 0 && open + embargoed == files) {
+            return ACCESS_EMBARGO;
+        }
+        return ACCESS_RESTRICTED;
     }
 
     /**
@@ -479,6 +546,11 @@ public class ItemUtils {
 
         if (restricted.get()) {
             other.getField().add(createValue("restrictedAccess", "true"));
+        }
+        try {
+            other.getField().add(createValue("anonymousAccess", getAnonymousAccess(context, item)));
+        } catch (SQLException e) {
+            log.warn(e.getMessage(), e);
         }
         // Because we reindex Solr, which is not done in vanilla
         // The owning collection for workspace items is null
