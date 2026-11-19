@@ -8,7 +8,7 @@ on:
 
 
 env:
-  IMAGE_BASE_NAME: ufal/dspace
+  IMAGE_BASE_NAME: dataquest/dspace
 
 jobs:
   retag-BE-image:
