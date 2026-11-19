@@ -98,6 +98,18 @@ public interface MetadataValueService {
 
     public Iterator<MetadataValue> findByValueLike(Context context, String value) throws SQLException;
 
+    /**
+     * Retrieves matching MetadataValues for a given authority and language.
+     *
+     * @param context dspace context
+     * @param authority The authority value that must match
+     * @param language The language that must match (can be null)
+     * @return the matching MetadataValues
+     * @throws SQLException if database error
+     */
+    public List<MetadataValue> findByAuthorityAndLanguage(Context context, String authority, String language)
+            throws SQLException;
+
     public void deleteByMetadataField(Context context, MetadataField metadataField) throws SQLException;
 
     /**
