@@ -50,6 +50,16 @@ RUN mkdir $ANT_HOME && \
     rm /tmp/apache-ant.tar.gz
 # Run necessary 'ant' deploy scripts
 RUN ant init_installation update_configs update_code update_webapps
+# dspace (uid 1100, created below) owns everything except the code and config. Doing it here keeps the
+# final image small, because COPY keeps the owner. The admin config API saves item-submission.xml in place,
+# and "stats-util -u" updates config/spiders.
+# The empty etc stays root's, because Flyway runs SQL from etc/postgres when it exists.
+# assetstore and sitemaps are created so that a new named volume there gets this owner.
+RUN mkdir -p /dspace/assetstore /dspace/etc /dspace/sitemaps \
+    && chown -R 1100:1100 /dspace \
+    && chown -R root:root /dspace/bin /dspace/config /dspace/etc /dspace/lib /dspace/webapps \
+    && chown -R 1100:1100 /dspace/config/item-submission.xml /dspace/config/spiders \
+    && chmod -R a+rX /dspace/bin
 
 # Step 3 - Run tomcat
 # Create a new tomcat image that does not retain the the build directory contents
@@ -60,7 +70,7 @@ ENV DSPACE_INSTALL=/dspace
 # because Kubernetes deployment accepts only numeric user IDs when specifying the container user.
 RUN useradd -u 1100 -m -s /bin/bash dspace
 # Copy the /dspace directory from 'ant_build' container to /dspace in this container
-COPY --chown=dspace:dspace --from=ant_build /dspace $DSPACE_INSTALL
+COPY --from=ant_build /dspace $DSPACE_INSTALL
 # Need host command for "[dspace]/bin/make-handle-config"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends host \
@@ -71,7 +81,7 @@ EXPOSE 8080 8009 8000
 # Give java extra memory (2GB)
 ENV JAVA_OPTS=-Xmx2000m
 COPY scripts/restart_debug/* /usr/local/tomcat/bin
-COPY --chown=dspace:dspace scripts/index-scripts/* /dspace/bin
+COPY scripts/index-scripts/* /dspace/bin
 # Link the DSpace 'server' webapp into Tomcat's webapps directory.
 # This ensures that when we start Tomcat, it runs from /server path (e.g. http://localhost:8080/server/)
 RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
@@ -82,13 +92,15 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 #    ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/ROOT
 
 WORKDIR /usr/local/tomcat/bin
-RUN chmod u+x redebug.sh undebug.sh custom_run.sh
+RUN chmod a+rx redebug.sh undebug.sh custom_run.sh
 
-RUN mkdir -p /dspace/assetstore \
-    && chown dspace:dspace /dspace/assetstore \
-    && chown -Rv dspace:dspace /usr/local/tomcat
-# NOTE: /dspace/assetstore does not exist in the base image.
-# We create it so Docker named volumes inherit the correct ownership.
-# This only works for *named volumes* — bind mounts use host permissions.
+# /dspace is sticky: dspace can add folders there (temp, imports...) and delete its own, but cannot replace root's.
+# Tomcat's bin, conf and lib stay root's. webapps is dspace's, because the deploy entrypoint links the namespace
+# there. Session persistence is off, so Tomcat does not load SESSIONS.ser from its writable work folder.
+RUN chown root:dspace /dspace \
+    && chmod 1775 /dspace \
+    && chown dspace:dspace /usr/local/tomcat/webapps \
+    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost \
+    && sed -i 's#</Context>#    <Manager pathname="" />\n</Context>#' /usr/local/tomcat/conf/context.xml
 
 USER dspace
