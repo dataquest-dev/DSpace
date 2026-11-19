@@ -357,6 +357,42 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                         .andExpect(jsonPath("$._embedded").doesNotExist());
     }
 
+    /**
+     * The temporary auth cookie and its removal carry the /api/authn path under the real context path,
+     * otherwise a browser never sends the cookie back when the REST API runs behind a path prefix.
+     */
+    @Test
+    public void testShibAuthCookiePathFollowsContextPath() throws Exception {
+        setAuthenticationMethodSequence(SHIB_ONLY);
+
+        String uiURL = configurationService.getProperty("dspace.ui.url");
+        String contextPath = "/repository/server";
+
+        // The temporary auth cookie is scoped to /api/authn under the context path the browser sees.
+        Cookie authCookie = getClient().perform(get(contextPath + "/api/authn/shibboleth")
+                .contextPath(contextPath)
+                .header("Referer", "https://myshib.example.com")
+                .param("redirectUrl", uiURL)
+                .requestAttr("SHIB-MAIL", eperson.getEmail())
+                .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(cookie().exists(AUTHORIZATION_COOKIE))
+                .andExpect(cookie().path(AUTHORIZATION_COOKIE, contextPath + "/api/authn"))
+                .andReturn().getResponse().getCookie(AUTHORIZATION_COOKIE);
+
+        // /login destroys the cookie with the same path, otherwise the browser would keep the old one.
+        getClient().perform(post(contextPath + "/api/authn/login")
+                .contextPath(contextPath)
+                .header("Origin", uiURL)
+                .secure(true)
+                .cookie(authCookie))
+                .andExpect(status().isOk())
+                .andExpect(cookie().value(AUTHORIZATION_COOKIE, ""))
+                .andExpect(cookie().maxAge(AUTHORIZATION_COOKIE, 0))
+                .andExpect(cookie().path(AUTHORIZATION_COOKIE, contextPath + "/api/authn"))
+                .andExpect(header().exists(AUTHORIZATION_HEADER));
+    }
+
     @Test
     public void testStatusShibAuthenticatedWithCookie() throws Exception {
         //Enable Shibboleth login only
@@ -387,6 +423,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .andExpect(cookie().doesNotExist("DSPACE-XSRF-COOKIE"))
                 .andExpect(header().doesNotExist("DSPACE-XSRF-TOKEN"))
                 .andExpect(cookie().exists(AUTHORIZATION_COOKIE))
+                .andExpect(cookie().path(AUTHORIZATION_COOKIE, "/api/authn"))
                 .andReturn().getResponse().getCookie(AUTHORIZATION_COOKIE);
 
         // Verify the temporary cookie now exists & obtain its token for use below
@@ -433,6 +470,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .andExpect(status().isOk())
                 // Verify the Auth cookie has been destroyed
                 .andExpect(cookie().value(AUTHORIZATION_COOKIE, ""))
+                .andExpect(cookie().path(AUTHORIZATION_COOKIE, "/api/authn"))
                 // Verify Authorization header is returned
                 .andExpect(header().exists(AUTHORIZATION_HEADER))
                 // Verify that the CSRF token has been changed

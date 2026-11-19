@@ -180,7 +180,8 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
     public void invalidateAuthenticationCookie(HttpServletRequest request, HttpServletResponse response) {
         // Re-send the same cookie (as addTokenToResponse()) with no value and a Max-Age of 0 seconds
         ResponseCookie cookie = ResponseCookie.from(AUTHORIZATION_COOKIE, "")
-                                              .maxAge(0).httpOnly(true).secure(true).sameSite("None").build();
+                                              .maxAge(0).httpOnly(true).secure(true).sameSite("None")
+                                              .path(getAuthorizationCookiePath(request)).build();
 
         // Write the cookie to the Set-Cookie header in order to send it
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -265,7 +266,7 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
                                                   .httpOnly(true)
                                                   .secure(true)
                                                   .sameSite("None")
-                                                  .path("/server/api/authn")
+                                                  .path(getAuthorizationCookiePath(request))
                                                   .build();
 
             // Write the cookie to the Set-Cookie header in order to send it
@@ -310,6 +311,17 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
         }
 
         return tokenValue;
+    }
+
+    /**
+     * Path of the temporary authorization cookie: the /api/authn endpoints under the current context path.
+     * The path must match the URL the browser calls, otherwise the browser never sends the cookie back
+     * (e.g. when the REST API runs under /repository/server instead of /server).
+     * @param request current request
+     * @return cookie path
+     */
+    private String getAuthorizationCookiePath(HttpServletRequest request) {
+        return request.getContextPath() + "/api/authn";
     }
 
     /**
