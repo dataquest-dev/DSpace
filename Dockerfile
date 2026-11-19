@@ -68,3 +68,6 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 
 WORKDIR /usr/local/tomcat/bin
 RUN chmod u+x redebug.sh undebug.sh custom_run.sh
+
+# /dspace/sitemaps exists in the image so a named volume mounted there inherits the directory owner.
+RUN mkdir -p /dspace/sitemaps
