@@ -53,10 +53,11 @@ RUN ant init_installation update_configs update_code update_webapps
 # dspace (uid 1100, created below) owns everything except the code and config. Doing it here keeps the
 # final image small, because COPY keeps the owner. The admin config API saves item-submission.xml in place,
 # and "stats-util -u" updates config/spiders.
-# assetstore and sitemaps are created so that new named volumes get this owner. Bind mounts keep the host's.
-RUN mkdir -p /dspace/assetstore /dspace/sitemaps \
+# The empty etc stays root's, because Flyway runs SQL from etc/postgres when it exists.
+# assetstore and sitemaps are created so that a new named volume there gets this owner.
+RUN mkdir -p /dspace/assetstore /dspace/etc /dspace/sitemaps \
     && chown -R 1100:1100 /dspace \
-    && chown -R root:root /dspace/bin /dspace/config /dspace/lib /dspace/webapps \
+    && chown -R root:root /dspace/bin /dspace/config /dspace/etc /dspace/lib /dspace/webapps \
     && chown -R 1100:1100 /dspace/config/item-submission.xml /dspace/config/spiders \
     && chmod -R a+rX /dspace/bin
 
@@ -93,11 +94,13 @@ RUN ln -s $DSPACE_INSTALL/webapps/server   /usr/local/tomcat/webapps/server
 WORKDIR /usr/local/tomcat/bin
 RUN chmod a+rx redebug.sh undebug.sh custom_run.sh
 
-# /dspace is sticky: DSpace can create and delete its temp folder there, but cannot replace root's folders.
-# Tomcat stays root's, except webapps, where the deploy entrypoint links the namespace.
+# /dspace is sticky: dspace can add folders there (temp, imports...) and delete its own, but cannot replace root's.
+# Tomcat's bin, conf and lib stay root's. webapps is dspace's, because the deploy entrypoint links the namespace
+# there. Session persistence is off, so Tomcat does not load SESSIONS.ser from its writable work folder.
 RUN chown root:dspace /dspace \
     && chmod 1775 /dspace \
     && chown dspace:dspace /usr/local/tomcat/webapps \
-    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost
+    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost \
+    && sed -i 's#</Context>#    <Manager pathname="" />\n</Context>#' /usr/local/tomcat/conf/context.xml
 
 USER dspace
