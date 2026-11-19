@@ -26,6 +26,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authenticate.oidc.OidcClient;
 import org.dspace.authenticate.oidc.model.OidcTokenResponseDTO;
+import org.dspace.content.clarin.ClarinUserRegistration;
+import org.dspace.content.factory.ClarinServiceFactory;
+import org.dspace.content.service.clarin.ClarinUserRegistrationService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -63,6 +66,9 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
 
     @Autowired
     private EPersonService ePersonService;
+
+    private ClarinUserRegistrationService clarinUserRegistrationService =
+            ClarinServiceFactory.getInstance().getClarinUserRegistration();
 
     @Override
     public boolean allowSetPassword(Context context, HttpServletRequest request, String username) throws SQLException {
@@ -220,6 +226,12 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
             ePersonService.update(context, eperson);
             context.setCurrentUser(eperson);
             context.dispatchEvents();
+
+            ClarinUserRegistration clarinUserRegistration = new ClarinUserRegistration();
+            clarinUserRegistration.setPersonID(eperson.getID());
+            clarinUserRegistration.setOrganization(ClarinUserRegistration.UNKNOWN_USER_REGISTRATION);
+            clarinUserRegistration.setConfirmation(false);
+            clarinUserRegistrationService.create(context, clarinUserRegistration);
 
             return SUCCESS;
 
