@@ -43,10 +43,12 @@ import org.dspace.builder.ClarinUserRegistrationBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.clarin.ClarinLicense;
 import org.dspace.content.clarin.ClarinLicenseLabel;
+import org.dspace.content.clarin.ClarinLicenseResourceMapping;
 import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
@@ -505,6 +507,59 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         getClient(tokenAdmin).perform(get(BASE_URI + "/" + firstCLicense.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bitstreams", is(2)));
+    }
+
+    /**
+     * PUT /api/core/items/{uuid}/bundles?licenseID= moves every ORIGINAL bitstream to the license and writes
+     * the dc.rights metadata of the item; an unknown id (-1) only detaches.
+     */
+    @Test
+    public void updateLicenseForBundleAttachesAndDetachesLicense() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Bundle col").build();
+        Item item = ItemBuilder.createItem(context, col).withTitle("Item without license").build();
+        Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))
+                .withName("file.txt")
+                .build();
+        context.restoreAuthSystemState();
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        String bundlesUri = "/api/core/items/" + item.getID() + "/bundles";
+
+        // attach the license to every bitstream of the ORIGINAL bundle and to the item metadata
+        getClient(tokenAdmin).perform(put(bundlesUri).param("licenseID", String.valueOf(firstCLicense.getID())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(item.getID().toString())))
+                .andExpect(jsonPath("$.metadata['dc.rights'][0].value", is(firstCLicense.getName())))
+                .andExpect(jsonPath("$.metadata['dc.rights.uri'][0].value", is(firstCLicense.getDefinition())))
+                .andExpect(jsonPath("$.metadata['dc.rights.label'][0].value",
+                        is(firstCLicense.getNonExtendedClarinLicenseLabel().getLabel())));
+        List<ClarinLicenseResourceMapping> mappings =
+                clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID());
+        Assert.assertEquals(1, mappings.size());
+        Assert.assertEquals(firstCLicense.getID(), mappings.get(0).getLicense().getID());
+
+        // an unknown license id only detaches the current license
+        getClient(tokenAdmin).perform(put(bundlesUri).param("licenseID", "-1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.metadata['dc.rights']").doesNotExist())
+                .andExpect(jsonPath("$.metadata['dc.rights.uri']").doesNotExist())
+                .andExpect(jsonPath("$.metadata['dc.rights.label']").doesNotExist());
+        Assert.assertTrue(clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID())
+                .isEmpty());
+    }
+
+    /**
+     * The license PUT needs ADD on the item: 403 for a plain user, 401 for an anonymous call.
+     */
+    @Test
+    public void updateLicenseForBundleNeedsAddRightsOnItem() throws Exception {
+        String tokenEPerson = getAuthToken(eperson.getEmail(), password);
+        getClient(tokenEPerson).perform(put("/api/core/items/" + publicItem2.getID() + "/bundles")
+                .param("licenseID", String.valueOf(firstCLicense.getID())))
+                .andExpect(status().isForbidden());
+        getClient().perform(put("/api/core/items/" + publicItem2.getID() + "/bundles")
+                .param("licenseID", String.valueOf(firstCLicense.getID())))
+                .andExpect(status().isUnauthorized());
     }
 
     private ClarinLicenseLabel getNonExtendedLicenseLabel(List<ClarinLicenseLabel> clarinLicenseLabelList) {
