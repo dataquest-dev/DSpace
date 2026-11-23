@@ -76,6 +76,12 @@ public class ShibAuthentication implements AuthenticationMethod {
     private static final Logger log = LogManager.getLogger(ShibAuthentication.class);
 
     /**
+     * The only request path on which Shibboleth values are read from HTTP headers. This path is handled by the
+     * Shibboleth SP; on other paths only request attributes (e.g. AJP) are used.
+     */
+    private static final String SHIBBOLETH_LOGIN_PATH = "/api/authn/shibboleth";
+
+    /**
      * Additional metadata mappings
      **/
     protected Map<String, String> metadataHeaderMap = null;
@@ -1079,6 +1085,14 @@ public class ShibAuthentication implements AuthenticationMethod {
 
 
     /**
+     * Whether the request targets {@value #SHIBBOLETH_LOGIN_PATH}, the only path on which HTTP headers are read.
+     * Compares the raw request URI, so an encoded or otherwise rewritten path does not qualify.
+     */
+    private static boolean isShibbolethLoginRequest(HttpServletRequest request) {
+        return (request.getContextPath() + SHIBBOLETH_LOGIN_PATH).equals(request.getRequestURI());
+    }
+
+    /**
      * Find a particular Shibboleth header value and return the all values.
      * The header name uses a bit of fuzzy logic, so it will first try case
      * sensitive, then it will try lowercase, and finally it will try uppercase.
@@ -1105,6 +1119,10 @@ public class ShibAuthentication implements AuthenticationMethod {
         }
 
         // Second try to get the value from the header
+        if (StringUtils.isEmpty(value) && !isShibbolethLoginRequest(request)) {
+            log.debug("Ignoring header '{}' on {}: not the Shibboleth login endpoint.", name, request.getRequestURI());
+            return null;
+        }
         if (StringUtils.isEmpty(value)) {
             value = request.getHeader(name);
         }
