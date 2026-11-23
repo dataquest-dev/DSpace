@@ -371,6 +371,9 @@ public class ProcessServiceImpl implements ProcessService {
         List<Process> processesToBeFailed = findByStatusAndCreationTimeOlderThan(
                 context, List.of(ProcessStatus.RUNNING, ProcessStatus.SCHEDULED), Instant.now());
         for (Process process : processesToBeFailed) {
+            // The log bitstream policies are given to the current user, so act as the process owner
+            EPerson currentUser = context.getCurrentUser();
+            context.setCurrentUser(process.getEPerson());
             context.turnOffAuthorisationSystem();
             try {
                 // Fail the process.
@@ -384,6 +387,7 @@ public class ProcessServiceImpl implements ProcessService {
                 createLogBitstream(context, process);
             } finally {
                 context.restoreAuthSystemState();
+                context.setCurrentUser(currentUser);
             }
         }
     }
