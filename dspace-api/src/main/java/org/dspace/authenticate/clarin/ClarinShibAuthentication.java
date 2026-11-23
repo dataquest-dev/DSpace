@@ -317,6 +317,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
             // Step 4: Log the user in.
             context.setCurrentUser(eperson);
             request.getSession().setAttribute("shib.authenticated", true);
+            request.setAttribute("shib.authenticated", true);
             AuthenticateServiceFactory.getInstance().getAuthenticationService().initEPerson(context, request, eperson);
 
             log.info(eperson.getEmail() + " has been authenticated via shibboleth.");
@@ -390,6 +391,9 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
             // A verification token login maps the stored IdP headers, never the live request.
             String storedHeaders = (String) request.getAttribute(SHIB_HEADERS_ATTRIBUTE);
+            if (request.getAttribute("shib.authenticated") == null) {
+                return Collections.EMPTY_LIST;
+            }
             ShibHeaders groupHeaders = StringUtils.isNotEmpty(storedHeaders)
                     ? new ShibHeaders(storedHeaders) : new ShibHeaders(request);
             List<UUID> groupIds = new ShibGroup(groupHeaders, context).get();
