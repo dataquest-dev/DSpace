@@ -7,9 +7,12 @@
  */
 package org.dspace.app.rest;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -29,7 +32,10 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.storage.bitstore.factory.StorageServiceFactory;
+import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.dspace.storage.bitstore.service.S3DirectDownloadService;
 import org.junit.After;
 import org.junit.Before;
@@ -37,6 +43,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Integration tests for the 302-to-presigned-URL branch of the bitstream content endpoints.
@@ -53,6 +60,9 @@ public class BitstreamS3DirectDownloadIT extends AbstractControllerIntegrationTe
 
     @Autowired
     private ConfigurationService configurationService;
+
+    @Autowired
+    private BitstreamService bitstreamService;
 
     @MockBean(name = "s3DirectDownload")
     private S3DirectDownloadService s3DirectDownloadService;
@@ -94,6 +104,25 @@ public class BitstreamS3DirectDownloadIT extends AbstractControllerIntegrationTe
 
         verify(s3DirectDownloadService)
                 .generatePresignedUrl(eq(BUCKET), anyString(), eq(EXPIRATION_SECONDS), eq(FILE_NAME));
+    }
+
+    @Test
+    public void redirectDoesNotOpenStream() throws Exception {
+        when(s3DirectDownloadService.generatePresignedUrl(anyString(), anyString(), anyInt(), anyString()))
+                .thenReturn(PRESIGNED_URL);
+        Bitstream bitstream = originalBundleBitstream();
+        BitstreamStorageService storage = StorageServiceFactory.getInstance().getBitstreamStorageService();
+        BitstreamStorageService storageSpy = spy(storage);
+        ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService", storageSpy);
+        try {
+            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                    .andExpect(status().isFound());
+
+            // The redirect has no body, so the stored file must never be opened.
+            verify(storageSpy, never()).retrieve(any(), eq(bitstream));
+        } finally {
+            ReflectionTestUtils.setField(bitstreamService, "bitstreamStorageService", storage);
+        }
     }
 
     @Test
