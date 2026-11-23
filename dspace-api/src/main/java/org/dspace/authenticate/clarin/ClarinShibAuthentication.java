@@ -558,7 +558,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
 
         // 1) First, look for a netid header.
         if (netidHeaders != null) {
-            eperson = findEpersonByNetId(netidHeaders, shibheaders, eperson, ePersonService, context, true);
+            eperson = findEpersonByNetId(netidHeaders, shibheaders, ePersonService, context, true);
             if (eperson != null) {
                 foundNetID = true;
             }
@@ -1311,7 +1311,7 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
     /**
      * Find an EPerson by a NetID header. The method will go through all the netid headers and try to find a user.
      */
-    public static EPerson findEpersonByNetId(String[] netidHeaders, ShibHeaders shibheaders, EPerson eperson,
+    public static EPerson findEpersonByNetId(String[] netidHeaders, ShibHeaders shibheaders,
                                              EPersonService ePersonService, Context context, boolean logAllowed)
             throws SQLException {
         // Go through all the netid headers and try to find a user. It could be e.g., `eppn`, `persistent-id`,..
@@ -1322,19 +1322,20 @@ public class ClarinShibAuthentication implements AuthenticationMethod {
                 continue;
             }
 
-            eperson = ePersonService.findByNetid(context, netid);
+            EPerson eperson = ePersonService.findByNetid(context, netid);
 
             if (eperson == null && logAllowed) {
                 log.info(
                         "Unable to identify EPerson based upon Shibboleth netid header: '" + netidHeader +
                                 "'='" + netid + "'.");
-            } else {
+            } else if (eperson != null) {
                 log.debug(
                         "Identified EPerson based upon Shibboleth netid header: '" + netidHeader + "'='" +
                                 netid + "'" + ".");
+                return eperson;
             }
         }
-        return eperson;
+        return null;
     }
 
     /**
