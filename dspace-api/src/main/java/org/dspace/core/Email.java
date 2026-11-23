@@ -166,6 +166,12 @@ public class Email {
      */
     private String charset;
 
+    /** Whether the body should be sent as HTML (text/html) rather than plain text. */
+    private boolean sendAsHtml = false;
+
+    /** Plain-text alternative paired with the HTML body as multipart/alternative; may be null. */
+    private String alternativePlainText = null;
+
     private static final Logger LOG = LogManager.getLogger();
 
     /** Velocity template settings. */
@@ -308,6 +314,17 @@ public class Email {
     }
 
     /**
+     * Send the body as HTML. If a plain-text alternative is given, the message is sent as
+     * multipart/alternative so non-HTML clients can fall back to it.
+     *
+     * @param plainTextAlternative plain-text version of the body, or {@code null} for HTML only.
+     */
+    public void setHtml(String plainTextAlternative) {
+        this.sendAsHtml = true;
+        this.alternativePlainText = plainTextAlternative;
+    }
+
+    /**
      * "Reset" the message. Clears the arguments, attachments and recipients,
      * but leaves the subject and content intact.
      */
@@ -407,8 +424,10 @@ public class Email {
 
         // Add attachments
         if (attachments.isEmpty() && moreAttachments.isEmpty()) {
-            // If a character set has been specified, or a default exists
-            if (charset != null) {
+            if (sendAsHtml) {
+                setHtmlBody(message, fullMessage);
+            } else if (charset != null) {
+                // If a character set has been specified, or a default exists
                 message.setText(fullMessage, charset);
             } else {
                 message.setText(fullMessage);
@@ -484,6 +503,30 @@ public class Email {
             LOG.info("Email successfully sent - Template: '{}', Recipients: [{}]",
                     templateName, recipientsList);
         }
+    }
+
+    /**
+     * Set the message body as HTML, using multipart/alternative when a plain-text alternative
+     * was supplied via {@link #setHtml(String)}.
+     */
+    private void setHtmlBody(MimeMessage message, String htmlBody) throws MessagingException {
+        String htmlContentType = "text/html" + (charset != null ? "; charset=" + charset : "");
+        if (alternativePlainText == null) {
+            message.setContent(htmlBody, htmlContentType);
+            return;
+        }
+        Multipart alternative = new MimeMultipart("alternative");
+        MimeBodyPart textPart = new MimeBodyPart();
+        if (charset != null) {
+            textPart.setText(alternativePlainText, charset);
+        } else {
+            textPart.setText(alternativePlainText);
+        }
+        alternative.addBodyPart(textPart);
+        BodyPart htmlPart = new MimeBodyPart();
+        htmlPart.setContent(htmlBody, htmlContentType);
+        alternative.addBodyPart(htmlPart);
+        message.setContent(alternative);
     }
 
     /**
