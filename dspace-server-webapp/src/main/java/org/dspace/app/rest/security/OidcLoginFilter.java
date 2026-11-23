@@ -20,10 +20,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.authenticate.OidcAuthentication;
 import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
@@ -49,6 +51,9 @@ public class OidcLoginFilter extends StatelessLoginFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest req, HttpServletResponse res)
         throws AuthenticationException {
+        if (!OidcAuthentication.isEnabled()) {
+            throw new ProviderNotFoundException("OIDC login is disabled.");
+        }
         req.setAttribute(OIDC_AUTH_ATTRIBUTE, OIDC_AUTH_ATTRIBUTE);
         // NOTE: because this authentication is implicit, we pass in an empty DSpaceAuthentication
         return authenticationManager.authenticate(new DSpaceAuthentication());
