@@ -135,7 +135,7 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     @Override
-    public void start(Context context, Process process) throws SQLException {
+    public void start(Context context, Process process) throws SQLException, AuthorizeException {
         process.setProcessStatus(ProcessStatus.RUNNING);
         process.setStartTime(new Date());
         update(context, process);
@@ -145,7 +145,7 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     @Override
-    public void fail(Context context, Process process) throws SQLException {
+    public void fail(Context context, Process process) throws SQLException, AuthorizeException {
         process.setProcessStatus(ProcessStatus.FAILED);
         process.setFinishedTime(new Date());
         update(context, process);
@@ -155,7 +155,7 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     @Override
-    public void complete(Context context, Process process) throws SQLException {
+    public void complete(Context context, Process process) throws SQLException, AuthorizeException {
         process.setProcessStatus(ProcessStatus.COMPLETED);
         process.setFinishedTime(new Date());
         update(context, process);
@@ -167,6 +167,9 @@ public class ProcessServiceImpl implements ProcessService {
     @Override
     public void appendFile(Context context, Process process, InputStream is, String type, String fileName)
         throws IOException, SQLException, AuthorizeException {
+        if (!authorizeActionBoolean(context, process)) {
+            throw new AuthorizeException("Cannot append file to process " + process.getID());
+        }
         Bitstream bitstream = bitstreamService.create(context, is);
         if (getBitstream(context, process, type) != null) {
             throw new IllegalArgumentException("Cannot create another file of type: " + type + " for this process" +
@@ -187,7 +190,10 @@ public class ProcessServiceImpl implements ProcessService {
 
     @Override
     public void delete(Context context, Process process) throws SQLException, IOException, AuthorizeException {
-
+        if (!authorizeActionBoolean(context, process)) {
+            // process is null for an unknown ID requested by an admin (the REST permission check lets admins through)
+            throw new AuthorizeException("Cannot delete process " + (process == null ? null : process.getID()));
+        }
         for (Bitstream bitstream : ListUtils.emptyIfNull(process.getBitstreams())) {
             bitstreamService.delete(context, bitstream);
         }
@@ -197,7 +203,10 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     @Override
-    public void update(Context context, Process process) throws SQLException {
+    public void update(Context context, Process process) throws SQLException, AuthorizeException {
+        if (!authorizeActionBoolean(context, process)) {
+            throw new AuthorizeException("Cannot update process " + process.getID());
+        }
         processDAO.save(context, process);
     }
 
@@ -319,6 +328,33 @@ public class ProcessServiceImpl implements ProcessService {
     @Override
     public int countByUser(Context context, EPerson user) throws SQLException {
         return processDAO.countByUser(context, user);
+    }
+
+    /**
+     * Authorize any action, to ensure only a process creator/owner or a repository administrator
+     * may read, update or delete an existing process.
+     * @param context DSpace context containing the current user
+     * @param process the process to check
+     * @return true if the current user may perform the action, or false
+     */
+    @Override
+    public boolean authorizeActionBoolean(Context context, Process process) {
+        try {
+            if (process == null) {
+                return false;
+            }
+            // Only the process owner or an administrator may perform any action
+            EPerson currentUser = context.getCurrentUser();
+            EPerson processOwner = process.getEPerson();
+            boolean isOwner = currentUser != null && processOwner != null
+                    && currentUser.getID().equals(processOwner.getID());
+            if (isOwner || authorizeService.isAdmin(context)) {
+                return true;
+            }
+        } catch (SQLException e) {
+            log.error(e::getMessage, e);
+        }
+        return false;
     }
 
     private String formatLogLine(int processId, String scriptName, String output, ProcessLogLevel processLogLevel) {
