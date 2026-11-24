@@ -49,6 +49,7 @@ public class PreviewContentRestRepository extends DSpaceRestRepository<PreviewCo
     }
 
     @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Page<PreviewContentRest> findAll(Context context, Pageable pageable) {
         try {
             List<PreviewContent> previewContentList = previewContentService.findAll(context);
