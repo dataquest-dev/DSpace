@@ -1936,6 +1936,9 @@
                 back to the route download_url uses - but only when direct links are published.
                 Otherwise the file is not listed: access_url would publish the very link that
                 download_url leaves out.
+                No record reaches that branch today: both OAI indexers (XOAI.index and the
+                REST-side SolrOAIReindexer) skip items without a handle.  It stays as a
+                safeguard, should a record without one ever be indexed.
             -->
             <xsl:variable name="accessUrl"
                 select="if ($landingPage != '')
