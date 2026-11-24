@@ -12,7 +12,12 @@
             <Format ref="cmdi" />
             <Format ref="oai_metasharev2" />
             <Format ref="olac" />
-            <Format ref="xoai"/>
+            <!--
+                xoai is the raw index record: every bundle and every file of the item, embargoed and
+                private files included, with internal fields such as anonymousRead. Not offered to
+                harvesters; enable it in a context of its own if a tool needs it.
+            -->
+            <!--<Format ref="xoai"/>-->
             <Format ref="didl"/>
             <Format ref="dim"/>
             <Format ref="ore"/>

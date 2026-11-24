@@ -61,6 +61,43 @@
     <!-- what a contact's email must look like to be published as one -->
     <xsl:variable name="mailPattern" select="'^[^\s@]+@[^\s@]+\.[^\s@]+$'"/>
 
+    <!--
+        The organization that runs the repository: the Data Manager of every record, the Publisher
+        of an item that names none, and the organizational contact point.  dspace.name is the name
+        of the software instance ("CLARIN DSpace" in clarin-dspace.cfg), so the organization has
+        its own oai.ccmm.organization.* keys and falls back to dspace.name only when they are unset.
+        The contact address prefers help.mail, the repository's public help address, over
+        mail.admin, which XOAI carries as repository/mail.
+    -->
+    <xsl:variable name="repositoryName"
+        select="normalize-space((/doc:metadata/doc:element[@name='repository']/doc:field[@name='name'])[1])"/>
+    <xsl:variable name="orgName"
+        select="(normalize-space(string(fn:getProperty('oai.ccmm.organization.name'))), $repositoryName,
+                 $FALLBACK_REPOSITORY_NAME)[. != ''][1]"/>
+    <!-- a ROR id ("00dd4fz34") or its URL, http or https (published as https); anything else is ignored rather than published as an identifier -->
+    <xsl:variable name="orgRorRaw" select="normalize-space(string(fn:getProperty('oai.ccmm.organization.ror')))"/>
+    <xsl:variable name="orgRorId"
+        select="if (matches($orgRorRaw, '^(https?://ror\.org/)?0[a-z0-9]{6}[0-9]{2}$'))
+                then replace($orgRorRaw, '^https?://ror\.org/', '') else ''"/>
+    <xsl:variable name="orgEmail"
+        select="(normalize-space(string(fn:getProperty('oai.ccmm.organization.email'))),
+                 normalize-space(string(fn:getProperty('help.mail'))),
+                 normalize-space((/doc:metadata/doc:element[@name='repository']/doc:field[@name='mail'])[1]))
+                [matches(., $mailPattern)][1]"/>
+
+    <!--
+        Distributions.  By default no download_url is published: downloads go through the
+        repository, where the licence is shown and the download is counted, and machines follow the
+        PID to the landing page and its signposting.  This is the default agreed for the national
+        metadata directory (NMA); a repository that wants direct links sets
+        oai.ccmm.distribution.download-url = true.  access_url is the landing page, optionally with
+        an anchor that the UI scrolls to (oai.ccmm.distribution.access-url.anchor).
+    -->
+    <xsl:variable name="publishDownloadUrl"
+        select="lower-case(normalize-space(string(fn:getProperty('oai.ccmm.distribution.download-url')))) = 'true'"/>
+    <xsl:variable name="accessUrlAnchor"
+        select="replace(normalize-space(string(fn:getProperty('oai.ccmm.distribution.access-url.anchor'))), '^#', '')"/>
+
     <!-- ============================================================ -->
     <!-- EU file types.                                                -->
     <!-- CCMM (Format.label): "Use a label of a codelist value from    -->
@@ -380,10 +417,7 @@
             </xsl:call-template>
 
             <!-- distribution (optional, unbounded) -->
-            <xsl:sequence select="$distributions"/>
-
-            <!-- validation_result (optional, unbounded) -->
-            <xsl:call-template name="ValidationResults"/>
+            <xsl:apply-templates select="$distributions" mode="publish"/>
 
             <!-- provenance (optional, unbounded) -->
             <xsl:call-template name="Provenances"/>
@@ -400,19 +434,10 @@
             <xsl:if test="doc:metadata/doc:element[@name='others']/doc:field[@name='identifier']">
                 <ccmm:iri><xsl:value-of select="normalize-space((doc:metadata/doc:element[@name='others']/doc:field[@name='identifier'])[1])"/></ccmm:iri>
             </xsl:if>
-            <!-- qualified_relation for metadata record - use repository as curator -->
+            <!-- qualified_relation for metadata record - the organization running the repository curates it -->
             <ccmm:qualified_relation>
                 <ccmm:relation>
-                    <ccmm:organization>
-                        <ccmm:name>
-                            <xsl:choose>
-                                <xsl:when test="doc:metadata/doc:element[@name='repository']/doc:field[@name='name']">
-                                    <xsl:value-of select="normalize-space((doc:metadata/doc:element[@name='repository']/doc:field[@name='name'])[1])"/>
-                                </xsl:when>
-                                <xsl:otherwise><xsl:value-of select="$FALLBACK_REPOSITORY_NAME"/></xsl:otherwise>
-                            </xsl:choose>
-                        </ccmm:name>
-                    </ccmm:organization>
+                    <xsl:call-template name="RepositoryOrganization"/>
                 </ccmm:relation>
                 <ccmm:role>
                     <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Contributor/DataManager</ccmm:iri>
@@ -589,16 +614,6 @@
                 <xsl:call-template name="AlternativeTitleType"/>
             </ccmm:alternate_title>
         </xsl:for-each>
-        <!-- the META-SHARE resource name, where it differs from dc.title -->
-        <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#IdentificationInfo']/doc:element[@name='resourceName']/doc:element/doc:field[@name='value']">
-            <xsl:if test="normalize-space(.) != ''
-                      and not(normalize-space(.) = /doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']/normalize-space(.))">
-                <ccmm:alternate_title>
-                    <ccmm:title><xsl:call-template name="XmlLangAttribute"/><xsl:value-of select="normalize-space(.)"/></ccmm:title>
-                    <xsl:call-template name="AlternativeTitleType"/>
-                </ccmm:alternate_title>
-            </xsl:if>
-        </xsl:for-each>
         <!-- dc.title.alternative mapped to alternate_title -->
         <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element[@name='alternative']/doc:element/doc:field[@name='value']">
             <ccmm:alternate_title>
@@ -684,16 +699,7 @@
         <xsl:if test="not(doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value'])">
             <ccmm:qualified_relation>
                 <ccmm:relation>
-                    <ccmm:organization>
-                        <ccmm:name>
-                            <xsl:choose>
-                                <xsl:when test="doc:metadata/doc:element[@name='repository']/doc:field[@name='name']">
-                                    <xsl:value-of select="normalize-space((doc:metadata/doc:element[@name='repository']/doc:field[@name='name'])[1])"/>
-                                </xsl:when>
-                                <xsl:otherwise><xsl:value-of select="$FALLBACK_REPOSITORY_NAME"/></xsl:otherwise>
-                            </xsl:choose>
-                        </ccmm:name>
-                    </ccmm:organization>
+                    <xsl:call-template name="RepositoryOrganization"/>
                 </ccmm:relation>
                 <ccmm:role>
                     <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Publisher</ccmm:iri>
@@ -1231,17 +1237,6 @@
             <xsl:if test="$licenseUriRaw != '' and $licenseIri != $licenseUriRaw">
                 <ccmm:description xml:lang="en"><xsl:value-of select="$licenseUriRaw"/></ccmm:description>
             </xsl:if>
-            <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#DistributionInfo#LicenseInfo']/doc:element[@name='restrictionsOfUse']/doc:element/doc:field[@name='value']">
-                <xsl:if test="normalize-space(.) != ''">
-                    <ccmm:description xml:lang="en"><xsl:value-of select="concat('Restrictions of use: ', normalize-space(.))"/></ccmm:description>
-                </xsl:if>
-            </xsl:for-each>
-            <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#DistributionInfo#LicenseInfo']/doc:element[@name='license']/doc:element/doc:field[@name='value']
-                                | doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#DistributionInfo#LicenseInfo']/doc:element[@name='distributionAccessMedium']/doc:element/doc:field[@name='value']">
-                <xsl:if test="normalize-space(.) != ''">
-                    <ccmm:description xml:lang="en"><xsl:value-of select="concat(replace(string(../../@name), '^.*#', ''), ': ', normalize-space(.))"/></ccmm:description>
-                </xsl:if>
-            </xsl:for-each>
             <xsl:for-each select="$amEthical[. != '']">
                 <ccmm:description xml:lang="en"><xsl:value-of select="concat('Ethical reference: ', .)"/></ccmm:description>
             </xsl:for-each>
@@ -1309,7 +1304,7 @@
                 <xsl:with-param name="given" select="$g"/>
                 <xsl:with-param name="family" select="$f"/>
                 <xsl:with-param name="mails" select="if (exists($mails[matches(., $mailPattern)])) then $mails else if ($sameAsMs) then $msMail else ()"/>
-                <xsl:with-param name="orgs" select="if (exists($orgs)) then $orgs else if ($sameAsMs) then $msOrg else ()"/>
+                <xsl:with-param name="orgs" select="if (exists($orgs)) then $orgs else if ($sameAsMs) then $msOrg[. != ''] else ()"/>
             </xsl:call-template>
         </xsl:for-each-group>
         <xsl:if test="not($cpNamed) and concat($given, $family) = ''">
@@ -1340,23 +1335,41 @@
             </xsl:call-template>
         </xsl:if>
         <!-- the repository's own role address; never a natural person -->
-        <xsl:if test="normalize-space((doc:metadata/doc:element[@name='repository']/doc:field[@name='mail'])[1]) != ''">
+        <xsl:if test="$orgEmail != ''">
             <ccmm:contact_point>
-                <ccmm:organization>
-                    <ccmm:name>
-                        <xsl:choose>
-                            <xsl:when test="doc:metadata/doc:element[@name='repository']/doc:field[@name='name']">
-                                <xsl:value-of select="normalize-space((doc:metadata/doc:element[@name='repository']/doc:field[@name='name'])[1])"/>
-                            </xsl:when>
-                            <xsl:otherwise><xsl:value-of select="$FALLBACK_REPOSITORY_NAME"/></xsl:otherwise>
-                        </xsl:choose>
-                    </ccmm:name>
-                    <ccmm:contact_point>
-                        <ccmm:email><xsl:value-of select="normalize-space((doc:metadata/doc:element[@name='repository']/doc:field[@name='mail'])[1])"/></ccmm:email>
-                    </ccmm:contact_point>
-                </ccmm:organization>
+                <xsl:call-template name="RepositoryOrganization">
+                    <xsl:with-param name="withContact" select="true()"/>
+                </xsl:call-template>
             </ccmm:contact_point>
         </xsl:if>
+    </xsl:template>
+
+    <!--
+        The organization running the repository (see orgName above), with its ROR id when one is
+        configured; withContact adds the contact address.  Children in schema order: iri,
+        identifier, name, contact_point.
+    -->
+    <xsl:template name="RepositoryOrganization">
+        <xsl:param name="withContact" select="false()"/>
+        <ccmm:organization>
+            <xsl:if test="$orgRorId != ''">
+                <ccmm:iri><xsl:value-of select="concat('https://ror.org/', $orgRorId)"/></ccmm:iri>
+                <ccmm:identifier>
+                    <ccmm:iri><xsl:value-of select="concat('https://ror.org/', $orgRorId)"/></ccmm:iri>
+                    <ccmm:value><xsl:value-of select="$orgRorId"/></ccmm:value>
+                    <ccmm:scheme>
+                        <ccmm:iri>https://ror.org/</ccmm:iri>
+                        <ccmm:label xml:lang="en">ROR</ccmm:label>
+                    </ccmm:scheme>
+                </ccmm:identifier>
+            </xsl:if>
+            <ccmm:name><xsl:value-of select="$orgName"/></ccmm:name>
+            <xsl:if test="$withContact and $orgEmail != ''">
+                <ccmm:contact_point>
+                    <ccmm:email><xsl:value-of select="$orgEmail"/></ccmm:email>
+                </ccmm:contact_point>
+            </xsl:if>
+        </ccmm:organization>
     </xsl:template>
 
     <xsl:template name="ContactPerson">
@@ -1406,9 +1419,8 @@
         <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ContentInfo']/doc:element[@name='mediaType']/doc:element/doc:field[@name='value']">
             <xsl:call-template name="EmitSubject"/>
         </xsl:for-each>
-        <!-- the META-SHARE resource type and the Europeana type, both content descriptors -->
-        <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ContentInfo']/doc:element[@name='resourceType']/doc:element/doc:field[@name='value']
-                            | doc:metadata/doc:element[@name='edm']/doc:element[@name='type']/doc:element/doc:field[@name='value']">
+        <!-- the Europeana type, a content descriptor -->
+        <xsl:for-each select="doc:metadata/doc:element[@name='edm']/doc:element[@name='type']/doc:element/doc:field[@name='value']">
             <xsl:call-template name="EmitSubject"/>
         </xsl:for-each>
         <!-- languages named only in prose, which the language register cannot express -->
@@ -1528,38 +1540,13 @@
                 </ccmm:description>
             </xsl:if>
         </xsl:for-each>
-        <!-- the META-SHARE free description -->
-        <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ContentInfo']/doc:element[@name='description']/doc:element/doc:field[@name='value']">
-            <xsl:if test="normalize-space(.) != ''">
-                <ccmm:description>
-                    <ccmm:description_text><xsl:call-template name="XmlLangAttribute"/><xsl:value-of select="normalize-space(.)"/></ccmm:description_text>
-                    <ccmm:description_type>
-                        <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/Other</ccmm:iri>
-                        <ccmm:label xml:lang="en">Other</ccmm:label>
-                    </ccmm:description_type>
-                </ccmm:description>
-            </xsl:if>
-        </xsl:for-each>
         <!--
             local.refbox.format is not published: it is the format string of the UI's citation box
             ("{title}, {authors}, {year}, ...", see local-types.xml), placeholders and all, and the
             values it would fill in are already elements of their own.
         -->
-        <!-- META-SHARE technical statements: extent, language coding, language dependence -->
-        <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#TextInfo#SizeInfo']/doc:element[@name='size']/doc:element/doc:field[@name='value']">
-            <xsl:variable name="unit" select="normalize-space((/doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#TextInfo#SizeInfo']/doc:element[@name='sizeUnit']/doc:element/doc:field[@name='value'])[1])"/>
-            <xsl:if test="normalize-space(.) != ''">
-                <ccmm:description>
-                    <ccmm:description_text xml:lang="en"><xsl:value-of select="normalize-space(concat('Size: ', ., ' ', $unit))"/></ccmm:description_text>
-                    <ccmm:description_type>
-                        <ccmm:iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/TechnicalInfo</ccmm:iri>
-                        <ccmm:label xml:lang="en">Technical Info</ccmm:label>
-                    </ccmm:description_type>
-                </ccmm:description>
-            </xsl:if>
-        </xsl:for-each>
-        <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#TextInfo#LanguageInfo']/doc:element[@name='languageCoding']/doc:element/doc:field[@name='value']
-                            | doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ResourceComponentType#ToolServiceInfo']/doc:element[@name='languageDependent']/doc:element/doc:field[@name='value']">
+        <!-- the META-SHARE language dependence of a tool, still asked by the submission form -->
+        <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ResourceComponentType#ToolServiceInfo']/doc:element[@name='languageDependent']/doc:element/doc:field[@name='value']">
             <xsl:if test="normalize-space(.) != ''">
                 <ccmm:description>
                     <ccmm:description_text xml:lang="en"><xsl:value-of select="concat(replace(string(../../@name), '^.*#', ''), ': ', normalize-space(.))"/></ccmm:description_text>
@@ -1617,10 +1604,6 @@
     <!-- funding_reference (optional, unbounded)                       -->
     <!-- ============================================================ -->
     <xsl:template name="FundingReferences">
-        <!-- sponsors that yield a grant: something in code, funder or project -->
-        <xsl:variable name="sponsorValues"
-            select="doc:metadata/doc:element[@name='local']/doc:element[@name='sponsor']/doc:element/doc:field[@name='value']
-                    [some $p in tokenize(normalize-space(.), ';')[position() = (2, 3, 4)] satisfies normalize-space($p) != '']"/>
         <!--
             The grant numbers already published from the info:eu-repo URIs.  local.sponsor spells
             the same grant differently - "900001" there, "FP7-TEST-0000-0-900001" here - so the
@@ -1673,29 +1656,6 @@
                 </ccmm:funding_reference>
             </xsl:if>
         </xsl:for-each>
-        <!--
-            The migrated META-SHARE project tree has a project name but no grant number, prefixes
-            every value of a repeated field with its position ("#1-Example Project Gamma" - storage, not
-            part of the name), and has no funder at all: fundingType is a category (euFunds, nationalFunds, ownFunds), not who
-            paid.  local.sponsor holds the same grants properly, with numbers and funder names that
-            cannot be matched to these titles reliably, so the tree is used only for a record
-            without local.sponsor; the funder, required by the schema, is then stated as unknown.
-        -->
-        <xsl:if test="not($sponsorValues)">
-            <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ResourceCreationInfo#FundingInfo#ProjectInfo']/doc:element[@name='projectName']/doc:element/doc:field[@name='value']">
-                <xsl:variable name="project" select="normalize-space(replace(normalize-space(.), '^#[0-9]+-', ''))"/>
-                <xsl:if test="$project != ''">
-                    <ccmm:funding_reference>
-                        <ccmm:award_title><xsl:value-of select="$project"/></ccmm:award_title>
-                        <ccmm:funder>
-                            <ccmm:organization>
-                                <ccmm:name>:unkn</ccmm:name>
-                            </ccmm:organization>
-                        </ccmm:funder>
-                    </ccmm:funding_reference>
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:if>
         <!--
             local.sponsor carries the same grants in structured form, including the ones that
             never got an info: URI.  Emitted only when the project code is not already above.
@@ -1809,7 +1769,9 @@
             have no identity to compare and all stay.  A URL that is already one of the record's
             distributions (a featured service also given as the demo, a web service also given as
             the source) is not repeated as a related resource: CCMM says distributions SHALL NOT be
-            modeled as related resources.
+            modeled as related resources.  The file URLs (download_url, built even when it is not
+            published) are compared too, only to guard against the unlikely case that a relation
+            names one of the item's own files; no LINDAT record does that today.
         -->
         <xsl:variable name="perIri" as="element()*">
             <xsl:for-each-group select="$deduped/*[not(ccmm:iri = $distributionIris)]" group-by="if (ccmm:iri) then string(ccmm:iri) else generate-id()">
@@ -1935,9 +1897,13 @@
         access URL, a format and a byte size - so a bitstream missing any of them is skipped
         rather than padded with an invented value.  The LICENSE, THUMBNAIL and TEXT bundles are
         DSpace's own machinery and are not distributions of the resource.
+        A file that an anonymous visitor cannot see at all (ItemUtils sets anonymousRead to false:
+        embargoed, private) is left out entirely; licence-gated files stay, as they are listed on
+        the landing page too.  download_url is built here in any case, so that a related resource
+        cannot repeat a file, and dropped on output unless publishDownloadUrl is set.
     -->
     <xsl:template name="Distributions">
-        <xsl:for-each select="doc:metadata/doc:element[@name='bundles']/doc:element[@name='bundle'][doc:field[@name='name'] = 'ORIGINAL']/doc:element[@name='bitstreams']/doc:element[@name='bitstream']">
+        <xsl:for-each select="doc:metadata/doc:element[@name='bundles']/doc:element[@name='bundle'][doc:field[@name='name'] = 'ORIGINAL']/doc:element[@name='bitstreams']/doc:element[@name='bitstream'][not(normalize-space((doc:field[@name='anonymousRead'])[1]) = 'false')]">
             <xsl:variable name="url" select="normalize-space((doc:field[@name='url'])[1])"/>
             <xsl:variable name="size" select="normalize-space((doc:field[@name='size'])[1])"/>
             <xsl:variable name="fmt" select="normalize-space(tokenize(normalize-space((doc:field[@name='format'])[1]), ';')[1])"/>
@@ -1964,28 +1930,40 @@
             <xsl:variable name="sum" select="normalize-space((doc:field[@name='checksum'])[1])"/>
             <xsl:variable name="alg" select="normalize-space((doc:field[@name='checksumAlgorithm'])[1])"/>
             <!--
-                The published URL is what has to be resolvable, and that is download_url.  Gating
-                on the XOAI url instead would drop the file whenever XOAI could not build one -
-                ItemUtils emits a bare filename when the item has no handle - even though the
-                endpoint URL was derivable from the Handle and the name.
+                access_url is the page that says how to get the resource, so it is the item's
+                landing page, with the configured anchor of its file section.  A record with no
+                Handle at all has no page to point at, and access_url is mandatory, so it falls
+                back to the route download_url uses - but only when direct links are published.
+                Otherwise the file is not listed: access_url would publish the very link that
+                download_url leaves out.
+                No record reaches that branch today: both OAI indexers (XOAI.index and the
+                REST-side SolrOAIReindexer) skip items without a handle.  It stays as a
+                safeguard, should a record without one ever be indexed.
             -->
-            <xsl:if test="matches($downloadUrl, '^https?://\S+$') and matches($size, '^[0-9]+$') and matches($fmt, '^[A-Za-z0-9!#$&amp;^_.+-]+/[A-Za-z0-9!#$&amp;^_.+-]+$')">
+            <xsl:variable name="accessUrl"
+                select="if ($landingPage != '')
+                        then concat($landingPage, if ($accessUrlAnchor != '') then concat('#', encode-for-uri($accessUrlAnchor)) else '')
+                        else if ($publishDownloadUrl) then $downloadUrl
+                        else ''"/>
+            <!--
+                access_url is the one mandatory URL, so it is what has to be resolvable.  Gating on
+                the XOAI url instead would drop the file whenever XOAI could not build one -
+                ItemUtils emits a bare filename when the item has no handle.
+            -->
+            <xsl:if test="matches($accessUrl, '^https?://\S+$') and matches($size, '^[0-9]+$') and matches($fmt, '^[A-Za-z0-9!#$&amp;^_.+-]+/[A-Za-z0-9!#$&amp;^_.+-]+$')">
                 <ccmm:distribution>
                     <ccmm:distribution_downloadable_file>
                         <!-- a file name, never a URL: the last path segment is the name XOAI encoded -->
                         <ccmm:title><xsl:value-of select="if ($nm != '') then $nm
                                                           else if ($url != '') then tokenize($url, '/')[last()]
                                                           else concat('bitstream-', $uuid)"/></ccmm:title>
-                        <!--
-                            access_url is the page that says how to get the resource, so it is the
-                            item's landing page.  A record with no Handle at all has no page to
-                            point at, and access_url is mandatory, so it falls back to the same
-                            route download_url uses, which is at least resolvable.
-                        -->
                         <ccmm:access_url>
-                            <ccmm:iri><xsl:value-of select="if ($landingPage != '') then $landingPage else $downloadUrl"/></ccmm:iri>
+                            <ccmm:iri><xsl:value-of select="$accessUrl"/></ccmm:iri>
                         </ccmm:access_url>
-                        <ccmm:download_url><ccmm:iri><xsl:value-of select="$downloadUrl"/></ccmm:iri></ccmm:download_url>
+                        <!-- removed on output unless publishDownloadUrl, see the "publish" mode -->
+                        <xsl:if test="matches($downloadUrl, '^https?://\S+$')">
+                            <ccmm:download_url><ccmm:iri><xsl:value-of select="$downloadUrl"/></ccmm:iri></ccmm:download_url>
+                        </xsl:if>
                         <xsl:variable name="eu" select="$euFileTypes/t[@m = $fmt]"/>
                         <ccmm:format>
                             <xsl:choose>
@@ -2047,6 +2025,20 @@
         </xsl:for-each>
     </xsl:template>
 
+    <!-- Output of the built distributions: a copy, without download_url unless it is to be published. -->
+    <xsl:template match="ccmm:download_url" mode="publish">
+        <xsl:if test="$publishDownloadUrl">
+            <xsl:copy-of select="." copy-namespaces="no"/>
+        </xsl:if>
+    </xsl:template>
+
+    <xsl:template match="*" mode="publish">
+        <xsl:copy copy-namespaces="no">
+            <xsl:copy-of select="@*"/>
+            <xsl:apply-templates select="node()" mode="publish"/>
+        </xsl:copy>
+    </xsl:template>
+
     <xsl:template name="DataServiceDistribution">
         <xsl:param name="title"/>
         <xsl:param name="url"/>
@@ -2072,32 +2064,13 @@
     </xsl:template>
 
     <!-- ============================================================ -->
-    <!-- validation_result and provenance                              -->
+    <!-- provenance                                                    -->
     <!-- ============================================================ -->
-    <xsl:template name="ValidationResults">
-        <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#ValidationInfo']/doc:element[@name='validated']/doc:element/doc:field[@name='value']">
-            <ccmm:validation_result>
-                <ccmm:label xml:lang="en">
-                    <xsl:value-of select="if (lower-case(normalize-space(.)) = 'true')
-                                          then 'Validated by the repository'
-                                          else 'Not validated by the repository'"/>
-                </ccmm:label>
-            </ccmm:validation_result>
-        </xsl:for-each>
-    </xsl:template>
-
     <xsl:template name="Provenances">
         <xsl:for-each select="doc:metadata/doc:element[@name='local']/doc:element[@name='dataProvider']/doc:element/doc:field[@name='value']">
             <xsl:if test="normalize-space(.) != ''">
                 <ccmm:provenance>
                     <ccmm:label xml:lang="en"><xsl:value-of select="concat('Data provider: ', normalize-space(.))"/></ccmm:label>
-                </ccmm:provenance>
-            </xsl:if>
-        </xsl:for-each>
-        <xsl:for-each select="doc:metadata/doc:element[@name='metashare']/doc:element[@name='ResourceInfo#DistributionInfo']/doc:element[@name='availability']/doc:element/doc:field[@name='value']">
-            <xsl:if test="normalize-space(.) != ''">
-                <ccmm:provenance>
-                    <ccmm:label xml:lang="en"><xsl:value-of select="concat('META-SHARE availability: ', normalize-space(.))"/></ccmm:label>
                 </ccmm:provenance>
             </xsl:if>
         </xsl:for-each>
