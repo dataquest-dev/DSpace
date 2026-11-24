@@ -29,5 +29,6 @@
     <bean class="org.dspace.storage.rdbms.GroupServiceInitializer"/>
     <bean class="org.dspace.storage.rdbms.SiteServiceInitializer"/>
     <bean class="org.dspace.storage.rdbms.EntityTypeServiceInitializer"/>
+    <bean class="org.dspace.storage.rdbms.RenumberedMigrationUpdater"/>
 
 </beans>
