@@ -74,7 +74,7 @@
     <xsl:variable name="orgName"
         select="(normalize-space(string(fn:getProperty('oai.ccmm.organization.name'))), $repositoryName,
                  $FALLBACK_REPOSITORY_NAME)[. != ''][1]"/>
-    <!-- a ROR id ("00dd4fz34") or its URL; anything else is ignored rather than published as an identifier -->
+    <!-- a ROR id ("00dd4fz34") or its URL, http or https (published as https); anything else is ignored rather than published as an identifier -->
     <xsl:variable name="orgRorRaw" select="normalize-space(string(fn:getProperty('oai.ccmm.organization.ror')))"/>
     <xsl:variable name="orgRorId"
         select="if (matches($orgRorRaw, '^(https?://ror\.org/)?0[a-z0-9]{6}[0-9]{2}$'))

@@ -1642,9 +1642,12 @@ public class CcmmXslTest extends AbstractXSLTest {
             String result = apply("ccmm.xsl").withProperty("oai.ccmm.organization.ror", ror).to(resource(MAIN));
             assertThat(ror, result, is(ccmm().withXPath("count(//ccmm:organization/ccmm:iri)", equalTo("0"))));
         }
-        String bare = apply("ccmm.xsl").withProperty("oai.ccmm.organization.ror", "00dd4fz34").to(resource(MAIN));
-        assertThat(bare, is(ccmm().withXPath(
-            "//ccmm:metadata_identification//ccmm:organization/ccmm:iri", equalTo("https://ror.org/00dd4fz34"))));
+        // the bare id and the http form of the URL are accepted and published as the https URL
+        for (String ror : new String[] {"00dd4fz34", "http://ror.org/00dd4fz34"}) {
+            String result = apply("ccmm.xsl").withProperty("oai.ccmm.organization.ror", ror).to(resource(MAIN));
+            assertThat(ror, result, is(ccmm().withXPath(
+                "//ccmm:metadata_identification//ccmm:organization/ccmm:iri", equalTo("https://ror.org/00dd4fz34"))));
+        }
     }
 
     private static TransformBuilder withOrganization(TransformBuilder builder) {
