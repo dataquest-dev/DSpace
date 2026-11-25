@@ -153,6 +153,8 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             + RequestItemRest.CATEGORY + '/'
             + RequestItemRest.PLURAL_NAME;
 
+    private static final String UNKNOWN_CHECKSUM = "deadbeefdeadbeefdeadbeefdeadbeef";
+
     private Bitstream bitstream;
     private BitstreamFormat supportedFormat;
     private BitstreamFormat knownFormat;
@@ -353,6 +355,98 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
             //Check that NO statistics record was logged for the Range requests
             checkNumberOfStatsRecords(bitstream, 0);
+    }
+
+    @Test
+    public void retrieveBitstreamWithIfMatch() throws Exception {
+        String bitstreamContent = "0123456789";
+        createPublicBitstream(bitstreamContent);
+        String url = "/api/core/bitstreams/" + bitstream.getID() + "/content";
+        String etag = "\"" + bitstream.getChecksum() + "\"";
+
+        //** WHEN **
+        //We send back the ETag exactly as we received it
+        getClient().perform(get(url).header("If-Match", etag))
+
+                   //** THEN **
+                   .andExpect(status().isOk())
+                   .andExpect(content().bytes(bitstreamContent.getBytes()));
+
+        //Clients that leave the quotes off keep working
+        getClient().perform(get(url).header("If-Match", bitstream.getChecksum()))
+                   .andExpect(status().isOk());
+
+        //This is what a parallel download does: one slice, pinned to the ETag
+        getClient().perform(get(url).header("If-Match", etag).header("Range", "bytes=1-3"))
+                   .andExpect(status().is(206))
+                   .andExpect(header().string("Content-Range", "bytes 1-3/10"))
+                   .andExpect(content().bytes("123".getBytes()));
+
+        //Another ETag means the file is not the one the client wanted, which is 412 and not 416
+        getClient().perform(get(url).header("If-Match", "\"" + UNKNOWN_CHECKSUM + "\""))
+                   .andExpect(status().isPreconditionFailed());
+    }
+
+    @Test
+    public void retrieveBitstreamWithAConditionalDateWeCannotRead() throws Exception {
+        createPublicBitstream("0123456789");
+        String url = "/api/core/bitstreams/" + bitstream.getID() + "/content";
+
+        //A date we cannot read is ignored, not answered with 400 (RFC 9110 13.1.3)
+        getClient().perform(get(url).header("If-Modified-Since", "garbage"))
+                   .andExpect(status().isOk())
+                   .andExpect(content().bytes("0123456789".getBytes()));
+    }
+
+    @Test
+    public void retrieveBitstreamWithIfRange() throws Exception {
+        String bitstreamContent = "0123456789";
+        createPublicBitstream(bitstreamContent);
+        String url = "/api/core/bitstreams/" + bitstream.getID() + "/content";
+
+        //** WHEN **
+        //The file is still the one the client started on, so it gets the slice it asked for
+        getClient().perform(get(url).header("Range", "bytes=1-3")
+                                    .header("If-Range", "\"" + bitstream.getChecksum() + "\""))
+
+                   //** THEN **
+                   .andExpect(status().is(206))
+                   .andExpect(header().string("Content-Range", "bytes 1-3/10"))
+                   .andExpect(content().bytes("123".getBytes()));
+
+        //** WHEN **
+        //The file changed, so the range no longer applies
+        getClient().perform(get(url).header("Range", "bytes=1-3")
+                                    .header("If-Range", "\"" + UNKNOWN_CHECKSUM + "\""))
+
+                   //** THEN **
+                   //The whole file comes back, instead of a slice glued onto the old bytes
+                   .andExpect(status().isOk())
+                   .andExpect(header().doesNotExist("Content-Range"))
+                   .andExpect(content().bytes(bitstreamContent.getBytes()));
+    }
+
+    private void createPublicBitstream(String bitstreamContent) throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            Item publicItem1 = ItemBuilder.createItem(context, col1)
+                                          .withTitle("Public item 1")
+                                          .withIssueDate("2017-10-17")
+                                          .build();
+
+            bitstream = BitstreamBuilder.createBitstream(context, publicItem1, is)
+                                        .withName("Test bitstream")
+                                        .withMimeType("text/plain")
+                                        .build();
+        }
+
+        context.restoreAuthSystemState();
     }
 
     @Test
@@ -1807,13 +1901,13 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    public void doesNotOpenStreamForRangeNotSatisfiableRequest() throws Exception {
+    public void doesNotOpenStreamForFailedIfMatchRequest() throws Exception {
         BitstreamStorageService bitstreamStorageServiceSpy = setUpBitstreamWithStorageSpy();
 
-        //A non-matching If-Match results in a 416 without a body, so the storage stream must never be opened.
+        //A non-matching If-Match results in a 412 without a body, so the storage stream must never be opened.
         getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
                 .header("If-Match", "not-the-etag"))
-            .andExpect(status().isRequestedRangeNotSatisfiable());
+            .andExpect(status().isPreconditionFailed());
 
         Mockito.verify(bitstreamStorageServiceSpy, Mockito.never()).retrieve(any(), eq(bitstream));
     }

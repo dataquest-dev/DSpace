@@ -75,9 +75,13 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.core.Constants;
+import org.dspace.discovery.IndexingService;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
+import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.supervision.SupervisionOrder;
@@ -98,6 +102,9 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
     @Autowired
     ChoiceAuthorityService choiceAuthorityService;
+
+    @Autowired
+    IndexingService indexingService;
 
     @Autowired
     private ObjectMapper mapper;
@@ -6822,5 +6829,84 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
             .andExpect(jsonPath(
                 "$._embedded.searchResult._embedded.objects[0].hitHighlights['dc.title']",
                 contains("This is a <a>test</a> <em>title</em>")));
+    }
+
+    /**
+     * Full text is indexed only when Anonymous can read the TEXT bitstream and its ORIGINAL source file.
+     */
+    @Test
+    public void discoverSearchIndexesOnlyAnonymousReadableFullText() throws Exception {
+        String restrictedToken = "zzxrestrictedtokenabc";
+        String publicToken = "zzxpublictokenxyz";
+
+        Group adminGroup = EPersonServiceFactory.getInstance().getGroupService()
+                .findByName(context, Group.ADMIN);
+        Group anonymousGroup = EPersonServiceFactory.getInstance().getGroupService()
+                .findByName(context, Group.ANONYMOUS);
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection").build();
+
+        Item item = ItemBuilder.createItem(context, col)
+                .withTitle("Public item with a restricted file")
+                .withIssueDate("2020-01-01")
+                .build();
+
+        BitstreamBuilder.createBitstream(context, item,
+                IOUtils.toInputStream("restricted source", CharEncoding.UTF_8), Constants.CONTENT_BUNDLE_NAME)
+                .withName("restricted.pdf")
+                .withReaderGroup(adminGroup)
+                .build();
+        // The text itself is readable by Anonymous, but its source file is not
+        BitstreamBuilder.createBitstream(context, item,
+                IOUtils.toInputStream(restrictedToken, CharEncoding.UTF_8), "TEXT")
+                .withName("restricted.pdf.txt")
+                .withReaderGroup(anonymousGroup)
+                .build();
+
+        BitstreamBuilder.createBitstream(context, item,
+                IOUtils.toInputStream("public source", CharEncoding.UTF_8), Constants.CONTENT_BUNDLE_NAME)
+                .withName("public.pdf")
+                .withReaderGroup(anonymousGroup)
+                .build();
+        BitstreamBuilder.createBitstream(context, item,
+                IOUtils.toInputStream(publicToken, CharEncoding.UTF_8), "TEXT")
+                .withName("public.pdf.txt")
+                .withReaderGroup(anonymousGroup)
+                .build();
+
+        // Reindex now that the TEXT bitstreams exist, so the full text field is rebuilt
+        indexingService.indexContent(context, new IndexableItem(item), true);
+        indexingService.commit();
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient().perform(get("/api/discover/search/objects").param("query", restrictedToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(0)));
+
+        getClient().perform(get("/api/discover/search/objects").param("query", publicToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id",
+                        is(item.getID().toString())));
+
+        getClient(adminToken).perform(get("/api/discover/search/objects").param("query", publicToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id",
+                        is(item.getID().toString())));
+
+        // The text was never indexed, so an administrator does not find it either
+        getClient(adminToken).perform(get("/api/discover/search/objects").param("query", restrictedToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(0)));
     }
 }

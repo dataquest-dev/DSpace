@@ -124,6 +124,51 @@ public class DSpaceControlledVocabularyTest extends AbstractDSpaceTest {
         assertNull(instance.getParentChoice("farm", "x' or @id='pond", null));
     }
 
+    private DSpaceControlledVocabulary getFarmVocabulary() throws ClassNotFoundException {
+        DSpaceControlledVocabulary instance = (DSpaceControlledVocabulary)
+            CoreServiceFactory.getInstance().getPluginService()
+                .getNamedPlugin(Class.forName("org.dspace.content.authority.ChoiceAuthority"), "farm");
+        assertNotNull(instance);
+        return instance;
+    }
+
+    /**
+     * A value containing an apostrophe matches the node whose id or label is exactly that value.
+     * @throws java.lang.ClassNotFoundException passed through.
+     */
+    @Test
+    public void testApostropheInValueMatchesExactly() throws ClassNotFoundException {
+        DSpaceControlledVocabulary instance = getFarmVocabulary();
+
+        assertEquals("o'reilly", instance.getChoice("o'reilly", null).authority);
+
+        Choices best = instance.getBestMatch("o'reilly", null);
+        assertEquals(1, best.values.length);
+        assertEquals("o'reilly", best.values[0].authority);
+    }
+
+    /**
+     * The getMatches filter is compared as a plain string, so XPath syntax in it matches nothing.
+     * @throws java.lang.ClassNotFoundException passed through.
+     */
+    @Test
+    public void testGetMatchesFilterIsNotEvaluatedAsXPath() throws ClassNotFoundException {
+        DSpaceControlledVocabulary instance = getFarmVocabulary();
+
+        assertEquals(0, instance.getMatches("x') or contains(@label,'", 0, 10, null).values.length);
+    }
+
+    /**
+     * The getBestMatch filter is compared as a plain string, so XPath syntax in it matches nothing.
+     * @throws java.lang.ClassNotFoundException passed through.
+     */
+    @Test
+    public void testGetBestMatchFilterIsNotEvaluatedAsXPath() throws ClassNotFoundException {
+        DSpaceControlledVocabulary instance = getFarmVocabulary();
+
+        assertEquals(0, instance.getBestMatch("' or '1'='1", null).values.length);
+    }
+
     /**
      * Test of getMatches method of class
      * DSpaceControlledVocabulary using a localized controlled vocabulary with no locale (fallback to default)
