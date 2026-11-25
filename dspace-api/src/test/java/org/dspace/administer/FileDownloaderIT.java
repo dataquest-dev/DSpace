@@ -10,6 +10,7 @@ package org.dspace.administer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -28,6 +29,9 @@ import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,8 +39,13 @@ import org.mockserver.junit.MockServerRule;
 
 public class FileDownloaderIT extends AbstractIntegrationTestWithDatabase {
 
+    private static final String ALLOWED_INTERNAL_HOSTS = "file-downloader.allowed-internal-hosts";
+
     @Rule
     public MockServerRule mockServerRule = new MockServerRule(this);
+
+    private final ConfigurationService configurationService =
+            DSpaceServicesFactory.getInstance().getConfigurationService();
 
     private Item item;
     private WorkspaceItem workspaceItem;
@@ -46,6 +55,8 @@ public class FileDownloaderIT extends AbstractIntegrationTestWithDatabase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
+        // the mock server runs on localhost, which is blocked unless allowed
+        configurationService.setProperty(ALLOWED_INTERNAL_HOSTS, "localhost");
         context.setCurrentUser(admin);
         Community community = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, community)
@@ -76,6 +87,74 @@ public class FileDownloaderIT extends AbstractIntegrationTestWithDatabase {
                         .withHeader("Content-Disposition", "attachment; filename=\"test.txt\"")
                         .withBody("test")
         );
+
+        mockServerRule.getClient().when(request()
+                .withMethod("GET")
+                .withPath("/redirect")
+        ).respond(
+                response()
+                        .withStatusCode(302)
+                        .withHeader("Location", "/test")
+        );
+
+        mockServerRule.getClient().when(request()
+                .withMethod("GET")
+                .withPath("/redirect-internal")
+        ).respond(
+                response()
+                        .withStatusCode(302)
+                        .withHeader("Location",
+                                String.format("http://127.0.0.1:%s/test", mockServerRule.getPort()))
+        );
+    }
+
+    @After
+    public void resetAllowedInternalHosts() {
+        configurationService.setProperty(ALLOWED_INTERNAL_HOSTS, null);
+    }
+
+    @Test
+    public void testInternalUrlIsRejected() throws Exception {
+        configurationService.setProperty(ALLOWED_INTERNAL_HOSTS, null);
+        context.setCurrentUser(eperson);
+        Item i = workspaceItem.getItem();
+
+        String[] args = new String[] {"file-downloader", "-w", workspaceItem.getID().toString(),
+                "-u", String.format("http://localhost:%s/test", mockServerRule.getPort()),
+                "-e", eperson.getEmail()};
+
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> runDSpaceScript(args));
+        assertTrue(e.getMessage(), e.getMessage().contains("internal address"));
+        assertEquals(0, i.getBundles("ORIGINAL").size());
+    }
+
+    @Test
+    public void testRedirectToInternalAddressIsRejected() throws Exception {
+        context.setCurrentUser(eperson);
+        Item i = workspaceItem.getItem();
+
+        String[] args = new String[] {"file-downloader", "-w", workspaceItem.getID().toString(),
+                "-u", String.format("http://localhost:%s/redirect-internal", mockServerRule.getPort()),
+                "-e", eperson.getEmail()};
+
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> runDSpaceScript(args));
+        assertTrue(e.getMessage(), e.getMessage().contains("internal address"));
+        assertEquals(0, i.getBundles("ORIGINAL").size());
+    }
+
+    @Test
+    public void testRedirectIsFollowed() throws Exception {
+        context.setCurrentUser(eperson);
+        Item i = workspaceItem.getItem();
+
+        String[] args = new String[] {"file-downloader", "-w", workspaceItem.getID().toString(),
+                "-u", String.format("http://localhost:%s/redirect", mockServerRule.getPort()),
+                "-e", eperson.getEmail()};
+
+        runDSpaceScript(args);
+
+        assertEquals(1, i.getBundles("ORIGINAL").size());
+        assertEquals(1, i.getBundles("ORIGINAL").get(0).getBitstreams().size());
     }
 
     //Test that when an error occurs no bitstream is actually added to the item
