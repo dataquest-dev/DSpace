@@ -19,6 +19,7 @@ import jakarta.servlet.Filter;
 import org.dspace.app.ldn.LDNQueueExtractor;
 import org.dspace.app.ldn.LDNQueueTimeoutChecker;
 import org.dspace.app.rest.filter.DSpaceRequestContextFilter;
+import org.dspace.app.rest.filter.IgnorableRangeRequestFilter;
 import org.dspace.app.rest.model.hateoas.DSpaceLinkRelationProvider;
 import org.dspace.app.rest.parameter.resolver.SearchFilterResolver;
 import org.dspace.app.rest.security.clarin.ClarinShibbolethLoginFilter;
@@ -144,6 +145,18 @@ public class WebApplication {
     @Order(3)
     protected Filter dspaceApiLoggingRequest() {
         return new DSpaceAPIRequestLoggingFilter();
+    }
+
+    /**
+     * Register the IgnorableRangeRequestFilter, a Filter which lets a controller drop a Range
+     * header that no longer applies
+     *
+     * @return IgnorableRangeRequestFilter
+     */
+    @Bean
+    @Order(4)
+    protected Filter ignorableRangeRequestFilter() {
+        return new IgnorableRangeRequestFilter();
     }
 
     @Bean
