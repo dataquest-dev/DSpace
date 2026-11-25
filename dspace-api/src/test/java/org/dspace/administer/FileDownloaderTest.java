@@ -10,6 +10,7 @@ package org.dspace.administer;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.net.Inet6Address;
 import java.net.InetAddress;
 
 import org.junit.Test;
@@ -24,6 +25,13 @@ public class FileDownloaderTest {
         for (String address : internal) {
             assertTrue(address, FileDownloader.isInternal(InetAddress.getByName(address)));
         }
+    }
+
+    @Test
+    public void testIpv4MappedAddressFromDnsIsBlocked() throws Exception {
+        // DNS answers stay Inet6Address, only literals are converted to Inet4Address
+        byte[] mapped = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (byte) 0xff, (byte) 0xff, (byte) 172, 18, 0, 3};
+        assertTrue(FileDownloader.isInternal(Inet6Address.getByAddress(null, mapped, -1)));
     }
 
     @Test

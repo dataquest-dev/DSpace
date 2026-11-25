@@ -17,6 +17,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -235,8 +236,9 @@ public class FileDownloader extends DSpaceRunnable<FileDownloaderConfiguration> 
 
     /**
      * True for loopback, private, link-local, multicast, CGNAT, 0.0.0.0/8 and IPv6 unique local addresses.
+     * An IPv4-mapped IPv6 address (::ffff:a.b.c.d) is judged by its IPv4 part.
      */
-    static boolean isInternal(InetAddress address) {
+    static boolean isInternal(InetAddress address) throws UnknownHostException {
         if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
                 || address.isSiteLocalAddress() || address.isMulticastAddress()) {
             return true;
@@ -247,7 +249,19 @@ public class FileDownloader extends DSpaceRunnable<FileDownloaderConfiguration> 
             int second = raw[1] & 0xff;
             return first == 0 || (first == 100 && second >= 64 && second < 128);
         }
+        if (isIpv4Mapped(raw)) {
+            return isInternal(InetAddress.getByAddress(Arrays.copyOfRange(raw, 12, 16)));
+        }
         return (first & 0xfe) == 0xfc;
+    }
+
+    private static boolean isIpv4Mapped(byte[] raw) {
+        for (int i = 0; i < 10; i++) {
+            if (raw[i] != 0) {
+                return false;
+            }
+        }
+        return (raw[10] & 0xff) == 0xff && (raw[11] & 0xff) == 0xff;
     }
 
     private Item findItem(Context context) throws SQLException {
