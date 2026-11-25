@@ -731,7 +731,7 @@ public class ClarinUserMetadataRestController {
                         .map(String::trim)
                         .filter(s -> StringUtils.isNotBlank(s) && !"SEND_TOKEN".equals(s))
                         .collect(Collectors.toSet()))
-                .orElse(Set.of());
+                .orElse(new HashSet<>());
     }
 
     /**

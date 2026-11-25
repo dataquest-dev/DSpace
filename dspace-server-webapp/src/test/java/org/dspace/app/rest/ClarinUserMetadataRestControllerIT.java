@@ -274,6 +274,19 @@ public class ClarinUserMetadataRestControllerIT extends AbstractControllerIntegr
     }
 
     @Test
+    public void notAuthorizedUser_manageUserMetadata_withoutKeyAndRequiredInfo_shouldReturnToken() throws Exception {
+        this.prepareEnvironment(null, Confirmation.ALLOW_ANONYMOUS);
+        ClarinUserMetadataRest withoutKey = new ClarinUserMetadataRest();
+        withoutKey.setMetadataValue("Test");
+
+        getClient().perform(post("/api/core/clarinusermetadata/manage?bitstreamUUID=" + bitstream.getID())
+                        .content(new ObjectMapper().writeValueAsBytes(new ClarinUserMetadataRest[] {withoutKey}))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", notNullValue()));
+    }
+
+    @Test
     public void authorizedUser_manageUserMetadata_shouldStoreOnlyRequiredMetadata() throws Exception {
         this.prepareEnvironment("SEND_TOKEN,EXTRA_EMAIL,NAME", Confirmation.ALLOW_ANONYMOUS);
         ObjectMapper mapper = new ObjectMapper();
