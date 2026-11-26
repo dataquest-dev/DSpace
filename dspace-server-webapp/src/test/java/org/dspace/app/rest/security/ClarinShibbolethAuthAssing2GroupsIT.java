@@ -9,6 +9,7 @@ package org.dspace.app.rest.security;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,6 +24,7 @@ import org.dspace.services.ConfigurationService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpSession;
 
 /**
  * Integration test for testing the assigning the user to the groups based on the configuration
@@ -197,6 +199,36 @@ public class ClarinShibbolethAuthAssing2GroupsIT extends AbstractControllerInteg
 
         // Check if the user was NOT assigned to the `UFAL` group
         getClient(token).perform(get("/api/test/auth/ufal"))
+                .andExpect(status().isForbidden());
+    }
+
+    // A session marked as Shibboleth authenticated must not take groups from headers sent to another endpoint
+    @Test
+    public void shouldIgnoreRoleHeadersOutsideTheShibbolethLogin() throws Exception {
+        GroupBuilder.createGroup(context)
+                .withName("UFAL")
+                .build();
+        String defaultGroupName = configurationService.getProperty("authentication-shibboleth.default.auth.group");
+        GroupBuilder.createGroup(context)
+                .withName(defaultGroupName)
+                .build();
+
+        String token = getClient().perform(get("/api/authn/shibboleth")
+                        .header("SHIB-MAIL", clarinEperson.getEmail())
+                        .header("Shib-Identity-Provider", IDP_TEST_EPERSON)
+                        .header("SHIB-NETID", NET_ID_TEST_EPERSON))
+                .andExpect(status().is3xxRedirection())
+                .andReturn().getResponse().getHeader("Authorization");
+
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("shib.authenticated", true);
+        String refreshedToken = getClient(token).perform(post("/api/authn/login")
+                        .session(session)
+                        .header("entitlement", "ufal.mff.cuni.cz"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getHeader("Authorization");
+
+        getClient(refreshedToken).perform(get("/api/test/auth/ufal"))
                 .andExpect(status().isForbidden());
     }
 }
