@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -336,6 +337,47 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
             matchSearchResult(community),
             matchSearchResult(collection),
             matchSearchResult(i1_2, "item 1.2")
+        ));
+    }
+
+    @Test
+    public void test_deleteLatestVersion_archivedPreviousVersionIsFoundAgain() throws Exception {
+        // the CLARIN value from clarin-dspace.cfg; the test local.cfg sets it to true
+        configurationService.setProperty("versioning.unarchive.previous.version", false);
+        final String configuration = null;
+
+        Collection collection = createCollection();
+
+        // create item 1.1 (first version of item 1)
+        context.turnOffAuthorisationSystem();
+        Item i1_1 = ItemBuilder.createItem(context, collection)
+            .withTitle("item 1.1")
+            .build();
+        context.restoreAuthSystemState();
+
+        // create and archive item 1.2 (second version of item 1)
+        Item i1_2 = createNewVersion(i1_1, "item 1.2");
+
+        // item 1.1 stays archived, but only item 1.2 appears in /api/discover/search/objects
+        Assert.assertTrue(context.reloadEntity(i1_1).isArchived());
+        verifySolrField(i1_1, "latestVersion", List.of(false));
+        verifyRestSearchObjects(configuration, List.of(
+            matchSearchResult(community),
+            matchSearchResult(collection),
+            matchSearchResult(i1_2, "item 1.2")
+        ));
+
+        // delete item 1.2, the latest version
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(delete("/api/core/items/" + i1_2.getID()))
+            .andExpect(status().isNoContent());
+
+        // item 1.1 is the latest version again and appears in /api/discover/search/objects right away
+        verifySolrField(i1_1, "latestVersion", List.of(true));
+        verifyRestSearchObjects(configuration, List.of(
+            matchSearchResult(community),
+            matchSearchResult(collection),
+            matchSearchResult(i1_1, "item 1.1")
         ));
     }
 
