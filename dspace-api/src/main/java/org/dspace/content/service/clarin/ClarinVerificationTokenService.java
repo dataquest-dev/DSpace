@@ -10,6 +10,7 @@ package org.dspace.content.service.clarin;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.dspace.authenticate.clarin.ShibHeaders;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.clarin.ClarinVerificationToken;
 import org.dspace.core.Context;
@@ -68,6 +69,24 @@ public interface ClarinVerificationTokenService {
      * @throws SQLException if database error
      */
     ClarinVerificationToken findByNetID(Context context, String netID) throws SQLException;
+
+    /**
+     * Find the clarin verification token object from the shibboleth headers trying every netId header
+     * until the object is found
+     * @param context DSpace context object
+     * @param netIdHeaders array of the netId headers - values from the configuration
+     * @param shibHeaders object with the shibboleth headers
+     * @return found clarin verification token object or null
+     * @throws SQLException if database error
+     */
+    ClarinVerificationToken findByNetID(Context context, String[] netIdHeaders, ShibHeaders shibHeaders)
+            throws SQLException;
+
+    /**
+     * Generate an unguessable token for the registration and verification steps of the Shibboleth autoregistration.
+     * @return 32 hex characters from a cryptographically strong random source
+     */
+    String generateToken();
 
     /**
      * Remove the clarin verification token from DB

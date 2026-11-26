@@ -7,17 +7,20 @@
  */
 package org.dspace.content.clarin;
 
+import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang.NullArgumentException;
+import org.dspace.authenticate.clarin.ShibHeaders;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.dao.clarin.ClarinVerificationTokenDAO;
 import org.dspace.content.service.clarin.ClarinVerificationTokenService;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
+import org.dspace.core.Utils;
 import org.hibernate.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ClarinVerificationTokenServiceImpl implements ClarinVerificationTokenService {
 
     private static final Logger log = LoggerFactory.getLogger(ClarinVerificationTokenServiceImpl.class);
+    private static final int TOKEN_BYTES = 16;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Autowired
     ClarinVerificationTokenDAO clarinVerificationTokenDAO;
@@ -73,6 +78,26 @@ public class ClarinVerificationTokenServiceImpl implements ClarinVerificationTok
     @Override
     public ClarinVerificationToken findByNetID(Context context, String netID) throws SQLException {
         return clarinVerificationTokenDAO.findByNetID(context, netID);
+    }
+
+    @Override
+    public ClarinVerificationToken findByNetID(Context context, String[] netIdHeaders, ShibHeaders shibHeaders)
+            throws SQLException {
+        for (String netidHeader : netIdHeaders) {
+            String netID = shibHeaders.get_single(netidHeader);
+            ClarinVerificationToken clarinVerificationToken = clarinVerificationTokenDAO.findByNetID(context, netID);
+            if (Objects.nonNull(clarinVerificationToken)) {
+                return clarinVerificationToken;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String generateToken() {
+        byte[] bytes = new byte[TOKEN_BYTES];
+        RANDOM.nextBytes(bytes);
+        return Utils.toHex(bytes);
     }
 
     @Override

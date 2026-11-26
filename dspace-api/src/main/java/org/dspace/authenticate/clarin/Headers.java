@@ -82,9 +82,10 @@ public class Headers {
         for (String line : shibHeaders.split("\n")) {
             String key = " ";
             try {
-                String key_value[] = line.split("=");
+                String key_value[] = line.split("=", 2);
                 key = key_value[0].trim();
-                headers_.put(key, List.of(key_value[1]));
+                // Stored by ShibHeaders.toString(): values separated by the header separator, escaped inside values.
+                headers_.put(key, header2values(key_value[1]));
             } catch (Exception ignore) {
                 //
             }
