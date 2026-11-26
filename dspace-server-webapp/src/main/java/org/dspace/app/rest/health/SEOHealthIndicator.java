@@ -9,6 +9,8 @@ package org.dspace.app.rest.health;
 
 import static org.dspace.app.rest.configuration.ActuatorConfiguration.UP_WITH_ISSUES_STATUS;
 
+import java.net.URI;
+
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +52,7 @@ public class SEOHealthIndicator extends AbstractHealthIndicator {
         String baseUrl = configurationService.getProperty("dspace.ui.url");
 
         boolean sitemapOk = checkUrl(baseUrl + "/sitemap_index.xml") || checkUrl(baseUrl + "/sitemap_index.html");
-        RobotsTxtStatus robotsTxtStatus = checkRobotsTxt(baseUrl + "/robots.txt");
+        RobotsTxtStatus robotsTxtStatus = checkRobotsTxt(getSiteRoot(baseUrl) + "/robots.txt");
         boolean ssrOk = checkSSR(baseUrl);
 
         if (sitemapOk && robotsTxtStatus == RobotsTxtStatus.VALID && ssrOk) {
@@ -71,6 +73,14 @@ public class SEOHealthIndicator extends AbstractHealthIndicator {
             }
             builder.withDetail(SSR, ssrOk ? OK : SSR_DISABLED);
         }
+    }
+
+    /**
+     * Crawlers read robots.txt only from the root of the site, also when the UI runs under a path like /repository.
+     */
+    private String getSiteRoot(String url) {
+        URI uri = URI.create(url);
+        return uri.getScheme() + "://" + uri.getRawAuthority();
     }
 
     private boolean checkUrl(String url) {

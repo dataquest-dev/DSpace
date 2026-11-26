@@ -70,6 +70,23 @@ public class SEOHealthIndicatorTest {
     }
 
     @Test
+    public void testRobotsTxtIsReadFromSiteRootWhenUiRunsUnderPath() {
+        String uiUrl = BASE_URL + "/repository";
+        when(configurationService.getProperty("dspace.ui.url")).thenReturn(uiUrl);
+        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+            .thenReturn(ResponseEntity.ok("<sitemap/>"));
+        when(restTemplate.getForObject(eq(BASE_URL + "/robots.txt"), eq(String.class)))
+            .thenReturn("User-agent: *\nSitemap: " + uiUrl + "/sitemap_index.xml");
+        when(restTemplate.getForObject(eq(uiUrl), eq(String.class)))
+            .thenReturn("<html><body>Rendered content</body></html>");
+
+        Health health = seoHealthIndicator.health();
+
+        assertThat(health.getStatus(), is(Status.UP));
+        assertThat(health.getDetails().get(SEOHealthIndicator.ROBOTS_TXT), is(SEOHealthIndicator.OK));
+    }
+
+    @Test
     public void testWithSeoChecksFailingReportsUpWithIssues() {
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
             .thenThrow(new RestClientException("connection refused"));
