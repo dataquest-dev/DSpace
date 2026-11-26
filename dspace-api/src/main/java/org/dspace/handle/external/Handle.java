@@ -87,8 +87,10 @@ public class Handle {
         if (isNotBlank(splits[7])) {
             this.query = splits[7];
         }
-        if (isNotBlank(splits[TOKEN_INDEX])) {
-            this.token = splits[TOKEN_INDEX];
+        // same check as hideToken: in an incomplete magic URL the last part is the target url, not a token
+        String[] complete = splitMagicUrl(magicURL);
+        if (Objects.nonNull(complete) && isNotBlank(complete[TOKEN_INDEX])) {
+            this.token = complete[TOKEN_INDEX];
         }
         this.subprefix = handle.split("/",2)[1].split("-",2)[0];
     }
@@ -124,13 +126,14 @@ public class Handle {
     }
 
     private static String[] splitMagicUrl(String url) {
-        if (isBlank(url) || !url.contains(MAGIC_BEAN)) {
+        // as HandlePlugin: only a url that starts with the marker is a magic URL
+        if (isBlank(url) || !url.startsWith(MAGIC_BEAN)) {
             return null;
         }
         String[] splits = url.split(MAGIC_BEAN, MAGIC_URL_PARTS);
         if (splits.length != MAGIC_URL_PARTS) {
             // the url is not logged, it may contain the token
-            log.warn("Magic URL has {} parts instead of {}, it is used unchanged.", splits.length, MAGIC_URL_PARTS);
+            log.warn("Magic URL has {} parts instead of {}, it has no token.", splits.length, MAGIC_URL_PARTS);
             return null;
         }
         return splits;

@@ -327,6 +327,8 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
         patchUrlAndCheckToken(handle, handle.getUrl().replace("token0", "adminToken"), "adminToken");
 
         allowAnyUrl();
+        // a new token from the admin is how the old one is withdrawn
+        updateHandleIsNotFound(handle.getHandle(), "token0");
         updateHandle(null, Map.of("handle", handle.getHandle(), "token", "adminToken", "url", TEST_URL));
     }
 
@@ -353,11 +355,41 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
                 .andExpect(status().isOk());
 
         allowAnyUrl();
-        Map<String, String> update = Map.of("handle", handle.getHandle(), "token", "token0", "url", TEST_URL);
-        getClient().perform(put("/api/services/handles")
-                .content(mapper.writeValueAsBytes(update))
-                .contentType(contentType))
-                .andExpect(status().isNotFound());
+        updateHandleIsNotFound(handle.getHandle(), "token0");
+        Assert.assertNull("A missing token must not match an empty token slot",
+                handleClarinService.findByHandleAndMagicToken(context, handle.getHandle(), null));
+    }
+
+    @Test
+    public void updateOfHandleWithIncompleteMagicUrlIsNotFound() throws Exception {
+        // no token part: the last part is the target url, as HandlePlugin reads it
+        String targetUrl = "https://example.org/old";
+        String incompleteUrl = handlesWithMagicURLs.get(0).getUrl()
+                .replace("token0" + ExternalHandleConstants.MAGIC_BEAN + "url0", targetUrl);
+        context.turnOffAuthorisationSystem();
+        org.dspace.handle.Handle handle = ClarinHandleBuilder
+                .createHandle(context, prefix + "incomplete", incompleteUrl)
+                .build();
+        context.commit();
+        context.restoreAuthSystemState();
+
+        allowAnyUrl();
+        updateHandleIsNotFound(handle.getHandle(), targetUrl);
+    }
+
+    @Test
+    public void updateOfHandleWithMagicMarkerInsideUrlIsNotFound() throws Exception {
+        // HandlePlugin resolves this as a plain url, so it is not an external handle with a token
+        String url = TEST_URL + handlesWithMagicURLs.get(0).getUrl();
+        context.turnOffAuthorisationSystem();
+        org.dspace.handle.Handle handle = ClarinHandleBuilder
+                .createHandle(context, prefix + "inside", url)
+                .build();
+        context.commit();
+        context.restoreAuthSystemState();
+
+        allowAnyUrl();
+        updateHandleIsNotFound(handle.getHandle(), "token0");
     }
 
     @Test
@@ -457,6 +489,14 @@ public class ExternalHandleRestRepositoryIT extends AbstractControllerIntegratio
                 .andExpect(content().string(not(containsString(token))));
         Assert.assertTrue("Token should be stored in the database",
                 handleClarinService.findByHandle(context, handle.getHandle()).getUrl().contains(token));
+    }
+
+    private void updateHandleIsNotFound(String handle, String token) throws Exception {
+        Map<String, String> update = Map.of("handle", handle, "token", token, "url", TEST_URL);
+        getClient().perform(put("/api/services/handles")
+                .content(mapper.writeValueAsBytes(update))
+                .contentType(contentType))
+                .andExpect(status().isNotFound());
     }
 
     private void allowAnyUrl() {
