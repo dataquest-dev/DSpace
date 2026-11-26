@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.dspace.app.configuration.exception.ConfigFileNotAllowedException;
 import org.dspace.app.configuration.exception.ConfigFileNotFoundException;
@@ -158,15 +159,16 @@ public class ConfigFileServiceImplTest {
     public void testWriteConfigFile_CreatesBackup() throws Exception {
         String newContent = "# Updated Configuration\n";
 
+        Path backupDir = tempFolder.getRoot().toPath().resolve("var").resolve("config-backups");
+
         // Verify no backup files exist initially
-        assertEquals("Should have no backup files initially", 0,
-                    countBackupFiles(testConfigFile.getFileName().toString()));
+        assertEquals("Should have no backup files initially", 0, countBackupFiles(backupDir, testFileName));
 
         configFileService.writeConfigFile(testFileName, newContent);
 
-        // Verify backup was created
-        assertEquals("Should have created one backup file", 1,
-                    countBackupFiles(testConfigFile.getFileName().toString()));
+        // The backup goes to var/config-backups, not next to the config file
+        assertEquals("Should have created one backup file", 1, countBackupFiles(backupDir, testFileName));
+        assertEquals("Should not write into the config folder", 0, countBackupFiles(testConfigDir, testFileName));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -284,11 +286,15 @@ public class ConfigFileServiceImplTest {
     }
 
     /**
-     * Helper method to count backup files for a given config file
+     * Helper method to count backup files for a given config file in a folder
      */
-    private long countBackupFiles(String configFileName) throws IOException {
-        return Files.list(testConfigDir)
-                   .filter(p -> p.getFileName().toString().startsWith(configFileName + ".backup."))
-                   .count();
+    private long countBackupFiles(Path dir, String configFileName) throws IOException {
+        if (!Files.isDirectory(dir)) {
+            return 0;
+        }
+        try (Stream<Path> files = Files.list(dir)) {
+            return files.filter(p -> p.getFileName().toString().startsWith(configFileName + ".backup."))
+                        .count();
+        }
     }
 }

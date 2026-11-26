@@ -103,6 +103,13 @@ public class ConfigFileServiceImpl implements ConfigFileService {
         return getConfigDirectory().resolve(fileName);
     }
 
+    /**
+     * Backups go to [dspace.dir]/var/config-backups, so the config folder itself can stay read-only.
+     */
+    protected Path getBackupDirectory() {
+        return getConfigDirectory().resolveSibling("var").resolve("config-backups");
+    }
+
     @Override
     public void validateFileAccess(String fileName)
             throws ConfigFileNotFoundException, ConfigFileNotAllowedException {
@@ -202,9 +209,10 @@ public class ConfigFileServiceImpl implements ConfigFileService {
         String timestamp = String.valueOf(System.currentTimeMillis());
         String fileName = filePath.getFileName().toString();
         String backupName = fileName + ".backup." + timestamp;
-        Path backupPath = filePath.getParent().resolve(backupName);
+        Path backupPath = getBackupDirectory().resolve(backupName);
 
         try {
+            Files.createDirectories(backupPath.getParent());
             Files.copy(filePath, backupPath, StandardCopyOption.REPLACE_EXISTING);
             log.info("Configuration backup created: {} -> {}", filePath.getFileName(), backupPath.getFileName());
             return backupPath;
