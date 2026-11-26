@@ -378,6 +378,47 @@ public class BitstreamByHandleRestControllerIT extends AbstractControllerIntegra
     }
 
     @Test
+    public void downloadNonPublicBitstreamByHandleAsAuthorizedUser() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withAuthor("Test Author")
+                .build();
+
+        String bitstreamContent = "NonPublicContent";
+        Bitstream bitstream;
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            bitstream = BitstreamBuilder.createBitstream(context, item, is)
+                    .withName("non-public.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+
+        // Only the logged-in user may read the file, anonymous users may not
+        authorizeService.removeAllPolicies(context, bitstream);
+        ResourcePolicyBuilder.createResourcePolicy(context, eperson, null)
+                .withDspaceObject(bitstream)
+                .withAction(Constants.READ)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String handle = item.getHandle();
+        String[] handleParts = handle.split("/");
+
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token).perform(
+                get(ENDPOINT_BASE + "/" + handleParts[0] + "/" + handleParts[1] + "/non-public.txt"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(bitstreamContent));
+    }
+
+    @Test
     public void downloadBitstreamFromNonOriginalBundle() throws Exception {
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
