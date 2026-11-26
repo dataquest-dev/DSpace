@@ -206,6 +206,13 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
                 .withTitle("Licensed item")
                 .withAuthor(AUTHOR)
                 .build();
+        // an open file first, so the check has to cover every file, not only the first one
+        try (InputStream is = IOUtils.toInputStream("OpenContent", CharEncoding.UTF_8)) {
+            BitstreamBuilder.createBitstream(context, licensedItem, is)
+                    .withName("open.txt")
+                    .withMimeType("text/plain")
+                    .build();
+        }
         Bitstream licensedBitstream;
         try (InputStream is = IOUtils.toInputStream("LicensedContent", CharEncoding.UTF_8)) {
             licensedBitstream = BitstreamBuilder.createBitstream(context, licensedItem, is)
