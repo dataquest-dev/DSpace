@@ -8,6 +8,7 @@
 package org.dspace.app.rest.security.jwt;
 
 import java.io.IOException;
+import java.net.URI;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Iterator;
@@ -33,6 +34,7 @@ import org.dspace.content.service.clarin.ClarinTokenService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -69,6 +71,9 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
 
     @Autowired
     ClarinTokenService clarinTokenService;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Lazy
     @Autowired
@@ -180,7 +185,8 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
     public void invalidateAuthenticationCookie(HttpServletRequest request, HttpServletResponse response) {
         // Re-send the same cookie (as addTokenToResponse()) with no value and a Max-Age of 0 seconds
         ResponseCookie cookie = ResponseCookie.from(AUTHORIZATION_COOKIE, "")
-                                              .maxAge(0).httpOnly(true).secure(true).sameSite("None").build();
+                                              .maxAge(0).httpOnly(true).secure(true).sameSite("None")
+                                              .path(getAuthorizationCookiePath()).build();
 
         // Write the cookie to the Set-Cookie header in order to send it
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -265,7 +271,7 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
                                                   .httpOnly(true)
                                                   .secure(true)
                                                   .sameSite("None")
-                                                  .path("/server/api/authn")
+                                                  .path(getAuthorizationCookiePath())
                                                   .build();
 
             // Write the cookie to the Set-Cookie header in order to send it
@@ -310,6 +316,17 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
         }
 
         return tokenValue;
+    }
+
+    /**
+     * Path of the temporary authorization cookie: /api/authn under the path of dspace.server.url.
+     * The login callbacks and the UI use that public URL, so the browser sends the cookie back to /login
+     * even when the REST API runs under another path than /server (e.g. /repository/server).
+     * @return cookie path
+     */
+    private String getAuthorizationCookiePath() {
+        String serverPath = URI.create(configurationService.getProperty("dspace.server.url")).getRawPath();
+        return StringUtils.removeEnd(serverPath, "/") + "/api/authn";
     }
 
     /**
