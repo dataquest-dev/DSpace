@@ -7,6 +7,8 @@
  */
 package org.dspace.app.oai;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -202,6 +204,52 @@ public class CmdiDownloadLinkIT extends AbstractControllerIntegrationTest {
         getClient().perform(get(URI.create(relativePath)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(BITSTREAM_CONTENT));
+    }
+
+    @Test
+    public void cmdiResourceRefPutsUnsafeFilenameInQueryParameter() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .build();
+        Item item = ItemBuilder.createItem(context, collection)
+                .withTitle("CMDI Quote In Filename Test Item")
+                .withIssueDate("2023-01-01")
+                .build();
+        for (String name : List.of("plain file.txt", "file \"quoted\".txt")) {
+            try (InputStream is = IOUtils.toInputStream(BITSTREAM_CONTENT, StandardCharsets.UTF_8)) {
+                BitstreamBuilder.createBitstream(context, item, is)
+                        .withName(name)
+                        .withMimeType("text/plain")
+                        .build();
+            }
+        }
+        context.restoreAuthSystemState();
+        solrOAIReindexer.reindexItem(item);
+
+        String response = getClient().perform(get("/oai/request")
+                        .param("verb", "GetRecord")
+                        .param("metadataPrefix", "cmdi")
+                        .param("identifier", DSpaceItem.buildIdentifier(item.getHandle())))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // A proxy that rewrites the path decodes %22 to a bare quote, which Tomcat answers with 400.
+        // Names without such characters keep the path form.
+        String serverUrl = configurationService.getProperty("dspace.server.url");
+        String base = serverUrl + "/api/core/bitstreams/handle/" + item.getHandle();
+        String plainRef = base + "/plain%20file.txt";
+        String quotedRef = base + "?filename=file%20%22quoted%22.txt";
+        assertThat(extractResourceProxyRefs(response), containsInAnyOrder(plainRef, quotedRef));
+
+        for (String ref : List.of(plainRef, quotedRef)) {
+            getClient().perform(get(URI.create(ref.substring(serverUrl.length()))))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(BITSTREAM_CONTENT));
+        }
     }
 
     /**
