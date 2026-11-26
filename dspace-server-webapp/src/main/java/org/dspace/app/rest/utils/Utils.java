@@ -29,6 +29,8 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1050,5 +1052,20 @@ public class Utils {
         } finally {
             context.restoreAuthSystemState();
         }
+    }
+
+    /**
+     * Function to encode only non-ASCII characters
+     */
+    public static String encodeNonAsciiCharacters(String input) {
+        StringBuilder result = new StringBuilder();
+        for (char ch : input.toCharArray()) {
+            if (!StringUtils.isAsciiPrintable(String.valueOf(ch))) { // Use Apache Commons method
+                result.append(URLEncoder.encode(String.valueOf(ch), StandardCharsets.UTF_8));
+            } else {
+                result.append(ch); // Leave ASCII characters intact
+            }
+        }
+        return result.toString();
     }
 }
