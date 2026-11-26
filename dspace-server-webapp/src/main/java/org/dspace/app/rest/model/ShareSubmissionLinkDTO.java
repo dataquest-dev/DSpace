@@ -17,6 +17,8 @@ public class ShareSubmissionLinkDTO {
 
     private String shareLink;
 
+    private boolean emailSent;
+
     public ShareSubmissionLinkDTO() { }
 
     public String getShareLink() {
@@ -25,5 +27,13 @@ public class ShareSubmissionLinkDTO {
 
     public void setShareLink(String shareLink) {
         this.shareLink = shareLink;
+    }
+
+    public boolean isEmailSent() {
+        return emailSent;
+    }
+
+    public void setEmailSent(boolean emailSent) {
+        this.emailSent = emailSent;
     }
 }

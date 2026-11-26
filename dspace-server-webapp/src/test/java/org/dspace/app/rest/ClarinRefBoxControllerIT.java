@@ -147,6 +147,13 @@ public class ClarinRefBoxControllerIT extends AbstractControllerIntegrationTest 
     }
 
     @Test
+    public void featuredServicesListIsNotImplemented() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/featuredservices"))
+                .andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
     public void testReturnAllRefboxInfoForItemWithFeaturedService() throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
         String handle = itemWithFS.getHandle();

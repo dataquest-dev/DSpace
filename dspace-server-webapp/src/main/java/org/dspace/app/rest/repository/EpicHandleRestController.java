@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
@@ -30,6 +31,7 @@ import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.core.Context;
 import org.dspace.handle.service.EpicHandleService;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -61,6 +63,8 @@ public class EpicHandleRestController extends DSpaceRestRepository<EpicHandleRes
     private EpicHandleService epicHandleService;
     @Autowired
     private Utils utils;
+    @Autowired
+    private ConfigurationService configurationService;
 
     // v9: DSpaceRestRepository.findOne no longer carries a base-class @PreAuthorize; without one here
     // the converter's security evaluation gets a null expression and every conversion 400s.
@@ -84,6 +88,7 @@ public class EpicHandleRestController extends DSpaceRestRepository<EpicHandleRes
     @RequestMapping(method = RequestMethod.POST, path = "{prefix}")
     public ResponseEntity<EpicHandleResource> createHandle(@PathVariable String prefix, HttpServletRequest request)
             throws IOException, URISyntaxException {
+        checkPidServiceConfigured();
         if (prefix == null || prefix.isEmpty()) {
             throw new DSpaceBadRequestException("Epic handle prefix cannot be empty string");
         }
@@ -106,6 +111,7 @@ public class EpicHandleRestController extends DSpaceRestRepository<EpicHandleRes
     public ResponseEntity<?> updateHandle(@PathVariable String prefix,
                                           @PathVariable String suffix,
                                           HttpServletRequest request) throws IOException, URISyntaxException {
+        checkPidServiceConfigured();
         if (prefix == null || prefix.isEmpty()) {
             throw new DSpaceBadRequestException("Epic handle prefix cannot be empty string");
         }
@@ -133,6 +139,7 @@ public class EpicHandleRestController extends DSpaceRestRepository<EpicHandleRes
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method = RequestMethod.GET, path = "{prefix}/{suffix}")
     public EpicHandleResource getHandle(@PathVariable String prefix, @PathVariable String suffix) throws IOException {
+        checkPidServiceConfigured();
         if (prefix == null || prefix.isEmpty()) {
             throw new DSpaceBadRequestException("Epic handle prefix cannot be empty string");
         }
@@ -154,6 +161,7 @@ public class EpicHandleRestController extends DSpaceRestRepository<EpicHandleRes
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method = RequestMethod.GET, path = "{prefix}")
     public Page<EpicHandleResource> search(@PathVariable String prefix, HttpServletRequest request) throws IOException {
+        checkPidServiceConfigured();
         if (prefix == null || prefix.isEmpty()) {
             throw new DSpaceBadRequestException("Epic handle prefix cannot be empty string");
         }
@@ -215,6 +223,7 @@ public class EpicHandleRestController extends DSpaceRestRepository<EpicHandleRes
     @RequestMapping(method = RequestMethod.DELETE, path = "{prefix}/{suffix}")
     public ResponseEntity<?> deleteHandle(@PathVariable String prefix, @PathVariable String suffix)
             throws IOException {
+        checkPidServiceConfigured();
         if (prefix == null || prefix.isEmpty()) {
             throw new DSpaceBadRequestException("Epic handle prefix cannot be empty string");
         }
@@ -226,6 +235,18 @@ public class EpicHandleRestController extends DSpaceRestRepository<EpicHandleRes
             return ResponseEntity.noContent().build();
         } catch (WebApplicationException ex) {
             throw toDSpaceException(ex);
+        }
+    }
+
+    /**
+     * Without these properties every ePIC call fails, so answer with a message the admin page can show.
+     */
+    private void checkPidServiceConfigured() {
+        if (StringUtils.isAnyBlank(configurationService.getProperty("lr.pid.service.url"),
+                configurationService.getProperty("lr.pid.service.user"),
+                configurationService.getProperty("lr.pid.service.pass"))) {
+            throw new ResourceNotFoundException("The ePIC PID service is not configured. Set " +
+                    "lr.pid.service.url, lr.pid.service.user and lr.pid.service.pass in the DSpace configuration.");
         }
     }
 

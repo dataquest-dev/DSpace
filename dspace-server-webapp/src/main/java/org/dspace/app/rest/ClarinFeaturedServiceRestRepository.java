@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest;
 
+import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.model.ClarinFeaturedServiceRest;
 import org.dspace.app.rest.repository.DSpaceRestRepository;
 import org.dspace.core.Context;
@@ -32,7 +33,8 @@ public class ClarinFeaturedServiceRestRepository extends DSpaceRestRepository<Cl
     @Override
     @PreAuthorize("hasAuthority('ADMIN')")
     public Page<ClarinFeaturedServiceRest> findAll(Context context, Pageable pageable) {
-        return null;
+        // Featured services come from the configuration, per item, via /api/core/refbox/services.
+        throw new RepositoryMethodNotImplementedException(ClarinFeaturedServiceRest.NAME, "findAll");
     }
 
     @Override

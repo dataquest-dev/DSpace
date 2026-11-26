@@ -110,11 +110,21 @@
 	
 	<!-- List only the data files (ORIGINAL bundle); the download endpoint below serves nothing else -->
 	<xsl:template name="ProcessBitstreams">
+	   <!-- A proxy that rewrites the path (the /repository/ deployment) decodes it, and Tomcat or Spring then refuse
+	        these characters, so such a file name goes in the query string, which is passed as is -->
+	   <xsl:variable name="unsafeInPath">"%/;&lt;>[\]^`{|}</xsl:variable>
 	   <xsl:for-each select="/doc:metadata/doc:element[@name='bundles']/doc:element[@name='bundle']/doc:field[@name='name' and text()='ORIGINAL']/../doc:element[@name='bitstreams']/doc:element[@name='bitstream']">
+	       <xsl:variable name="name" select="./doc:field[@name='name']/text()"/>
+	       <xsl:variable name="separator">
+	           <xsl:choose>
+	               <xsl:when test="translate($name, $unsafeInPath, '') != $name">?filename=</xsl:when>
+	               <xsl:otherwise>/</xsl:otherwise>
+	           </xsl:choose>
+	       </xsl:variable>
 	       <cmd:ResourceProxy>
 	                   <xsl:attribute name="id">_<xsl:value-of select="./doc:field[@name='id']/text()"/></xsl:attribute>
                        <cmd:ResourceType><xsl:attribute name="mimetype"><xsl:value-of select="./doc:field[@name='format']/text()"/></xsl:attribute>Resource</cmd:ResourceType>
-			   <cmd:ResourceRef><xsl:attribute name="lindat:md5_checksum"><xsl:value-of select="./doc:field[@name='checksum']/text()"/></xsl:attribute><xsl:value-of select="concat($serverURL,'/api/core/bitstreams/handle/',$handle,'/',fnx:encode-for-uri(./doc:field[@name='name']/text()))"/></cmd:ResourceRef>
+			   <cmd:ResourceRef><xsl:attribute name="lindat:md5_checksum"><xsl:value-of select="./doc:field[@name='checksum']/text()"/></xsl:attribute><xsl:value-of select="concat($serverURL,'/api/core/bitstreams/handle/',$handle,$separator,fnx:encode-for-uri($name))"/></cmd:ResourceRef>
            </cmd:ResourceProxy>
 	   </xsl:for-each>
 	</xsl:template>

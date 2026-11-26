@@ -223,26 +223,14 @@ public class BitstreamByHandleRestController {
                 return;
             }
 
-            // Stream the bitstream content. The context must remain open because
-            // bitstreamService.retrieve() needs an active DB connection / assetstore session.
-            Context downloadContext = null;
-            boolean downloadContextCompleted = false;
-            try {
-                downloadContext = new Context();
-                try (InputStream is = bitstreamService.retrieve(downloadContext, bitstream)) {
-                    byte[] buffer = new byte[BUFFER_SIZE];
-                    int bytesRead;
-                    while ((bytesRead = is.read(buffer)) != -1) {
-                        response.getOutputStream().write(buffer, 0, bytesRead);
-                    }
-                    response.getOutputStream().flush();
+            // Stream with the request context: retrieve() checks READ again, so it needs the current user.
+            try (InputStream is = bitstreamService.retrieve(context, bitstream)) {
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    response.getOutputStream().write(buffer, 0, bytesRead);
                 }
-                downloadContext.complete();
-                downloadContextCompleted = true;
-            } finally {
-                if (downloadContext != null && !downloadContextCompleted) {
-                    downloadContext.abort();
-                }
+                response.getOutputStream().flush();
             }
             // Close DB connection after streaming is complete
             context.complete();
