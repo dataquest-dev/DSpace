@@ -15,7 +15,6 @@ import java.util.UUID;
 
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
@@ -119,17 +118,17 @@ public class SubmissionController {
             throw new DSpaceBadRequestException(errorMessage);
         }
 
+        // Compose the url with the share token. The user will be redirected to the UI.
+        String shareLink = configurationService.getProperty("dspace.ui.url") +
+                "/share-submission/change-submitter?share_token=" + wsi.getShareToken() +
+                "&workspaceitemid=" + wsi.getID();
         // Send email to submitter with share link
-        String shareLink = sendShareLinkEmail(context, wsi, currentUser);
-        if (StringUtils.isEmpty(shareLink)) {
-            String errorMessage = "The share link is empty.";
-            log.error(errorMessage);
-            throw new RuntimeException(errorMessage);
-        }
+        boolean emailSent = sendShareLinkEmail(context, shareLink, currentUser);
 
         // Create a DTO with the share link for better processing in the FE
         ShareSubmissionLinkDTO shareSubmissionLinkDTO = new ShareSubmissionLinkDTO();
         shareSubmissionLinkDTO.setShareLink(shareLink);
+        shareSubmissionLinkDTO.setEmailSent(emailSent);
 
         // Send share link in response
         return ResponseEntity.ok().body(shareSubmissionLinkDTO);
@@ -225,26 +224,23 @@ public class SubmissionController {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 32);
     }
 
-    private String sendShareLinkEmail(Context context, WorkspaceItem wsi, EPerson currentUser) {
-        // Get the UI URL from the configuration
-        String uiUrl = configurationService.getProperty("dspace.ui.url");
-        // Get submitter email
-        String email = currentUser.getEmail();
-        // Compose the url with the share token. The user will be redirected to the UI.
-        String shareTokenUrl = uiUrl + "/share-submission/change-submitter?share_token=" + wsi.getShareToken() +
-                "&workspaceitemid=" + wsi.getID();
+    /**
+     * Send the share link to the current user. A failure is only logged: the link works without the email.
+     *
+     * @return true if the email was sent
+     */
+    private boolean sendShareLinkEmail(Context context, String shareLink, EPerson currentUser) {
         try {
             Locale locale = context.getCurrentLocale();
             Email bean = Email.getEmail(I18nUtil.getEmailFilename(locale, "share_submission"));
-            bean.addArgument(shareTokenUrl);
-            bean.addRecipient(email);
+            bean.addArgument(shareLink);
+            bean.addRecipient(currentUser.getEmail());
             bean.send();
+            return !configurationService.getBooleanProperty("mail.server.disabled", false);
         } catch (MessagingException | IOException e) {
-            String errorMessage = "Unable send the email because: " + e.getMessage();
-            log.error(errorMessage);
-            throw new RuntimeException(errorMessage);
+            log.error("Unable to send the share link email: {}", e.getMessage(), e);
+            return false;
         }
-        return shareTokenUrl;
     }
 
     /**

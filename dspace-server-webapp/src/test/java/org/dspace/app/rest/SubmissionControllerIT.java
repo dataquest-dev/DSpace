@@ -9,6 +9,7 @@ package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
@@ -52,6 +53,9 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.email.EmailServiceImpl;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +76,8 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
     private GroupService groupService;
     @Autowired
     private AuthorizeService authorizeService;
+    @Autowired
+    private ConfigurationService configurationService;
 
     WorkspaceItem wsi;
 
@@ -117,6 +123,8 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.shareLink", is(notNullValue())))
+                // Mail is disabled in the test configuration, so nothing was sent.
+                .andExpect(jsonPath("$.emailSent", is(false)))
                 .andDo(result -> shareLink.set(read(result.getResponse().getContentAsString(), "$.shareLink")));
 
         // Check that the share token was set on the WorkspaceItem and persisted into the database
@@ -139,6 +147,30 @@ public class SubmissionControllerIT extends AbstractControllerIntegrationTest {
         updatedWsi = workspaceItemService.find(context, wsi.getID());
         assertThat(updatedWsi.getSubmitter().getEmail(), is(adminUser.getEmail()));
         assertThat(updatedWsi.getSubmitter().getEmail(), not(SUBMITTER_EMAIL));
+    }
+
+    @Test
+    public void generateShareLinkWhenEmailCannotBeSent() throws Exception {
+        // Nothing listens on port 1, so sending the email fails.
+        configurationService.setProperty("mail.server.disabled", false);
+        configurationService.setProperty("mail.server.port", "1");
+        EmailServiceImpl emailService = (EmailServiceImpl) DSpaceServicesFactory.getInstance().getEmailService();
+        emailService.reset();
+        try {
+            String adminToken = getAuthToken(admin.getEmail(), password);
+            getClient(adminToken).perform(get("/api/submission/share")
+                            .param("workspaceitemid", wsi.getID().toString()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.shareLink", containsString("share_token=")))
+                    .andExpect(jsonPath("$.emailSent", is(false)));
+
+            WorkspaceItem updatedWsi = workspaceItemService.find(context, wsi.getID());
+            assertThat(updatedWsi.getShareToken(), is(notNullValue()));
+        } finally {
+            configurationService.setProperty("mail.server.disabled", true);
+            configurationService.setProperty("mail.server.port", null);
+            emailService.reset();
+        }
     }
 
     @Test
