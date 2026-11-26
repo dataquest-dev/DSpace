@@ -358,17 +358,23 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     }
 
     /**
-     * The temporary auth cookie and its removal carry the /api/authn path under the real context path,
-     * otherwise a browser never sends the cookie back when the REST API runs behind a path prefix.
+     * The temporary auth cookie and its removal carry /api/authn under the path of dspace.server.url, also when
+     * the servlet context path differs from it (a proxy in front of the REST API). Otherwise a browser never
+     * sends the cookie back to /login.
      */
     @Test
-    public void testShibAuthCookiePathFollowsContextPath() throws Exception {
+    public void testShibAuthCookiePathFollowsServerUrl() throws Exception {
         setAuthenticationMethodSequence(SHIB_ONLY);
 
-        String uiURL = configurationService.getProperty("dspace.ui.url");
-        String contextPath = "/repository/server";
+        assertShibAuthCookiePath("https://dspace.example.com/server", "", "/server/api/authn");
+        assertShibAuthCookiePath("https://dspace.example.com/repository/server", "/server",
+                "/repository/server/api/authn");
+    }
 
-        // The temporary auth cookie is scoped to /api/authn under the context path the browser sees.
+    private void assertShibAuthCookiePath(String serverUrl, String contextPath, String cookiePath) throws Exception {
+        configurationService.setProperty("dspace.server.url", serverUrl);
+        String uiURL = configurationService.getProperty("dspace.ui.url");
+
         Cookie authCookie = getClient().perform(get(contextPath + "/api/authn/shibboleth")
                 .contextPath(contextPath)
                 .header("Referer", "https://myshib.example.com")
@@ -377,7 +383,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .requestAttr("SHIB-SCOPED-AFFILIATION", "faculty;staff"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(cookie().exists(AUTHORIZATION_COOKIE))
-                .andExpect(cookie().path(AUTHORIZATION_COOKIE, contextPath + "/api/authn"))
+                .andExpect(cookie().path(AUTHORIZATION_COOKIE, cookiePath))
                 .andReturn().getResponse().getCookie(AUTHORIZATION_COOKIE);
 
         // /login destroys the cookie with the same path, otherwise the browser would keep the old one.
@@ -389,7 +395,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .andExpect(status().isOk())
                 .andExpect(cookie().value(AUTHORIZATION_COOKIE, ""))
                 .andExpect(cookie().maxAge(AUTHORIZATION_COOKIE, 0))
-                .andExpect(cookie().path(AUTHORIZATION_COOKIE, contextPath + "/api/authn"))
+                .andExpect(cookie().path(AUTHORIZATION_COOKIE, cookiePath))
                 .andExpect(header().exists(AUTHORIZATION_HEADER));
     }
 
