@@ -8,6 +8,8 @@
 package org.dspace.app.itemimport;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -257,6 +259,19 @@ public class ItemImportCLIIT extends AbstractIntegrationTestWithDatabase {
         // confirm that TEMP_DIR still exists
         File workTempDir = new File(workDir + File.separator + TEMP_DIR);
         assertTrue(workTempDir.exists());
+    }
+
+    @Test
+    public void importItemByZipSafOutsideSourceDir() throws Exception {
+        // the zip lies next to the source dir, so "-z ../saf.zip" points outside of it
+        Files.copy(getClass().getResourceAsStream("saf-bitstreams.zip"),
+                Path.of(tempDir.toString() + "/" + ZIP_NAME));
+        Path sourceDir = Files.createDirectory(Path.of(tempDir.toString() + "/source"));
+
+        String[] args = new String[] { "import", "-a", "-e", admin.getEmail(), "-c", collection.getID().toString(),
+                "-s", sourceDir.toString(), "-z", "../" + ZIP_NAME, "-m", tempDir.toString() + "/mapfile.out" };
+        assertThrows(Exception.class, () -> perfomImportScript(args));
+        assertFalse(itemService.findByMetadataField(context, "dc", "title", null, publicationTitle).hasNext());
     }
 
     @Test
