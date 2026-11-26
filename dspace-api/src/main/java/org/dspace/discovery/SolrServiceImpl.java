@@ -30,11 +30,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.util.UUID;
-<<<<<<< HEAD
-import javax.mail.MessagingException;
-=======
 import java.util.regex.Pattern;
->>>>>>> 5515f6941b (Make four ReDoS-prone regular expressions linear)
+import javax.mail.MessagingException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -117,19 +114,17 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     // facet by indexing "each word to end of value' partial value
     public static final String SOLR_FIELD_SUFFIX_FACET_PREFIXES = "_prefix";
 
-<<<<<<< HEAD
     // Suffix of the solr field used to index the facet/filter so that the facet search can search all word in a
     // facet.
     private static final String SOLR_FACET_FIELD_ALL_VALUES_SUFFIX = "_filter";
 
     // List of all facets which will return facet value with splitter.
     private ArrayList<String> allValuesFacetList = new ArrayList<>();
-=======
+
     /**
      * The characters that "." in a regular expression never matches.
      */
     private static final Pattern LINE_TERMINATOR = Pattern.compile("[\\n\\r\\u0085\\u2028\\u2029]");
->>>>>>> 5515f6941b (Make four ReDoS-prone regular expressions linear)
 
     @Autowired
     protected ContentServiceFactory contentServiceFactory;
