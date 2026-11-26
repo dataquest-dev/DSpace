@@ -43,6 +43,7 @@ import org.dspace.builder.ClarinUserRegistrationBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.ResourcePolicyBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
@@ -53,6 +54,7 @@ import org.dspace.content.clarin.ClarinUserRegistration;
 import org.dspace.content.service.clarin.ClarinLicenseLabelService;
 import org.dspace.content.service.clarin.ClarinLicenseResourceMappingService;
 import org.dspace.content.service.clarin.ClarinLicenseService;
+import org.dspace.core.Constants;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
@@ -510,8 +512,8 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
     }
 
     /**
-     * PUT /api/core/items/{uuid}/bundles?licenseID= moves every ORIGINAL bitstream to the license and writes
-     * the dc.rights metadata of the item; an unknown id (-1) only detaches.
+     * PUT /api/core/items/{uuid}/bundles?licenseID= moves every ORIGINAL bitstream from its license to the new one
+     * and writes the dc.rights metadata of the item; an unknown id (-1) only detaches.
      */
     @Test
     public void updateLicenseForBundleAttachesAndDetachesLicense() throws Exception {
@@ -529,10 +531,14 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
         String itemUri = "/api/core/items/" + item.getID();
 
-        // attach the license to every bitstream of the ORIGINAL bundle and to the item metadata
+        // a valid license replaces the current one on every bitstream of the ORIGINAL bundle and in the metadata
+        getClient(tokenAdmin).perform(put(itemUri + "/bundles")
+                        .param("licenseID", String.valueOf(secondCLicense.getID())))
+                .andExpect(status().isOk());
         getClient(tokenAdmin).perform(put(itemUri + "/bundles")
                         .param("licenseID", String.valueOf(firstCLicense.getID())))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type", is("item")))
                 .andExpect(jsonPath("$.id", is(item.getID().toString())));
         getClient(tokenAdmin).perform(get(itemUri))
                 .andExpect(status().isOk())
@@ -562,10 +568,16 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
     }
 
     /**
-     * The license PUT needs ADD on the item: 403 for a plain user, 401 for an anonymous call.
+     * The license PUT needs ADD on the item: 403 for a user with only WRITE, 401 for an anonymous call.
      */
     @Test
     public void updateLicenseForBundleNeedsAddRightsOnItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+        ResourcePolicyBuilder.createResourcePolicy(context, eperson, null)
+                .withDspaceObject(publicItem2)
+                .withAction(Constants.WRITE)
+                .build();
+        context.restoreAuthSystemState();
         String tokenEPerson = getAuthToken(eperson.getEmail(), password);
         getClient(tokenEPerson).perform(put("/api/core/items/" + publicItem2.getID() + "/bundles")
                 .param("licenseID", String.valueOf(firstCLicense.getID())))
