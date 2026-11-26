@@ -9,7 +9,9 @@
 package org.dspace.app.requestitem;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.mail.MessagingException;
 
@@ -156,6 +158,7 @@ public class RequestItemEmailNotifier {
         email.setSubject(subject);
         email.addRecipient(ri.getReqEmail());
         // Attach bitstreams.
+        List<InputStream> bitstreamInputStreams = new ArrayList<>();
         try {
             if (ri.isAccept_request()) {
                 if (ri.isAllfiles()) {
@@ -167,17 +170,20 @@ public class RequestItemEmailNotifier {
                             if (!bitstream.getFormat(context).isInternal() &&
                                     requestItemService.isRestricted(context,
                                     bitstream)) {
-                                email.addAttachment(bitstreamService.retrieve(context,
-                                        bitstream), bitstream.getName(),
+                                InputStream is = bitstreamService.retrieve(context, bitstream);
+                                email.addAttachment(is, bitstream.getName(),
                                         bitstream.getFormat(context).getMIMEType());
+                                bitstreamInputStreams.add(is);
                             }
                         }
                     }
                 } else {
                     Bitstream bitstream = ri.getBitstream();
-                    email.addAttachment(bitstreamService.retrieve(context, bitstream),
+                    InputStream is = bitstreamService.retrieve(context, bitstream);
+                    email.addAttachment(is,
                             bitstream.getName(),
                             bitstream.getFormat(context).getMIMEType());
+                    bitstreamInputStreams.add(is);
                 }
                 email.send();
             } else {
@@ -193,6 +199,10 @@ public class RequestItemEmailNotifier {
             LOG.warn(LogHelper.getHeader(context,
                     "error_mailing_requestItem", e.getMessage()));
             throw new IOException("Reply not sent:  " + e.getMessage());
+        } finally {
+            for (InputStream bitstreamInputStream : bitstreamInputStreams) {
+                bitstreamInputStream.close();
+            }
         }
         LOG.info(LogHelper.getHeader(context,
                 "sent_attach_requestItem", "token={}"), ri.getToken());
