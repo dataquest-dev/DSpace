@@ -39,6 +39,7 @@ import org.dspace.profile.OrcidSynchronizationMode;
 public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     private boolean withdrawn = false;
+    private boolean inArchive = false;
     private String handle = null;
     private WorkspaceItem workspaceItem;
     private Item item;
@@ -291,7 +292,22 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return this;
     }
 
+<<<<<<< HEAD
     public ItemBuilder withEmbargoPeriod(String embargoPeriod) {
+=======
+    public ItemBuilder inArchive() {
+        inArchive = true;
+        return this;
+    }
+
+    /**
+     * Set an embargo to end after some time from "now".
+     *
+     * @param embargoPeriod embargo starting "now", for this long.
+     * @return the ItemBuilder.
+     */
+    public ItemBuilder withEmbargoPeriod(Period embargoPeriod) {
+>>>>>>> ddeebfff17 (restrict bitstreams in internal bundles on a configurable restricted list)
         return setEmbargo(embargoPeriod, item);
     }
 
@@ -386,6 +402,9 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
             if (withdrawn) {
                 itemService.withdraw(context, item);
+            }
+            if (inArchive) {
+                item.setArchived(inArchive);
             }
 
             context.dispatchEvents();

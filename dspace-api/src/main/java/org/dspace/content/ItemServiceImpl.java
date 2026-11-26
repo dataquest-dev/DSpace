@@ -172,6 +172,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     @Autowired(required = true)
     private ResearcherProfileService researcherProfileService;
+
     @Autowired(required = true)
     private RequestItemService requestItemService;
 
@@ -488,9 +489,24 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             return;
         }
 
+<<<<<<< HEAD
         // now add authorization policies from owning item
         // hmm, not very "multiple-inclusion" friendly
         authorizeService.inheritPolicies(context, item, bundle);
+=======
+        // If this item is archived (not in-progress) and the bundle is restricted
+        // simply clear all policies, otherwise proceed with normal inheritance
+        var restrictedBundles = List.of(configurationService.getArrayProperty(
+            "core.authorization.restricted-bundle",Constants.DEFAULT_RESTRICTED_BUNDLES));
+        if (item.isArchived() && restrictedBundles.contains(bundle.getName())) {
+            resourcePolicyService.removeAllPolicies(context, bundle);
+        } else {
+            // inherit as normal
+            // TODO: does the following comment still apply? misleading?
+            // hmm, not very "multiple-inclusion" friendly
+            authorizeService.inheritPolicies(context, item, bundle, true);
+        }
+>>>>>>> ddeebfff17 (restrict bitstreams in internal bundles on a configurable restricted list)
 
         // Add the bundle to in-memory list
         item.addBundle(bundle);
@@ -1023,6 +1039,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     public void adjustBundleBitstreamPolicies(Context context, Item item, Collection collection,
                                               boolean replaceReadRPWithCollectionRP)
         throws SQLException, AuthorizeException {
+        // Only inherit policies for the new bundle if it is not in
+        // the restricted list. Otherwise, clear all policies (enforce admin only)
+        var restrictedBundles = List.of(configurationService.getArrayProperty(
+            "core.authorization.restricted-bundle",Constants.DEFAULT_RESTRICTED_BUNDLES));
+
         // Bundles should inherit from DEFAULT_ITEM_READ so that if the item is readable, the files
         // can be listed (even if they are themselves not readable as per DEFAULT_BITSTREAM_READ or other
         // policies or embargos applied
@@ -1050,6 +1071,16 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         // Remove bundles
         List<Bundle> bunds = item.getBundles();
         for (Bundle mybundle : bunds) {
+            // If the bundle is restricted (e.g. LICENSE, TEXT, SWORD) simply
+            // remove all policies and continue to the next bundle
+            boolean restrictedBundle = restrictedBundles.contains(mybundle.getName());
+            if (restrictedBundle) {
+                authorizeService.removeAllPolicies(context, mybundle);
+                for (Bitstream bitstream : mybundle.getBitstreams()) {
+                    authorizeService.removeAllPolicies(context, bitstream);
+                }
+                continue;
+            }
             // If collection has default READ policies, remove the bundle's READ policies.
             if (removeCurrentReadRPBundle) {
                 authorizeService.removePoliciesActionFilter(context, mybundle, Constants.READ);
