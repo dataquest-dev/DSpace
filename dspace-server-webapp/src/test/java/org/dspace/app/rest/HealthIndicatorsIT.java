@@ -71,4 +71,15 @@ public class HealthIndicatorsIT extends AbstractControllerIntegrationTest {
                 )));
 
     }
+
+    @Test
+    public void testLdapIndicatorIsOff() throws Exception {
+
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token).perform(get(HEALTH_PATH))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.components.ldap").doesNotExist());
+
+    }
 }

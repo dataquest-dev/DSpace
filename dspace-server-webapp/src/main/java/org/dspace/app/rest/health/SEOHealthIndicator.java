@@ -7,9 +7,13 @@
  */
 package org.dspace.app.rest.health;
 
+import static org.dspace.app.rest.configuration.ActuatorConfiguration.UP_WITH_ISSUES_STATUS;
+
+import java.net.URI;
+
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.web.client.RestTemplate;
@@ -22,42 +26,61 @@ import org.springframework.web.client.RestTemplate;
  */
 public class SEOHealthIndicator extends AbstractHealthIndicator {
 
-    ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    public static final String SITEMAP = "sitemap";
+    public static final String ROBOTS_TXT = "robots.txt";
+    public static final String SSR = "ssr";
+    public static final String OK = "OK";
+    public static final String SITEMAP_MISSING = "Sitemaps are missing or inaccessible. Please see the " +
+        "DSpace Documentation on Search Engine Optimization for how to enable " +
+        "Sitemaps.";
+    public static final String ROBOTS_MISSING = "Missing or inaccessible. Please see the DSpace Documentation on " +
+        "Search Engine Optimization for how to create a robots.txt.";
+    public static final String ROBOTS_INVALID = "Invalid because it contains localhost URLs. This is often a sign " +
+        "that a proxy is failing to pass X-Forwarded headers to DSpace. Please see the DSpace " +
+        "Documentation on Search Engine Optimization for how to pass X-Forwarded headers.";
+    public static final String SSR_DISABLED = "Server-side rendering (SSR) appears to be disabled.  Most " +
+        "search engines require enabling SSR for proper indexing. Please see the DSpace Documentation on" +
+        " Search Engine Optimization for more details.";
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private ConfigurationService configurationService;
+
+    private RestTemplate restTemplate = new RestTemplate();
 
     @Override
     protected void doHealthCheck(Health.Builder builder) {
         String baseUrl = configurationService.getProperty("dspace.ui.url");
 
         boolean sitemapOk = checkUrl(baseUrl + "/sitemap_index.xml") || checkUrl(baseUrl + "/sitemap_index.html");
-        RobotsTxtStatus robotsTxtStatus = checkRobotsTxt(baseUrl + "/robots.txt");
+        RobotsTxtStatus robotsTxtStatus = checkRobotsTxt(baseUrl);
         boolean ssrOk = checkSSR(baseUrl);
 
         if (sitemapOk && robotsTxtStatus == RobotsTxtStatus.VALID && ssrOk) {
             builder.up()
-                   .withDetail("sitemap", "OK")
-                   .withDetail("robots.txt", "OK")
-                   .withDetail("ssr", "OK");
+                   .withDetail(SITEMAP, OK)
+                   .withDetail(ROBOTS_TXT, OK)
+                   .withDetail(SSR, OK);
         } else {
-            builder.down();
-            builder.withDetail("sitemap", sitemapOk ? "OK" : "Sitemaps are missing or inaccessible. Please see the " +
-                    "DSpace Documentation on Search Engine Optimization for how to enable Sitemaps.");
+            builder.status(UP_WITH_ISSUES_STATUS)
+                   .withDetail(SITEMAP, sitemapOk ? OK : SITEMAP_MISSING);
 
             if (robotsTxtStatus == RobotsTxtStatus.MISSING) {
-                builder.withDetail("robots.txt", "Missing or inaccessible. Please see the DSpace Documentation on " +
-                        "Search Engine Optimization for how to create a robots.txt.");
+                builder.withDetail(ROBOTS_TXT, ROBOTS_MISSING);
             } else if (robotsTxtStatus == RobotsTxtStatus.INVALID) {
-                builder.withDetail("robots.txt", "Invalid because it contains localhost URLs. This is often a sign " +
-                        "that a proxy is failing to pass X-Forwarded headers to DSpace. Please see the DSpace " +
-                        "Documentation on Search Engine Optimization for how to pass X-Forwarded headers.");
+                builder.withDetail(ROBOTS_TXT, ROBOTS_INVALID);
             } else {
-                builder.withDetail("robots.txt", "OK");
+                builder.withDetail(ROBOTS_TXT, OK);
             }
-            builder.withDetail("ssr", ssrOk ? "OK" : "Server-side rendering (SSR) appears to be disabled.  Most " +
-                    "search engines require enabling SSR for proper indexing. Please see the DSpace Documentation on" +
-                    " Search Engine Optimization for more details.");
+            builder.withDetail(SSR, ssrOk ? OK : SSR_DISABLED);
         }
+    }
+
+    /**
+     * Crawlers read robots.txt only from the root of the site, also when the UI runs under a path like /repository.
+     */
+    private String getSiteRoot(String url) {
+        URI uri = URI.create(url);
+        return uri.getScheme() + "://" + uri.getRawAuthority();
     }
 
     private boolean checkUrl(String url) {
@@ -69,10 +92,11 @@ public class SEOHealthIndicator extends AbstractHealthIndicator {
         }
     }
 
-    private RobotsTxtStatus checkRobotsTxt(String url) {
+    private RobotsTxtStatus checkRobotsTxt(String baseUrl) {
         try {
-            String content = restTemplate.getForObject(url, String.class);
-            if (StringUtils.isBlank(content)) {
+            String content = restTemplate.getForObject(getSiteRoot(baseUrl) + "/robots.txt", String.class);
+            // An HTML page here comes from a catch-all route of the site, not from a real robots.txt.
+            if (StringUtils.isBlank(content) || content.stripLeading().startsWith("<")) {
                 return RobotsTxtStatus.MISSING;
             }
             if (content.contains("localhost")) {

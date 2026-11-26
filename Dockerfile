@@ -48,6 +48,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 # Run necessary 'ant' deploy scripts
 RUN ant init_installation update_configs update_code update_webapps
+# A new named volume takes the owner of the folder it is mounted on, so create the volume folders ant does not create.
+RUN mkdir -p /dspace/assetstore /dspace/sitemaps
 
 # Step 3 - Start up DSpace via Runnable JAR
 FROM docker.io/eclipse-temurin:${JDK_VERSION}
@@ -55,17 +57,20 @@ FROM docker.io/eclipse-temurin:${JDK_VERSION}
 # See https://github.com/DSpace/DSpace/blob/main/dspace/config/config-definition.xml
 # "dspace__P__dir" is setting the value of the "dspace.dir" configuration. This is our installation directory.
 ENV dspace__P__dir=/dspace
+# Run DSpace as 'dspace', not root. UID 1100 is the same as in the 7.x image.
+RUN useradd -u 1100 -m -s /bin/bash dspace
 # Copy the /dspace directory from 'ant_build' container to /dspace in this container
-COPY --from=ant_build /dspace $dspace__P__dir
+COPY --chown=dspace:dspace --from=ant_build /dspace $dspace__P__dir
 WORKDIR $dspace__P__dir
 # Need host command for "[dspace]/bin/make-handle-config"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends host \
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
-# Expose Tomcat port (8080) & Handle Server HTTP port (8000)
-EXPOSE 8080 8000
+# Expose Tomcat port (8080) & Handle Server HTTP port (8010)
+EXPOSE 8080 8010
 # Give java extra memory (2GB)
 ENV JAVA_OPTS=-Xmx2000m
+USER dspace
 # On startup, run DSpace Runnable JAR (uses the "dspace.dir" setting defined in "dspace__P__dir" env variable)
 ENTRYPOINT ["java", "-jar", "webapps/server-boot.jar"]
