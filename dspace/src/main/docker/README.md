@@ -126,6 +126,10 @@ with `mod_shib` & Shibboleth installed based on the
 It is primarily for usage for testing DSpace's Shibboleth integration.
 It uses https://samltest.id/ as the Shibboleth IDP
 
+The SP key pair (`sp-key.pem`, `sp-cert.pem`) is created when a container starts for the first time,
+so each container has its own. To keep a fixed key, mount both files into `/etc/shibboleth/`.
+Apache's self-signed `ssl-cert-snakeoil` certificate is also created at the first start.
+
 **This image is built manually.**   It should be rebuilt as needed.
 
 ```
