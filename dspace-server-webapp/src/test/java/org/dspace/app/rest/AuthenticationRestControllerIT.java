@@ -372,6 +372,8 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
             assertShibAuthCookiePath("https://dspace.example.com/server/", "", "/server/api/authn");
             assertShibAuthCookiePath("https://dspace.example.com/repository/server", "/server",
                     "/repository/server/api/authn");
+            assertShibAuthCookiePath("https://dspace.example.com/caf%C3%A9/server", "/server",
+                    "/caf%C3%A9/server/api/authn");
         } finally {
             configurationService.setProperty("dspace.server.url", serverUrl);
         }
