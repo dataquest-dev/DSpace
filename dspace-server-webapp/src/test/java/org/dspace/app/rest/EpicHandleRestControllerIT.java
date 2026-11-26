@@ -14,6 +14,7 @@ import static org.dspace.handle.EpicHandleServiceTest.getResource;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -25,11 +26,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.net.Authenticator;
+
 import jakarta.ws.rs.core.Response;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.handle.EpicHandleRestHelper;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
@@ -47,13 +51,23 @@ public class EpicHandleRestControllerIT extends AbstractControllerIntegrationTes
     private String adminToken;
     private String nonAdminToken;
     private String pidServiceUrl;
+    private ConfigurationService configurationService;
 
     @Before
     public void setup() throws Exception {
         adminToken = getAuthToken(admin.getEmail(), password);
         nonAdminToken = getAuthToken(eperson.getEmail(), password);
-        ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         pidServiceUrl = configurationService.getProperty("lr.pid.service.url");
+        // The endpoints refuse to work without credentials; the ePIC calls themselves are mocked.
+        configurationService.setProperty("lr.pid.service.user", "test-user");
+        configurationService.setProperty("lr.pid.service.pass", "test-pass");
+    }
+
+    @After
+    public void resetAuthenticator() {
+        // With credentials set, the service registers a JVM-wide Authenticator.
+        Authenticator.setDefault(null);
     }
 
     @Test
@@ -177,6 +191,23 @@ public class EpicHandleRestControllerIT extends AbstractControllerIntegrationTes
                     .andExpect(jsonPath("$.numberOfElements", is(3)))
                     .andExpect(jsonPath("$.totalPages", is(1)))
                     .andExpect(jsonPath("$.content", hasSize(3)));
+        }
+    }
+
+    @Test
+    public void testSearchHandlesWithoutCredentials() throws Exception {
+        configurationService.setProperty("lr.pid.service.user", null);
+        configurationService.setProperty("lr.pid.service.pass", null);
+        try (MockedStatic<EpicHandleRestHelper> mockedHelper = Mockito.mockStatic(EpicHandleRestHelper.class)) {
+            // Without credentials the ePIC service refuses every request.
+            mockedHelper.when(() -> EpicHandleRestHelper.countHandles(pidServiceUrl, PREFIX, "*"))
+                    .thenReturn(Response.status(Response.Status.UNAUTHORIZED).build());
+            mockedHelper.when(() -> EpicHandleRestHelper.searchHandles(pidServiceUrl, PREFIX, "*", 1, 10))
+                    .thenReturn(Response.status(Response.Status.UNAUTHORIZED).build());
+            getClient(adminToken).perform(get(PREFIX_URL + "?page=0&size=10&runCountSynchronously=true"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(status().reason(containsString("lr.pid.service.user")));
+            mockedHelper.verifyNoInteractions();
         }
     }
 
