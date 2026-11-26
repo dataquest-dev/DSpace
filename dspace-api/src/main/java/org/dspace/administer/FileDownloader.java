@@ -9,17 +9,23 @@ package org.dspace.administer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
@@ -41,6 +47,7 @@ import org.dspace.identifier.factory.IdentifierServiceFactory;
 import org.dspace.identifier.service.IdentifierService;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.scripts.configuration.ScriptConfiguration;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +56,9 @@ import org.slf4j.LoggerFactory;
 public class FileDownloader extends DSpaceRunnable<FileDownloaderConfiguration> {
 
     private static final Logger log = LoggerFactory.getLogger(FileDownloader.class);
+    private static final String ALLOWED_INTERNAL_HOSTS = "file-downloader.allowed-internal-hosts";
+    private static final int MAX_REDIRECTS = 5;
+    private static final Set<Integer> REDIRECT_CODES = Set.of(301, 302, 303, 307, 308);
     private boolean help = false;
     private UUID itemUUID;
     private int workspaceID;
@@ -63,7 +73,7 @@ public class FileDownloader extends DSpaceRunnable<FileDownloaderConfiguration> 
     private BitstreamService bitstreamService;
     private BitstreamFormatService bitstreamFormatService;
     private final HttpClient httpClient = HttpClient.newBuilder()
-                                              .followRedirects(HttpClient.Redirect.NORMAL)
+                                              .followRedirects(HttpClient.Redirect.NEVER)
                                               .build();
 
     /**
@@ -155,11 +165,7 @@ public class FileDownloader extends DSpaceRunnable<FileDownloaderConfiguration> 
             throw new IllegalArgumentException("No item found for the given ID");
         }
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri)
-                .build();
-
-        HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        HttpResponse<InputStream> response = download(uri);
 
         if (response.statusCode() >= 400) {
             throw new IllegalArgumentException("The provided URL returned a status code of " + response.statusCode());
@@ -180,6 +186,82 @@ public class FileDownloader extends DSpaceRunnable<FileDownloaderConfiguration> 
         }
 
         context.commit();
+    }
+
+    /**
+     * GET the URL. Redirects are followed here, not by the client, so that every hop is checked first.
+     */
+    private HttpResponse<InputStream> download(URI target) throws IOException, InterruptedException {
+        URI current = target;
+        for (int hop = 0; hop <= MAX_REDIRECTS; hop++) {
+            checkNotInternal(current);
+            HttpResponse<InputStream> response = httpClient.send(HttpRequest.newBuilder().uri(current).build(),
+                    HttpResponse.BodyHandlers.ofInputStream());
+            Optional<String> location = response.headers().firstValue("Location");
+            if (!REDIRECT_CODES.contains(response.statusCode()) || location.isEmpty()) {
+                return response;
+            }
+            response.body().close();
+            URI next = current.resolve(location.get());
+            if ("https".equalsIgnoreCase(current.getScheme()) && !"https".equalsIgnoreCase(next.getScheme())) {
+                throw new IllegalArgumentException("Redirect from https to " + next + " is not allowed");
+            }
+            current = next;
+        }
+        throw new IllegalArgumentException("Too many redirects for " + target);
+    }
+
+    /**
+     * Refuse a URL whose host resolves to an internal address, unless the host is listed in
+     * file-downloader.allowed-internal-hosts.
+     */
+    private void checkNotInternal(URI target) throws UnknownHostException {
+        String host = target.getHost();
+        if (StringUtils.isBlank(host)) {
+            throw new IllegalArgumentException("The URL has no host: " + target);
+        }
+        for (String allowed : DSpaceServicesFactory.getInstance().getConfigurationService()
+                .getArrayProperty(ALLOWED_INTERNAL_HOSTS)) {
+            if (allowed.equalsIgnoreCase(host)) {
+                return;
+            }
+        }
+        for (InetAddress address : InetAddress.getAllByName(host)) {
+            if (isInternal(address)) {
+                throw new IllegalArgumentException("Downloading from an internal address is not allowed: "
+                        + target);
+            }
+        }
+    }
+
+    /**
+     * True for loopback, private, link-local, multicast, CGNAT, 0.0.0.0/8 and IPv6 unique local addresses.
+     * An IPv4-mapped IPv6 address (::ffff:a.b.c.d) is judged by its IPv4 part.
+     */
+    static boolean isInternal(InetAddress address) throws UnknownHostException {
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress() || address.isMulticastAddress()) {
+            return true;
+        }
+        byte[] raw = address.getAddress();
+        int first = raw[0] & 0xff;
+        if (raw.length == 4) {
+            int second = raw[1] & 0xff;
+            return first == 0 || (first == 100 && second >= 64 && second < 128);
+        }
+        if (isIpv4Mapped(raw)) {
+            return isInternal(InetAddress.getByAddress(Arrays.copyOfRange(raw, 12, 16)));
+        }
+        return (first & 0xfe) == 0xfc;
+    }
+
+    private static boolean isIpv4Mapped(byte[] raw) {
+        for (int i = 0; i < 10; i++) {
+            if (raw[i] != 0) {
+                return false;
+            }
+        }
+        return (raw[10] & 0xff) == 0xff && (raw[11] & 0xff) == 0xff;
     }
 
     private Item findItem(Context context) throws SQLException {
