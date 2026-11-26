@@ -74,7 +74,9 @@ public class BitstreamResource extends AbstractResource {
                 this.file = citedDocument.getLeft();
             } catch (Exception e) {
                 // Return the original bitstream without the cover page
-                this.file = IOUtils.toByteArray(bitstreamService.retrieve(context, bitstream));
+                try (InputStream inputStream = bitstreamService.retrieve(context, bitstream)) {
+                    this.file = IOUtils.toByteArray(inputStream);
+                }
             }
         }
         return file;
