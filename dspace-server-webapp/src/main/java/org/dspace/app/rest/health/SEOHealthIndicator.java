@@ -52,7 +52,7 @@ public class SEOHealthIndicator extends AbstractHealthIndicator {
         String baseUrl = configurationService.getProperty("dspace.ui.url");
 
         boolean sitemapOk = checkUrl(baseUrl + "/sitemap_index.xml") || checkUrl(baseUrl + "/sitemap_index.html");
-        RobotsTxtStatus robotsTxtStatus = checkRobotsTxt(getSiteRoot(baseUrl) + "/robots.txt");
+        RobotsTxtStatus robotsTxtStatus = checkRobotsTxt(baseUrl);
         boolean ssrOk = checkSSR(baseUrl);
 
         if (sitemapOk && robotsTxtStatus == RobotsTxtStatus.VALID && ssrOk) {
@@ -92,10 +92,11 @@ public class SEOHealthIndicator extends AbstractHealthIndicator {
         }
     }
 
-    private RobotsTxtStatus checkRobotsTxt(String url) {
+    private RobotsTxtStatus checkRobotsTxt(String baseUrl) {
         try {
-            String content = restTemplate.getForObject(url, String.class);
-            if (StringUtils.isBlank(content)) {
+            String content = restTemplate.getForObject(getSiteRoot(baseUrl) + "/robots.txt", String.class);
+            // An HTML page here comes from a catch-all route of the site, not from a real robots.txt.
+            if (StringUtils.isBlank(content) || content.stripLeading().startsWith("<")) {
                 return RobotsTxtStatus.MISSING;
             }
             if (content.contains("localhost")) {

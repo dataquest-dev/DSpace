@@ -87,6 +87,31 @@ public class SEOHealthIndicatorTest {
     }
 
     @Test
+    public void testWithHtmlPageAsRobotsTxtReportsUpWithIssues() {
+        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+            .thenReturn(ResponseEntity.ok("<sitemap/>"));
+        when(restTemplate.getForObject(eq(BASE_URL + "/robots.txt"), eq(String.class)))
+            .thenReturn("<!DOCTYPE html><html><body>Page not found</body></html>");
+        when(restTemplate.getForObject(eq(BASE_URL), eq(String.class)))
+            .thenReturn("<html><body>Rendered content</body></html>");
+
+        Health health = seoHealthIndicator.health();
+
+        assertThat(health.getStatus(), is(ActuatorConfiguration.UP_WITH_ISSUES_STATUS));
+        assertThat(health.getDetails().get(SEOHealthIndicator.ROBOTS_TXT), is(SEOHealthIndicator.ROBOTS_MISSING));
+    }
+
+    @Test
+    public void testWithoutUiUrlReportsUpWithIssues() {
+        when(configurationService.getProperty("dspace.ui.url")).thenReturn(null);
+
+        Health health = seoHealthIndicator.health();
+
+        assertThat(health.getStatus(), is(ActuatorConfiguration.UP_WITH_ISSUES_STATUS));
+        assertThat(health.getDetails().get(SEOHealthIndicator.ROBOTS_TXT), is(SEOHealthIndicator.ROBOTS_MISSING));
+    }
+
+    @Test
     public void testWithSeoChecksFailingReportsUpWithIssues() {
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
             .thenThrow(new RestClientException("connection refused"));
