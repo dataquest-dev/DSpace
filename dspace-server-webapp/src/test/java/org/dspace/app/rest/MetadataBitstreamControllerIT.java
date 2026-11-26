@@ -55,6 +55,7 @@ import org.dspace.eperson.EPerson;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.support.ErrorPageFilter;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -68,8 +69,6 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
 
     private Item publicItem;
     private Bitstream bts;
-    /** Carries a CLARIN licence that has to be agreed to; detached again in {@link #destroy()}. */
-    private Bitstream licensedBitstream;
 
     @Autowired
     AuthorizeService authorizeService;
@@ -107,19 +106,6 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
                     .build();
         }
         context.restoreAuthSystemState();
-    }
-
-    /**
-     * The resource mapping is not part of the builder cleanup and has to go before the licence it points at.
-     */
-    @Override
-    public void destroy() throws Exception {
-        if (licensedBitstream != null) {
-            context.turnOffAuthorisationSystem();
-            clarinLicenseResourceMappingService.detachLicenses(context, licensedBitstream);
-            context.restoreAuthSystemState();
-        }
-        super.destroy();
     }
 
     @Test
@@ -220,6 +206,7 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
                 .withTitle("Licensed item")
                 .withAuthor(AUTHOR)
                 .build();
+        Bitstream licensedBitstream;
         try (InputStream is = IOUtils.toInputStream("LicensedContent", CharEncoding.UTF_8)) {
             licensedBitstream = BitstreamBuilder.createBitstream(context, licensedItem, is)
                     .withName("licensed.txt")
@@ -269,7 +256,10 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
                 .build();
     }
 
-    /** Remembers whether the response got a content type or an output stream, as the zip download does first. */
+    /**
+     * Remembers whether the response got a Content-Disposition, a content type or an output stream, as the zip
+     * download does first.
+     */
     private static final class ZipResponseRecorder implements Filter {
         private boolean zipStarted;
 
@@ -277,6 +267,25 @@ public class MetadataBitstreamControllerIT extends AbstractControllerIntegration
         public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
                 throws IOException, ServletException {
             chain.doFilter(request, new HttpServletResponseWrapper((HttpServletResponse) response) {
+                @Override
+                public void setHeader(String name, String value) {
+                    recordContentDisposition(name, value);
+                    super.setHeader(name, value);
+                }
+
+                @Override
+                public void addHeader(String name, String value) {
+                    recordContentDisposition(name, value);
+                    super.addHeader(name, value);
+                }
+
+                // A null value only clears the header, as DispatcherServlet does before it handles an error.
+                private void recordContentDisposition(String name, String value) {
+                    if (HttpHeaders.CONTENT_DISPOSITION.equalsIgnoreCase(name) && value != null) {
+                        zipStarted = true;
+                    }
+                }
+
                 @Override
                 public void setContentType(String type) {
                     zipStarted = true;
