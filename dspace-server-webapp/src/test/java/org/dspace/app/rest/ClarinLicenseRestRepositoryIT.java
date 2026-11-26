@@ -518,34 +518,47 @@ public class ClarinLicenseRestRepositoryIT extends AbstractControllerIntegration
         context.turnOffAuthorisationSystem();
         Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Bundle col").build();
         Item item = ItemBuilder.createItem(context, col).withTitle("Item without license").build();
-        Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))
-                .withName("file.txt")
-                .build();
+        List<Bitstream> bitstreams = List.of(
+                BitstreamBuilder.createBitstream(context, item, toInputStream("test", UTF_8))
+                        .withName("file.txt")
+                        .build(),
+                BitstreamBuilder.createBitstream(context, item, toInputStream("test 2", UTF_8))
+                        .withName("file2.txt")
+                        .build());
         context.restoreAuthSystemState();
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        String bundlesUri = "/api/core/items/" + item.getID() + "/bundles";
+        String itemUri = "/api/core/items/" + item.getID();
 
         // attach the license to every bitstream of the ORIGINAL bundle and to the item metadata
-        getClient(tokenAdmin).perform(put(bundlesUri).param("licenseID", String.valueOf(firstCLicense.getID())))
+        getClient(tokenAdmin).perform(put(itemUri + "/bundles")
+                        .param("licenseID", String.valueOf(firstCLicense.getID())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(item.getID().toString())))
+                .andExpect(jsonPath("$.id", is(item.getID().toString())));
+        getClient(tokenAdmin).perform(get(itemUri))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.metadata['dc.rights'][0].value", is(firstCLicense.getName())))
                 .andExpect(jsonPath("$.metadata['dc.rights.uri'][0].value", is(firstCLicense.getDefinition())))
                 .andExpect(jsonPath("$.metadata['dc.rights.label'][0].value",
                         is(firstCLicense.getNonExtendedClarinLicenseLabel().getLabel())));
-        List<ClarinLicenseResourceMapping> mappings =
-                clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID());
-        Assert.assertEquals(1, mappings.size());
-        Assert.assertEquals(firstCLicense.getID(), mappings.get(0).getLicense().getID());
+        for (Bitstream bitstream : bitstreams) {
+            List<ClarinLicenseResourceMapping> mappings =
+                    clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID());
+            Assert.assertEquals(1, mappings.size());
+            Assert.assertEquals(firstCLicense.getID(), mappings.get(0).getLicense().getID());
+        }
 
         // an unknown license id only detaches the current license
-        getClient(tokenAdmin).perform(put(bundlesUri).param("licenseID", "-1"))
+        getClient(tokenAdmin).perform(put(itemUri + "/bundles").param("licenseID", "-1"))
+                .andExpect(status().isOk());
+        getClient(tokenAdmin).perform(get(itemUri))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.metadata['dc.rights']").doesNotExist())
                 .andExpect(jsonPath("$.metadata['dc.rights.uri']").doesNotExist())
                 .andExpect(jsonPath("$.metadata['dc.rights.label']").doesNotExist());
-        Assert.assertTrue(clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID())
-                .isEmpty());
+        for (Bitstream bitstream : bitstreams) {
+            Assert.assertTrue(clarinLicenseResourceMappingService.findByBitstreamUUID(context, bitstream.getID())
+                    .isEmpty());
+        }
     }
 
     /**

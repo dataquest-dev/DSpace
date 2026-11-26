@@ -71,15 +71,16 @@ public class CreateAdministratorIT extends AbstractIntegrationTestWithDatabase {
     }
 
     /**
-     * Without -o the registration gets the unknown organization.
+     * Without -o the registration gets the unknown organization, and -c still sets the language.
      */
     @Test
     public void missingOrganizationOptionFallsBackToUnknown() throws Exception {
-        CreateAdministrator.main(new String[] {"-e", EMAIL, "-f", "First", "-l", "Last", "-c", "en",
+        CreateAdministrator.main(new String[] {"-e", EMAIL, "-f", "First", "-l", "Last", "-c", "cs",
             "-p", password});
 
         context.turnOffAuthorisationSystem();
         EPerson created = ePersonService.findByEmail(context, EMAIL);
+        assertEquals("cs", created.getLanguage());
         List<ClarinUserRegistration> registrations =
                 clarinUserRegistrationService.findByEPersonUUID(context, created.getID());
         assertEquals(1, registrations.size());
