@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -193,6 +194,10 @@ public class ClarinUserMetadataRestRepositoryIT extends AbstractControllerIntegr
                 clarinUserRegistration.getID() + "&bitstreamUUID=" + bitstream.getID();
 
         getClient().perform(get(search))
+                .andExpect(status().isUnauthorized());
+        // a search that matches nothing is refused too
+        getClient().perform(get("/api/core/clarinusermetadatas/search/byUserRegistrationAndBitstream?userRegUUID=" +
+                        clarinUserRegistration.getID() + "&bitstreamUUID=" + UUID.randomUUID()))
                 .andExpect(status().isUnauthorized());
 
         String userToken = getAuthToken(eperson.getEmail(), password);

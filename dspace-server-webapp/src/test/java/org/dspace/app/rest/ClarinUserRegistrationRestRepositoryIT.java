@@ -135,6 +135,10 @@ public class ClarinUserRegistrationRestRepositoryIT extends AbstractControllerIn
 
         getClient().perform(get(search))
                 .andExpect(status().isUnauthorized());
+        // a search that matches nothing is refused too
+        getClient().perform(get("/api/core/clarinuserregistrations/search/byEPerson?userUUID=" +
+                        otherEPerson.getID()))
+                .andExpect(status().isUnauthorized());
 
         String userToken = getAuthToken(eperson.getEmail(), password);
         getClient(userToken).perform(get(search))

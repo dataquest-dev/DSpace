@@ -150,6 +150,10 @@ public class ClarinLicenseResourceUserAllowanceRestRepositoryIT extends Abstract
 
         getClient().perform(get(search))
                 .andExpect(status().isUnauthorized());
+        // a search that matches nothing is refused too
+        getClient().perform(get("/api/core/clarinlruallowances/search/byBitstreamAndUser?bitstreamUUID=" +
+                        bitstream.getID() + "&userUUID=" + otherEPerson.getID()))
+                .andExpect(status().isUnauthorized());
 
         String userToken = getAuthToken(eperson.getEmail(), password);
         getClient(userToken).perform(get(search))
