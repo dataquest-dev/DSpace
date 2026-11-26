@@ -22,7 +22,9 @@ import org.dspace.content.Relationship;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.event.Event;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.service.IdentifierService;
 import org.dspace.versioning.service.VersionHistoryService;
@@ -87,6 +89,11 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
                     || workflowItemService.findByItem(c, versionToDelete.getItem()) != null) {
                     item.setArchived(true);
                     itemService.update(c, item);
+                } else {
+                    // The previous version stayed archived (versioning.unarchive.previous.version = false),
+                    // but Solr still marks it as an old version, so reindex it.
+                    c.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null,
+                                         itemService.getIdentifiers(c, item)));
                 }
             }
 
