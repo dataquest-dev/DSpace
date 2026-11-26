@@ -67,8 +67,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends host \
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
-# Expose Tomcat port (8080) & Handle Server HTTP port (8000)
-EXPOSE 8080 8000
+# Expose Tomcat port (8080) & Handle Server HTTP port (8010)
+EXPOSE 8080 8010
 # Give java extra memory (2GB)
 ENV JAVA_OPTS=-Xmx2000m
 USER dspace
