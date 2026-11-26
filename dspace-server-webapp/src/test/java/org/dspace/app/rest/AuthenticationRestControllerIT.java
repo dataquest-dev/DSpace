@@ -366,9 +366,15 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     public void testShibAuthCookiePathFollowsServerUrl() throws Exception {
         setAuthenticationMethodSequence(SHIB_ONLY);
 
-        assertShibAuthCookiePath("https://dspace.example.com/server", "", "/server/api/authn");
-        assertShibAuthCookiePath("https://dspace.example.com/repository/server", "/server",
-                "/repository/server/api/authn");
+        String serverUrl = configurationService.getProperty("dspace.server.url");
+        try {
+            assertShibAuthCookiePath("https://dspace.example.com/server", "", "/server/api/authn");
+            assertShibAuthCookiePath("https://dspace.example.com/server/", "", "/server/api/authn");
+            assertShibAuthCookiePath("https://dspace.example.com/repository/server", "/server",
+                    "/repository/server/api/authn");
+        } finally {
+            configurationService.setProperty("dspace.server.url", serverUrl);
+        }
     }
 
     private void assertShibAuthCookiePath(String serverUrl, String contextPath, String cookiePath) throws Exception {

@@ -325,7 +325,8 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
      * @return cookie path
      */
     private String getAuthorizationCookiePath() {
-        return URI.create(configurationService.getProperty("dspace.server.url")).getPath() + "/api/authn";
+        String serverPath = URI.create(configurationService.getProperty("dspace.server.url")).getPath();
+        return StringUtils.removeEnd(serverPath, "/") + "/api/authn";
     }
 
     /**
